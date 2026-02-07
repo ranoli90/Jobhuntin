@@ -320,10 +320,25 @@ async def get_current_user_id(authorization: str = Header(...)) -> str:
 
     token = authorization.replace("Bearer ", "")
     try:
+        header = pyjwt.get_unverified_header(token)
+        alg = header.get("alg", "HS256")
         payload = pyjwt.decode(
-            token, s.supabase_jwt_secret, algorithms=["HS256"], audience="authenticated"
+            token, s.supabase_jwt_secret, algorithms=[alg], audience="authenticated"
         )
         user_id: str = payload["sub"]
+        return user_id
+    except Exception:
+        pass
+    # Fallback: try base64-decoded secret
+    try:
+        import base64
+        decoded_secret = base64.b64decode(s.supabase_jwt_secret)
+        header = pyjwt.get_unverified_header(token)
+        alg = header.get("alg", "HS256")
+        payload = pyjwt.decode(
+            token, decoded_secret, algorithms=[alg], audience="authenticated"
+        )
+        user_id = payload["sub"]
         return user_id
     except Exception as exc:
         raise HTTPException(status_code=401, detail=f"Invalid token: {exc}")
