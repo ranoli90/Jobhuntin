@@ -104,63 +104,67 @@ _llm_client = LLMClient(_settings)
 # ---------------------------------------------------------------------------
 
 def _mount_sub_routers() -> None:
-    """Deferred import to avoid circular deps; called after deps are defined."""
+    """Deferred import to avoid circular deps; called after deps are defined.
+
+    Uses app.dependency_overrides so that Depends() references captured at
+    route-definition time are correctly replaced at request time.
+    """
     import api.billing as billing_mod
-    billing_mod._get_pool = get_pool  # type: ignore[assignment]
-    billing_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
+    app.dependency_overrides[billing_mod._get_pool] = get_pool
+    app.dependency_overrides[billing_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(billing_mod.router)
 
     import api.admin as admin_mod
-    admin_mod._get_pool = get_pool  # type: ignore[assignment]
-    admin_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
-    admin_mod._get_admin_user_id = get_current_user_id  # type: ignore[assignment]
+    app.dependency_overrides[admin_mod._get_pool] = get_pool
+    app.dependency_overrides[admin_mod._get_tenant_ctx] = get_tenant_context
+    app.dependency_overrides[admin_mod._get_admin_user_id] = get_current_user_id
     app.include_router(admin_mod.router)
 
     import api.export as export_mod
-    export_mod._get_pool = get_pool  # type: ignore[assignment]
-    export_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
+    app.dependency_overrides[export_mod._get_pool] = get_pool
+    app.dependency_overrides[export_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(export_mod.router)
 
     import api.analytics as analytics_mod
-    analytics_mod._get_pool = get_pool  # type: ignore[assignment]
-    analytics_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
-    analytics_mod._get_admin_user_id = get_current_user_id  # type: ignore[assignment]
+    app.dependency_overrides[analytics_mod._get_pool] = get_pool
+    app.dependency_overrides[analytics_mod._get_tenant_ctx] = get_tenant_context
+    app.dependency_overrides[analytics_mod._get_admin_user_id] = get_current_user_id
     app.include_router(analytics_mod.router)
 
     import api.growth as growth_mod
-    growth_mod._get_pool = get_pool  # type: ignore[assignment]
-    growth_mod._get_user_id = get_current_user_id  # type: ignore[assignment]
-    growth_mod._get_admin_user_id = get_current_user_id  # type: ignore[assignment]
+    app.dependency_overrides[growth_mod._get_pool] = get_pool
+    app.dependency_overrides[growth_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[growth_mod._get_admin_user_id] = get_current_user_id
     app.include_router(growth_mod.router)
 
     import api.sso as sso_mod
-    sso_mod._get_pool = get_pool  # type: ignore[assignment]
-    sso_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
+    app.dependency_overrides[sso_mod._get_pool] = get_pool
+    app.dependency_overrides[sso_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(sso_mod.router)
 
     import api.bulk as bulk_mod
-    bulk_mod._get_pool = get_pool  # type: ignore[assignment]
-    bulk_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
+    app.dependency_overrides[bulk_mod._get_pool] = get_pool
+    app.dependency_overrides[bulk_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(bulk_mod.router)
 
     import api.marketplace as marketplace_mod
-    marketplace_mod._get_pool = get_pool  # type: ignore[assignment]
-    marketplace_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
+    app.dependency_overrides[marketplace_mod._get_pool] = get_pool
+    app.dependency_overrides[marketplace_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(marketplace_mod.router)
 
     import api_v2.router as api_v2_mod
-    api_v2_mod._get_pool = get_pool  # type: ignore[assignment]
+    app.dependency_overrides[api_v2_mod._get_pool] = get_pool
     app.include_router(api_v2_mod.router)
 
     from partners.university.router import router as uni_router
     import partners.university.router as uni_mod
-    uni_mod._get_pool = get_pool  # type: ignore[assignment]
-    uni_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
+    app.dependency_overrides[uni_mod._get_pool] = get_pool
+    app.dependency_overrides[uni_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(uni_router)
 
     import api.developer as dev_mod
-    dev_mod._get_pool = get_pool  # type: ignore[assignment]
-    dev_mod._get_tenant_ctx = get_tenant_context  # type: ignore[assignment]
+    app.dependency_overrides[dev_mod._get_pool] = get_pool
+    app.dependency_overrides[dev_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(dev_mod.router)
 
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
