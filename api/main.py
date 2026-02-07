@@ -305,6 +305,31 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
 
 # ---------------------------------------------------------------------------
+# JWKS cache for ES256 token verification
+# ---------------------------------------------------------------------------
+_jwks_cache: dict[str, Any] = {}  # kid -> PyJWT key object
+
+async def _get_jwk(supabase_url: str, kid: str) -> Any:
+    """Fetch the ES256 public key from Supabase JWKS, with in-memory cache."""
+    import jwt as pyjwt
+    if kid in _jwks_cache:
+        return _jwks_cache[kid]
+    import httpx
+    jwks_url = f"{supabase_url}/auth/v1/.well-known/jwks.json"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(jwks_url, timeout=10)
+        resp.raise_for_status()
+        jwks = resp.json()
+    for key_data in jwks.get("keys", []):
+        if key_data.get("kid") == kid:
+            from jwt.algorithms import ECAlgorithm
+            pub_key = ECAlgorithm.from_jwk(key_data)
+            _jwks_cache[kid] = pub_key
+            return pub_key
+    raise ValueError(f"Key {kid} not found in JWKS")
+
+
+# ---------------------------------------------------------------------------
 # Auth dependency – extract user_id from Supabase JWT
 # ---------------------------------------------------------------------------
 
@@ -322,26 +347,20 @@ async def get_current_user_id(authorization: str = Header(...)) -> str:
     try:
         header = pyjwt.get_unverified_header(token)
         alg = header.get("alg", "HS256")
-        payload = pyjwt.decode(
-            token, s.supabase_jwt_secret, algorithms=[alg], audience="authenticated"
-        )
+        kid = header.get("kid")
+        if alg == "ES256" and kid and s.supabase_url:
+            key = await _get_jwk(s.supabase_url, kid)
+            payload = pyjwt.decode(token, key, algorithms=["ES256"], audience="authenticated")
+        else:
+            payload = pyjwt.decode(
+                token, s.supabase_jwt_secret, algorithms=["HS256"], audience="authenticated"
+            )
         user_id: str = payload["sub"]
         return user_id
-    except Exception:
-        pass
-    # Fallback: try base64-decoded secret
-    try:
-        import base64
-        decoded_secret = base64.b64decode(s.supabase_jwt_secret)
-        header = pyjwt.get_unverified_header(token)
-        alg = header.get("alg", "HS256")
-        payload = pyjwt.decode(
-            token, decoded_secret, algorithms=[alg], audience="authenticated"
-        )
-        user_id = payload["sub"]
-        return user_id
-    except Exception as exc:
+    except pyjwt.PyJWTError as exc:
         raise HTTPException(status_code=401, detail=f"Invalid token: {exc}")
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail=f"Token error: {exc}")
 
 
 # ---------------------------------------------------------------------------
