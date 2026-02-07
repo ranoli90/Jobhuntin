@@ -1,0 +1,61 @@
+services:
+  # ── FastAPI Backend (API + Worker) ──────────────────────────
+  - type: web
+    name: sorce-api
+    runtime: python
+    repo: https://github.com/ranoli90/sorce
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ENV
+        value: prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sorce-db
+          property: connectionString
+      - key: SUPABASE_URL
+        value: https://zglovpfwyobbbaaocawz.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRO_PRICE_ID
+        value: price_1SyCGDFZF27VelA7tk9UQEos
+      - key: STRIPE_TEAM_BASE_PRICE_ID
+        value: price_1SyCGDFZF27VelA70XiRTwvx
+      - key: STRIPE_TEAM_SEAT_PRICE_ID
+        value: price_1SyCGEFZF27VelA70HPyVEoz
+      - key: STRIPE_ENTERPRISE_PRICE_ID
+        value: price_1SyCGDFZF27VelA7Iv7AnynR
+      - key: STRIPE_PRO_ANNUAL_PRICE_ID
+        value: price_1SyCGDFZF27VelA7km8z6pRq
+      - key: STRIPE_TEAM_ANNUAL_PRICE_ID
+        value: price_1SyCGEFZF27VelA7hBAzsH02
+      - key: STRIPE_ENTERPRISE_ANNUAL_PRICE_ID
+        value: price_1SyCGEFZF27VelA7bJNYVx8B
+      - key: API_V2_PRO_PRICE_ID
+        value: price_1SyCGEFZF27VelA7lHr9KhPh
+      - key: API_V2_METERED_PRICE_ID
+        value: price_1SyCHHFZF27VelA7G43q2L3t
+      - key: ADZUNA_APP_ID
+        value: sorce
+      - key: ADZUNA_API_KEY
+        sync: false
+      - key: WEBHOOK_SIGNING_SECRET
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: AGENT_ENABLED
+        value: "true"
+      - key: LOG_JSON
+        value: "true"
+      - key: LOG_LEVEL
+        value: INFO
+    plan: starter
+    region: ohio

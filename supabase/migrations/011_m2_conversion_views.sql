@@ -16,7 +16,7 @@ signups AS (
 ),
 onboarded AS (
     SELECT id AS user_id
-    FROM auth.users
+    FROM public.users
     WHERE onboarding_completed_at IS NOT NULL
       AND created_at >= now() - interval '30 days'
 ),
