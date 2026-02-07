@@ -183,6 +183,25 @@ def _mount_sub_routers() -> None:
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
 
+@app.post("/debug/run-migration")
+async def debug_run_migration() -> dict[str, Any]:
+    """Manually trigger migration. For debugging only."""
+    if pool is None:
+        return {"error": "No DB pool"}
+    try:
+        async with pool.acquire() as conn:
+            await _run_migrations(conn)
+        # Verify
+        async with pool.acquire() as conn:
+            tables = await conn.fetch(
+                "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY 1"
+            )
+            return {"status": "done", "public_tables": [r["tablename"] for r in tables]}
+    except Exception as e:
+        import traceback
+        return {"status": "error", "error": str(e), "trace": traceback.format_exc()[-800:]}
+
+
 @app.get("/debug/db-tables")
 async def debug_db_tables() -> dict[str, Any]:
     """Check which tables exist in the DB and test tenant provisioning."""
