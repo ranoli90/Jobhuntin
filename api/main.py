@@ -99,6 +99,7 @@ app = FastAPI(title="Sorce API", version="0.4.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://sorce-web.onrender.com",
         "https://sorce-admin.onrender.com",
         "http://localhost:5173",
         "http://localhost:3000",
