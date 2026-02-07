@@ -43,6 +43,7 @@ from shared.config import Settings, get_settings, settings_dependency
 from shared.logging_config import LogContext, setup_logging, get_logger
 from shared.metrics import incr, observe, dump as metrics_dump
 from backend.domain.models import (
+    ApplicationDetail,
     CanonicalContact,
     CanonicalEducation,
     CanonicalExperience,
@@ -292,7 +293,26 @@ async def debug_run_migration() -> dict[str, Any]:
                 except Exception as e:
                     log_lines.append(f"  FAIL: {str(e)[:120]}")
 
-        # 3. Check result
+            # 3. Add missing columns to applications (from numbered migrations)
+            alter_stmts = [
+                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS tenant_id text",
+                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS attempt_count int NOT NULL DEFAULT 0",
+                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS last_processed_at timestamptz",
+                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS blueprint_key text",
+                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS locked_by text",
+                "ALTER TABLE public.application_inputs ADD COLUMN IF NOT EXISTS resolved boolean NOT NULL DEFAULT false",
+                "ALTER TABLE public.application_inputs ADD COLUMN IF NOT EXISTS meta jsonb DEFAULT '{}'::jsonb",
+                "ALTER TABLE public.application_events ADD COLUMN IF NOT EXISTS tenant_id text",
+                "CREATE INDEX IF NOT EXISTS idx_applications_tenant ON public.applications(tenant_id)",
+                "CREATE INDEX IF NOT EXISTS idx_applications_status ON public.applications(status)",
+                "CREATE INDEX IF NOT EXISTS idx_applications_blueprint ON public.applications(blueprint_key)",
+            ]
+            for stmt in alter_stmts:
+                try:
+                    await conn.execute(stmt)
+                    log_lines.append(f"  alter: {stmt[:60]}...")
+                except Exception as e:
+                    log_lines.append(f"  alter FAIL: {str(e)[:80]}")
         tables = await conn.fetch(
             "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY 1"
         )
@@ -944,19 +964,8 @@ async def get_application_detail(
     if detail is None:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    # Serialize UUIDs and datetimes for JSON
-    def _serialize(obj: Any) -> Any:
-        if isinstance(obj, dict):
-            return {k: _serialize(v) for k, v in obj.items()}
-        if isinstance(obj, list):
-            return [_serialize(v) for v in obj]
-        if hasattr(obj, "isoformat"):
-            return obj.isoformat()
-        if isinstance(obj, uuid.UUID):
-            return str(obj)
-        return obj
-
-    return ApplicationDetailResponse(**_serialize(detail))
+    serialized = detail.to_serializable()
+    return ApplicationDetailResponse(**serialized)
 
 
 # ---------------------------------------------------------------------------

@@ -223,7 +223,7 @@ async def get_tenant_application_detail(
     if detail is None:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    serialized = _serialize(detail)
+    serialized = detail.to_serializable()
 
     # Mask PII in inputs if not unmasked
     if not unmask:

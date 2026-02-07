@@ -257,6 +257,27 @@ class ApplicationEvent(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Aggregated views
+# ---------------------------------------------------------------------------
+
+
+class ApplicationDetail(BaseModel):
+    """Typed container for application detail queries."""
+
+    application: Application
+    inputs: list[ApplicationInput] = Field(default_factory=list)
+    events: list[ApplicationEvent] = Field(default_factory=list)
+
+    def to_serializable(self) -> dict[str, Any]:
+        """Return JSON-ready dict (iso datetimes, string UUIDs)."""
+        return {
+            "application": self.application.model_dump(mode="json"),
+            "inputs": [inp.model_dump(mode="json") for inp in self.inputs],
+            "events": [evt.model_dump(mode="json") for evt in self.events],
+        }
+
+
+# ---------------------------------------------------------------------------
 # Form / LLM data structures (used by worker)
 # ---------------------------------------------------------------------------
 

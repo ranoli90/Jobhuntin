@@ -15,6 +15,7 @@ import asyncpg
 
 from backend.domain.models import (
     Application,
+    ApplicationDetail,
     ApplicationEvent,
     ApplicationInput,
     ApplicationStatus,
@@ -275,7 +276,7 @@ class ApplicationRepo:
         if app_row is None:
             return None
 
-        inputs = await conn.fetch(
+        inputs_rows = await conn.fetch(
             """
             SELECT id, selector, question, field_type, answer, meta, resolved,
                    created_at, answered_at
@@ -286,7 +287,7 @@ class ApplicationRepo:
             application_id,
         )
 
-        events = await conn.fetch(
+        events_rows = await conn.fetch(
             """
             SELECT id, event_type, payload, created_at
             FROM   public.application_events
@@ -297,11 +298,11 @@ class ApplicationRepo:
             application_id,
         )
 
-        return {
-            "application": dict(app_row),
-            "inputs": [dict(r) for r in inputs],
-            "events": [dict(r) for r in events],
-        }
+        application = Application.model_validate(dict(app_row))
+        inputs = [ApplicationInput.model_validate(dict(r)) for r in inputs_rows]
+        events = [ApplicationEvent.model_validate(dict(r)) for r in events_rows]
+
+        return ApplicationDetail(application=application, inputs=inputs, events=events)
 
 
 # ---------------------------------------------------------------------------
