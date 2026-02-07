@@ -1,5 +1,8 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { CreditCard, Receipt, Users } from "lucide-react";
 import { useBilling } from "../hooks/useBilling";
+import { pushToast } from "../lib/toast";
 import { UsageBars } from "../components/Billing/UsageBars";
 import { UpgradeCard } from "../components/Billing/UpgradeCard";
 import { Card } from "../components/ui/Card";
@@ -10,7 +13,15 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 
 export default function BillingPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { plan, status, usage, loading, error, upgrade, addSeats } = useBilling();
+
+  useEffect(() => {
+    if (searchParams.get("success") === "1") {
+      pushToast({ title: "Payment successful! Your plan is updated.", tone: "success" });
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   if (loading) {
     return (

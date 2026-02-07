@@ -1,0 +1,547 @@
+"""
+User-facing web API — endpoints consumed by the web app (not admin).
+
+  - GET  /applications           — list applications for current user
+  - POST /applications           — create application from swipe (job_id, decision)
+  - POST /applications/{id}/answer — answer a hold question (single answer)
+  - GET  /jobs                   — list jobs with optional filters
+  - GET  /profile                — current user profile + onboarding state
+  - PATCH /profile              — update profile / preferences / onboarding
+  - POST /profile/resume        — upload resume (PDF) and parse
+"""
+
+from __future__ import annotations
+
+import json
+import uuid
+from typing import Any
+
+import asyncpg
+from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile
+from pydantic import BaseModel
+
+from backend.domain.job_boards import AdzunaClient
+from backend.domain.repositories import (
+    ApplicationRepo,
+    EventRepo,
+    InputRepo,
+    JobRepo,
+    ProfileRepo,
+    db_transaction,
+)
+from backend.domain.tenant import TenantContext
+from backend.domain.quotas import check_can_create_application, QuotaExceededError
+from shared.config import get_settings
+from shared.logging_config import get_logger
+
+logger = get_logger("sorce.user")
+
+router = APIRouter(tags=["user"])
+
+
+def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+
+def _get_tenant_ctx():
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
+def _status_to_web(status: str) -> str:
+    """Map backend application_status to web status."""
+    if status in ("QUEUED", "PROCESSING"):
+        return "APPLYING"
+    if status == "REQUIRES_INPUT":
+        return "HOLD"
+    if status in ("APPLIED", "SUBMITTED", "COMPLETED", "REGISTERED"):
+        return "APPLIED"
+    return "FAILED"
+
+
+# ---------------------------------------------------------------------------
+# GET /applications
+# ---------------------------------------------------------------------------
+
+@router.get("/applications")
+async def list_applications(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> list[dict[str, Any]]:
+    """List applications for the current user; status mapped for web (HOLD, APPLYING, etc.)."""
+    async with db.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT a.id, a.status::text, a.updated_at, a.snoozed_until,
+                   j.title AS job_title, j.company
+            FROM   public.applications a
+            JOIN   public.jobs j ON j.id = a.job_id
+            WHERE  a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
+              AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
+            ORDER  BY a.updated_at DESC
+            """,
+            ctx.user_id,
+            ctx.tenant_id,
+        )
+
+    out: list[dict[str, Any]] = []
+    for r in rows:
+        hold_question = None
+        if r["status"] == "REQUIRES_INPUT":
+            # First unresolved question as hold_question
+            async with db.acquire() as conn2:
+                first = await conn2.fetchrow(
+                    """
+                    SELECT question FROM public.application_inputs
+                    WHERE  application_id = $1 AND resolved = false
+                    ORDER  BY created_at LIMIT 1
+                    """,
+                    str(r["id"]),
+                )
+                if first:
+                    hold_question = first["question"]
+
+        out.append({
+            "id": str(r["id"]),
+            "job_title": r["job_title"],
+            "company": r["company"],
+            "status": _status_to_web(r["status"]),
+            "last_activity": r["updated_at"].isoformat() if r["updated_at"] else None,
+            "hold_question": hold_question,
+        })
+    return out
+
+
+# ---------------------------------------------------------------------------
+# POST /applications (swipe: create application)
+# ---------------------------------------------------------------------------
+
+class CreateApplicationBody(BaseModel):
+    job_id: str
+    decision: str  # ACCEPT | REJECT
+
+
+@router.post("/applications")
+async def create_application(
+    body: CreateApplicationBody,
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Create an application when user swipes ACCEPT; REJECT is a no-op."""
+    if body.decision != "ACCEPT":
+        return {"status": "skipped", "decision": body.decision}
+
+    async with db.acquire() as conn:
+        job = await JobRepo.get_by_id(conn, body.job_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        try:
+            await check_can_create_application(conn, ctx.tenant_id, ctx.plan)
+        except QuotaExceededError as e:
+            raise HTTPException(status_code=402, detail=e.message)
+
+        s = get_settings()
+        blueprint_key = s.default_blueprint_key or "job-app"
+
+        from backend.domain.priority import compute_priority_score
+        priority = compute_priority_score(ctx.plan)
+
+        app_id = await conn.fetchval(
+            """
+            INSERT INTO public.applications
+                (user_id, job_id, tenant_id, blueprint_key, status, priority_score)
+            VALUES ($1, $2, $3, $4, 'QUEUED', $5)
+            ON CONFLICT (user_id, job_id) DO UPDATE SET
+                status = 'QUEUED',
+                updated_at = now()
+            RETURNING id
+            """,
+            ctx.user_id,
+            body.job_id,
+            ctx.tenant_id,
+            blueprint_key,
+            priority,
+        )
+
+    return {
+        "id": str(app_id),
+        "job_id": body.job_id,
+        "status": "QUEUED",
+        "decision": "ACCEPT",
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /applications/{application_id}/answer
+# ---------------------------------------------------------------------------
+
+class AnswerHoldBody(BaseModel):
+    answer: str
+
+
+@router.post("/applications/{application_id}/answer")
+async def answer_hold(
+    application_id: str = Path(...),
+    body: AnswerHoldBody = ...,
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Submit a single answer for a hold; applies to first unresolved input and re-queues."""
+    async with db.acquire() as conn:
+        app_row = await ApplicationRepo.get_by_id_and_user(
+            conn, application_id, ctx.user_id, tenant_id=ctx.tenant_id
+        )
+    if not app_row:
+        raise HTTPException(status_code=404, detail="Application not found")
+    if app_row["status"] != "REQUIRES_INPUT":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Application status is {app_row['status']}, expected REQUIRES_INPUT",
+        )
+
+    async with db.acquire() as conn:
+        unresolved = await InputRepo.get_unresolved(conn, application_id)
+    if not unresolved:
+        raise HTTPException(status_code=409, detail="No pending questions for this application")
+
+    # Use first unresolved input; single answer applies to it
+    first_id = str(unresolved[0]["id"])
+    answers = [{"input_id": first_id, "answer": body.answer}]
+
+    async with db_transaction(db) as conn:
+        await InputRepo.update_answers(conn, answers)
+        await EventRepo.emit(conn, application_id, "USER_ANSWERED", {"input_id": first_id, "answer": body.answer}, tenant_id=ctx.tenant_id)
+        await ApplicationRepo.update_status(conn, application_id, "QUEUED")
+        await EventRepo.emit(conn, application_id, "RETRY_SCHEDULED", {"answered_count": 1}, tenant_id=ctx.tenant_id)
+
+    return {"status": "saved", "application_id": application_id, "message": "Answer saved; application re-queued."}
+
+
+# ---------------------------------------------------------------------------
+# POST /applications/{id}/snooze
+# ---------------------------------------------------------------------------
+
+class SnoozeBody(BaseModel):
+    hours: int = 24
+
+
+@router.post("/applications/{application_id}/snooze")
+async def snooze_application(
+    application_id: str = Path(...),
+    body: SnoozeBody = SnoozeBody(),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Snooze an application for N hours."""
+    from datetime import datetime, timedelta, timezone
+    
+    until = datetime.now(timezone.utc) + timedelta(hours=body.hours)
+    
+    async with db.acquire() as conn:
+        res = await conn.execute(
+            """
+            UPDATE public.applications
+            SET    snoozed_until = $1,
+                   updated_at = now()
+            WHERE  id = $2 AND user_id = $3 AND (tenant_id = $4 OR tenant_id IS NULL)
+            """,
+            until,
+            application_id,
+            ctx.user_id,
+            ctx.tenant_id,
+        )
+        if res == "UPDATE 0":
+            raise HTTPException(status_code=404, detail="Application not found")
+
+    return {
+        "status": "snoozed",
+        "application_id": application_id,
+        "snoozed_until": until.isoformat(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /jobs
+# ---------------------------------------------------------------------------
+
+@router.get("/jobs")
+async def list_jobs(
+    location: str | None = None,
+    min_salary: int | None = None,
+    keywords: str | None = None,
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """List jobs from DB with optional filters. Returns { jobs: [...] } for web."""
+    s = get_settings()
+    adzuna = AdzunaClient(s)
+    
+    # Proactively fetch from Adzuna if we have keywords/location
+    if keywords or location:
+        adz_results = await adzuna.fetch_jobs(keywords=keywords, location=location)
+        if adz_results:
+            async with db.acquire() as conn:
+                for raw_job in adz_results:
+                    job_data = adzuna.map_to_db(raw_job)
+                    await conn.execute(
+                        """
+                        INSERT INTO public.jobs 
+                            (external_id, title, company, description, location, 
+                             salary_min, salary_max, category, application_url, source, raw_data)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                        ON CONFLICT (external_id) DO UPDATE SET
+                            title = EXCLUDED.title,
+                            company = EXCLUDED.company,
+                            description = EXCLUDED.description,
+                            location = EXCLUDED.location,
+                            salary_min = EXCLUDED.salary_min,
+                            salary_max = EXCLUDED.salary_max,
+                            application_url = EXCLUDED.application_url,
+                            raw_data = EXCLUDED.raw_data
+                        """,
+                        job_data["external_id"],
+                        job_data["title"],
+                        job_data["company"],
+                        job_data["description"],
+                        job_data["location"],
+                        job_data["salary_min"],
+                        job_data["salary_max"],
+                        job_data["category"],
+                        job_data["application_url"],
+                        job_data["source"],
+                        json.dumps(job_data["raw_data"]),
+                    )
+
+    async with db.acquire() as conn:
+        query = """
+            SELECT id, title, company, description, location,
+                   salary_min, salary_max, application_url, raw_data
+            FROM   public.jobs
+            WHERE  1=1
+        """
+        params: list[Any] = []
+        n = 0
+        if location:
+            n += 1
+            query += f" AND location ILIKE ${n}"
+            params.append(f"%{location}%")
+        if min_salary is not None:
+            n += 1
+            query += f" AND (salary_max IS NULL OR salary_max >= ${n})"
+            params.append(min_salary)
+        if keywords:
+            n += 1
+            query += f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
+            params.append(f"%{keywords}%")
+        query += " ORDER BY created_at DESC LIMIT 100"
+        rows = await conn.fetch(query, *params)
+
+    jobs = []
+    for r in rows:
+        raw = r.get("raw_data") or {}
+        if hasattr(raw, "get"):
+            logo_url = raw.get("logo_url") or raw.get("logo")
+        else:
+            logo_url = None
+        jobs.append({
+            "id": str(r["id"]),
+            "title": r["title"],
+            "company": r["company"],
+            "description": r["description"],
+            "location": r["location"],
+            "salary_min": float(r["salary_min"]) if r["salary_min"] is not None else None,
+            "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
+            "url": r["application_url"],
+            "logo_url": logo_url,
+        })
+    return {"jobs": jobs}
+
+
+# ---------------------------------------------------------------------------
+# GET /applications/export
+# ---------------------------------------------------------------------------
+
+@router.get("/applications/export")
+async def export_applications(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+):
+    """Export applications as CSV."""
+    import io
+    import csv
+    from fastapi.responses import StreamingResponse
+
+    async with db.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT a.id, a.status::text, a.updated_at,
+                   j.title AS job_title, j.company, j.location
+            FROM   public.applications a
+            JOIN   public.jobs j ON j.id = a.job_id
+            WHERE  a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
+            ORDER  BY a.updated_at DESC
+            """,
+            ctx.user_id,
+            ctx.tenant_id,
+        )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Job Title", "Company", "Location", "Status", "Last Activity"])
+    for r in rows:
+        writer.writerow([
+            str(r["id"]),
+            r["job_title"],
+            r["company"],
+            r["location"],
+            _status_to_web(r["status"]),
+            r["updated_at"].isoformat() if r["updated_at"] else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=applications.csv"}
+    )
+
+@router.get("/profile")
+async def get_profile(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Current user profile for web: id, email, has_completed_onboarding, resume_url, preferences."""
+    async with db.acquire() as conn:
+        await conn.execute(
+            """
+            INSERT INTO public.users (id, email, updated_at)
+            VALUES ($1, $2, now())
+            ON CONFLICT (id) DO UPDATE SET updated_at = now()
+            """,
+            ctx.user_id,
+            None,  # email from auth if needed
+        )
+        user_row = await conn.fetchrow(
+            "SELECT id, email, full_name FROM public.users WHERE id = $1",
+            ctx.user_id,
+        )
+        profile_row = await conn.fetchrow(
+            "SELECT profile_data, resume_url FROM public.profiles WHERE user_id = $1",
+            ctx.user_id,
+        )
+
+    if not user_row:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    profile_data: dict = {}
+    resume_url: str | None = None
+    if profile_row:
+        pd = profile_row["profile_data"]
+        profile_data = json.loads(pd) if isinstance(pd, str) else (pd or {})
+        resume_url = profile_row["resume_url"]
+
+    # Web expects has_completed_onboarding and preferences from profile_data
+    prefs = profile_data.get("preferences") or {}
+    if isinstance(prefs, str):
+        prefs = {}
+    return {
+        "id": str(user_row["id"]),
+        "email": user_row["email"] or "",
+        "has_completed_onboarding": profile_data.get("has_completed_onboarding", False),
+        "resume_url": resume_url,
+        "preferences": prefs,
+    }
+
+
+# ---------------------------------------------------------------------------
+# PATCH /profile
+# ---------------------------------------------------------------------------
+
+class ProfileUpdate(BaseModel):
+    has_completed_onboarding: bool | None = None
+    preferences: dict | None = None
+    resume_url: str | None = None
+
+
+@router.patch("/profile")
+async def update_profile(
+    body: ProfileUpdate,
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Update profile: onboarding flag and preferences stored in profile_data."""
+    async with db.acquire() as conn:
+        existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
+        profile_data = dict(existing or {})
+
+        if body.has_completed_onboarding is not None:
+            profile_data["has_completed_onboarding"] = body.has_completed_onboarding
+        if body.preferences is not None:
+            profile_data["preferences"] = body.preferences
+
+        existing_row = await conn.fetchrow(
+            "SELECT resume_url FROM public.profiles WHERE user_id = $1",
+            ctx.user_id,
+        )
+        current_resume = existing_row["resume_url"] if existing_row else None
+        await ProfileRepo.upsert(
+            conn, ctx.user_id, profile_data,
+            resume_url=body.resume_url if body.resume_url is not None else current_resume,
+            tenant_id=ctx.tenant_id,
+        )
+        row = await conn.fetchrow(
+            "SELECT resume_url FROM public.profiles WHERE user_id = $1",
+            ctx.user_id,
+        )
+        final_resume = row["resume_url"] if row else None
+
+    return {
+        "id": ctx.user_id,
+        "email": "",
+        "has_completed_onboarding": profile_data.get("has_completed_onboarding", False),
+        "resume_url": final_resume,
+        "preferences": profile_data.get("preferences") or {},
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /profile/resume
+# ---------------------------------------------------------------------------
+
+@router.post("/profile/resume")
+async def upload_resume(
+    file: UploadFile = File(...),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Upload PDF resume: extract text, parse via LLM, upsert profile, store file. Returns { resume_url, parsed_profile }."""
+    if file.content_type not in ("application/pdf", "application/octet-stream"):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+
+    pdf_bytes = await file.read()
+    from api.main import upload_to_supabase_storage, extract_text_from_pdf, parse_resume_to_profile
+    from backend.domain.models import normalize_profile
+
+    s = get_settings()
+    storage_path = f"{ctx.user_id}/{uuid.uuid4()}.pdf"
+    resume_url = await upload_to_supabase_storage(
+        s.supabase_storage_bucket, storage_path, pdf_bytes
+    )
+    resume_text = extract_text_from_pdf(pdf_bytes)
+    if not resume_text.strip():
+        raise HTTPException(status_code=422, detail="Could not extract text from PDF")
+
+    try:
+        raw_profile = await parse_resume_to_profile(resume_text)
+    except Exception as e:
+        logger.warning("Resume parse failed for user %s: %s", ctx.user_id, e)
+        raise HTTPException(status_code=502, detail=f"Resume parsing failed: {e}")
+
+    canonical = normalize_profile(raw_profile)
+    async with db.acquire() as conn:
+        await ProfileRepo.upsert(conn, ctx.user_id, canonical.model_dump(), resume_url, tenant_id=ctx.tenant_id)
+
+    return {
+        "resume_url": resume_url,
+        "parsed_profile": canonical.model_dump(),
+    }

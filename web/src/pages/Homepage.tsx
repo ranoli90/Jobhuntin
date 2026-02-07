@@ -12,7 +12,7 @@ export default function Homepage() {
 
   return (
     <div className="overflow-hidden">
-      <Hero onGetStarted={() => navigate("/app/dashboard")} />
+      <Hero onGetStarted={() => navigate("/login")} />
       <HowItWorks />
       <Testimonials />
       <FAQ />
@@ -29,7 +29,7 @@ export default function Homepage() {
           <p className="text-lg text-brand-ink/70">
             Join 10,000+ job seekers who stopped stressing and started landing interviews.
           </p>
-          <Button size="lg" wobble onClick={() => navigate("/app/dashboard")}>
+          <Button size="lg" wobble onClick={() => navigate("/login")}>
             Start free — 10 applications on us
           </Button>
         </div>

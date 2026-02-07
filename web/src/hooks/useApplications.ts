@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+import { apiGet, apiPost } from "../lib/api";
 
 export type ApplicationStatus = "APPLYING" | "APPLIED" | "HOLD" | "FAILED";
 
@@ -17,9 +16,7 @@ export interface ApplicationRecord {
 }
 
 async function fetchApplications(): Promise<ApplicationRecord[]> {
-  const resp = await fetch(`${API_BASE}/applications`, { credentials: "include" });
-  if (!resp.ok) throw new Error("Unable to load applications");
-  const json = (await resp.json()) as { applications: ApplicationRecord[] } | ApplicationRecord[];
+  const json = await apiGet<{ applications?: ApplicationRecord[] } | ApplicationRecord[]>("applications");
   return Array.isArray(json) ? json : json.applications ?? [];
 }
 
@@ -59,12 +56,12 @@ export function useApplications() {
   } as const;
 
   const answerHold = async (applicationId: string, answer: string) => {
-    const resp = await fetch(`${API_BASE}/applications/${applicationId}/answer`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answer }),
-    });
-    if (!resp.ok) throw new Error("Unable to answer HOLD");
+    await apiPost(`applications/${applicationId}/answer`, { answer });
+    queryClient.invalidateQueries({ queryKey: ["applications"] });
+  };
+
+  const snoozeApplication = async (applicationId: string, hours: number = 24) => {
+    await apiPost(`applications/${applicationId}/snooze`, { hours });
     queryClient.invalidateQueries({ queryKey: ["applications"] });
   };
 
@@ -79,5 +76,6 @@ export function useApplications() {
     isLoading: query.isLoading,
     refetch: query.refetch,
     answerHold,
+    snoozeApplication,
   } as const;
 }

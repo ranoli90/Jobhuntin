@@ -76,6 +76,8 @@ class BillingStatusResponse(BaseModel):
     provider_customer_id: str | None = None
     subscription_status: str = "none"
     current_period_end: str | None = None
+    seats: int | None = None
+    next_payment_at: str | None = None
 
 
 class UsageResponse(BaseModel):
@@ -87,6 +89,8 @@ class UsageResponse(BaseModel):
     concurrent_limit: int
     concurrent_used: int
     percentage_used: float
+    applications_used: int | None = None
+    applications_limit: int | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -448,11 +452,25 @@ async def billing_status(
             "SELECT * FROM public.billing_customers WHERE tenant_id = $1",
             ctx.tenant_id,
         )
+        tenant_row = await conn.fetchrow(
+            "SELECT seat_count, max_seats FROM public.tenants WHERE id = $1",
+            ctx.tenant_id,
+        )
+
+    period_end = None
+    if row and row["current_period_end"]:
+        period_end = row["current_period_end"].isoformat()
+
+    seats = None
+    if tenant_row and tenant_row.get("seat_count") is not None:
+        seats = int(tenant_row["seat_count"])
 
     if row is None:
         return BillingStatusResponse(
             tenant_id=ctx.tenant_id,
             plan=ctx.plan,
+            seats=seats or 1,
+            next_payment_at=period_end,
         )
 
     return BillingStatusResponse(
@@ -461,7 +479,9 @@ async def billing_status(
         provider=row["provider"],
         provider_customer_id=row["provider_customer_id"],
         subscription_status=row["current_subscription_status"],
-        current_period_end=row["current_period_end"].isoformat() if row["current_period_end"] else None,
+        current_period_end=period_end,
+        seats=seats,
+        next_payment_at=period_end,
     )
 
 
@@ -487,6 +507,8 @@ async def billing_usage(
         concurrent_limit=config["max_concurrent_applications"],
         concurrent_used=concurrent_used,
         percentage_used=round(monthly_used / max(monthly_limit, 1) * 100, 1),
+        applications_used=monthly_used,
+        applications_limit=monthly_limit,
     )
 
 

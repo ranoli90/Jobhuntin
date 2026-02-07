@@ -27,7 +27,7 @@ export default function Dashboard() {
           <p className="text-sm uppercase tracking-[0.4em] text-brand-ink/60">Dashboard</p>
           <h1 className="font-display text-4xl">Your command center</h1>
         </div>
-        <Button className="gap-2" variant="lagoon" wobble>
+        <Button className="gap-2" variant="lagoon" wobble onClick={() => navigate("/app/jobs")}>
           <Rocket className="h-4 w-4" />
           Let's skedaddle!
         </Button>
@@ -103,7 +103,7 @@ export default function Dashboard() {
             <p className="text-sm text-brand-ink/70">
               Seats: {status?.seats ?? 1} · Success rate: {status?.success_rate ?? 72}%
             </p>
-            <Button variant="outline">Upgrade</Button>
+            <Button variant="outline" onClick={() => navigate("/app/billing")}>Upgrade</Button>
           </Card>
           
           <SafetyPillars />
@@ -141,11 +141,42 @@ export function HoldsView() {
 }
 
 export function TeamView() {
+  const navigate = useNavigate();
+  const { status } = useBilling();
+  const isSolo = !status?.seats || status.seats <= 1;
+
   return (
-    <Card tone="shell">
-      <h2 className="text-2xl font-semibold">Team</h2>
-      <p className="mt-2 text-brand-ink/70">Invite hiring partners, assign roles, and share rituals.</p>
-    </Card>
+    <div className="space-y-8">
+      <div>
+        <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">Team</p>
+        <h1 className="font-display text-4xl">Your workspace</h1>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card tone="shell" shadow="lift" className="p-6">
+          <h2 className="font-display text-xl text-brand-ink">Current plan</h2>
+          <p className="mt-2 text-brand-ink/70">
+            {isSolo
+              ? "You're on the Solo plan. All applications and HOLDs are yours. Upgrade to add teammates and share pipelines."
+              : `You have ${status?.seats ?? 1} seat(s). Invite teammates from Billing.`}
+          </p>
+          <Button
+            variant={isSolo ? "primary" : "outline"}
+            className="mt-4"
+            onClick={() => navigate("/app/billing")}
+          >
+            {isSolo ? "Upgrade for team features" : "Manage billing"}
+          </Button>
+        </Card>
+        <Card tone="shell" className="p-6">
+          <h2 className="font-display text-xl text-brand-ink">Team features</h2>
+          <ul className="mt-3 space-y-2 text-sm text-brand-ink/70">
+            <li>• Shared job pipeline and applications</li>
+            <li>• Invite members with roles (Admin, Member)</li>
+            <li>• Central billing and usage</li>
+          </ul>
+        </Card>
+      </div>
+    </div>
   );
 }
 

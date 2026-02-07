@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+import { apiGet, apiPatch, apiPostFormData } from "../lib/api";
 
 export interface UserProfile {
   id: string;
@@ -23,9 +22,7 @@ export function useProfile() {
   useEffect(() => {
     async function load() {
       try {
-        const resp = await fetch(`${API_BASE}/profile`, { credentials: "include" });
-        if (!resp.ok) throw new Error("Failed to load profile");
-        const data = (await resp.json()) as UserProfile;
+        const data = await apiGet<UserProfile>("profile");
         setProfile(data);
       } catch (err) {
         setError((err as Error).message);
@@ -37,31 +34,17 @@ export function useProfile() {
   }, []);
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    const resp = await fetch(`${API_BASE}/profile`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(updates),
-    });
-    if (!resp.ok) throw new Error("Failed to update profile");
-    const updated = (await resp.json()) as UserProfile;
+    const updated = await apiPatch<UserProfile>("profile", updates);
     setProfile(updated);
     return updated;
   };
 
   const uploadResume = async (file: File) => {
     const formData = new FormData();
-    formData.append("resume", file);
-    
-    const resp = await fetch(`${API_BASE}/profile/resume`, {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-    if (!resp.ok) throw new Error("Failed to upload resume");
-    const data = (await resp.json()) as { resume_url: string };
+    formData.append("file", file); // Backend expects "file" from UploadFile = File(...)
+    const data = await apiPostFormData<{ resume_url: string; parsed_profile?: any }>("profile/resume", formData);
     setProfile((prev) => (prev ? { ...prev, resume_url: data.resume_url } : null));
-    return data.resume_url;
+    return data;
   };
 
   const savePreferences = async (preferences: UserProfile["preferences"]) => {

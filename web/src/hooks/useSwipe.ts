@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { pushToast } from "../lib/toast";
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+import { apiPost } from "../lib/api";
 
 type Decision = "ACCEPT" | "REJECT";
 
@@ -24,12 +23,7 @@ export function useSwipe({ onComplete }: SwipeOptions = {}) {
       if (!jobId) return;
       setSubmitting(true);
       try {
-        const resp = await fetch(`${API_BASE}/applications`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ job_id: jobId, decision }),
-        });
-        if (!resp.ok) throw new Error("Unable to record swipe");
+        await apiPost("applications", { job_id: jobId, decision });
         pushToast({ title: decision === "ACCEPT" ? "Applied" : "Skipped", tone: "success" });
         setLastResult({ jobId, decision, success: true });
         onComplete?.(jobId, decision);

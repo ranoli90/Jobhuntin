@@ -38,7 +38,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             Start applying free
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
-          <Button size="lg" variant="ghost">
+          <Button size="lg" variant="ghost" onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })}>
             See how it works
           </Button>
         </div>

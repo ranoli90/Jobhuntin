@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Inbox, MessageCircle, Clock, ArrowRight, HelpCircle, Send, Calendar, DollarSign, X, Filter } from "lucide-react";
 import { useApplications, type ApplicationRecord } from "../hooks/useApplications";
+import { useAnswerMemory } from "../hooks/useAnswerMemory";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
@@ -10,7 +11,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function HoldInbox() {
   const navigate = useNavigate();
-  const { holdApplications, isLoading, answerHold } = useApplications();
+  const { holdApplications, isLoading, answerHold, snoozeApplication } = useApplications();
+  const { getSuggestion, saveAnswer: saveToMemory } = useAnswerMemory();
   const [activeHoldId, setActiveHoldId] = useState<string | null>(null);
   const [answerText, setAnswerText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,6 +21,8 @@ export default function HoldInbox() {
     holdApplications.find((app) => app.id === activeHoldId),
     [holdApplications, activeHoldId]
   );
+
+  const suggestion = activeHold ? getSuggestion(activeHold.hold_question || "") : null;
 
   const sortedHolds = useMemo(() => {
     return [...holdApplications].sort((a, b) => {
@@ -36,11 +40,21 @@ export default function HoldInbox() {
 
   const handleAnswer = async () => {
     if (!activeHoldId || !answerText.trim()) return;
+    
     setIsSubmitting(true);
     try {
+      // Save to memory first (fire and forget or await, depending on preference)
+      if (activeHold?.hold_question) {
+        // We make a best guess at the field type, or default to "text"
+        saveToMemory({
+          field_label: activeHold.hold_question,
+          field_type: "text",
+          answer_value: answerText,
+        }).catch(console.error);
+      }
+
       await answerHold(activeHoldId, answerText);
-      setActiveHoldId(null);
-      setAnswerText("");
+      closeModal();
     } catch (err) {
       console.error("Failed to answer hold:", err);
     } finally {
@@ -50,7 +64,10 @@ export default function HoldInbox() {
 
   const handleSnooze = async (holdId: string) => {
     try {
-      await answerHold(holdId, "[Snoozed for 24h] I'll respond to this shortly.");
+      await snoozeApplication(holdId, 24);
+      if (activeHoldId === holdId) {
+        closeModal();
+      }
     } catch (err) {
       console.error("Failed to snooze hold:", err);
     }

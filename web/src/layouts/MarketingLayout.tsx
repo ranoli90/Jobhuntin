@@ -5,7 +5,7 @@ const links = [
   { label: "How", href: "#how" },
   { label: "Proof", href: "#proof" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Login", href: "/app/dashboard" },
+  { label: "Login", href: "/login" },
 ];
 
 export default function MarketingLayout() {
@@ -35,7 +35,7 @@ export default function MarketingLayout() {
               ),
             )}
             <Button variant="primary" asChild>
-              <Link to="/app/dashboard">Start free</Link>
+              <Link to="/login">Start free</Link>
             </Button>
           </div>
           <div className="md:hidden">

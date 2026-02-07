@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiGet, apiPost } from "../lib/api";
 
 interface BillingStatus {
   plan: "FREE" | "PRO" | "TEAM";
@@ -14,8 +15,6 @@ interface BillingUsage {
   applications_limit?: number;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
-
 export function useBilling() {
   const [status, setStatus] = useState<BillingStatus | null>(null);
   const [usage, setUsage] = useState<BillingUsage | null>(null);
@@ -26,17 +25,16 @@ export function useBilling() {
     let cancelled = false;
     async function load() {
       try {
-        const [statusResp, usageResp] = await Promise.all([
-          fetch(`${API_BASE}/billing/status`, { credentials: "include" }),
-          fetch(`${API_BASE}/billing/usage`, { credentials: "include" }),
+        const [statusJson, usageJson] = await Promise.all([
+          apiGet<BillingStatus>("billing/status"),
+          apiGet<BillingUsage & { monthly_used?: number; monthly_limit?: number }>("billing/usage"),
         ]);
-        if (!statusResp.ok) throw new Error("Billing status unavailable");
-        if (!usageResp.ok) throw new Error("Usage unavailable");
-        const statusJson = (await statusResp.json()) as BillingStatus;
-        const usageJson = (await usageResp.json()) as BillingUsage;
         if (!cancelled) {
           setStatus(statusJson);
-          setUsage(usageJson);
+          setUsage({
+            applications_used: usageJson.applications_used ?? usageJson.monthly_used ?? 0,
+            applications_limit: usageJson.applications_limit ?? usageJson.monthly_limit,
+          });
         }
       } catch (err) {
         if (!cancelled) setError((err as Error).message);
@@ -50,23 +48,21 @@ export function useBilling() {
     };
   }, []);
 
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
   const upgrade = async () => {
-    const resp = await fetch(`${API_BASE}/billing/checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const json = await apiPost<{ checkout_url: string }>("billing/checkout", {
+      success_url: `${baseUrl}/app/billing?success=1`,
+      cancel_url: `${baseUrl}/app/billing`,
     });
-    if (!resp.ok) throw new Error("Checkout failed");
-    const json = (await resp.json()) as { checkout_url: string };
     window.location.href = json.checkout_url;
   };
 
   const addSeats = async () => {
-    const resp = await fetch(`${API_BASE}/billing/team-checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const json = await apiPost<{ checkout_url: string }>("billing/team-checkout", {
+      success_url: `${baseUrl}/app/billing?success=1`,
+      cancel_url: `${baseUrl}/app/billing`,
     });
-    if (!resp.ok) throw new Error("Team checkout failed");
-    const json = (await resp.json()) as { checkout_url: string };
     window.location.href = json.checkout_url;
   };
 

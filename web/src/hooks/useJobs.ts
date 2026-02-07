@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+import { apiGet } from "../lib/api";
 
 export type JobSwipeDecision = "ACCEPT" | "REJECT";
 
@@ -28,12 +27,9 @@ async function fetchJobs(filters: JobFilters): Promise<JobPosting[]> {
   if (filters.location) params.set("location", filters.location);
   if (filters.minSalary) params.set("min_salary", String(filters.minSalary));
   if (filters.keywords) params.set("keywords", filters.keywords);
-
-  const resp = await fetch(`${API_BASE}/jobs?${params.toString()}`);
-  if (!resp.ok) {
-    throw new Error("Unable to load jobs");
-  }
-  const json = (await resp.json()) as { jobs: JobPosting[] } | JobPosting[];
+  const query = params.toString();
+  const path = query ? `jobs?${query}` : "jobs";
+  const json = await apiGet<{ jobs?: JobPosting[] } | JobPosting[]>(path);
   if (Array.isArray(json)) return json;
   return json.jobs ?? [];
 }

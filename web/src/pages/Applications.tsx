@@ -10,6 +10,8 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { COPY } from "../copy";
 import { useNavigate } from "react-router-dom";
+import { pushToast } from "../lib/toast";
+import { downloadFile } from "../lib/api";
 
 export default function ApplicationsPage() {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export default function ApplicationsPage() {
       setActiveHoldId(null);
       setAnswerText("");
     } catch (err) {
-      console.error("Failed to answer hold:", err);
+      pushToast({ title: "Could not send answer", description: (err as Error).message, tone: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -55,7 +57,18 @@ export default function ApplicationsPage() {
           <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">Applications</p>
           <h1 className="font-display text-4xl">Your momentum board</h1>
         </div>
-        <Button variant="ghost" className="gap-2">
+        <Button
+          variant="ghost"
+          className="gap-2"
+          onClick={async () => {
+            try {
+              await downloadFile("applications/export", "applications.csv");
+              pushToast({ title: "Export complete", tone: "success" });
+            } catch (err) {
+              pushToast({ title: "Export failed", description: (err as Error).message, tone: "error" });
+            }
+          }}
+        >
           <Download className="h-4 w-4" /> Export CSV
         </Button>
       </div>

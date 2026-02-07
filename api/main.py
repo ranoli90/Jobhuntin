@@ -182,6 +182,11 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[dev_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(dev_mod.router)
 
+    import api.user as user_mod
+    app.dependency_overrides[user_mod._get_pool] = get_pool
+    app.dependency_overrides[user_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(user_mod.router)
+
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
 
@@ -301,6 +306,8 @@ async def debug_run_migration() -> dict[str, Any]:
                 "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS last_processed_at timestamptz",
                 "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS blueprint_key text",
                 "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS locked_by text",
+                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS snoozed_until timestamptz",
+                "CREATE OR REPLACE FUNCTION public.claim_next_prioritized(p_max_attempts int DEFAULT 3) RETURNS SETOF public.applications AS $$ BEGIN RETURN QUERY UPDATE public.applications SET status = 'PROCESSING', locked_at = now(), updated_at = now() WHERE id = ( SELECT id FROM public.applications WHERE (status = 'QUEUED' OR (status = 'PROCESSING' AND locked_at < now() - interval '10 minutes')) AND (snoozed_until IS NULL OR snoozed_until < now()) AND attempt_count < p_max_attempts ORDER BY priority_score DESC, created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING *; END; $$ LANGUAGE plpgsql;",
                 "ALTER TABLE public.application_inputs ADD COLUMN IF NOT EXISTS resolved boolean NOT NULL DEFAULT false",
                 "ALTER TABLE public.application_inputs ADD COLUMN IF NOT EXISTS meta jsonb DEFAULT '{}'::jsonb",
                 "ALTER TABLE public.application_events ADD COLUMN IF NOT EXISTS tenant_id text",

@@ -1,12 +1,20 @@
+databases:
+  - name: sorce-db
+    databaseName: sorce
+    user: sorce
+    plan: starter
+    region: ohio
+
 services:
-  # ── FastAPI Backend (API + Worker) ──────────────────────────
+  # ── FastAPI Backend (API) ──────────────────────────────────
   - type: web
     name: sorce-api
-    runtime: python
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    dockerTarget: api
     repo: https://github.com/ranoli90/sorce
     branch: main
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: ENV
@@ -21,6 +29,14 @@ services:
         sync: false
       - key: SUPABASE_JWT_SECRET
         sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: resumes
+      - key: LLM_API_BASE
+        value: https://api.openai.com/v1
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: gpt-4o-mini
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
@@ -49,14 +65,55 @@ services:
         sync: false
       - key: WEBHOOK_SIGNING_SECRET
         sync: false
-      - key: LLM_API_KEY
-        sync: false
       - key: AGENT_ENABLED
         value: "true"
       - key: LOG_JSON
         value: "true"
       - key: LOG_LEVEL
         value: INFO
+    plan: starter
+    region: ohio
+
+  # ── Background Worker (Agent) ──────────────────────────────
+  - type: worker
+    name: sorce-worker
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    dockerTarget: worker
+    repo: https://github.com/ranoli90/sorce
+    branch: main
+    envVars:
+      - key: ENV
+        value: prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sorce-db
+          property: connectionString
+      - key: SUPABASE_URL
+        value: https://zglovpfwyobbbaaocawz.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: resumes
+      - key: LLM_API_BASE
+        value: https://api.openai.com/v1
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: AGENT_ENABLED
+        value: "true"
+      - key: LOG_JSON
+        value: "true"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PLAYWRIGHT_BROWSER_TYPE
+        value: chromium
+      - key: PLAYWRIGHT_HEADLESS
+        value: "true"
     plan: starter
     region: ohio
 

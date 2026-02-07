@@ -36,15 +36,18 @@ export default function Onboarding() {
     if (!resumeFile) return;
     setIsUploading(true);
     try {
-      await uploadResume(resumeFile);
+      const data = await uploadResume(resumeFile);
       pushToast({ title: "Resume uploaded!", tone: "success" });
-      // Simulate parsing preview - in production this would come from backend
-      setParsedResume({
-        title: "Senior Product Designer",
-        skills: ["UI/UX", "Figma", "Design Systems", "User Research"],
-        years: 5,
-      });
-      setShowParsingPreview(true);
+      
+      if (data.parsed_profile) {
+        const p = data.parsed_profile;
+        setParsedResume({
+          title: p.headline || (p.experience?.[0]?.title),
+          skills: p.skills?.technical?.slice(0, 5) || [],
+          years: p.experience?.length || 0,
+        });
+        setShowParsingPreview(true);
+      }
     } catch (err) {
       pushToast({ title: "Upload failed", description: (err as Error).message, tone: "error" });
     } finally {
