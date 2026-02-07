@@ -175,29 +175,87 @@ pool: asyncpg.Pool | None = None
 @app.on_event("startup")
 async def startup() -> None:
     global pool
-    import ssl as _ssl
     s = get_settings()
     from backend.blueprints.registry import load_default_blueprints
     load_default_blueprints()
-    # Build SSL context for Supabase pooler connections
-    ssl_ctx = _ssl.create_default_context()
-    ssl_ctx.check_hostname = False
-    ssl_ctx.verify_mode = _ssl.CERT_NONE
+    # Determine SSL: skip for Render internal connections, use for external
+    ssl_arg: Any = False
+    if "pooler.supabase.com" in s.database_url or "supabase.co" in s.database_url:
+        import ssl as _ssl
+        ssl_ctx = _ssl.create_default_context()
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = _ssl.CERT_NONE
+        ssl_arg = ssl_ctx
     for attempt in range(1, 4):
         try:
             pool = await asyncpg.create_pool(
                 s.database_url, min_size=s.db_pool_min, max_size=s.db_pool_max,
-                ssl=ssl_ctx,
+                ssl=ssl_arg,
                 statement_cache_size=0,
             )
             logger.info("Database pool created (env=%s)", s.env.value)
-            return
+            break
         except Exception as exc:
             logger.warning("DB pool attempt %d/3 failed: %s", attempt, exc)
             if attempt < 3:
                 import asyncio
                 await asyncio.sleep(3 * attempt)
-    logger.error("Could not create DB pool after 3 attempts – app will start without DB")
+    else:
+        logger.error("Could not create DB pool after 3 attempts")
+        return
+    # Auto-migrate: if auth schema missing, run all SQL files
+    try:
+        async with pool.acquire() as conn:
+            has_auth = await conn.fetchval(
+                "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name='auth')"
+            )
+            if not has_auth:
+                logger.info("Running auto-migration (first boot)...")
+                await _run_migrations(conn)
+    except Exception as exc:
+        logger.warning("Auto-migration check failed: %s", exc)
+
+
+async def _run_migrations(conn: asyncpg.Connection) -> None:
+    """Run auth shim + schema.sql + all numbered migrations."""
+    import pathlib
+    base = pathlib.Path(__file__).resolve().parent.parent
+    # Auth compatibility shim
+    auth_shim = """
+    CREATE SCHEMA IF NOT EXISTS auth;
+    CREATE TABLE IF NOT EXISTS auth.users (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        email text,
+        encrypted_password text,
+        email_confirmed_at timestamptz,
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now(),
+        raw_user_meta_data jsonb DEFAULT '{}'::jsonb
+    );
+    """
+    await conn.execute(auth_shim)
+    logger.info("  auth shim created")
+    # Base schema
+    schema_file = base / "supabase" / "schema.sql"
+    if schema_file.exists():
+        await conn.execute(schema_file.read_text(encoding="utf-8"))
+        logger.info("  schema.sql applied")
+    # Numbered migrations
+    mig_dir = base / "supabase" / "migrations"
+    if mig_dir.exists():
+        for mf in sorted(mig_dir.glob("[0-9]*.sql")):
+            sql = mf.read_text(encoding="utf-8").strip()
+            if not sql:
+                continue
+            try:
+                await conn.execute(sql)
+                logger.info("  %s applied", mf.name)
+            except Exception as e:
+                msg = str(e)
+                if "already exists" in msg or "duplicate" in msg.lower():
+                    logger.info("  %s skipped (already exists)", mf.name)
+                else:
+                    logger.warning("  %s FAILED: %s", mf.name, msg[:200])
 
 
 @app.on_event("shutdown")
