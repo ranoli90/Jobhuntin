@@ -1,0 +1,82 @@
+"""
+{{blueprint_name}} Blueprint — LLM prompt templates.
+
+TODO: Customize these prompts for your vertical's forms and profile schema.
+"""
+
+from __future__ import annotations
+
+import json
+
+
+# ===================================================================
+# Contract 1: Document Parsing → Profile
+# ===================================================================
+
+PROFILE_PARSE_PROMPT_V1 = """You are a document parser for {{blueprint_name}}. Extract structured information from the following text.
+
+## Document Text
+{document_text}
+
+## Instructions
+Return ONLY a JSON object (no markdown fences) with the relevant fields for {{blueprint_name}}.
+TODO: Define your expected JSON schema here.
+
+Fill in every field you can find. Use empty strings or null for missing data.
+"""
+
+
+def build_profile_parse_prompt(document_text: str) -> str:
+    return PROFILE_PARSE_PROMPT_V1.format(document_text=document_text)
+
+
+# ===================================================================
+# Contract 2: DOM Mapping
+# ===================================================================
+
+DOM_MAPPING_PROMPT_V1 = """You are a {{blueprint_name}} autofill assistant. Your goal is to fill a web form using the applicant's data.
+
+## Applicant Profile
+{profile_json}
+
+## Previously Answered Questions (authoritative)
+{answered_json}
+
+## Form Fields
+{fields_json}
+
+## Rules
+1. For every field, map from the profile or answered questions to a concrete value.
+2. Required fields that cannot be answered go into "unresolved_required_fields".
+3. Optional unanswerable fields: omit.
+
+## Respond with ONLY this JSON:
+{{
+    "field_values": {{"<selector>": "<value>"}},
+    "unresolved_required_fields": [{{"selector": "<selector>", "question": "<question>"}}]
+}}
+"""
+
+
+def build_dom_mapping_prompt(
+    profile_dict: dict,
+    form_fields: list[dict],
+    answered_inputs: list[dict] | None = None,
+) -> str:
+    return DOM_MAPPING_PROMPT_V1.format(
+        profile_json=json.dumps(profile_dict, indent=2),
+        answered_json=json.dumps(answered_inputs or [], indent=2),
+        fields_json=json.dumps(form_fields, indent=2, default=str),
+    )
+
+
+# ===================================================================
+# Submit button selectors
+# ===================================================================
+
+SUBMIT_SELECTORS = [
+    'button[type="submit"]',
+    'input[type="submit"]',
+    'button:has-text("Submit")',
+    'button:has-text("Send")',
+]

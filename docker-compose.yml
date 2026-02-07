@@ -1,0 +1,70 @@
+# Part 2: Local development runtime topology
+#
+# Usage:
+#   docker compose up --build
+#
+# Components:
+#   db      – Postgres 16 (local stand-in for Supabase)
+#   api     – FastAPI on port 8000
+#   worker  – Playwright agent polling the DB
+#
+# Scaling notes:
+#   - For staging: 1 api replica, 1 worker replica.
+#   - For prod: 2+ api replicas behind LB, 1-2 worker replicas.
+#   - Multiple workers are safe due to SELECT ... FOR UPDATE SKIP LOCKED.
+#   - To scale workers: docker compose up --scale worker=2
+
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sorce
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./supabase/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./supabase/migrations.sql:/docker-entrypoint-initdb.d/02_migrations.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      target: api
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      ENV: local
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/sorce
+      LOG_JSON: "false"
+      LOG_LEVEL: DEBUG
+
+  worker:
+    build:
+      context: .
+      target: worker
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      ENV: local
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/sorce
+      PLAYWRIGHT_HEADLESS: "true"
+      LOG_JSON: "false"
+      LOG_LEVEL: DEBUG
+
+volumes:
+  pgdata:

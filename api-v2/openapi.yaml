@@ -1,0 +1,344 @@
+openapi: 3.1.0
+info:
+  title: Sorce Platform API
+  version: 2.0.0
+  description: |
+    Public API for integrating with the Sorce autonomous form agent platform.
+    Submit applications, manage webhooks, and track status in real-time.
+  contact:
+    name: Sorce Developer Support
+    email: developers@sorce.app
+    url: https://docs.sorce.app
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.sorce.app/api/v2
+    description: Production
+  - url: http://localhost:8000/api/v2
+    description: Local development
+
+security:
+  - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      description: "API key in format: sk_live_<key>"
+
+  schemas:
+    SubmitApplication:
+      type: object
+      required: [job_url]
+      properties:
+        job_url:
+          type: string
+          format: uri
+          description: URL of the job posting to apply to
+        blueprint_key:
+          type: string
+          default: job-app
+          description: Blueprint to use for form filling
+        resume_text:
+          type: string
+          description: Plain text resume content
+        resume_url:
+          type: string
+          format: uri
+          description: URL to downloadable resume (PDF)
+        metadata:
+          type: object
+          description: Additional metadata (title, company, etc.)
+
+    ApplicationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [QUEUED, PROCESSING, REQUIRES_INPUT, APPLIED, COMPLETED, SUBMITTED, FAILED]
+        job_url:
+          type: string
+
+    BatchSubmit:
+      type: object
+      required: [applications]
+      properties:
+        applications:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SubmitApplication'
+
+    BatchResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        succeeded:
+          type: integer
+        failed:
+          type: integer
+        results:
+          type: array
+          items:
+            type: object
+
+    StaffingBulkSubmit:
+      type: object
+      required: [client_name, client_portal, role_title, candidates]
+      properties:
+        client_name:
+          type: string
+        client_portal:
+          type: string
+          format: uri
+        role_title:
+          type: string
+        role_description:
+          type: string
+        candidates:
+          type: array
+          maxItems: 25
+          items:
+            type: object
+            properties:
+              full_name:
+                type: string
+              email:
+                type: string
+                format: email
+              phone:
+                type: string
+              resume_text:
+                type: string
+              skills:
+                type: array
+                items:
+                  type: string
+        priority:
+          type: string
+          enum: [normal, urgent]
+          default: normal
+
+    StaffingBatchResponse:
+      type: object
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        candidate_count:
+          type: integer
+        estimated_cost_cents:
+          type: integer
+
+    WebhookCreate:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+            enum: [application.completed, application.failed, application.hold, application.queued, staffing.batch_completed]
+
+    WebhookResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        secret:
+          type: string
+          description: HMAC signing secret (only returned on creation)
+
+    UsageResponse:
+      type: object
+      properties:
+        key_prefix:
+          type: string
+        tier:
+          type: string
+        rate_limit_rpm:
+          type: integer
+        monthly_quota:
+          type: integer
+        calls_this_month:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+
+paths:
+  /applications:
+    post:
+      operationId: submitApplication
+      summary: Submit a single application
+      description: Queue an application for the autonomous agent to process.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitApplication'
+      responses:
+        '201':
+          description: Application queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '401':
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+
+  /applications/batch:
+    post:
+      operationId: batchSubmit
+      summary: Submit multiple applications
+      description: Submit up to 50 applications in a single request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchSubmit'
+      responses:
+        '200':
+          description: Batch results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResponse'
+
+  /applications/{application_id}:
+    get:
+      operationId: getApplicationStatus
+      summary: Get application status
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Application details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '404':
+          description: Application not found
+
+  /staffing/bulk-submit:
+    post:
+      operationId: staffingBulkSubmit
+      summary: Submit candidates to client ATS
+      description: |
+        Staffing agency endpoint. Submit up to 25 candidates for a single role.
+        Requires TEAM or ENTERPRISE plan.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffingBulkSubmit'
+      responses:
+        '201':
+          description: Batch created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffingBatchResponse'
+        '403':
+          description: Insufficient plan
+
+  /staffing/status/{batch_id}:
+    get:
+      operationId: staffingBatchStatus
+      summary: Get staffing batch status
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Batch details
+
+  /webhooks:
+    get:
+      operationId: listWebhooks
+      summary: List webhook endpoints
+      responses:
+        '200':
+          description: List of webhooks
+    post:
+      operationId: createWebhook
+      summary: Register a webhook endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookCreate'
+      responses:
+        '201':
+          description: Webhook created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+
+  /webhooks/{webhook_id}:
+    delete:
+      operationId: deleteWebhook
+      summary: Delete a webhook endpoint
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Webhook deleted
+
+  /usage:
+    get:
+      operationId: getUsage
+      summary: Get API usage statistics
+      responses:
+        '200':
+          description: Usage data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageResponse'

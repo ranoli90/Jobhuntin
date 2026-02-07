@@ -1,0 +1,18 @@
+-- Schema patch for {{blueprint_name}} blueprint (slug: {{slug}})
+--
+-- Add any vertical-specific columns or tables here.
+-- The core tables (applications, application_inputs, application_events)
+-- already support your blueprint via the blueprint_key column.
+
+-- Example: Add vertical-specific metadata columns
+-- ALTER TABLE public.applications
+--     ADD COLUMN IF NOT EXISTS {{slug}}_meta jsonb DEFAULT '{}'::jsonb;
+
+-- Example: Add a vertical-specific target form table
+-- CREATE TABLE IF NOT EXISTS public.{{slug}}_forms (
+--     id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+--     tenant_id   uuid REFERENCES public.tenants (id) ON DELETE CASCADE,
+--     form_url    text NOT NULL,
+--     -- TODO: add vertical-specific fields
+--     created_at  timestamptz NOT NULL DEFAULT now()
+-- );

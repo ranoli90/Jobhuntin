@@ -1,0 +1,50 @@
+# Environment files (NEVER commit secrets)
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build outputs
+dist/
+build/
+.next/
+.vercel/
+.output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Expo
+mobile/.expo/
+
+# Supabase local
+supabase/.temp/
+
+# Investor exports (may contain sensitive data)
+investor-metrics/exports/
+investor-data-room/exports/
+
+# Setup scripts (contain API keys during provisioning)
+scripts/setup/
+

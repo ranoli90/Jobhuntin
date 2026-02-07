@@ -1,0 +1,112 @@
+config:
+  target: "{{ $processEnvironment.API_URL }}"
+  phases:
+    # Warm-up: 5 rps for 30s
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm-up"
+    # Ramp: 5→50 rps over 60s
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 50
+      name: "Ramp-up"
+    # Sustained: 50 rps for 120s
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load"
+    # Spike: 100 rps for 30s
+    - duration: 30
+      arrivalRate: 100
+      name: "Spike test"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ $processEnvironment.TEST_TOKEN }}"
+  plugins:
+    expect: {}
+  ensure:
+    thresholds:
+      - http.response_time.p99: 5000
+      - http.response_time.p95: 2000
+    conditions:
+      - expression: "http.codes.200 / http.responses > 0.95"
+        strict: true
+
+scenarios:
+  # Health check
+  - name: "Health check"
+    weight: 10
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+
+  # Billing status (authenticated read)
+  - name: "Billing status"
+    weight: 20
+    flow:
+      - get:
+          url: "/billing/status"
+          expect:
+            - statusCode: 200
+            - hasProperty: "plan"
+
+  # Usage check
+  - name: "Usage check"
+    weight: 20
+    flow:
+      - get:
+          url: "/billing/usage"
+          expect:
+            - statusCode: 200
+            - hasProperty: "monthly_used"
+
+  # Team overview
+  - name: "Team overview"
+    weight: 15
+    flow:
+      - get:
+          url: "/billing/team"
+          expect:
+            - statusCode: 200
+
+  # Team members list
+  - name: "Team members"
+    weight: 10
+    flow:
+      - get:
+          url: "/billing/team/members"
+          expect:
+            - statusCode: 200
+
+  # Audit log read
+  - name: "Audit log"
+    weight: 10
+    flow:
+      - get:
+          url: "/billing/audit-log?limit=25"
+          capture:
+            - json: "$.total"
+              as: "audit_total"
+
+  # M4 dashboard
+  - name: "M4 Dashboard"
+    weight: 5
+    flow:
+      - get:
+          url: "/admin/m4-dashboard"
+
+  # Simulate application creation burst (500 concurrent target)
+  - name: "Create application"
+    weight: 10
+    flow:
+      - post:
+          url: "/applications"
+          json:
+            job_id: "{{ $randomString() }}"
+            blueprint_key: "job-app"
+          expect:
+            - statusCode:
+                - 201
+                - 429  # quota exceeded is acceptable

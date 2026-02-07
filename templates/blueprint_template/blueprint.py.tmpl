@@ -1,0 +1,94 @@
+"""
+{{blueprint_name}} Blueprint — AgentBlueprint implementation.
+
+TODO: Implement all methods below for your vertical.
+"""
+
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from typing import Any
+
+import asyncpg
+
+from backend.blueprints.{{slug}}.models import {{profile_class}}
+from backend.blueprints.{{slug}}.prompts import (
+    SUBMIT_SELECTORS,
+    build_dom_mapping_prompt as _build_dom_mapping_prompt,
+    build_profile_parse_prompt as _build_profile_parse_prompt,
+)
+from backend.domain.core_models import ActorProfile, DomMappingResult, FormField, UnresolvedField
+from backend.domain.repositories import ApplicationRepo, EventRepo
+
+
+class {{class_name}}:
+    """{{blueprint_name}} vertical — AgentBlueprint implementation."""
+
+    @property
+    def name(self) -> str:
+        return "{{blueprint_name}}"
+
+    @property
+    def version(self) -> str:
+        return "0.1.0"
+
+    @property
+    def slug(self) -> str:
+        return "{{slug}}"
+
+    # -- Profile parsing ---------------------------------------------------
+
+    def build_profile_parse_prompt(self, raw_text: str) -> str:
+        return _build_profile_parse_prompt(raw_text)
+
+    def parse_profile_response(self, raw_json: dict) -> ActorProfile:
+        # TODO: validate and convert raw_json → {{profile_class}}
+        return {{profile_class}}(**raw_json)
+
+    def normalize_profile(self, raw: dict) -> ActorProfile:
+        # TODO: transform raw profile_data blob → {{profile_class}}
+        return {{profile_class}}(**raw)
+
+    # -- DOM mapping -------------------------------------------------------
+
+    def build_dom_mapping_prompt(
+        self,
+        profile: ActorProfile,
+        form_fields: list[FormField],
+        answered_inputs: list[dict] | None = None,
+    ) -> str:
+        profile_dict = profile.model_dump()
+        fields_dicts = [f.model_dump() if hasattr(f, "model_dump") else f for f in form_fields]
+        return _build_dom_mapping_prompt(profile_dict, fields_dicts, answered_inputs)
+
+    def parse_dom_mapping_response(self, raw_json: dict) -> DomMappingResult:
+        return DomMappingResult(
+            field_values=raw_json.get("field_values", {}),
+            unresolved_required_fields=[
+                UnresolvedField(**u)
+                for u in raw_json.get("unresolved_required_fields", [])
+            ],
+        )
+
+    # -- Playwright submit -------------------------------------------------
+
+    def submit_button_selectors(self) -> list[str]:
+        return SUBMIT_SELECTORS
+
+    # -- Completion hook ---------------------------------------------------
+
+    async def on_task_completed(
+        self,
+        conn: asyncpg.Connection,
+        task: dict,
+        tenant_id: str | None,
+    ) -> str:
+        """TODO: Set the final status and emit events."""
+        app_id = str(task["id"])
+        # TODO: Choose the right terminal status for your vertical
+        await ApplicationRepo.update_status(conn, app_id, "SUBMITTED")
+        await EventRepo.emit(conn, app_id, "SUBMITTED", {
+            "submitted_at": datetime.now(timezone.utc).isoformat(),
+        }, tenant_id=tenant_id)
+        return "SUBMITTED"

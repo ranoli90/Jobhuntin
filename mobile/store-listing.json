@@ -1,0 +1,22 @@
+{
+  "ios": {
+    "name": "Sorce — AI Job Applications",
+    "subtitle": "Swipe right. We apply for you.",
+    "description": "Sorce automates your job applications. Upload your resume, swipe right on jobs you like, and our AI agent fills out the application forms for you — accurately and instantly.\n\nHOW IT WORKS:\n1. Upload your resume (PDF)\n2. Browse jobs in your swipe feed\n3. Swipe right to apply — Sorce handles the rest\n4. Get notified when your application is submitted\n5. Answer any follow-up questions the form needs\n\nWHY SORCE:\n• Save 10+ hours per week on job applications\n• Apply to 10x more jobs with zero extra effort\n• AI understands your resume and fills forms correctly\n• Real-time status updates and push notifications\n• Smart hold questions when the agent needs your input\n\nPLANS:\n• FREE: 25 applications per month\n• PRO ($29/mo): 200 applications, priority processing, analytics\n\nSorce is built for job seekers who want to maximize their chances without the soul-crushing grind of filling out the same forms over and over.",
+    "keywords": "job application,auto apply,AI apply,job search,resume,apply jobs,automation,career,job hunt,application filler",
+    "promotional_text": "New: Push notifications when your applications are submitted! Refer friends and both get 5 free apps.",
+    "category": "Business",
+    "secondary_category": "Productivity",
+    "privacy_url": "https://sorce.app/privacy",
+    "support_url": "https://sorce.app/support",
+    "marketing_url": "https://sorce.app"
+  },
+  "android": {
+    "title": "Sorce — AI Job Applications",
+    "short_description": "Swipe right on jobs. AI fills out applications for you.",
+    "full_description": "Sorce automates your job applications. Upload your resume, swipe right on jobs you like, and our AI agent fills out the application forms for you — accurately and instantly.\n\nHOW IT WORKS:\n1. Upload your resume (PDF)\n2. Browse jobs in your swipe feed\n3. Swipe right to apply — Sorce handles the rest\n4. Get notified when your application is submitted\n5. Answer any follow-up questions the form needs\n\nWHY SORCE:\n• Save 10+ hours per week on job applications\n• Apply to 10x more jobs with zero extra effort\n• AI understands your resume and fills forms correctly\n• Real-time status updates and push notifications\n• Smart hold questions when the agent needs your input\n\nPLANS:\n• FREE: 25 applications per month\n• PRO ($29/mo): 200 applications, priority processing, analytics\n\nSorce is built for job seekers who want to maximize their chances without the soul-crushing grind of filling out the same forms over and over.",
+    "category": "Business",
+    "content_rating": "Everyone",
+    "privacy_policy_url": "https://sorce.app/privacy"
+  }
+}

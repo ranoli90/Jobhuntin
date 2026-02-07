@@ -1,0 +1,23 @@
+"""
+{{blueprint_name}} profile model — extends ActorProfile for your vertical.
+
+TODO: Add vertical-specific fields below.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from pydantic import Field
+
+from backend.domain.core_models import ActorProfile
+
+
+class {{profile_class}}(ActorProfile):
+    """
+    {{blueprint_name}}-specific extension of ActorProfile.
+
+    TODO: Add fields relevant to your vertical that don't belong
+    in the generic base (e.g., organization details, project info).
+    """
+    pass

@@ -1,0 +1,234 @@
+"""
+Part 1: Configuration and Environments
+
+Typed Settings model that:
+  - Loads from environment variables with sensible local defaults
+  - Enforces critical vars in staging/prod (fails startup if missing)
+  - Provides env-specific tuning (timeouts, polling, retries)
+  - Integrates with FastAPI (dependency) and worker (direct import)
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+from enum import Enum
+from functools import lru_cache
+from typing import Literal
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings
+
+
+class Environment(str, Enum):
+    LOCAL = "local"
+    STAGING = "staging"
+    PROD = "prod"
+
+
+class Settings(BaseSettings):
+    """Central configuration for API and worker processes."""
+
+    # ── Core ─────────────────────────────────────────────────────
+    env: Environment = Environment.LOCAL
+
+    # ── Database ─────────────────────────────────────────────────
+    database_url: str = "postgresql://postgres:postgres@localhost:5432/postgres"
+    db_pool_min: int = 2
+    db_pool_max: int = 10
+
+    # ── Supabase ─────────────────────────────────────────────────
+    supabase_url: str = ""
+    supabase_service_key: str = ""
+    supabase_jwt_secret: str = ""
+    supabase_storage_bucket: str = "resumes"
+
+    # ── LLM ──────────────────────────────────────────────────────
+    llm_api_base: str = "https://api.openai.com/v1"
+    llm_api_key: str = ""
+    llm_model: str = "gpt-4o-mini"
+    llm_max_tokens: int = 4096
+    llm_rate_limit_per_minute: int = 60  # in-process approximate cap
+    llm_retry_count: int = 2
+    llm_timeout_seconds: int = 30
+
+    # ── Playwright / Agent ───────────────────────────────────────
+    playwright_browser_type: str = "chromium"
+    playwright_headless: bool = True
+    max_concurrent_browser_contexts: int = 1
+
+    # ── Agent tuning ─────────────────────────────────────────────
+    poll_interval_seconds: int = 5
+    max_attempts: int = 3
+    max_form_steps: int = 5
+    page_timeout_ms: int = 60_000
+    submit_timeout_ms: int = 30_000
+
+    # ── Rate limiting / guardrails ───────────────────────────────
+    max_applications_per_minute: int = 30
+
+    # ── Blueprints ────────────────────────────────────────────────
+    default_blueprint_key: str = "job-app"
+    enabled_blueprints: str = "job-app,grant,staffing-agency"  # comma-separated list
+
+    # ── Adzuna Job Board API ─────────────────────────────────────
+    adzuna_app_id: str = ""
+    adzuna_api_key: str = ""
+
+    # ── Stripe / Billing ─────────────────────────────────────────
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_pro_price_id: str = ""  # Stripe Price ID for PRO plan ($29/month)
+    stripe_team_base_price_id: str = ""  # Stripe Price ID for TEAM base ($199/month)
+    stripe_team_seat_price_id: str = ""  # Stripe Price ID for TEAM per-seat ($49/seat/month)
+    stripe_free_trial_days: int = 0  # 0 = no trial; set 7 for 7-day trial
+    team_included_seats: int = 3  # seats included in TEAM base price
+    stripe_enterprise_price_id: str = ""  # Stripe Price for ENTERPRISE ($999+/month)
+    stripe_pro_annual_price_id: str = ""  # PRO annual ($278/yr = 20% off)
+    stripe_team_annual_price_id: str = ""  # TEAM annual ($1,910/yr = 20% off)
+    stripe_enterprise_annual_price_id: str = ""  # ENTERPRISE annual ($9,590/yr = 20% off)
+    annual_discount_pct: int = 20  # percent discount for annual billing
+
+    # ── Stripe Connect (Marketplace) ──────────────────────────────
+    stripe_connect_client_id: str = ""
+    marketplace_platform_fee_pct: int = 30  # platform takes 30%
+
+    # ── API v2 Platform ───────────────────────────────────────────
+    api_v2_metered_price_id: str = ""  # Stripe metered price ($0.10/submission)
+    api_v2_pro_price_id: str = ""  # API PRO tier ($99/mo)
+    webhook_signing_secret: str = ""  # HMAC secret for webhook payloads
+    staffing_price_per_submit_cents: int = 200  # $2 per successful submission
+    staffing_base_monthly_cents: int = 200000  # $2k/month base
+
+    # ── Alerting v2 ──────────────────────────────────────────────
+    pagerduty_api_key: str = ""
+    pagerduty_service_id: str = ""
+    slack_webhook_url: str = ""
+    slack_enterprise_channel: str = "#enterprise-alerts"
+    slack_ops_channel: str = "#ops-alerts"
+
+    # ── SSO ────────────────────────────────────────────────────────
+    sso_sp_entity_id: str = "https://api.sorce.app/sso/saml/metadata"
+    sso_sp_acs_url: str = "https://api.sorce.app/sso/saml/acs"
+    sso_session_secret: str = ""  # HMAC secret for SSO session tokens
+
+    # ── Sentry / Observability ─────────────────────────────────────
+    sentry_dsn: str = ""
+    sentry_environment: str = "production"
+    sentry_traces_sample_rate: float = 0.1
+
+    # ── Worker scaling ─────────────────────────────────────────────
+    worker_instance_count: int = 1
+    enterprise_db_pool_min: int = 2
+    enterprise_db_pool_max: int = 10
+    read_replica_url: str = ""  # Supabase read replica connection string
+
+    # ── Push Notifications ─────────────────────────────────────────
+    expo_push_access_token: str = ""  # Expo push notification access token
+
+    # ── Email (Resend) ────────────────────────────────────────────
+    resend_api_key: str = ""
+    email_from: str = "Sorce <noreply@sorce.app>"
+
+    # ── Referral Program ──────────────────────────────────────────
+    referral_reward_apps: int = 5  # bonus apps for both referrer and referee
+
+    # ── App Store URLs ────────────────────────────────────────────
+    app_store_url: str = "https://apps.apple.com/app/sorce/idXXXXXXXXXX"
+    play_store_url: str = "https://play.google.com/store/apps/details?id=app.sorce.mobile"
+
+    # ── Agent guardrails ──────────────────────────────────────────
+    agent_enabled: bool = True  # set False to emergency-stop the worker
+    prompt_version_override: str = ""  # e.g. "v2" to force a specific prompt version
+
+    # ── Logging ──────────────────────────────────────────────────
+    log_level: str = "INFO"
+    log_json: bool = False  # local: human-readable; staging/prod: JSON
+
+    model_config = {
+        "env_prefix": "",
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False,
+        "extra": "ignore",
+    }
+
+    # ── Validators ───────────────────────────────────────────────
+    @field_validator("env", mode="before")
+    @classmethod
+    def _normalize_env(cls, v: str) -> str:
+        return v.strip().lower()
+
+    def validate_critical(self) -> None:
+        """Abort startup in staging/prod if critical secrets are missing."""
+        if self.env in (Environment.STAGING, Environment.PROD):
+            missing: list[str] = []
+            if not self.database_url or "localhost" in self.database_url:
+                missing.append("DATABASE_URL (must not be localhost)")
+            if not self.llm_api_key:
+                missing.append("LLM_API_KEY")
+            if not self.supabase_jwt_secret:
+                missing.append("SUPABASE_JWT_SECRET")
+            if not self.supabase_url:
+                missing.append("SUPABASE_URL")
+            if not self.supabase_service_key:
+                missing.append("SUPABASE_SERVICE_KEY")
+            if missing:
+                print(
+                    f"FATAL: Missing critical env vars for {self.env.value}: "
+                    + ", ".join(missing),
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+
+    # ── Environment-specific overrides applied after load ────────
+    def apply_env_defaults(self) -> "Settings":
+        """Return self with env-specific tuning applied where user didn't override."""
+        if self.env == Environment.LOCAL:
+            # Faster iteration locally
+            if os.environ.get("POLL_INTERVAL_SECONDS") is None:
+                object.__setattr__(self, "poll_interval_seconds", 2)
+            if os.environ.get("PAGE_TIMEOUT_MS") is None:
+                object.__setattr__(self, "page_timeout_ms", 30_000)
+            if os.environ.get("LOG_JSON") is None:
+                object.__setattr__(self, "log_json", False)
+            if os.environ.get("LOG_LEVEL") is None:
+                object.__setattr__(self, "log_level", "DEBUG")
+        elif self.env == Environment.PROD:
+            # More conservative in production
+            if os.environ.get("POLL_INTERVAL_SECONDS") is None:
+                object.__setattr__(self, "poll_interval_seconds", 5)
+            if os.environ.get("MAX_ATTEMPTS") is None:
+                object.__setattr__(self, "max_attempts", 3)
+            if os.environ.get("LOG_JSON") is None:
+                object.__setattr__(self, "log_json", True)
+            if os.environ.get("LOG_LEVEL") is None:
+                object.__setattr__(self, "log_level", "INFO")
+            if os.environ.get("LLM_RATE_LIMIT_PER_MINUTE") is None:
+                object.__setattr__(self, "llm_rate_limit_per_minute", 40)
+        elif self.env == Environment.STAGING:
+            if os.environ.get("LOG_JSON") is None:
+                object.__setattr__(self, "log_json", True)
+        return self
+
+
+# ---------------------------------------------------------------------------
+# Singleton access
+# ---------------------------------------------------------------------------
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Load, validate, and return the global Settings singleton."""
+    settings = Settings()
+    settings.validate_critical()
+    settings = settings.apply_env_defaults()
+    return settings
+
+
+# ---------------------------------------------------------------------------
+# FastAPI dependency
+# ---------------------------------------------------------------------------
+
+def settings_dependency() -> Settings:
+    """FastAPI Depends() compatible function."""
+    return get_settings()
