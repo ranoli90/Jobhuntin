@@ -33,18 +33,6 @@ COPY worker/ ./worker/
 RUN chown -R sorce:sorce /app
 
 # ============================================================
-# Stage: api – FastAPI service (no Playwright)
-# ============================================================
-FROM base AS api
-
-EXPOSE 8000
-
-USER sorce
-
-ENV PORT=8000
-CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
-
-# ============================================================
 # Stage: worker – Agent with Playwright + Chromium
 # ============================================================
 FROM base AS worker
@@ -57,3 +45,16 @@ RUN pip install --no-cache-dir playwright \
 USER sorce
 
 CMD ["python", "-m", "worker.agent"]
+
+# ============================================================
+# Stage: api – FastAPI service (no Playwright)
+# DEFAULT stage — this is what Render builds
+# ============================================================
+FROM base AS api
+
+EXPOSE 8000
+
+USER sorce
+
+ENV PORT=8000
+CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
