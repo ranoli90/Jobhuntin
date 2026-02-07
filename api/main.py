@@ -166,6 +166,16 @@ def _mount_sub_routers() -> None:
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
 
+@app.get("/debug/schema-error")
+async def debug_schema_error() -> dict[str, Any]:
+    """Try to generate the OpenAPI schema and return any error."""
+    import traceback
+    try:
+        schema = app.openapi()
+        return {"status": "ok", "paths": len(schema.get("paths", {}))}
+    except Exception as e:
+        return {"status": "error", "type": type(e).__name__, "message": str(e)[:500], "traceback": traceback.format_exc()[-1500:]}
+
 # ---------------------------------------------------------------------------
 # Database pool lifecycle
 # ---------------------------------------------------------------------------
