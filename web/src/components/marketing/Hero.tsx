@@ -17,7 +17,7 @@ export function Hero({ onGetStarted }: HeroProps) {
       </div>
 
       <div className="mx-auto max-w-4xl text-center">
-        <Badge variant="sunrise" className="mb-6 animate-fade-in">
+        <Badge variant="mango" className="mb-6 animate-fade-in">
           <Sparkles className="mr-1 h-3 w-3" />
           Now open to everyone
         </Badge>

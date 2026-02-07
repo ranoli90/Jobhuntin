@@ -212,7 +212,7 @@ export default function ApplicationsPage() {
                   Cancel
                 </Button>
                 <Button 
-                  variant="sunrise" 
+                  variant="primary" 
                   onClick={handleAnswer}
                   disabled={!answerText.trim() || isSubmitting}
                   className="gap-2"

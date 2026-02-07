@@ -40,6 +40,8 @@ export function useAuth(): AuthState {
     session,
     user: session?.user ?? null,
     loading,
-    signOut: () => supabase.auth.signOut(),
+    signOut: async () => {
+      await supabase.auth.signOut();
+    },
   };
 }

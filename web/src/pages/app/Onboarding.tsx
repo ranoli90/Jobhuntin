@@ -288,7 +288,7 @@ export default function Onboarding() {
                         <p className="text-sm font-medium text-brand-ink">Top Skills</p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {parsedResume.skills?.map((skill) => (
-                            <Badge key={skill} variant="shell" className="text-xs">{skill}</Badge>
+                            <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
                           ))}
                         </div>
                       </div>

@@ -1,8 +1,8 @@
 import * as React from "react";
 import { X, MapPin, DollarSign, ExternalLink, Bookmark, Share2, CheckCircle, Briefcase, Sparkles } from "lucide-react";
-import { Button } from "./Button";
-import { Card } from "./Card";
-import { Badge } from "./Badge";
+import { Button } from "../ui/Button";
+import { Card } from "../ui/Card";
+import { Badge } from "../ui/Badge";
 import type { JobPosting } from "../../hooks/useJobs";
 
 interface JobDetailDrawerProps {
@@ -50,12 +50,12 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
 
           {/* Quick info */}
           <div className="mt-6 flex flex-wrap gap-3">
-            <Badge variant="shell" className="flex items-center gap-2">
+            <Badge variant="outline" className="flex items-center gap-2">
               <MapPin className="h-3 w-3" />
               {job.location || "Remote"}
             </Badge>
             {(job.salary_min || job.salary_max) && (
-              <Badge variant="shell" className="flex items-center gap-2">
+              <Badge variant="outline" className="flex items-center gap-2">
                 <DollarSign className="h-3 w-3" />
                 {job.salary_min && `$${job.salary_min.toLocaleString()}`}
                 {job.salary_min && job.salary_max && " — "}

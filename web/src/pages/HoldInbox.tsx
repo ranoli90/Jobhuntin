@@ -79,11 +79,11 @@ export default function HoldInbox() {
   };
 
   const getUrgencyBadge = (lastActivity?: string) => {
-    if (!lastActivity) return { variant: "outline", label: "New" };
+    if (!lastActivity) return { variant: "outline", label: "New" } as const;
     const days = Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24));
-    if (days >= 3) return { variant: "plum", label: `${days}d ago` };
-    if (days >= 1) return { variant: "mango", label: `${days}d ago` };
-    return { variant: "lagoon", label: "Today" };
+    if (days >= 3) return { variant: "ink", label: `${days}d ago` } as const;
+    if (days >= 1) return { variant: "mango", label: `${days}d ago` } as const;
+    return { variant: "lagoon", label: "Today" } as const;
   };
 
   return (
@@ -94,7 +94,7 @@ export default function HoldInbox() {
           <h1 className="font-display text-4xl">Answer to unblock</h1>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="sunrise" className="text-sm">
+          <Badge variant="mango" className="text-sm">
             <Inbox className="mr-2 h-4 w-4" />
             {holdApplications.length} pending
           </Badge>
@@ -129,7 +129,7 @@ export default function HoldInbox() {
                     <div>
                       <div className="flex items-center gap-3">
                         <h3 className="font-display text-xl">{hold.job_title}</h3>
-                        <Badge variant={urgency.variant as "outline" | "plum" | "mango" | "lagoon"}>{urgency.label}</Badge>
+                        <Badge variant={urgency.variant}>{urgency.label}</Badge>
                       </div>
                       <p className="text-brand-ink/70">{hold.company}</p>
                       <div className="mt-3 rounded-2xl border border-dashed border-brand-sunrise/30 bg-brand-sunrise/10 p-3">
@@ -141,7 +141,7 @@ export default function HoldInbox() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      variant="sunrise" 
+                      variant="primary" 
                       size="sm"
                       onClick={() => setActiveHoldId(hold.id)}
                     >
