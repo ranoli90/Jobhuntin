@@ -796,7 +796,7 @@ async def export_audit_log_endpoint(
     days: int = 90,
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
-) -> Response:
+):  # returns Response
     """Export audit log as CSV (SOC 2 compliance)."""
     if ctx.plan != "ENTERPRISE":
         raise HTTPException(status_code=403, detail="Audit export requires ENTERPRISE plan")
