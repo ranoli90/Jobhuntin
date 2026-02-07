@@ -35,6 +35,7 @@ from fastapi import (
     Request,
     UploadFile,
 )
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -93,6 +94,18 @@ setup_logging(
 logger = get_logger("sorce.api")
 
 app = FastAPI(title="Sorce API", version="0.4.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://sorce-admin.onrender.com",
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ---------------------------------------------------------------------------
 # LLM client singleton
