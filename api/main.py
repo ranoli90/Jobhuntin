@@ -188,6 +188,7 @@ async def startup() -> None:
             pool = await asyncpg.create_pool(
                 s.database_url, min_size=s.db_pool_min, max_size=s.db_pool_max,
                 ssl=ssl_ctx,
+                statement_cache_size=0,
             )
             logger.info("Database pool created (env=%s)", s.env.value)
             return
@@ -207,7 +208,8 @@ async def shutdown() -> None:
 
 
 def get_pool() -> asyncpg.Pool:
-    assert pool is not None, "DB pool not initialised"
+    if pool is None:
+        raise HTTPException(status_code=503, detail="Database pool not available")
     return pool
 
 
