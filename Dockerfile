@@ -23,7 +23,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY shared/ ./shared/
+COPY backend/ ./backend/
 COPY api/ ./api/
+COPY api_v2/ ./api_v2/
+COPY blueprints/ ./blueprints/
+COPY partners/ ./partners/
 COPY worker/ ./worker/
 
 RUN chown -R sorce:sorce /app
@@ -37,7 +41,8 @@ EXPOSE 8000
 
 USER sorce
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--log-level", "info"]
+ENV PORT=8000
+CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
 
 # ============================================================
 # Stage: worker – Agent with Playwright + Chromium
