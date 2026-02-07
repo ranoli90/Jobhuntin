@@ -175,13 +175,28 @@ pool: asyncpg.Pool | None = None
 @app.on_event("startup")
 async def startup() -> None:
     global pool
+    import ssl as _ssl
     s = get_settings()
     from backend.blueprints.registry import load_default_blueprints
     load_default_blueprints()
-    pool = await asyncpg.create_pool(
-        s.database_url, min_size=s.db_pool_min, max_size=s.db_pool_max
-    )
-    logger.info("Database pool created (env=%s)", s.env.value)
+    # Build SSL context for Supabase pooler connections
+    ssl_ctx = _ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = _ssl.CERT_NONE
+    for attempt in range(1, 4):
+        try:
+            pool = await asyncpg.create_pool(
+                s.database_url, min_size=s.db_pool_min, max_size=s.db_pool_max,
+                ssl=ssl_ctx,
+            )
+            logger.info("Database pool created (env=%s)", s.env.value)
+            return
+        except Exception as exc:
+            logger.warning("DB pool attempt %d/3 failed: %s", attempt, exc)
+            if attempt < 3:
+                import asyncio
+                await asyncio.sleep(3 * attempt)
+    logger.error("Could not create DB pool after 3 attempts – app will start without DB")
 
 
 @app.on_event("shutdown")
