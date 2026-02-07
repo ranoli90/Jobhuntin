@@ -170,11 +170,29 @@ def _mount_sub_routers() -> None:
 async def debug_schema_error() -> dict[str, Any]:
     """Try to generate the OpenAPI schema and return any error."""
     import traceback
+    from fastapi.openapi.utils import get_openapi
+    # Clear any cached schema
+    app.openapi_schema = None
     try:
         schema = app.openapi()
         return {"status": "ok", "paths": len(schema.get("paths", {}))}
     except Exception as e:
-        return {"status": "error", "type": type(e).__name__, "message": str(e)[:500], "traceback": traceback.format_exc()[-1500:]}
+        # Find problematic routes
+        bad_routes = []
+        for route in app.routes:
+            p = getattr(route, "path", "?")
+            ep = getattr(route, "endpoint", None)
+            if ep:
+                import inspect
+                sig = inspect.signature(ep)
+                ret = sig.return_annotation
+                if ret != inspect.Parameter.empty:
+                    bad_routes.append({"path": p, "return": str(ret)})
+        return {
+            "status": "error", "type": type(e).__name__,
+            "message": str(e)[:300],
+            "routes_with_return_annotations": bad_routes,
+        }
 
 # ---------------------------------------------------------------------------
 # Database pool lifecycle
