@@ -226,7 +226,7 @@ export default function HoldInbox() {
                   Cancel
                 </Button>
                 <Button 
-                  variant="sunrise" 
+                  variant="primary" 
                   onClick={handleAnswer}
                   disabled={!answerText.trim() || isSubmitting}
                   className="gap-2"

@@ -46,7 +46,7 @@ def monitor_deploys():
             print(f"Found {svc['name']}: {svc['id']}")
         elif svc['name'] == "sorce-web":
             # Check if it's the new one
-            if svc['id'] == "srv-d63sjh9r0fns73brq9l0":
+            if svc['id'] == "srv-d63sipvgi27c739ni59g":
                 target_services[svc['name']] = svc['id']
                 print(f"Found {svc['name']} (NEW): {svc['id']}")
 
