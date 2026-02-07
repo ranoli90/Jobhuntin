@@ -69,7 +69,7 @@ class SSOConfigResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 @router.get("/saml/metadata", response_class=Response)
-async def saml_metadata() -> Response:
+async def saml_metadata():  # type: ignore[return]
     """Return SAML Service Provider metadata XML."""
     xml = generate_sp_metadata()
     return Response(content=xml, media_type="application/xml")
