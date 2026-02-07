@@ -242,14 +242,15 @@ async def startup() -> None:
     else:
         logger.error("Could not create DB pool after 3 attempts")
         return
-    # Auto-migrate: if auth schema missing, run all SQL files
+    # Auto-migrate: if tenants table missing, run all SQL files
     try:
         async with pool.acquire() as conn:
-            has_auth = await conn.fetchval(
-                "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name='auth')"
+            has_tenants = await conn.fetchval(
+                "SELECT EXISTS(SELECT 1 FROM information_schema.tables "
+                "WHERE table_schema='public' AND table_name='tenants')"
             )
-            if not has_auth:
-                logger.info("Running auto-migration (first boot)...")
+            if not has_tenants:
+                logger.info("Running auto-migration (tenants table missing)...")
                 await _run_migrations(conn)
     except Exception as exc:
         logger.warning("Auto-migration check failed: %s", exc)
@@ -257,44 +258,79 @@ async def startup() -> None:
 
 async def _run_migrations(conn: asyncpg.Connection) -> None:
     """Run auth shim + schema.sql + all numbered migrations."""
-    import pathlib
+    import pathlib, re
     base = pathlib.Path(__file__).resolve().parent.parent
-    # Auth compatibility shim
-    auth_shim = """
-    CREATE SCHEMA IF NOT EXISTS auth;
-    CREATE TABLE IF NOT EXISTS auth.users (
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        email text,
-        encrypted_password text,
-        email_confirmed_at timestamptz,
-        created_at timestamptz NOT NULL DEFAULT now(),
-        updated_at timestamptz NOT NULL DEFAULT now(),
-        raw_user_meta_data jsonb DEFAULT '{}'::jsonb
-    );
-    """
-    await conn.execute(auth_shim)
+
+    # Supabase-only patterns to skip on plain Postgres
+    _skip = re.compile(
+        r"(ALTER\s+PUBLICATION|supabase_realtime|auth\.uid\(\)|auth\.role\(\))",
+        re.IGNORECASE,
+    )
+
+    async def _exec_stmts(sql_text: str, label: str) -> tuple[int, int]:
+        """Split SQL on semicolons, execute each statement, return (ok, skip)."""
+        ok = skip = 0
+        # Crude split — handles $$ blocks by joining them back
+        raw_parts = sql_text.split(";")
+        stmts: list[str] = []
+        buf = ""
+        in_dollar = False
+        for part in raw_parts:
+            buf += part + ";"
+            if buf.count("$$") % 2 == 0:
+                stmts.append(buf.strip())
+                buf = ""
+            else:
+                in_dollar = True
+        if buf.strip():
+            stmts.append(buf.strip())
+        for stmt in stmts:
+            stmt = stmt.strip().rstrip(";").strip()
+            if not stmt or stmt.startswith("--"):
+                continue
+            if _skip.search(stmt):
+                skip += 1
+                continue
+            try:
+                await conn.execute(stmt)
+                ok += 1
+            except Exception as e:
+                msg = str(e)
+                if "already exists" in msg or "duplicate" in msg.lower():
+                    ok += 1
+                else:
+                    logger.warning("  [%s] stmt failed: %s", label, msg[:150])
+        return ok, skip
+
+    # 1. Auth compatibility shim
+    await conn.execute("CREATE SCHEMA IF NOT EXISTS auth")
+    await conn.execute("""
+        CREATE TABLE IF NOT EXISTS auth.users (
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            email text, encrypted_password text,
+            email_confirmed_at timestamptz,
+            created_at timestamptz NOT NULL DEFAULT now(),
+            updated_at timestamptz NOT NULL DEFAULT now(),
+            raw_user_meta_data jsonb DEFAULT '{}'::jsonb
+        )
+    """)
     logger.info("  auth shim created")
-    # Base schema
+
+    # 2. Base schema
     schema_file = base / "supabase" / "schema.sql"
     if schema_file.exists():
-        await conn.execute(schema_file.read_text(encoding="utf-8"))
-        logger.info("  schema.sql applied")
-    # Numbered migrations
+        ok, skip = await _exec_stmts(schema_file.read_text(encoding="utf-8"), "schema")
+        logger.info("  schema.sql: %d applied, %d skipped", ok, skip)
+
+    # 3. Numbered migrations
     mig_dir = base / "supabase" / "migrations"
     if mig_dir.exists():
         for mf in sorted(mig_dir.glob("[0-9]*.sql")):
             sql = mf.read_text(encoding="utf-8").strip()
             if not sql:
                 continue
-            try:
-                await conn.execute(sql)
-                logger.info("  %s applied", mf.name)
-            except Exception as e:
-                msg = str(e)
-                if "already exists" in msg or "duplicate" in msg.lower():
-                    logger.info("  %s skipped (already exists)", mf.name)
-                else:
-                    logger.warning("  %s FAILED: %s", mf.name, msg[:200])
+            ok, skip = await _exec_stmts(sql, mf.name)
+            logger.info("  %s: %d applied, %d skipped", mf.name, ok, skip)
 
 
 @app.on_event("shutdown")
