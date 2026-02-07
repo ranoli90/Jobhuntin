@@ -183,6 +183,28 @@ def _mount_sub_routers() -> None:
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
 
+@app.get("/debug/db-tables")
+async def debug_db_tables() -> dict[str, Any]:
+    """Check which tables exist in the DB and test tenant provisioning."""
+    if pool is None:
+        return {"error": "No DB pool"}
+    async with pool.acquire() as conn:
+        tables = await conn.fetch(
+            "SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('public','auth') ORDER BY 1,2"
+        )
+        table_list = [f"{r['schemaname']}.{r['tablename']}" for r in tables]
+        # Check migration status
+        has_tenants = "public.tenants" in table_list
+        has_members = "public.tenant_members" in table_list
+        has_users = "public.users" in table_list
+        return {
+            "tables": table_list,
+            "table_count": len(table_list),
+            "has_tenants": has_tenants,
+            "has_members": has_members,
+            "has_users": has_users,
+        }
+
 # ---------------------------------------------------------------------------
 # Database pool lifecycle
 # ---------------------------------------------------------------------------
