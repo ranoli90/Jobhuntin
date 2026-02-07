@@ -185,21 +185,122 @@ def _mount_sub_routers() -> None:
 
 @app.post("/debug/run-migration")
 async def debug_run_migration() -> dict[str, Any]:
-    """Manually trigger migration. For debugging only."""
+    """Manually trigger migration with verbose output."""
     if pool is None:
         return {"error": "No DB pool"}
-    try:
-        async with pool.acquire() as conn:
-            await _run_migrations(conn)
-        # Verify
-        async with pool.acquire() as conn:
-            tables = await conn.fetch(
-                "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY 1"
-            )
-            return {"status": "done", "public_tables": [r["tablename"] for r in tables]}
-    except Exception as e:
-        import traceback
-        return {"status": "error", "error": str(e), "trace": traceback.format_exc()[-800:]}
+    import pathlib
+    base = pathlib.Path(__file__).resolve().parent.parent
+    log_lines: list[str] = []
+
+    async with pool.acquire() as conn:
+        # 1. Auth shim
+        try:
+            await conn.execute("CREATE SCHEMA IF NOT EXISTS auth")
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS auth.users (
+                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                    email text, encrypted_password text,
+                    email_confirmed_at timestamptz,
+                    created_at timestamptz NOT NULL DEFAULT now(),
+                    updated_at timestamptz NOT NULL DEFAULT now(),
+                    raw_user_meta_data jsonb DEFAULT '{}'::jsonb
+                )
+            """)
+            log_lines.append("auth shim: OK")
+        except Exception as e:
+            log_lines.append(f"auth shim: FAIL {e}")
+
+        # 2. Try schema.sql as single execute first
+        schema_file = base / "supabase" / "schema.sql"
+        if schema_file.exists():
+            sql = schema_file.read_text(encoding="utf-8")
+            log_lines.append(f"schema.sql: {len(sql)} chars")
+            # Execute line by line for critical tables only
+            critical_stmts = [
+                "CREATE TYPE public.application_status AS ENUM ('QUEUED','PROCESSING','REQUIRES_INPUT','APPLIED','FAILED')",
+                """CREATE TABLE IF NOT EXISTS public.users (
+                    id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+                    full_name text, email text, avatar_url text,
+                    created_at timestamptz NOT NULL DEFAULT now(),
+                    updated_at timestamptz NOT NULL DEFAULT now()
+                )""",
+                """CREATE TABLE IF NOT EXISTS public.tenants (
+                    id text PRIMARY KEY, name text NOT NULL, slug text UNIQUE,
+                    plan text NOT NULL DEFAULT 'FREE', team_name text,
+                    seat_count int NOT NULL DEFAULT 1, max_seats int NOT NULL DEFAULT 1,
+                    stripe_customer_id text, stripe_subscription_id text,
+                    created_at timestamptz NOT NULL DEFAULT now(),
+                    updated_at timestamptz NOT NULL DEFAULT now()
+                )""",
+                """CREATE TABLE IF NOT EXISTS public.tenant_members (
+                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                    tenant_id text NOT NULL, user_id uuid NOT NULL,
+                    role text NOT NULL DEFAULT 'MEMBER',
+                    created_at timestamptz NOT NULL DEFAULT now(),
+                    UNIQUE(tenant_id, user_id, role)
+                )""",
+                """CREATE TABLE IF NOT EXISTS public.profiles (
+                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id uuid NOT NULL UNIQUE REFERENCES public.users(id) ON DELETE CASCADE,
+                    profile_data jsonb NOT NULL DEFAULT '{}'::jsonb, resume_url text,
+                    created_at timestamptz NOT NULL DEFAULT now(),
+                    updated_at timestamptz NOT NULL DEFAULT now()
+                )""",
+                """CREATE TABLE IF NOT EXISTS public.jobs (
+                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                    external_id text NOT NULL UNIQUE, title text NOT NULL, company text NOT NULL,
+                    description text, location text, salary_min numeric(12,2), salary_max numeric(12,2),
+                    category text, application_url text NOT NULL,
+                    source text NOT NULL DEFAULT 'adzuna', raw_data jsonb,
+                    created_at timestamptz NOT NULL DEFAULT now()
+                )""",
+                """CREATE TABLE IF NOT EXISTS public.applications (
+                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+                    job_id uuid NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
+                    status public.application_status NOT NULL DEFAULT 'QUEUED',
+                    error_message text, locked_at timestamptz, submitted_at timestamptz,
+                    created_at timestamptz NOT NULL DEFAULT now(),
+                    updated_at timestamptz NOT NULL DEFAULT now(),
+                    UNIQUE(user_id, job_id)
+                )""",
+                """CREATE TABLE IF NOT EXISTS public.application_inputs (
+                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                    application_id uuid NOT NULL REFERENCES public.applications(id) ON DELETE CASCADE,
+                    selector text NOT NULL, question text NOT NULL,
+                    field_type text NOT NULL DEFAULT 'text', answer text,
+                    created_at timestamptz NOT NULL DEFAULT now(), answered_at timestamptz
+                )""",
+                """CREATE TABLE IF NOT EXISTS public.billing_customers (
+                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                    tenant_id text NOT NULL UNIQUE, stripe_customer_id text NOT NULL,
+                    created_at timestamptz NOT NULL DEFAULT now()
+                )""",
+                """CREATE TABLE IF NOT EXISTS public.application_events (
+                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                    application_id uuid, event_type text NOT NULL,
+                    payload jsonb DEFAULT '{}'::jsonb,
+                    created_at timestamptz NOT NULL DEFAULT now()
+                )""",
+            ]
+            for stmt in critical_stmts:
+                try:
+                    await conn.execute(stmt)
+                    # extract table name
+                    name = stmt.split("(")[0].strip().split()[-1] if "TABLE" in stmt else stmt.split("(")[0].strip().split()[-1]
+                    log_lines.append(f"  created: {name}")
+                except Exception as e:
+                    log_lines.append(f"  FAIL: {str(e)[:120]}")
+
+        # 3. Check result
+        tables = await conn.fetch(
+            "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY 1"
+        )
+        return {
+            "status": "done",
+            "public_tables": [r["tablename"] for r in tables],
+            "log": log_lines,
+        }
 
 
 @app.get("/debug/db-tables")
