@@ -1,0 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --skedaddle-sunrise: 255 156 107;
+  --skedaddle-lagoon: 23 190 187;
+  --skedaddle-mango: 255 200 87;
+  --skedaddle-plum: 106 76 147;
+  --skedaddle-ink: 16 24 40;
+  --skedaddle-shell: 255 248 241;
+}
+
+body {
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: #fff8f1;
+  color: #101828;
+}
+
+::selection {
+  background-color: rgba(255, 156, 107, 0.4);
+}
