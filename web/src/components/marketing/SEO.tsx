@@ -6,13 +6,15 @@ interface SEOProps {
   ogTitle?: string;
   ogDescription?: string;
   ogImage?: string;
+  ogImageWidth?: string;
+  ogImageHeight?: string;
   canonicalUrl?: string;
   robots?: string;
   themeColor?: string;
   schema?: object | object[];
 }
 
-const DEFAULT_OG_IMAGE = "https://sorce-web.onrender.com/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global";
+const DEFAULT_OG_IMAGE = "https://sorce-api.onrender.com/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global";
 
 export const SEO = ({
   title,
@@ -20,6 +22,8 @@ export const SEO = ({
   ogTitle,
   ogDescription,
   ogImage = DEFAULT_OG_IMAGE,
+  ogImageWidth = "1200",
+  ogImageHeight = "630",
   canonicalUrl,
   robots = "index,follow",
   themeColor = "#FF6B35",
@@ -45,15 +49,24 @@ export const SEO = ({
     updateMeta("og:description", ogDescription || description, 'property');
     updateMeta("og:type", "website", 'property');
     updateMeta("og:url", resolvedCanonical, 'property');
+    
+    // OG Image tags for iMessage/Social optimization
     updateMeta("og:image", ogImage, 'property');
+    updateMeta("og:image:width", ogImageWidth, 'property');
+    updateMeta("og:image:height", ogImageHeight, 'property');
+    updateMeta("og:image:alt", ogTitle || title, 'property');
+
     updateMeta("og:site_name", "JobHuntin", 'property');
     updateMeta("theme-color", themeColor);
     updateMeta("robots", robots);
     
+    // Twitter Card tags
     updateMeta("twitter:card", "summary_large_image");
+    updateMeta("twitter:site", "@jobhuntin");
     updateMeta("twitter:title", ogTitle || title);
     updateMeta("twitter:description", ogDescription || description);
     updateMeta("twitter:image", ogImage);
+    updateMeta("twitter:image:alt", ogTitle || title);
 
     // Canonical
     let canonical = document.querySelector('link[rel="canonical"]');
@@ -134,7 +147,7 @@ export const SEO = ({
     return () => {
       // Cleanup if needed
     };
-  }, [title, description, ogTitle, ogDescription, ogImage, canonicalUrl, robots, themeColor, schema]);
+  }, [title, description, ogTitle, ogDescription, ogImage, ogImageWidth, ogImageHeight, canonicalUrl, robots, themeColor, schema]);
 
   return null;
 };
