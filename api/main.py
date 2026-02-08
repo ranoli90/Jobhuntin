@@ -182,6 +182,9 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[user_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(user_mod.router)
 
+    import api.og as og_mod
+    app.include_router(og_mod.router)
+
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
 

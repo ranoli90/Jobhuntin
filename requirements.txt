@@ -10,3 +10,4 @@ PyMuPDF>=1.24,<2
 playwright>=1.43,<2
 python-json-logger>=2.0,<3
 stripe>=8.0,<12
+Pillow>=10.2,<11

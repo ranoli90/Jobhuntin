@@ -99,6 +99,19 @@ const HeadSEO = () => {
     updateMeta("og:url", "https://jobhuntin.com");
     updateMeta("theme-color", "#FF6B35");
 
+    // Dynamic OG Image
+    // Uses the new Python API endpoint to generate a branded card
+    // Default fallback if no params provided
+    const ogUrl = new URL("https://sorce-web.onrender.com/api/og"); // Adjust domain if needed
+    ogUrl.searchParams.set("job", "AI Job Hunter");
+    ogUrl.searchParams.set("company", "JobHuntin");
+    ogUrl.searchParams.set("score", "100");
+    ogUrl.searchParams.set("location", "Global");
+    
+    updateMeta("og:image", ogUrl.toString());
+    updateMeta("twitter:card", "summary_large_image");
+    updateMeta("twitter:image", ogUrl.toString());
+
     // Canonical
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
