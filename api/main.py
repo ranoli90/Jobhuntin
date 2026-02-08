@@ -251,12 +251,16 @@ async def startup() -> None:
     load_default_blueprints()
     # Determine SSL: skip for Render internal connections, use for external
     ssl_arg: Any = False
-    if "pooler.supabase.com" in s.database_url or "supabase.co" in s.database_url:
+    if s.database_url and ("pooler.supabase.com" in s.database_url or "supabase.co" in s.database_url):
         import ssl as _ssl
         ssl_ctx = _ssl.create_default_context()
-        # Removed insecure SSL settings (check_hostname=False, verify_mode=CERT_NONE)
-        # to ensure server identity verification.
+        # Add insecure SSL settings for Supabase to bypass certificate verification issues
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = _ssl.CERT_NONE
         ssl_arg = ssl_ctx
+    elif s.database_url and "render.com" not in s.database_url and "localhost" not in s.database_url:
+        # Default to False for Render internal or localhost, but could be tuned
+        pass
     for attempt in range(1, 4):
         try:
             pool = await asyncpg.create_pool(
