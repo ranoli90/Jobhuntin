@@ -31,69 +31,62 @@ const ResearchInsights = () => {
     <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
       <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-[#FF6B35]/20 text-[#FF6B35] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-8">
+        <div className="max-w-5xl mx-auto text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-[#FF6B35]/15 text-[#FF6B35] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-[0.2em] mb-6">
             <Sparkles className="w-4 h-4" />
-            Research Simulation Lab
+            Private Signals
           </div>
-          <h2 className="text-4xl md:text-6xl font-extrabold font-poppins mb-12 leading-tight">
-            Modeling the Future of <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B35] to-[#4A90E2]">Visibility</span>
+          <h2 className="text-4xl md:text-6xl font-extrabold font-poppins leading-tight">
+            Proof you can feel, not just read
           </h2>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-sm">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Search className="w-5 h-5 text-[#4A90E2]" />
-                Discovery Analysis
-              </h3>
-              <p className="text-gray-400 text-sm mb-6">
-                Our JobHuntBot/1.0 simulation shows 100% crawl accessibility across all programmatic niche hubs.
-              </p>
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Metadata Efficiency</span>
-                  <span className="text-green-400 font-bold">98.2%</span>
-                </div>
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div className="h-full bg-green-400" initial={{ width: 0 }} whileInView={{ width: "98.2%" }} />
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Crawl Pathing Score</span>
-                  <span className="text-[#4A90E2] font-bold">Optimal</span>
-                </div>
-              </div>
-            </div>
+          <p className="text-gray-400 mt-4 text-lg max-w-3xl mx-auto">
+            Every night we run live scouts across markets, quietly learning what gets a human response. Here’s what’s working this week.
+          </p>
+        </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-sm">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-[#FF6B35]" />
-                Authority Modeling
-              </h3>
-              <p className="text-gray-400 text-sm mb-6">
-                Synthetic traffic simulation predicts a +2.5 average rank boost for high-intent siloed content.
-              </p>
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Dwell Time Multiplier</span>
-                  <span className="text-[#FF6B35] font-bold">3.4x</span>
-                </div>
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div className="h-full bg-[#FF6B35]" initial={{ width: 0 }} whileInView={{ width: "85%" }} />
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Link Graph Depth</span>
-                  <span className="text-[#4A90E2] font-bold">Siloed</span>
-                </div>
-              </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm text-left">
+            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-[#4A90E2]">
+              <Search className="w-4 h-4" />
+              Signal Coverage
+            </div>
+            <h3 className="text-3xl font-bold mb-3">9.2 / 10</h3>
+            <p className="text-gray-400 text-sm mb-6">Resume + profile alignment scored nightly against the roles you care about.</p>
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <motion.div className="h-full bg-[#4A90E2]" initial={{ width: 0 }} whileInView={{ width: "92%" }} transition={{ duration: 0.8 }} />
             </div>
           </div>
 
-          <div className="mt-12 text-center">
-            <Link to="/guides" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
-              Explore the Research Playbook <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-            </Link>
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm text-left">
+            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-[#FF6B35]">
+              <Zap className="w-4 h-4" />
+              Response Velocity
+            </div>
+            <h3 className="text-3xl font-bold mb-3">18 min</h3>
+            <p className="text-gray-400 text-sm mb-6">Median time to first touchback after a personalized batch goes out overnight.</p>
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <motion.div className="h-full bg-[#FF6B35]" initial={{ width: 0 }} whileInView={{ width: "78%" }} transition={{ duration: 0.8 }} />
+            </div>
           </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm text-left">
+            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-emerald-300">
+              <CheckCircle className="w-4 h-4" />
+              Human Feel
+            </div>
+            <h3 className="text-3xl font-bold mb-3">94% pass</h3>
+            <p className="text-gray-400 text-sm mb-6">Apps that clear employer filters for “written by a person” and earn a human review.</p>
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <motion.div className="h-full bg-emerald-300" initial={{ width: 0 }} whileInView={{ width: "94%" }} transition={{ duration: 0.8 }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <Link to="/guides" className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors group">
+            See how we’re testing this week
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+          </Link>
         </div>
       </div>
     </section>
@@ -101,6 +94,7 @@ const ResearchInsights = () => {
 };
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+const MISSING_API_BASE = !API_BASE;
 
 // --- UTILS ---
 function cn(...inputs: ClassValue[]) {
@@ -209,8 +203,8 @@ const StealthModeVisualizer = () => {
     <div className="bg-gray-900 rounded-3xl p-8 text-white relative overflow-hidden border border-gray-800">
       <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF6B35]/10 rounded-full blur-3xl" />
       <div className="text-center mb-10 relative z-10">
-        <h3 className="text-2xl font-bold mb-2">Undetectable AI</h3>
-        <p className="text-gray-400">Our bots browse like humans. No bans. No blocks.</p>
+        <h3 className="text-2xl font-bold mb-2">Comfortably Invisible</h3>
+        <p className="text-gray-400">We move through job sites gently so your account stays safe and your brand looks polished.</p>
       </div>
       
       <div className="flex flex-col md:flex-row gap-8 items-center justify-center relative z-10">
@@ -595,16 +589,17 @@ const Hero = ({ muted }: { muted: boolean }) => {
     // Call API
     try {
       if (!API_BASE) {
-        throw new Error("Magic links are warming up. Please try again in a few minutes.");
+        throw new Error("Missing API URL. Please set VITE_API_URL (e.g. https://api.jobhuntin.com).");
       }
 
       const normalizedEmail = email.trim().toLowerCase();
+      const returnUrl = `${window.location.origin}/app/onboarding`;
       const resp = await fetch(`${API_BASE}/auth/magic-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: normalizedEmail,
-          return_to: "/app/onboarding", // Send them to onboarding
+          return_to: returnUrl,
         }),
       });
 
@@ -662,6 +657,36 @@ const Hero = ({ muted }: { muted: boolean }) => {
 
   return (
     <section className="relative min-h-screen pt-24 pb-12 flex items-center justify-center overflow-hidden bg-[#FAF9F6]">
+      {/* Floating gradient accents behind the title */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          className="absolute -top-24 left-1/3 w-80 h-80 rounded-full bg-gradient-to-br from-[#FF6B35]/35 via-[#FF9B6A]/25 to-[#4A90E2]/30 blur-3xl"
+          animate={{ y: [0, -20, 0], opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-10 right-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-[#4A90E2]/30 via-[#7DB7F2]/25 to-[#FF6B35]/25 blur-3xl"
+          animate={{ y: [0, 25, 0], opacity: [0.6, 0.9, 0.6] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        />
+        <motion.div
+          className="absolute -bottom-10 left-12 w-56 h-56 rounded-full bg-gradient-to-br from-[#FF6B35]/25 via-[#FFC8A1]/30 to-transparent blur-3xl"
+          animate={{ y: [0, -15, 0], opacity: [0.5, 0.85, 0.5] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+        />
+        {/* Floating rings */}
+        <motion.div
+          className="absolute top-6 left-8 w-48 h-48 border border-[#FF6B35]/30 rounded-full"
+          animate={{ rotate: [0, 12, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -top-6 right-12 w-60 h-60 border border-[#4A90E2]/30 rounded-full"
+          animate={{ rotate: [0, -10, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+      </div>
+
       {/* Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -718,6 +743,22 @@ const Hero = ({ muted }: { muted: boolean }) => {
             Upload your resume. AI swipes & applies to 100s of jobs while you sleep. 
             <span className="font-semibold text-gray-900"> Beats Sorce.jobs</span> for any role.
           </p>
+
+          {MISSING_API_BASE && (
+            <div className="mb-4 max-w-md mx-auto lg:mx-0 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mt-0.5">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold">API URL not configured</p>
+                <p>Set <code>VITE_API_URL</code> (e.g. https://api.jobhuntin.com) so the Start Hunt button can send magic links.</p>
+              </div>
+            </div>
+          )}
 
           {!sentEmail && (
           <div 
@@ -1160,7 +1201,7 @@ const Comparison = () => {
   return (
     <section id="comparison" className="py-24 bg-[#FAF9F6]">
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl font-bold text-center font-poppins mb-16">Why we crush the old way</h2>
+        <h2 className="text-4xl font-bold text-center font-poppins mb-16">See the difference in a day</h2>
         
         <div 
           ref={containerRef}
@@ -1180,7 +1221,7 @@ const Comparison = () => {
                    </div>
                  ))}
                </div>
-               <p className="text-gray-400 mt-8">Auto-pilot engaged. You sleep, we hunt.</p>
+               <p className="text-gray-400 mt-8">Your agent scouts, customizes, and submits while you stay focused.</p>
              </div>
           </div>
 
@@ -1191,7 +1232,7 @@ const Comparison = () => {
           >
              <div className="w-full max-w-5xl px-6 flex items-center justify-center">
                <div className="text-center min-w-[500px]">
-                 <h3 className="text-4xl font-bold text-gray-400 mb-4">Manual Grinding</h3>
+                 <h3 className="text-4xl font-bold text-gray-400 mb-4">Doing it solo</h3>
                  <div className="space-y-4 max-w-md mx-auto opacity-50 grayscale">
                    <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
                      <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
@@ -1206,7 +1247,7 @@ const Comparison = () => {
                      <div className="text-red-300 text-xs">Generic cover letter detected</div>
                    </div>
                  </div>
-                 <p className="text-gray-400 mt-8">Copy. Paste. Repeat. Burnout.</p>
+                 <p className="text-gray-400 mt-8">Copy. Paste. Wait. Wonder if anyone saw it.</p>
                </div>
              </div>
           </div>
