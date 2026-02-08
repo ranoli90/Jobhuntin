@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -8,7 +8,7 @@ import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { supabase } from "../lib/supabase";
 import { pushToast } from "../lib/toast";
-import { ArrowRight, Mail, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, Mail, Lock, Sparkles, ShieldAlert, Chrome, Linkedin } from "lucide-react";
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
@@ -29,14 +29,47 @@ export default function Login() {
   const [isMagicLink, setIsMagicLink] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [socialProviderLoading, setSocialProviderLoading] = useState<"google" | "linkedin" | null>(null);
+
+  const emailIsValid = useMemo(() => {
+    const trimmed = email.trim();
+    if (!trimmed) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  }, [email]);
+
+  const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password]);
+
+  const primaryDisabled = isMagicLink ? !emailIsValid || isLoading : !emailIsValid || !password || isLoading;
+
+  const handleSocialLogin = async (provider: "google" | "linkedin") => {
+    setSocialProviderLoading(provider);
+    setFormError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/login?returnTo=${encodeURIComponent(returnTo)}`,
+        },
+      });
+      if (error) throw error;
+      pushToast({ title: "Redirecting to provider…", tone: "info" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Social sign-in failed";
+      setFormError(message);
+      pushToast({ title: "Social sign-in failed", description: message, tone: "error" });
+      setSocialProviderLoading(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) {
-      pushToast({ title: "Enter your email", tone: "error" });
+    if (!emailIsValid) {
+      pushToast({ title: "Enter a valid email", tone: "error" });
       return;
     }
     setIsLoading(true);
+    setFormError(null);
     try {
       if (isMagicLink) {
         if (!API_BASE) {
@@ -67,6 +100,7 @@ export default function Login() {
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Sign-in failed";
+      setFormError(message);
       pushToast({ title: "Sign-in failed", description: message, tone: "error" });
     } finally {
       setIsLoading(false);
@@ -75,8 +109,8 @@ export default function Login() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password) {
-      pushToast({ title: "Enter email and password", tone: "error" });
+    if (!emailIsValid || !password) {
+      pushToast({ title: "Enter a valid email and password", tone: "error" });
       return;
     }
     if (password.length < 6) {
@@ -147,7 +181,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <Link to="/" className="inline-flex items-center gap-2 text-brand-ink/70 hover:text-brand-ink mb-8">
           <div className="h-9 w-9 rounded-xl bg-brand-sunrise text-white grid place-items-center text-sm font-bold">
-            Sk
+            JH
           </div>
           <span className="font-display text-xl">JobHuntin</span>
         </Link>
@@ -158,6 +192,40 @@ export default function Login() {
             <h1 className="font-display text-2xl text-brand-ink">
               {isMagicLink ? "Sign in or create an account" : "Sign in"}
             </h1>
+          </div>
+
+          <div className="mb-6 space-y-3">
+            <p className="text-sm text-center text-brand-ink/60">Or continue with</p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => handleSocialLogin("google")}
+                disabled={!!socialProviderLoading}
+              >
+                {socialProviderLoading === "google" ? (
+                  <LoadingSpinner />
+                ) : (
+                  <Chrome className="mr-2 h-4 w-4" />
+                )}
+                Google
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => handleSocialLogin("linkedin")}
+                disabled={!!socialProviderLoading}
+              >
+                {socialProviderLoading === "linkedin" ? (
+                  <LoadingSpinner />
+                ) : (
+                  <Linkedin className="mr-2 h-4 w-4" />
+                )}
+                LinkedIn
+              </Button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -171,13 +239,20 @@ export default function Login() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-2xl border border-brand-ink/10 bg-white pl-11 pr-4 py-3 text-brand-ink placeholder:text-brand-ink/40 focus:outline-none focus:ring-2 focus:ring-brand-sunrise/30"
+                  className={`w-full rounded-2xl border bg-white pl-11 pr-4 py-3 text-brand-ink placeholder:text-brand-ink/40 focus:outline-none focus:ring-2 transition-colors ${
+                    email && !emailIsValid
+                      ? "border-red-300 focus:ring-red-200"
+                      : "border-brand-ink/10 focus:ring-brand-sunrise/30"
+                  }`}
                 />
               </div>
+              {email && !emailIsValid && (
+                <p className="mt-1 text-sm text-red-500">Please enter a valid email address.</p>
+              )}
             </div>
 
             {!isMagicLink && (
-              <div>
+              <div className="transition-all">
                 <label className="block text-sm font-medium text-brand-ink mb-1.5">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-ink/50" />
@@ -190,6 +265,14 @@ export default function Login() {
                     className="w-full rounded-2xl border border-brand-ink/10 bg-white pl-11 pr-4 py-3 text-brand-ink placeholder:text-brand-ink/40 focus:outline-none focus:ring-2 focus:ring-brand-sunrise/30"
                   />
                 </div>
+                {password && <PasswordStrengthMeter strength={passwordStrength} />}
+              </div>
+            )}
+
+            {formError && (
+              <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+                <ShieldAlert className="h-4 w-4" />
+                <span>{formError}</span>
               </div>
             )}
 
@@ -199,7 +282,7 @@ export default function Login() {
               </div>
             ) : (
               <div className="space-y-3 pt-2">
-                <Button type="submit" className="w-full" size="lg" disabled={isMagicLink ? !email.trim() : !email.trim() || !password}>
+                <Button type="submit" className="w-full" size="lg" disabled={primaryDisabled}>
                   {isMagicLink ? "Send magic link" : "Sign in"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -209,7 +292,7 @@ export default function Login() {
                     variant="outline"
                     className="w-full"
                     onClick={handleSignUp}
-                    disabled={!email.trim() || !password || password.length < 6}
+                    disabled={!emailIsValid || !password || password.length < 6}
                   >
                     Create account
                   </Button>
@@ -234,11 +317,61 @@ export default function Login() {
 
         <p className="mt-6 text-center text-sm text-brand-ink/60">
           By continuing, you agree to our{" "}
-          <a href="#" className="text-brand-ink/80 hover:underline">Terms</a>
+          <Link to="/terms" className="text-brand-ink/80 hover:underline">Terms</Link>
           {" "}and{" "}
-          <a href="#" className="text-brand-ink/80 hover:underline">Privacy Policy</a>.
+          <Link to="/privacy" className="text-brand-ink/80 hover:underline">Privacy Policy</Link>.
         </p>
       </div>
+    </div>
+  );
+}
+
+interface PasswordStrength {
+  label: string;
+  score: number;
+  tone: "weak" | "ok" | "great";
+}
+
+function calculatePasswordStrength(value: string): PasswordStrength {
+  if (!value) {
+    return { label: "Start typing…", score: 0, tone: "weak" };
+  }
+  let score = 0;
+  if (value.length >= 8) score += 1;
+  if (/[A-Z]/.test(value) && /[a-z]/.test(value)) score += 1;
+  if (/\d/.test(value) && /[^A-Za-z0-9]/.test(value)) score += 1;
+  if (value.length >= 12) score += 1;
+
+  if (score >= 3) return { label: "Strong password", score, tone: "great" };
+  if (score === 2) return { label: "Looks okay", score, tone: "ok" };
+  return { label: "Too weak", score, tone: "weak" };
+}
+
+function PasswordStrengthMeter({ strength }: { strength: PasswordStrength }) {
+  const pct = Math.min((strength.score / 4) * 100, 100);
+  const toneClasses = {
+    weak: "text-red-600 bg-red-100",
+    ok: "text-amber-600 bg-amber-100",
+    great: "text-emerald-600 bg-emerald-100",
+  } as const;
+
+  return (
+    <div className="mt-2 space-y-1">
+      <div className="h-2 w-full rounded-full bg-brand-ink/10">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${
+            strength.tone === "great"
+              ? "bg-emerald-500"
+              : strength.tone === "ok"
+              ? "bg-amber-500"
+              : "bg-red-500"
+          }`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${toneClasses[strength.tone]}`}>
+        {strength.label}
+      </span>
     </div>
   );
 }

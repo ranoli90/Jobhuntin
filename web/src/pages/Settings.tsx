@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, FileText, Upload } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2 } from "lucide-react";
 import { useProfile } from "../hooks/useProfile";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -7,15 +7,24 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { pushToast } from "../lib/toast";
 
 export default function Settings() {
-  const { profile, loading, updateProfile, uploadResume } = useProfile();
+  const { profile, loading, updateProfile, uploadResume, uploadAvatar } = useProfile();
   const [preferences, setPreferences] = React.useState({
     location: "",
     role_type: "",
     salary_min: "",
     remote_only: false,
   });
+  const [contactForm, setContactForm] = React.useState({
+    full_name: "",
+    headline: "",
+    bio: "",
+  });
   const [isSaving, setIsSaving] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isProfileSaving, setIsProfileSaving] = React.useState(false);
+  const [isAvatarUploading, setIsAvatarUploading] = React.useState(false);
+  const [resumeError, setResumeError] = React.useState<string | null>(null);
+  const [resumeSuccess, setResumeSuccess] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (profile?.preferences) {
@@ -28,6 +37,14 @@ export default function Settings() {
       });
     }
   }, [profile?.preferences]);
+
+  React.useEffect(() => {
+    setContactForm({
+      full_name: profile?.contact?.full_name ?? "",
+      headline: profile?.headline ?? "",
+      bio: profile?.bio ?? "",
+    });
+  }, [profile?.contact?.full_name, profile?.headline, profile?.bio]);
 
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +66,42 @@ export default function Settings() {
     }
   };
 
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProfileSaving(true);
+    try {
+      await updateProfile({
+        full_name: contactForm.full_name || undefined,
+        headline: contactForm.headline || undefined,
+        bio: contactForm.bio || undefined,
+      });
+      pushToast({ title: "Profile updated", tone: "success" });
+    } catch (err) {
+      pushToast({ title: "Could not update profile", description: (err as Error).message, tone: "error" });
+    } finally {
+      setIsProfileSaving(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      pushToast({ title: "Please upload an image", tone: "error" });
+      return;
+    }
+    setIsAvatarUploading(true);
+    try {
+      await uploadAvatar(file);
+      pushToast({ title: "Photo updated", tone: "success" });
+    } catch (err) {
+      pushToast({ title: "Avatar upload failed", description: (err as Error).message, tone: "error" });
+    } finally {
+      setIsAvatarUploading(false);
+      e.target.value = "";
+    }
+  };
+
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -57,11 +110,15 @@ export default function Settings() {
       return;
     }
     setIsUploading(true);
+    setResumeError(null);
+    setResumeSuccess(null);
     try {
       await uploadResume(file);
       pushToast({ title: "Resume updated", tone: "success" });
+      setResumeSuccess("Resume uploaded successfully");
     } catch (err) {
       pushToast({ title: "Upload failed", description: (err as Error).message, tone: "error" });
+      setResumeError((err as Error).message);
     } finally {
       setIsUploading(false);
       e.target.value = "";
@@ -76,6 +133,9 @@ export default function Settings() {
     );
   }
 
+  const avatarUrl = profile?.contact?.avatar_url;
+  const initials = (profile?.contact?.full_name || profile?.email || "JH").slice(0, 2).toUpperCase();
+
   return (
     <div className="space-y-8">
       <div>
@@ -84,32 +144,102 @@ export default function Settings() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card tone="shell" shadow="lift" className="p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <FileText className="h-5 w-5 text-brand-ink" />
-            <h2 className="font-display text-xl">Resume</h2>
-          </div>
-          {profile?.resume_url ? (
-            <p className="text-sm text-brand-ink/70 mb-4">
-              You have a resume on file. Upload a new one to replace it.
-            </p>
-          ) : (
-            <p className="text-sm text-brand-ink/70 mb-4">
-              Upload your resume so we can tailor applications for you.
-            </p>
-          )}
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-brand-ink/20 bg-white px-4 py-3 text-sm font-medium text-brand-ink hover:bg-brand-shell/50">
-            <Upload className="h-4 w-4" />
-            {isUploading ? "Uploading…" : "Upload new resume"}
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              className="hidden"
-              onChange={handleResumeUpload}
-              disabled={isUploading}
-            />
-          </label>
-        </Card>
+        <div className="space-y-6">
+          <Card tone="shell" shadow="lift" className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-brand-ink" />
+                <h2 className="font-display text-xl">Profile details</h2>
+              </div>
+              <span className="text-sm text-brand-ink/60">{profile?.email}</span>
+            </div>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative h-20 w-20">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="h-20 w-20 rounded-full object-cover" />
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-brand-ink/10 text-brand-ink flex items-center justify-center text-xl font-semibold">
+                    {initials}
+                  </div>
+                )}
+                <label className="absolute -bottom-2 -right-2 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-brand-ink text-white shadow">
+                  {isAvatarUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                  <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarUpload} disabled={isAvatarUploading} />
+                </label>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-brand-ink">{profile?.contact?.full_name || "Add your name"}</p>
+                <p className="text-sm text-brand-ink/60">Make it easier for recruiters to recognize you.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleProfileSave} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-brand-ink">Full name</label>
+                <input
+                  type="text"
+                  value={contactForm.full_name}
+                  onChange={(e) => setContactForm((prev) => ({ ...prev, full_name: e.target.value }))}
+                  className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-brand-ink">Headline</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Product Designer @ Stripe"
+                  value={contactForm.headline}
+                  onChange={(e) => setContactForm((prev) => ({ ...prev, headline: e.target.value }))}
+                  className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-brand-ink">Bio</label>
+                <textarea
+                  rows={4}
+                  value={contactForm.bio}
+                  onChange={(e) => setContactForm((prev) => ({ ...prev, bio: e.target.value }))}
+                  className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
+                  placeholder="Tell companies what makes you a standout candidate"
+                />
+              </div>
+              <Button type="submit" disabled={isProfileSaving} className="w-full">
+                {isProfileSaving ? "Saving…" : "Save profile"}
+              </Button>
+            </form>
+          </Card>
+
+          <Card tone="shell" shadow="lift" className="p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <FileText className="h-5 w-5 text-brand-ink" />
+              <h2 className="font-display text-xl">Resume</h2>
+            </div>
+            {profile?.resume_url ? (
+              <p className="text-sm text-brand-ink/70 mb-4">
+                You have a resume on file. Upload a new one to replace it or keep building your profile.
+              </p>
+            ) : (
+              <p className="text-sm text-brand-ink/70 mb-4">
+                Upload your resume so we can personalize applications.
+              </p>
+            )}
+            <div className="flex flex-col gap-3">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-brand-ink/20 bg-white px-4 py-3 text-sm font-medium text-brand-ink hover:bg-brand-shell/50">
+                <Upload className="h-4 w-4" />
+                {isUploading ? "Uploading…" : "Upload new resume"}
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  className="hidden"
+                  onChange={handleResumeUpload}
+                  disabled={isUploading}
+                />
+              </label>
+              {resumeSuccess && <p className="text-sm text-emerald-600">{resumeSuccess}</p>}
+              {resumeError && <p className="text-sm text-red-500">{resumeError}</p>}
+            </div>
+          </Card>
+        </div>
 
         <Card tone="shell" shadow="lift" className="p-6">
           <div className="flex items-center gap-2 mb-6">

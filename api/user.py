@@ -14,11 +14,12 @@ from __future__ import annotations
 
 import json
 import uuid
+from pathlib import Path
 from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from backend.domain.repositories import (
     ApplicationRepo,
@@ -30,6 +31,7 @@ from backend.domain.repositories import (
 )
 from backend.domain.tenant import TenantContext
 from backend.domain.quotas import check_can_create_application, QuotaExceededError
+from backend.domain.resume import process_resume_upload, upload_to_supabase_storage
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -360,12 +362,16 @@ async def get_profile(
     prefs = profile_data.get("preferences") or {}
     if isinstance(prefs, str):
         prefs = {}
+    contact = profile_data.get("contact") or {}
     return {
         "id": str(user_row["id"]),
         "email": user_row["email"] or "",
         "has_completed_onboarding": profile_data.get("has_completed_onboarding", False),
         "resume_url": resume_url,
         "preferences": prefs,
+        "contact": contact,
+        "headline": profile_data.get("headline", ""),
+        "bio": profile_data.get("summary", ""),
     }
 
 
@@ -373,10 +379,28 @@ async def get_profile(
 # PATCH /profile
 # ---------------------------------------------------------------------------
 
+class Preferences(BaseModel):
+    location: str | None = None
+    role_type: str | None = None
+    salary_min: int | None = None
+    remote_only: bool | None = None
+
+
 class ProfileUpdate(BaseModel):
+    full_name: str | None = None
+    headline: str | None = None
+    bio: str | None = None
     has_completed_onboarding: bool | None = None
-    preferences: dict | None = None
+    preferences: Preferences | None = None
+    avatar_url: str | None = None
     resume_url: str | None = None
+
+    @field_validator("avatar_url")
+    @classmethod
+    def _validate_avatar(cls, value: str | None) -> str | None:
+        if value and not value.startswith("http"):
+            raise ValueError("avatar_url must be a full URL")
+        return value
 
 
 @router.patch("/profile")
@@ -389,17 +413,31 @@ async def update_profile(
     async with db.acquire() as conn:
         existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
         profile_data = dict(existing or {})
+        contact = dict(profile_data.get("contact") or {})
+
+        if body.full_name is not None:
+            contact["full_name"] = body.full_name
+        if body.headline is not None:
+            profile_data["headline"] = body.headline
+        if body.bio is not None:
+            profile_data["summary"] = body.bio
 
         if body.has_completed_onboarding is not None:
             profile_data["has_completed_onboarding"] = body.has_completed_onboarding
         if body.preferences is not None:
-            profile_data["preferences"] = body.preferences
+            profile_data["preferences"] = body.preferences.model_dump(exclude_unset=True)
+
+        profile_data["contact"] = contact
 
         existing_row = await conn.fetchrow(
             "SELECT resume_url FROM public.profiles WHERE user_id = $1",
             ctx.user_id,
         )
         current_resume = existing_row["resume_url"] if existing_row else None
+        avatar_url = body.avatar_url if body.avatar_url is not None else contact.get("avatar_url")
+        if avatar_url:
+            contact["avatar_url"] = avatar_url
+
         await ProfileRepo.upsert(
             conn, ctx.user_id, profile_data,
             resume_url=body.resume_url if body.resume_url is not None else current_resume,
@@ -417,6 +455,7 @@ async def update_profile(
         "has_completed_onboarding": profile_data.get("has_completed_onboarding", False),
         "resume_url": final_resume,
         "preferences": profile_data.get("preferences") or {},
+        "contact": profile_data.get("contact") or {},
     }
 
 
@@ -430,14 +469,12 @@ async def upload_resume(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """Upload PDF resume: extract text, parse via LLM, upsert profile, store file. Returns { resume_url, parsed_profile }."""
+    """Upload PDF resume: extract text, parse via LLM, upsert profile, store file. Returns parsed data."""
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
     pdf_bytes = await file.read()
-    
-    from backend.domain.resume import process_resume_upload
-    
+
     resume_url, canonical = await process_resume_upload(
         user_id=ctx.user_id,
         tenant_id=ctx.tenant_id,
@@ -445,7 +482,66 @@ async def upload_resume(
         db_pool=db,
     )
 
+    parsed = canonical.model_dump()
+    contact = parsed.get("contact") or {}
+    prefs = parsed.get("preferences") or {}
     return {
         "resume_url": resume_url,
-        "parsed_profile": canonical.model_dump(),
+        "parsed_profile": parsed,
+        "contact": contact,
+        "preferences": prefs if isinstance(prefs, dict) else {},
     }
+
+
+@router.post("/profile/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Upload an avatar image to Supabase storage and persist URL to profile."""
+    allowed_types = {
+        "image/png": ".png",
+        "image/jpeg": ".jpg",
+        "image/jpg": ".jpg",
+        "image/webp": ".webp",
+    }
+    if (file.content_type or "").lower() not in allowed_types:
+        raise HTTPException(status_code=400, detail="Avatar must be PNG, JPG, or WEBP")
+
+    data = await file.read()
+    settings = get_settings()
+    ext = Path(file.filename or "").suffix.lower()
+    fallback_ext = allowed_types[file.content_type.lower()]  # type: ignore[operator]
+    suffix = ext if ext in allowed_types.values() else fallback_ext
+    storage_path = f"avatars/{ctx.user_id}/{uuid.uuid4()}{suffix}"
+
+    avatar_url = await upload_to_supabase_storage(
+        settings.supabase_storage_bucket,
+        storage_path,
+        data,
+        content_type=file.content_type or "image/png",
+    )
+
+    async with db.acquire() as conn:
+        existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
+        profile_data = dict(existing or {})
+        contact = dict(profile_data.get("contact") or {})
+        contact["avatar_url"] = avatar_url
+        profile_data["contact"] = contact
+
+        existing_row = await conn.fetchrow(
+            "SELECT resume_url FROM public.profiles WHERE user_id = $1",
+            ctx.user_id,
+        )
+        current_resume = existing_row["resume_url"] if existing_row else None
+
+        await ProfileRepo.upsert(
+            conn,
+            ctx.user_id,
+            profile_data,
+            resume_url=current_resume,
+            tenant_id=ctx.tenant_id,
+        )
+
+    return {"avatar_url": avatar_url}

@@ -16,6 +16,7 @@ export default function Onboarding() {
 
   const [resumeFile, setResumeFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [resumeError, setResumeError] = React.useState<string | null>(null);
   const [preferences, setPreferences] = React.useState({
     location: "",
     role_type: "",
@@ -23,8 +24,20 @@ export default function Onboarding() {
     remote_only: false,
   });
 
-  const [parsedResume, setParsedResume] = React.useState<{title?: string; skills?: string[]; years?: number} | null>(null);
+  const [parsedResume, setParsedResume] = React.useState<{title?: string; skills?: string[]; years?: number; summary?: string; headline?: string} | null>(null);
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
+
+  React.useEffect(() => {
+    if (profile?.preferences) {
+      const p = profile.preferences;
+      setPreferences({
+        location: p.location ?? "",
+        role_type: p.role_type ?? "",
+        salary_min: p.salary_min ? String(p.salary_min) : "",
+        remote_only: p.remote_only ?? false,
+      });
+    }
+  }, [profile?.preferences]);
 
   React.useEffect(() => {
     if (profile?.has_completed_onboarding) {
@@ -35,21 +48,26 @@ export default function Onboarding() {
   const handleResumeUpload = async () => {
     if (!resumeFile) return;
     setIsUploading(true);
+    setResumeError(null);
     try {
       const data = await uploadResume(resumeFile);
       pushToast({ title: "Resume uploaded!", tone: "success" });
-      
+
       if (data.parsed_profile) {
         const p = data.parsed_profile;
         setParsedResume({
           title: p.headline || (p.experience?.[0]?.title),
           skills: p.skills?.technical?.slice(0, 5) || [],
           years: p.experience?.length || 0,
+          summary: p.summary,
+          headline: p.headline,
         });
         setShowParsingPreview(true);
       }
     } catch (err) {
-      pushToast({ title: "Upload failed", description: (err as Error).message, tone: "error" });
+      const message = (err as Error).message;
+      setResumeError(message);
+      pushToast({ title: "Upload failed", description: message, tone: "error" });
     } finally {
       setIsUploading(false);
     }
@@ -245,6 +263,12 @@ export default function Onboarding() {
                 />
               </div>
 
+              {resumeError && (
+                <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {resumeError}
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <Button variant="ghost" onClick={prevStep} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -293,6 +317,15 @@ export default function Onboarding() {
                         </div>
                       </div>
                     </div>
+                    {parsedResume.summary && (
+                      <div className="flex items-start gap-3">
+                        <Sparkles className="h-4 w-4 text-brand-lagoon mt-1" />
+                        <div>
+                          <p className="text-sm font-medium text-brand-ink">Summary</p>
+                          <p className="text-brand-ink/70">{parsedResume.summary}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <p className="mt-4 text-sm text-brand-ink/60">
                     Does this look right? We'll use these details to personalize your applications.
@@ -304,6 +337,17 @@ export default function Onboarding() {
                   >
                     Looks good, continue
                     <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-3"
+                    onClick={() => {
+                      setShowParsingPreview(false);
+                      setResumeFile(null);
+                      setParsedResume(null);
+                    }}
+                  >
+                    Re-upload
                   </Button>
                 </Card>
               )}

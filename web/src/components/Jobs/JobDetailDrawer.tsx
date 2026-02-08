@@ -40,7 +40,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
               )}
               <div>
                 <h2 className="font-display text-2xl text-brand-ink">{job.title}</h2>
-                <p className="text-brand-ink/70">{job.company}</p>
+                <p className="text-sm font-semibold">{job.company}</p>
               </div>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -65,7 +65,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
             )}
           </div>
 
-          {/* What Skedaddle submits section */}
+          {/* What JobHuntin submits section */}
           <Card tone="lagoon" className="mt-6 p-4">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="h-5 w-5 text-brand-lagoon" />

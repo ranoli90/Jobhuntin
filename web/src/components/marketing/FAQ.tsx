@@ -206,7 +206,7 @@ export function FAQ() {
               <p className="text-slate-400">Our team usually responds within 2 hours.</p>
             </div>
             <a 
-              href="mailto:hello@skedaddle.ai" 
+              href="mailto:hello@jobhuntin.com" 
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition-colors group"
             >
               Chat with us

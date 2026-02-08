@@ -168,11 +168,11 @@ export default function AppLayout() {
             </Badge>
             <div className="hidden items-center gap-3 md:flex">
               <div className="text-right">
-                <p className="text-sm font-semibold">{user?.email ?? "hello@skedaddle.com"}</p>
+                <p className="text-sm font-semibold">{user?.email ?? "hello@jobhuntin.com"}</p>
                 <p className="text-xs text-slate-500">Account owner</p>
               </div>
               <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-semibold">
-                {user?.email?.slice(0, 2).toUpperCase() ?? "SK"}
+                {user?.email?.slice(0, 2).toUpperCase() ?? "JH"}
               </div>
             </div>
           </div>

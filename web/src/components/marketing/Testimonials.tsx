@@ -158,7 +158,7 @@ export function Testimonials() {
               </h2>
             </div>
             <p className="text-lg text-slate-400 max-w-md lg:text-right">
-              Thousands of job seekers have transformed their search with Skedaddle. Here's what they achieved.
+              Thousands of job seekers have transformed their search with JobHuntin. Here's what they achieved.
             </p>
           </div>
         </motion.div>

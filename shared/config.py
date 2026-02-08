@@ -69,6 +69,9 @@ class Settings(BaseSettings):
 
     # ── Rate limiting / guardrails ───────────────────────────────
     max_applications_per_minute: int = 30
+    magic_link_requests_per_hour: int = 5
+    magic_link_rate_limit_window_seconds: int = 3600
+    magic_link_token_ttl_seconds: int = 3600
 
     # ── Blueprints ────────────────────────────────────────────────
     default_blueprint_key: str = "job-app"
@@ -77,6 +80,12 @@ class Settings(BaseSettings):
     # ── Adzuna Job Board API ─────────────────────────────────────
     adzuna_app_id: str = ""
     adzuna_api_key: str = ""
+    adzuna_default_country: str = "us"
+    adzuna_additional_countries: str = ""  # comma-separated ISO country codes
+    adzuna_results_per_page: int = 50
+    adzuna_max_pages: int = 3
+    adzuna_job_ttl_days: int = 14
+    adzuna_rate_limit_per_minute: int = 60
 
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""

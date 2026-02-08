@@ -109,9 +109,9 @@ export default function MarketingLayout() {
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center text-white font-bold text-sm">
-                  S
+                  JH
                 </div>
-                <span className="font-semibold text-lg">Skedaddle</span>
+                <span className="font-semibold text-lg">JobHuntin</span>
               </div>
               <p className="text-sm text-slate-600 max-w-sm">
                 AI-powered job application automation. Land your dream job faster with intelligent matching and automated applications.
