@@ -60,7 +60,7 @@ export function useProfile() {
       setError(null);
       return data;
     } catch (err) {
-      const message = (err as Error).message;
+      const message = err instanceof Error ? err.message : "Unknown error";
       setError(message);
       throw err;
     } finally {
@@ -69,7 +69,23 @@ export function useProfile() {
   }, []);
 
   useEffect(() => {
-    refreshProfile().catch(() => null);
+    let mounted = true;
+
+    const initProfile = async () => {
+      try {
+        await refreshProfile();
+      } catch (err) {
+        if (mounted) {
+          console.error("Failed to load profile:", err);
+        }
+      }
+    };
+
+    initProfile();
+
+    return () => {
+      mounted = false;
+    };
   }, [refreshProfile]);
 
   const updateProfile = async (updates: ProfileUpdatePayload) => {

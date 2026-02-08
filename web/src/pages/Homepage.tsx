@@ -9,15 +9,16 @@
  *    - VITE_HOTJAR_ID=XXXXXXX
  */
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+pleimport React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { motion, useScroll, useSpring, useMotionValue, useTransform, AnimatePresence, useMotionTemplate } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import confetti from 'canvas-confetti';
+import { magicLinkService } from '../services/magicLinkService';
 import { 
   Rocket, Sparkles, Bot, Zap, CheckCircle, ArrowRight, UploadCloud, 
   Search, Code, X, Github, Gamepad2, Globe, 
   Volume2, VolumeX, MousePointer2, QrCode, Smartphone, Menu,
-  MailCheck
+  MailCheck, AlertCircle
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -25,9 +26,6 @@ import { pushToast } from '../lib/toast';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { SEO } from '../components/marketing/SEO';
-
-const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
-const MISSING_API_BASE = !API_BASE;
 
 // --- UTILS ---
 function cn(...inputs: ClassValue[]) {

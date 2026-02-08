@@ -15,6 +15,7 @@ import Onboarding from "./pages/app/Onboarding";
 import { useAuth } from "./hooks/useAuth";
 import { useProfile } from "./hooks/useProfile";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 
 function AuthGuard() {
   const location = useLocation();

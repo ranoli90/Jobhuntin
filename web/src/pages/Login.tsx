@@ -1,13 +1,14 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { pushToast } from '../lib/toast';
+import { magicLinkService } from '../services/magicLinkService';
 import { 
   ArrowRight, Mail, Lock, Sparkles, AlertCircle, 
   Chrome, Linkedin, Bot, CheckCircle, ArrowLeft,
-  ShieldCheck, MailCheck 
+  ShieldCheck, MailCheck, Loader 
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -16,7 +17,6 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const API_BASE = ((import.meta.env.VITE_API_URL ?? "") || `${window.location.origin}/api`).replace(/\/$/, "");
 type AuthMode = "magic" | "password" | "register";
 
 const AUTH_MODE_OPTIONS: { key: AuthMode; label: string; description: string }[] = [
