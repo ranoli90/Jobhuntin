@@ -20,6 +20,10 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { pushToast } from '../lib/toast';
+import { useNavigate } from 'react-router-dom';
+
+const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
 // --- UTILS ---
 function cn(...inputs: ClassValue[]) {
@@ -329,6 +333,7 @@ const ExitIntentPopup = () => {
 const Navbar = ({ muted, toggleMute }: { muted: boolean, toggleMute: () => void }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -361,6 +366,7 @@ const Navbar = ({ muted, toggleMute }: { muted: boolean, toggleMute: () => void 
             {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
           </button>
           <button 
+            onClick={() => navigate('/login')}
             className="bg-[#2D2D2D] text-white px-6 py-2 rounded-full font-bold hover:bg-[#FF6B35] transition-colors transform hover:scale-105 active:scale-95"
             onMouseEnter={() => playHoverSound(muted)}
           >
@@ -384,7 +390,10 @@ const Navbar = ({ muted, toggleMute }: { muted: boolean, toggleMute: () => void 
             <a href="#how-it-works" className="text-lg font-medium">How it Works</a>
             <a href="#jobs" className="text-lg font-medium">Live Jobs</a>
             <a href="#comparison" className="text-lg font-medium">Vs Sorce</a>
-            <button className="bg-[#FF6B35] text-white w-full py-3 rounded-xl font-bold">
+            <button 
+              onClick={() => navigate('/login')}
+              className="bg-[#FF6B35] text-white w-full py-3 rounded-xl font-bold"
+            >
               Login
             </button>
           </motion.div>
@@ -429,7 +438,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateEmail(email)) {
       setEmailError("Robot says: Need a valid email! 🤖");
@@ -439,31 +448,61 @@ const Hero = ({ muted }: { muted: boolean }) => {
     setIsSubmitting(true);
     playSuccessSound(muted);
     
-    setTimeout(() => {
-      let start = 0;
-      const end = 47;
-      const duration = 1000;
-      const startTime = performance.now();
+    // Animate first
+    let start = 0;
+    const end = 47;
+    const duration = 1000;
+    const startTime = performance.now();
 
-      const animateCounter = (currentTime: number) => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        setMatchCount(Math.floor(progress * end));
-        
-        if (progress < 1) {
-          requestAnimationFrame(animateCounter);
-        } else {
-          setIsSubmitting(false);
-          confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
-          });
+    const animateCounter = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      setMatchCount(Math.floor(progress * end));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateCounter);
+      }
+    };
+    requestAnimationFrame(animateCounter);
+
+    // Call API
+    try {
+      if (!API_BASE) {
+         console.warn("API base URL not configured");
+         // Fallback for demo
+      } else {
+        const resp = await fetch(`${API_BASE}/auth/magic-link`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim(),
+            return_to: "/app/onboarding", // Send them to onboarding
+          }),
+        });
+        if (!resp.ok) {
+           const err = await resp.text();
+           throw new Error(err || "Failed to send magic link");
         }
-      };
-      requestAnimationFrame(animateCounter);
-    }, 1500);
+      }
+      
+      // Success Animation
+      setTimeout(() => {
+        setIsSubmitting(false);
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
+        });
+        pushToast({ title: "Magic Link Sent! 📧", description: "Check your email to start hunting.", tone: "success" });
+        setEmail(""); // Clear
+      }, 1500);
+
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setEmailError(err.message || "Failed to send magic link");
+      pushToast({ title: "Error", description: err.message, tone: "error" });
+    }
   };
 
   const removeJob = (index: number) => {
@@ -998,8 +1037,8 @@ const Footer = ({ muted }: { muted: boolean }) => {
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
           <p>&copy; 2026 JobHuntin AI. All rights reserved.</p>
           <div className="flex gap-6 mt-4 md:mt-0">
-            <a href="#" className="hover:text-[#FF6B35]">Privacy</a>
-            <a href="#" className="hover:text-[#FF6B35]">Terms</a>
+            <a href="/privacy" className="hover:text-[#FF6B35]">Privacy</a>
+            <a href="/terms" className="hover:text-[#FF6B35]">Terms</a>
             <a href="#" className="hover:text-[#FF6B35]">Sitemap</a>
           </div>
         </div>

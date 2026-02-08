@@ -2,6 +2,8 @@ import { Navigate, Route, Routes, useLocation, Outlet } from "react-router-dom";
 import MarketingLayout from "./layouts/MarketingLayout";
 import Homepage from "./pages/Homepage";
 import Login from "./pages/Login";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import AppLayout from "./layouts/AppLayout";
 import Dashboard, { TeamView } from "./pages/Dashboard";
 import JobsFeed from "./pages/JobsFeed";
@@ -53,6 +55,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Homepage />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route element={<MarketingLayout />}>
         <Route path="/login" element={<Login />} />
       </Route>

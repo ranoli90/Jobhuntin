@@ -1,14 +1,19 @@
-import * as React from "react";
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { Button } from "../components/ui/Button";
-import { Card } from "../components/ui/Card";
-import { LoadingSpinner } from "../components/ui/LoadingSpinner";
-import { supabase } from "../lib/supabase";
-import { pushToast } from "../lib/toast";
-import { ArrowRight, Mail, Lock, Sparkles, ShieldAlert, Chrome, Linkedin } from "lucide-react";
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
+import { pushToast } from '../lib/toast';
+import { 
+  ArrowRight, Mail, Lock, Sparkles, AlertCircle, 
+  Chrome, Linkedin, Bot, CheckCircle, ArrowLeft 
+} from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
@@ -18,12 +23,6 @@ export default function Login() {
   const { session, loading: authLoading } = useAuth();
   const returnTo = searchParams.get("returnTo") || "/app/dashboard";
 
-  useEffect(() => {
-    if (!authLoading && session) {
-      navigate(returnTo, { replace: true });
-    }
-  }, [authLoading, session, navigate, returnTo]);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isMagicLink, setIsMagicLink] = useState(true);
@@ -32,15 +31,15 @@ export default function Login() {
   const [formError, setFormError] = useState<string | null>(null);
   const [socialProviderLoading, setSocialProviderLoading] = useState<"google" | "linkedin" | null>(null);
 
+  useEffect(() => {
+    if (!authLoading && session) {
+      navigate(returnTo, { replace: true });
+    }
+  }, [authLoading, session, navigate, returnTo]);
+
   const emailIsValid = useMemo(() => {
-    const trimmed = email.trim();
-    if (!trimmed) return false;
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }, [email]);
-
-  const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password]);
-
-  const primaryDisabled = isMagicLink ? !emailIsValid || isLoading : !emailIsValid || !password || isLoading;
 
   const handleSocialLogin = async (provider: "google" | "linkedin") => {
     setSocialProviderLoading(provider);
@@ -53,28 +52,24 @@ export default function Login() {
         },
       });
       if (error) throw error;
-      pushToast({ title: "Redirecting to provider…", tone: "info" });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Social sign-in failed";
-      setFormError(message);
-      pushToast({ title: "Social sign-in failed", description: message, tone: "error" });
+      pushToast({ title: "Redirecting...", tone: "info" });
+    } catch (err: any) {
+      setFormError(err.message || "Social sign-in failed");
       setSocialProviderLoading(null);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!emailIsValid) {
-      pushToast({ title: "Enter a valid email", tone: "error" });
-      return;
-    }
+    if (!emailIsValid) return;
+    
     setIsLoading(true);
     setFormError(null);
+
     try {
       if (isMagicLink) {
-        if (!API_BASE) {
-          throw new Error("API base URL is not configured");
-        }
+        if (!API_BASE) throw new Error("API configuration missing");
+        
         const resp = await fetch(`${API_BASE}/auth/magic-link`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -83,12 +78,14 @@ export default function Login() {
             return_to: returnTo,
           }),
         });
+        
         if (!resp.ok) {
-          const description = await resp.text().catch(() => "");
-          throw new Error(description || `Magic link request failed (${resp.status})`);
+          const err = await resp.text();
+          throw new Error(err || "Magic link failed");
         }
+        
         setMagicLinkSent(true);
-        pushToast({ title: "Check your email for the sign-in link", tone: "success" });
+        pushToast({ title: "Check your email! 📧", tone: "success" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
@@ -98,42 +95,8 @@ export default function Login() {
         pushToast({ title: "Welcome back!", tone: "success" });
         navigate(returnTo, { replace: true });
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Sign-in failed";
-      setFormError(message);
-      pushToast({ title: "Sign-in failed", description: message, tone: "error" });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!emailIsValid || !password) {
-      pushToast({ title: "Enter a valid email and password", tone: "error" });
-      return;
-    }
-    if (password.length < 6) {
-      pushToast({ title: "Password must be at least 6 characters", tone: "error" });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/app/onboarding` },
-      });
-      if (error) throw error;
-      pushToast({
-        title: "Account created!",
-        description: "Check your email to confirm, or sign in with your password.",
-        tone: "success",
-      });
-      setIsMagicLink(false);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Sign-up failed";
-      pushToast({ title: "Sign-up failed", description: message, tone: "error" });
+    } catch (err: any) {
+      setFormError(err.message || "Sign-in failed");
     } finally {
       setIsLoading(false);
     }
@@ -141,237 +104,184 @@ export default function Login() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-brand-shell flex items-center justify-center">
-        <LoadingSpinner label="Loading…" />
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1 }}
+        >
+          <Bot className="w-12 h-12 text-[#FF6B35]" />
+        </motion.div>
       </div>
     );
   }
 
   if (magicLinkSent) {
     return (
-      <div className="min-h-screen bg-brand-shell flex items-center justify-center px-6">
-        <Card tone="shell" shadow="lift" className="max-w-md w-full p-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-lagoon/20">
-            <Mail className="h-8 w-8 text-brand-lagoon" />
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-6 font-inter text-[#2D2D2D]">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white rounded-3xl p-8 max-w-md w-full shadow-xl text-center border border-gray-100"
+        >
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
-          <h1 className="font-display text-2xl text-brand-ink">Check your email</h1>
-          <p className="mt-2 text-brand-ink/70">
-            We sent a sign-in link to <strong>{email}</strong>. Click it to get into your account.
+          <h2 className="text-3xl font-bold font-poppins mb-4">Check your email</h2>
+          <p className="text-gray-600 mb-8">
+            We sent a magic link to <strong className="text-[#2D2D2D]">{email}</strong>.<br/>
+            Click it to start hunting.
           </p>
-          <p className="mt-4 text-sm text-brand-ink/60">
-            Didn’t get it? Check spam or{" "}
-            <button
-              type="button"
-              className="text-brand-sunrise font-semibold underline"
-              onClick={() => setMagicLinkSent(false)}
-            >
-              try again
-            </button>
-          </p>
-          <Link to="/" className="mt-6 inline-block text-sm text-brand-ink/60 hover:text-brand-ink">
-            ← Back to home
-          </Link>
-        </Card>
+          <button 
+            onClick={() => setMagicLinkSent(false)}
+            className="text-[#FF6B35] font-bold hover:underline"
+          >
+            Try different email
+          </button>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-brand-shell flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
-        <Link to="/" className="inline-flex items-center gap-2 text-brand-ink/70 hover:text-brand-ink mb-8">
-          <div className="h-9 w-9 rounded-xl bg-brand-sunrise text-white grid place-items-center text-sm font-bold">
-            JH
-          </div>
-          <span className="font-display text-xl">JobHuntin</span>
+    <div className="min-h-screen bg-[#FAF9F6] flex flex-col items-center justify-center p-6 font-inter text-[#2D2D2D] relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#FF6B35]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#4A90E2]/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-[#FF6B35] mb-8 transition-colors font-medium">
+          <ArrowLeft className="w-4 h-4" /> Back to Home
         </Link>
 
-        <Card tone="shell" shadow="lift" className="p-8">
-          <div className="flex items-center gap-2 mb-6">
-            <Sparkles className="h-5 w-5 text-brand-sunrise" />
-            <h1 className="font-display text-2xl text-brand-ink">
-              {isMagicLink ? "Sign in or create an account" : "Sign in"}
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="bg-white rounded-3xl shadow-xl p-8 sm:p-10 border border-gray-100"
+        >
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-[#FF6B35] p-2 rounded-xl rotate-3 shadow-sm">
+              <Bot className="text-white w-6 h-6" />
+            </div>
+            <h1 className="font-poppins text-2xl font-bold text-[#2D2D2D]">
+              {isMagicLink ? "Let's get hunting" : "Welcome back"}
             </h1>
           </div>
 
-          <div className="mb-6 space-y-3">
-            <p className="text-sm text-center text-brand-ink/60">Or continue with</p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => handleSocialLogin("google")}
-                disabled={!!socialProviderLoading}
-              >
-                {socialProviderLoading === "google" ? (
-                  <LoadingSpinner />
-                ) : (
-                  <Chrome className="mr-2 h-4 w-4" />
-                )}
-                Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => handleSocialLogin("linkedin")}
-                disabled={!!socialProviderLoading}
-              >
-                {socialProviderLoading === "linkedin" ? (
-                  <LoadingSpinner />
-                ) : (
-                  <Linkedin className="mr-2 h-4 w-4" />
-                )}
-                LinkedIn
-              </Button>
+          <div className="space-y-4 mb-8">
+            <button
+              onClick={() => handleSocialLogin("google")}
+              disabled={!!socialProviderLoading}
+              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl transition-all"
+            >
+              {socialProviderLoading === "google" ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
+              ) : (
+                <Chrome className="w-5 h-5 text-gray-900" />
+              )}
+              Continue with Google
+            </button>
+            <button
+              onClick={() => handleSocialLogin("linkedin")}
+              disabled={!!socialProviderLoading}
+              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl transition-all"
+            >
+              {socialProviderLoading === "linkedin" ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
+              ) : (
+                <Linkedin className="w-5 h-5 text-[#0077b5]" />
+              )}
+              Continue with LinkedIn
+            </button>
+          </div>
+
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-100"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-400">Or with email</span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-brand-ink mb-1.5">Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-ink/50" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
+                  placeholder="tech-wizard@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full rounded-2xl border bg-white pl-11 pr-4 py-3 text-brand-ink placeholder:text-brand-ink/40 focus:outline-none focus:ring-2 transition-colors ${
-                    email && !emailIsValid
-                      ? "border-red-300 focus:ring-red-200"
-                      : "border-brand-ink/10 focus:ring-brand-sunrise/30"
-                  }`}
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 focus:border-[#FF6B35] transition-all font-medium"
                 />
               </div>
-              {email && !emailIsValid && (
-                <p className="mt-1 text-sm text-red-500">Please enter a valid email address.</p>
-              )}
             </div>
 
             {!isMagicLink && (
-              <div className="transition-all">
-                <label className="block text-sm font-medium text-brand-ink mb-1.5">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-ink/50" />
-                  <input
-                    type="password"
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-2xl border border-brand-ink/10 bg-white pl-11 pr-4 py-3 text-brand-ink placeholder:text-brand-ink/40 focus:outline-none focus:ring-2 focus:ring-brand-sunrise/30"
-                  />
-                </div>
-                {password && <PasswordStrengthMeter strength={passwordStrength} />}
-              </div>
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                className="relative"
+              >
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 focus:border-[#FF6B35] transition-all font-medium"
+                />
+              </motion.div>
             )}
 
             {formError && (
-              <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
-                <ShieldAlert className="h-4 w-4" />
-                <span>{formError}</span>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 text-red-500 text-sm font-medium bg-red-50 p-3 rounded-lg"
+              >
+                <AlertCircle className="w-4 h-4" />
+                {formError}
+              </motion.div>
             )}
 
-            {isLoading ? (
-              <div className="pt-2">
-                <LoadingSpinner label={isMagicLink ? "Sending link…" : "Signing in…"} />
-              </div>
-            ) : (
-              <div className="space-y-3 pt-2">
-                <Button type="submit" className="w-full" size="lg" disabled={primaryDisabled}>
-                  {isMagicLink ? "Send magic link" : "Sign in"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                {!isMagicLink && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleSignUp}
-                    disabled={!emailIsValid || !password || password.length < 6}
-                  >
-                    Create account
-                  </Button>
-                )}
-              </div>
-            )}
+            <button
+              type="submit"
+              disabled={isLoading || !emailIsValid}
+              className="w-full bg-[#2D2D2D] hover:bg-[#FF6B35] text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                  <Sparkles className="w-5 h-5" />
+                </motion.div>
+              ) : (
+                <>
+                  {isMagicLink ? "Send Magic Link" : "Sign In"}
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-brand-ink/10">
+          <div className="mt-6 text-center">
             <button
-              type="button"
-              className="text-sm text-brand-ink/70 hover:text-brand-ink"
-              onClick={() => {
-                setIsMagicLink(!isMagicLink);
-                setPassword("");
-              }}
+              onClick={() => setIsMagicLink(!isMagicLink)}
+              className="text-sm text-gray-500 hover:text-[#FF6B35] transition-colors"
             >
               {isMagicLink ? "Use password instead" : "Use magic link instead"}
             </button>
           </div>
-        </Card>
+        </motion.div>
 
-        <p className="mt-6 text-center text-sm text-brand-ink/60">
-          By continuing, you agree to our{" "}
-          <Link to="/terms" className="text-brand-ink/80 hover:underline">Terms</Link>
-          {" "}and{" "}
-          <Link to="/privacy" className="text-brand-ink/80 hover:underline">Privacy Policy</Link>.
+        <p className="mt-8 text-center text-sm text-gray-400">
+          By joining, you agree to our{' '}
+          <Link to="/terms" className="underline hover:text-[#FF6B35]">Terms</Link>
+          {' '}and{' '}
+          <Link to="/privacy" className="underline hover:text-[#FF6B35]">Privacy Policy</Link>.
         </p>
       </div>
-    </div>
-  );
-}
-
-interface PasswordStrength {
-  label: string;
-  score: number;
-  tone: "weak" | "ok" | "great";
-}
-
-function calculatePasswordStrength(value: string): PasswordStrength {
-  if (!value) {
-    return { label: "Start typing…", score: 0, tone: "weak" };
-  }
-  let score = 0;
-  if (value.length >= 8) score += 1;
-  if (/[A-Z]/.test(value) && /[a-z]/.test(value)) score += 1;
-  if (/\d/.test(value) && /[^A-Za-z0-9]/.test(value)) score += 1;
-  if (value.length >= 12) score += 1;
-
-  if (score >= 3) return { label: "Strong password", score, tone: "great" };
-  if (score === 2) return { label: "Looks okay", score, tone: "ok" };
-  return { label: "Too weak", score, tone: "weak" };
-}
-
-function PasswordStrengthMeter({ strength }: { strength: PasswordStrength }) {
-  const pct = Math.min((strength.score / 4) * 100, 100);
-  const toneClasses = {
-    weak: "text-red-600 bg-red-100",
-    ok: "text-amber-600 bg-amber-100",
-    great: "text-emerald-600 bg-emerald-100",
-  } as const;
-
-  return (
-    <div className="mt-2 space-y-1">
-      <div className="h-2 w-full rounded-full bg-brand-ink/10">
-        <div
-          className={`h-full rounded-full transition-all duration-300 ${
-            strength.tone === "great"
-              ? "bg-emerald-500"
-              : strength.tone === "ok"
-              ? "bg-amber-500"
-              : "bg-red-500"
-          }`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${toneClasses[strength.tone]}`}>
-        {strength.label}
-      </span>
     </div>
   );
 }
