@@ -62,7 +62,9 @@ export function useProfile() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setError(message);
-      throw err;
+      // Don't throw here, just set error/profile to null so UI can decide what to do
+      setProfile(null); 
+      return null;
     } finally {
       setLoading(false);
     }
@@ -99,6 +101,10 @@ export function useProfile() {
     formData.append("file", file); // Backend expects "file" from UploadFile = File(...)
     const data = await apiPostFormData<UploadResumeResponse>("profile/resume", formData);
     setProfile((prev) => {
+      // If prev is null, we can't fully reconstruct it without ID/email, 
+      // but we can start building it if the backend returned enough info.
+      // However, usually uploadResume is called when we are already authenticated.
+      // We'll rely on refreshProfile if prev is null.
       if (!prev) return prev;
       return {
         ...prev,
@@ -110,6 +116,10 @@ export function useProfile() {
         },
       };
     });
+    // If we didn't have a profile before, refresh to get the full object
+    if (!profile) {
+        await refreshProfile();
+    }
     return data;
   };
 
@@ -139,6 +149,7 @@ export function useProfile() {
     savePreferences,
     completeOnboarding,
     refreshProfile,
-    needsOnboarding: profile !== null && !profile.has_completed_onboarding && !loading,
+    // Force onboarding if profile is missing (new user) or explicitly not completed
+    needsOnboarding: !loading && (!profile || !profile.has_completed_onboarding),
   };
 }

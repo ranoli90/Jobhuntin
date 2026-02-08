@@ -127,7 +127,7 @@ const Hero = () => {
   }
 
   const validateEmail = (e: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -308,7 +308,10 @@ const Hero = () => {
                     emailError ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-primary-500/20"
                   )}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError("");
+                  }}
                 />
               </div>
               <Button 

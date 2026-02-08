@@ -61,9 +61,32 @@ export default function Login() {
     }));
   }, []);
 
+  // Handle hash fragment manually for magic link redirect flow
+  useEffect(() => {
+    const handleHash = async () => {
+        const hash = window.location.hash;
+        if (hash && hash.includes('access_token')) {
+            try {
+                // The useAuth hook also handles this, but redundancy in the page component can ensure 
+                // we catch the session if the hook hasn't yet or if there's a race condition.
+                // However, let's rely on useAuth for setting the session state and just handle navigation here if session becomes available.
+            } catch (error) {
+                console.error("Error handling hash in Login:", error);
+            }
+        }
+    };
+    handleHash();
+  }, []);
+
+
   useEffect(() => {
     if (!authLoading && session) {
-      navigate(returnTo, { replace: true });
+      // If we have a session, navigate to the intended destination
+      // Decode returnTo to ensure we aren't double encoding
+      const decodedReturnTo = decodeURIComponent(returnTo);
+      // Ensure we don't redirect to login itself
+      const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;
+      navigate(finalDest, { replace: true });
     }
   }, [authLoading, session, navigate, returnTo]);
 
