@@ -691,8 +691,7 @@ class FormAgent:
         if not submitted:
             raise RuntimeError("Could not locate a submit button on the form")
 
-    asyn"""Finalize task, update status, and notify user."""
-        c def _handle_success(self, task: dict, ctx: dict) -> None:
+    async def _handle_success(self, task: dict, ctx: dict) -> None:
         async with self.pool.acquire() as conn:
             final_status = await ctx["blueprint"].on_task_completed(conn, task, ctx["tenant_id"])
 

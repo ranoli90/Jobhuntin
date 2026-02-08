@@ -24,8 +24,9 @@ logger = get_logger("sorce.worker.scaling")
 async def create_primary_pool() -> asyncpg.Pool:
     """Create the primary write DB pool."""
     s = get_settings()
+    from shared.db import resolve_dsn_ipv4
     return await asyncpg.create_pool(
-        s.database_url,
+        resolve_dsn_ipv4(s.database_url),
         min_size=s.db_pool_min,
         max_size=s.db_pool_max,
         command_timeout=60,
@@ -38,8 +39,9 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
     if not s.read_replica_url:
         logger.info("No read replica configured; using primary for reads")
         return None
+    from shared.db import resolve_dsn_ipv4
     return await asyncpg.create_pool(
-        s.read_replica_url,
+        resolve_dsn_ipv4(s.read_replica_url),
         min_size=2,
         max_size=s.db_pool_max,
         command_timeout=60,
@@ -51,8 +53,9 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
     s = get_settings()
     if not s.enterprise_db_pool_min:
         return None
+    from shared.db import resolve_dsn_ipv4
     return await asyncpg.create_pool(
-        s.database_url,
+        resolve_dsn_ipv4(s.database_url),
         min_size=s.enterprise_db_pool_min,
         max_size=s.enterprise_db_pool_max,
         command_timeout=120,  # longer timeout for enterprise
