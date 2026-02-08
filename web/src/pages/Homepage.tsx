@@ -1026,96 +1026,7 @@ const AutomationEdge = ({ muted }: { muted: boolean }) => {
   );
 };
 
-// 11. Comparison Slider
-const Comparison = () => {
-  const [sliderVal, setSliderVal] = useState(50);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    setSliderVal((x / rect.width) * 100);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.touches[0].clientX - rect.left, rect.width));
-    setSliderVal((x / rect.width) * 100);
-  };
-
-  return (
-    <section id="comparison" className="py-24 bg-[#FAF9F6]">
-      <div className="container mx-auto px-6">
-        <h2 className="text-4xl font-bold text-center font-poppins mb-16">See the difference in a day</h2>
-        
-        <div 
-          ref={containerRef}
-          className="relative max-w-5xl mx-auto h-[500px] rounded-3xl overflow-hidden cursor-ew-resize shadow-2xl"
-          onMouseMove={handleMouseMove}
-          onTouchMove={handleTouchMove}
-        >
-          {/* RIGHT SIDE (JobHuntin) - Base Layer */}
-          <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center">
-             <div className="text-center">
-               <h3 className="text-4xl font-bold text-[#FF6B35] mb-4">JobHuntin</h3>
-               <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
-                 {[1,2,3,4].map(i => (
-                   <div key={i} className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                     <div className="text-green-400 font-bold text-xl mb-1">Applied</div>
-                     <div className="text-gray-400 text-xs">2 min ago • Google</div>
-                   </div>
-                 ))}
-               </div>
-               <p className="text-gray-400 mt-8">Your agent scouts, customizes, and submits while you stay focused.</p>
-             </div>
-          </div>
-
-          {/* LEFT SIDE (Manual) - Clipped Layer */}
-          <div 
-            className="absolute inset-0 bg-white border-r-4 border-[#FF6B35] flex items-center justify-center overflow-hidden"
-            style={{ width: `${sliderVal}%` }}
-          >
-             <div className="w-full max-w-5xl px-6 flex items-center justify-center">
-               <div className="text-center min-w-[500px]">
-                 <h3 className="text-4xl font-bold text-gray-400 mb-4">Doing it solo</h3>
-                 <div className="space-y-4 max-w-md mx-auto opacity-50 grayscale">
-                   <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
-                     <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                   </div>
-                   <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
-                     <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                   </div>
-                   <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-                     <div className="text-red-400 font-bold">Rejected</div>
-                     <div className="text-red-300 text-xs">Generic cover letter detected</div>
-                   </div>
-                 </div>
-                 <p className="text-gray-400 mt-8">Copy. Paste. Wait. Wonder if anyone saw it.</p>
-               </div>
-             </div>
-          </div>
-
-          {/* Slider Handle */}
-          <div 
-            className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-20 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
-            style={{ left: `${sliderVal}%` }}
-          >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-[#FF6B35] rounded-full flex items-center justify-center shadow-xl border-4 border-white">
-              <div className="flex gap-1">
-                <div className="w-0.5 h-4 bg-white/50"></div>
-                <div className="w-0.5 h-4 bg-white/50"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
+// 11. Comparison Slider (removed)
 
 // 12. Footer with Easter Egg
 const Footer = ({ muted }: { muted: boolean }) => {
@@ -1287,7 +1198,6 @@ export default function Homepage() {
         <Onboarding />
         <FeaturedJobs muted={muted} />
         <AutomationEdge muted={muted} />
-        <Comparison />
       </main>
       <Footer muted={muted} />
       <ExitIntentPopup />
