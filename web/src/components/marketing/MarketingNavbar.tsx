@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Bot, Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from '../navigation/MobileDrawer';
 
 export function MarketingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -17,15 +17,7 @@ export function MarketingNavbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Lock body scroll when menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.classList.add('menu-open');
-    } else {
-      document.body.classList.remove('menu-open');
-    }
-    return () => document.body.classList.remove('menu-open');
-  }, [isMobileMenuOpen]);
+  // Lock body scroll is handled by MobileDrawer now
 
   const navLinks = [
     { name: "Pricing", path: "/pricing" },
@@ -79,64 +71,54 @@ export function MarketingNavbar() {
         {/* Mobile Menu Toggle */}
         <button 
           className="md:hidden p-2 text-slate-600 hover:text-slate-900 z-[70] relative"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle menu"
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open menu"
         >
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <Menu className="w-6 h-6" />
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[60] bg-white/95 backdrop-blur-xl md:hidden flex flex-col pt-24 pb-8 px-6"
-            style={{ height: '100dvh' }} // Dynamic viewport height for mobile browsers
-          >
-            <div className="flex-1 flex flex-col items-center justify-start space-y-8 mt-8 overflow-y-auto">
-              {navLinks.map((link, i) => (
-                <motion.div
+      {/* Universal Mobile Drawer */}
+      <MobileDrawer isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} side="right">
+        <MobileDrawerHeader onClose={() => setIsMobileMenuOpen(false)}>
+            <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-1.5 rounded-lg rotate-3 shadow-sm">
+                    <Bot className="text-white w-5 h-5" />
+                </div>
+                <span className="text-lg font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
+            </div>
+        </MobileDrawerHeader>
+
+        <MobileDrawerBody>
+            <div className="flex flex-col space-y-2">
+              {navLinks.map((link) => (
+                <Link 
                   key={link.path}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + i * 0.05 }}
-                  className="w-full text-center"
+                  to={link.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`text-lg font-bold block py-3 px-2 rounded-xl transition-colors ${
+                    location.pathname === link.path ? 'bg-primary-50 text-primary-600' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
                 >
-                  <Link 
-                    to={link.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`text-2xl font-bold block py-2 ${
-                      location.pathname === link.path ? 'text-primary-600' : 'text-slate-800'
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                </motion.div>
+                  {link.name}
+                </Link>
               ))}
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="w-full max-w-xs space-y-4 pt-8 border-t border-slate-100"
-              >
+            </div>
+        </MobileDrawerBody>
+        
+        <MobileDrawerFooter>
+            <div className="flex flex-col gap-3">
                 <Link to="/login?mode=login" onClick={() => setIsMobileMenuOpen(false)} className="block w-full">
-                  <Button variant="outline" size="lg" className="w-full justify-center text-lg py-4 rounded-xl">Log in</Button>
+                  <Button variant="outline" size="lg" className="w-full justify-center text-base py-3 rounded-xl">Log in</Button>
                 </Link>
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block w-full">
-                  <Button variant="primary" size="lg" className="w-full justify-center text-lg py-4 rounded-xl shadow-xl shadow-primary-500/20">
+                  <Button variant="primary" size="lg" className="w-full justify-center text-base py-3 rounded-xl shadow-xl shadow-primary-500/20">
                     Get Started Free
                   </Button>
                 </Link>
-              </motion.div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </MobileDrawerFooter>
+      </MobileDrawer>
     </nav>
   );
 }

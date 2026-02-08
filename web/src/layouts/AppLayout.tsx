@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { NavLink, Outlet, Link } from "react-router-dom";
+import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useBilling } from "../hooks/useBilling";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { ToastShelf } from "../components/ui/ToastShelf";
+import { PageTransition } from "../components/navigation/PageTransition";
+import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from "../components/navigation/MobileDrawer";
+import { AnimatePresence } from "framer-motion";
 import { cn } from "../lib/utils";
 import {
   Menu,
-  X,
   LayoutDashboard,
   Briefcase,
   FileText,
@@ -33,6 +35,7 @@ export default function AppLayout() {
   const { user, signOut } = useAuth();
   const { plan } = useBilling();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   const closeMobile = () => setMobileMenuOpen(false);
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -45,6 +48,7 @@ export default function AppLayout() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
+      {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white md:flex">
         <div className="border-b border-slate-200 px-6 py-5">
           <Link to="/app/dashboard" className="flex items-center gap-3">
@@ -91,48 +95,37 @@ export default function AppLayout() {
         </div>
       </aside>
 
-      {/* Mobile menu overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={closeMobile}
-          aria-hidden
-        />
-      )}
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 flex-col border-r border-slate-200 bg-white px-4 py-6 shadow-xl transition-transform md:hidden",
-          mobileMenuOpen ? "flex translate-x-0" : "flex -translate-x-full",
-        )}
-      >
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <Link to="/app/dashboard" className="flex items-center gap-3">
+      {/* Universal Mobile Drawer */}
+      <MobileDrawer isOpen={mobileMenuOpen} onClose={closeMobile}>
+        <MobileDrawerHeader onClose={closeMobile}>
+          <Link to="/app/dashboard" className="flex items-center gap-3" onClick={closeMobile}>
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 text-white font-semibold grid place-items-center">
               JH
             </div>
             <span className="text-lg font-semibold">JobHuntin</span>
           </Link>
-          <Button variant="ghost" size="icon" onClick={closeMobile} aria-label="Close menu">
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        <nav className="mt-5 flex-1 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={navLinkClass}
-                onClick={closeMobile}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </NavLink>
-            );
-          })}
-        </nav>
-        <div className="border-t border-slate-200 pt-4">
+        </MobileDrawerHeader>
+        
+        <MobileDrawerBody>
+          <nav className="space-y-1">
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={navLinkClass}
+                  onClick={closeMobile}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </NavLink>
+              );
+            })}
+          </nav>
+        </MobileDrawerBody>
+
+        <MobileDrawerFooter>
           <Button
             variant="ghost"
             className="w-full justify-start"
@@ -143,10 +136,11 @@ export default function AppLayout() {
           >
             <LogOut className="mr-2 h-4 w-4" /> Sign out
           </Button>
-        </div>
-      </div>
-      <div className="flex flex-1 flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3">
+        </MobileDrawerFooter>
+      </MobileDrawer>
+
+      <div className="flex flex-1 flex-col h-screen overflow-hidden">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3 shrink-0">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -177,8 +171,12 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 lg:py-8">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 lg:py-8 bg-slate-50">
+          <AnimatePresence mode="wait">
+             <PageTransition key={location.pathname} className="h-full">
+                <Outlet />
+             </PageTransition>
+          </AnimatePresence>
         </main>
         <ToastShelf />
       </div>

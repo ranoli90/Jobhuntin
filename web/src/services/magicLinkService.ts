@@ -52,7 +52,12 @@ class MagicLinkService {
     try {
       // Use window.location.origin but log warning if it's localhost in production
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const redirectUrl = `${origin}${this.sanitizeReturnTo(returnTo)}`;
+      
+      // Construct redirect URL to go through /login page first
+      // This ensures we have a stable entry point to handle the hash fragment
+      // before redirecting to the protected route
+      const sanitizedReturnTo = this.sanitizeReturnTo(returnTo);
+      const redirectUrl = `${origin}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
 
       console.log(`[MagicLink] Sending to: ${normalizedEmail}, Redirect: ${redirectUrl}`);
 

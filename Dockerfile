@@ -17,6 +17,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN groupadd -r sorce && useradd -r -g sorce -m sorce
 
+# Install system dependencies for Pillow/OGP (fonts, etc)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fontconfig \
+    fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY requirements.txt .
