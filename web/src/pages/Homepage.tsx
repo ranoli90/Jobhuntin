@@ -151,7 +151,11 @@ const Hero = () => {
 
       // Safe Animation Trigger - wrapped in try-catch to prevent crashes
       try {
-        if (typeof window !== 'undefined' && window.performance && window.requestAnimationFrame) {
+        if (
+          typeof window !== 'undefined' &&
+          typeof window.performance !== 'undefined' &&
+          typeof window.requestAnimationFrame === 'function'
+        ) {
           const end = 47;
           const duration = 1000;
           const startTime = performance.now();
