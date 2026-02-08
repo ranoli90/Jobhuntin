@@ -1,5 +1,6 @@
 import { Link, Outlet } from "react-router-dom";
 import { Button } from "../components/ui/Button";
+import { ToastShelf } from "../components/ui/ToastShelf";
 
 const links = [
   { label: "How", href: "#how" },
@@ -67,6 +68,7 @@ export default function MarketingLayout() {
           </div>
         </div>
       </footer>
+      <ToastShelf />
     </div>
   );
 }
