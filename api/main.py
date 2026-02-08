@@ -127,6 +127,9 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[admin_mod._get_admin_user_id] = get_current_user_id
     app.include_router(admin_mod.router)
 
+    import api.auth as auth_mod
+    app.include_router(auth_mod.router)
+
     import api.export as export_mod
     app.dependency_overrides[export_mod._get_pool] = get_pool
     app.dependency_overrides[export_mod._get_tenant_ctx] = get_tenant_context

@@ -10,6 +10,8 @@ import { supabase } from "../lib/supabase";
 import { pushToast } from "../lib/toast";
 import { ArrowRight, Mail, Lock, Sparkles } from "lucide-react";
 
+const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -37,11 +39,21 @@ export default function Login() {
     setIsLoading(true);
     try {
       if (isMagicLink) {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: email.trim(),
-          options: { emailRedirectTo: `${window.location.origin}/app/dashboard` },
+        if (!API_BASE) {
+          throw new Error("API base URL is not configured");
+        }
+        const resp = await fetch(`${API_BASE}/auth/magic-link`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim(),
+            return_to: returnTo,
+          }),
         });
-        if (error) throw error;
+        if (!resp.ok) {
+          const description = await resp.text().catch(() => "");
+          throw new Error(description || `Magic link request failed (${resp.status})`);
+        }
         setMagicLinkSent(true);
         pushToast({ title: "Check your email for the sign-in link", tone: "success" });
       } else {

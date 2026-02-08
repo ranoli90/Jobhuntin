@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     db_pool_min: int = 2
     db_pool_max: int = 10
 
+    # ── Web App ──────────────────────────────────────────────────
+    app_base_url: str = "http://localhost:5173"
+
     # ── Supabase ─────────────────────────────────────────────────
     supabase_url: str = ""
     supabase_service_key: str = ""
@@ -173,6 +176,8 @@ class Settings(BaseSettings):
                 missing.append("SUPABASE_URL")
             if not self.supabase_service_key:
                 missing.append("SUPABASE_SERVICE_KEY")
+            if not self.app_base_url:
+                missing.append("APP_BASE_URL")
             if missing:
                 print(
                     f"FATAL: Missing critical env vars for {self.env.value}: "
