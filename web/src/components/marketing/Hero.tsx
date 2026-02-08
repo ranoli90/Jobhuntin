@@ -173,11 +173,11 @@ export function Hero({ onGetStarted }: HeroProps) {
         style={{ y: textY, opacity }}
       >
         <div className="mx-auto max-w-4xl text-center">
-          {/* Animated badge */}
+          {/* Animated badge - Reduced delay for LCP */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4 }}
             className="mb-8"
           >
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 text-sm font-medium text-cyan-300">
@@ -189,12 +189,12 @@ export function Hero({ onGetStarted }: HeroProps) {
             </span>
           </motion.div>
 
-          {/* Main headline with character animation */}
+          {/* Main headline - Removed delay for LCP */}
           <motion.h1 
             className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6"
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.5 }}
           >
             <span className="block">Apply to</span>
             <span className="block mt-2 bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 bg-clip-text text-transparent">
@@ -203,12 +203,12 @@ export function Hero({ onGetStarted }: HeroProps) {
             <span className="block mt-2">before breakfast</span>
           </motion.h1>
 
-          {/* Subheadline */}
+          {/* Subheadline - Staggered slightly */}
           <motion.p 
             className="mx-auto mt-6 max-w-2xl text-lg sm:text-xl text-slate-400 leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
           >
             Your AI teammate that finds perfect matches, crafts personalized applications, 
             and submits them while you sleep. You just nail the interviews.
@@ -219,7 +219,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
             <Button 
               size="lg" 
@@ -247,7 +247,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
           >
             <span className="flex items-center gap-1.5">
               <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -276,7 +276,7 @@ export function Hero({ onGetStarted }: HeroProps) {
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}

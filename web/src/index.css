@@ -39,6 +39,8 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden; /* Critical for preventing horizontal sway */
+  width: 100%;
 }
 
 body {
@@ -46,6 +48,16 @@ body {
   background-color: #f8fafc;
   color: #0f172a;
   line-height: 1.6;
+  overflow-x: hidden; /* Double protection */
+  width: 100%;
+  position: relative;
+  /* Prevent bounce on iOS */
+  overscroll-behavior-y: none;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Professional selection styling */
@@ -129,5 +141,12 @@ body {
     background-image: 
       linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+  
+  /* Lock body scroll when mobile menu is open */
+  body.menu-open {
+    overflow: hidden;
+    height: 100vh;
+    touch-action: none;
   }
 }

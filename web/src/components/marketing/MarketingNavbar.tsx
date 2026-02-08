@@ -17,6 +17,16 @@ export function MarketingNavbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
+    return () => document.body.classList.remove('menu-open');
+  }, [isMobileMenuOpen]);
+
   const navLinks = [
     { name: "Pricing", path: "/pricing" },
     { name: "Success Stories", path: "/success-stories" },
@@ -32,7 +42,7 @@ export function MarketingNavbar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
+        <Link to="/" className="flex items-center gap-2 group z-[70] relative">
           <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20 group-hover:rotate-6 transition-transform duration-300">
             <Bot className="text-white w-6 h-6" />
           </div>
@@ -68,8 +78,9 @@ export function MarketingNavbar() {
 
         {/* Mobile Menu Toggle */}
         <button 
-          className="md:hidden p-2 text-slate-600 hover:text-slate-900"
+          className="md:hidden p-2 text-slate-600 hover:text-slate-900 z-[70] relative"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -79,50 +90,49 @@ export function MarketingNavbar() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-white md:hidden flex flex-col"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[60] bg-white/95 backdrop-blur-xl md:hidden flex flex-col pt-24 pb-8 px-6"
+            style={{ height: '100dvh' }} // Dynamic viewport height for mobile browsers
           >
-            <div className="px-6 h-20 flex items-center justify-between border-b border-slate-100">
-               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
-                  <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl">
-                    <Bot className="text-white w-6 h-6" />
-                  </div>
-                  <span className="text-xl font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
-               </Link>
-               <button 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 text-slate-500 hover:text-slate-900 bg-slate-50 rounded-full"
-               >
-                  <X className="w-6 h-6" />
-               </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col justify-center space-y-8">
-              <div className="flex flex-col gap-6 text-center">
-                {navLinks.map((link) => (
+            <div className="flex-1 flex flex-col items-center justify-start space-y-8 mt-8 overflow-y-auto">
+              {navLinks.map((link, i) => (
+                <motion.div
+                  key={link.path}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.05 }}
+                  className="w-full text-center"
+                >
                   <Link 
-                    key={link.path}
                     to={link.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-2xl font-bold text-slate-800 hover:text-primary-600 transition-colors"
+                    className={`text-2xl font-bold block py-2 ${
+                      location.pathname === link.path ? 'text-primary-600' : 'text-slate-800'
+                    }`}
                   >
                     {link.name}
                   </Link>
-                ))}
-              </div>
+                </motion.div>
+              ))}
               
-              <div className="flex flex-col gap-4 max-w-xs mx-auto w-full pt-8 border-t border-slate-100">
-                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="outline" size="lg" className="w-full justify-center text-lg py-6 rounded-2xl">Log in</Button>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="w-full max-w-xs space-y-4 pt-8 border-t border-slate-100"
+              >
+                <Link to="/login?mode=login" onClick={() => setIsMobileMenuOpen(false)} className="block w-full">
+                  <Button variant="outline" size="lg" className="w-full justify-center text-lg py-4 rounded-xl">Log in</Button>
                 </Link>
-                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="primary" size="lg" className="w-full justify-center text-lg py-6 rounded-2xl shadow-xl shadow-primary-500/20">
+                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block w-full">
+                  <Button variant="primary" size="lg" className="w-full justify-center text-lg py-4 rounded-xl shadow-xl shadow-primary-500/20">
                     Get Started Free
                   </Button>
                 </Link>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         )}

@@ -4,7 +4,7 @@ import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
 import { 
   Rocket, Sparkles, Bot, Zap, CheckCircle, ArrowRight, UploadCloud, 
-  Code, MailCheck, Smartphone, QrCode
+  Code, MailCheck, Smartphone, QrCode, UserCircle, Target, Brain
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -149,28 +149,39 @@ const Hero = () => {
         throw new Error(result.error || "Failed to send magic link");
       }
 
-      if (typeof window !== 'undefined') {
-        let start = 0;
-        const end = 47;
-        const duration = 1000;
-        const startTime = performance.now();
-        const animateCounter = (currentTime: number) => {
-          const elapsed = currentTime - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          setMatchCount(Math.floor(progress * end));
-          if (progress < 1) {
-            requestAnimationFrame(animateCounter);
-          }
-        };
-        requestAnimationFrame(animateCounter);
+      // Safe Animation Trigger
+      try {
+        if (typeof window !== 'undefined') {
+          let start = 0;
+          const end = 47;
+          const duration = 1000;
+          const startTime = performance.now();
+          const animateCounter = (currentTime: number) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            setMatchCount(Math.floor(progress * end));
+            if (progress < 1) {
+              requestAnimationFrame(animateCounter);
+            }
+          };
+          requestAnimationFrame(animateCounter);
+        }
+      } catch (e) {
+        console.warn("Animation failed", e);
       }
 
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
-      });
+      // Safe Confetti Trigger
+      try {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
+        });
+      } catch (e) {
+        console.warn("Confetti failed", e);
+      }
+
       pushToast({ title: "Magic Link Sent! 📧", description: "Check your email to start hunting.", tone: "success" });
       setSentEmail(result.email);
       setEmail(""); // Clear
@@ -512,9 +523,21 @@ const Onboarding = () => {
             </h2>
             <div className="space-y-12">
               {[
-                { icon: Code, title: "Deep Profile Ingestion", desc: "Our AI doesn't just read your resume. It parses your GitHub, projects, and latent skills to build a high-dimensional match vector." },
-                { icon: Zap, title: "Precision Filtering", desc: "Skip the noise. We match you with roles that actually align with your trajectory, filtering out the legacy tech and low-growth traps." },
-                { icon: Rocket, title: "Autonomous Submission", desc: "Every application is unique. Custom-tailored cover letters and optimized form-filling happen in milliseconds, not minutes." }
+                { 
+                  icon: UserCircle, 
+                  title: "We See The Real You", 
+                  desc: "Forget keywords. We build a psychological profile of your career narrative, capturing the nuance, ambition, and potential that resumes often miss. We translate 'you' into a language recruiters crave." 
+                },
+                { 
+                  icon: Target, 
+                  title: "Stop Wasting Emotional Energy", 
+                  desc: "Applying is draining. Rejection is personal. We detach the emotion from the process. Our agent acts as your relentless, unfeeling advocate, ensuring you only engage when there's a real signal." 
+                },
+                { 
+                  icon: Rocket, 
+                  title: "Autonomous Submission", 
+                  desc: "Every application is unique. Custom-tailored cover letters and optimized form-filling happen in milliseconds, not minutes. We handle the grind; you handle the interview." 
+                }
               ].map((step, i) => (
                 <motion.div 
                   key={i}

@@ -50,14 +50,22 @@ class MagicLinkService {
     }
 
     try {
+      // Use window.location.origin but log warning if it's localhost in production
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const redirectUrl = `${origin}${this.sanitizeReturnTo(returnTo)}`;
+
+      console.log(`[MagicLink] Sending to: ${normalizedEmail}, Redirect: ${redirectUrl}`);
+
       const { error } = await supabase.auth.signInWithOtp({
         email: normalizedEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}${this.sanitizeReturnTo(returnTo)}`,
+          emailRedirectTo: redirectUrl,
         },
       });
 
       if (error) {
+        console.error('[MagicLink] Supabase Error:', error);
+        
         // Handle rate limits specifically if Supabase returns them (usually 429 status in error)
         if (error.status === 429) {
           this.rateLimitResets.set(normalizedEmail, Date.now() + 60_000);
@@ -83,6 +91,7 @@ class MagicLinkService {
         email: normalizedEmail,
       };
     } catch (error) {
+      console.error('[MagicLink] Unexpected Error:', error);
       const message = error instanceof Error ? error.message : 'Network error';
       return {
         success: false,
