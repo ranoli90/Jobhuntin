@@ -9,6 +9,11 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+pip-wheel-metadata/
 
 # Build outputs
 dist/
@@ -16,6 +21,8 @@ build/
 .next/
 .vercel/
 .output/
+playwright-report/
+test-results/
 
 # IDE
 .idea/

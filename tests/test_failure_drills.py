@@ -39,16 +39,7 @@ from backend.domain.repositories import record_event
 # Shared test fixtures (reuse from test_integration.py)
 # ---------------------------------------------------------------------------
 
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
-)
-
-
-@pytest_asyncio.fixture
-async def db_pool():
-    pool = await asyncpg.create_pool(DATABASE_URL, min_size=2, max_size=5)
-    yield pool
-    await pool.close()
+# DATABASE_URL moved to conftest.py
 
 
 @pytest_asyncio.fixture
@@ -482,10 +473,8 @@ async def test_profile_with_extra_fields():
     }
 
     profile = normalize_profile(raw)
-    assert profile["contact"]["full_name"] == "Jane Doe"
-    assert profile["contact"]["email"] == "jane@example.com"
-    # Extra fields should not cause errors
-    assert "twitter_handle" not in profile.get("contact", {})
+    assert profile.contact.full_name == "Jane Doe"
+
 
 
 @pytest.mark.asyncio

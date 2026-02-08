@@ -105,7 +105,10 @@ def update_env_var_patch():
         "Content-Type": "application/json",
     }
     
-    db_url = "postgresql://postgres:SorceDB2026Secure@db.zglovpfwyobbbaaocawz.supabase.co:5432/postgres"
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        print("❌ Error: DATABASE_URL not set in .env")
+        return False
     
     # Try PATCH to update existing or create new
     payload = {
@@ -146,7 +149,10 @@ def update_env_var_put():
         "Content-Type": "application/json",
     }
     
-    db_url = "postgresql://postgres:SorceDB2026Secure@db.zglovpfwyobbbaaocawz.supabase.co:5432/postgres"
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        print("❌ Error: DATABASE_URL not set in .env")
+        return False
     
     # Try PUT with specific env var ID
     payload = {
@@ -186,7 +192,10 @@ def create_env_var_post():
         "Content-Type": "application/json",
     }
     
-    db_url = "postgresql://postgres:SorceDB2026Secure@db.zglovpfwyobbbaaocawz.supabase.co:5432/postgres"
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        print("❌ Error: DATABASE_URL not set in .env")
+        return False
     
     # Try different payload structures
     payloads = [

@@ -33,18 +33,18 @@ function cn(...inputs: ClassValue[]) {
 
 // --- DATA ---
 const JOBS_DATA = [
-  { id: 1, title: "Snapchat Automation Engineer", company: "Snap", score: 97, salary: "$165k", location: "Denver, CO", tags: ["Python", "SnapKit", "Appium"], color: "bg-yellow-100 text-yellow-800" },
-  { id: 2, title: "Tinder Bot AI Specialist", company: "Match Group", score: 94, salary: "$178k", remote: true, tags: ["TensorFlow", "Computer Vision", "Automation"], color: "bg-pink-100 text-pink-800" },
-  { id: 3, title: "OnlyFans Automation Architect", company: "Creator Platform", score: 91, salary: "$192k", location: "Boulder", tags: ["Node.js", "Payment APIs", "Scale"], color: "bg-blue-100 text-blue-800" },
-  { id: 4, title: "Discord Bot DevOps", company: "Gaming Studio", score: 89, salary: "$142k", remote: true, tags: ["Go", "Discord.js", "Kubernetes"], color: "bg-indigo-100 text-indigo-800" },
-  { id: 5, title: "TikTok Automation Lead", company: "ByteDance", score: 95, salary: "$210k", location: "Denver Tech Center", tags: ["Video Processing", "AI", "Mobile"], color: "bg-gray-100 text-gray-800" },
-  { id: 6, title: "AI Resume Generator Dev", company: "Your Next Gig", score: 93, salary: "$155k", equity: true, tags: ["LLM", "OpenAI", "React"], color: "bg-green-100 text-green-800" },
+  { id: 1, title: "Marketing Manager", company: "Growth Co", score: 97, salary: "$85k", location: "Denver, CO", tags: ["Strategy", "Campaigns", "Social"], color: "bg-yellow-100 text-yellow-800" },
+  { id: 2, title: "Customer Success Lead", company: "Service First", score: 94, salary: "$78k", remote: true, tags: ["Client Relations", "Support", "Onboarding"], color: "bg-pink-100 text-pink-800" },
+  { id: 3, title: "Operations Coordinator", company: "Logistics Inc", score: 91, salary: "$62k", location: "Boulder", tags: ["Logistics", "Scheduling", "Coordination"], color: "bg-blue-100 text-blue-800" },
+  { id: 4, title: "Sales Representative", company: "Tech Solutions", score: 89, salary: "$92k", remote: true, tags: ["B2B", "Sales", "CRM"], color: "bg-indigo-100 text-indigo-800" },
+  { id: 5, title: "Project Manager", company: "Build It", score: 95, salary: "$110k", location: "Denver Tech Center", tags: ["Agile", "Planning", "Leadership"], color: "bg-gray-100 text-gray-800" },
+  { id: 6, title: "Executive Assistant", company: "Global Corp", score: 93, salary: "$75k", equity: true, tags: ["Admin", "Organization", "Travel"], color: "bg-green-100 text-green-800" },
 ];
 
 const TEASER_JOBS = [
-  { title: "Snapchat Auto-Dev", status: "AI Applied 2m ago" },
-  { title: "Tinder Algorithm Eng", status: "Matching..." },
-  { title: "Discord Bot Ninja", status: "Interview Request!" },
+  { title: "Marketing Lead", status: "AI Applied 2m ago" },
+  { title: "Sales Manager", status: "Matching..." },
+  { title: "Operations Dir", status: "Interview Request!" },
 ];
 
 // --- SOUND UTILS ---
@@ -82,6 +82,110 @@ const playSuccessSound = (muted: boolean) => {
 
 // --- COMPONENTS ---
 
+// 0. Live Activity Feed
+const ActivityFeed = () => {
+  const [activities, setActivities] = useState([
+    { text: "Sarah just applied to Google", time: "2s ago" },
+    { text: "Mike landed an interview at Stripe", time: "5s ago" },
+    { text: "David sent 12 apps in 1 min", time: "8s ago" },
+  ]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newActivities = [
+        "Sarah just applied to Google",
+        "Mike landed an interview at Stripe", 
+        "David sent 12 apps in 1 min",
+        "Jenny got a reply from Airbnb",
+        "Tom's bot is on fire: 50 apps sent",
+        "New job match found in Denver",
+        "Alex skipped the line at Netflix"
+      ];
+      const randomActivity = newActivities[Math.floor(Math.random() * newActivities.length)];
+      setActivities(prev => [{ text: randomActivity, time: "Just now" }, ...prev.slice(0, 2)]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <AnimatePresence>
+        {activities.map((activity, index) => (
+          <motion.div
+            key={index + activity.text}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex items-center gap-2 text-xs text-gray-500"
+          >
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="font-medium text-gray-700">{activity.text}</span>
+            <span className="text-gray-400 opacity-60">{activity.time}</span>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const StealthModeVisualizer = () => {
+  return (
+    <div className="bg-gray-900 rounded-3xl p-8 text-white relative overflow-hidden border border-gray-800">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF6B35]/10 rounded-full blur-3xl" />
+      <div className="text-center mb-10 relative z-10">
+        <h3 className="text-2xl font-bold mb-2">Undetectable AI</h3>
+        <p className="text-gray-400">Our bots browse like humans. No bans. No blocks.</p>
+      </div>
+      
+      <div className="flex flex-col md:flex-row gap-8 items-center justify-center relative z-10">
+        {/* Radar Chart Mock */}
+        <div className="relative w-64 h-64">
+           <div className="absolute inset-0 border border-gray-700 rounded-full" />
+           <div className="absolute inset-8 border border-gray-700 rounded-full" />
+           <div className="absolute inset-16 border border-gray-700 rounded-full" />
+           <div className="absolute inset-0 flex items-center justify-center">
+             <div className="w-1 h-full bg-gray-800" />
+             <div className="h-1 w-full bg-gray-800 absolute" />
+           </div>
+           
+           {/* The Shape */}
+           <svg className="absolute inset-0 w-full h-full overflow-visible">
+             <motion.path 
+               d="M128 32 L200 80 L180 180 L76 180 L56 80 Z"
+               fill="rgba(74, 144, 226, 0.3)"
+               stroke="#4A90E2"
+               strokeWidth="2"
+               initial={{ d: "M128 128 L128 128 L128 128 L128 128 L128 128 Z" }}
+               whileInView={{ d: "M128 32 L200 80 L180 180 L76 180 L56 80 Z" }}
+               transition={{ duration: 1.5, ease: "easeOut" }}
+             />
+           </svg>
+           
+           {/* Labels */}
+           <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-[#4A90E2] font-bold">Mouse Jitter</div>
+           <div className="absolute top-1/2 -right-12 -translate-y-1/2 text-xs text-[#4A90E2] font-bold">Scroll Speed</div>
+           <div className="absolute bottom-4 -right-4 text-xs text-[#4A90E2] font-bold">Click Timing</div>
+           <div className="absolute bottom-4 -left-4 text-xs text-[#4A90E2] font-bold">Typing WPM</div>
+           <div className="absolute top-1/2 -left-16 -translate-y-1/2 text-xs text-[#4A90E2] font-bold">Pause Duration</div>
+        </div>
+
+        <div className="space-y-4">
+          {[
+            { label: "Bot Detection Score", val: "0.02%", color: "text-green-400" },
+            { label: "Human Similarity", val: "99.8%", color: "text-green-400" },
+            { label: "IP Reputation", val: "Clean", color: "text-green-400" }
+          ].map((stat, i) => (
+            <div key={i} className="bg-gray-800/50 p-4 rounded-xl w-48 border border-gray-700">
+              <div className="text-xs text-gray-500 mb-1">{stat.label}</div>
+              <div className={`text-xl font-mono font-bold ${stat.color}`}>{stat.val}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // 1. SEO & Head
 const HeadSEO = () => {
   useEffect(() => {
@@ -97,9 +201,9 @@ const HeadSEO = () => {
       el.setAttribute('content', content);
     };
 
-    updateMeta("description", "Upload resume once. AI swipes 100s of tech jobs daily. Snapchat/Tinder bot devs get 92% match rate. Denver focus.");
+    updateMeta("description", "Upload resume once. AI applies to 100s of jobs daily. Marketing, Sales, Admin & more. Denver focus.");
     updateMeta("og:title", "JobHuntin: AI Auto-Applies to Jobs");
-    updateMeta("og:description", "Beat Sorce.jobs with automation. Upload resume, we swipe and apply.");
+    updateMeta("og:description", "Beat Sorce.jobs with automation. Upload resume, we apply for you.");
     updateMeta("og:type", "website");
     updateMeta("og:url", "https://jobhuntin.com");
     updateMeta("theme-color", "#FF6B35");
@@ -606,7 +710,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
 
           <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
             Upload your resume. AI swipes & applies to 100s of jobs while you sleep. 
-            <span className="font-semibold text-gray-900"> Beats Sorce.jobs</span> for tech pros.
+            <span className="font-semibold text-gray-900"> Beats Sorce.jobs</span> for any role.
           </p>
 
           <div 
@@ -629,7 +733,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
               <div className="flex-1">
                 <input 
                   type="email" 
-                  placeholder="tech-wizard@example.com" 
+                  placeholder="you@example.com"  
                   className={cn(
                     "w-full px-4 py-3 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 transition-all",
                     emailError ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-[#FF6B35]/20"
@@ -677,7 +781,13 @@ const Hero = ({ muted }: { muted: boolean }) => {
             </motion.div>
           )}
 
-          {sentEmail && (
+          {/* Live Activity Feed */}
+          <div className="mt-8 relative h-12 overflow-hidden max-w-sm mx-auto lg:mx-0">
+             <div className="absolute inset-0 bg-gradient-to-b from-[#FAF9F6] via-transparent to-[#FAF9F6] z-10 pointer-events-none" />
+             <ActivityFeed />
+          </div>
+
+          <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-gray-500">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -836,6 +946,10 @@ const Onboarding = () => {
           </div>
         </div>
 
+        <div className="mb-20">
+           <StealthModeVisualizer />
+        </div>
+
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div className="relative">
              <motion.div 
@@ -950,10 +1064,10 @@ const FeaturedJobs = ({ muted }: { muted: boolean }) => {
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#4A90E2]/20 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
-              <h3 className="text-2xl font-bold mb-4">See Your Bot In Action</h3>
-              <p className="text-gray-400 mb-6">Connect your GitHub or specific bot repo. We'll simulate how our AI pitches your skills to recruiters.</p>
+              <h3 className="text-2xl font-bold mb-4">See It In Action</h3>
+              <p className="text-gray-400 mb-6">Connect your profile. We'll simulate how our AI pitches your skills to recruiters.</p>
               <button className="bg-[#4A90E2] hover:bg-[#357abd] text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
-                <Github className="w-5 h-5" /> Test My Snapchat Bot
+                <Rocket className="w-5 h-5" /> Test My Profile
               </button>
             </div>
             <div className="w-full md:w-1/2 bg-gray-800 rounded-xl p-4 h-64 overflow-hidden relative border border-gray-700">
@@ -991,7 +1105,7 @@ const AutomationEdge = ({ muted }: { muted: boolean }) => {
       <div className="container mx-auto px-6 relative">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-block bg-blue-50 px-4 py-1 rounded-full text-sm font-mono text-[#4A90E2] mb-6">
-            beta_feature: telegram_bot_v1
+            New: Control via Telegram
           </div>
           <h2 className="text-4xl font-bold font-poppins mb-6">Control the Hunt via Telegram</h2>
           <p className="text-gray-600 text-lg mb-10">
@@ -1017,36 +1131,91 @@ const AutomationEdge = ({ muted }: { muted: boolean }) => {
   );
 };
 
-// 11. Comparison
+// 11. Comparison Slider
 const Comparison = () => {
+  const [sliderVal, setSliderVal] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    setSliderVal((x / rect.width) * 100);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.touches[0].clientX - rect.left, rect.width));
+    setSliderVal((x / rect.width) * 100);
+  };
+
   return (
     <section id="comparison" className="py-24 bg-[#FAF9F6]">
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl font-bold text-center font-poppins mb-16">Why we crush <span className="line-through text-gray-300">Sorce</span></h2>
+        <h2 className="text-4xl font-bold text-center font-poppins mb-16">Why we crush the old way</h2>
         
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-           {/* Sorce Card */}
-           <div className="bg-white p-8 rounded-3xl opacity-60 hover:opacity-100 transition-opacity border border-gray-100">
-              <h3 className="text-2xl font-bold text-gray-500 mb-6">The Old Way</h3>
-              <ul className="space-y-4 text-gray-500">
-                <li className="flex items-center gap-3"><X className="w-5 h-5" /> Manual swiping fatigue</li>
-                <li className="flex items-center gap-3"><X className="w-5 h-5" /> Generic "Dear Hiring Manager"</li>
-                <li className="flex items-center gap-3"><X className="w-5 h-5" /> Limited to 10 apps/day</li>
-              </ul>
-           </div>
+        <div 
+          ref={containerRef}
+          className="relative max-w-5xl mx-auto h-[500px] rounded-3xl overflow-hidden cursor-ew-resize shadow-2xl"
+          onMouseMove={handleMouseMove}
+          onTouchMove={handleTouchMove}
+        >
+          {/* RIGHT SIDE (JobHuntin) - Base Layer */}
+          <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center">
+             <div className="text-center">
+               <h3 className="text-4xl font-bold text-[#FF6B35] mb-4">JobHuntin</h3>
+               <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
+                 {[1,2,3,4].map(i => (
+                   <div key={i} className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                     <div className="text-green-400 font-bold text-xl mb-1">Applied</div>
+                     <div className="text-gray-400 text-xs">2 min ago • Google</div>
+                   </div>
+                 ))}
+               </div>
+               <p className="text-gray-400 mt-8">Auto-pilot engaged. You sleep, we hunt.</p>
+             </div>
+          </div>
 
-           {/* JobHuntin Card */}
-           <div className="bg-gradient-to-br from-[#FF6B35] to-[#FF8F66] p-8 rounded-3xl text-white shadow-xl transform scale-105">
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                JobHuntin <Bot className="w-6 h-6" />
-              </h3>
-              <ul className="space-y-4 font-medium">
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5" /> 24/7 Auto-Apply Agent</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5" /> Hyper-personalized Cover Letters</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5" /> Unlimited Applications</li>
-                <li className="flex items-center gap-3"><CheckCircle className="w-5 h-5" /> Undetectable "Stealth Mode"</li>
-              </ul>
-           </div>
+          {/* LEFT SIDE (Manual) - Clipped Layer */}
+          <div 
+            className="absolute inset-0 bg-white border-r-4 border-[#FF6B35] flex items-center justify-center overflow-hidden"
+            style={{ width: `${sliderVal}%` }}
+          >
+             <div className="w-full max-w-5xl px-6 flex items-center justify-center">
+               <div className="text-center min-w-[500px]">
+                 <h3 className="text-4xl font-bold text-gray-400 mb-4">Manual Grinding</h3>
+                 <div className="space-y-4 max-w-md mx-auto opacity-50 grayscale">
+                   <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                     <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                   </div>
+                   <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                     <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                   </div>
+                   <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                     <div className="text-red-400 font-bold">Rejected</div>
+                     <div className="text-red-300 text-xs">Generic cover letter detected</div>
+                   </div>
+                 </div>
+                 <p className="text-gray-400 mt-8">Copy. Paste. Repeat. Burnout.</p>
+               </div>
+             </div>
+          </div>
+
+          {/* Slider Handle */}
+          <div 
+            className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-20 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
+            style={{ left: `${sliderVal}%` }}
+          >
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-[#FF6B35] rounded-full flex items-center justify-center shadow-xl border-4 border-white">
+              <div className="flex gap-1">
+                <div className="w-0.5 h-4 bg-white/50"></div>
+                <div className="w-0.5 h-4 bg-white/50"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1080,7 +1249,7 @@ const Footer = ({ muted }: { muted: boolean }) => {
               <span className="text-xl font-bold font-poppins">JobHuntin</span>
             </div>
             <p className="text-gray-500 mb-6 max-w-sm">
-              The AI agent that applies to jobs for you. Built for engineers, by engineers.
+              The AI agent that applies to jobs for you. Built for job seekers, by engineers.
               Stop grinding, start interviewing.
             </p>
             <div className="flex gap-4">
@@ -1099,10 +1268,10 @@ const Footer = ({ muted }: { muted: boolean }) => {
           <div>
             <h4 className="font-bold text-gray-900 mb-6">Platform</h4>
             <ul className="space-y-3 text-gray-500">
-              <li><a href="#" className="hover:text-[#FF6B35] transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-[#FF6B35] transition-colors">Success Stories</a></li>
-              <li><a href="#" className="hover:text-[#FF6B35] transition-colors">Chrome Extension</a></li>
-              <li><a href="#" className="hover:text-[#FF6B35] transition-colors">For Recruiters</a></li>
+              <li><a href="/pricing" className="hover:text-[#FF6B35] transition-colors">Pricing</a></li>
+              <li><a href="/success-stories" className="hover:text-[#FF6B35] transition-colors">Success Stories</a></li>
+              <li><a href="/chrome-extension" className="hover:text-[#FF6B35] transition-colors">Chrome Extension</a></li>
+              <li><a href="/recruiters" className="hover:text-[#FF6B35] transition-colors">For Recruiters</a></li>
             </ul>
           </div>
 
@@ -1121,7 +1290,7 @@ const Footer = ({ muted }: { muted: boolean }) => {
           <div className="flex gap-6 mt-4 md:mt-0">
             <a href="/privacy" className="hover:text-[#FF6B35]">Privacy</a>
             <a href="/terms" className="hover:text-[#FF6B35]">Terms</a>
-            <a href="#" className="hover:text-[#FF6B35]">Sitemap</a>
+            <a href="/sitemap.xml" className="hover:text-[#FF6B35]">Sitemap</a>
           </div>
         </div>
       </div>

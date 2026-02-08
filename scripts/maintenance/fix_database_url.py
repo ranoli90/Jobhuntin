@@ -67,8 +67,13 @@ def set_database_url():
     }
     
     # The database connection string from Supabase (sorce-db)
-    # This should match what's in your .env file for production
-    db_url = "postgresql://postgres:SorceDB2026Secure@db.zglovpfwyobbbaaocawz.supabase.co:5432/postgres"
+    # Using Transaction Pooler (port 6543) for better connection management on Render
+    # Format: postgres://[user].[project_ref]:[password]@[pooler_host]:6543/[db_name]
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        print("❌ Error: DATABASE_URL not found in environment variables.")
+        print("Please set DATABASE_URL in your .env file.")
+        return False
     
     payload = {
         "key": "DATABASE_URL",

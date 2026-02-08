@@ -1,10 +1,3 @@
-databases:
-  - name: sorce-db
-    databaseName: sorce
-    user: sorce
-    plan: starter
-    region: ohio
-
 services:
   # ── FastAPI Backend (API) ──────────────────────────────────
   - type: web
@@ -20,7 +13,7 @@ services:
       - key: ENV
         value: prod
       - key: DATABASE_URL
-        value: postgresql://postgres:SorceDB2026Secure@db.d2258f6603d6bc4b5fb5fd4c081207d2b5f7734e.supabase.co:5432/postgres
+        sync: false
       - key: SUPABASE_URL
         value: https://zglovpfwyobbbaaocawz.supabase.co
       - key: SUPABASE_SERVICE_KEY
@@ -89,7 +82,7 @@ services:
       - key: ENV
         value: prod
       - key: DATABASE_URL
-        value: postgresql://postgres:SorceDB2026Secure@db.d2258f6603d6bc4b5fb5fd4c081207d2b5f7734e.supabase.co:5432/postgres
+        sync: false
       - key: SUPABASE_URL
         value: https://zglovpfwyobbbaaocawz.supabase.co
       - key: SUPABASE_SERVICE_KEY

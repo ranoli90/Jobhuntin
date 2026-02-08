@@ -51,10 +51,19 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+import Pricing from "./pages/Pricing";
+import SuccessStories from "./pages/SuccessStories";
+import ChromeExtension from "./pages/ChromeExtension";
+import Recruiters from "./pages/Recruiters";
+
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Homepage />} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/success-stories" element={<SuccessStories />} />
+      <Route path="/chrome-extension" element={<ChromeExtension />} />
+      <Route path="/recruiters" element={<Recruiters />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route element={<MarketingLayout />}>

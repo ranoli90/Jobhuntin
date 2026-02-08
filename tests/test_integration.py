@@ -159,14 +159,7 @@ async def mock_map_fields_via_llm(profile, form_fields, answered_inputs=None):
 # Test fixtures
 # ---------------------------------------------------------------------------
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
-
-
-@pytest_asyncio.fixture
-async def db_pool():
-    pool = await asyncpg.create_pool(DATABASE_URL, min_size=2, max_size=5)
-    yield pool
-    await pool.close()
+# DATABASE_URL moved to conftest.py
 
 
 @pytest_asyncio.fixture
