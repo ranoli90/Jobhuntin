@@ -1,6 +1,6 @@
-import requests
 import os
-import json
+
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,7 +18,7 @@ def delete_and_recreate():
     # 1. Get current details
     print(f"Fetching details for {WEB_SERVICE_ID}...")
     resp = requests.get(f"https://api.render.com/v1/services/{WEB_SERVICE_ID}", headers=headers, timeout=10)
-    
+
     if resp.status_code != 200:
         print(f"Error fetching service: {resp.text}")
         # Try to find by name if ID is wrong
@@ -37,11 +37,11 @@ def delete_and_recreate():
             return
     else:
         current_svc = resp.json()
-    
+
     repo_url = current_svc['repo']
     owner_id = current_svc['ownerId']
     target_id = current_svc['id']
-    
+
     # 2. Delete the service
     print(f"Deleting service {target_id}...")
     del_resp = requests.delete(f"https://api.render.com/v1/services/{target_id}", headers=headers, timeout=10)
@@ -80,7 +80,7 @@ def delete_and_recreate():
 
     print("Creating new sorce-web static site with proper settings...")
     create_resp = requests.post("https://api.render.com/v1/services", headers=headers, json=new_svc_data, timeout=10)
-    
+
     if create_resp.status_code in {200, 201}:
         new_svc = create_resp.json()
         # For static site creation response, it might be the svc object directly or wrapped

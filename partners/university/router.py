@@ -9,10 +9,10 @@ from __future__ import annotations
 import csv
 import io
 import json
-from typing import Any, Callable
+from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from backend.domain.audit import record_audit_event
@@ -24,8 +24,10 @@ logger = get_logger("sorce.partners.university")
 
 router = APIRouter(prefix="/partners/university", tags=["university"])
 
-_get_pool: Callable[[], asyncpg.Pool] = lambda: (_ for _ in ()).throw(NotImplementedError)
-_get_tenant_ctx: Callable[[], TenantContext] = lambda: (_ for _ in ()).throw(NotImplementedError)
+def _get_pool() -> asyncpg.Pool:
+    return (_ for _ in ()).throw(NotImplementedError)
+def _get_tenant_ctx() -> TenantContext:
+    return (_ for _ in ()).throw(NotImplementedError)
 
 
 # ---------------------------------------------------------------------------

@@ -8,8 +8,7 @@ Uses Resend API for email delivery.
 from __future__ import annotations
 
 import json
-import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -34,7 +33,7 @@ async def build_digest_for_user(
 
     Returns None if user had no activity in the period.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     period_start = now - timedelta(days=period_days)
 
     stats = await conn.fetchrow(

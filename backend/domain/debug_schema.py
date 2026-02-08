@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncpg
 
+
 async def debug_auth_shim(conn: asyncpg.Connection, log_lines: list[str]) -> None:
     try:
         await conn.execute("CREATE SCHEMA IF NOT EXISTS auth")

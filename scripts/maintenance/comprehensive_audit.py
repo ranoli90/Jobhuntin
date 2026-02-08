@@ -8,9 +8,9 @@ def generate_audit_report():
         "security_concerns": [],
         "improvements": []
     }
-    
+
     # === AUTHENTICATION FLOW AUDIT ===
-    
+
     # Critical Issues
     audit["critical_issues"].extend([
         {
@@ -21,7 +21,7 @@ def generate_audit_report():
             "fix": "Update line 150: <span>Sk</span> → <span>JH</span>"
         },
         {
-            "component": "Login.tsx", 
+            "component": "Login.tsx",
             "issue": "No email validation before API call",
             "severity": "HIGH",
             "impact": "Wasted API calls, poor UX",
@@ -30,12 +30,12 @@ def generate_audit_report():
         {
             "component": "auth.py",
             "issue": "Missing rate limiting on magic link endpoint",
-            "severity": "HIGH", 
+            "severity": "HIGH",
             "impact": "Email spam, abuse potential",
             "fix": "Add rate limiting middleware"
         }
     ])
-    
+
     # UX Issues
     audit["ux_issues"].extend([
         {
@@ -74,9 +74,9 @@ def generate_audit_report():
             "fix": "Add actual Terms and Privacy Policy pages"
         }
     ])
-    
+
     # === RESEND INTEGRATION AUDIT ===
-    
+
     audit["critical_issues"].extend([
         {
             "component": "auth.py",
@@ -86,16 +86,16 @@ def generate_audit_report():
             "fix": "Move to template system or database"
         },
         {
-            "component": "auth.py", 
+            "component": "auth.py",
             "issue": "No email delivery tracking",
             "severity": "MEDIUM",
             "impact": "Can't debug failed emails",
             "fix": "Add logging and delivery status tracking"
         }
     ])
-    
+
     # === ONBOARDING FLOW AUDIT ===
-    
+
     audit["ux_issues"].extend([
         {
             "component": "Onboarding.tsx",
@@ -119,9 +119,9 @@ def generate_audit_report():
             "fix": "Add retry mechanism and better error handling"
         }
     ])
-    
+
     # === PROFILE MANAGEMENT AUDIT ===
-    
+
     audit["ux_issues"].extend([
         {
             "component": "useProfile.ts",
@@ -138,9 +138,9 @@ def generate_audit_report():
             "fix": "Add avatar upload functionality"
         }
     ])
-    
+
     # === BACKEND ERROR HANDLING AUDIT ===
-    
+
     audit["technical_debt"].extend([
         {
             "component": "auth.py",
@@ -157,9 +157,9 @@ def generate_audit_report():
             "fix": "Add comprehensive request validation"
         }
     ])
-    
+
     # === SECURITY AUDIT ===
-    
+
     audit["security_concerns"].extend([
         {
             "component": "Login.tsx",
@@ -183,9 +183,9 @@ def generate_audit_report():
             "fix": "Configure session timeout"
         }
     ])
-    
+
     # === IMPROVEMENTS ===
-    
+
     audit["improvements"].extend([
         {
             "component": "Auth Flow",
@@ -216,13 +216,13 @@ def generate_audit_report():
             "fix": "Build skill endorsement system"
         }
     ])
-    
+
     # Generate formatted report
     report = []
     report.append("# JobHuntin Comprehensive Audit Report")
     report.append("=" * 60)
     report.append("")
-    
+
     # Critical Issues First
     report.append("## 🚨 CRITICAL ISSUES (Fix Immediately)")
     report.append("")
@@ -233,7 +233,7 @@ def generate_audit_report():
         report.append(f"**Impact:** {issue['impact']}")
         report.append(f"**Fix:** {issue['fix']}")
         report.append("")
-    
+
     # UX Issues
     report.append("## 🎨 UX/DESIGN ISSUES")
     report.append("")
@@ -244,7 +244,7 @@ def generate_audit_report():
         report.append(f"**Impact:** {issue['impact']}")
         report.append(f"**Fix:** {issue['fix']}")
         report.append("")
-    
+
     # Security Concerns
     report.append("## 🔒 SECURITY CONCERNS")
     report.append("")
@@ -255,7 +255,7 @@ def generate_audit_report():
         report.append(f"**Impact:** {issue['impact']}")
         report.append(f"**Fix:** {issue['fix']}")
         report.append("")
-    
+
     # Technical Debt
     report.append("## 🔧 TECHNICAL DEBT")
     report.append("")
@@ -266,7 +266,7 @@ def generate_audit_report():
         report.append(f"**Impact:** {issue['impact']}")
         report.append(f"**Fix:** {issue['fix']}")
         report.append("")
-    
+
     # Improvements
     report.append("## 💡 IMPROVEMENTS")
     report.append("")
@@ -277,7 +277,7 @@ def generate_audit_report():
         report.append(f"**Impact:** {issue['impact']}")
         report.append(f"**Fix:** {issue['fix']}")
         report.append("")
-    
+
     # Summary
     report.append("## 📊 SUMMARY")
     report.append("")
@@ -294,15 +294,15 @@ def generate_audit_report():
     report.append("3. Improve UX issues")
     report.append("4. Reduce technical debt")
     report.append("5. Implement improvements")
-    
+
     return "\n".join(report)
 
 if __name__ == "__main__":
     report = generate_audit_report()
     print(report)
-    
+
     # Save to file
     with open("audit_report.md", "w") as f:
         f.write(report)
-    
+
     print("\n✅ Audit report saved to audit_report.md")

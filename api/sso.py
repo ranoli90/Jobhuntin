@@ -6,8 +6,7 @@ Mounted at /sso prefix by api/main.py.
 
 from __future__ import annotations
 
-import json
-from typing import Any, Callable
+from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -16,12 +15,12 @@ from pydantic import BaseModel
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from backend.sso.saml import (
+    create_sso_session_token,
+    find_tenant_by_sso_domain,
     generate_sp_metadata,
     get_sso_config,
     parse_saml_response,
     upsert_sso_config,
-    create_sso_session_token,
-    find_tenant_by_sso_domain,
 )
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -35,10 +34,12 @@ router = APIRouter(prefix="/sso", tags=["sso"])
 # Dependency stubs (injected by api/main.py)
 # ---------------------------------------------------------------------------
 
-_get_pool: Callable[[], asyncpg.Pool] = lambda: (_ for _ in ()).throw(
+def _get_pool() -> asyncpg.Pool:
+    return (_ for _ in ()).throw(
     NotImplementedError("Pool not injected")
 )
-_get_tenant_ctx: Callable[[], TenantContext] = lambda: (_ for _ in ()).throw(
+def _get_tenant_ctx() -> TenantContext:
+    return (_ for _ in ()).throw(
     NotImplementedError("Tenant ctx not injected")
 )
 
@@ -102,10 +103,9 @@ async def saml_acs(
     tenant_id = relay_state if relay_state else None
 
     async with db.acquire() as conn:
-        # If no tenant from RelayState, we parse first to get email domain
+        # If no tenant from RelayState, do a soft parse to discover domain then re-parse with cert
         claims = None
         if not tenant_id:
-            # Pre-parse to get email domain
             claims = parse_saml_response(str(saml_response), "")
             if claims and claims.get("email"):
                 domain = claims["email"].split("@")[-1]
@@ -119,9 +119,8 @@ async def saml_acs(
         if not sso_cfg:
             raise HTTPException(status_code=404, detail="SSO not configured for this tenant")
 
-        # Parse with actual IdP certificate
-        if claims is None:
-            claims = parse_saml_response(str(saml_response), sso_cfg.get("certificate", ""))
+        # Parse with actual IdP certificate (enforce verification when provided)
+        claims = parse_saml_response(str(saml_response), sso_cfg.get("certificate", ""))
 
         if not claims or not claims.get("email"):
             raise HTTPException(status_code=401, detail="Invalid SAML response")

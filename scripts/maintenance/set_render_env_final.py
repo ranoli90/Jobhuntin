@@ -1,5 +1,6 @@
 """Set missing environment variables on Render for sorce-api."""
 import os
+
 import httpx
 from dotenv import load_dotenv
 
@@ -11,15 +12,15 @@ SERVICE_ID = "srv-d63l79hr0fns73boblag"
 def set_env_var(key: str, value: str):
     """Set or update an environment variable on Render web service."""
     if not RENDER_API_KEY:
-        print(f"Error: RENDER_API_KEY not found")
+        print("Error: RENDER_API_KEY not found")
         return False
-    
+
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
-    
+
     try:
         # First check if it exists
         list_resp = httpx.get(
@@ -27,7 +28,7 @@ def set_env_var(key: str, value: str):
             headers=headers,
             timeout=10
         )
-        
+
         existing_id = None
         if list_resp.status_code == 200:
             data = list_resp.json()
@@ -36,7 +37,7 @@ def set_env_var(key: str, value: str):
                 if ev.get('key') == key:
                     existing_id = ev.get('id')
                     break
-        
+
         if existing_id:
             # Update existing - PUT with just the value
             resp = httpx.put(
@@ -69,14 +70,14 @@ def set_env_var(key: str, value: str):
             else:
                 print(f"  [ERROR creating {key}] {resp.status_code}: {resp.text[:200]}")
                 return False
-                
+
     except Exception as e:
         print(f"  [ERROR] {key}: {e}")
         return False
 
 def main():
     print("Setting missing environment variables for sorce-api...")
-    
+
     # Get values from .env
     env_vars = [
         ("APP_BASE_URL", "https://sorce-web.onrender.com"),
@@ -94,27 +95,27 @@ def main():
         ("RESEND_API_KEY", os.environ.get("RESEND_API_KEY", "")),
         ("EMAIL_FROM", "hello@skedaddle.app"),
     ]
-    
+
     success = 0
     failed = 0
-    
+
     for key, value in env_vars:
         if not value:
             print(f"[SKIP] {key}: No value found")
             failed += 1
             continue
-        
+
         # Mask secrets in output
         display_value = value[:20] + "..." if len(value) > 30 else value
         print(f"\nSetting {key} = {display_value}")
-        
+
         if set_env_var(key, value):
             success += 1
         else:
             failed += 1
-    
+
     print(f"\n\nDone! Success: {success}, Failed: {failed}")
-    
+
     if failed > 0:
         print("\nFailed to set some variables via API.")
         print("Please manually add them at: https://dashboard.render.com/web/sorce-api/env-vars")

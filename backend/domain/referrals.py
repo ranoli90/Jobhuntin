@@ -9,7 +9,6 @@ credits (default: 5 each).
 from __future__ import annotations
 
 import hashlib
-import logging
 from typing import Any
 
 import asyncpg

@@ -1,6 +1,5 @@
-import urllib.request
 import json
-import os
+import urllib.request
 
 RENDER_API_KEY = "rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
 SERVICES = {
@@ -29,7 +28,7 @@ def get_env_vars(service_id, service_name):
                     print(f"  APP_BASE_URL: {ev['value']}")
                     found = True
             if not found:
-                print(f"  Target variable not found.")
+                print("  Target variable not found.")
     except Exception as e:
         print(f"Error: {e}")
 

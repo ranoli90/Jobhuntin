@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncpg
 
-from backend.domain.plans import PlanConfig, plan_config_for
+from backend.domain.plans import plan_config_for
 from backend.domain.repositories import TenantRepo
 from shared.logging_config import get_logger
 

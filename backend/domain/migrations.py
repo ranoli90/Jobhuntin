@@ -3,9 +3,9 @@ Database migration utilities.
 """
 from __future__ import annotations
 
-import logging
 import pathlib
 import re
+
 import asyncpg
 
 from shared.logging_config import get_logger
@@ -14,7 +14,7 @@ logger = get_logger("sorce.migrations")
 
 async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> None:
     """Run auth shim + schema.sql + all numbered migrations."""
-    
+
     # Supabase-only patterns to skip on plain Postgres
     _skip = re.compile(
         r"(ALTER\s+PUBLICATION|supabase_realtime|auth\.uid\(\)|auth\.role\(\))",
@@ -28,14 +28,13 @@ async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> N
         raw_parts = sql_text.split(";")
         stmts: list[str] = []
         buf = ""
-        in_dollar = False
         for part in raw_parts:
             buf += part + ";"
             if buf.count("$$") % 2 == 0:
                 stmts.append(buf.strip())
                 buf = ""
             else:
-                in_dollar = True
+                pass
         if buf.strip():
             stmts.append(buf.strip())
         for stmt in stmts:

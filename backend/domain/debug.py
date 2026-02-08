@@ -3,12 +3,14 @@ Debug bundle generation logic.
 """
 from __future__ import annotations
 
+import contextlib
 import json
 from typing import Any
 
 import asyncpg
 
 from backend.domain.masking import redact_event_payload
+
 
 async def build_debug_bundle(conn: asyncpg.Connection, application_id: str) -> dict[str, Any] | None:
     """
@@ -77,10 +79,8 @@ async def build_debug_bundle(conn: asyncpg.Connection, application_id: str) -> d
         if ed.get("payload"):
             payload = ed["payload"]
             if isinstance(payload, str):
-                try:
+                with contextlib.suppress(json.JSONDecodeError):
                     payload = json.loads(payload)
-                except json.JSONDecodeError:
-                    pass
             ed["payload"] = redact_event_payload(payload)
         redacted_events.append(ed)
 

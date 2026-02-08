@@ -16,7 +16,6 @@ Usage:
 from __future__ import annotations
 
 import json
-import logging
 import time
 from typing import TypeVar
 
@@ -128,7 +127,7 @@ class LLMClient:
                     attempt, self.retry_count + 1, exc,
                 )
 
-        raise LLMError(f"LLM call failed after {self.retry_count + 1} attempts: {last_error}")
+        raise LLMError(f"LLM call failed after {self.retry_count + 1} attempts: {last_error}") from last_error
 
     async def _request(self, payload: dict) -> dict:
         """Make the HTTP request and extract the JSON content."""
@@ -154,7 +153,7 @@ class LLMClient:
         try:
             return data["choices"][0]["message"]["content"]
         except (KeyError, IndexError) as exc:
-            raise LLMError(f"Unexpected LLM response structure: {exc}")
+            raise LLMError(f"Unexpected LLM response structure: {exc}") from exc
 
     def _clean_content(self, content: str) -> str:
         """Strip markdown fences and whitespace."""
@@ -173,7 +172,7 @@ class LLMClient:
         try:
             return json.loads(content)
         except json.JSONDecodeError as exc:
-            raise LLMError(f"LLM returned invalid JSON: {exc}\nContent: {content[:500]}")
+            raise LLMError(f"LLM returned invalid JSON: {exc}\nContent: {content[:500]}") from exc
 
     @staticmethod
     def _validate(raw: dict, model_cls: type[T]) -> T:
@@ -183,4 +182,4 @@ class LLMClient:
         except ValidationError as exc:
             raise LLMValidationError(
                 f"LLM response failed schema validation for {model_cls.__name__}: {exc}"
-            )
+            ) from exc

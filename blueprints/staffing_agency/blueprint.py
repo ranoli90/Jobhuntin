@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.blueprints.protocol import AgentBlueprint
-
 
 class StaffingAgencyBlueprint:
     """Enterprise blueprint: Staffing Agency — bulk candidate ATS submission."""

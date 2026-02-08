@@ -9,6 +9,7 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import signal
 import sys
 from typing import Any
@@ -174,10 +175,8 @@ async def main() -> None:
 
     loop = asyncio.get_event_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
-        try:
+        with contextlib.suppress(NotImplementedError):
             loop.add_signal_handler(sig, lambda: asyncio.create_task(scaler.shutdown()))
-        except NotImplementedError:
-            pass  # Windows
 
     await scaler.start()
 

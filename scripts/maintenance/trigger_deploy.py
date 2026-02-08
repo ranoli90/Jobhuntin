@@ -1,5 +1,6 @@
 """Trigger deploy to sync env vars from render.yaml"""
 import os
+
 import httpx
 from dotenv import load_dotenv
 
@@ -14,7 +15,7 @@ def trigger_deploy():
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
-    
+
     # Trigger deploy from latest commit
     resp = httpx.post(
         f"https://api.render.com/v1/services/{SERVICE_ID}/deploys",
@@ -22,7 +23,7 @@ def trigger_deploy():
         json={"clearCache": True},
         timeout=10
     )
-    
+
     print(f"Deploy trigger status: {resp.status_code}")
     if resp.status_code in (200, 201):
         data = resp.json()
@@ -37,13 +38,13 @@ def get_service_details():
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
     }
-    
+
     resp = httpx.get(
         f"https://api.render.com/v1/services/{SERVICE_ID}",
         headers=headers,
         timeout=10
     )
-    
+
     if resp.status_code == 200:
         data = resp.json()
         svc = data.get('service', {})
@@ -56,7 +57,7 @@ def get_service_details():
 if __name__ == "__main__":
     print("Checking service details...")
     get_service_details()
-    
+
     print("\n\nTriggering deploy to sync env vars from render.yaml...")
     if trigger_deploy():
         print("\nDeploy triggered successfully!")

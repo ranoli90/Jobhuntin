@@ -8,8 +8,6 @@ prompt texts; the generic LLM client and response schemas remain in backend/llm/
 from __future__ import annotations
 
 import json
-from typing import Any
-
 
 # ===================================================================
 # Contract 1: Resume Parsing → CanonicalProfile (Job Seeker)

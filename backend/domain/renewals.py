@@ -8,7 +8,7 @@ Designed to run daily via cron: `python -m backend.domain.renewals`
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -21,7 +21,7 @@ logger = get_logger("sorce.renewals")
 
 async def scan_upcoming_renewals(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Find contracts approaching renewal and create/update tracking records."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     d90 = now + timedelta(days=90)
 
     # Find tenants with contract_end within 90 days that don't have a renewal record
@@ -58,7 +58,7 @@ async def run_notification_sequence(conn: asyncpg.Connection) -> list[dict[str, 
     Check all upcoming renewals and send notifications at 90/60/30 day marks.
     Updates renewal status and notification_log.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     notifications: list[dict[str, Any]] = []
 
     renewals = await conn.fetch("""
@@ -90,7 +90,7 @@ def _determine_renewal_status(renewal: dict, now: datetime) -> tuple[int, str] |
         return days_until, "notified_60"
     if days_until <= 90 and current_status == "upcoming":
         return days_until, "notified_90"
-    
+
     return None
 
 

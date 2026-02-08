@@ -1,7 +1,8 @@
-import requests
-import time
 import os
 import sys
+import time
+
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -37,7 +38,7 @@ def get_latest_deploy(service_id):
 def monitor_deploys():
     print("Monitoring Render deployments...")
     services_data = get_services()
-    
+
     target_services = {}
     for item in services_data:
         svc = item['service']
@@ -55,31 +56,31 @@ def monitor_deploys():
         return
 
     completed = {name: False for name in target_services}
-    
+
     while not all(completed.values()):
         for name, sid in target_services.items():
             if completed[name]:
                 continue
-                
+
             deploy = get_latest_deploy(sid)
             if not deploy:
                 print(f"No deploys found for {name}")
                 continue
-                
+
             status = deploy['status']
             print(f"Service {name} (Deploy {deploy['id']}) status: {status}")
-            
+
             if status == "live":
                 print(f"✅ Service {name} is LIVE!")
                 completed[name] = True
             elif status in {"build_failed", "update_failed", "canceled"}:
                 print(f"❌ Service {name} deploy FAILED with status: {status}")
                 # We don't exit here to see if the other one succeeds or fails too
-                completed[name] = True 
+                completed[name] = True
             else:
                 # Still deploying (pre_deploy_in_progress, build_in_progress, etc.)
                 pass
-        
+
         if not all(completed.values()):
             print("Waiting 30 seconds...")
             time.sleep(30)

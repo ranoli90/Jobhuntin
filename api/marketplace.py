@@ -7,15 +7,14 @@ Mounted at /marketplace prefix by api/main.py.
 from __future__ import annotations
 
 import json
-from typing import Any, Callable
+from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
-from shared.config import get_settings
+from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
@@ -23,8 +22,10 @@ logger = get_logger("sorce.api.marketplace")
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 
-_get_pool: Callable[[], asyncpg.Pool] = lambda: (_ for _ in ()).throw(NotImplementedError("Pool not injected"))
-_get_tenant_ctx: Callable[[], TenantContext] = lambda: (_ for _ in ()).throw(NotImplementedError("Tenant ctx not injected"))
+def _get_pool() -> asyncpg.Pool:
+    return (_ for _ in ()).throw(NotImplementedError("Pool not injected"))
+def _get_tenant_ctx() -> TenantContext:
+    return (_ for _ in ()).throw(NotImplementedError("Tenant ctx not injected"))
 
 
 # ---------------------------------------------------------------------------
@@ -215,7 +216,7 @@ async def uninstall_blueprint(
 ) -> dict[str, str]:
     """Uninstall a blueprint from the current tenant."""
     async with db.acquire() as conn:
-        result = await conn.execute(
+        await conn.execute(
             "UPDATE public.blueprint_installations SET is_active = false WHERE blueprint_id = $1 AND tenant_id = $2",
             blueprint_id, ctx.tenant_id,
         )

@@ -6,9 +6,8 @@ Handles the lifecycle of team invites and per-seat Stripe quantity updates.
 
 from __future__ import annotations
 
-import hashlib
 import secrets
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -103,7 +102,7 @@ async def accept_invite(
         raise ValueError("Invalid invite token")
     if invite["status"] != "pending":
         raise ValueError(f"Invite is {invite['status']}")
-    if invite["expires_at"] < datetime.now(timezone.utc):
+    if invite["expires_at"] < datetime.now(UTC):
         await conn.execute(
             "UPDATE public.team_invites SET status = 'expired' WHERE id = $1",
             invite["id"],

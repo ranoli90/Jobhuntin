@@ -21,14 +21,12 @@ import json
 import os
 import sys
 import uuid
-from datetime import datetime, timezone
 
 import asyncpg
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from shared.config import get_settings
-
 
 # ---------------------------------------------------------------------------
 # Sample job data (used when Adzuna API key is not provided)

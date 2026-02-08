@@ -6,31 +6,24 @@ No database or network required – pure logic tests.
 
 from __future__ import annotations
 
-import json
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from backend.domain.models import (
-    CanonicalProfile,
-    CanonicalContact,
-    CanonicalEducation,
-    CanonicalExperience,
-    CanonicalSkills,
-    LLMMapping,
-    UnresolvedField,
-    ErrorResponse,
-    ErrorDetail,
-    normalize_profile,
     ApplicationStatus,
+    CanonicalProfile,
+    ErrorDetail,
+    ErrorResponse,
+    LLMMapping,
+    normalize_profile,
 )
 from backend.llm.contracts import (
-    ResumeParseResponse_V1,
     DomMappingResponse_V1,
-    build_resume_parse_prompt,
+    ResumeParseResponse_V1,
     build_dom_mapping_prompt,
+    build_resume_parse_prompt,
 )
-
 
 # ===================================================================
 # normalize_profile tests
@@ -302,6 +295,7 @@ class TestLLMClient:
     async def test_retry_on_transient_error(self):
         """Should retry on server errors then succeed."""
         import httpx
+
         from backend.llm.client import LLMClient
         from shared.config import Settings
 

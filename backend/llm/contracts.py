@@ -12,10 +12,8 @@ Versioned by naming convention: *_V1, *_V2, etc.
 from __future__ import annotations
 
 import json
-from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Shared sub-models

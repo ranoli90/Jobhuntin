@@ -10,15 +10,13 @@ Rate limited to 1 request per minute per user to prevent abuse.
 from __future__ import annotations
 
 import json
-import time
 import uuid
 from collections import defaultdict
 from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 
 from backend.domain.repositories import ApplicationRepo, ProfileRepo
 from backend.domain.tenant import TenantContext

@@ -7,12 +7,11 @@ Extends observability.py with multi-channel alert dispatch.
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 import asyncpg
 
-from backend.domain.observability import run_all_alerts, AlertResult, get_success_metrics
+from backend.domain.observability import run_all_alerts
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -154,8 +153,8 @@ async def check_and_auto_rollback(conn: asyncpg.Connection) -> dict[str, Any] | 
             return {
                 "action": "auto_rollback",
                 "reason": f"Success rate {rate:.1f}% < 60% threshold",
-                "samples": metrics["total"],
-                "succeeded": metrics["succeeded"],
+                "samples": row["total"],
+                "succeeded": row["succeeded"],
             }
     return None
 

@@ -1,5 +1,6 @@
 """Check and set environment variables on Render using correct API format."""
 import os
+
 import httpx
 from dotenv import load_dotenv
 
@@ -14,7 +15,7 @@ def list_env_vars():
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
     }
-    
+
     resp = httpx.get(
         f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
         headers=headers,
@@ -39,17 +40,17 @@ def update_env_var(key: str, value: str):
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
-    
+
     # Try PUT to update first
     payload = {"value": value}
-    
+
     # Get the env var ID first
     list_resp = httpx.get(
         f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
         headers=headers,
         timeout=10
     )
-    
+
     if list_resp.status_code == 200:
         data = list_resp.json()
         for item in data:
@@ -65,7 +66,7 @@ def update_env_var(key: str, value: str):
                 )
                 print(f"  Update {key}: {resp.status_code}")
                 return resp.status_code in (200, 201, 204)
-    
+
     return False
 
 def main():
@@ -73,7 +74,7 @@ def main():
     current = list_env_vars()
     for key in sorted(current):
         print(f"  - {key}")
-    
+
     # Required env vars from render.yaml
     required = [
         "ENV",
@@ -105,45 +106,45 @@ def main():
         "APP_BASE_URL",
         "RESEND_API_KEY",
     ]
-    
+
     print("\n\nMissing environment variables:")
     missing = []
     for key in required:
         if key not in current and key != "DATABASE_URL":  # DATABASE_URL comes from linked DB
             missing.append(key)
             print(f"  - {key}")
-    
+
     print(f"\n\nTotal missing: {len(missing)}")
-    
+
     # Update APP_BASE_URL first since it's critical for magic link
     if "APP_BASE_URL" in missing:
         print("\n\nSetting APP_BASE_URL...")
         update_env_var("APP_BASE_URL", "https://sorce-web.onrender.com")
-    
+
     print("\n\n=== MANUAL SETUP REQUIRED ===")
     print("\nGo to https://dashboard.render.com/web/sorce-api/env-vars")
     print("\nAdd these missing environment variables:")
     print("\nPublic values:")
-    print(f'  APP_BASE_URL = https://sorce-web.onrender.com')
-    print(f'  ENV = prod')
-    print(f'  SUPABASE_URL = https://zglovpfwyobbbaaocawz.supabase.co')
-    print(f'  SUPABASE_STORAGE_BUCKET = resumes')
-    print(f'  LLM_API_BASE = https://api.openai.com/v1')
-    print(f'  LLM_MODEL = gpt-4o-mini')
-    print(f'  STRIPE_PRO_PRICE_ID = price_1SyCGDFZF27VelA7tk9UQEos')
-    print(f'  STRIPE_TEAM_BASE_PRICE_ID = price_1SyCGDFZF27VelA70XiRTwvx')
-    print(f'  STRIPE_TEAM_SEAT_PRICE_ID = price_1SyCGEFZF27VelA70HPyVEoz')
-    print(f'  STRIPE_ENTERPRISE_PRICE_ID = price_1SyCGDFZF27VelA7Iv7AnynR')
-    print(f'  STRIPE_PRO_ANNUAL_PRICE_ID = price_1SyCGDFZF27VelA7km8z6pRq')
-    print(f'  STRIPE_TEAM_ANNUAL_PRICE_ID = price_1SyCGEFZF27VelA7hBAzsH02')
-    print(f'  STRIPE_ENTERPRISE_ANNUAL_PRICE_ID = price_1SyCGEFZF27VelA7bJNYVx8B')
-    print(f'  API_V2_PRO_PRICE_ID = price_1SyCGEFZF27VelA7lHr9KhPh')
-    print(f'  API_V2_METERED_PRICE_ID = price_1SyCGEFZF27VelA7G43q2L3t')
-    print(f'  ADZUNA_APP_ID = sorce')
-    print(f'  AGENT_ENABLED = true')
-    print(f'  LOG_JSON = true')
-    print(f'  LOG_LEVEL = INFO')
-    
+    print('  APP_BASE_URL = https://sorce-web.onrender.com')
+    print('  ENV = prod')
+    print('  SUPABASE_URL = https://zglovpfwyobbbaaocawz.supabase.co')
+    print('  SUPABASE_STORAGE_BUCKET = resumes')
+    print('  LLM_API_BASE = https://api.openai.com/v1')
+    print('  LLM_MODEL = gpt-4o-mini')
+    print('  STRIPE_PRO_PRICE_ID = price_1SyCGDFZF27VelA7tk9UQEos')
+    print('  STRIPE_TEAM_BASE_PRICE_ID = price_1SyCGDFZF27VelA70XiRTwvx')
+    print('  STRIPE_TEAM_SEAT_PRICE_ID = price_1SyCGEFZF27VelA70HPyVEoz')
+    print('  STRIPE_ENTERPRISE_PRICE_ID = price_1SyCGDFZF27VelA7Iv7AnynR')
+    print('  STRIPE_PRO_ANNUAL_PRICE_ID = price_1SyCGDFZF27VelA7km8z6pRq')
+    print('  STRIPE_TEAM_ANNUAL_PRICE_ID = price_1SyCGEFZF27VelA7hBAzsH02')
+    print('  STRIPE_ENTERPRISE_ANNUAL_PRICE_ID = price_1SyCGEFZF27VelA7bJNYVx8B')
+    print('  API_V2_PRO_PRICE_ID = price_1SyCGEFZF27VelA7lHr9KhPh')
+    print('  API_V2_METERED_PRICE_ID = price_1SyCGEFZF27VelA7G43q2L3t')
+    print('  ADZUNA_APP_ID = sorce')
+    print('  AGENT_ENABLED = true')
+    print('  LOG_JSON = true')
+    print('  LOG_LEVEL = INFO')
+
     print("\nSecret values (from your .env file):")
     secrets = [
         ("SUPABASE_SERVICE_KEY", os.environ.get("SUPABASE_SERVICE_KEY", "")[:20] + "..."),

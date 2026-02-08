@@ -13,32 +13,24 @@ Production-grade single-worker module that:
 from __future__ import annotations
 
 import asyncio
-import json
-import logging
-import os
 import time
-import uuid as _uuid
-from datetime import datetime, timezone
 from typing import Any, TypedDict
 
 import asyncpg
 from playwright.async_api import (
     BrowserContext,
     Page,
-    Playwright,
     async_playwright,
 )
 
-from shared.config import Settings, get_settings
-from shared.logging_config import LogContext, setup_logging, get_logger
-from shared.metrics import incr, observe, RateLimiter
+from backend.blueprints.registry import get_blueprint, load_default_blueprints
+from backend.domain.evaluations import record_system_evaluation
+from backend.domain.experiments import get_variant_for_tenant
 from backend.domain.models import (
     CanonicalProfile,
-    FormField as FormFieldModel,
-    FormFieldOption as FormFieldOptionModel,
-    LLMMapping,
     normalize_profile,
 )
+from backend.domain.notifications import notify_application_submitted, notify_hold_questions
 from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -46,19 +38,16 @@ from backend.domain.repositories import (
     JobRepo,
     ProfileRepo,
     db_transaction,
-    record_event,
 )
-from backend.domain.masking import redact_profile_for_logging
-from backend.domain.evaluations import record_system_evaluation
-from backend.domain.experiments import get_variant_for_tenant
-from backend.domain.notifications import notify_application_submitted, notify_hold_questions
-from backend.blueprints.registry import get_blueprint, load_default_blueprints
-from backend.llm.client import LLMClient, LLMError
+from backend.llm.client import LLMClient
 from backend.llm.contracts import (
     DomMappingResponse_V1,
     build_dom_mapping_prompt,
 )
 from backend.llm.prompt_registry import get_prompt
+from shared.config import get_settings
+from shared.logging_config import LogContext, get_logger, setup_logging
+from shared.metrics import RateLimiter, incr, observe
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -419,44 +408,50 @@ async def fill_form_from_mapping(
 
         try:
             el = page.locator(selector).first
+            step_idx = ff["step_index"] if ff else "?"
 
             if field_type == "select":
-                # Try by value first, fall back to label
-                try:
-                    await el.select_option(value=value)
-                except Exception:
-                    await el.select_option(label=value)
-
+                await _fill_select(el, value)
             elif field_type == "radio":
-                # Click the radio with matching value
-                radio = page.locator(f'{selector.split("[")[0]}[value="{value}"]').first
-                if await radio.count() > 0:
-                    await radio.check()
-                else:
-                    await el.check()
-
+                await _fill_radio(page, selector, el, value)
             elif field_type == "checkbox":
-                should_check = value.lower() in ("true", "yes", "1", "on")
-                if should_check:
-                    await el.check()
-                else:
-                    await el.uncheck()
-
+                await _fill_checkbox(el, value)
             elif field_type == "textarea":
                 await el.fill(value)
-
             elif field_type == "file":
                 logger.warning("File upload for %s – skipping (not supported yet)", selector)
-
             else:
-                # text, email, tel, url, number, etc.
                 await el.fill(value)
 
-            logger.info("Filled [step:%s] %s = %s",
-                        ff["step_index"] if ff else "?", selector, value[:60])
+            logger.info("Filled [step:%s] %s = %s", step_idx, selector, value[:60])
 
         except Exception as exc:
             logger.warning("Could not fill %s: %s", selector, exc)
+
+
+async def _fill_select(el: Any, value: str) -> None:
+    # Try by value first, fall back to label
+    try:
+        await el.select_option(value=value)
+    except Exception:
+        await el.select_option(label=value)
+
+
+async def _fill_radio(page: Page, selector: str, el: Any, value: str) -> None:
+    # Click the radio with matching value
+    radio = page.locator(f'{selector.split("[")[0]}[value="{value}"]').first
+    if await radio.count() > 0:
+        await radio.check()
+    else:
+        await el.check()
+
+
+async def _fill_checkbox(el: Any, value: str) -> None:
+    should_check = value.lower() in ("true", "yes", "1", "on")
+    if should_check:
+        await el.check()
+    else:
+        await el.uncheck()
 
 
 async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
@@ -626,7 +621,7 @@ class FormAgent:
         try:
             await page.goto(ctx["application_url"], wait_until="networkidle", timeout=PAGE_TIMEOUT_MS)
         except Exception as exc:
-            raise RuntimeError(f"Page load timeout for {ctx['application_url']}: {exc}")
+            raise RuntimeError(f"Page load timeout for {ctx['application_url']}: {exc}") from exc
 
     async def _extract_fields(self, page: Page) -> list[FormField]:
         form_fields = await extract_all_form_fields(page)

@@ -9,7 +9,6 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.audit import record_audit_event
 from shared.config import get_settings
 from shared.logging_config import get_logger
 

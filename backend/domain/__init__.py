@@ -1,50 +1,55 @@
 # ---------------------------------------------------------------------------
 # Sorce-specific models (backward-compatible)
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Generic core models (agent-core vocabulary)
+# ---------------------------------------------------------------------------
+from backend.domain.core_models import (
+    COMPLETION_STATUS_ALIASES,
+    ActorHistoryEntry,
+    ActorIdentity,
+    ActorProfile,
+    ActorQualification,
+    DomMappingResult,
+    TargetForm,
+    Task,
+    TaskEvent,
+    TaskEventType,
+    TaskInput,
+    TaskStatus,
+    is_terminal,
+    to_generic_status,
+)
+from backend.domain.core_models import (
+    FormField as CoreFormField,
+)
+from backend.domain.core_models import (
+    FormFieldOption as CoreFormFieldOption,
+)
+from backend.domain.core_models import (
+    UnresolvedField as CoreUnresolvedField,
+)
 from backend.domain.models import (
+    Application,
+    ApplicationEvent,
+    ApplicationInput,
     ApplicationStatus,
     CanonicalContact,
     CanonicalEducation,
     CanonicalExperience,
     CanonicalProfile,
     CanonicalSkills,
-    Application,
-    ApplicationInput,
-    ApplicationEvent,
+    ErrorResponse,
+    FormField,
+    FormFieldOption,
     Job,
+    LLMMapping,
     Tenant,
     TenantMember,
     TenantPlan,
     TenantRole,
-    FormFieldOption,
-    FormField,
-    LLMMapping,
     UnresolvedField,
-    ErrorResponse,
     normalize_profile,
-)
-
-# ---------------------------------------------------------------------------
-# Generic core models (agent-core vocabulary)
-# ---------------------------------------------------------------------------
-from backend.domain.core_models import (
-    ActorIdentity,
-    ActorProfile,
-    ActorQualification,
-    ActorHistoryEntry,
-    TaskStatus,
-    TaskEventType,
-    Task,
-    TaskInput,
-    TaskEvent,
-    TargetForm,
-    DomMappingResult,
-    FormField as CoreFormField,
-    FormFieldOption as CoreFormFieldOption,
-    UnresolvedField as CoreUnresolvedField,
-    is_terminal,
-    to_generic_status,
-    COMPLETION_STATUS_ALIASES,
 )
 
 # ---------------------------------------------------------------------------
@@ -52,10 +57,10 @@ from backend.domain.core_models import (
 # ---------------------------------------------------------------------------
 from backend.domain.repositories import (
     ApplicationRepo,
-    ProfileRepo,
-    JobRepo,
-    InputRepo,
     EventRepo,
+    InputRepo,
+    JobRepo,
+    ProfileRepo,
     TenantRepo,
     db_transaction,
 )
@@ -66,11 +71,11 @@ from backend.domain.repositories import (
 from backend.domain.tenant import (
     TenantContext,
     TenantScopeError,
-    resolve_tenant_context,
     assert_tenant_owns,
     require_role,
     require_system_admin,
     require_tenant_admin_or_system,
+    resolve_tenant_context,
 )
 
 __all__ = [

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 
-
 # ===================================================================
 # Contract 1: Document Parsing → GrantApplicantProfile
 # ===================================================================

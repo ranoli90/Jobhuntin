@@ -1,6 +1,5 @@
-import urllib.request
 import json
-import os
+import urllib.request
 
 RENDER_API_KEY = "rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
 

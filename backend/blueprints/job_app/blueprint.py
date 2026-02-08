@@ -10,9 +10,7 @@ This is the first (and reference) blueprint. It wraps all Sorce-specific logic:
 
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 import asyncpg
 
@@ -23,7 +21,11 @@ from backend.blueprints.job_app.models import (
 )
 from backend.blueprints.job_app.prompts import (
     JOB_APP_SUBMIT_SELECTORS,
+)
+from backend.blueprints.job_app.prompts import (
     build_dom_mapping_prompt as _build_dom_mapping_prompt,
+)
+from backend.blueprints.job_app.prompts import (
     build_resume_parse_prompt as _build_resume_parse_prompt,
 )
 from backend.domain.core_models import ActorProfile, DomMappingResult, FormField, UnresolvedField
@@ -105,6 +107,6 @@ class JobApplicationBlueprint:
         app_id = str(task["id"])
         await ApplicationRepo.update_status(conn, app_id, "APPLIED")
         await EventRepo.emit(conn, app_id, "SUBMITTED", {
-            "submitted_at": datetime.now(timezone.utc).isoformat(),
+            "submitted_at": datetime.now(UTC).isoformat(),
         }, tenant_id=tenant_id)
         return "APPLIED"

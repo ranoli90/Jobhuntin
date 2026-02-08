@@ -51,7 +51,7 @@ def generate_sp_metadata() -> str:
 # SAML response parsing (simplified — production should use python3-saml)
 # ---------------------------------------------------------------------------
 
-def parse_saml_response(saml_response_b64: str, idp_cert_pem: str) -> dict[str, Any] | None:
+def parse_saml_response(saml_response_b64: str) -> dict[str, Any] | None:
     """
     Parse a SAML Response and extract user attributes.
 

@@ -1,6 +1,5 @@
-import urllib.request
 import json
-import os
+import urllib.request
 
 RENDER_API_KEY = "rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
 
@@ -15,7 +14,7 @@ def audit_render():
         req = urllib.request.Request("https://api.render.com/v1/services", headers=headers)
         with urllib.request.urlopen(req, timeout=30) as response:
             services = json.loads(response.read().decode())
-        
+
         with open("render_audit.log", "w", encoding="utf-8") as f:
             for svc in services:
                 service = svc['service']
@@ -23,11 +22,11 @@ def audit_render():
                 name = service['name']
                 service_details = service.get('serviceDetails', {})
                 url = service_details.get('url', 'N/A')
-                
+
                 msg = f"\nService: {name} ({service_id})\nURL: {url}\n"
                 print(msg)
                 f.write(msg)
-                
+
                 # Get env vars
                 try:
                     req_env = urllib.request.Request(f"https://api.render.com/v1/services/{service_id}/env-vars", headers=headers)

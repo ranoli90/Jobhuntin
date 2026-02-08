@@ -19,10 +19,10 @@ from shared.logging_config import get_logger
 
 logger = get_logger("sorce.blueprints")
 
-BLUEPRINTS: dict[str, "AgentBlueprint"] = {}
+BLUEPRINTS: dict[str, AgentBlueprint] = {}
 
 
-def register_blueprint(bp: "AgentBlueprint") -> None:
+def register_blueprint(bp: AgentBlueprint) -> None:
     """Register a blueprint instance by its slug."""
     if bp.slug in BLUEPRINTS:
         logger.warning("Blueprint '%s' already registered; skipping duplicate", bp.slug)
@@ -31,7 +31,7 @@ def register_blueprint(bp: "AgentBlueprint") -> None:
     logger.info("Registered blueprint: %s (v%s) as '%s'", bp.name, bp.version, bp.slug)
 
 
-def get_blueprint(key: str) -> "AgentBlueprint":
+def get_blueprint(key: str) -> AgentBlueprint:
     """
     Look up a blueprint by key (tenants.blueprint_key or tasks.blueprint_key).
     Raises KeyError if not found.
@@ -46,8 +46,8 @@ def get_blueprint(key: str) -> "AgentBlueprint":
 
 def load_default_blueprints(enabled_slugs: list[str] | None = None) -> None:
     """Import and register built-in blueprints, optionally filtered by slug."""
-    from backend.blueprints.job_app import JobApplicationBlueprint
     from backend.blueprints.grant import GrantApplicationBlueprint
+    from backend.blueprints.job_app import JobApplicationBlueprint
 
     registry: dict[str, callable] = {
         "job-app": JobApplicationBlueprint,

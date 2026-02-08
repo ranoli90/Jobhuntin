@@ -7,8 +7,6 @@ project information, budget narrative, and compliance data.
 
 from __future__ import annotations
 
-from typing import Any
-
 from pydantic import Field
 
 from backend.domain.core_models import ActorProfile

@@ -6,29 +6,25 @@ Mounted via _mount_sub_routers() in api/main.py.
 
 from __future__ import annotations
 
-import json
-import logging
-from typing import Any, Callable
+from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from backend.domain.email_digest import run_weekly_digest
+from backend.domain.notifications import (
+    deactivate_push_token,
+    register_push_token,
+)
+from backend.domain.referrals import (
+    get_referral_stats,
+    redeem_referral_code,
+)
+from backend.domain.repositories import db_transaction
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr
-from backend.domain.notifications import (
-    register_push_token,
-    deactivate_push_token,
-    send_push_to_user,
-)
-from backend.domain.referrals import (
-    get_or_create_referral_code,
-    redeem_referral_code,
-    get_referral_stats,
-)
-from backend.domain.email_digest import run_weekly_digest
-from backend.domain.repositories import db_transaction
 
 logger = get_logger("sorce.api.growth")
 
@@ -38,15 +34,18 @@ router = APIRouter(tags=["growth"])
 # Dependency stubs — injected by api/main.py at mount time
 # ---------------------------------------------------------------------------
 
-_get_pool: Callable[[], asyncpg.Pool] = lambda: (_ for _ in ()).throw(  # type: ignore[return-value]
+def _get_pool() -> asyncpg.Pool:
+    return (_ for _ in ()).throw(  # type: ignore[return-value]
     NotImplementedError("Pool dependency not injected")
 )
 
-_get_user_id: Callable[[], str] = lambda: (_ for _ in ()).throw(  # type: ignore[return-value]
+def _get_user_id() -> str:
+    return (_ for _ in ()).throw(  # type: ignore[return-value]
     NotImplementedError("User ID dependency not injected")
 )
 
-_get_admin_user_id: Callable[[], str] = lambda: (_ for _ in ()).throw(  # type: ignore[return-value]
+def _get_admin_user_id() -> str:
+    return (_ for _ in ()).throw(  # type: ignore[return-value]
     NotImplementedError("Admin user ID dependency not injected")
 )
 
@@ -132,7 +131,7 @@ async def referral_stats(
     """Get the current user's referral code and stats."""
     async with db.acquire() as conn:
         stats = await get_referral_stats(conn, user_id)
-    s = get_settings()
+    get_settings()
     share_url = f"https://sorce.app/invite/{stats['referral_code']}"
     return ReferralStatsResponse(
         referral_code=stats["referral_code"],

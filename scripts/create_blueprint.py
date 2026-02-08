@@ -18,11 +18,9 @@ Creates:
 from __future__ import annotations
 
 import argparse
-import os
 import re
 import sys
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = ROOT / "templates" / "blueprint_template"
@@ -125,13 +123,13 @@ def create_blueprint(name: str, slug: str, description: str = "") -> None:
 
     # Print next steps
     print(f"\n✓ Blueprint '{name}' created successfully!")
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(f"  1. Edit backend/blueprints/{slug.replace('-', '_')}/models.py — add vertical-specific fields")
     print(f"  2. Edit backend/blueprints/{slug.replace('-', '_')}/prompts.py — customize LLM prompts")
     print(f"  3. Edit backend/blueprints/{slug.replace('-', '_')}/blueprint.py — implement all methods")
-    print(f"  4. Register in backend/blueprints/registry.py → load_default_blueprints()")
+    print("  4. Register in backend/blueprints/registry.py → load_default_blueprints()")
     print(f"  5. Add '{slug}' to ENABLED_BLUEPRINTS in your .env or config")
-    print(f"  6. Run the schema migration if you added custom tables/columns")
+    print("  6. Run the schema migration if you added custom tables/columns")
 
 
 def main() -> None:

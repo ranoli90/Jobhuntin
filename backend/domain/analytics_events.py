@@ -7,6 +7,11 @@ enrichment) and the mobile client (via the /analytics/events sink).
 
 from __future__ import annotations
 
+import json
+
+import asyncpg
+
+from shared.logging_config import get_logger
 
 # ---------------------------------------------------------------------------
 # Job feed events
@@ -92,11 +97,6 @@ ALL_EVENT_TYPES: frozenset[str] = frozenset({
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-import json
-import logging
-import asyncpg
-from shared.logging_config import get_logger
 
 logger = get_logger("sorce.analytics")
 

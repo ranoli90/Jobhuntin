@@ -17,10 +17,6 @@ Worker coordination contract:
 from __future__ import annotations
 
 import json
-import logging
-import os
-import time
-import uuid
 from typing import Any
 
 import asyncpg
@@ -29,26 +25,23 @@ from fastapi import (
     Depends,
     FastAPI,
     File,
-    HTTPException,
     Header,
+    HTTPException,
     Path,
     Request,
     UploadFile,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from shared.config import Settings, get_settings, settings_dependency
-from shared.logging_config import LogContext, setup_logging, get_logger
-from shared.metrics import incr, observe, dump as metrics_dump
+from backend.domain.analytics_events import (
+    APPLICATION_STATUS_CHANGED,
+    emit_analytics_event,
+)
+from backend.domain.debug_schema import debug_alter_stmts, debug_auth_shim, debug_critical_tables
 from backend.domain.models import (
-    ApplicationDetail,
-    CanonicalContact,
-    CanonicalEducation,
-    CanonicalExperience,
     CanonicalProfile,
-    CanonicalSkills,
     ErrorDetail,
     ErrorResponse,
 )
@@ -56,26 +49,17 @@ from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
-    JobRepo,
-    TenantRepo,
     db_transaction,
-    record_event,
-)
-from backend.domain.tenant import (
-    TenantContext,
-    TenantScopeError,
-    resolve_tenant_context,
-    assert_tenant_owns,
-)
-from backend.domain.quotas import QuotaExceededError, check_can_create_application
-from backend.domain.analytics_events import (
-    RESUME_PARSED_SUCCESS,
-    RESUME_PARSED_FAILED,
-    APPLICATION_STATUS_CHANGED,
-    emit_analytics_event,
 )
 from backend.domain.resume import process_resume_upload
-from backend.domain.debug_schema import debug_auth_shim, debug_critical_tables, debug_alter_stmts
+from backend.domain.tenant import (
+    TenantContext,
+    resolve_tenant_context,
+)
+from shared.config import get_settings
+from shared.logging_config import LogContext, get_logger, setup_logging
+from shared.metrics import dump as metrics_dump
+from shared.metrics import incr
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -168,8 +152,8 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[api_v2_mod._get_pool] = get_pool
     app.include_router(api_v2_mod.router)
 
-    from partners.university.router import router as uni_router
     import partners.university.router as uni_mod
+    from partners.university.router import router as uni_router
     app.dependency_overrides[uni_mod._get_pool] = get_pool
     app.dependency_overrides[uni_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(uni_router)
@@ -189,6 +173,120 @@ def _mount_sub_routers() -> None:
 
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
+
+# ---------------------------------------------------------------------------
+# Database pool lifecycle
+# ---------------------------------------------------------------------------
+class DatabasePoolManager:
+    """Manages database pool lifecycle without global state."""
+
+    def __init__(self) -> None:
+        self._pool: asyncpg.Pool | None = None
+
+    @property
+    def pool(self) -> asyncpg.Pool:
+        if self._pool is None:
+            raise HTTPException(status_code=503, detail="Database pool not available")
+        return self._pool
+
+    async def initialize(self) -> None:
+        """Initialize the database pool on startup."""
+        s = get_settings()
+        from backend.blueprints.registry import load_default_blueprints
+        enabled = [slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()]
+        load_default_blueprints(enabled_slugs=enabled or None)
+
+        ssl_arg = self._get_ssl_config(s)
+
+        # Resolve the DB hostname to IPv4 to avoid [Errno 101] on Render (no IPv6).
+        from shared.db import resolve_dsn_ipv4
+        db_dsn = resolve_dsn_ipv4(s.database_url)
+
+        for attempt in range(1, 4):
+            try:
+                self._pool = await asyncpg.create_pool(
+                    db_dsn, min_size=s.db_pool_min, max_size=s.db_pool_max,
+                    ssl=ssl_arg,
+                    statement_cache_size=0,
+                )
+                logger.info("Database pool created (env=%s)", s.env.value)
+                break
+            except asyncpg.PostgresError as exc:
+                logger.warning("DB pool attempt %d/3 failed: %s", attempt, exc)
+                if attempt < 3:
+                    import asyncio
+                    await asyncio.sleep(3 * attempt)
+            except Exception as exc:
+                logger.error("Unexpected error creating DB pool: %s", exc)
+                raise
+        else:
+            logger.error("Could not create DB pool after 3 attempts")
+            raise RuntimeError("Failed to initialize database pool")
+
+        await self._run_migrations()
+
+    async def _run_migrations(self) -> None:
+        """Run auto-migrations if needed."""
+        if self._pool is None:
+            return
+
+        try:
+            async with self._pool.acquire() as conn:
+                has_tenants = await conn.fetchval(
+                    "SELECT EXISTS(SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema='public' AND table_name='tenants')"
+                )
+                if not has_tenants:
+                    logger.info("Running auto-migration (tenants table missing)...")
+                    import pathlib
+                    base = pathlib.Path(__file__).resolve().parent.parent
+                    from backend.domain.migrations import run_migrations
+                    await run_migrations(conn, base)
+        except asyncpg.PostgresError as exc:
+            logger.warning("Auto-migration check failed (DB error): %s", exc)
+        except Exception as exc:
+            logger.warning("Auto-migration check failed: %s", exc)
+
+    @staticmethod
+    def _get_ssl_config(settings: Any) -> Any:
+        """Get SSL configuration for database connection."""
+        if not settings.database_url:
+            return False
+
+        if "pooler.supabase.com" not in settings.database_url and "supabase.co" not in settings.database_url:
+            return False
+
+        import ssl as _ssl
+        ssl_ctx = _ssl.create_default_context()
+        # Supabase uses self-signed certificates; disable verification for encrypted connection
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = _ssl.CERT_NONE
+        return ssl_ctx
+
+    async def close(self) -> None:
+        """Close the database pool on shutdown."""
+        if self._pool:
+            await self._pool.close()
+            self._pool = None
+
+
+# Global pool manager instance
+_pool_manager = DatabasePoolManager()
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    await _pool_manager.initialize()
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    await _pool_manager.close()
+
+
+def get_pool() -> asyncpg.Pool:
+    return _pool_manager.pool
+
 
 @app.post("/debug/run-migration")
 async def debug_run_migration(db: asyncpg.Pool = Depends(get_pool)) -> dict[str, Any]:
@@ -235,120 +333,6 @@ async def debug_db_tables(db: asyncpg.Pool = Depends(get_pool)) -> dict[str, Any
         }
 
 # ---------------------------------------------------------------------------
-# Database pool lifecycle
-# ---------------------------------------------------------------------------
-class DatabasePoolManager:
-    """Manages database pool lifecycle without global state."""
-    
-    def __init__(self) -> None:
-        self._pool: asyncpg.Pool | None = None
-    
-    @property
-    def pool(self) -> asyncpg.Pool:
-        if self._pool is None:
-            raise HTTPException(status_code=503, detail="Database pool not available")
-        return self._pool
-    
-    async def initialize(self) -> None:
-        """Initialize the database pool on startup."""
-        s = get_settings()
-        from backend.blueprints.registry import load_default_blueprints
-        enabled = [slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()]
-        load_default_blueprints(enabled_slugs=enabled or None)
-        
-        ssl_arg = self._get_ssl_config(s)
-        
-        # Resolve the DB hostname to IPv4 to avoid [Errno 101] on Render (no IPv6).
-        from shared.db import resolve_dsn_ipv4
-        db_dsn = resolve_dsn_ipv4(s.database_url)
-
-        for attempt in range(1, 4):
-            try:
-                self._pool = await asyncpg.create_pool(
-                    db_dsn, min_size=s.db_pool_min, max_size=s.db_pool_max,
-                    ssl=ssl_arg,
-                    statement_cache_size=0,
-                )
-                logger.info("Database pool created (env=%s)", s.env.value)
-                break
-            except asyncpg.PostgresError as exc:
-                logger.warning("DB pool attempt %d/3 failed: %s", attempt, exc)
-                if attempt < 3:
-                    import asyncio
-                    await asyncio.sleep(3 * attempt)
-            except Exception as exc:
-                logger.error("Unexpected error creating DB pool: %s", exc)
-                raise
-        else:
-            logger.error("Could not create DB pool after 3 attempts")
-            raise RuntimeError("Failed to initialize database pool")
-        
-        await self._run_migrations()
-    
-    async def _run_migrations(self) -> None:
-        """Run auto-migrations if needed."""
-        if self._pool is None:
-            return
-        
-        try:
-            async with self._pool.acquire() as conn:
-                has_tenants = await conn.fetchval(
-                    "SELECT EXISTS(SELECT 1 FROM information_schema.tables "
-                    "WHERE table_schema='public' AND table_name='tenants')"
-                )
-                if not has_tenants:
-                    logger.info("Running auto-migration (tenants table missing)...")
-                    import pathlib
-                    base = pathlib.Path(__file__).resolve().parent.parent
-                    from backend.domain.migrations import run_migrations
-                    await run_migrations(conn, base)
-        except asyncpg.PostgresError as exc:
-            logger.warning("Auto-migration check failed (DB error): %s", exc)
-        except Exception as exc:
-            logger.warning("Auto-migration check failed: %s", exc)
-    
-    @staticmethod
-    def _get_ssl_config(settings: Any) -> Any:
-        """Get SSL configuration for database connection."""
-        if not settings.database_url:
-            return False
-        
-        if "pooler.supabase.com" not in settings.database_url and "supabase.co" not in settings.database_url:
-            return False
-        
-        import ssl as _ssl
-        ssl_ctx = _ssl.create_default_context()
-        # Supabase uses self-signed certificates; disable verification for encrypted connection
-        ssl_ctx.check_hostname = False
-        ssl_ctx.verify_mode = _ssl.CERT_NONE
-        return ssl_ctx
-    
-    async def close(self) -> None:
-        """Close the database pool on shutdown."""
-        if self._pool:
-            await self._pool.close()
-            self._pool = None
-
-
-# Global pool manager instance
-_pool_manager = DatabasePoolManager()
-
-
-@app.on_event("startup")
-async def startup() -> None:
-    await _pool_manager.initialize()
-
-
-@app.on_event("shutdown")
-async def shutdown() -> None:
-    await _pool_manager.close()
-
-
-def get_pool() -> asyncpg.Pool:
-    return _pool_manager.pool
-
-
-# ---------------------------------------------------------------------------
 # Standard error envelope handler
 # ---------------------------------------------------------------------------
 
@@ -371,7 +355,6 @@ _jwks_cache: dict[str, Any] = {}  # kid -> PyJWT key object
 
 async def _get_jwk(supabase_url: str, kid: str) -> Any:
     """Fetch the ES256 public key from Supabase JWKS, with in-memory cache."""
-    import jwt as pyjwt
     if kid in _jwks_cache:
         return _jwks_cache[kid]
     import httpx

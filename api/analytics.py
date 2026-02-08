@@ -8,24 +8,23 @@ Mounted via _mount_sub_routers() in api/main.py.
 from __future__ import annotations
 
 import json
-import logging
-from typing import Any, Callable
+from datetime import UTC
+from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
-from shared.logging_config import get_logger
-from shared.metrics import incr
 from backend.domain.analytics_events import ALL_EVENT_TYPES
-from backend.domain.evaluations import record_user_feedback
 from backend.domain.eval_queries import get_agent_performance_summary
+from backend.domain.evaluations import record_user_feedback
 from backend.domain.experiment_readout import get_experiment_results
-from backend.domain.masking import redact_event_payload
 from backend.domain.m1_metrics import get_m1_dashboard, refresh_dashboard_views
 from backend.domain.m2_metrics import get_m2_dashboard, refresh_m2_views
 from backend.domain.m3_metrics import get_m3_dashboard, refresh_m3_views
 from backend.domain.m4_metrics import get_m4_dashboard, refresh_m4_views
+from shared.logging_config import get_logger
+from shared.metrics import incr
 
 logger = get_logger("sorce.api.analytics")
 
@@ -35,13 +34,16 @@ router = APIRouter(tags=["analytics"])
 # Dependency stubs — injected by api/main.py at mount time
 # ---------------------------------------------------------------------------
 
-_get_pool: Callable[[], asyncpg.Pool] = lambda: (_ for _ in ()).throw(  # type: ignore[return-value]
+def _get_pool() -> asyncpg.Pool:
+    return (_ for _ in ()).throw(  # type: ignore[return-value]
     RuntimeError("analytics._get_pool not wired")
 )
-_get_tenant_ctx: Callable[..., Any] = lambda: (_ for _ in ()).throw(
+def _get_tenant_ctx() -> Any:
+    return (_ for _ in ()).throw(
     RuntimeError("analytics._get_tenant_ctx not wired")
 )
-_get_admin_user_id: Callable[..., Any] = lambda: (_ for _ in ()).throw(
+def _get_admin_user_id() -> Any:
+    return (_ for _ in ()).throw(
     RuntimeError("analytics._get_admin_user_id not wired")
 )
 
@@ -382,8 +384,9 @@ async def investor_metrics(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Series A metrics export — clean JSON for pitch deck."""
+    from datetime import datetime
+
     from backend.domain.m5_metrics import get_investor_metrics
-    from datetime import datetime, timezone
     async with db.acquire() as conn:
         data = await get_investor_metrics(conn)
         # Fill marketplace blueprint count
@@ -391,7 +394,7 @@ async def investor_metrics(
             "SELECT COUNT(*)::int FROM public.marketplace_blueprints WHERE approval_status = 'approved'"
         )
         data["product"]["marketplace_blueprints"] = bp_count or 0
-    data["generated_at"] = datetime.now(timezone.utc).isoformat()
+    data["generated_at"] = datetime.now(UTC).isoformat()
     return data
 
 
@@ -401,8 +404,8 @@ async def investor_metrics_csv(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> Any:
     """Series A metrics as CSV for spreadsheet/pitch deck import."""
+
     from backend.domain.m5_metrics import get_investor_metrics
-    from datetime import datetime, timezone
     async with db.acquire() as conn:
         data = await get_investor_metrics(conn)
 
@@ -431,7 +434,7 @@ async def investor_metrics_csv(
     return FastAPIResponse(
         content=buf.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=sorce_series_a_metrics.csv"},
+        headers={"Content-Disposition": "attachment; filename=sorce_series_a_metrics.csv"},
     )
 
 
@@ -494,7 +497,8 @@ async def investor_full_metrics_csv(
     async with db.acquire() as conn:
         data = await get_full_investor_metrics(conn)
 
-    import csv, io
+    import csv
+    import io
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["Section", "Metric", "Value"])

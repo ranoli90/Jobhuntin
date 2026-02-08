@@ -1,0 +1,4023 @@
+{
+  "metadata": {
+    "repository": "ranoli90/sorce",
+    "branch": "main",
+    "analysis_date": "Feb 8, 2026 at 03:08:54 PM",
+    "scan_summary": {
+      "files_included": "",
+      "files_excluded": "",
+      "lines_analyzed": 45036
+    }
+  },
+  "summary": {
+    "antipatterns": {
+      "total_issues": 667
+    }
+  },
+  "results": {
+    "antipatterns": [
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 62,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 65,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 82,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 89,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 115,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 122,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 165,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 165,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 204,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 204,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 237,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 258,
+        "message": "Consecutive elif with differing indentation level, consider creating a function to separate the inner elif",
+        "symbol": "confusing-consecutive-elif"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 258,
+        "message": "Consider using \"elif\" instead of \"else\" then \"if\" to remove one indentation level",
+        "symbol": "else-if-used"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 261,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 66,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 89,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 125,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 165,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 167,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 204,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 206,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 45,
+        "message": "Define a constant instead of duplicating this literal \"application/json\" 7 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 65,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 82,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 115,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 237,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns.py/anti_patterns.json",
+        "line_number": 261,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 67,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 127,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 128,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 129,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 130,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 131,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 132,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 133,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 134,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 135,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 136,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 137,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 138,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 139,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 140,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 141,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 142,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 143,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 144,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 145,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 149,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 150,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 151,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 152,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 153,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 154,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 67,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 15,
+        "message": "Define a constant instead of duplicating this literal \"application/json\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 127,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 128,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 129,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 130,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 131,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 132,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 133,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 134,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 135,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 136,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 137,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 138,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 139,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 140,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 141,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 142,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 143,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 144,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_render_env.py/anti_patterns.json",
+        "line_number": 145,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env.py/anti_patterns.json",
+        "line_number": 14,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env.py/anti_patterns.json",
+        "line_number": 37,
+        "message": "Unnecessary \"elif\" after \"return\", remove the leading \"el\" from \"elif\"",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env.py/anti_patterns.json",
+        "line_number": 37,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env.py/anti_patterns.json",
+        "line_number": 60,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env.py/anti_patterns.json",
+        "line_number": 112,
+        "message": "Unused variable 'updated'",
+        "symbol": "unused-variable"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env.py/anti_patterns.json",
+        "line_number": 37,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env.py/anti_patterns.json",
+        "line_number": 40,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env.py/anti_patterns.json",
+        "line_number": 14,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fix_database_url.py/anti_patterns.json",
+        "line_number": 84,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fix_database_url.py/anti_patterns.json",
+        "line_number": 93,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fix_database_url.py/anti_patterns.json",
+        "line_number": 93,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fix_database_url.py/anti_patterns.json",
+        "line_number": 93,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fix_database_url.py/anti_patterns.json",
+        "line_number": 95,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fix_database_url.py/anti_patterns.json",
+        "line_number": 15,
+        "message": "Define a constant instead of duplicating this literal \"application/json\" 4 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fix_database_url.py/anti_patterns.json",
+        "line_number": 84,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 24,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 55,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 77,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 81,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 124,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 134,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 134,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 138,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 164,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 176,
+        "message": "Unnecessary \"elif\" after \"return\", remove the leading \"el\" from \"elif\"",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 176,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 208,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 220,
+        "message": "Unnecessary \"elif\" after \"return\", remove the leading \"el\" from \"elif\"",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 220,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 242,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 251,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 251,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 283,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 24,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 61,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 81,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 134,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 136,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 176,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 179,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 220,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 223,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 251,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 255,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 294,
+        "message": "Extract repeated if condition",
+        "symbol": "fix_simplify_repeated_if"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 16,
+        "message": "Define a constant instead of duplicating this literal \"application/json\" 11 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 110,
+        "message": "Define a constant instead of duplicating this literal \"❌ Error: DATABASE_URL not set in .env\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 77,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 124,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 138,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 164,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 208,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/advanced_render_fix.py/anti_patterns.json",
+        "line_number": 242,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 65,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 68,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 95,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 102,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 130,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 176,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 176,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 216,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 216,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 253,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 274,
+        "message": "Consecutive elif with differing indentation level, consider creating a function to separate the inner elif",
+        "symbol": "confusing-consecutive-elif"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 274,
+        "message": "Consider using \"elif\" instead of \"else\" then \"if\" to remove one indentation level",
+        "symbol": "else-if-used"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 277,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 69,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 95,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 133,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 176,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 178,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 216,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 218,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 51,
+        "message": "Define a constant instead of duplicating this literal \"application/json\" 7 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 68,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 102,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 253,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/ionos_cloud_dns.py/anti_patterns.json",
+        "line_number": 277,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/audit_render.py/anti_patterns.json",
+        "line_number": 41,
+        "message": "Consider using an in-place tuple instead of list",
+        "symbol": "consider-using-tuple"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/comprehensive_audit.py/anti_patterns.json",
+        "line_number": 221,
+        "message": "Redefining name 'report' from outer scope (line 301)",
+        "symbol": "redefined-outer-name"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/comprehensive_audit.py/anti_patterns.json",
+        "line_number": 228,
+        "message": "Use collection literals for adding or updating collections",
+        "symbol": "replace_collection_add_update_with_collection_literal"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/comprehensive_audit.py/anti_patterns.json",
+        "line_number": 115,
+        "message": "Define a constant instead of duplicating this literal \"useProfile.ts\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/comprehensive_audit.py/anti_patterns.json",
+        "line_number": 17,
+        "message": "Define a constant instead of duplicating this literal \"Login.tsx\" 8 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/comprehensive_audit.py/anti_patterns.json",
+        "line_number": 31,
+        "message": "Define a constant instead of duplicating this literal \"auth.py\" 6 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fetch_logs.py/anti_patterns.json",
+        "line_number": 24,
+        "message": "Missing timeout argument for method 'requests.get' can cause your program to hang indefinitely",
+        "symbol": "missing-timeout"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_env.py/anti_patterns.json",
+        "line_number": 32,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/check_env.py/anti_patterns.json",
+        "line_number": 32,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 14,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 48,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 48,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 62,
+        "message": "Unnecessary \"elif\" after \"return\", remove the leading \"el\" from \"elif\"",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 62,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 108,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 48,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 50,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 62,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_final.py/anti_patterns.json",
+        "line_number": 14,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/fetch_render_config.py/anti_patterns.json",
+        "line_number": 31,
+        "message": "More than one statement on a single line",
+        "symbol": "multiple-statements"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/trigger_deploy.py/anti_patterns.json",
+        "line_number": 27,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/trigger_deploy.py/anti_patterns.json",
+        "line_number": 27,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/trigger_deploy.py/anti_patterns.json",
+        "line_number": 27,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/trigger_deploy.py/anti_patterns.json",
+        "line_number": 30,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/trigger_deploy.py/anti_patterns.json",
+        "line_number": 14,
+        "message": "Define a constant instead of duplicating this literal \"application/json\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 73,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 97,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 119,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 143,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 144,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 138,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 77,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 100,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 119,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 45,
+        "message": "Define a constant instead of duplicating this literal \"application/json\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 143,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/configure_ionos_dns_v2.py/anti_patterns.json",
+        "line_number": 144,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 39,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 39,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 41,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 64,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 71,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 75,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 115,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 119,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 127,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 152,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 39,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 47,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 71,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 115,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 19,
+        "message": "Define a constant instead of duplicating this literal \"application/json\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 41,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 64,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 75,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 119,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/setup_resend_domain.py/anti_patterns.json",
+        "line_number": 127,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/recreate_web.py/anti_patterns.json",
+        "line_number": 26,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_bulk.py/anti_patterns.json",
+        "line_number": 79,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_bulk.py/anti_patterns.json",
+        "line_number": 79,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_bulk.py/anti_patterns.json",
+        "line_number": 79,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/maintenance/set_render_env_bulk.py/anti_patterns.json",
+        "line_number": 81,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 128,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 132,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 134,
+        "message": "Using an f-string that does not have any interpolated variables",
+        "symbol": "f-string-without-interpolation"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 36,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 42,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 63,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 128,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 132,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/create_blueprint.py/anti_patterns.json",
+        "line_number": 134,
+        "message": "Add replacement fields or use a normal string instead of an f-string.",
+        "symbol": "python:S3457"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/manage_render.py/anti_patterns.json",
+        "line_number": 88,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/manage_render.py/anti_patterns.json",
+        "line_number": 88,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/api/client.ts/anti_patterns.json",
+        "line_number": 59,
+        "message": "Use object destructuring.",
+        "symbol": "autofix/prefer-destructuring"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/api/client.ts/anti_patterns.json",
+        "line_number": 60,
+        "message": "Use object destructuring.",
+        "symbol": "autofix/prefer-destructuring"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/stores/applicationStore.ts/anti_patterns.json",
+        "line_number": 143,
+        "message": "Arrow function used ambiguously with a conditional expression.",
+        "symbol": "autofix/no-confusing-arrow"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/stores/applicationStore.ts/anti_patterns.json",
+        "line_number": 197,
+        "message": "use `Boolean(s.processingFlags[applicationId])` instead.",
+        "symbol": "autofix/no-implicit-coercion"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/trigger_deploy.py/anti_patterns.json",
+        "line_number": 38,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/scripts/trigger_deploy.py/anti_patterns.json",
+        "line_number": 38,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/screens/OnboardingScreen.tsx/anti_patterns.json",
+        "line_number": 125,
+        "message": "use `Boolean(referralCode)` instead.",
+        "symbol": "autofix/no-implicit-coercion"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/components/JobCard.tsx/anti_patterns.json",
+        "line_number": 55,
+        "message": "Use '===' to compare with null.",
+        "symbol": "autofix/no-eq-null"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/components/JobCard.tsx/anti_patterns.json",
+        "line_number": 55,
+        "message": "Expected '!==' and instead saw '!='.",
+        "symbol": "autofix/eqeqeq"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/components/JobCard.tsx/anti_patterns.json",
+        "line_number": 58,
+        "message": "Use '===' to compare with null.",
+        "symbol": "autofix/no-eq-null"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/components/JobCard.tsx/anti_patterns.json",
+        "line_number": 58,
+        "message": "Expected '!==' and instead saw '!='.",
+        "symbol": "autofix/eqeqeq"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/lib/analytics.ts/anti_patterns.json",
+        "line_number": 61,
+        "message": "Possible race condition: `_sessionId` might be reassigned based on an outdated value of `_sessionId`.",
+        "symbol": "require-atomic-updates"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/lib/pushNotifications.ts/anti_patterns.json",
+        "line_number": 90,
+        "message": "Unexpected string concatenation.",
+        "symbol": "autofix/prefer-template"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/features/v3/WidgetConfig.ts/anti_patterns.json",
+        "line_number": 66,
+        "message": "Require statement not part of import statement.",
+        "symbol": "@typescript-eslint/no-var-requires"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/features/v3/SmartPreFill.ts/anti_patterns.json",
+        "line_number": 114,
+        "message": "Unary operator '++' used.",
+        "symbol": "autofix/no-plusplus"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/mobile/src/features/v3/SmartPreFill.ts/anti_patterns.json",
+        "line_number": 116,
+        "message": "Unary operator '++' used.",
+        "symbol": "autofix/no-plusplus"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 28,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 33,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 38,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 44,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 48,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 52,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 63,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 67,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 76,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/blueprints/protocol.py/anti_patterns.json",
+        "line_number": 95,
+        "message": "Unnecessary ellipsis constant",
+        "symbol": "unnecessary-ellipsis"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/resume.py/anti_patterns.json",
+        "line_number": 105,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=502, detail=f'Resume parsing failed: {exc}') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/renewals.py/anti_patterns.json",
+        "line_number": 108,
+        "message": "Extract this nested conditional expression into an independent statement.",
+        "symbol": "python:S3358"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/alerting_v2.py/anti_patterns.json",
+        "line_number": 57,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/alerting_v2.py/anti_patterns.json",
+        "line_number": 145,
+        "message": "Redefining name 'get_settings' from outer scope (line 16)",
+        "symbol": "redefined-outer-name"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/alerting_v2.py/anti_patterns.json",
+        "line_number": 145,
+        "message": "Reimport 'get_settings' (imported line 16)",
+        "symbol": "reimported"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/alerting_v2.py/anti_patterns.json",
+        "line_number": 296,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/alerting_v2.py/anti_patterns.json",
+        "line_number": 60,
+        "message": "Remove unnecessary else statements",
+        "symbol": "remove_redundant_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/alerting_v2.py/anti_patterns.json",
+        "line_number": 296,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/observability.py/anti_patterns.json",
+        "line_number": 32,
+        "message": "Using the global statement",
+        "symbol": "global-statement"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/observability.py/anti_patterns.json",
+        "line_number": 68,
+        "message": "Merge except handlers",
+        "symbol": "fix_merge_except_handlers"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/debug_schema.py/anti_patterns.json",
+        "line_number": 96,
+        "message": "Use stmt.split('(', maxsplit=1)[0] instead",
+        "symbol": "use-maxsplit-arg"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/debug_schema.py/anti_patterns.json",
+        "line_number": 96,
+        "message": "Use stmt.split('(', maxsplit=1)[0] instead",
+        "symbol": "use-maxsplit-arg"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/debug_schema.py/anti_patterns.json",
+        "line_number": 96,
+        "message": "This conditional expression returns the same value whether the condition is \"true\" or \"false\".",
+        "symbol": "python:S3923"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/email_digest.py/anti_patterns.json",
+        "line_number": 185,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/email_digest.py/anti_patterns.json",
+        "line_number": 129,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/email_digest.py/anti_patterns.json",
+        "line_number": 92,
+        "message": "Replace for loops with set or list comprehensions",
+        "symbol": "replace_for_loops_with_set_list_comp"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/email_digest.py/anti_patterns.json",
+        "line_number": 185,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/m4_metrics.py/anti_patterns.json",
+        "line_number": 136,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/m4_metrics.py/anti_patterns.json",
+        "line_number": 136,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/masking.py/anti_patterns.json",
+        "line_number": 31,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/notifications.py/anti_patterns.json",
+        "line_number": 153,
+        "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
+        "symbol": "no-else-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/notifications.py/anti_patterns.json",
+        "line_number": 153,
+        "message": "Swaps explicit if-else branches where beneficial",
+        "symbol": "_swap_explicit_if_else"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/tenant.py/anti_patterns.json",
+        "line_number": 53,
+        "message": "Unnecessary pass statement",
+        "symbol": "unnecessary-pass"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/tenant.py/anti_patterns.json",
+        "line_number": 154,
+        "message": "Invert negated any/all",
+        "symbol": "fix_invert_any_all"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/core_models.py/anti_patterns.json",
+        "line_number": 61,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/core_models.py/anti_patterns.json",
+        "line_number": 61,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/models.py/anti_patterns.json",
+        "line_number": 135,
+        "message": "Non-iterable value CanonicalEducation.model_fields is used in an iterating context",
+        "symbol": "not-an-iterable"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/job_search.py/anti_patterns.json",
+        "line_number": 75,
+        "message": "No exception type(s) specified",
+        "symbol": "bare-except"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/job_search.py/anti_patterns.json",
+        "line_number": 12,
+        "message": "Imports from package shared are not grouped",
+        "symbol": "ungrouped-imports"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/job_search.py/anti_patterns.json",
+        "line_number": 73,
+        "message": "Specify exception type",
+        "symbol": "fix_bare_except"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/domain/job_search.py/anti_patterns.json",
+        "line_number": 165,
+        "message": "Fix if statements with unnecessary return",
+        "symbol": "fix_if_return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/llm/contracts.py/anti_patterns.json",
+        "line_number": 65,
+        "message": "Rename class \"ResumeParseResponse_V1\" to match the regular expression ^_?([A-Z_][a-zA-Z0-9]*|[a-z_][a-z0-9_]*)$.",
+        "symbol": "python:S101"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/llm/contracts.py/anti_patterns.json",
+        "line_number": 134,
+        "message": "Rename class \"DomMappingResponse_V1\" to match the regular expression ^_?([A-Z_][a-zA-Z0-9]*|[a-z_][a-z0-9_]*)$.",
+        "symbol": "python:S101"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/llm/client.py/anti_patterns.json",
+        "line_number": 37,
+        "message": "Unnecessary pass statement",
+        "symbol": "unnecessary-pass"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/llm/client.py/anti_patterns.json",
+        "line_number": 42,
+        "message": "Unnecessary pass statement",
+        "symbol": "unnecessary-pass"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/llm/client.py/anti_patterns.json",
+        "line_number": 157,
+        "message": "Consider explicitly re-raising using 'raise LLMError(f'Unexpected LLM response structure: {exc}') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/llm/client.py/anti_patterns.json",
+        "line_number": 176,
+        "message": "Consider explicitly re-raising using 'raise LLMError(f'LLM returned invalid JSON: {exc}\\nContent: {content[:500]}') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/backend/llm/client.py/anti_patterns.json",
+        "line_number": 184,
+        "message": "Consider explicitly re-raising using 'raise LLMValidationError(f'LLM response failed schema validation for {model_cls.__name__}: {exc}') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/blueprints/staffing_agency/blueprint.py/anti_patterns.json",
+        "line_number": 101,
+        "message": "Unnecessary pass statement",
+        "symbol": "unnecessary-pass"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/blueprints/community/scholarship/blueprint.py/anti_patterns.json",
+        "line_number": 101,
+        "message": "Unnecessary pass statement",
+        "symbol": "unnecessary-pass"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/MembersPage.tsx/anti_patterns.json",
+        "line_number": 10,
+        "message": "Expected catch() or return",
+        "symbol": "promise/catch-or-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/MembersPage.tsx/anti_patterns.json",
+        "line_number": 19,
+        "message": "Unexpected confirm.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/MembersPage.tsx/anti_patterns.json",
+        "line_number": 19,
+        "message": "Unexpected confirm.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/MembersPage.tsx/anti_patterns.json",
+        "line_number": 25,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/MembersPage.tsx/anti_patterns.json",
+        "line_number": 25,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/InvitesPage.tsx/anti_patterns.json",
+        "line_number": 12,
+        "message": "Expected catch() or return",
+        "symbol": "promise/catch-or-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/InvitesPage.tsx/anti_patterns.json",
+        "line_number": 29,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/InvitesPage.tsx/anti_patterns.json",
+        "line_number": 29,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/DashboardPage.tsx/anti_patterns.json",
+        "line_number": 35,
+        "message": "Expected catch() or return",
+        "symbol": "promise/catch-or-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/DashboardPage.tsx/anti_patterns.json",
+        "line_number": 36,
+        "message": "Each then() should return a value or throw",
+        "symbol": "promise/always-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 11,
+        "message": "Expected catch() or return",
+        "symbol": "promise/catch-or-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 12,
+        "message": "Each then() should return a value or throw",
+        "symbol": "promise/always-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 22,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 22,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 28,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 28,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 31,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 31,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 36,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/pages/UsagePage.tsx/anti_patterns.json",
+        "line_number": 36,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/App.tsx/anti_patterns.json",
+        "line_number": 84,
+        "message": "Expected catch() or return",
+        "symbol": "promise/catch-or-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/App.tsx/anti_patterns.json",
+        "line_number": 84,
+        "message": "Each then() should return a value or throw",
+        "symbol": "promise/always-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/EnterpriseDashboard.tsx/anti_patterns.json",
+        "line_number": 13,
+        "message": "Expected catch() or return",
+        "symbol": "promise/catch-or-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/EnterpriseDashboard.tsx/anti_patterns.json",
+        "line_number": 17,
+        "message": "Each then() should return a value or throw",
+        "symbol": "promise/always-return"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/EnterpriseDashboard.tsx/anti_patterns.json",
+        "line_number": 66,
+        "message": "Classnames 'w-3, h-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/SSOConfigPage.tsx/anti_patterns.json",
+        "line_number": 58,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/SSOConfigPage.tsx/anti_patterns.json",
+        "line_number": 58,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/SSOConfigPage.tsx/anti_patterns.json",
+        "line_number": 61,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/SSOConfigPage.tsx/anti_patterns.json",
+        "line_number": 61,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/SSOConfigPage.tsx/anti_patterns.json",
+        "line_number": 63,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/enterprise/SSOConfigPage.tsx/anti_patterns.json",
+        "line_number": 63,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/MarketplaceBrowse.tsx/anti_patterns.json",
+        "line_number": 52,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/MarketplaceBrowse.tsx/anti_patterns.json",
+        "line_number": 52,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/MarketplaceBrowse.tsx/anti_patterns.json",
+        "line_number": 53,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/MarketplaceBrowse.tsx/anti_patterns.json",
+        "line_number": 53,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/MarketplaceBrowse.tsx/anti_patterns.json",
+        "line_number": 54,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/MarketplaceBrowse.tsx/anti_patterns.json",
+        "line_number": 54,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/MarketplaceBrowse.tsx/anti_patterns.json",
+        "line_number": 96,
+        "message": "Classnames 'w-10, h-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/MarketplaceBrowse.tsx/anti_patterns.json",
+        "line_number": 97,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/developer-portal/ApiKeysPage.tsx/anti_patterns.json",
+        "line_number": 48,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/developer-portal/ApiKeysPage.tsx/anti_patterns.json",
+        "line_number": 48,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/developer-portal/ApiKeysPage.tsx/anti_patterns.json",
+        "line_number": 53,
+        "message": "Unexpected confirm.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/developer-portal/ApiKeysPage.tsx/anti_patterns.json",
+        "line_number": 53,
+        "message": "Unexpected confirm.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/SubmitBlueprint.tsx/anti_patterns.json",
+        "line_number": 26,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/SubmitBlueprint.tsx/anti_patterns.json",
+        "line_number": 26,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/SubmitBlueprint.tsx/anti_patterns.json",
+        "line_number": 43,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/SubmitBlueprint.tsx/anti_patterns.json",
+        "line_number": 43,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/SubmitBlueprint.tsx/anti_patterns.json",
+        "line_number": 45,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/marketplace/SubmitBlueprint.tsx/anti_patterns.json",
+        "line_number": 45,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/compliance/AuditLogPage.tsx/anti_patterns.json",
+        "line_number": 60,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/compliance/AuditLogPage.tsx/anti_patterns.json",
+        "line_number": 60,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/compliance/AuditLogPage.tsx/anti_patterns.json",
+        "line_number": 61,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/compliance/AuditLogPage.tsx/anti_patterns.json",
+        "line_number": 61,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/developer-portal/WebhooksPage.tsx/anti_patterns.json",
+        "line_number": 59,
+        "message": "Arrow function used ambiguously with a conditional expression.",
+        "symbol": "autofix/no-confusing-arrow"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/bulk-ops/BulkCampaignsPage.tsx/anti_patterns.json",
+        "line_number": 64,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/bulk-ops/BulkCampaignsPage.tsx/anti_patterns.json",
+        "line_number": 64,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/bulk-ops/BulkCampaignsPage.tsx/anti_patterns.json",
+        "line_number": 66,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/bulk-ops/BulkCampaignsPage.tsx/anti_patterns.json",
+        "line_number": 66,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/bulk-ops/BulkCampaignsPage.tsx/anti_patterns.json",
+        "line_number": 75,
+        "message": "Unexpected alert.",
+        "symbol": "autofix/no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web-admin/src/bulk-ops/BulkCampaignsPage.tsx/anti_patterns.json",
+        "line_number": 75,
+        "message": "Unexpected alert.",
+        "symbol": "no-alert"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/billing.py/anti_patterns.json",
+        "line_number": 187,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=502, detail=f'Payment provider error: {str(e)}') from e'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/billing.py/anti_patterns.json",
+        "line_number": 224,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=502, detail=f'Payment provider error: {str(e)}') from e'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/billing.py/anti_patterns.json",
+        "line_number": 246,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=502, detail=f'Payment provider error: {str(e)}') from e'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/billing.py/anti_patterns.json",
+        "line_number": 264,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=400, detail='Invalid payload') from e'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/billing.py/anti_patterns.json",
+        "line_number": 266,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=400, detail='Invalid signature') from e'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/billing.py/anti_patterns.json",
+        "line_number": 274,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/billing.py/anti_patterns.json",
+        "line_number": 263,
+        "message": "Unused variable 'e'",
+        "symbol": "unused-variable"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/billing.py/anti_patterns.json",
+        "line_number": 274,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 122,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 123,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 127,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 128,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 129,
+        "message": "Access to a protected member _get_admin_user_id of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 136,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 137,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 141,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 142,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 143,
+        "message": "Access to a protected member _get_admin_user_id of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 147,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 148,
+        "message": "Access to a protected member _get_user_id of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 149,
+        "message": "Access to a protected member _get_admin_user_id of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 153,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 154,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 158,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 159,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 163,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 164,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 168,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 173,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 174,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 178,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 179,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 183,
+        "message": "Access to a protected member _get_pool of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 184,
+        "message": "Access to a protected member _get_tenant_ctx of a client class",
+        "symbol": "protected-access"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 421,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=401, detail=f'Invalid token: {exc}') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/main.py/anti_patterns.json",
+        "line_number": 423,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=401, detail=f'Token error: {exc}') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/growth.py/anti_patterns.json",
+        "line_number": 135,
+        "message": "Unused variable 's'",
+        "symbol": "unused-variable"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/growth.py/anti_patterns.json",
+        "line_number": 41,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/growth.py/anti_patterns.json",
+        "line_number": 45,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/growth.py/anti_patterns.json",
+        "line_number": 49,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/user.py/anti_patterns.json",
+        "line_number": 21,
+        "message": "Reimport 'Path' (imported line 17)",
+        "symbol": "reimported"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/user.py/anti_patterns.json",
+        "line_number": 53,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/user.py/anti_patterns.json",
+        "line_number": 57,
+        "message": "Consider using set for membership test",
+        "symbol": "use-set-for-membership"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/user.py/anti_patterns.json",
+        "line_number": 132,
+        "message": "Consider explicitly re-raising using 'raise HTTPException(status_code=402, detail=e.message) from e'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/user.py/anti_patterns.json",
+        "line_number": 53,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/user.py/anti_patterns.json",
+        "line_number": 57,
+        "message": "Optimize type checks within 'in' and 'not in' expressions",
+        "symbol": "optimize_contains_types"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/user.py/anti_patterns.json",
+        "line_number": 433,
+        "message": "Define a constant instead of duplicating this literal \"SELECT resume_url FROM public.profiles WHERE user_id = $1\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/sso.py/anti_patterns.json",
+        "line_number": 244,
+        "message": "Consider explicitly re-raising using 'except TenantScopeError as exc' and 'raise HTTPException(status_code=403, detail='Only admins can configure SSO') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/sso.py/anti_patterns.json",
+        "line_number": 38,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/sso.py/anti_patterns.json",
+        "line_number": 41,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/sso.py/anti_patterns.json",
+        "line_number": 241,
+        "message": "Fix raise statements to include missing 'from'",
+        "symbol": "fix_raise_missing_from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/export.py/anti_patterns.json",
+        "line_number": 81,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/export.py/anti_patterns.json",
+        "line_number": 97,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/export.py/anti_patterns.json",
+        "line_number": 111,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/bulk.py/anti_patterns.json",
+        "line_number": 89,
+        "message": "Consider explicitly re-raising using 'except TenantScopeError as exc' and 'raise HTTPException(status_code=403, detail='Only admins can create campaigns') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/bulk.py/anti_patterns.json",
+        "line_number": 125,
+        "message": "Consider explicitly re-raising using 'except TenantScopeError as exc' and 'raise HTTPException(status_code=403, detail='Only admins can start campaigns') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/bulk.py/anti_patterns.json",
+        "line_number": 29,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/bulk.py/anti_patterns.json",
+        "line_number": 32,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/bulk.py/anti_patterns.json",
+        "line_number": 86,
+        "message": "Fix raise statements to include missing 'from'",
+        "symbol": "fix_raise_missing_from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/bulk.py/anti_patterns.json",
+        "line_number": 122,
+        "message": "Fix raise statements to include missing 'from'",
+        "symbol": "fix_raise_missing_from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/bulk.py/anti_patterns.json",
+        "line_number": 60,
+        "message": "Define a constant instead of duplicating this literal \"Bulk operations require TEAM or ENTERPRISE plan\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/og.py/anti_patterns.json",
+        "line_number": 63,
+        "message": "Consider using \"elif\" instead of \"else\" then \"if\" to remove one indentation level",
+        "symbol": "else-if-used"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/og.py/anti_patterns.json",
+        "line_number": 94,
+        "message": "Unused variable 'alpha'",
+        "symbol": "unused-variable"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/og.py/anti_patterns.json",
+        "line_number": 111,
+        "message": "Unused variable 'card_height'",
+        "symbol": "unused-variable"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/developer.py/anti_patterns.json",
+        "line_number": 27,
+        "message": "Consider using namedtuple or dataclass for dictionary values",
+        "symbol": "consider-using-namedtuple-or-dataclass"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/developer.py/anti_patterns.json",
+        "line_number": 73,
+        "message": "Consider explicitly re-raising using 'except TenantScopeError as exc' and 'raise HTTPException(status_code=403, detail='Only admins can create API keys') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/developer.py/anti_patterns.json",
+        "line_number": 114,
+        "message": "Consider explicitly re-raising using 'except TenantScopeError as exc' and 'raise HTTPException(status_code=403, detail='Only admins can revoke keys') from exc'",
+        "symbol": "raise-missing-from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/developer.py/anti_patterns.json",
+        "line_number": 149,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/developer.py/anti_patterns.json",
+        "line_number": 24,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/developer.py/anti_patterns.json",
+        "line_number": 25,
+        "message": "Remove unnecessary comprehensions",
+        "symbol": "remove_redundant_comprehensions"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/developer.py/anti_patterns.json",
+        "line_number": 70,
+        "message": "Fix raise statements to include missing 'from'",
+        "symbol": "fix_raise_missing_from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api/developer.py/anti_patterns.json",
+        "line_number": 111,
+        "message": "Fix raise statements to include missing 'from'",
+        "symbol": "fix_raise_missing_from"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 72,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 104,
+        "message": "Classnames 'h-8, w-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 112,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 126,
+        "message": "Classnames 'h-8, w-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 156,
+        "message": "Classnames 'h-12, w-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 157,
+        "message": "Classnames 'h-6, w-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 165,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 171,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 198,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 207,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Applications.tsx/anti_patterns.json",
+        "line_number": 220,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Terms.tsx/anti_patterns.json",
+        "line_number": 19,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Terms.tsx/anti_patterns.json",
+        "line_number": 24,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 77,
+        "message": "Classnames 'w-16, h-16' could be replaced by the 'size-16' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 80,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 108,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 113,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 126,
+        "message": "Classnames 'w-1, h-1' could be replaced by the 'size-1' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 128,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 136,
+        "message": "Classnames 'w-10, h-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 143,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 157,
+        "message": "Classnames 'w-12, h-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 157,
+        "message": "Classname 'flex-shrink-0' should be updated to 'shrink-0' in Tailwind CSS v3!",
+        "symbol": "tailwindcss/migration-from-tailwind-2"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 158,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 166,
+        "message": "Classnames 'w-12, h-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 166,
+        "message": "Classname 'flex-shrink-0' should be updated to 'shrink-0' in Tailwind CSS v3!",
+        "symbol": "tailwindcss/migration-from-tailwind-2"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 167,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/GuidePage.tsx/anti_patterns.json",
+        "line_number": 178,
+        "message": "Classnames 'w-full, h-full' could be replaced by the 'size-full' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 103,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 108,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 120,
+        "message": "Classnames 'h-12, w-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 131,
+        "message": "Classnames 'h-12, w-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 132,
+        "message": "Classnames 'h-6, w-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 175,
+        "message": "Classnames 'h-12, w-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 176,
+        "message": "Classnames 'h-6, w-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 184,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 190,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 217,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 226,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 239,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Billing.tsx/anti_patterns.json",
+        "line_number": 64,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Billing.tsx/anti_patterns.json",
+        "line_number": 79,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Billing.tsx/anti_patterns.json",
+        "line_number": 103,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Billing.tsx/anti_patterns.json",
+        "line_number": 110,
+        "message": "Unexpected string concatenation.",
+        "symbol": "autofix/prefer-template"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 252,
+        "message": "Classnames 'w-12, h-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 262,
+        "message": "Unexpected string concatenation.",
+        "symbol": "autofix/prefer-template"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 267,
+        "message": "Unexpected string concatenation.",
+        "symbol": "autofix/prefer-template"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 278,
+        "message": "Classnames 'w-20, h-20' could be replaced by the 'size-20' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 279,
+        "message": "Classnames 'w-10, h-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 279,
+        "message": "Classnames 'w-10, h-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 312,
+        "message": "use `Boolean(rateLimitCountdown)` instead.",
+        "symbol": "autofix/no-implicit-coercion"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 338,
+        "message": "Classnames 'w-[500px], h-[500px]' could be replaced by the 'size-[500px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 339,
+        "message": "Classnames 'w-[600px], h-[600px]' could be replaced by the 'size-[600px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 378,
+        "message": "Classnames 'w-20, h-20' could be replaced by the 'size-20' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 379,
+        "message": "Classnames 'w-10, h-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 397,
+        "message": "Classnames 'w-2, h-2' could be replaced by the 'size-2' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 406,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 443,
+        "message": "use `Boolean(socialProviderLoading)` instead.",
+        "symbol": "autofix/no-implicit-coercion"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 447,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 449,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 455,
+        "message": "use `Boolean(socialProviderLoading)` instead.",
+        "symbol": "autofix/no-implicit-coercion"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 459,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 461,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 479,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 495,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 512,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 548,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 548,
+        "message": "Classname 'flex-shrink-0' should be updated to 'shrink-0' in Tailwind CSS v3!",
+        "symbol": "tailwindcss/migration-from-tailwind-2"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 555,
+        "message": "use `Boolean(rateLimitCountdown)` instead.",
+        "symbol": "autofix/no-implicit-coercion"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 560,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Login.tsx/anti_patterns.json",
+        "line_number": 565,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 101,
+        "message": "Possible race condition: `e.target.value` might be assigned based on an outdated state of `e`.",
+        "symbol": "require-atomic-updates"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 124,
+        "message": "Possible race condition: `e.target.value` might be assigned based on an outdated state of `e`.",
+        "symbol": "require-atomic-updates"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 151,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 157,
+        "message": "Classnames 'h-20, w-20' could be replaced by the 'size-20' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 159,
+        "message": "Classnames 'h-20, w-20' could be replaced by the 'size-20' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 161,
+        "message": "Classnames 'h-20, w-20' could be replaced by the 'size-20' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 165,
+        "message": "Classnames 'h-8, w-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 166,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 166,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 214,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 228,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 246,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 252,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 264,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 276,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Settings.tsx/anti_patterns.json",
+        "line_number": 291,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 23,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 39,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 46,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 51,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 85,
+        "message": "Classnames 'w-12, h-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 112,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 113,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 114,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 141,
+        "message": "Classnames 'w-3, h-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 142,
+        "message": "Classnames 'w-3, h-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Recruiters.tsx/anti_patterns.json",
+        "line_number": 143,
+        "message": "Classnames 'w-3, h-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 75,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 80,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 115,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 134,
+        "message": "Classnames 'left-0, right-0' could be replaced by the 'inset-x-0' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 139,
+        "message": "Classnames 'border-t, border-b' could be replaced by the 'border-y' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 161,
+        "message": "Classnames 'w-32, h-32' could be replaced by the 'size-32' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 165,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 174,
+        "message": "Classname 'transform' is not needed in Tailwind CSS v3!",
+        "symbol": "tailwindcss/migration-from-tailwind-2"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 188,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 208,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 219,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 220,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Pricing.tsx/anti_patterns.json",
+        "line_number": 221,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 112,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 136,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 153,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 155,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 155,
+        "message": "Classname 'transform' is not needed in Tailwind CSS v3!",
+        "symbol": "tailwindcss/migration-from-tailwind-2"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 183,
+        "message": "Classnames 'h-40, w-40' could be replaced by the 'size-40' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 184,
+        "message": "Classnames 'h-40, w-40' could be replaced by the 'size-40' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 190,
+        "message": "Classnames 'h-10, w-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 191,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 216,
+        "message": "Classnames 'h-8, w-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 249,
+        "message": "Classnames 'h-8, w-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 250,
+        "message": "Classnames 'h-3.5, w-3.5' could be replaced by the 'size-3.5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 298,
+        "message": "Classnames 'h-40, w-40' could be replaced by the 'size-40' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 299,
+        "message": "Classnames 'h-40, w-40' could be replaced by the 'size-40' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 308,
+        "message": "Classnames 'h-10, w-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 309,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/pages/Dashboard.tsx/anti_patterns.json",
+        "line_number": 325,
+        "message": "Classnames 'h-3.5, w-3.5' could be replaced by the 'size-3.5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 56,
+        "message": "Classnames 'w-full, h-full' could be replaced by the 'size-full' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 65,
+        "message": "Classnames 'w-full, h-full' could be replaced by the 'size-full' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 80,
+        "message": "Classnames 'w-32, h-32' could be replaced by the 'size-32' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 85,
+        "message": "Classnames 'w-32, h-32' could be replaced by the 'size-32' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 89,
+        "message": "Classnames 'w-32, h-32' could be replaced by the 'size-32' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 90,
+        "message": "Classnames 'w-12, h-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 99,
+        "message": "Classnames 'w-8, h-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 107,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 144,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 199,
+        "message": "Classnames 'w-8, h-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 236,
+        "message": "Classnames 'w-2, h-2' could be replaced by the 'size-2' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 266,
+        "message": "Classnames 'w-20, h-20' could be replaced by the 'size-20' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/HowItWorks.tsx/anti_patterns.json",
+        "line_number": 276,
+        "message": "Classnames 'w-8, h-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 103,
+        "message": "Classnames 'left-0, right-0' could be replaced by the 'inset-x-0' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 134,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 181,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 195,
+        "message": "Classnames 'w-3, h-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 202,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 224,
+        "message": "Classnames 'w-[600px], h-[600px]' could be replaced by the 'size-[600px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 225,
+        "message": "Classnames 'w-[500px], h-[500px]' could be replaced by the 'size-[500px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 237,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 294,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 298,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Pricing.tsx/anti_patterns.json",
+        "line_number": 302,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 14,
+        "message": "Classnames 'w-64, h-64' could be replaced by the 'size-64' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 28,
+        "message": "Classnames 'w-12, h-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 28,
+        "message": "Classname 'flex-shrink-0' should be updated to 'shrink-0' in Tailwind CSS v3!",
+        "symbol": "tailwindcss/migration-from-tailwind-2"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 29,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 38,
+        "message": "Classnames 'w-12, h-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 38,
+        "message": "Classname 'flex-shrink-0' should be updated to 'shrink-0' in Tailwind CSS v3!",
+        "symbol": "tailwindcss/migration-from-tailwind-2"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 39,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 64,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 64,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 68,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/CompetitorComparison.tsx/anti_patterns.json",
+        "line_number": 68,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 68,
+        "message": "Classnames 'w-8, h-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 72,
+        "message": "Classnames 'w-14, h-14' could be replaced by the 'size-14' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 84,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 119,
+        "message": "Classnames 'left-0, right-0' could be replaced by the 'inset-x-0' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 135,
+        "message": "Classnames 'w-[600px], h-[600px]' could be replaced by the 'size-[600px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 136,
+        "message": "Classnames 'w-[500px], h-[500px]' could be replaced by the 'size-[500px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 184,
+        "message": "Classnames 'w-10, h-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 185,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Testimonials.tsx/anti_patterns.json",
+        "line_number": 218,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/FAQ.tsx/anti_patterns.json",
+        "line_number": 90,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/FAQ.tsx/anti_patterns.json",
+        "line_number": 122,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/FAQ.tsx/anti_patterns.json",
+        "line_number": 155,
+        "message": "Classnames 'w-[500px], h-[500px]' could be replaced by the 'size-[500px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/FAQ.tsx/anti_patterns.json",
+        "line_number": 156,
+        "message": "Classnames 'w-[400px], h-[400px]' could be replaced by the 'size-[400px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/FAQ.tsx/anti_patterns.json",
+        "line_number": 168,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/FAQ.tsx/anti_patterns.json",
+        "line_number": 213,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 14,
+        "message": "Classnames 'w-3, h-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 94,
+        "message": "Classnames 'w-[800px], h-[800px]' could be replaced by the 'size-[800px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 95,
+        "message": "Classnames 'w-[600px], h-[600px]' could be replaced by the 'size-[600px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 96,
+        "message": "Classnames 'w-[1000px], h-[1000px]' could be replaced by the 'size-[1000px]' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 100,
+        "message": "Classnames 'w-full, h-full' could be replaced by the 'size-full' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 116,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 134,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 142,
+        "message": "Classnames 'w-3, h-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 151,
+        "message": "Classnames 'w-5, h-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 152,
+        "message": "Classnames 'w-3, h-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 184,
+        "message": "Classnames 'h-2, w-2' could be replaced by the 'size-2' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 185,
+        "message": "Classnames 'h-full, w-full' could be replaced by the 'size-full' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 186,
+        "message": "Classnames 'h-2, w-2' could be replaced by the 'size-2' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 231,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 240,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 253,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 259,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 265,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/marketing/Hero.tsx/anti_patterns.json",
+        "line_number": 287,
+        "message": "Classnames 'w-4, h-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/HoldQuestions/HoldInbox.tsx/anti_patterns.json",
+        "line_number": 15,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/trust/SafetyPillars.tsx/anti_patterns.json",
+        "line_number": 46,
+        "message": "Classnames 'h-10, w-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/trust/SafetyPillars.tsx/anti_patterns.json",
+        "line_number": 47,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/trust/HowItWorksCard.tsx/anti_patterns.json",
+        "line_number": 39,
+        "message": "Classnames 'h-10, w-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/trust/HowItWorksCard.tsx/anti_patterns.json",
+        "line_number": 40,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/tasks/TaskItem.tsx/anti_patterns.json",
+        "line_number": 13,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/tasks/TaskItem.tsx/anti_patterns.json",
+        "line_number": 14,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/tasks/TaskItem.tsx/anti_patterns.json",
+        "line_number": 15,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/tasks/TaskItem.tsx/anti_patterns.json",
+        "line_number": 69,
+        "message": "This conditional operation returns the same value whether the condition is \"true\" or \"false\".",
+        "symbol": "sonarjs/no-all-duplicated-branches"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/tasks/TaskItem.tsx/anti_patterns.json",
+        "line_number": 86,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/tasks/TaskItem.tsx/anti_patterns.json",
+        "line_number": 103,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/tasks/TaskItem.tsx/anti_patterns.json",
+        "line_number": 124,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/ui/ToastShelf.tsx/anti_patterns.json",
+        "line_number": 42,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/ui/Button.tsx/anti_patterns.json",
+        "line_number": 6,
+        "message": "Classnames 'h-10, w-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/ui/EmptyState.tsx/anti_patterns.json",
+        "line_number": 17,
+        "message": "Classnames 'h-16, w-16' could be replaced by the 'size-16' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobCard.tsx/anti_patterns.json",
+        "line_number": 33,
+        "message": "Classnames 'h-16, w-16' could be replaced by the 'size-16' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobCard.tsx/anti_patterns.json",
+        "line_number": 37,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobCard.tsx/anti_patterns.json",
+        "line_number": 40,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobCard.tsx/anti_patterns.json",
+        "line_number": 52,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobCard.tsx/anti_patterns.json",
+        "line_number": 56,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/ui/LoadingSpinner.tsx/anti_patterns.json",
+        "line_number": 12,
+        "message": "Classnames 'h-10, w-10' could be replaced by the 'size-10' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 35,
+        "message": "Classnames 'h-16, w-16' could be replaced by the 'size-16' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 37,
+        "message": "Classnames 'h-16, w-16' could be replaced by the 'size-16' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 38,
+        "message": "Classnames 'h-8, w-8' could be replaced by the 'size-8' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 47,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 54,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 59,
+        "message": "Classnames 'h-3, w-3' could be replaced by the 'size-3' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 71,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 76,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 80,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 84,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 118,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 127,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 138,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Jobs/JobDetailDrawer.tsx/anti_patterns.json",
+        "line_number": 156,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/ui/ErrorBoundary.tsx/anti_patterns.json",
+        "line_number": 38,
+        "message": "Classnames 'w-12, h-12' could be replaced by the 'size-12' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/ui/ErrorBoundary.tsx/anti_patterns.json",
+        "line_number": 39,
+        "message": "Classnames 'w-6, h-6' could be replaced by the 'size-6' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Billing/UpgradeCard.tsx/anti_patterns.json",
+        "line_number": 30,
+        "message": "Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Billing/UpgradeCard.tsx/anti_patterns.json",
+        "line_number": 45,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/src/components/Billing/UpgradeCard.tsx/anti_patterns.json",
+        "line_number": 59,
+        "message": "Classnames 'h-4, w-4' could be replaced by the 'size-4' shorthand!",
+        "symbol": "tailwindcss/enforces-shorthand"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/web/playwright.config.ts/anti_patterns.json",
+        "line_number": 6,
+        "message": "use `Boolean(process.env.CI)` instead.",
+        "symbol": "autofix/no-implicit-coercion"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/investor-metrics/export.py/anti_patterns.json",
+        "line_number": 92,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/investor-metrics/export.py/anti_patterns.json",
+        "line_number": 66,
+        "message": "Don't use `datetime.datetime.utcnow` to create this datetime object.",
+        "symbol": "python:S6903"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api_v2/webhooks.py/anti_patterns.json",
+        "line_number": 22,
+        "message": "Define a constant instead of duplicating this literal \"application.completed\" 4 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api_v2/webhooks.py/anti_patterns.json",
+        "line_number": 99,
+        "message": "Define a constant instead of duplicating this literal \"application.status_changed\" 3 times.",
+        "symbol": "python:S1192"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api_v2/auth.py/anti_patterns.json",
+        "line_number": 89,
+        "message": "Simplify chained comparison between the operands",
+        "symbol": "chained-comparison"
+      },
+      {
+        "file_path": "0635395cedc3280ee361e9f0debfb580e01144f9/api_v2/auth.py/anti_patterns.json",
+        "line_number": 30,
+        "message": "Instead of string concatenation use f-strings",
+        "symbol": "f_string"
+      }
+    ]
+  }
+}

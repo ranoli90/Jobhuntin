@@ -1,10 +1,8 @@
 import io
-import textwrap
-from typing import Optional
-from fastapi import APIRouter, Response, Query
-from PIL import Image, ImageDraw, ImageFont
+
 import httpx
-import os
+from fastapi import APIRouter, Query, Response
+from PIL import Image, ImageDraw, ImageFont
 
 router = APIRouter()
 
@@ -27,7 +25,7 @@ def get_font(url: str, size: int):
     key = f"{url}-{size}"
     if key in _font_cache:
         return _font_cache[key]
-    
+
     try:
         # Try to load from cache first if we saved it to disk (optional optimization)
         # For now, just fetch into memory
@@ -46,17 +44,17 @@ def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[s
     lines = []
     if not text:
         return lines
-        
+
     # Simple word wrap
     words = text.split()
     current_line = []
-    
+
     for word in words:
         test_line = " ".join(current_line + [word])
         bbox = font.getbbox(test_line)
         # getbbox returns (left, top, right, bottom)
         w = bbox[2] - bbox[0]
-        
+
         if w <= max_width:
             current_line.append(word)
         else:
@@ -67,10 +65,10 @@ def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[s
                 # Word itself is too long, just put it (or truncate)
                 lines.append(word)
                 current_line = []
-                
+
     if current_line:
         lines.append(" ".join(current_line))
-        
+
     return lines
 
 @router.get("/api/og")
@@ -101,7 +99,7 @@ async def generate_og_image(
              g = int(107 * (1 - ratio) + 144 * ratio)
              b = int(53 * (1 - ratio) + 226 * ratio)
              color = (r, g, b)
-        
+
         x_offset = i * 2
         draw.ellipse([800 + x_offset, -100 + x_offset, 1400 + x_offset, 500 + x_offset], outline=None, fill=color)
 
@@ -128,7 +126,7 @@ async def generate_og_image(
     lines = wrap_text(job, title_font, card_width - 100)
     # Take max 2 lines
     lines = lines[:2]
-    
+
     current_y = 120
     for line in lines:
         draw.text((100, current_y), line, font=title_font, fill=TEXT_COLOR)
@@ -139,7 +137,7 @@ async def generate_og_image(
 
     # Badges Row (Score + Location)
     badge_y = current_y + 100
-    
+
     # Score Badge
     score_text = f"AI Match: {score}%"
     # Estimate width
@@ -169,5 +167,5 @@ async def generate_og_image(
     img_byte_arr = io.BytesIO()
     im.save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
-    
+
     return Response(content=img_byte_arr.getvalue(), media_type="image/png")

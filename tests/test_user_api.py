@@ -6,8 +6,6 @@ Covers status mapping and response shapes without requiring a live DB.
 
 from __future__ import annotations
 
-import pytest
-
 
 def test_status_to_web_mapping() -> None:
     """Map backend application_status to web status for list_applications."""

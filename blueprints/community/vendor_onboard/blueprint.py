@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.blueprints.protocol import AgentBlueprint
-
 
 class VendorOnboardBlueprint:
     """Community blueprint: Vendor / Supplier Onboarding."""

@@ -16,29 +16,25 @@ Requires:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import os
+
+# Import the agent module (adjust path if running from project root)
+import sys
 import uuid
-from typing import Any
 
 import asyncpg
 import pytest
 import pytest_asyncio
 from playwright.async_api import Route, async_playwright
 
-# Import the agent module (adjust path if running from project root)
-import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "worker"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from backend.domain.repositories import record_event
 from worker.agent import (
     ApplicationAgent,
-    create_pool,
-    map_fields_via_llm,
 )
-from backend.domain.models import normalize_profile
-from backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Fake application HTML – two-step form

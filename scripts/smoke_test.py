@@ -22,11 +22,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import os
 import sys
 import time
-from typing import Any
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -69,6 +67,7 @@ async def check_api_health(api_url: str) -> CheckResult:
 async def check_database() -> CheckResult:
     """Check database connectivity and critical tables exist."""
     import asyncpg
+
     from shared.config import get_settings
     s = get_settings()
     t0 = time.monotonic()
@@ -108,6 +107,7 @@ async def check_database() -> CheckResult:
 async def check_jobs_exist() -> CheckResult:
     """Check that the jobs table has data."""
     import asyncpg
+
     from shared.config import get_settings
     s = get_settings()
     t0 = time.monotonic()
@@ -188,6 +188,7 @@ async def check_dashboard_endpoint(api_url: str) -> CheckResult:
 async def check_worker_recent_activity() -> CheckResult:
     """Check if the worker has processed anything in the last hour."""
     import asyncpg
+
     from shared.config import get_settings
     s = get_settings()
     t0 = time.monotonic()

@@ -7,11 +7,8 @@ the tenant's plan. Enterprise tasks are processed first.
 
 from __future__ import annotations
 
-from typing import Any
-
 import asyncpg
 
-from backend.domain.plans import PLAN_CONFIGS
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.priority")

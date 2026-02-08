@@ -10,16 +10,14 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
 
-class ApplicationStatus(str, enum.Enum):
+class ApplicationStatus(enum.StrEnum):
     QUEUED = "QUEUED"
     PROCESSING = "PROCESSING"
     REQUIRES_INPUT = "REQUIRES_INPUT"
@@ -29,20 +27,20 @@ class ApplicationStatus(str, enum.Enum):
     FAILED = "FAILED"
 
 
-class TenantPlan(str, enum.Enum):
+class TenantPlan(enum.StrEnum):
     FREE = "FREE"
     PRO = "PRO"
     ENTERPRISE = "ENTERPRISE"
 
 
-class TenantRole(str, enum.Enum):
+class TenantRole(enum.StrEnum):
     OWNER = "OWNER"
     ADMIN = "ADMIN"
     MEMBER = "MEMBER"
     SUPPORT_AGENT = "SUPPORT_AGENT"
 
 
-class ApplicationEventType(str, enum.Enum):
+class ApplicationEventType(enum.StrEnum):
     CREATED = "CREATED"
     CLAIMED = "CLAIMED"
     STARTED_PROCESSING = "STARTED_PROCESSING"
@@ -325,7 +323,7 @@ class LLMMapping(BaseModel):
     unresolved_required_fields: list[UnresolvedField] = Field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, d: dict) -> "LLMMapping":
+    def from_dict(cls, d: dict) -> LLMMapping:
         return cls(
             field_values=d.get("field_values", {}),
             unresolved_required_fields=[

@@ -18,7 +18,6 @@ import time
 from collections import defaultdict
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # In-process metric storage
 # ---------------------------------------------------------------------------

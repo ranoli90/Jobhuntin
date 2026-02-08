@@ -1,7 +1,8 @@
 """Advanced Render API debugging and DATABASE_URL fix"""
-import os
-import httpx
 import json
+import os
+
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,22 +16,22 @@ def test_api_access():
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
     }
-    
+
     try:
         print("Testing API access...")
         resp = httpx.get("https://api.render.com/v1/services", headers=headers, timeout=10)
         print(f"Services list status: {resp.status_code}")
-        
+
         if resp.status_code == 200:
             data = resp.json()
             print(f"✅ API access working. Found {len(data)} services")
-            
+
             # Find our service
             for service in data:
                 if service.get('service', {}).get('id') == SERVICE_ID:
                     print(f"✅ Found sorce-api: {service.get('service', {}).get('name')}")
                     return True
-            
+
             print("❌ sorce-api not found in services list")
             return False
         else:
@@ -46,12 +47,12 @@ def get_service_details():
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
     }
-    
+
     try:
         print(f"\nGetting service details for {SERVICE_ID}...")
         resp = httpx.get(f"https://api.render.com/v1/services/{SERVICE_ID}", headers=headers, timeout=10)
         print(f"Service details status: {resp.status_code}")
-        
+
         if resp.status_code == 200:
             data = resp.json()
             service = data.get('service', {})
@@ -72,23 +73,23 @@ def list_env_vars():
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
     }
-    
+
     try:
-        print(f"\nListing environment variables...")
+        print("\nListing environment variables...")
         resp = httpx.get(f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars", headers=headers, timeout=10)
         print(f"Env vars status: {resp.status_code}")
-        
+
         if resp.status_code == 200:
             data = resp.json()
             print(f"✅ Found {len(data)} environment variables")
-            
+
             for item in data:
                 ev = item.get('envVar', {})
                 key = ev.get('key', '')
                 value = ev.get('value', '')
                 if 'DATABASE' in key or 'DB' in key:
                     print(f"   {key}: {value[:50] if value else 'NOT SET'}...")
-            
+
             return data
         else:
             print(f"❌ Failed: {resp.text[:200]}")
@@ -104,12 +105,12 @@ def update_env_var_patch():
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
-    
+
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
         print("❌ Error: DATABASE_URL not set in .env")
         return False
-    
+
     # Try PATCH to update existing or create new
     payload = {
         "envVars": [
@@ -119,9 +120,9 @@ def update_env_var_patch():
             }
         ]
     }
-    
+
     try:
-        print(f"\nTrying PATCH method...")
+        print("\nTrying PATCH method...")
         resp = httpx.patch(
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
             headers=headers,
@@ -130,12 +131,12 @@ def update_env_var_patch():
         )
         print(f"PATCH status: {resp.status_code}")
         print(f"Response: {resp.text[:500]}")
-        
+
         if resp.status_code in (200, 204):
             print("✅ DATABASE_URL updated via PATCH!")
             return True
         else:
-            print(f"❌ PATCH failed")
+            print("❌ PATCH failed")
             return False
     except Exception as e:
         print(f"❌ PATCH error: {e}")
@@ -148,37 +149,37 @@ def update_env_var_put():
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
-    
+
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
         print("❌ Error: DATABASE_URL not set in .env")
         return False
-    
+
     # Try PUT with specific env var ID
     payload = {
         "key": "DATABASE_URL",
         "value": db_url
     }
-    
+
     try:
-        print(f"\nTrying PUT method...")
+        print("\nTrying PUT method...")
         # Try different endpoints
         endpoints = [
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars/DATABASE_URL",
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
         ]
-        
+
         for endpoint in endpoints:
             print(f"Trying: {endpoint}")
             resp = httpx.put(endpoint, headers=headers, json=payload, timeout=10)
             print(f"PUT status: {resp.status_code}")
-            
+
             if resp.status_code in (200, 201, 204):
                 print("✅ DATABASE_URL updated via PUT!")
                 return True
             elif resp.status_code != 404:
                 print(f"Response: {resp.text[:200]}")
-        
+
         return False
     except Exception as e:
         print(f"❌ PUT error: {e}")
@@ -191,22 +192,22 @@ def create_env_var_post():
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
-    
+
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
         print("❌ Error: DATABASE_URL not set in .env")
         return False
-    
+
     # Try different payload structures
     payloads = [
         {"key": "DATABASE_URL", "value": db_url},
         {"envVar": {"key": "DATABASE_URL", "value": db_url}},
         {"environmentVariable": {"key": "DATABASE_URL", "value": db_url}},
     ]
-    
+
     try:
-        print(f"\nTrying POST with different payloads...")
-        
+        print("\nTrying POST with different payloads...")
+
         for i, payload in enumerate(payloads):
             print(f"\nPayload {i+1}: {json.dumps(payload, indent=2)}")
             resp = httpx.post(
@@ -216,7 +217,7 @@ def create_env_var_post():
                 timeout=10
             )
             print(f"POST status: {resp.status_code}")
-            
+
             if resp.status_code in (200, 201, 204):
                 print("✅ DATABASE_URL created via POST!")
                 return True
@@ -224,7 +225,7 @@ def create_env_var_post():
                 print(f"Bad request: {resp.text[:300]}")
             elif resp.status_code == 405:
                 print("Method not allowed - trying next payload...")
-        
+
         return False
     except Exception as e:
         print(f"❌ POST error: {e}")
@@ -237,9 +238,9 @@ def trigger_deploy():
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
-    
+
     try:
-        print(f"\nTriggering deploy...")
+        print("\nTriggering deploy...")
         resp = httpx.post(
             f"https://api.render.com/v1/services/{SERVICE_ID}/deploys",
             headers=headers,
@@ -247,7 +248,7 @@ def trigger_deploy():
             timeout=10
         )
         print(f"Deploy status: {resp.status_code}")
-        
+
         if resp.status_code in (200, 201):
             data = resp.json()
             deploy = data.get('deploy', {})
@@ -264,40 +265,40 @@ def main():
     print("=" * 70)
     print("Advanced Render API Debugging")
     print("=" * 70)
-    
+
     if not RENDER_API_KEY:
         print("❌ RENDER_API_KEY not found in .env")
         return
-    
+
     # Test API access
     if not test_api_access():
         return
-    
+
     # Get service details
     get_service_details()
-    
+
     # List current env vars
     list_env_vars()
-    
+
     # Try different methods to set DATABASE_URL
     print("\n" + "=" * 70)
     print("Attempting to set DATABASE_URL...")
     print("=" * 70)
-    
+
     success = False
-    
+
     # Try PATCH first
     if update_env_var_patch():
         success = True
-    
+
     # Try PUT
     if not success and update_env_var_put():
         success = True
-    
+
     # Try POST with different payloads
     if not success and create_env_var_post():
         success = True
-    
+
     if success:
         print("\n✅ DATABASE_URL set successfully!")
         trigger_deploy()

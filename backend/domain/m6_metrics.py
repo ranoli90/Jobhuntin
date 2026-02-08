@@ -7,6 +7,7 @@ Queries materialized views from migration 020.
 
 from __future__ import annotations
 
+from datetime import UTC
 from typing import Any
 
 import asyncpg
@@ -148,8 +149,9 @@ async def get_full_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
     Full Series A data room — comprehensive diligence package.
     Extends M5 investor metrics with platform-level data.
     """
+    from datetime import datetime
+
     from backend.domain.m5_metrics import get_investor_metrics
-    from datetime import datetime, timezone
 
     base = await get_investor_metrics(conn)
     arr_vertical = await get_arr_by_vertical(conn)
@@ -159,7 +161,7 @@ async def get_full_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
     bp_revenue = await get_revenue_per_blueprint(conn)
     summary = await get_platform_summary(conn)
 
-    base["generated_at"] = datetime.now(timezone.utc).isoformat()
+    base["generated_at"] = datetime.now(UTC).isoformat()
 
     # Platform data
     base["platform"] = {

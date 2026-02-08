@@ -1,7 +1,5 @@
 """Configure Ionos DNS with correct API endpoints"""
-import os
 import httpx
-import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -44,12 +42,12 @@ def get_ionos_token():
     headers = {
         "Content-Type": "application/json",
     }
-    
+
     payload = {
         "publicPrefix": IONOS_PUBLIC_PREFIX,
         "secret": IONOS_SECRET
     }
-    
+
     # Try different Ionos API endpoints
     endpoints = [
         "https://api.hosting.ionos.com/auth",
@@ -57,7 +55,7 @@ def get_ionos_token():
         "https://api.hosting.ionos.com/v1/auth",
         "https://cdns.api.ionos.com/auth",
     ]
-    
+
     for endpoint in endpoints:
         try:
             print(f"Trying endpoint: {endpoint}")
@@ -67,9 +65,9 @@ def get_ionos_token():
                 json=payload,
                 timeout=10
             )
-            
+
             print(f"Status: {resp.status_code}")
-            
+
             if resp.status_code == 200:
                 data = resp.json()
                 token = data.get('token')
@@ -79,7 +77,7 @@ def get_ionos_token():
                 print(f"Failed: {resp.text[:200]}")
         except Exception as e:
             print(f"Error with {endpoint}: {e}")
-    
+
     return None, None
 
 def test_api_access(token, base_url):
@@ -88,12 +86,12 @@ def test_api_access(token, base_url):
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
     }
-    
+
     try:
         # Try to list zones/domains
         resp = httpx.get(f"{base_url}/zones", headers=headers, timeout=10)
         print(f"Zones list status: {resp.status_code}")
-        
+
         if resp.status_code == 200:
             data = resp.json()
             print(f"✅ API access working. Found {len(data)} zones")
@@ -111,19 +109,19 @@ def find_domain(token, base_url):
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
     }
-    
+
     try:
         print(f"Searching for domain {DOMAIN}...")
         resp = httpx.get(f"{base_url}/zones", headers=headers, timeout=10)
-        
+
         if resp.status_code == 200:
             data = resp.json()
-            
+
             for zone in data:
                 if zone.get('name') == DOMAIN:
                     print(f"✅ Found {DOMAIN} (ID: {zone.get('id')})")
                     return zone
-            
+
             print(f"❌ Domain {DOMAIN} not found")
             return None
         else:
@@ -138,13 +136,13 @@ def create_dns_record_manual():
     print("\n" + "=" * 70)
     print("MANUAL DNS CONFIGURATION INSTRUCTIONS")
     print("=" * 70)
-    
+
     print(f"\nDomain: {DOMAIN}")
-    print(f"Provider: Ionos")
-    print(f"\nGo to: https://my.ionos.com")
+    print("Provider: Ionos")
+    print("\nGo to: https://my.ionos.com")
     print("Navigate to: Domains → jobhuntin.com → DNS Settings")
     print("\nAdd these records:")
-    
+
     for i, record in enumerate(DNS_RECORDS, 1):
         print(f"\n{i}. {record['type']} Record")
         print(f"   Host/Name: {record['name']}")
@@ -152,7 +150,7 @@ def create_dns_record_manual():
         if record['priority']:
             print(f"   Priority: {record['priority']}")
         print("-" * 40)
-    
+
     print("\nAfter adding records:")
     print("1. Save changes")
     print("2. Wait 5-10 minutes for DNS propagation")
@@ -163,37 +161,37 @@ def main():
     print("=" * 70)
     print("Ionos DNS Configuration for Resend")
     print("=" * 70)
-    
+
     # Try to get Ionos token
     token, endpoint = get_ionos_token()
-    
+
     if not token:
         print("\n❌ Could not authenticate with Ionos API.")
         print("This might be due to:")
         print("- Incorrect API credentials")
         print("- API endpoint changes")
         print("- Service restrictions")
-        
+
         # Provide manual instructions
         create_dns_record_manual()
         return
-    
+
     # Test API access
     base_url = endpoint.replace('/auth', '/dns/v1')
     if not test_api_access(token, base_url):
         create_dns_record_manual()
         return
-    
+
     # Find domain
     zone = find_domain(token, base_url)
     if not zone:
         create_dns_record_manual()
         return
-    
+
     print(f"\n✅ Ready to configure DNS for {DOMAIN}")
     print("Note: Ionos API might have restrictions on programmatic DNS changes.")
     print("Manual configuration recommended for reliability.")
-    
+
     create_dns_record_manual()
 
 if __name__ == "__main__":

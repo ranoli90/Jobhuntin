@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import json
 import time
-from typing import Any, Callable
+from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -31,7 +31,8 @@ logger = get_logger("sorce.api_v2")
 
 router = APIRouter(prefix="/api/v2", tags=["api-v2"])
 
-_get_pool: Callable[[], asyncpg.Pool] = lambda: (_ for _ in ()).throw(NotImplementedError)
+def _get_pool() -> asyncpg.Pool:
+    return (_ for _ in ()).throw(NotImplementedError)
 
 
 # ---------------------------------------------------------------------------
@@ -213,7 +214,7 @@ async def staffing_bulk_submit(
 
         # Queue individual applications per candidate
         for candidate in body.candidates:
-            name = candidate.get("full_name", candidate.get("name", "Candidate"))
+            candidate_name = candidate.get("full_name", candidate.get("name", "Candidate"))
             await conn.execute(
                 """INSERT INTO public.applications
                        (user_id, tenant_id, blueprint_key, status, priority_score)

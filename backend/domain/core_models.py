@@ -21,12 +21,11 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # Generic Task Status (state machine)
 # ---------------------------------------------------------------------------
 
-class TaskStatus(str, enum.Enum):
+class TaskStatus(enum.StrEnum):
     """
     Generic status enum for all agent tasks.
 
@@ -75,7 +74,7 @@ def to_generic_status(status: str) -> TaskStatus:
 # Generic Task Event Types
 # ---------------------------------------------------------------------------
 
-class TaskEventType(str, enum.Enum):
+class TaskEventType(enum.StrEnum):
     CREATED = "CREATED"
     CLAIMED = "CLAIMED"
     STARTED_PROCESSING = "STARTED_PROCESSING"

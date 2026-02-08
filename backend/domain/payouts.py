@@ -87,7 +87,6 @@ async def process_marketplace_payouts(
     installations during the period.
     """
     s = get_settings()
-    platform_fee_pct = s.marketplace_platform_fee_pct
 
     # Find paid blueprints with active installations
     rows = await conn.fetch("""

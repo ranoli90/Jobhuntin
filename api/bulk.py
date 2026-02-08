@@ -7,7 +7,7 @@ Mounted at /bulk prefix by api/main.py.
 from __future__ import annotations
 
 import json
-from typing import Any, Callable
+from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
@@ -26,10 +26,12 @@ router = APIRouter(prefix="/bulk", tags=["bulk"])
 # Dependency stubs (injected by api/main.py)
 # ---------------------------------------------------------------------------
 
-_get_pool: Callable[[], asyncpg.Pool] = lambda: (_ for _ in ()).throw(
+def _get_pool() -> asyncpg.Pool:
+    return (_ for _ in ()).throw(
     NotImplementedError("Pool not injected")
 )
-_get_tenant_ctx: Callable[[], TenantContext] = lambda: (_ for _ in ()).throw(
+def _get_tenant_ctx() -> TenantContext:
+    return (_ for _ in ()).throw(
     NotImplementedError("Tenant ctx not injected")
 )
 

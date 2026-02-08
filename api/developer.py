@@ -6,7 +6,7 @@ Mounted at /developer prefix. Uses JWT auth (not API key auth).
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
@@ -21,8 +21,10 @@ logger = get_logger("sorce.api.developer")
 
 router = APIRouter(prefix="/developer", tags=["developer"])
 
-_get_pool: Callable[[], asyncpg.Pool] = lambda: (_ for _ in ()).throw(NotImplementedError)
-_get_tenant_ctx: Callable[[], TenantContext] = lambda: (_ for _ in ()).throw(NotImplementedError)
+def _get_pool() -> asyncpg.Pool:
+    return (_ for _ in ()).throw(NotImplementedError)
+def _get_tenant_ctx() -> TenantContext:
+    return (_ for _ in ()).throw(NotImplementedError)
 
 TIER_LIMITS = {
     "free": {"rate_limit_rpm": 60, "monthly_quota": 100},

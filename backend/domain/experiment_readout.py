@@ -11,7 +11,6 @@ from typing import Any
 
 import asyncpg
 
-
 EXPERIMENT_RESULTS_SQL = """
 WITH assignments AS (
     SELECT

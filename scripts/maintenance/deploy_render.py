@@ -1,7 +1,6 @@
 import os
+
 import httpx
-import json
-import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,10 +23,10 @@ def manage_render():
         response = httpx.get("https://api.render.com/v1/services", headers=headers)
         response.raise_for_status()
         services = response.json()
-        
+
         api_service = None
         web_service = None
-        
+
         for svc in services:
             service = svc['service']
             if service['name'] == "sorce-api":
@@ -51,30 +50,30 @@ def manage_render():
         # 3. Check Web service
         if web_service:
             print(f"Found frontend service: {web_service['name']} ({web_service['id']})")
-            
+
             # Ensure VITE_API_URL is set in web_service env vars
             env_resp = httpx.get(f"https://api.render.com/v1/services/{web_service['id']}/env-vars", headers=headers)
             env_resp.raise_for_status()
             env_vars = env_resp.json()
-            
+
             has_api_url = False
             for item in env_vars:
                 if item['envVar']['key'] == "VITE_API_URL":
                     has_api_url = True
                     print(f"VITE_API_URL is already set to: {item['envVar']['value']}")
                     break
-            
+
             if not has_api_url and api_service:
                 api_url = "https://sorce-api.onrender.com"
                 print(f"VITE_API_URL missing. Setting it to {api_url}...")
                 patch_data = [{"key": "VITE_API_URL", "value": api_url}]
-                patch_resp = httpx.put(f"https://api.render.com/v1/services/{web_service['id']}/env-vars", 
+                patch_resp = httpx.put(f"https://api.render.com/v1/services/{web_service['id']}/env-vars",
                                       headers=headers, json=patch_data)
                 if patch_resp.status_code in {200, 201, 204}:
                     print("VITE_API_URL set successfully.")
                 else:
                     print(f"Failed to set VITE_API_URL: {patch_resp.status_code} - {patch_resp.text}")
-            
+
             # Trigger deploy for frontend
             print(f"Triggering deploy for {web_service['name']}...")
             deploy_resp = httpx.post(f"https://api.render.com/v1/services/{web_service['id']}/deploys", headers=headers, json={})

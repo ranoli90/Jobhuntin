@@ -13,15 +13,13 @@ PII is masked by default; pass ?unmask=true with OWNER role to see full data.
 
 from __future__ import annotations
 
-import json
 import uuid
 from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from backend.domain.masking import redact_profile_for_support
 from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -29,11 +27,9 @@ from backend.domain.repositories import (
     db_transaction,
 )
 from backend.domain.tenant import (
-    TenantContext,
     TenantScopeError,
     require_role,
     require_system_admin,
-    require_tenant_admin_or_system,
     resolve_tenant_context,
 )
 from shared.logging_config import get_logger
@@ -210,10 +206,8 @@ async def get_tenant_application_detail(
     PII is masked by default; ?unmask=true requires OWNER role.
     """
     async with db.acquire() as conn:
-        is_sys_admin = False
         try:
             await require_system_admin(conn, user_id)
-            is_sys_admin = True
         except TenantScopeError:
             ctx = await resolve_tenant_context(conn, user_id)
             if ctx.tenant_id != tenant_id:

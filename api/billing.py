@@ -1,24 +1,21 @@
 from __future__ import annotations
 
-import logging
-from typing import Any
-
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Request, Header
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 
-from shared.config import Settings, get_settings, settings_dependency
-from shared.logging_config import get_logger
-from backend.domain.tenant import TenantContext
 from backend.domain.billing import (
     ensure_stripe_customer,
-    handle_subscription_event,
-    handle_invoice_event,
-    handle_checkout_session,
     get_stripe_client,
+    handle_checkout_session,
+    handle_invoice_event,
+    handle_subscription_event,
 )
 from backend.domain.plans import plan_config_for
 from backend.domain.repositories import TenantRepo
+from backend.domain.tenant import TenantContext
+from shared.config import Settings, settings_dependency
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.billing")
 
@@ -80,7 +77,7 @@ async def get_billing_status(
     async with db.acquire() as conn:
         row = await conn.fetchrow(
             """
-            SELECT 
+            SELECT
                 t.plan,
                 bc.provider,
                 bc.provider_customer_id,
@@ -92,7 +89,7 @@ async def get_billing_status(
             """,
             ctx.tenant_id,
         )
-    
+
     if not row:
         return BillingStatusResponse(
             tenant_id=ctx.tenant_id,
@@ -122,18 +119,18 @@ async def get_usage(
         # Get current usage counts
         monthly_used = await TenantRepo.count_monthly_applications(conn, ctx.tenant_id)
         concurrent_used = await TenantRepo.count_concurrent_processing(conn, ctx.tenant_id)
-        
+
         # Get plan config (could fetch custom metadata from tenant row if needed)
         # For simplicity, we assume standard plan limits unless we fetch tenant row
         tenant_row = await conn.fetchrow("SELECT plan, metadata FROM public.tenants WHERE id = $1", ctx.tenant_id)
         plan = tenant_row["plan"] if tenant_row else "FREE"
         metadata = tenant_row.get("metadata") # Assuming jsonb metadata might contain plan overrides
-        
+
         config = plan_config_for(plan, metadata)
-        
+
         monthly_limit = config["max_monthly_applications"]
         concurrent_limit = config["max_concurrent_applications"]
-        
+
         monthly_remaining = max(0, monthly_limit - monthly_used)
         percentage_used = (monthly_used / monthly_limit) * 100 if monthly_limit > 0 else 0.0
 
@@ -157,11 +154,11 @@ async def create_checkout_session(
 ) -> CheckoutResponse:
     """Create Stripe checkout session for PRO plan."""
     stripe = get_stripe_client()
-    
+
     async with db.acquire() as conn:
         email_row = await conn.fetchrow("SELECT email FROM auth.users WHERE id = $1", ctx.user_id)
         email = email_row["email"] if email_row else None
-        
+
         customer_id = await ensure_stripe_customer(conn, ctx.tenant_id, email)
 
     try:
@@ -195,7 +192,7 @@ async def create_team_checkout_session(
 ) -> CheckoutResponse:
     """Create Stripe checkout session for TEAM plan (per seat)."""
     stripe = get_stripe_client()
-    
+
     async with db.acquire() as conn:
         email_row = await conn.fetchrow("SELECT email FROM auth.users WHERE id = $1", ctx.user_id)
         email = email_row["email"] if email_row else None
@@ -231,7 +228,7 @@ async def create_portal_session(
 ) -> PortalResponse:
     """Create Stripe billing portal session."""
     stripe = get_stripe_client()
-    
+
     async with db.acquire() as conn:
         customer_id = await ensure_stripe_customer(conn, ctx.tenant_id)
 
@@ -255,19 +252,19 @@ async def stripe_webhook(
     """Handle Stripe webhooks."""
     stripe = get_stripe_client()
     payload = await request.body()
-    
+
     try:
         event = stripe.Webhook.construct_event(
             payload, stripe_signature, settings.stripe_webhook_secret
         )
-    except ValueError as e:
+    except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
     data = event["data"]["object"]
     event_type = event["type"]
-    
+
     logger.info("Stripe webhook: %s", event_type)
 
     async with db.acquire() as conn:
@@ -277,5 +274,5 @@ async def stripe_webhook(
             await handle_invoice_event(conn, data)
         elif event_type == "checkout.session.completed":
             await handle_checkout_session(conn, data)
-            
+
     return {"status": "ok"}

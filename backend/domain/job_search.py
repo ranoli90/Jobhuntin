@@ -2,13 +2,12 @@
 Job search domain logic: Adzuna integration and job listing/filtering.
 """
 import json
-from datetime import timedelta
 from typing import Any
 
 import asyncpg
 
-from shared.config import get_settings
 from backend.domain.job_boards import AdzunaClient
+from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.job_search")
@@ -25,72 +24,87 @@ async def search_and_list_jobs(
     2. Query DB with filters.
     """
     s = get_settings()
-    adzuna = AdzunaClient(s)
 
     # Proactively fetch from Adzuna if we have keywords/location
     if keywords or location:
-        adz_results = await adzuna.fetch_jobs(keywords=keywords, location=location)
-        if adz_results:
-            await _sync_adzuna_jobs(db_pool, adzuna, adzuna_results=adz_results, ttl_days=s.adzuna_job_ttl_days)
+        await _fetch_and_sync_adzuna(db_pool, s, location, keywords)
 
     async with db_pool.acquire() as conn:
-        query = """
-            SELECT id, title, company, description, location,
-                   salary_min, salary_max, application_url, raw_data
-            FROM   public.jobs
-            WHERE  1=1
-        """
-        params: list[Any] = []
-        n = 0
-        if location:
-            n += 1
-            query += f" AND location ILIKE ${n}"
-            params.append(f"%{location}%")
-        if min_salary is not None:
-            n += 1
-            query += f" AND (salary_max IS NULL OR salary_max >= ${n})"
-            params.append(min_salary)
-        if keywords:
-            n += 1
-            query += f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
-            params.append(f"%{keywords}%")
-        if s.adzuna_job_ttl_days > 0:
-            query += f" AND (source != 'adzuna' OR created_at >= now() - interval '{s.adzuna_job_ttl_days} days')"
-        query += " ORDER BY created_at DESC LIMIT 100"
+        query, params = _build_job_search_query(s, location, min_salary, keywords)
         rows = await conn.fetch(query, *params)
 
-    jobs = []
-    for r in rows:
-        raw = r.get("raw_data") or {}
-        # Handle case where raw_data might be a string (if not automatically decoded by asyncpg codec)
-        # But asyncpg usually decodes jsonb to dict if configured. 
-        # The original code did `raw.get("logo_url")` assuming it's a dict.
-        # But wait, `raw_data` in DB is jsonb. asyncpg returns it as string unless type codec is set.
-        # However, the original code had `raw = r.get("raw_data") or {}` and then checked `hasattr(raw, "get")`.
-        # If it's a string, it doesn't have `get`.
-        # Let's keep the safety check.
-        if isinstance(raw, str):
-            try:
-                raw = json.loads(raw)
-            except:
-                raw = {}
-        
-        logo_url = None
-        if isinstance(raw, dict):
-            logo_url = raw.get("logo_url") or raw.get("logo")
-            
-        jobs.append({
-            "id": str(r["id"]),
-            "title": r["title"],
-            "company": r["company"],
-            "description": r["description"],
-            "location": r["location"],
-            "salary_min": float(r["salary_min"]) if r["salary_min"] is not None else None,
-            "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
-            "url": r["application_url"],
-            "logo_url": logo_url,
-        })
-    return jobs
+    return [_map_job_row(r) for r in rows]
+
+
+async def _fetch_and_sync_adzuna(
+    db_pool: asyncpg.Pool,
+    settings: Any,
+    location: str | None,
+    keywords: str | None,
+) -> None:
+    adzuna = AdzunaClient(settings)
+    adz_results = await adzuna.fetch_jobs(keywords=keywords, location=location)
+    if adz_results:
+        await _sync_adzuna_jobs(
+            db_pool, adzuna, adzuna_results=adz_results, ttl_days=settings.adzuna_job_ttl_days
+        )
+
+
+def _build_job_search_query(
+    settings: Any,
+    location: str | None,
+    min_salary: int | None,
+    keywords: str | None,
+) -> tuple[str, list[Any]]:
+    query = """
+        SELECT id, title, company, description, location,
+               salary_min, salary_max, application_url, raw_data
+        FROM   public.jobs
+        WHERE  1=1
+    """
+    params: list[Any] = []
+    n = 0
+    if location:
+        n += 1
+        query += f" AND location ILIKE ${n}"
+        params.append(f"%{location}%")
+    if min_salary is not None:
+        n += 1
+        query += f" AND (salary_max IS NULL OR salary_max >= ${n})"
+        params.append(min_salary)
+    if keywords:
+        n += 1
+        query += f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
+        params.append(f"%{keywords}%")
+    if settings.adzuna_job_ttl_days > 0:
+        query += f" AND (source != 'adzuna' OR created_at >= now() - interval '{settings.adzuna_job_ttl_days} days')"
+    query += " ORDER BY created_at DESC LIMIT 100"
+    return query, params
+
+
+def _map_job_row(r: Any) -> dict[str, Any]:
+    raw = r.get("raw_data") or {}
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            raw = {}
+
+    logo_url = None
+    if isinstance(raw, dict):
+        logo_url = raw.get("logo_url") or raw.get("logo")
+
+    return {
+        "id": str(r["id"]),
+        "title": r["title"],
+        "company": r["company"],
+        "description": r["description"],
+        "location": r["location"],
+        "salary_min": float(r["salary_min"]) if r["salary_min"] is not None else None,
+        "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
+        "url": r["application_url"],
+        "logo_url": logo_url,
+    }
 
 
 async def _sync_adzuna_jobs(
@@ -125,8 +139,8 @@ async def _sync_adzuna_jobs(
         for job_data in cleaned_jobs:
             await conn.execute(
                 """
-                INSERT INTO public.jobs 
-                    (external_id, title, company, description, location, 
+                INSERT INTO public.jobs
+                    (external_id, title, company, description, location,
                      salary_min, salary_max, category, application_url, source, raw_data)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 ON CONFLICT (external_id) DO UPDATE SET
@@ -162,9 +176,7 @@ def _is_quality_listing(job_data: dict[str, Any]) -> bool:
         return False
     salary_min = job_data.get("salary_min")
     salary_max = job_data.get("salary_max")
-    if salary_min is None and salary_max is None:
-        return False
-    return True
+    return not (salary_min is None and salary_max is None)
 
 
 async def _cleanup_expired_adzuna_jobs(conn: asyncpg.Connection, ttl_days: int) -> None:

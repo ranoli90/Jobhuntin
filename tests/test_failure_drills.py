@@ -14,26 +14,22 @@ Each test:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import os
+import sys
 import uuid
-from typing import Any
-from unittest.mock import AsyncMock, patch
 
 import asyncpg
 import pytest
 import pytest_asyncio
 from playwright.async_api import Route, async_playwright
 
-import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from backend.domain.repositories import record_event
 from worker.agent import (
     ApplicationAgent,
-    map_fields_via_llm,
 )
-from backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Shared test fixtures (reuse from test_integration.py)

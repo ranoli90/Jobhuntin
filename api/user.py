@@ -14,13 +14,15 @@ from __future__ import annotations
 
 import json
 import uuid
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Path as FastAPIPath
 from pydantic import BaseModel, field_validator
 
+from backend.domain.quotas import QuotaExceededError, check_can_create_application
 from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -29,9 +31,8 @@ from backend.domain.repositories import (
     ProfileRepo,
     db_transaction,
 )
-from backend.domain.tenant import TenantContext
-from backend.domain.quotas import check_can_create_application, QuotaExceededError
 from backend.domain.resume import process_resume_upload, upload_to_supabase_storage
+from backend.domain.tenant import TenantContext
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -172,7 +173,7 @@ class AnswerHoldBody(BaseModel):
 
 @router.post("/applications/{application_id}/answer")
 async def answer_hold(
-    application_id: str = Path(...),
+    application_id: str = FastAPIPath(...),
     body: AnswerHoldBody = ...,
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
@@ -218,16 +219,16 @@ class SnoozeBody(BaseModel):
 
 @router.post("/applications/{application_id}/snooze")
 async def snooze_application(
-    application_id: str = Path(...),
+    application_id: str = FastAPIPath(...),
     body: SnoozeBody = SnoozeBody(),
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Snooze an application for N hours."""
-    from datetime import datetime, timedelta, timezone
-    
-    until = datetime.now(timezone.utc) + timedelta(hours=body.hours)
-    
+    from datetime import datetime, timedelta
+
+    until = datetime.now(UTC) + timedelta(hours=body.hours)
+
     async with db.acquire() as conn:
         res = await conn.execute(
             """
@@ -265,7 +266,7 @@ async def list_jobs(
 ) -> dict[str, Any]:
     """List jobs from DB with optional filters. Returns { jobs: [...] } for web."""
     from backend.domain.job_search import search_and_list_jobs
-    
+
     jobs = await search_and_list_jobs(
         db_pool=db,
         location=location,
@@ -285,8 +286,9 @@ async def export_applications(
     db: asyncpg.Pool = Depends(_get_pool),
 ):
     """Export applications as CSV."""
-    import io
     import csv
+    import io
+
     from fastapi.responses import StreamingResponse
 
     async with db.acquire() as conn:
@@ -413,30 +415,14 @@ async def update_profile(
     async with db.acquire() as conn:
         existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
         profile_data = dict(existing or {})
-        contact = dict(profile_data.get("contact") or {})
-
-        if body.full_name is not None:
-            contact["full_name"] = body.full_name
-        if body.headline is not None:
-            profile_data["headline"] = body.headline
-        if body.bio is not None:
-            profile_data["summary"] = body.bio
-
-        if body.has_completed_onboarding is not None:
-            profile_data["has_completed_onboarding"] = body.has_completed_onboarding
-        if body.preferences is not None:
-            profile_data["preferences"] = body.preferences.model_dump(exclude_unset=True)
-
-        profile_data["contact"] = contact
+        
+        _merge_profile_update(profile_data, body)
 
         existing_row = await conn.fetchrow(
             "SELECT resume_url FROM public.profiles WHERE user_id = $1",
             ctx.user_id,
         )
         current_resume = existing_row["resume_url"] if existing_row else None
-        avatar_url = body.avatar_url if body.avatar_url is not None else contact.get("avatar_url")
-        if avatar_url:
-            contact["avatar_url"] = avatar_url
 
         await ProfileRepo.upsert(
             conn, ctx.user_id, profile_data,
@@ -457,6 +443,29 @@ async def update_profile(
         "preferences": profile_data.get("preferences") or {},
         "contact": profile_data.get("contact") or {},
     }
+
+
+def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
+    """Merge update body into profile_data dict in-place."""
+    contact = dict(profile_data.get("contact") or {})
+
+    if body.full_name is not None:
+        contact["full_name"] = body.full_name
+    if body.headline is not None:
+        profile_data["headline"] = body.headline
+    if body.bio is not None:
+        profile_data["summary"] = body.bio
+
+    if body.has_completed_onboarding is not None:
+        profile_data["has_completed_onboarding"] = body.has_completed_onboarding
+    if body.preferences is not None:
+        profile_data["preferences"] = body.preferences.model_dump(exclude_unset=True)
+
+    avatar_url = body.avatar_url if body.avatar_url is not None else contact.get("avatar_url")
+    if avatar_url:
+        contact["avatar_url"] = avatar_url
+
+    profile_data["contact"] = contact
 
 
 # ---------------------------------------------------------------------------

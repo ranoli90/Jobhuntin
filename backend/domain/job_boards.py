@@ -5,8 +5,10 @@ Currently supporting: Adzuna.
 
 from __future__ import annotations
 
-import httpx
 from typing import Any
+
+import httpx
+
 from shared.config import Settings
 from shared.logging_config import get_logger
 from shared.metrics import RateLimiter

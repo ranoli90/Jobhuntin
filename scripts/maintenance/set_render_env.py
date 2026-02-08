@@ -1,5 +1,6 @@
 """Set missing environment variables on Render for sorce-api service."""
 import os
+
 import httpx
 from dotenv import load_dotenv
 
@@ -11,21 +12,21 @@ SERVICE_ID = "srv-d63l79hr0fns73boblag"
 def set_env_var(key: str, value: str, is_secret: bool = False):
     """Set or update an environment variable on Render."""
     if not RENDER_API_KEY:
-        print(f"Error: RENDER_API_KEY not found")
+        print("Error: RENDER_API_KEY not found")
         return False
-    
+
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
         "Content-Type": "application/json"
     }
-    
+
     try:
         payload = {
             "key": key,
             "value": value
         }
-        
+
         # For web services, use the env-vars endpoint with POST to add/update
         resp = httpx.post(
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
@@ -33,7 +34,7 @@ def set_env_var(key: str, value: str, is_secret: bool = False):
             json=payload,
             timeout=10
         )
-        
+
         if resp.status_code in (200, 201, 204):
             print(f"  [SET] {key}")
             return True
@@ -66,14 +67,14 @@ def set_env_var(key: str, value: str, is_secret: bool = False):
         else:
             print(f"  [ERROR setting {key}] {resp.status_code}: {resp.text[:200]}")
             return False
-                
+
     except Exception as e:
         print(f"  [ERROR] {key}: {e}")
         return False
 
 def main():
     print("Setting environment variables for sorce-api...")
-    
+
     # Environment variables from render.yaml with their values
     env_vars = [
         # Public values
@@ -96,7 +97,7 @@ def main():
         ("LOG_JSON", "true", False),
         ("LOG_LEVEL", "INFO", False),
         ("APP_BASE_URL", "https://sorce-web.onrender.com", False),
-        
+
         # Secrets (values from .env)
         ("SUPABASE_SERVICE_KEY", os.environ.get("SUPABASE_SERVICE_KEY", ""), True),
         ("SUPABASE_JWT_SECRET", os.environ.get("SUPABASE_JWT_SECRET", ""), True),
@@ -107,17 +108,16 @@ def main():
         ("WEBHOOK_SIGNING_SECRET", os.environ.get("WEBHOOK_SIGNING_SECRET", ""), True),
         ("RESEND_API_KEY", os.environ.get("RESEND_API_KEY", ""), True),
     ]
-    
+
     created = 0
-    updated = 0
     failed = 0
-    
+
     for key, value, is_secret in env_vars:
         if not value and is_secret:
             print(f"[SKIP] {key}: No value found in .env")
             failed += 1
             continue
-            
+
         if set_env_var(key, value, is_secret):
             if is_secret:
                 print(f"  Value: {'*' * 10}")
@@ -126,7 +126,7 @@ def main():
             created += 1
         else:
             failed += 1
-    
+
     print(f"\nDone! Created/Updated: {created}, Failed: {failed}")
     print("\nIMPORTANT: You need to manually set RESEND_API_KEY if you have one.")
     print("Get one at https://resend.com and add it as a secret env var.")

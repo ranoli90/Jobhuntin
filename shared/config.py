@@ -12,15 +12,14 @@ from __future__ import annotations
 
 import os
 import sys
-from enum import Enum
+from enum import StrEnum
 from functools import lru_cache
-from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
-class Environment(str, Enum):
+class Environment(StrEnum):
     LOCAL = "local"
     STAGING = "staging"
     PROD = "prod"
@@ -196,7 +195,7 @@ class Settings(BaseSettings):
                 sys.exit(1)
 
     # ── Environment-specific overrides applied after load ────────
-    def apply_env_defaults(self) -> "Settings":
+    def apply_env_defaults(self) -> Settings:
         """Return self with env-specific tuning applied where user didn't override."""
         if self.env == Environment.LOCAL:
             # Faster iteration locally

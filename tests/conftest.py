@@ -1,7 +1,8 @@
 import os
+
+import asyncpg
 import pytest
 import pytest_asyncio
-import asyncpg
 
 # Use local DB by default for tests
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")

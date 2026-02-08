@@ -8,8 +8,9 @@ Used by both API routes and the worker agent.
 from __future__ import annotations
 
 import json
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import Any
 
 import asyncpg
 
@@ -18,12 +19,7 @@ from backend.domain.models import (
     ApplicationDetail,
     ApplicationEvent,
     ApplicationInput,
-    ApplicationStatus,
-    Job,
-    Tenant,
-    TenantMember,
 )
-
 
 # ---------------------------------------------------------------------------
 # Transaction helper
@@ -34,9 +30,8 @@ async def db_transaction(
     pool: asyncpg.Pool,
 ) -> AsyncGenerator[asyncpg.Connection, None]:
     """Short-lived transaction scope usable from routes or worker."""
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            yield conn
+    async with pool.acquire() as conn, conn.transaction():
+        yield conn
 
 
 # ---------------------------------------------------------------------------

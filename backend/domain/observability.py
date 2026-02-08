@@ -120,7 +120,7 @@ async def get_success_metrics(
     """)
     if not row or (row["total"] or 0) < min_samples:
         return None
-    
+
     total = row["total"]
     succeeded = row["succeeded"] or 0
     return {
@@ -135,7 +135,7 @@ async def check_agent_success_rate(conn: asyncpg.Connection, threshold: float = 
     metrics = await get_success_metrics(conn, "24 hours")
     if not metrics:
         return None
-        
+
     rate = metrics["rate"]
     if rate < threshold:
         return AlertResult(

@@ -4,10 +4,7 @@ Billing domain logic — Stripe integration, subscription state management, and 
 
 from __future__ import annotations
 
-import json
-import logging
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 import asyncpg
 
@@ -111,7 +108,7 @@ async def handle_subscription_event(
     sub_id = data_object.get("id")
     period_end_ts = data_object.get("current_period_end")
     period_end = (
-        datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+        datetime.fromtimestamp(period_end_ts, tz=UTC)
         if period_end_ts else None
     )
     await update_subscription_state(

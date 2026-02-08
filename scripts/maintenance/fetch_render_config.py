@@ -1,6 +1,6 @@
 import os
+
 import httpx
-import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,15 +23,16 @@ def fetch_render_env():
         response = httpx.get("https://api.render.com/v1/services", headers=headers)
         response.raise_for_status()
         services = response.json()
-        
+
         for svc in services:
             service = svc['service']
             service_id = service['id']
             name = service['name']
-            if name != "sorce-api": continue # Only focus on api
-            
+            if name != "sorce-api":
+                continue # Only focus on api
+
             print(f"Checking service: {name} ({service_id})")
-            
+
             # Check secret groups
             sg_resp = httpx.get(f"https://api.render.com/v1/services/{service_id}/secret-groups", headers=headers)
             if sg_resp.status_code == 200:
@@ -51,7 +52,7 @@ def fetch_render_env():
             env_resp = httpx.get(f"https://api.render.com/v1/services/{service_id}/env-vars", headers=headers, timeout=10)
             env_resp.raise_for_status()
             env_vars = env_resp.json()
-            
+
             print(f"--- Environment Variables for {name} ---")
             for item in env_vars:
                 env_var = item['envVar']
