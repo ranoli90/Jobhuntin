@@ -115,7 +115,7 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
           
           <div className="relative">
             <button
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 setShowMenu(!showMenu);
               }}

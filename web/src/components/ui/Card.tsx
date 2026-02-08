@@ -17,22 +17,35 @@ const cardVariants = cva(
         md: "shadow-md",
         lg: "shadow-lg",
         none: "",
+        lift: "shadow-lg hover:shadow-xl hover:-translate-y-1",
+      },
+      tone: {
+        default: "",
+        sunrise: "bg-amber-50/50 border-amber-200",
+        lagoon: "bg-cyan-50/50 border-cyan-200",
+        mango: "bg-orange-50/50 border-orange-200",
+        ink: "bg-slate-900 text-white border-slate-800",
+        shell: "bg-slate-50/50 border-slate-200",
       },
     },
     defaultVariants: {
       variant: "default",
       shadow: "sm",
+      tone: "default",
     },
   },
 );
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {}
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
+  tone?: "default" | "sunrise" | "lagoon" | "mango" | "ink" | "shell";
+  shadow?: "sm" | "md" | "lg" | "none" | "lift";
+}
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, children, variant, shadow, ...props }: CardProps, ref) => (
+  ({ className, children, variant, shadow, tone, ...props }: CardProps, ref) => (
     <div
       ref={ref}
-      className={cn(cardVariants({ variant, shadow }), className)}
+      className={cn(cardVariants({ variant, shadow, tone }), className)}
       {...props}
     >
       {children}

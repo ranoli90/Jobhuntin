@@ -15,6 +15,7 @@ const badgeVariants = cva(
         outline: "bg-white text-slate-700 border-slate-300",
         lagoon: "bg-cyan-50 text-cyan-700 border-cyan-200",
         mango: "bg-amber-50 text-amber-700 border-amber-200",
+        ink: "bg-slate-800 text-white border-slate-700",
       },
       size: {
         sm: "rounded text-[11px] px-2 py-0.5",

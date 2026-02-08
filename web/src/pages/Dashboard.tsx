@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const AnimatedNumber = ({ value, duration = 1.5 }) => {
+const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
@@ -105,26 +105,14 @@ export default function Dashboard() {
           whileTap={{ scale: 0.98 }}
         >
           <Button 
-            className="group relative overflow-hidden gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-lagoon to-brand-lagoon/80 hover:from-brand-lagoon/90 hover:to-brand-lagoon/70 text-white shadow-lg hover:shadow-brand-lagoon/20 transition-all duration-300"
+            className="group relative overflow-hidden gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white shadow-lg hover:shadow-cyan-500/20 transition-all duration-300"
             onClick={() => navigate("/app/jobs")}
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
           >
-            <motion.span 
-              className="relative z-10 flex items-center gap-2"
-              initial={false}
-              animate={{ x: isHovered ? 5 : 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
+            <span className="relative z-10 flex items-center gap-2">
               <Rocket className="h-5 w-5 transition-transform group-hover:rotate-12" />
               <span className="font-medium">Find Jobs</span>
-            </motion.span>
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-r from-brand-lagoon/20 to-brand-lagoon/40"
-              initial={{ x: '-100%' }}
-              animate={{ x: isHovered ? '100%' : '-100%' }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
-            />
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
           </Button>
         </motion.div>
       </div>
@@ -264,7 +252,7 @@ export default function Dashboard() {
                             <div className="min-w-0">
                               <p className="truncate font-medium text-white">{app.company}</p>
                               <p className="text-xs text-amber-100/60 truncate">
-                                {app.hold_question?.slice(0, 50)}{app.hold_question?.length > 50 ? '...' : ''}
+                                {app.hold_question?.slice(0, 50)}{app.hold_question && app.hold_question.length > 50 ? '...' : ''}
                               </p>
                             </div>
                           </div>

@@ -17,6 +17,7 @@ const buttonVariants = cva(
         ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
         danger: "bg-error-600 text-white shadow-sm hover:bg-error-700",
         success: "bg-success-600 text-white shadow-sm hover:bg-success-700",
+        lagoon: "bg-cyan-600 text-white shadow-sm hover:bg-cyan-700 hover:shadow-md",
       },
       size: {
         sm: "h-8 px-3 text-sm rounded-md",
