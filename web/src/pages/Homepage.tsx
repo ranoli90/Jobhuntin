@@ -16,7 +16,8 @@ import confetti from 'canvas-confetti';
 import { 
   Rocket, Sparkles, Bot, Zap, CheckCircle, ArrowRight, UploadCloud, 
   Search, Code, X, Github, Gamepad2, Globe, MapPin, 
-  Volume2, VolumeX, MousePointer2, QrCode, Smartphone, Menu
+  Volume2, VolumeX, MousePointer2, QrCode, Smartphone, Menu,
+  MailCheck
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -411,18 +412,50 @@ const Hero = ({ muted }: { muted: boolean }) => {
   const [matchCount, setMatchCount] = useState(0);
   const [jobs, setJobs] = useState(TEASER_JOBS);
   const [emailError, setEmailError] = useState("");
+  const [sentEmail, setSentEmail] = useState<string | null>(null);
+  const autoDismissTimer = useRef<number | null>(null);
   
   // A/B Test Logic
   useEffect(() => {
-    const stored = localStorage.getItem('jobhunt_ab_test');
-    if (stored) {
-      setVariant(stored as 'swipe' | 'magic');
-    } else {
-      const v = Math.random() > 0.5 ? 'swipe' : 'magic';
-      setVariant(v);
-      localStorage.setItem('jobhunt_ab_test', v);
+    try {
+      const stored = window?.localStorage?.getItem('jobhunt_ab_test');
+      if (stored) {
+        setVariant(stored as 'swipe' | 'magic');
+      } else {
+        const v = Math.random() > 0.5 ? 'swipe' : 'magic';
+        setVariant(v);
+        window?.localStorage?.setItem('jobhunt_ab_test', v);
+      }
+    } catch (err) {
+      console.warn('A/B storage disabled, falling back to default variant', err);
+      setVariant('magic');
     }
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (autoDismissTimer.current) {
+        window.clearTimeout(autoDismissTimer.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!sentEmail) {
+      if (autoDismissTimer.current) {
+        window.clearTimeout(autoDismissTimer.current);
+      }
+      return;
+    }
+    autoDismissTimer.current = window.setTimeout(() => {
+      setSentEmail(null);
+    }, 90_000);
+    return () => {
+      if (autoDismissTimer.current) {
+        window.clearTimeout(autoDismissTimer.current);
+      }
+    };
+  }, [sentEmail]);
 
   // Mouse Glow
   const mouseX = useMotionValue(0);
@@ -446,62 +479,67 @@ const Hero = ({ muted }: { muted: boolean }) => {
     }
     setEmailError("");
     setIsSubmitting(true);
-    playSuccessSound(muted);
-    
-    // Animate first
-    let start = 0;
-    const end = 47;
-    const duration = 1000;
-    const startTime = performance.now();
-
-    const animateCounter = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      setMatchCount(Math.floor(progress * end));
-      
-      if (progress < 1) {
-        requestAnimationFrame(animateCounter);
-      }
-    };
-    requestAnimationFrame(animateCounter);
+    setSentEmail(null);
+    setMatchCount(0);
 
     // Call API
     try {
       if (!API_BASE) {
-         console.warn("API base URL not configured");
-         // Fallback for demo
-      } else {
-        const resp = await fetch(`${API_BASE}/auth/magic-link`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email.trim(),
-            return_to: "/app/onboarding", // Send them to onboarding
-          }),
-        });
-        if (!resp.ok) {
-           const err = await resp.text();
-           throw new Error(err || "Failed to send magic link");
-        }
+        throw new Error("Magic links are warming up. Please try again in a few minutes.");
       }
-      
-      // Success Animation
-      setTimeout(() => {
-        setIsSubmitting(false);
-        confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
-        });
-        pushToast({ title: "Magic Link Sent! 📧", description: "Check your email to start hunting.", tone: "success" });
-        setEmail(""); // Clear
-      }, 1500);
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const resp = await fetch(`${API_BASE}/auth/magic-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          return_to: "/app/onboarding", // Send them to onboarding
+        }),
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        const message = resp.status === 429
+          ? "You've hit the limit for magic links. Please wait a bit before trying again."
+          : errText || "Failed to send magic link";
+        throw new Error(message);
+      }
+
+      if (typeof window !== 'undefined') {
+        let start = 0;
+        const end = 47;
+        const duration = 1000;
+        const startTime = performance.now();
+        const animateCounter = (currentTime: number) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          setMatchCount(Math.floor(progress * end));
+          if (progress < 1) {
+            requestAnimationFrame(animateCounter);
+          }
+        };
+        requestAnimationFrame(animateCounter);
+      }
+
+      playSuccessSound(muted);
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
+      });
+      pushToast({ title: "Magic Link Sent! 📧", description: "Check your email to start hunting.", tone: "success" });
+      setSentEmail(normalizedEmail);
+      setEmail(""); // Clear
+      setIsSubmitting(false);
 
     } catch (err: any) {
       setIsSubmitting(false);
-      setEmailError(err.message || "Failed to send magic link");
-      pushToast({ title: "Error", description: err.message, tone: "error" });
+      setSentEmail(null);
+      const message = err?.message || "Failed to send magic link";
+      setEmailError(message);
+      pushToast({ title: "Error", description: message, tone: "error" });
     }
   };
 
@@ -520,7 +558,10 @@ const Hero = ({ muted }: { muted: boolean }) => {
           <motion.div
             key={i}
             className="absolute rounded-full opacity-20"
-            initial={{ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight }}
+            initial={{ 
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800)
+            }}
             animate={{ 
               y: [null, Math.random() * -100],
               x: [null, (Math.random() - 0.5) * 50]
@@ -633,6 +674,47 @@ const Hero = ({ muted }: { muted: boolean }) => {
             >
               <CheckCircle className="w-5 h-5" />
               Found {matchCount} Denver matches!
+            </motion.div>
+          )}
+
+          {sentEmail && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 bg-white border border-gray-100 rounded-2xl p-5 shadow-lg text-left"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-[#FF6B35]/10 flex items-center justify-center">
+                  <MailCheck className="w-5 h-5 text-[#FF6B35]" />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-semibold">Magic link en route</p>
+                  <p className="text-base font-semibold text-[#2D2D2D]">Sent to {sentEmail}</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Look for an email from <span className="font-semibold">noreply@sorce.app</span> (delivered via Resend). When you tap the link we’ll drop you straight into onboarding.
+              </p>
+              <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600">
+                <li>Open the inbox (or spam folder) for {sentEmail}.</li>
+                <li>Find the message titled <em>“Start your JobHuntin run”</em> and press the button.</li>
+                <li>Keep this tab open—onboarding launches as soon as the link opens.</li>
+              </ol>
+              <div className="flex flex-wrap gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setSentEmail(null)}
+                  className="text-sm font-semibold text-[#FF6B35] hover:underline"
+                >
+                  Use a different email
+                </button>
+                <a
+                  href="mailto:support@sorce.app"
+                  className="text-sm text-gray-500 hover:text-[#2D2D2D]"
+                >
+                  Need help? support@sorce.app
+                </a>
+              </div>
             </motion.div>
           )}
 
