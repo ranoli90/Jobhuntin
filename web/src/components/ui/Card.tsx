@@ -26,6 +26,7 @@ const cardVariants = cva(
         mango: "bg-orange-50/50 border-orange-200",
         ink: "bg-slate-900 text-white border-slate-800",
         shell: "bg-slate-50/50 border-slate-200",
+        glass: "bg-white/70 backdrop-blur-xl border-white/50 shadow-xl shadow-slate-200/50",
       },
     },
     defaultVariants: {
@@ -37,7 +38,7 @@ const cardVariants = cva(
 );
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
-  tone?: "default" | "sunrise" | "lagoon" | "mango" | "ink" | "shell";
+  tone?: "default" | "sunrise" | "lagoon" | "mango" | "ink" | "shell" | "glass";
   shadow?: "sm" | "md" | "lg" | "none" | "lift";
 }
 

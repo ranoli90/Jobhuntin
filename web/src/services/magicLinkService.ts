@@ -4,6 +4,7 @@
  */
 
 import { config } from '../config';
+import { supabase } from '../lib/supabase';
 
 export interface MagicLinkResponse {
   status: string;
@@ -49,19 +50,16 @@ class MagicLinkService {
     }
 
     try {
-      const response = await fetch(`${config.api.baseUrl}/auth/magic-link`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: normalizedEmail,
-          return_to: this.sanitizeReturnTo(returnTo),
-        }),
-        signal: AbortSignal.timeout(config.api.timeout),
+      const { error } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}${this.sanitizeReturnTo(returnTo)}`,
+        },
       });
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          // Rate limited - set cooldown
+      if (error) {
+        // Handle rate limits specifically if Supabase returns them (usually 429 status in error)
+        if (error.status === 429) {
           this.rateLimitResets.set(normalizedEmail, Date.now() + 60_000);
           return {
             success: false,
@@ -70,18 +68,10 @@ class MagicLinkService {
           };
         }
 
-        let errorMessage = 'Failed to send magic link';
-        try {
-          const data = await response.json();
-          errorMessage = data?.detail || data?.error || errorMessage;
-        } catch {
-          errorMessage = await response.text() || errorMessage;
-        }
-
         return {
           success: false,
           email: normalizedEmail,
-          error: errorMessage,
+          error: error.message,
         };
       }
 
@@ -97,9 +87,7 @@ class MagicLinkService {
       return {
         success: false,
         email: normalizedEmail,
-        error: message.includes('timeout')
-          ? 'Request timed out. Please try again.'
-          : message,
+        error: message,
       };
     }
   }

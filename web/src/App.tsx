@@ -63,21 +63,25 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Homepage />} />
-      <Route path="/pricing" element={<Pricing />} />
-      <Route path="/success-stories" element={<SuccessStories />} />
-      <Route path="/chrome-extension" element={<ChromeExtension />} />
-      <Route path="/recruiters" element={<Recruiters />} />
-      <Route path="/jobs/:role/:city" element={<JobNiche />} />
-      <Route path="/vs/:competitorSlug" element={<ComparisonPage />} />
-      <Route path="/guides" element={<GuidesHome />} />
-      <Route path="/guides/:guideSlug" element={<GuidePage />} />
-      <Route path="/privacy" element={<Privacy />} />
-      <Route path="/terms" element={<Terms />} />
+      {/* Public Marketing Pages */}
       <Route element={<MarketingLayout />}>
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Homepage />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/success-stories" element={<SuccessStories />} />
+        <Route path="/chrome-extension" element={<ChromeExtension />} />
+        <Route path="/recruiters" element={<Recruiters />} />
+        <Route path="/jobs/:role/:city" element={<JobNiche />} />
+        <Route path="/vs/:competitorSlug" element={<ComparisonPage />} />
+        <Route path="/guides" element={<GuidesHome />} />
+        <Route path="/guides/:guideSlug" element={<GuidePage />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
       </Route>
 
+      {/* Auth - Standalone */}
+      <Route path="/login" element={<Login />} />
+
+      {/* App Protected Routes */}
       <Route path="/app" element={<AuthGuard />}>
         <Route path="onboarding" element={<Onboarding />} />
 

@@ -254,12 +254,6 @@ export default function ChromeExtension() {
            ))}
         </div>
       </main>
-
-      <footer className="bg-white border-t border-gray-200 py-12">
-        <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
-          &copy; {new Date().getFullYear()} JobHuntin AI. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 }

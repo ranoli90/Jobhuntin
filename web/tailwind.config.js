@@ -8,10 +8,29 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", ...fontFamily.sans],
+        display: ["Poppins", ...fontFamily.sans],
         poppins: ["Poppins", ...fontFamily.sans],
         nunito: ["Nunito", ...fontFamily.sans],
       },
       colors: {
+        primary: {
+          50: "rgb(var(--color-primary-50) / <alpha-value>)",
+          100: "rgb(var(--color-primary-100) / <alpha-value>)",
+          200: "rgb(var(--color-primary-200) / <alpha-value>)",
+          300: "rgb(var(--color-primary-300) / <alpha-value>)",
+          400: "rgb(var(--color-primary-400) / <alpha-value>)",
+          500: "rgb(var(--color-primary-500) / <alpha-value>)",
+          600: "rgb(var(--color-primary-600) / <alpha-value>)",
+          700: "rgb(var(--color-primary-700) / <alpha-value>)",
+        },
+        brand: {
+          ink: "#0F172A",
+          lagoon: {
+            DEFAULT: "#06b6d4",
+            300: "#67e8f9",
+          },
+          shell: "#f8fafc",
+        },
         jobhunt: {
           primary: "#FF6B35", // Vibrant Denver sunset orange
           secondary: "#4A90E2", // Cool tech blue

@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { pushToast } from '../lib/toast';
@@ -8,10 +8,12 @@ import { magicLinkService } from '../services/magicLinkService';
 import { 
   ArrowRight, Mail, Lock, Sparkles, AlertCircle, 
   Chrome, Linkedin, Bot, CheckCircle, ArrowLeft,
-  ShieldCheck, MailCheck, Loader 
+  ShieldCheck, MailCheck
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -54,7 +56,7 @@ export default function Login() {
       delay: Math.random() * 10,
       yMove: (Math.random() - 0.5) * 100,
       xMove: (Math.random() - 0.5) * 100,
-      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.2)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(255, 255, 255, 0.05)',
       blur: i < 3 ? 'blur(80px)' : 'none'
     }));
   }, []);
@@ -191,7 +193,6 @@ export default function Login() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/login?returnTo=${encodeURIComponent(safeReturnTo)}`,
-            // Note: email redirect URL for verification link
             data: {
               onboarding_intent: safeReturnTo,
             },
@@ -217,12 +218,12 @@ export default function Login() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1 }}
         >
-          <Bot className="w-12 h-12 text-[#FF6B35]" />
+          <Bot className="w-12 h-12 text-primary-500" />
         </motion.div>
       </div>
     );
@@ -242,35 +243,42 @@ export default function Login() {
           "Return to this tab and sign in securely",
         ];
     return (
-      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-6 font-inter text-[#2D2D2D]">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans text-slate-900 relative overflow-hidden">
+         {/* Background Decoration for Success State */}
+         <div className="absolute inset-0 pointer-events-none opacity-30">
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-400/10 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
+          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+        </div>
+
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white rounded-3xl p-8 max-w-md w-full shadow-xl text-center border border-gray-100"
+          className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full shadow-2xl shadow-primary-500/5 text-center border border-white/50 relative z-10"
         >
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-green-100">
             {isMagic ? <MailCheck className="w-10 h-10 text-green-600" /> : <ShieldCheck className="w-10 h-10 text-green-600" />}
           </div>
-          <h2 className="text-3xl font-bold font-poppins mb-4">
+          <h2 className="text-3xl font-bold font-display mb-4 text-slate-900">
             {isMagic ? "Check your email" : "Confirm your email"}
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-slate-500 mb-6 leading-relaxed">
             {isMagic
               ? (
-                <>We sent a magic link to <strong className="text-[#2D2D2D]">{successState.email}</strong>. Follow the steps below—if it doesn’t show up in 2 minutes, resend it.</>
+                <>We sent a magic link to <strong className="text-slate-900">{successState.email}</strong>. Follow the steps below—if it doesn’t show up in 2 minutes, resend it.</>
               )
               : (
-                <>You're almost set. Secure your account by confirming <strong className="text-[#2D2D2D]">{successState.email}</strong>. Delivery can take up to 2 minutes.</>
+                <>You're almost set. Secure your account by confirming <strong className="text-slate-900">{successState.email}</strong>. Delivery can take up to 2 minutes.</>
               )}
           </p>
-          <ol className="text-left list-decimal list-inside space-y-2 text-gray-600 mb-6">
+          <ol className="text-left list-decimal list-inside space-y-3 text-slate-600 mb-8 bg-slate-50/50 p-4 rounded-xl border border-slate-100/50">
             {steps.map((step, idx) => (
-              <li key={idx}>{step}</li>
+              <li key={idx} className="text-sm">{step}</li>
             ))}
           </ol>
           <div className="flex flex-col gap-3">
             {isMagic && (
-              <button
+              <Button
+                variant="ghost"
                 onClick={async () => {
                   try {
                     setResendLoading(true);
@@ -283,18 +291,18 @@ export default function Login() {
                   }
                 }}
                 disabled={resendLoading || !!rateLimitCountdown}
-                className="text-sm font-semibold text-[#FF6B35] disabled:text-gray-300 hover:underline"
+                className="text-primary-600 hover:text-primary-700 hover:bg-primary-50"
               >
                 {resendLoading ? "Resending..." : rateLimitCountdown ? `Retry in ${rateLimitCountdown}s` : "Resend magic link"}
-              </button>
+              </Button>
             )}
-            <button 
+            <Button 
+              variant="outline"
               onClick={() => setSuccessState(null)}
-              className="text-sm font-semibold text-[#FF6B35] hover:underline"
             >
               Use a different email
-            </button>
-            <a href="mailto:support@sorce.app" className="text-sm text-gray-500 hover:text-[#2D2D2D]">
+            </Button>
+            <a href="mailto:support@sorce.app" className="text-xs text-slate-400 hover:text-slate-600 mt-2">
               Need help? support@sorce.app
             </a>
           </div>
@@ -304,12 +312,13 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex flex-col lg:flex-row font-inter text-[#2D2D2D] relative overflow-hidden lg:items-stretch">
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-900 relative overflow-hidden lg:items-stretch">
       {/* Left Artistic Panel - Hidden on Mobile */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#1a1a1a] items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-[#0F172A] items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-grid-premium-dark opacity-20 pointer-events-none" />
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#FF6B35]/15 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#4A90E2]/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-500/20 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+        
         {/* Generative Background Blobs */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((particle) => (
@@ -348,14 +357,14 @@ export default function Login() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="mb-8"
           >
-            <div className="bg-[#FF6B35] w-20 h-20 rounded-3xl rotate-6 shadow-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="bg-primary-500 w-20 h-20 rounded-3xl rotate-6 shadow-2xl shadow-primary-500/30 flex items-center justify-center mx-auto mb-6">
               <Bot className="text-white w-10 h-10" />
             </div>
-            <h2 className="text-5xl font-black font-poppins text-white leading-tight mb-4 tracking-tighter">
+            <h2 className="text-5xl font-black font-display text-white leading-tight mb-4 tracking-tighter">
               Join the Elite <br />
-              <span className="text-[#FF6B35]">Job Hunters</span>
+              <span className="text-primary-500">Job Hunters</span>
             </h2>
-            <p className="text-gray-400 text-xl max-w-md mx-auto leading-relaxed">
+            <p className="text-slate-400 text-xl max-w-md mx-auto leading-relaxed font-light">
               Experience the first-of-its-kind AI agent that transforms your career while you sleep.
             </p>
           </motion.div>
@@ -373,25 +382,31 @@ export default function Login() {
       </div>
 
       {/* Right Form Panel */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 relative z-10">
-        <div className="w-full max-w-md">
-          <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-[#FF6B35] mb-12 transition-colors font-medium group">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
+      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-12 relative z-10 min-h-screen lg:min-h-0">
+        {/* Mobile Background Texture */}
+        <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
+             <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary-500/5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/5 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+        </div>
+
+        <div className="w-full max-w-md relative z-10 flex flex-col h-full lg:h-auto justify-center">
+          <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-primary-600 mb-6 lg:mb-12 transition-colors font-medium group self-start lg:self-auto">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> <span className="hidden sm:inline">Back to Home</span><span className="sm:hidden">Home</span>
           </Link>
 
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="glass-panel rounded-[2.5rem] p-8 sm:p-12 shadow-2xl border-white/40"
+            className="glass-panel rounded-3xl lg:rounded-[2.5rem] p-6 sm:p-12 shadow-2xl shadow-slate-200/50 border-white/60 bg-white/80 backdrop-blur-xl"
           >
-            <div className="mb-10">
-              <h1 className="font-poppins text-3xl font-black text-[#2D2D2D] mb-2 tracking-tight">
+            <div className="mb-6 lg:mb-10">
+              <h1 className="font-display text-2xl lg:text-3xl font-black text-slate-900 mb-2 tracking-tight">
                 {mode === "magic" ? "Let's get hunting" : mode === "password" ? "Welcome back" : "Create your vault"}
               </h1>
-              <p className="text-gray-500 font-medium">{destinationHint}</p>
+              <p className="text-slate-500 font-medium text-sm lg:text-base">{destinationHint}</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 mb-10 bg-gray-100/50 p-1.5 rounded-2xl" role="tablist">
+            <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-6 lg:mb-10 bg-slate-100 p-1 lg:p-1.5 rounded-xl lg:rounded-2xl" role="tablist">
               {AUTH_MODE_OPTIONS.map((option) => (
                 <button
                   type="button"
@@ -399,10 +414,10 @@ export default function Login() {
                   onClick={() => setMode(option.key)}
                   role="tab"
                   className={cn(
-                    "rounded-xl py-2.5 text-center transition-all text-xs font-bold uppercase tracking-wider",
+                    "rounded-lg lg:rounded-xl py-2 lg:py-2.5 text-center transition-all text-[10px] lg:text-xs font-bold uppercase tracking-wider",
                     mode === option.key
-                      ? "bg-white text-[#FF6B35] shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
+                      ? "bg-white text-primary-600 shadow-sm ring-1 ring-black/5"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
                   )}
                 >
                   {option.label.split(' ')[0]}
@@ -410,68 +425,71 @@ export default function Login() {
               ))}
             </div>
 
-            <div className="space-y-4 mb-10">
-              <button
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-4 mb-6 lg:mb-10">
+              <Button
+                variant="outline"
+                type="button"
                 onClick={() => handleSocialLogin("google")}
                 disabled={!!socialProviderLoading}
-                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-100 hover:border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-2xl transition-all shadow-sm group"
+                className="w-full justify-center gap-2 lg:gap-3 py-4 lg:py-6 rounded-xl lg:rounded-2xl font-bold text-slate-700 text-xs lg:text-sm"
               >
                 {socialProviderLoading === "google" ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
                 ) : (
-                  <Chrome className="w-5 h-5 text-gray-900 group-hover:scale-110 transition-transform" />
+                  <Chrome className="w-4 h-4 lg:w-5 lg:h-5 text-slate-900" />
                 )}
-                Continue with Google
-              </button>
-              <button
+                <span className="hidden sm:inline">Continue with Google</span><span className="sm:hidden">Google</span>
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
                 onClick={() => handleSocialLogin("linkedin_oidc")}
                 disabled={!!socialProviderLoading}
-                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-100 hover:border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-2xl transition-all shadow-sm group"
+                className="w-full justify-center gap-2 lg:gap-3 py-4 lg:py-6 rounded-xl lg:rounded-2xl font-bold text-slate-700 text-xs lg:text-sm"
               >
                 {socialProviderLoading === "linkedin" ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
                 ) : (
-                  <Linkedin className="w-5 h-5 text-[#0077b5] group-hover:scale-110 transition-transform" />
+                  <Linkedin className="w-4 h-4 lg:w-5 lg:h-5 text-[#0077b5]" />
                 )}
-                Continue with LinkedIn
-              </button>
+                <span className="hidden sm:inline">Continue with LinkedIn</span><span className="sm:hidden">LinkedIn</span>
+              </Button>
             </div>
 
-            <div className="relative mb-10">
+            <div className="relative mb-6 lg:mb-10">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100"></div>
+                <div className="w-full border-t border-slate-200"></div>
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="px-4 bg-transparent text-gray-400 font-bold uppercase tracking-widest">Or with email</span>
+                <span className="px-4 bg-white/80 text-slate-400 font-bold uppercase tracking-widest backdrop-blur-xl">Or with email</span>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
+            <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
+              <div className="space-y-3 lg:space-y-4">
+                <Input
                     type="email"
                     placeholder="tech-wizard@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#FF6B35]/10 focus:border-[#FF6B35] transition-all font-medium placeholder:text-gray-300"
-                  />
-                </div>
+                    icon={<Mail className="w-5 h-5" />}
+                    required
+                    className="py-3 lg:py-4"
+                />
 
                 {mode !== "magic" && (
                   <motion.div 
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
-                    className="relative"
+                    className="overflow-hidden"
                   >
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
+                    <Input
                       type="password"
                       placeholder={mode === "register" ? "Create a strong password" : "••••••••"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#FF6B35]/10 focus:border-[#FF6B35] transition-all font-medium placeholder:text-gray-300"
+                      icon={<Lock className="w-5 h-5" />}
+                      className="py-3 lg:py-4"
                     />
                   </motion.div>
                 )}
@@ -480,28 +498,28 @@ export default function Login() {
                   <motion.div 
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
-                    className="relative"
+                    className="overflow-hidden"
                   >
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
+                    <Input
                       type="password"
                       placeholder="Confirm password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#FF6B35]/10 focus:border-[#FF6B35] transition-all font-medium placeholder:text-gray-300"
+                      icon={<Lock className="w-5 h-5" />}
+                      className="py-3 lg:py-4"
                     />
                   </motion.div>
                 )}
               </div>
 
               {mode === "register" && (
-                <div className="bg-gray-50/50 rounded-2xl p-5 space-y-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black">Security Checklist</p>
+                <div className="bg-slate-50/80 rounded-2xl p-4 lg:p-5 space-y-3 border border-slate-100">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black">Security Checklist</p>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     {passwordChecks.map((check) => (
-                      <div key={check.label} className="flex items-center gap-2 text-[11px] font-bold">
-                        <CheckCircle className={cn("w-3 h-3", check.pass ? "text-green-500" : "text-gray-300")} />
-                        <span className={cn(check.pass ? "text-gray-700" : "text-gray-400")}>{check.label}</span>
+                      <div key={check.label} className="flex items-center gap-2 text-[10px] lg:text-[11px] font-bold">
+                        <CheckCircle className={cn("w-3 h-3", check.pass ? "text-green-500" : "text-slate-300")} />
+                        <span className={cn(check.pass ? "text-slate-700" : "text-slate-400")}>{check.label}</span>
                       </div>
                     ))}
                   </div>
@@ -515,7 +533,7 @@ export default function Login() {
                 <motion.div 
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 text-red-500 text-xs font-bold bg-red-50 p-4 rounded-2xl border border-red-100"
+                  className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-red-100"
                   role="alert"
                 >
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -523,10 +541,12 @@ export default function Login() {
                 </motion.div>
               )}
 
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading || !canSubmit || !!rateLimitCountdown}
-                className="w-full bg-[#2D2D2D] hover:bg-[#FF6B35] text-white font-black py-4 rounded-2xl transition-all shadow-xl hover:shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
+                variant="primary"
+                size="lg"
+                className="w-full py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-xl shadow-primary-500/20 uppercase tracking-widest text-xs lg:text-sm font-black"
               >
                 {isLoading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
@@ -535,10 +555,10 @@ export default function Login() {
                 ) : (
                   <>
                     {mode === "magic" ? "Send Magic Link" : mode === "password" ? "Sign In" : "Create Account"}
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
-              </button>
+              </Button>
 
               {rateLimitCountdown && (
                 <p className="text-xs text-center text-orange-600 font-bold uppercase tracking-wider">Cooldown active · {rateLimitCountdown}s</p>
@@ -546,11 +566,11 @@ export default function Login() {
             </form>
           </motion.div>
 
-          <p className="mt-10 text-center text-xs text-gray-400 font-medium">
+          <p className="mt-6 lg:mt-10 text-center text-xs text-slate-400 font-medium relative z-10 pb-4 lg:pb-0">
             By joining, you agree to our{' '}
-            <Link to="/terms" className="underline hover:text-[#FF6B35]">Terms</Link>
+            <Link to="/terms" className="underline hover:text-primary-500">Terms</Link>
             {' '}and{' '}
-            <Link to="/privacy" className="underline hover:text-[#FF6B35]">Privacy Policy</Link>.
+            <Link to="/privacy" className="underline hover:text-primary-500">Privacy Policy</Link>.
           </p>
         </div>
       </div>
