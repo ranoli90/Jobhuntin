@@ -48,3 +48,6 @@ investor-data-room/exports/
 # Setup scripts (contain API keys during provisioning)
 scripts/setup/
 
+# Analysis reports
+*_report.json
+*_report.pdf
