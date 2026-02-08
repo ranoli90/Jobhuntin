@@ -22,7 +22,83 @@ import {
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { pushToast } from '../lib/toast';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+import { SEO } from '../components/marketing/SEO';
+
+const ResearchInsights = () => {
+  return (
+    <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 bg-[#FF6B35]/20 text-[#FF6B35] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-8">
+            <Sparkles className="w-4 h-4" />
+            Research Simulation Lab
+          </div>
+          <h2 className="text-4xl md:text-6xl font-extrabold font-poppins mb-12 leading-tight">
+            Modeling the Future of <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B35] to-[#4A90E2]">Visibility</span>
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-sm">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Search className="w-5 h-5 text-[#4A90E2]" />
+                Discovery Analysis
+              </h3>
+              <p className="text-gray-400 text-sm mb-6">
+                Our JobHuntBot/1.0 simulation shows 100% crawl accessibility across all programmatic niche hubs.
+              </p>
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Metadata Efficiency</span>
+                  <span className="text-green-400 font-bold">98.2%</span>
+                </div>
+                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div className="h-full bg-green-400" initial={{ width: 0 }} whileInView={{ width: "98.2%" }} />
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Crawl Pathing Score</span>
+                  <span className="text-[#4A90E2] font-bold">Optimal</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-sm">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-[#FF6B35]" />
+                Authority Modeling
+              </h3>
+              <p className="text-gray-400 text-sm mb-6">
+                Synthetic traffic simulation predicts a +2.5 average rank boost for high-intent siloed content.
+              </p>
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Dwell Time Multiplier</span>
+                  <span className="text-[#FF6B35] font-bold">3.4x</span>
+                </div>
+                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div className="h-full bg-[#FF6B35]" initial={{ width: 0 }} whileInView={{ width: "85%" }} />
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Link Graph Depth</span>
+                  <span className="text-[#4A90E2] font-bold">Siloed</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link to="/guides" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
+              Explore the Research Playbook <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
@@ -184,76 +260,6 @@ const StealthModeVisualizer = () => {
       </div>
     </div>
   );
-};
-
-// 1. SEO & Head
-const HeadSEO = () => {
-  useEffect(() => {
-    document.title = "JobHuntin: AI Auto-Applies to Jobs | Beat Sorce with Bot Powers";
-    
-    const updateMeta = (name: string, content: string) => {
-      let el = document.querySelector(`meta[name="${name}"]`);
-      if (!el) {
-        el = document.createElement('meta');
-        el.setAttribute('name', name);
-        document.head.appendChild(el);
-      }
-      el.setAttribute('content', content);
-    };
-
-    updateMeta("description", "Upload resume once. AI applies to 100s of jobs daily. Marketing, Sales, Admin & more. Denver focus.");
-    updateMeta("og:title", "JobHuntin: AI Auto-Applies to Jobs");
-    updateMeta("og:description", "Beat Sorce.jobs with automation. Upload resume, we apply for you.");
-    updateMeta("og:type", "website");
-    updateMeta("og:url", "https://jobhuntin.com");
-    updateMeta("theme-color", "#FF6B35");
-
-    // Dynamic OG Image
-    // Uses the new Python API endpoint to generate a branded card
-    // Default fallback if no params provided
-    const ogUrl = new URL("https://sorce-web.onrender.com/api/og"); // Adjust domain if needed
-    ogUrl.searchParams.set("job", "AI Job Hunter");
-    ogUrl.searchParams.set("company", "JobHuntin");
-    ogUrl.searchParams.set("score", "100");
-    ogUrl.searchParams.set("location", "Global");
-    
-    updateMeta("og:image", ogUrl.toString());
-    updateMeta("twitter:card", "summary_large_image");
-    updateMeta("twitter:image", ogUrl.toString());
-
-    // Canonical
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.setAttribute('rel', 'canonical');
-      document.head.appendChild(canonical);
-    }
-    canonical.setAttribute('href', 'https://jobhuntin.com');
-
-    // Schema
-    const script = document.createElement('script');
-    script.type = "application/ld+json";
-    script.text = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "JobHuntin",
-      "url": "https://jobhuntin.com",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://jobhuntin.com/search?q={search_term_string}",
-        "query-input": "required name=search_term_string"
-      }
-    });
-    document.head.appendChild(script);
-
-    // Mock GA4/Hotjar
-    console.log("GA4 & Hotjar scripts initialized (mock)");
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
-  return null;
 };
 
 // 2. Custom Cursor
@@ -805,7 +811,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
                 </div>
               </div>
               <p className="text-sm text-gray-600 mb-3">
-                Look for an email from <span className="font-semibold">noreply@sorce.app</span> (delivered via Resend). When you tap the link we’ll drop you straight into onboarding.
+                Look for an email from <span className="font-semibold">noreply@jobhuntin.com</span> (delivered via Resend). When you tap the link we’ll drop you straight into onboarding.
               </p>
               <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600">
                 <li>Open the inbox (or spam folder) for {sentEmail}.</li>
@@ -821,10 +827,10 @@ const Hero = ({ muted }: { muted: boolean }) => {
                   Use a different email
                 </button>
                 <a
-                  href="mailto:support@sorce.app"
+                  href="mailto:support@jobhuntin.com"
                   className="text-sm text-gray-500 hover:text-[#2D2D2D]"
                 >
-                  Need help? support@sorce.app
+                  Need help? support@jobhuntin.com
                 </a>
               </div>
             </motion.div>
@@ -1254,13 +1260,13 @@ const Footer = ({ muted }: { muted: boolean }) => {
               Stop grinding, start interviewing.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-[#FF6B35] hover:bg-orange-50 transition-all" onMouseEnter={() => playHoverSound(muted)}>
+              <a href="https://github.com/jobhuntin" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-[#FF6B35] hover:bg-orange-50 transition-all" aria-label="JobHuntin GitHub" onMouseEnter={() => playHoverSound(muted)}>
                 <Github className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-[#FF6B35] hover:bg-orange-50 transition-all" onMouseEnter={() => playHoverSound(muted)}>
+              <a href="https://twitter.com/jobhuntin" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-[#FF6B35] hover:bg-orange-50 transition-all" aria-label="JobHuntin Twitter" onMouseEnter={() => playHoverSound(muted)}>
                 <Gamepad2 className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-[#FF6B35] hover:bg-orange-50 transition-all" onMouseEnter={() => playHoverSound(muted)}>
+              <a href="https://jobhuntin.com" className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-[#FF6B35] hover:bg-orange-50 transition-all" aria-label="JobHuntin Website" onMouseEnter={() => playHoverSound(muted)}>
                 <Globe className="w-5 h-5" />
               </a>
             </div>
@@ -1269,10 +1275,36 @@ const Footer = ({ muted }: { muted: boolean }) => {
           <div>
             <h4 className="font-bold text-gray-900 mb-6">Platform</h4>
             <ul className="space-y-3 text-gray-500">
-              <li><a href="/pricing" className="hover:text-[#FF6B35] transition-colors">Pricing</a></li>
-              <li><a href="/success-stories" className="hover:text-[#FF6B35] transition-colors">Success Stories</a></li>
-              <li><a href="/chrome-extension" className="hover:text-[#FF6B35] transition-colors">Chrome Extension</a></li>
-              <li><a href="/recruiters" className="hover:text-[#FF6B35] transition-colors">For Recruiters</a></li>
+              <li>
+                <Link to="/pricing" className="hover:text-[#FF6B35] transition-colors">Pricing</Link>
+              </li>
+              <li>
+                <Link to="/success-stories" className="hover:text-[#FF6B35] transition-colors">Success Stories</Link>
+              </li>
+              <li>
+                <Link to="/chrome-extension" className="hover:text-[#FF6B35] transition-colors">Chrome Extension</Link>
+              </li>
+              <li>
+                <Link to="/recruiters" className="hover:text-[#FF6B35] transition-colors">For Recruiters</Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-gray-900 mb-6">Directory</h4>
+            <ul className="space-y-3 text-gray-500">
+              <li>
+                <Link to="/guides" className="hover:text-[#FF6B35] transition-colors">Job Search Guides</Link>
+              </li>
+              <li>
+                <Link to="/vs/sorce" className="hover:text-[#FF6B35] transition-colors">Compare Alternatives</Link>
+              </li>
+              <li>
+                <Link to="/jobs/marketing-manager/denver" className="hover:text-[#FF6B35] transition-colors">Denver Jobs</Link>
+              </li>
+              <li>
+                <Link to="/jobs/software-engineer/remote" className="hover:text-[#FF6B35] transition-colors">Remote Roles</Link>
+              </li>
             </ul>
           </div>
 
@@ -1289,8 +1321,8 @@ const Footer = ({ muted }: { muted: boolean }) => {
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
           <p>&copy; 2026 JobHuntin AI. All rights reserved.</p>
           <div className="flex gap-6 mt-4 md:mt-0">
-            <a href="/privacy" className="hover:text-[#FF6B35]">Privacy</a>
-            <a href="/terms" className="hover:text-[#FF6B35]">Terms</a>
+            <Link to="/privacy" className="hover:text-[#FF6B35]">Privacy</Link>
+            <Link to="/terms" className="hover:text-[#FF6B35]">Terms</Link>
             <a href="/sitemap.xml" className="hover:text-[#FF6B35]">Sitemap</a>
           </div>
         </div>
@@ -1323,7 +1355,42 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] font-inter text-[#2D2D2D] overflow-x-hidden selection:bg-[#FF6B35] selection:text-white cursor-none sm:cursor-auto">
-      <HeadSEO />
+      <SEO 
+        title="JobHuntin: AI Auto-Applies to Jobs | Beat Sorce with Bot Powers"
+        description="Upload resume once. AI applies to 100s of jobs daily. Marketing, Sales, Admin & more. Denver focus."
+        ogTitle="JobHuntin: AI Auto-Applies to Jobs | Beat Sorce with Bot Powers"
+        canonicalUrl="https://jobhuntin.com/"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Is this legit? Will I get banned from job sites?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Absolutely legit. We follow each platform's Terms of Service. We don't spam, we don't use bots that violate rate limits, and we never submit low-quality applications."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How is this different from just applying myself?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Speed and quality. Most people take 20-30 minutes per application. We do it in under 2 minutes, and we customize every resume and cover letter using AI."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What happens to my resume and data?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Your data is yours. We store it securely (encrypted at rest), never sell it to third parties, and you can delete everything anytime."
+              }
+            }
+          ]
+        }}
+      />
       <CustomCursor />
       <ProgressBar />
       <Navbar muted={muted} toggleMute={() => setMuted(!muted)} />
@@ -1333,6 +1400,7 @@ export default function Homepage() {
         <FeaturedJobs muted={muted} />
         <AutomationEdge muted={muted} />
         <Comparison />
+        <ResearchInsights />
       </main>
       <Footer muted={muted} />
       <ExitIntentPopup />

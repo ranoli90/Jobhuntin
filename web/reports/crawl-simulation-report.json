@@ -1,0 +1,187 @@
+{
+  "timestamp": "2026-02-08T12:11:35.789Z",
+  "crawler": {
+    "name": "JobHuntBot/1.0",
+    "executeJS": false,
+    "respectRobots": true
+  },
+  "results": [
+    {
+      "route": "/",
+      "status": 200,
+      "depth": 0,
+      "discoveryType": "Deep Link",
+      "equityScore": 1,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/pricing",
+      "status": 200,
+      "depth": 1,
+      "discoveryType": "Primary Nav",
+      "equityScore": 0.2,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "advanced"
+      }
+    },
+    {
+      "route": "/success-stories",
+      "status": 200,
+      "depth": 1,
+      "discoveryType": "Primary Nav",
+      "equityScore": 0.2,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/chrome-extension",
+      "status": 200,
+      "depth": 1,
+      "discoveryType": "Primary Nav",
+      "equityScore": 0.2,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "advanced"
+      }
+    },
+    {
+      "route": "/recruiters",
+      "status": 200,
+      "depth": 1,
+      "discoveryType": "Primary Nav",
+      "equityScore": 0.2,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/jobs/marketing-manager/denver",
+      "status": 200,
+      "depth": 3,
+      "discoveryType": "Deep Link",
+      "equityScore": 0.3,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/jobs/software-engineer/boulder",
+      "status": 200,
+      "depth": 3,
+      "discoveryType": "Deep Link",
+      "equityScore": 0.3,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/vs/sorce",
+      "status": 200,
+      "depth": 2,
+      "discoveryType": "Deep Link",
+      "equityScore": 0.4,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/vs/simplify",
+      "status": 200,
+      "depth": 2,
+      "discoveryType": "Deep Link",
+      "equityScore": 0.4,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/vs/teal",
+      "status": 200,
+      "depth": 2,
+      "discoveryType": "Deep Link",
+      "equityScore": 0.4,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/guides",
+      "status": 200,
+      "depth": 1,
+      "discoveryType": "Primary Nav",
+      "equityScore": 0.6,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    },
+    {
+      "route": "/guides/how-to-beat-ats-with-ai",
+      "status": 200,
+      "depth": 2,
+      "discoveryType": "Deep Link",
+      "equityScore": 0.6,
+      "metadata": {
+        "title": true,
+        "description": true,
+        "ogTags": true,
+        "schema": "basic"
+      }
+    }
+  ],
+  "summary": {
+    "totalRoutes": 12,
+    "accessibleRoutes": 12,
+    "metadataGaps": 0,
+    "schemaScore": 0,
+    "avgCrawlDepth": "1.58",
+    "linkEquityDistribution": {
+      "/": "1.00",
+      "/pricing": "0.20",
+      "/success-stories": "0.20",
+      "/chrome-extension": "0.20",
+      "/recruiters": "0.20",
+      "/jobs/marketing-manager/denver": "0.30",
+      "/jobs/software-engineer/boulder": "0.30",
+      "/vs/sorce": "0.40",
+      "/vs/simplify": "0.40",
+      "/vs/teal": "0.40",
+      "/guides": "0.60",
+      "/guides/how-to-beat-ats-with-ai": "0.60"
+    }
+  }
+}

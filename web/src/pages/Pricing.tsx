@@ -2,12 +2,72 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft, CheckCircle, Zap, Crown, Receipt, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { SEO } from '../components/marketing/SEO';
 
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] font-inter text-[#2D2D2D] selection:bg-[#FF6B35] selection:text-white">
+      <SEO 
+        title="Pricing | JobHuntin AI - Investment that Pays for Itself"
+        description="Choose the plan that fits your job search. From free starter kits to pro hunter automation. 7-day free trial available."
+        ogTitle="Pricing | JobHuntin AI"
+        ogImage="https://jobhuntin.com/og/pricing.png"
+        canonicalUrl="https://jobhuntin.com/pricing"
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": "JobHuntin Pro Hunter",
+            "description": "Unlimited AI applications, custom cover letters, and priority queue for job seekers.",
+            "offers": {
+              "@type": "Offer",
+              "price": "29.00",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            }
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Can I cancel anytime?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. One click in your dashboard. No awkward phone calls."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does this actually work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We've sent over 1M applications. Our users interview at Google, Amazon, and startups daily."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is my data safe?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We use bank-level encryption. Your resume is only shared with employers you apply to."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What if I get hired?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Then we did our job! Cancel your sub and pop the champagne. 🍾"
+                }
+              }
+            ]
+          }
+        ]}
+      />
       <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">

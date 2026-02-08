@@ -55,6 +55,10 @@ import Pricing from "./pages/Pricing";
 import SuccessStories from "./pages/SuccessStories";
 import ChromeExtension from "./pages/ChromeExtension";
 import Recruiters from "./pages/Recruiters";
+import JobNiche from "./pages/JobNiche";
+import ComparisonPage from "./pages/ComparisonPage";
+import GuidesHome from "./pages/GuidesHome";
+import GuidePage from "./pages/GuidePage";
 
 export default function App() {
   return (
@@ -64,6 +68,10 @@ export default function App() {
       <Route path="/success-stories" element={<SuccessStories />} />
       <Route path="/chrome-extension" element={<ChromeExtension />} />
       <Route path="/recruiters" element={<Recruiters />} />
+      <Route path="/jobs/:role/:city" element={<JobNiche />} />
+      <Route path="/vs/:competitorSlug" element={<ComparisonPage />} />
+      <Route path="/guides" element={<GuidesHome />} />
+      <Route path="/guides/:guideSlug" element={<GuidePage />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route element={<MarketingLayout />}>

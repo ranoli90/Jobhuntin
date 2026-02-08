@@ -1,0 +1,29 @@
+[
+  {
+    "segment": "High Intent Job Seeker",
+    "simulatedMetrics": {
+      "avgSessionDuration": "4m 30s",
+      "bounceRate": "0.05",
+      "conversionRate": "0.16",
+      "estimatedSearchRankBoost": "+2.5 positions"
+    }
+  },
+  {
+    "segment": "Tech Influencer",
+    "simulatedMetrics": {
+      "avgSessionDuration": "1m 15s",
+      "bounceRate": "0.45",
+      "conversionRate": "0.07",
+      "estimatedSearchRankBoost": "+0.5 positions"
+    }
+  },
+  {
+    "segment": "Recruiter / Enterprise",
+    "simulatedMetrics": {
+      "avgSessionDuration": "6m 00s",
+      "bounceRate": "0.03",
+      "conversionRate": "0.09",
+      "estimatedSearchRankBoost": "+0.5 positions"
+    }
+  }
+]

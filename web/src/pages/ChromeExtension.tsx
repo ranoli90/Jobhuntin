@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft, Download, Linkedin, Briefcase, Plus, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SEO } from '../components/marketing/SEO';
 
 export default function ChromeExtension() {
   const [activeStep, setActiveStep] = useState(0);
@@ -16,6 +17,30 @@ export default function ChromeExtension() {
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] font-inter text-[#2D2D2D] selection:bg-[#FF6B35] selection:text-white">
+      <SEO 
+        title="Chrome Extension | JobHuntin AI - The 'Add to Cart' for Your Career"
+        description="Automate your job search directly from LinkedIn, Indeed, and Glassdoor. One click to auto-apply, tailor resumes, and draft cover letters."
+        ogTitle="Chrome Extension | JobHuntin AI"
+        ogImage="https://jobhuntin.com/og/chrome-extension.png"
+        canonicalUrl="https://jobhuntin.com/chrome-extension"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "JobHuntin Chrome Extension",
+          "operatingSystem": "ChromeOS, Windows, macOS, Linux",
+          "applicationCategory": "BrowserApplication",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "1247"
+          }
+        }}
+      />
       <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">

@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft, Star, Quote, Play, Pause, Stamp } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { SEO } from '../components/marketing/SEO';
 
 export default function SuccessStories() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -58,6 +59,32 @@ export default function SuccessStories() {
 
   return (
     <div className="min-h-screen bg-[#111] font-inter text-white overflow-x-hidden selection:bg-[#FF6B35] selection:text-white">
+      <SEO 
+        title="Success Stories | JobHuntin AI - Real People, Real Offers"
+        description="See how Sarah, Michael, and others landed their dream jobs in record time using JobHuntin's AI automation. 98% match rates and massive salary bumps."
+        ogTitle="Success Stories | JobHuntin AI"
+        ogImage="https://jobhuntin.com/og/success-stories.png"
+        canonicalUrl="https://jobhuntin.com/success-stories"
+        schema={stories.map(story => ({
+          "@context": "https://schema.org",
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": story.name
+          },
+          "reviewBody": story.quote,
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5",
+            "bestRating": "5"
+          },
+          "itemReviewed": {
+            "@type": "SoftwareApplication",
+            "name": "JobHuntin",
+            "applicationCategory": "CareerAutomation"
+          }
+        }))}
+      />
       <nav className="px-6 py-4 fixed top-0 left-0 right-0 z-50 bg-[#111]/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -110,7 +137,7 @@ export default function SuccessStories() {
 
                   <div className="flex items-center gap-6 mb-8">
                     <div className="relative">
-                      <img src={story.image} alt={story.name} className="w-20 h-20 rounded-full object-cover border-2 border-white/10" />
+                      <img src={story.image} alt={`${story.name} - ${story.role} Success Story`} className="w-20 h-20 rounded-full object-cover border-2 border-white/10" />
                       <div className="absolute -bottom-2 -right-2 bg-[#FF6B35] rounded-full p-1.5 cursor-pointer hover:scale-110 transition-transform">
                         <Play className="w-3 h-3 text-white fill-current" />
                       </div>

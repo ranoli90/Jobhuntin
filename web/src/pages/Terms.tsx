@@ -1,10 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft } from 'lucide-react';
+import { SEO } from '../components/marketing/SEO';
 
 export default function Terms() {
   return (
     <div className="min-h-screen bg-[#FAF9F6] font-inter text-[#2D2D2D]">
+      <SEO 
+        title="Terms of Service | JobHuntin AI"
+        description="Read the terms and conditions for using JobHuntin's AI job hunting services."
+        ogTitle="Terms of Service | JobHuntin AI"
+        canonicalUrl="https://jobhuntin.com/terms"
+      />
       <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">

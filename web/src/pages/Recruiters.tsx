@@ -2,12 +2,20 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft, Terminal, User, Code, CheckCircle, Search, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SEO } from '../components/marketing/SEO';
 
 export default function Recruiters() {
   const [view, setView] = useState<'human' | 'terminal'>('human');
 
   return (
     <div className={`min-h-screen font-inter transition-colors duration-500 ${view === 'terminal' ? 'bg-[#0d1117] text-gray-300' : 'bg-[#FAF9F6] text-[#2D2D2D]'}`}>
+      <SEO 
+        title="For Recruiters | JobHuntin AI - Hire Talent, Not Keyword Stuffers"
+        description="Access a direct pipe to top-tier talent. Our AI pre-interviews candidates, delivering structured data and verified skillsets directly to your ATS."
+        ogTitle="For Recruiters | JobHuntin AI"
+        ogImage="https://jobhuntin.com/og/recruiters.png"
+        canonicalUrl="https://jobhuntin.com/recruiters"
+      />
       <nav className={`px-6 py-4 sticky top-0 z-50 border-b transition-colors duration-500 ${view === 'terminal' ? 'bg-[#0d1117]/80 border-gray-800' : 'bg-white/80 border-gray-100'} backdrop-blur-md`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -74,7 +82,7 @@ export default function Recruiters() {
                     <div className="absolute -inset-4 bg-gradient-to-r from-[#FF6B35] to-[#4A90E2] rounded-[2rem] opacity-20 blur-xl" />
                     <div className="bg-white p-8 rounded-3xl shadow-xl relative border border-gray-100">
                        <div className="flex items-center gap-4 mb-6 border-b border-gray-100 pb-4">
-                         <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&q=80" className="w-12 h-12 rounded-full" />
+                         <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&q=80" alt="Michael Chen - Top Talent Candidate" className="w-12 h-12 rounded-full" />
                          <div>
                            <h3 className="font-bold">Michael Chen</h3>
                            <p className="text-sm text-gray-500">Senior React Developer</p>

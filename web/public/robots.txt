@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jobhuntin.com/sitemap.xml
+Disallow: /app/
+Disallow: /login
