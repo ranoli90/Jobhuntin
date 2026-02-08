@@ -163,9 +163,9 @@ export default function ChromeExtension() {
                              <Check className="w-4 h-4" /> Match Score: 94%
                            </div>
                            <div className="bg-gray-50 p-2 rounded text-xs text-gray-500 font-mono">
-                             > Tailoring resume...<br/>
-                             > Drafting cover letter...<br/>
-                             > Added to priority queue.
+                             &gt; Tailoring resume...<br/>
+                             &gt; Drafting cover letter...<br/>
+                             &gt; Added to priority queue.
                            </div>
                          </div>
                        )}
