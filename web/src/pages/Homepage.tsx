@@ -147,8 +147,8 @@ const StealthModeVisualizer = () => {
              <div className="w-1 h-full bg-gray-800" />
              <div className="h-1 w-full bg-gray-800 absolute" />
            </div>
-           
-           {/* The Shape */}
+            
+            {/* The Shape */}
            <svg className="absolute inset-0 w-full h-full overflow-visible">
              <motion.path 
                d="M128 32 L200 80 L180 180 L76 180 L56 80 Z"
@@ -713,6 +713,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
             <span className="font-semibold text-gray-900"> Beats Sorce.jobs</span> for any role.
           </p>
 
+          {!sentEmail && (
           <div 
             className="group relative max-w-md mx-auto lg:mx-0 p-1 rounded-2xl bg-gradient-to-r from-[#FF6B35] to-[#4A90E2] transition-transform hover:scale-[1.01]"
             onMouseMove={handleMouseMove}
@@ -759,6 +760,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
               </button>
             </form>
           </div>
+          )}
           
           {emailError && (
             <motion.p 
@@ -787,7 +789,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
              <ActivityFeed />
           </div>
 
-          <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-gray-500">
+          {sentEmail && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
