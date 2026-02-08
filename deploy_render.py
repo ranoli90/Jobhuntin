@@ -41,7 +41,7 @@ def manage_render():
             # Trigger deploy for backend to apply latest main push
             print(f"Triggering deploy for {api_service['name']}...")
             deploy_resp = httpx.post(f"https://api.render.com/v1/services/{api_service['id']}/deploys", headers=headers, json={})
-            if deploy_resp.status_code in (200, 201, 202):
+            if deploy_resp.status_code in {200, 201, 202}:
                 print("Backend deploy triggered successfully (Status: 202 Accepted).")
             else:
                 print(f"Failed to trigger backend deploy: {deploy_resp.status_code} - {deploy_resp.text}")
@@ -64,22 +64,21 @@ def manage_render():
                     print(f"VITE_API_URL is already set to: {item['envVar']['value']}")
                     break
             
-            if not has_api_url:
-                if api_service:
-                    api_url = "https://sorce-api.onrender.com"
-                    print(f"VITE_API_URL missing. Setting it to {api_url}...")
-                    patch_data = [{"key": "VITE_API_URL", "value": api_url}]
-                    patch_resp = httpx.put(f"https://api.render.com/v1/services/{web_service['id']}/env-vars", 
-                                          headers=headers, json=patch_data)
-                    if patch_resp.status_code in (200, 201, 204):
-                        print("VITE_API_URL set successfully.")
-                    else:
-                        print(f"Failed to set VITE_API_URL: {patch_resp.status_code} - {patch_resp.text}")
+            if not has_api_url and api_service:
+                api_url = "https://sorce-api.onrender.com"
+                print(f"VITE_API_URL missing. Setting it to {api_url}...")
+                patch_data = [{"key": "VITE_API_URL", "value": api_url}]
+                patch_resp = httpx.put(f"https://api.render.com/v1/services/{web_service['id']}/env-vars", 
+                                      headers=headers, json=patch_data)
+                if patch_resp.status_code in {200, 201, 204}:
+                    print("VITE_API_URL set successfully.")
+                else:
+                    print(f"Failed to set VITE_API_URL: {patch_resp.status_code} - {patch_resp.text}")
             
             # Trigger deploy for frontend
             print(f"Triggering deploy for {web_service['name']}...")
             deploy_resp = httpx.post(f"https://api.render.com/v1/services/{web_service['id']}/deploys", headers=headers, json={})
-            if deploy_resp.status_code in (200, 201, 202):
+            if deploy_resp.status_code in {200, 201, 202}:
                 print("Frontend deploy triggered successfully (Status: 202 Accepted).")
             else:
                 print(f"Failed to trigger frontend deploy: {deploy_resp.status_code} - {deploy_resp.text}")

@@ -48,12 +48,15 @@ class JobApplicationBlueprint:
     # -- Profile parsing ---------------------------------------------------
 
     def build_profile_parse_prompt(self, raw_text: str) -> str:
+        """Construct prompt to parse resume text into a JobSeekerProfile."""
         return _build_resume_parse_prompt(raw_text)
 
     def parse_profile_response(self, raw_json: dict) -> ActorProfile:
+        """Parse LLM JSON response into JobSeekerProfile."""
         return from_canonical_profile(raw_json)
 
     def normalize_profile(self, raw: dict) -> ActorProfile:
+        """Normalize raw profile dictionary into JobSeekerProfile."""
         return from_canonical_profile(raw)
 
     # -- DOM mapping -------------------------------------------------------
@@ -64,6 +67,7 @@ class JobApplicationBlueprint:
         form_fields: list[FormField],
         answered_inputs: list[dict] | None = None,
     ) -> str:
+        """Construct prompt to map profile data to job application form fields."""
         # Convert ActorProfile back to the canonical dict shape the prompt expects
         if isinstance(profile, JobSeekerProfile):
             profile_dict = to_canonical_dict(profile)
@@ -74,6 +78,7 @@ class JobApplicationBlueprint:
         return _build_dom_mapping_prompt(profile_dict, fields_dicts, answered_inputs)
 
     def parse_dom_mapping_response(self, raw_json: dict) -> DomMappingResult:
+        """Parse LLM JSON response into DomMappingResult."""
         return DomMappingResult(
             field_values=raw_json.get("field_values", {}),
             unresolved_required_fields=[
@@ -85,6 +90,7 @@ class JobApplicationBlueprint:
     # -- Playwright submit -------------------------------------------------
 
     def submit_button_selectors(self) -> list[str]:
+        """Return CSS selectors for the submit button."""
         return JOB_APP_SUBMIT_SELECTORS
 
     # -- Completion hook ---------------------------------------------------

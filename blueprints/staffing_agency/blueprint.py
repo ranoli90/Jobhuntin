@@ -33,6 +33,7 @@ Text:
 {raw_text}"""
 
     def parse_profile_response(self, llm_output: str) -> dict[str, Any]:
+        """Parse LLM JSON response into candidate profile dict."""
         import json
         try:
             return json.loads(llm_output)
@@ -43,6 +44,7 @@ Text:
         return profile
 
     def build_dom_mapping_prompt(self, profile: dict[str, Any], fields: list[dict]) -> str:
+        """Construct prompt to map candidate profile to ATS form fields."""
         import json
         return f"""Map the candidate profile data to the ATS application form fields.
 
@@ -95,4 +97,5 @@ Leave fields empty if no matching data."""
         ]
 
     async def on_task_completed(self, task_id: str, result: dict[str, Any]) -> None:
+        """Handle task completion (no-op)."""
         pass

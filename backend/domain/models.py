@@ -72,6 +72,7 @@ class CanonicalContact(BaseModel):
 
 
 class CanonicalEducation(BaseModel):
+    """Educational history entry."""
     institution: str = ""
     degree: str = ""
     field_of_study: str = ""
@@ -81,6 +82,7 @@ class CanonicalEducation(BaseModel):
 
 
 class CanonicalExperience(BaseModel):
+    """Professional experience entry."""
     company: str = ""
     title: str = ""
     start_date: str = ""
@@ -90,11 +92,16 @@ class CanonicalExperience(BaseModel):
 
 
 class CanonicalSkills(BaseModel):
+    """Categorized skills."""
     technical: list[str] = Field(default_factory=list)
     soft: list[str] = Field(default_factory=list)
 
 
 class CanonicalProfile(BaseModel):
+    """
+    Full normalized user profile.
+    Acts as the source of truth for filling job applications.
+    """
     contact: CanonicalContact = Field(default_factory=CanonicalContact)
     education: list[CanonicalEducation] = Field(default_factory=list)
     experience: list[CanonicalExperience] = Field(default_factory=list)
@@ -169,6 +176,10 @@ def normalize_profile(raw: dict) -> CanonicalProfile:
 # ---------------------------------------------------------------------------
 
 class Tenant(BaseModel):
+    """
+    Tenant (Organization/Team) entity.
+    Represents a billing unit and isolation scope.
+    """
     id: str
     name: str
     slug: str
@@ -230,6 +241,10 @@ class Application(BaseModel):
 
 
 class ApplicationInput(BaseModel):
+    """
+    Interactive form field requiring user input.
+    Used when the Agent hits a question it cannot answer automatically.
+    """
     id: str
     application_id: str
     tenant_id: str | None = None
@@ -287,6 +302,9 @@ class FormFieldOption(BaseModel):
 
 
 class FormField(BaseModel):
+    """
+    DOM element representation extracted from the target page.
+    """
     selector: str
     label: str
     type: str
@@ -296,6 +314,7 @@ class FormField(BaseModel):
 
 
 class UnresolvedField(BaseModel):
+    """Field that the LLM could not map confidently."""
     selector: str
     question: str
 

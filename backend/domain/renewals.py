@@ -70,151 +70,79 @@ async def run_notification_sequence(conn: asyncpg.Connection) -> list[dict[str, 
     """)
 
     for renewal in renewals:
-        days_until = (renewal["renewal_date"] - now).days
-        current_status = renewal["status"]
-        new_status = current_status
-        should_notify = False
-
-        if days_until <= 30 and current_status != "notified_30":
-            new_status = "notified_30"
-            should_notify = True
-        elif days_until <= 60 and current_status not in ("notified_30", "notified_60"):
-            new_status = "notified_60"
-            should_notify = True
-        elif days_until <= 90 and current_status == "upcoming":
-            new_status = "notified_90"
-            should_notify = True
-
-        if should_notify:
-            # Build notification
-            value = (renewal["contract_value"] or 0) / 100
-            msg = (
-                f"{'🔴' if days_until <= 30 else '🟡' if days_until <= 60 else '🟢'} "
-                f"*Contract Renewal*: {renewal['tenant_name']} ({renewal['plan']}) — "
-                f"${value:,.0f}/yr renews in {days_until} days "
-                f"({renewal['renewal_date'].strftime('%Y-%m-%d')})"
-            )
-
-            # Send Slack notification
-            from backend.domain.alerting_v2 import send_slack_message
-            await send_slack_message(
-                text=msg,
-                channel=get_settings().slack_enterprise_channel,
-            )
-
-            # Update log
-            log = json.loads(renewal["notification_log"]) if isinstance(renewal["notification_log"], str) else list(renewal["notification_log"] or [])
-            log.append({
-                "status": new_status,
-                "days_until_renewal": days_until,
-                "notified_at": now.isoformat(),
-                "channel": "slack",
-            })
-
-            await conn.execute(
-                """UPDATE public.contract_renewals
-                   SET status = $2, notification_log = $3::jsonb
-                   WHERE id = $1""",
-                renewal["id"], new_status, json.dumps(log),
-            )
-
-            notifications.append({
-                "tenant": renewal["tenant_name"],
-                "plan": renewal["plan"],
-                "days_until": days_until,
-                "status": new_status,
-                "value": value,
-            })
-
-            logger.info("Renewal notification: %s — %d days — %s", renewal["tenant_name"], days_until, new_status)
+        status_update = _determine_renewal_status(renewal, now)
+        if status_update:
+            days_until, new_status = status_update
+            notif = await _send_renewal_notification(conn, renewal, days_until, new_status, now)
+            notifications.append(notif)
 
     return notifications
 
 
-async def auto_create_renewal_invoice(
+def _determine_renewal_status(renewal: dict, now: datetime) -> tuple[int, str] | None:
+    """Determine if a notification is needed and return (days_until, new_status)."""
+    days_until = (renewal["renewal_date"] - now).days
+    current_status = renewal["status"]
+
+    if days_until <= 30 and current_status != "notified_30":
+        return days_until, "notified_30"
+    if days_until <= 60 and current_status not in ("notified_30", "notified_60"):
+        return days_until, "notified_60"
+    if days_until <= 90 and current_status == "upcoming":
+        return days_until, "notified_90"
+    
+    return None
+
+
+async def _send_renewal_notification(
     conn: asyncpg.Connection,
-    tenant_id: str,
-) -> dict[str, Any] | None:
-    """
-    Auto-create a Stripe invoice for contract renewal.
-    Called when a renewal is approved or auto-renewed.
-    """
-    s = get_settings()
-    if not s.stripe_secret_key:
-        logger.warning("Stripe not configured — skipping auto-invoice")
-        return None
-
-    tenant = await conn.fetchrow(
-        """SELECT t.*, bc.stripe_customer_id
-           FROM public.tenants t
-           LEFT JOIN public.billing_customers bc ON bc.tenant_id = t.id
-           WHERE t.id = $1""",
-        tenant_id,
+    renewal: asyncpg.Record,
+    days_until: int,
+    new_status: str,
+    now: datetime,
+) -> dict[str, Any]:
+    """Helper to send notification and update renewal status."""
+    # Build notification
+    value = (renewal["contract_value"] or 0) / 100
+    msg = (
+        f"{'🔴' if days_until <= 30 else '🟡' if days_until <= 60 else '🟢'} "
+        f"*Contract Renewal*: {renewal['tenant_name']} ({renewal['plan']}) — "
+        f"${value:,.0f}/yr renews in {days_until} days "
+        f"({renewal['renewal_date'].strftime('%Y-%m-%d')})"
     )
-    if not tenant or not tenant["stripe_customer_id"]:
-        logger.warning("No Stripe customer for tenant %s", tenant_id)
-        return None
 
-    try:
-        import stripe
-        stripe.api_key = s.stripe_secret_key
+    # Send Slack notification
+    from backend.domain.alerting_v2 import send_slack_message
+    await send_slack_message(
+        text=msg,
+        channel=get_settings().slack_enterprise_channel,
+    )
 
-        contract_value = (tenant["contract_value_cents"] or 0)
-        if contract_value <= 0:
-            return None
+    # Update log
+    log = json.loads(renewal["notification_log"]) if isinstance(renewal["notification_log"], str) else list(renewal["notification_log"] or [])
+    log.append({
+        "status": new_status,
+        "days_until_renewal": days_until,
+        "notified_at": now.isoformat(),
+        "channel": "slack",
+    })
 
-        # Create invoice
-        invoice = stripe.Invoice.create(
-            customer=tenant["stripe_customer_id"],
-            collection_method="send_invoice",
-            days_until_due=30,
-            description=f"Contract Renewal — {tenant['name']} ({tenant['plan']})",
-            metadata={"tenant_id": str(tenant_id), "type": "renewal"},
-        )
+    await conn.execute(
+        """UPDATE public.contract_renewals
+           SET status = $2, notification_log = $3::jsonb
+           WHERE id = $1""",
+        renewal["id"], new_status, json.dumps(log),
+    )
 
-        # Add line item
-        stripe.InvoiceItem.create(
-            customer=tenant["stripe_customer_id"],
-            invoice=invoice.id,
-            amount=contract_value,
-            currency="usd",
-            description=f"Annual contract renewal — {tenant['plan']} plan",
-        )
+    logger.info("Renewal notification: %s — %d days — %s", renewal["tenant_name"], days_until, new_status)
 
-        # Finalize and send
-        stripe.Invoice.finalize_invoice(invoice.id)
-        stripe.Invoice.send_invoice(invoice.id)
-
-        # Update renewal status
-        await conn.execute(
-            """UPDATE public.contract_renewals
-               SET status = 'renewed'
-               WHERE tenant_id = $1 AND status != 'renewed'
-               ORDER BY renewal_date ASC LIMIT 1""",
-            tenant_id,
-        )
-
-        # Extend contract
-        new_end = tenant["contract_end"] + timedelta(days=365) if tenant["contract_end"] else None
-        if new_end:
-            await conn.execute(
-                "UPDATE public.tenants SET contract_start = contract_end, contract_end = $2 WHERE id = $1",
-                tenant_id, new_end,
-            )
-
-        logger.info("Auto-renewal invoice created: tenant=%s invoice=%s amount=$%.2f",
-                     tenant["name"], invoice.id, contract_value / 100)
-
-        return {
-            "tenant_id": str(tenant_id),
-            "invoice_id": invoice.id,
-            "amount_cents": contract_value,
-            "status": "sent",
-        }
-
-    except Exception as exc:
-        logger.error("Auto-renewal invoice failed for %s: %s", tenant_id, exc)
-        return None
+    return {
+        "tenant": renewal["tenant_name"],
+        "plan": renewal["plan"],
+        "days_until": days_until,
+        "status": new_status,
+        "value": value,
+    }
 
 
 async def run_renewal_cycle(conn: asyncpg.Connection) -> dict[str, Any]:

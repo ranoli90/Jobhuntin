@@ -53,6 +53,7 @@ class ReviewRequest(BaseModel):
 
 
 class BlueprintResponse(BaseModel):
+    """Blueprint details response."""
     id: str
     slug: str
     name: str

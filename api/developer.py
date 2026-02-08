@@ -37,6 +37,7 @@ class CreateKeyRequest(BaseModel):
 
 
 class CreateWebhookRequest(BaseModel):
+    """Payload for creating a webhook."""
     url: str
     events: list[str] = ["application.completed", "application.failed", "application.hold"]
 

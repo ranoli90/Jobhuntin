@@ -24,6 +24,7 @@ class AdzunaClient:
         location: str | None = None, 
         results_per_page: int = 50
     ) -> list[dict[str, Any]]:
+        """Fetch jobs from Adzuna based on keywords and location."""
         if not self.app_id or not self.api_key:
             logger.warning("Adzuna credentials not configured; returning empty results.")
             return []

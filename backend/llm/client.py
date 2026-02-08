@@ -132,35 +132,44 @@ class LLMClient:
 
     async def _request(self, payload: dict) -> dict:
         """Make the HTTP request and extract the JSON content."""
+        data = await self._make_http_request(payload)
+        content = self._extract_content(data)
+        cleaned_content = self._clean_content(content)
+        return self._parse_json(cleaned_content)
+
+    async def _make_http_request(self, payload: dict) -> dict:
+        """Execute the raw HTTP POST."""
         url = f"{self.api_base}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             resp = await client.post(url, json=payload, headers=headers)
             resp.raise_for_status()
+        return resp.json()
 
-        data = resp.json()
-
-        # Extract content from the standard OpenAI response shape
+    def _extract_content(self, data: dict) -> str:
+        """Extract content string from OpenAI response."""
         try:
-            content = data["choices"][0]["message"]["content"]
+            return data["choices"][0]["message"]["content"]
         except (KeyError, IndexError) as exc:
             raise LLMError(f"Unexpected LLM response structure: {exc}")
 
-        # Strip markdown fences if present
+    def _clean_content(self, content: str) -> str:
+        """Strip markdown fences and whitespace."""
         content = content.strip()
         if content.startswith("```"):
             lines = content.split("\n")
-            # Remove first and last lines (fences)
             if lines[0].startswith("```"):
                 lines = lines[1:]
             if lines and lines[-1].strip() == "```":
                 lines = lines[:-1]
             content = "\n".join(lines)
+        return content
 
+    def _parse_json(self, content: str) -> dict:
+        """Parse JSON string."""
         try:
             return json.loads(content)
         except json.JSONDecodeError as exc:

@@ -17,12 +17,12 @@ WEB_SERVICE_ID = "srv-d63sipvgi27c739ni59g"
 def delete_and_recreate():
     # 1. Get current details
     print(f"Fetching details for {WEB_SERVICE_ID}...")
-    resp = requests.get(f"https://api.render.com/v1/services/{WEB_SERVICE_ID}", headers=headers)
+    resp = requests.get(f"https://api.render.com/v1/services/{WEB_SERVICE_ID}", headers=headers, timeout=10)
     
     if resp.status_code != 200:
         print(f"Error fetching service: {resp.text}")
         # Try to find by name if ID is wrong
-        services_resp = requests.get("https://api.render.com/v1/services", headers=headers)
+        services_resp = requests.get("https://api.render.com/v1/services", headers=headers, timeout=10)
         if services_resp.status_code == 200:
             for item in services_resp.json():
                 svc = item['service']
@@ -44,8 +44,8 @@ def delete_and_recreate():
     
     # 2. Delete the service
     print(f"Deleting service {target_id}...")
-    del_resp = requests.delete(f"https://api.render.com/v1/services/{target_id}", headers=headers)
-    if del_resp.status_code not in [204, 200]:
+    del_resp = requests.delete(f"https://api.render.com/v1/services/{target_id}", headers=headers, timeout=10)
+    if del_resp.status_code not in {200, 204}:
         print(f"Error deleting service: {del_resp.text}")
     else:
         print("Successfully deleted sorce-web.")
@@ -66,14 +66,22 @@ def delete_and_recreate():
             {
                 "key": "VITE_API_URL",
                 "value": "https://sorce-api.onrender.com"
+            },
+            {
+                "key": "VITE_SUPABASE_URL",
+                "value": "https://zntqsqyhqsqyhqsqyhqsqy.supabase.co"
+            },
+            {
+                "key": "VITE_SUPABASE_ANON_KEY",
+                "value": "sbp_d2258f6603d6bc4b5fb5fd4c081207d2b5f7734e"
             }
         ]
     }
 
     print("Creating new sorce-web static site with proper settings...")
-    create_resp = requests.post("https://api.render.com/v1/services", headers=headers, json=new_svc_data)
+    create_resp = requests.post("https://api.render.com/v1/services", headers=headers, json=new_svc_data, timeout=10)
     
-    if create_resp.status_code in [201, 200]:
+    if create_resp.status_code in {200, 201}:
         new_svc = create_resp.json()
         # For static site creation response, it might be the svc object directly or wrapped
         svc_info = new_svc.get('service', new_svc)

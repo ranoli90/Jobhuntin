@@ -90,56 +90,10 @@ async def get_onboarding_status(
 
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Contract lifecycle
 # ---------------------------------------------------------------------------
 
-async def set_contract(
-    conn: asyncpg.Connection,
-    tenant_id: str,
-    value_cents: int,
-    billing_interval: str = "monthly",
-    contract_months: int = 12,
-) -> None:
-    """Set contract value and dates on a tenant."""
-    from datetime import datetime, timezone, timedelta
-    now = datetime.now(timezone.utc)
-    end = now + timedelta(days=contract_months * 30)
-
-    discount = get_settings().annual_discount_pct if billing_interval == "annual" else 0
-
-    await conn.execute(
-        """
-        UPDATE public.tenants
-        SET contract_value_cents = $2, contract_start = $3, contract_end = $4,
-            billing_interval = $5, annual_discount_pct = $6, updated_at = now()
-        WHERE id = $1
-        """,
-        tenant_id, value_cents, now, end, billing_interval, discount,
-    )
-
-
-async def get_contracts_expiring(
-    conn: asyncpg.Connection, within_days: int = 30,
-) -> list[dict[str, Any]]:
-    """Get contracts expiring within N days."""
-    rows = await conn.fetch(
-        """
-        SELECT t.id, t.name, t.plan::text, t.contract_end, t.contract_value_cents,
-               t.seat_count, t.churn_risk_score
-        FROM public.tenants t
-        WHERE t.contract_end IS NOT NULL
-          AND t.contract_end <= now() + ($1 || ' days')::interval
-          AND t.plan IN ('TEAM', 'ENTERPRISE')
-        ORDER BY t.contract_end ASC
-        """,
-        str(within_days),
-    )
-    return [dict(r) for r in rows]
-
-
-# ---------------------------------------------------------------------------
-# Churn risk scoring (simple heuristic — ML v2 in future)
-# ---------------------------------------------------------------------------
 
 async def update_churn_risk_scores(conn: asyncpg.Connection) -> int:
     """

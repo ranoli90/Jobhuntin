@@ -87,3 +87,42 @@ ALL_EVENT_TYPES: frozenset[str] = frozenset({
     PUSH_TOKEN_REGISTERED,
     REVIEW_PROMPT_SHOWN,
 })
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+import json
+import logging
+import asyncpg
+from shared.logging_config import get_logger
+
+logger = get_logger("sorce.analytics")
+
+async def emit_analytics_event(
+    pool: asyncpg.Pool,
+    event_type: str,
+    *,
+    tenant_id: str | None = None,
+    user_id: str | None = None,
+    session_id: str | None = None,
+    properties: dict | None = None,
+) -> None:
+    """Insert a server-generated analytics event (fire-and-forget)."""
+    try:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO public.analytics_events
+                    (tenant_id, user_id, session_id, event_type, properties)
+                VALUES ($1, $2, $3, $4, $5::jsonb)
+                """,
+                tenant_id,
+                user_id,
+                session_id,
+                event_type,
+                json.dumps(properties or {}),
+            )
+    except Exception as exc:
+        logger.warning("Failed to emit analytics event %s: %s", event_type, exc)

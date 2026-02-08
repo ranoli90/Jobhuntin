@@ -13,26 +13,31 @@ import asyncpg
 
 
 async def get_pnl(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get Profit and Loss statement."""
     rows = await conn.fetch("SELECT * FROM public.mv_m5_pnl ORDER BY month")
     return [dict(r) for r in rows]
 
 
 async def get_marketplace_revenue(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get revenue from marketplace blueprints."""
     rows = await conn.fetch("SELECT * FROM public.mv_marketplace_revenue ORDER BY month")
     return [dict(r) for r in rows]
 
 
 async def get_cohort_retention(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get cohort retention data."""
     rows = await conn.fetch("SELECT * FROM public.mv_cohort_retention ORDER BY cohort_month, month_number")
     return [dict(r) for r in rows]
 
 
 async def get_agent_performance_weekly(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get weekly agent performance metrics."""
     rows = await conn.fetch("SELECT * FROM public.mv_agent_performance_m5 ORDER BY week DESC, blueprint_key LIMIT 100")
     return [dict(r) for r in rows]
 
 
 async def get_subscriber_counts(conn: asyncpg.Connection) -> dict[str, int]:
+    """Get count of subscribers by plan."""
     row = await conn.fetchrow("""
         SELECT
             COUNT(*) FILTER (WHERE plan != 'FREE')::int AS paying,

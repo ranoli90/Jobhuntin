@@ -213,6 +213,7 @@ class ApplicationRepo:
         conn: asyncpg.Connection, application_id: str, user_id: str,
         tenant_id: str | None = None,
     ) -> dict | None:
+        """Fetch application scoped to a user (and optionally tenant)."""
         if tenant_id:
             row = await conn.fetchrow(
                 "SELECT * FROM public.applications WHERE id = $1 AND user_id = $2 AND tenant_id = $3",
@@ -494,6 +495,7 @@ class TenantRepo:
 
     @staticmethod
     async def get_by_id(conn: asyncpg.Connection, tenant_id: str) -> dict | None:
+        """Fetch tenant by ID."""
         row = await conn.fetchrow(
             "SELECT * FROM public.tenants WHERE id = $1", tenant_id
         )
@@ -534,6 +536,7 @@ class TenantRepo:
         limit: int = 50,
         offset: int = 0,
     ) -> list[dict]:
+        """Paginated list of all tenants (admin only)."""
         rows = await conn.fetch(
             "SELECT * FROM public.tenants ORDER BY created_at DESC LIMIT $1 OFFSET $2",
             limit, offset,

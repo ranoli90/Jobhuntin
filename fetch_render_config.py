@@ -48,7 +48,7 @@ def fetch_render_env():
                             print(f"  [SG] {ev['key']}: {ev['value'][:10]}...")
 
             # 2. Get env vars for this service
-            env_resp = httpx.get(f"https://api.render.com/v1/services/{service_id}/env-vars", headers=headers)
+            env_resp = httpx.get(f"https://api.render.com/v1/services/{service_id}/env-vars", headers=headers, timeout=10)
             env_resp.raise_for_status()
             env_vars = env_resp.json()
             

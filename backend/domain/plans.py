@@ -10,6 +10,7 @@ from typing import Any, TypedDict
 
 
 class PlanConfig(TypedDict):
+    """Configuration structure for a subscription plan."""
     max_monthly_tasks: int
     max_concurrent_tasks: int
     # Backward-compat aliases (same values, different keys for Sorce code)

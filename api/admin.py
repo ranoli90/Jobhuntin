@@ -62,6 +62,7 @@ class PaginatedTenants(BaseModel):
 
 
 class ApplicationSummary(BaseModel):
+    """Brief application information for listing."""
     id: str
     user_id: str
     job_id: str
@@ -85,6 +86,7 @@ class ApplicationDetailAdmin(BaseModel):
 
 
 class ReplayResponse(BaseModel):
+    """Response for replaying an application."""
     application_id: str
     new_status: str
     attempt_count: int

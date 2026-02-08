@@ -94,6 +94,7 @@ class TaskEventType(str, enum.Enum):
 class ActorIdentity(BaseModel):
     """Core identity fields common to all verticals."""
     full_name: str = Field(default="", json_schema_extra={"pii": True})
+
     first_name: str = Field(default="", json_schema_extra={"pii": True})
     last_name: str = Field(default="", json_schema_extra={"pii": True})
     email: str = Field(default="", json_schema_extra={"pii": True})

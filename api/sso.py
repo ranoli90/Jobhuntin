@@ -47,6 +47,7 @@ _get_tenant_ctx: Callable[[], TenantContext] = lambda: (_ for _ in ()).throw(
 # ---------------------------------------------------------------------------
 
 class SSOConfigRequest(BaseModel):
+    """Payload for configuring SSO."""
     provider: str = "saml"  # saml or oidc
     entity_id: str = ""
     sso_url: str = ""
@@ -57,6 +58,7 @@ class SSOConfigRequest(BaseModel):
 
 
 class SSOConfigResponse(BaseModel):
+    """SSO configuration details."""
     tenant_id: str
     provider: str
     is_active: bool

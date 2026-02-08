@@ -12,7 +12,7 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.observability import run_all_alerts, AlertResult
+from backend.domain.observability import run_all_alerts, AlertResult, get_success_metrics
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -154,8 +154,8 @@ async def check_and_auto_rollback(conn: asyncpg.Connection) -> dict[str, Any] | 
             return {
                 "action": "auto_rollback",
                 "reason": f"Success rate {rate:.1f}% < 60% threshold",
-                "samples": row["total"],
-                "succeeded": row["succeeded"],
+                "samples": metrics["total"],
+                "succeeded": metrics["succeeded"],
             }
     return None
 

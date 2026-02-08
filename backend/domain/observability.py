@@ -106,19 +106,37 @@ class AlertResult:
         }
 
 
-async def check_agent_success_rate(conn: asyncpg.Connection, threshold: float = 85.0) -> AlertResult | None:
-    """Alert if agent success rate drops below threshold (last 24h)."""
-    row = await conn.fetchrow("""
+async def get_success_metrics(
+    conn: asyncpg.Connection, interval: str, min_samples: int = 10
+) -> dict[str, Any] | None:
+    """Calculate success rate metrics over a time interval."""
+    row = await conn.fetchrow(f"""
         SELECT
             COUNT(*)::int AS total,
-            COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED'))::int AS succeeded
+            COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED'))::int AS succeeded
         FROM public.applications
-        WHERE created_at >= now() - interval '24 hours'
+        WHERE created_at >= now() - interval '{interval}'
           AND status NOT IN ('QUEUED', 'PROCESSING')
     """)
-    if not row or (row["total"] or 0) < 10:
-        return None  # Not enough data
-    rate = round((row["succeeded"] or 0) / max(row["total"], 1) * 100, 1)
+    if not row or (row["total"] or 0) < min_samples:
+        return None
+    
+    total = row["total"]
+    succeeded = row["succeeded"] or 0
+    return {
+        "total": total,
+        "succeeded": succeeded,
+        "rate": round(succeeded / total * 100, 1),
+    }
+
+
+async def check_agent_success_rate(conn: asyncpg.Connection, threshold: float = 85.0) -> AlertResult | None:
+    """Alert if agent success rate drops below threshold (last 24h)."""
+    metrics = await get_success_metrics(conn, "24 hours")
+    if not metrics:
+        return None
+        
+    rate = metrics["rate"]
     if rate < threshold:
         return AlertResult(
             "agent_success_rate",

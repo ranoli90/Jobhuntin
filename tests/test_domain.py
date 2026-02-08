@@ -321,9 +321,15 @@ class TestLLMClient:
                 mock_resp = MagicMock()
                 mock_resp.status_code = 503
                 raise httpx.HTTPStatusError("503", request=MagicMock(), response=mock_resp)
-            return {"result": "ok"}
+            return {
+                "choices": [{
+                    "message": {
+                        "content": '{"result": "ok"}'
+                    }
+                }]
+            }
 
-        client._request = flaky_request
+        client._make_http_request = flaky_request
 
         result = await client.call(prompt="test")
         assert result == {"result": "ok"}
@@ -350,7 +356,14 @@ class TestLLMClient:
         class StrictModel(BaseModel):
             required_field: str  # no default → required
 
-        client._request = AsyncMock(return_value={"wrong_field": "value"})
+        mock_openai_resp = {
+            "choices": [{
+                "message": {
+                    "content": '{"wrong_field": "value"}'
+                }
+            }]
+        }
+        client._make_http_request = AsyncMock(return_value=mock_openai_resp)
 
         with pytest.raises(LLMValidationError):
             await client.call(prompt="test", response_format=StrictModel)

@@ -19,14 +19,14 @@ headers = {
 
 def get_services():
     url = "https://api.render.com/v1/services"
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=10)
     if response.status_code == 200:
         return response.json()
     return []
 
 def get_latest_deploy(service_id):
     url = f"https://api.render.com/v1/services/{service_id}/deploys"
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=10)
     if response.status_code == 200:
         deploys = response.json()
         if deploys:
@@ -46,7 +46,7 @@ def monitor_deploys():
             print(f"Found {svc['name']}: {svc['id']}")
         elif svc['name'] == "sorce-web":
             # Check if it's the new one
-            if svc['id'] == "srv-d63sipvgi27c739ni59g":
+            if svc['id'] == "srv-d63spbogjchc739akan0":
                 target_services[svc['name']] = svc['id']
                 print(f"Found {svc['name']} (NEW): {svc['id']}")
 
@@ -72,7 +72,7 @@ def monitor_deploys():
             if status == "live":
                 print(f"✅ Service {name} is LIVE!")
                 completed[name] = True
-            elif status in ["build_failed", "update_failed", "canceled"]:
+            elif status in {"build_failed", "update_failed", "canceled"}:
                 print(f"❌ Service {name} deploy FAILED with status: {status}")
                 # We don't exit here to see if the other one succeeds or fails too
                 completed[name] = True 

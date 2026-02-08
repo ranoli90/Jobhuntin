@@ -323,6 +323,9 @@ async def extract_all_form_fields(page: Page) -> list[FormField]:
 # LLM: DOM-to-Profile mapping
 # ---------------------------------------------------------------------------
 
+
+
+
 MAP_PROMPT_TEMPLATE = """You are a job-application autofill assistant. Your goal is to fill a web form using the user's profile data.
 
 ## Canonical User Profile
@@ -561,6 +564,30 @@ class FormAgent:
     # -- core processing ---------------------------------------------------
 
     async def _process_task(self, page: Page, task: dict) -> None:
+        ctx = await self._build_context(task)
+        await self._emit_started(ctx)
+
+        # Navigate & Extract
+        await self._navigate_to_app(page, ctx)
+        form_fields = await self._extract_fields(page)
+
+        # LLM Mapping
+        mapping = await self._map_fields(form_fields, ctx)
+
+        # Hold Logic
+        if mapping["unresolved_required_fields"]:
+            await self._enter_hold(ctx["app_id"], mapping["unresolved_required_fields"], form_fields, tenant_id=ctx["tenant_id"])
+            return
+
+        # Fill & Submit
+        await self._fill_form(page, mapping, form_fields, ctx)
+        await self._submit_application(page, ctx)
+
+        # Success
+        await self._handle_success(task, ctx)
+
+    async def _build_context(self, task: dict) -> dict:
+        """Construct the execution context from task payload and DB."""
         app_id = str(task["id"])
         user_id = str(task["user_id"])
         job_id = str(task["job_id"])
@@ -568,65 +595,79 @@ class FormAgent:
         blueprint_key = task.get("blueprint_key", _settings.default_blueprint_key)
         attempt = task["attempt_count"]
 
-        # Resolve blueprint
         blueprint = get_blueprint(blueprint_key)
-
         job = await fetch_job(self.pool, job_id)
         raw_profile = await fetch_profile(self.pool, user_id)
         profile = normalize_profile(raw_profile)
-        application_url: str = job["application_url"]
 
-        # Emit STARTED_PROCESSING
+        return {
+            "app_id": app_id,
+            "user_id": user_id,
+            "job_id": job_id,
+            "tenant_id": tenant_id,
+            "blueprint_key": blueprint_key,
+            "attempt": attempt,
+            "blueprint": blueprint,
+            "job": job,
+            "profile": profile,
+            "application_url": job["application_url"]
+        }
+
+    async def _emit_started(self, ctx: dict) -> None:
         async with self.pool.acquire() as conn:
-            await EventRepo.emit(conn, app_id, "STARTED_PROCESSING", {
-                "application_url": application_url,
-                "attempt": attempt,
-                "blueprint": blueprint_key,
-            }, tenant_id=tenant_id)
+            await EventRepo.emit(conn, ctx["app_id"], "STARTED_PROCESSING", {
+                "application_url": ctx["application_url"],
+                "attempt": ctx["attempt"],
+                "blueprint": ctx["blueprint_key"],
+            }, tenant_id=ctx["tenant_id"])
 
-        # Navigate
+    async def _navigate_to_app(self, page: Page, ctx: dict) -> None:
+        """Navigate to the application URL."""
         try:
-            await page.goto(application_url, wait_until="networkidle", timeout=PAGE_TIMEOUT_MS)
+            await page.goto(ctx["application_url"], wait_until="networkidle", timeout=PAGE_TIMEOUT_MS)
         except Exception as exc:
-            raise RuntimeError(f"Page load timeout for {application_url}: {exc}")
+            raise RuntimeError(f"Page load timeout for {ctx['application_url']}: {exc}")
 
-        # Multi-step DOM extraction
+    async def _extract_fields(self, page: Page) -> list[FormField]:
         form_fields = await extract_all_form_fields(page)
         if not form_fields:
             raise RuntimeError("No form fields detected on the page")
-
         logger.info("Extracted %d fields across %d step(s)",
                      len(form_fields),
                      max((f["step_index"] for f in form_fields), default=0) + 1)
+        return form_fields
 
-        # Fetch previously answered inputs (resume flow)
-        answered_inputs = await fetch_answered_inputs(self.pool, app_id)
+    async def _map_fields(self, form_fields: list[FormField], ctx: dict) -> dict:
+        # Fetch previously answered inputs
+        answered_inputs = await fetch_answered_inputs(self.pool, ctx["app_id"])
 
-        # Resolve prompt version: config override > experiment > default
-        prompt_version: str | None = None
+        # Resolve prompt version
+        prompt_version = None
         if _settings.prompt_version_override:
             prompt_version = _settings.prompt_version_override
             logger.info("Using prompt version override: %s", prompt_version)
-        elif tenant_id:
+        elif ctx["tenant_id"]:
             async with self.pool.acquire() as conn:
-                variant = await get_variant_for_tenant(conn, "dom_mapping_prompt", tenant_id)
+                variant = await get_variant_for_tenant(conn, "dom_mapping_prompt", ctx["tenant_id"])
             if variant:
-                prompt_version = variant  # e.g. "v1", "v2"
+                prompt_version = variant
                 logger.info("Experiment assigned prompt version: %s", prompt_version)
 
-        # LLM mapping (with rate limiter guardrail)
+        # LLM mapping
         if not _llm_limiter.allow():
             raise RuntimeError("LLM rate limit exceeded; will retry on next poll")
+
         t0 = time.monotonic()
-        mapping = await map_fields_via_llm(profile, form_fields, answered_inputs, prompt_version)
+        mapping = await map_fields_via_llm(ctx["profile"], form_fields, answered_inputs, prompt_version)
         llm_duration = time.monotonic() - t0
         observe("agent.llm_latency_seconds", llm_duration)
         logger.info("LLM mapping completed in %.2fs (prompt=%s)", llm_duration, prompt_version or "default")
+        return mapping
 
-        # For multi-step forms we may need to re-navigate to step 1 before filling
-        await page.goto(application_url, wait_until="networkidle", timeout=PAGE_TIMEOUT_MS)
+    async def _fill_form(self, page: Page, mapping: dict, form_fields: list[FormField], ctx: dict) -> None:
+        # Re-navigate if needed (for multi-step consistency)
+        await page.goto(ctx["application_url"], wait_until="networkidle", timeout=PAGE_TIMEOUT_MS)
 
-        # Fill fields step-by-step
         max_step = max((f["step_index"] for f in form_fields), default=0)
         for step in range(max_step + 1):
             step_values = {
@@ -638,54 +679,52 @@ class FormAgent:
             if step_values:
                 await fill_form_from_mapping(page, step_values, step_fields)
 
-            # Advance to next step if needed
             if step < max_step:
                 advanced = await click_next_button(page)
                 if not advanced:
                     logger.warning("Could not advance from step %d to %d", step, step + 1)
                     break
 
-        # Hold logic
-        if mapping["unresolved_required_fields"]:
-            await self._enter_hold(app_id, mapping["unresolved_required_fields"], form_fields, tenant_id=tenant_id)
-            return
-
-        # Submit (using blueprint-specific selectors)
-        submitted = await submit_form(page, blueprint.submit_button_selectors())
+    async def _submit_application(self, page: Page, ctx: dict) -> None:
+        """Click the submit button."""
+        submitted = await submit_form(page, ctx["blueprint"].submit_button_selectors())
         if not submitted:
             raise RuntimeError("Could not locate a submit button on the form")
 
-        # Success — delegate to blueprint completion hook
+    asyn"""Finalize task, update status, and notify user."""
+        c def _handle_success(self, task: dict, ctx: dict) -> None:
         async with self.pool.acquire() as conn:
-            final_status = await blueprint.on_task_completed(conn, task, tenant_id)
+            final_status = await ctx["blueprint"].on_task_completed(conn, task, ctx["tenant_id"])
 
-            # Record system evaluation
-            had_hold = bool(answered_inputs)
+            # Record evaluation
+            answered = await InputRepo.get_answered(conn, ctx["app_id"])
+            had_hold = bool(answered)
+
             await record_system_evaluation(
                 conn,
-                application_id=app_id,
+                application_id=ctx["app_id"],
                 status=final_status,
-                attempt_count=attempt,
-                tenant_id=tenant_id,
-                user_id=user_id,
+                attempt_count=ctx["attempt"],
+                tenant_id=ctx["tenant_id"],
+                user_id=ctx["user_id"],
                 had_hold=had_hold,
             )
-        incr("agent.tasks_completed", tags={"tenant_id": tenant_id or "none", "blueprint": blueprint_key})
-        logger.info("Task %s completed with status %s", app_id, final_status)
 
-        # Push notification: application submitted
+        incr("agent.tasks_completed", tags={"tenant_id": ctx["tenant_id"] or "none", "blueprint": ctx["blueprint_key"]})
+        logger.info("Task %s completed with status %s", ctx["app_id"], final_status)
+
         try:
             async with self.pool.acquire() as notify_conn:
                 await notify_application_submitted(
                     notify_conn,
-                    user_id=user_id,
-                    company=job.get("company", "a company"),
-                    job_title=job.get("title", "a position"),
-                    application_id=app_id,
-                    tenant_id=tenant_id,
+                    user_id=ctx["user_id"],
+                    company=ctx["job"].get("company", "a company"),
+                    job_title=ctx["job"].get("title", "a position"),
+                    application_id=ctx["app_id"],
+                    tenant_id=ctx["tenant_id"],
                 )
         except Exception as push_exc:
-            logger.warning("Push notification failed for %s: %s", app_id, push_exc)
+            logger.warning("Push notification failed for %s: %s", ctx["app_id"], push_exc)
 
     # -- hold logic --------------------------------------------------------
 

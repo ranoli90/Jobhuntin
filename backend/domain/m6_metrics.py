@@ -13,11 +13,13 @@ import asyncpg
 
 
 async def get_arr_by_vertical(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get ARR breakdown by vertical."""
     rows = await conn.fetch("SELECT * FROM public.mv_arr_by_vertical ORDER BY total_mrr DESC")
     return [dict(r) for r in rows]
 
 
 async def get_api_v2_usage(conn: asyncpg.Connection, days: int = 30) -> list[dict[str, Any]]:
+    """Get API usage metrics for the last N days."""
     rows = await conn.fetch(
         "SELECT * FROM public.mv_api_v2_usage WHERE day >= CURRENT_DATE - $1 ORDER BY day DESC, calls DESC",
         days,
@@ -26,31 +28,37 @@ async def get_api_v2_usage(conn: asyncpg.Connection, days: int = 30) -> list[dic
 
 
 async def get_blueprint_heatmap(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get blueprint installation heatmap data."""
     rows = await conn.fetch("SELECT * FROM public.mv_blueprint_heatmap ORDER BY week DESC, installs DESC LIMIT 200")
     return [dict(r) for r in rows]
 
 
 async def get_revenue_per_blueprint(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get revenue generated per blueprint."""
     rows = await conn.fetch("SELECT * FROM public.mv_revenue_per_blueprint ORDER BY gross_revenue_cents DESC")
     return [dict(r) for r in rows]
 
 
 async def get_staffing_performance(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get staffing agency performance metrics."""
     rows = await conn.fetch("SELECT * FROM public.mv_staffing_performance ORDER BY week DESC LIMIT 52")
     return [dict(r) for r in rows]
 
 
 async def get_university_roi(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get university partner ROI metrics."""
     rows = await conn.fetch("SELECT * FROM public.mv_university_roi")
     return [dict(r) for r in rows]
 
 
 async def get_integrator_stats(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get statistics for API integrators."""
     rows = await conn.fetch("SELECT * FROM public.mv_integrator_stats ORDER BY total_calls DESC")
     return [dict(r) for r in rows]
 
 
 async def get_contract_renewals(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+    """Get upcoming contract renewals."""
     rows = await conn.fetch("""
         SELECT cr.*, t.name AS tenant_name, t.plan::text AS plan
         FROM public.contract_renewals cr

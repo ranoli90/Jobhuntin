@@ -44,6 +44,7 @@ Text:
             return {"raw": llm_output}
 
     def normalize_profile(self, profile: dict[str, Any]) -> dict[str, Any]:
+        """Normalize profile dictionary (pass-through)."""
         return profile
 
     def build_dom_mapping_prompt(self, profile: dict[str, Any], fields: list[dict]) -> str:
@@ -70,6 +71,7 @@ Leave fields empty if no matching data."""
             return []
 
     def submit_button_selectors(self) -> list[str]:
+        """Return CSS selectors for scholarship submit buttons."""
         return [
             "button[type='submit']",
             "input[type='submit']",
@@ -82,4 +84,5 @@ Leave fields empty if no matching data."""
         ]
 
     async def on_task_completed(self, task_id: str, result: dict[str, Any]) -> None:
+        """Handle task completion (no-op)."""
         pass

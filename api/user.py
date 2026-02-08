@@ -20,7 +20,6 @@ import asyncpg
 from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile
 from pydantic import BaseModel
 
-from backend.domain.job_boards import AdzunaClient
 from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -72,7 +71,12 @@ async def list_applications(
         rows = await conn.fetch(
             """
             SELECT a.id, a.status::text, a.updated_at, a.snoozed_until,
-                   j.title AS job_title, j.company
+                   j.title AS job_title, j.company,
+                   (
+                       SELECT question FROM public.application_inputs
+                       WHERE application_id = a.id AND resolved = false
+                       ORDER BY created_at LIMIT 1
+                   ) AS hold_question
             FROM   public.applications a
             JOIN   public.jobs j ON j.id = a.job_id
             WHERE  a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
@@ -85,28 +89,13 @@ async def list_applications(
 
     out: list[dict[str, Any]] = []
     for r in rows:
-        hold_question = None
-        if r["status"] == "REQUIRES_INPUT":
-            # First unresolved question as hold_question
-            async with db.acquire() as conn2:
-                first = await conn2.fetchrow(
-                    """
-                    SELECT question FROM public.application_inputs
-                    WHERE  application_id = $1 AND resolved = false
-                    ORDER  BY created_at LIMIT 1
-                    """,
-                    str(r["id"]),
-                )
-                if first:
-                    hold_question = first["question"]
-
         out.append({
             "id": str(r["id"]),
             "job_title": r["job_title"],
             "company": r["company"],
             "status": _status_to_web(r["status"]),
             "last_activity": r["updated_at"].isoformat() if r["updated_at"] else None,
-            "hold_question": hold_question,
+            "hold_question": r["hold_question"] if r["status"] == "REQUIRES_INPUT" else None,
         })
     return out
 
@@ -273,87 +262,14 @@ async def list_jobs(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """List jobs from DB with optional filters. Returns { jobs: [...] } for web."""
-    s = get_settings()
-    adzuna = AdzunaClient(s)
+    from backend.domain.job_search import search_and_list_jobs
     
-    # Proactively fetch from Adzuna if we have keywords/location
-    if keywords or location:
-        adz_results = await adzuna.fetch_jobs(keywords=keywords, location=location)
-        if adz_results:
-            async with db.acquire() as conn:
-                for raw_job in adz_results:
-                    job_data = adzuna.map_to_db(raw_job)
-                    await conn.execute(
-                        """
-                        INSERT INTO public.jobs 
-                            (external_id, title, company, description, location, 
-                             salary_min, salary_max, category, application_url, source, raw_data)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-                        ON CONFLICT (external_id) DO UPDATE SET
-                            title = EXCLUDED.title,
-                            company = EXCLUDED.company,
-                            description = EXCLUDED.description,
-                            location = EXCLUDED.location,
-                            salary_min = EXCLUDED.salary_min,
-                            salary_max = EXCLUDED.salary_max,
-                            application_url = EXCLUDED.application_url,
-                            raw_data = EXCLUDED.raw_data
-                        """,
-                        job_data["external_id"],
-                        job_data["title"],
-                        job_data["company"],
-                        job_data["description"],
-                        job_data["location"],
-                        job_data["salary_min"],
-                        job_data["salary_max"],
-                        job_data["category"],
-                        job_data["application_url"],
-                        job_data["source"],
-                        json.dumps(job_data["raw_data"]),
-                    )
-
-    async with db.acquire() as conn:
-        query = """
-            SELECT id, title, company, description, location,
-                   salary_min, salary_max, application_url, raw_data
-            FROM   public.jobs
-            WHERE  1=1
-        """
-        params: list[Any] = []
-        n = 0
-        if location:
-            n += 1
-            query += f" AND location ILIKE ${n}"
-            params.append(f"%{location}%")
-        if min_salary is not None:
-            n += 1
-            query += f" AND (salary_max IS NULL OR salary_max >= ${n})"
-            params.append(min_salary)
-        if keywords:
-            n += 1
-            query += f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
-            params.append(f"%{keywords}%")
-        query += " ORDER BY created_at DESC LIMIT 100"
-        rows = await conn.fetch(query, *params)
-
-    jobs = []
-    for r in rows:
-        raw = r.get("raw_data") or {}
-        if hasattr(raw, "get"):
-            logo_url = raw.get("logo_url") or raw.get("logo")
-        else:
-            logo_url = None
-        jobs.append({
-            "id": str(r["id"]),
-            "title": r["title"],
-            "company": r["company"],
-            "description": r["description"],
-            "location": r["location"],
-            "salary_min": float(r["salary_min"]) if r["salary_min"] is not None else None,
-            "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
-            "url": r["application_url"],
-            "logo_url": logo_url,
-        })
+    jobs = await search_and_list_jobs(
+        db_pool=db,
+        location=location,
+        min_salary=min_salary,
+        keywords=keywords,
+    )
     return {"jobs": jobs}
 
 
@@ -519,27 +435,15 @@ async def upload_resume(
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
     pdf_bytes = await file.read()
-    from api.main import upload_to_supabase_storage, extract_text_from_pdf, parse_resume_to_profile
-    from backend.domain.models import normalize_profile
-
-    s = get_settings()
-    storage_path = f"{ctx.user_id}/{uuid.uuid4()}.pdf"
-    resume_url = await upload_to_supabase_storage(
-        s.supabase_storage_bucket, storage_path, pdf_bytes
+    
+    from backend.domain.resume import process_resume_upload
+    
+    resume_url, canonical = await process_resume_upload(
+        user_id=ctx.user_id,
+        tenant_id=ctx.tenant_id,
+        pdf_bytes=pdf_bytes,
+        db_pool=db,
     )
-    resume_text = extract_text_from_pdf(pdf_bytes)
-    if not resume_text.strip():
-        raise HTTPException(status_code=422, detail="Could not extract text from PDF")
-
-    try:
-        raw_profile = await parse_resume_to_profile(resume_text)
-    except Exception as e:
-        logger.warning("Resume parse failed for user %s: %s", ctx.user_id, e)
-        raise HTTPException(status_code=502, detail=f"Resume parsing failed: {e}")
-
-    canonical = normalize_profile(raw_profile)
-    async with db.acquire() as conn:
-        await ProfileRepo.upsert(conn, ctx.user_id, canonical.model_dump(), resume_url, tenant_id=ctx.tenant_id)
 
     return {
         "resume_url": resume_url,

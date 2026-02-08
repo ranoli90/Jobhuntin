@@ -51,14 +51,12 @@ from backend.domain.models import (
     CanonicalSkills,
     ErrorDetail,
     ErrorResponse,
-    normalize_profile,
 )
 from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
     JobRepo,
-    ProfileRepo,
     TenantRepo,
     db_transaction,
     record_event,
@@ -70,16 +68,14 @@ from backend.domain.tenant import (
     assert_tenant_owns,
 )
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
-from backend.llm.client import LLMClient, LLMError
-from backend.llm.contracts import (
-    ResumeParseResponse_V1,
-    build_resume_parse_prompt,
-)
 from backend.domain.analytics_events import (
     RESUME_PARSED_SUCCESS,
     RESUME_PARSED_FAILED,
     APPLICATION_STATUS_CHANGED,
+    emit_analytics_event,
 )
+from backend.domain.resume import process_resume_upload
+from backend.domain.debug_schema import debug_auth_shim, debug_critical_tables, debug_alter_stmts
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -109,10 +105,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------------------------------------------------------------------
-# LLM client singleton
-# ---------------------------------------------------------------------------
-_llm_client = LLMClient(_settings)
 
 # ---------------------------------------------------------------------------
 # Mount sub-routers (billing, admin, export – added in Parts 2-4)
@@ -195,132 +187,18 @@ async def debug_run_migration() -> dict[str, Any]:
     """Manually trigger migration with verbose output."""
     if pool is None:
         return {"error": "No DB pool"}
-    import pathlib
-    base = pathlib.Path(__file__).resolve().parent.parent
+    
     log_lines: list[str] = []
-
     async with pool.acquire() as conn:
         # 1. Auth shim
-        try:
-            await conn.execute("CREATE SCHEMA IF NOT EXISTS auth")
-            await conn.execute("""
-                CREATE TABLE IF NOT EXISTS auth.users (
-                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                    email text, encrypted_password text,
-                    email_confirmed_at timestamptz,
-                    created_at timestamptz NOT NULL DEFAULT now(),
-                    updated_at timestamptz NOT NULL DEFAULT now(),
-                    raw_user_meta_data jsonb DEFAULT '{}'::jsonb
-                )
-            """)
-            log_lines.append("auth shim: OK")
-        except Exception as e:
-            log_lines.append(f"auth shim: FAIL {e}")
+        await debug_auth_shim(conn, log_lines)
 
-        # 2. Try schema.sql as single execute first
-        schema_file = base / "supabase" / "schema.sql"
-        if schema_file.exists():
-            sql = schema_file.read_text(encoding="utf-8")
-            log_lines.append(f"schema.sql: {len(sql)} chars")
-            # Execute line by line for critical tables only
-            critical_stmts = [
-                "CREATE TYPE public.application_status AS ENUM ('QUEUED','PROCESSING','REQUIRES_INPUT','APPLIED','FAILED')",
-                """CREATE TABLE IF NOT EXISTS public.users (
-                    id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-                    full_name text, email text, avatar_url text,
-                    created_at timestamptz NOT NULL DEFAULT now(),
-                    updated_at timestamptz NOT NULL DEFAULT now()
-                )""",
-                """CREATE TABLE IF NOT EXISTS public.tenants (
-                    id text PRIMARY KEY, name text NOT NULL, slug text UNIQUE,
-                    plan text NOT NULL DEFAULT 'FREE', team_name text,
-                    seat_count int NOT NULL DEFAULT 1, max_seats int NOT NULL DEFAULT 1,
-                    stripe_customer_id text, stripe_subscription_id text,
-                    created_at timestamptz NOT NULL DEFAULT now(),
-                    updated_at timestamptz NOT NULL DEFAULT now()
-                )""",
-                """CREATE TABLE IF NOT EXISTS public.tenant_members (
-                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                    tenant_id text NOT NULL, user_id uuid NOT NULL,
-                    role text NOT NULL DEFAULT 'MEMBER',
-                    created_at timestamptz NOT NULL DEFAULT now(),
-                    UNIQUE(tenant_id, user_id, role)
-                )""",
-                """CREATE TABLE IF NOT EXISTS public.profiles (
-                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                    user_id uuid NOT NULL UNIQUE REFERENCES public.users(id) ON DELETE CASCADE,
-                    profile_data jsonb NOT NULL DEFAULT '{}'::jsonb, resume_url text,
-                    created_at timestamptz NOT NULL DEFAULT now(),
-                    updated_at timestamptz NOT NULL DEFAULT now()
-                )""",
-                """CREATE TABLE IF NOT EXISTS public.jobs (
-                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                    external_id text NOT NULL UNIQUE, title text NOT NULL, company text NOT NULL,
-                    description text, location text, salary_min numeric(12,2), salary_max numeric(12,2),
-                    category text, application_url text NOT NULL,
-                    source text NOT NULL DEFAULT 'adzuna', raw_data jsonb,
-                    created_at timestamptz NOT NULL DEFAULT now()
-                )""",
-                """CREATE TABLE IF NOT EXISTS public.applications (
-                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                    user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-                    job_id uuid NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
-                    status public.application_status NOT NULL DEFAULT 'QUEUED',
-                    error_message text, locked_at timestamptz, submitted_at timestamptz,
-                    created_at timestamptz NOT NULL DEFAULT now(),
-                    updated_at timestamptz NOT NULL DEFAULT now(),
-                    UNIQUE(user_id, job_id)
-                )""",
-                """CREATE TABLE IF NOT EXISTS public.application_inputs (
-                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                    application_id uuid NOT NULL REFERENCES public.applications(id) ON DELETE CASCADE,
-                    selector text NOT NULL, question text NOT NULL,
-                    field_type text NOT NULL DEFAULT 'text', answer text,
-                    created_at timestamptz NOT NULL DEFAULT now(), answered_at timestamptz
-                )""",
-                """CREATE TABLE IF NOT EXISTS public.billing_customers (
-                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                    tenant_id text NOT NULL UNIQUE, stripe_customer_id text NOT NULL,
-                    created_at timestamptz NOT NULL DEFAULT now()
-                )""",
-                """CREATE TABLE IF NOT EXISTS public.application_events (
-                    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-                    application_id uuid, event_type text NOT NULL,
-                    payload jsonb DEFAULT '{}'::jsonb,
-                    created_at timestamptz NOT NULL DEFAULT now()
-                )""",
-            ]
-            for stmt in critical_stmts:
-                try:
-                    await conn.execute(stmt)
-                    # extract table name
-                    name = stmt.split("(")[0].strip().split()[-1] if "TABLE" in stmt else stmt.split("(")[0].strip().split()[-1]
-                    log_lines.append(f"  created: {name}")
-                except Exception as e:
-                    log_lines.append(f"  FAIL: {str(e)[:120]}")
+        # 2. Critical Tables
+        await debug_critical_tables(conn, log_lines)
 
-            # 3. Add missing columns to applications (from numbered migrations)
-            alter_stmts = [
-                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS tenant_id text",
-                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS attempt_count int NOT NULL DEFAULT 0",
-                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS last_processed_at timestamptz",
-                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS blueprint_key text",
-                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS locked_by text",
-                "ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS snoozed_until timestamptz",
-                "CREATE OR REPLACE FUNCTION public.claim_next_prioritized(p_max_attempts int DEFAULT 3) RETURNS SETOF public.applications AS $$ BEGIN RETURN QUERY UPDATE public.applications SET status = 'PROCESSING', locked_at = now(), updated_at = now() WHERE id = ( SELECT id FROM public.applications WHERE (status = 'QUEUED' OR (status = 'PROCESSING' AND locked_at < now() - interval '10 minutes')) AND (snoozed_until IS NULL OR snoozed_until < now()) AND attempt_count < p_max_attempts ORDER BY priority_score DESC, created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED ) RETURNING *; END; $$ LANGUAGE plpgsql;",
-                "ALTER TABLE public.application_inputs ADD COLUMN IF NOT EXISTS resolved boolean NOT NULL DEFAULT false",
-                "ALTER TABLE public.application_inputs ADD COLUMN IF NOT EXISTS meta jsonb DEFAULT '{}'::jsonb",
-                "ALTER TABLE public.application_events ADD COLUMN IF NOT EXISTS tenant_id text",
-                "CREATE INDEX IF NOT EXISTS idx_applications_tenant ON public.applications(tenant_id)",
-                "CREATE INDEX IF NOT EXISTS idx_applications_status ON public.applications(status)",
-                "CREATE INDEX IF NOT EXISTS idx_applications_blueprint ON public.applications(blueprint_key)",
-            ]
-            for stmt in alter_stmts:
-                try:
-                    await conn.execute(stmt)
-                    log_lines.append(f"  alter: {stmt[:60]}...")
-                except Exception as e:
-                    log_lines.append(f"  alter FAIL: {str(e)[:80]}")
+        # 3. Alter Statements
+        await debug_alter_stmts(conn, log_lines)
+
         tables = await conn.fetch(
             "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY 1"
         )
@@ -370,8 +248,8 @@ async def startup() -> None:
     if "pooler.supabase.com" in s.database_url or "supabase.co" in s.database_url:
         import ssl as _ssl
         ssl_ctx = _ssl.create_default_context()
-        ssl_ctx.check_hostname = False
-        ssl_ctx.verify_mode = _ssl.CERT_NONE
+        # Removed insecure SSL settings (check_hostname=False, verify_mode=CERT_NONE)
+        # to ensure server identity verification.
         ssl_arg = ssl_ctx
     for attempt in range(1, 4):
         try:
@@ -399,86 +277,12 @@ async def startup() -> None:
             )
             if not has_tenants:
                 logger.info("Running auto-migration (tenants table missing)...")
-                await _run_migrations(conn)
+                import pathlib
+                base = pathlib.Path(__file__).resolve().parent.parent
+                from backend.domain.migrations import run_migrations
+                await run_migrations(conn, base)
     except Exception as exc:
         logger.warning("Auto-migration check failed: %s", exc)
-
-
-async def _run_migrations(conn: asyncpg.Connection) -> None:
-    """Run auth shim + schema.sql + all numbered migrations."""
-    import pathlib, re
-    base = pathlib.Path(__file__).resolve().parent.parent
-
-    # Supabase-only patterns to skip on plain Postgres
-    _skip = re.compile(
-        r"(ALTER\s+PUBLICATION|supabase_realtime|auth\.uid\(\)|auth\.role\(\))",
-        re.IGNORECASE,
-    )
-
-    async def _exec_stmts(sql_text: str, label: str) -> tuple[int, int]:
-        """Split SQL on semicolons, execute each statement, return (ok, skip)."""
-        ok = skip = 0
-        # Crude split — handles $$ blocks by joining them back
-        raw_parts = sql_text.split(";")
-        stmts: list[str] = []
-        buf = ""
-        in_dollar = False
-        for part in raw_parts:
-            buf += part + ";"
-            if buf.count("$$") % 2 == 0:
-                stmts.append(buf.strip())
-                buf = ""
-            else:
-                in_dollar = True
-        if buf.strip():
-            stmts.append(buf.strip())
-        for stmt in stmts:
-            stmt = stmt.strip().rstrip(";").strip()
-            if not stmt or stmt.startswith("--"):
-                continue
-            if _skip.search(stmt):
-                skip += 1
-                continue
-            try:
-                await conn.execute(stmt)
-                ok += 1
-            except Exception as e:
-                msg = str(e)
-                if "already exists" in msg or "duplicate" in msg.lower():
-                    ok += 1
-                else:
-                    logger.warning("  [%s] stmt failed: %s", label, msg[:150])
-        return ok, skip
-
-    # 1. Auth compatibility shim
-    await conn.execute("CREATE SCHEMA IF NOT EXISTS auth")
-    await conn.execute("""
-        CREATE TABLE IF NOT EXISTS auth.users (
-            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-            email text, encrypted_password text,
-            email_confirmed_at timestamptz,
-            created_at timestamptz NOT NULL DEFAULT now(),
-            updated_at timestamptz NOT NULL DEFAULT now(),
-            raw_user_meta_data jsonb DEFAULT '{}'::jsonb
-        )
-    """)
-    logger.info("  auth shim created")
-
-    # 2. Base schema
-    schema_file = base / "supabase" / "schema.sql"
-    if schema_file.exists():
-        ok, skip = await _exec_stmts(schema_file.read_text(encoding="utf-8"), "schema")
-        logger.info("  schema.sql: %d applied, %d skipped", ok, skip)
-
-    # 3. Numbered migrations
-    mig_dir = base / "supabase" / "migrations"
-    if mig_dir.exists():
-        for mf in sorted(mig_dir.glob("[0-9]*.sql")):
-            sql = mf.read_text(encoding="utf-8").strip()
-            if not sql:
-                continue
-            ok, skip = await _exec_stmts(sql, mf.name)
-            logger.info("  %s: %d applied, %d skipped", mf.name, ok, skip)
 
 
 @app.on_event("shutdown")
@@ -582,92 +386,6 @@ async def get_tenant_context(
         ctx = await resolve_tenant_context(conn, user_id)
     LogContext.set(tenant_id=ctx.tenant_id, user_id=ctx.user_id)
     return ctx
-
-
-# ---------------------------------------------------------------------------
-# Supabase Storage helper
-# ---------------------------------------------------------------------------
-
-async def upload_to_supabase_storage(
-    bucket: str,
-    path: str,
-    data: bytes,
-    content_type: str = "application/pdf",
-) -> str:
-    import httpx
-
-    s = get_settings()
-    url = f"{s.supabase_url}/storage/v1/object/{bucket}/{path}"
-    headers = {
-        "Authorization": f"Bearer {s.supabase_service_key}",
-        "Content-Type": content_type,
-        "x-upsert": "true",
-    }
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(url, content=data, headers=headers)
-        resp.raise_for_status()
-
-    return f"{s.supabase_url}/storage/v1/object/public/{bucket}/{path}"
-
-
-# ---------------------------------------------------------------------------
-# PDF text extraction
-# ---------------------------------------------------------------------------
-
-def extract_text_from_pdf(pdf_bytes: bytes) -> str:
-    import fitz  # PyMuPDF
-
-    text_parts: list[str] = []
-    with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
-        for page in doc:
-            text_parts.append(page.get_text())
-    return "\n".join(text_parts)
-
-
-# ---------------------------------------------------------------------------
-# Resume parsing via LLM client
-# ---------------------------------------------------------------------------
-
-async def parse_resume_to_profile(resume_text: str) -> dict:
-    """Use the LLM client with the versioned resume parse contract."""
-    prompt = build_resume_parse_prompt(resume_text)
-    result = await _llm_client.call(
-        prompt=prompt,
-        response_format=ResumeParseResponse_V1,
-    )
-    return result.model_dump()
-
-
-# ---------------------------------------------------------------------------
-# Server-side analytics helper
-# ---------------------------------------------------------------------------
-
-async def _emit_analytics_event(
-    pool: asyncpg.Pool,
-    event_type: str,
-    *,
-    tenant_id: str | None = None,
-    user_id: str | None = None,
-    session_id: str | None = None,
-    properties: dict | None = None,
-) -> None:
-    """Insert a server-generated analytics event (fire-and-forget)."""
-    try:
-        async with pool.acquire() as conn:
-            await conn.execute(
-                """
-                INSERT INTO public.analytics_events
-                    (tenant_id, user_id, session_id, event_type, properties)
-                VALUES ($1, $2, $3, $4, $5::jsonb)
-                """,
-                tenant_id,
-                user_id,
-                session_id,
-                event_type,
-                json.dumps(properties or {}),
-            )
-    except Exception as exc:
-        logger.warning("Failed to emit analytics event %s: %s", event_type, exc)
 
 
 # ---------------------------------------------------------------------------
@@ -812,49 +530,11 @@ async def resume_parse(
 
     pdf_bytes = await file.read()
 
-    # 1. Upload raw PDF to Supabase Storage
-    s = get_settings()
-    storage_path = f"{user_id}/{uuid.uuid4()}.pdf"
-    resume_url = await upload_to_supabase_storage(
-        s.supabase_storage_bucket, storage_path, pdf_bytes
-    )
-
-    # 2. Extract text
-    resume_text = extract_text_from_pdf(pdf_bytes)
-    if not resume_text.strip():
-        raise HTTPException(status_code=422, detail="Could not extract text from PDF")
-
-    # 3. LLM parse
-    t0 = time.monotonic()
-    try:
-        raw_profile = await parse_resume_to_profile(resume_text)
-    except LLMError as exc:
-        observe("api.llm_latency_seconds", time.monotonic() - t0, {"endpoint": "resume_parse"})
-        incr("api.resume_parse.llm_error")
-        # Server-side analytics: resume parse failed
-        await _emit_analytics_event(
-            db, RESUME_PARSED_FAILED,
-            tenant_id=ctx.tenant_id, user_id=user_id,
-            properties={"error": str(exc)[:200]},
-        )
-        raise HTTPException(
-            status_code=502,
-            detail=f"Resume parsing failed: {exc}",
-        )
-    observe("api.llm_latency_seconds", time.monotonic() - t0, {"endpoint": "resume_parse"})
-
-    # 4. Normalize into canonical schema
-    canonical = normalize_profile(raw_profile)
-
-    # 5. Upsert into profiles (store the canonical dict)
-    async with db.acquire() as conn:
-        await ProfileRepo.upsert(conn, user_id, canonical.model_dump(), resume_url, tenant_id=ctx.tenant_id)
-
-    # Server-side analytics: resume parse succeeded
-    await _emit_analytics_event(
-        db, RESUME_PARSED_SUCCESS,
-        tenant_id=ctx.tenant_id, user_id=user_id,
-        properties={"resume_url": resume_url},
+    resume_url, canonical = await process_resume_upload(
+        user_id=user_id,
+        tenant_id=ctx.tenant_id,
+        pdf_bytes=pdf_bytes,
+        db_pool=db,
     )
 
     return ResumeParseResponse(
@@ -919,7 +599,7 @@ async def resume_task(
         remaining = await InputRepo.get_unresolved(conn, body.application_id)
 
     # Server-side analytics: status changed
-    await _emit_analytics_event(
+    await emit_analytics_event(
         db, APPLICATION_STATUS_CHANGED,
         tenant_id=ctx.tenant_id, user_id=ctx.user_id,
         properties={
