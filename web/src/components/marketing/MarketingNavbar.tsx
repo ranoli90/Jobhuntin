@@ -75,34 +75,52 @@ export function MarketingNavbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden bg-white border-b border-slate-100"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] bg-white md:hidden flex flex-col"
           >
-            <div className="px-6 py-8 space-y-6">
-              <div className="flex flex-col gap-4">
+            <div className="px-6 h-20 flex items-center justify-between border-b border-slate-100">
+               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
+                  <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl">
+                    <Bot className="text-white w-6 h-6" />
+                  </div>
+                  <span className="text-xl font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
+               </Link>
+               <button 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 text-slate-500 hover:text-slate-900 bg-slate-50 rounded-full"
+               >
+                  <X className="w-6 h-6" />
+               </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col justify-center space-y-8">
+              <div className="flex flex-col gap-6 text-center">
                 {navLinks.map((link) => (
                   <Link 
                     key={link.path}
                     to={link.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-lg font-medium text-slate-600 hover:text-primary-600"
+                    className="text-2xl font-bold text-slate-800 hover:text-primary-600 transition-colors"
                   >
                     {link.name}
                   </Link>
                 ))}
               </div>
-              <div className="pt-6 border-t border-slate-100 flex flex-col gap-4">
+              
+              <div className="flex flex-col gap-4 max-w-xs mx-auto w-full pt-8 border-t border-slate-100">
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="outline" className="w-full justify-center">Log in</Button>
+                  <Button variant="outline" size="lg" className="w-full justify-center text-lg py-6 rounded-2xl">Log in</Button>
                 </Link>
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="primary" className="w-full justify-center">Get Started Free</Button>
+                  <Button variant="primary" size="lg" className="w-full justify-center text-lg py-6 rounded-2xl shadow-xl shadow-primary-500/20">
+                    Get Started Free
+                  </Button>
                 </Link>
               </div>
             </div>

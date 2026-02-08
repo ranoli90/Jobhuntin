@@ -10,15 +10,15 @@ interface CompetitorData {
 
 export const CompetitorComparison = ({ competitor }: { competitor: CompetitorData }) => {
   return (
-    <div className="bg-white rounded-[2rem] p-8 md:p-12 border border-gray-100 shadow-xl overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50" />
+    <div className="bg-white rounded-[2rem] p-8 md:p-12 border border-slate-100 shadow-xl overflow-hidden relative">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50" />
       
       <div className="grid md:grid-cols-2 gap-12 relative z-10">
         <div>
-          <h2 className="text-3xl font-bold font-poppins mb-6">
-            JobHuntin vs <span className="text-[#FF6B35]">{competitor.name}</span>
+          <h2 className="text-3xl font-bold font-display mb-6 text-slate-900">
+            JobHuntin vs <span className="text-primary-500">{competitor.name}</span>
           </h2>
-          <p className="text-gray-600 mb-8 leading-relaxed">
+          <p className="text-slate-600 mb-8 leading-relaxed font-medium">
             While {competitor.name} focuses on {competitor.strength.toLowerCase()}, JobHuntin is engineered for autonomous results. 
             We don't just help you apply; we hunt for you.
           </p>
@@ -29,8 +29,8 @@ export const CompetitorComparison = ({ competitor }: { competitor: CompetitorDat
                 <X className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900">{competitor.name} Gap</h4>
-                <p className="text-sm text-gray-500">{competitor.weakness}</p>
+                <h4 className="font-bold text-slate-900">{competitor.name} Gap</h4>
+                <p className="text-sm text-slate-500 font-medium">{competitor.weakness}</p>
               </div>
             </div>
             
@@ -39,16 +39,16 @@ export const CompetitorComparison = ({ competitor }: { competitor: CompetitorDat
                 <Zap className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900">JobHuntin Edge</h4>
-                <p className="text-sm text-gray-500">Fully autonomous AI agent with human-like browsing patterns.</p>
+                <h4 className="font-bold text-slate-900">JobHuntin Edge</h4>
+                <p className="text-sm text-slate-500 font-medium">Fully autonomous AI agent with human-like browsing patterns.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100">
+        <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
           <div className="space-y-4">
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Feature Simulation</h4>
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Feature Simulation</h4>
             {[
               { label: "AI Tailoring", jh: true, comp: true },
               { label: "Auto-Submission", jh: true, comp: false },
@@ -56,16 +56,16 @@ export const CompetitorComparison = ({ competitor }: { competitor: CompetitorDat
               { label: "Custom Cover Letters", jh: true, comp: true },
               { label: "Recruiter Pre-Screening", jh: true, comp: false }
             ].map((feature, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
-                <span className="text-sm font-medium text-gray-700">{feature.label}</span>
+              <div key={i} className="flex items-center justify-between py-2 border-b border-slate-200 last:border-0">
+                <span className="text-sm font-medium text-slate-700">{feature.label}</span>
                 <div className="flex gap-4">
                   <div className="flex flex-col items-center">
-                    <span className="text-[10px] text-gray-400 mb-1">JH</span>
-                    {feature.jh ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
+                    <span className="text-[10px] text-slate-400 mb-1">JH</span>
+                    {feature.jh ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-slate-300" />}
                   </div>
                   <div className="flex flex-col items-center">
-                    <span className="text-[10px] text-gray-400 mb-1">{competitor.name.slice(0, 3).toUpperCase()}</span>
-                    {feature.comp ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
+                    <span className="text-[10px] text-slate-400 mb-1">{competitor.name.slice(0, 3).toUpperCase()}</span>
+                    {feature.comp ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-slate-300" />}
                   </div>
                 </div>
               </div>

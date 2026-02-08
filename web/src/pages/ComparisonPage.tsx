@@ -4,6 +4,7 @@ import { Bot, ArrowLeft, Sparkles, Shield, Zap, Target } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { CompetitorComparison } from '../components/marketing/CompetitorComparison';
 import { motion } from 'framer-motion';
+import { Button } from '../components/ui/Button';
 
 const COMPETITORS_DATA: Record<string, { name: string; weakness: string; strength: string }> = {
   'sorce': {
@@ -29,10 +30,10 @@ export default function ComparisonPage() {
 
   if (!competitor) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <Bot className="w-16 h-16 text-[#FF6B35] mb-4 animate-bounce" />
-        <h1 className="text-2xl font-bold mb-4">Competitor Simulation Not Found</h1>
-        <Link to="/" className="text-[#4A90E2] hover:underline flex items-center gap-2">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
+        <Bot className="w-16 h-16 text-primary-500 mb-4 animate-bounce" />
+        <h1 className="text-2xl font-bold mb-4 text-slate-900">Competitor Simulation Not Found</h1>
+        <Link to="/" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
           <ArrowLeft className="w-4 h-4" /> Return to HQ
         </Link>
       </div>
@@ -45,7 +46,7 @@ export default function ComparisonPage() {
   const ogImage = `https://sorce-web.onrender.com/api/og?job=${encodeURIComponent(`Vs ${competitor.name}`)}&company=JobHuntin&score=100&location=Global`;
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] font-inter text-[#2D2D2D]">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO 
         title={title}
         description={description}
@@ -65,31 +66,31 @@ export default function ComparisonPage() {
       <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="bg-[#FF6B35] p-2 rounded-xl rotate-3">
+            <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
               <Bot className="text-white w-6 h-6" />
             </div>
-            <span className="text-xl font-bold font-poppins">JobHuntin</span>
+            <span className="text-xl font-bold font-display text-slate-900">JobHuntin</span>
           </Link>
-          <Link to="/" className="text-sm font-medium hover:text-[#FF6B35] flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" /> Back to Home
+          <Link to="/" className="text-sm font-medium text-slate-600 hover:text-primary-600 flex items-center gap-2 group transition-colors">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
           </Link>
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-20">
+      <main className="max-w-5xl mx-auto px-6 py-24">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-20"
         >
-          <div className="inline-flex items-center gap-2 bg-blue-50 text-[#4A90E2] px-4 py-1 rounded-full text-sm font-bold mb-6">
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-blue-100">
             <Sparkles className="w-4 h-4" />
             Competitive Authority Modeling
           </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold font-poppins mb-8 leading-tight">
-            Better than <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B35] to-[#4A90E2]">{competitor.name}</span>
+          <h1 className="text-5xl md:text-7xl font-black font-display mb-8 leading-tight text-slate-900">
+            Better than <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">{competitor.name}</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
             Experience the next evolution of career automation. While others fill forms, we hunt roles.
           </p>
         </motion.div>
@@ -102,33 +103,41 @@ export default function ComparisonPage() {
             { icon: Zap, title: "Autonomous", desc: "Set it and forget it. Our agent works while you sleep." },
             { icon: Target, title: "High Quality", desc: "Custom cover letters and resume tailoring for every role." }
           ].map((item, i) => (
-            <div key={i} className="text-center">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-gray-100 text-[#FF6B35]">
+            <motion.div 
+              key={i} 
+              className="text-center bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100 text-primary-500 group-hover:bg-primary-50 transition-colors">
                 <item.icon className="w-8 h-8" />
               </div>
-              <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
-            </div>
+              <h3 className="font-bold text-xl mb-3 text-slate-900">{item.title}</h3>
+              <p className="text-slate-500 leading-relaxed font-medium">{item.desc}</p>
+            </motion.div>
           ))}
         </div>
 
-        <div className="mt-32 bg-gray-900 rounded-[3rem] p-12 text-white text-center relative overflow-hidden">
+        <div className="mt-32 bg-slate-900 rounded-[3rem] p-12 text-white text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-          <h2 className="text-3xl font-bold mb-6 relative z-10">Stop grinding. Start interviewing.</h2>
-          <p className="text-gray-400 mb-10 relative z-10 max-w-lg mx-auto">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/20 rounded-full blur-[100px] -mr-48 -mt-48" />
+          
+          <h2 className="text-4xl font-bold mb-6 relative z-10 font-display">Stop grinding. Start interviewing.</h2>
+          <p className="text-slate-400 mb-10 relative z-10 max-w-lg mx-auto text-lg">
             Join the elite hunters who have already switched from {competitor.name} to JobHuntin.
           </p>
-          <Link 
-            to="/login" 
-            className="inline-block bg-[#FF6B35] text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-orange-500/20"
-          >
-            Switch to JobHuntin
-          </Link>
+          <Button asChild className="bg-primary-600 hover:bg-primary-700 text-white px-10 py-6 h-auto rounded-2xl font-bold text-xl shadow-xl shadow-primary-500/20 relative z-10 border-none">
+            <Link to="/login">
+              Switch to JobHuntin
+            </Link>
+          </Button>
         </div>
       </main>
 
-      <footer className="bg-white border-t border-gray-200 py-12 mt-20">
-        <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
+      <footer className="bg-white border-t border-slate-200 py-12 mt-20">
+        <div className="max-w-7xl mx-auto px-6 text-center text-slate-400 text-sm font-medium">
           &copy; {new Date().getFullYear()} JobHuntin AI. All rights reserved.
         </div>
       </footer>

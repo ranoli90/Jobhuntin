@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft, Download, Linkedin, Briefcase, Plus, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
+import { Button } from '../components/ui/Button';
 
 export default function ChromeExtension() {
   const [activeStep, setActiveStep] = useState(0);
@@ -16,7 +17,7 @@ export default function ChromeExtension() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] font-inter text-[#2D2D2D] selection:bg-[#FF6B35] selection:text-white">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans text-slate-900 selection:bg-[#FF6B35] selection:text-white">
       <SEO 
         title="Chrome Extension | JobHuntin AI - The 'Add to Cart' for Your Career"
         description="Automate your job search directly from LinkedIn, Indeed, and Glassdoor. One click to auto-apply, tailor resumes, and draft cover letters."
@@ -47,15 +48,15 @@ export default function ChromeExtension() {
             <div className="bg-[#FF6B35] p-2 rounded-xl rotate-3 shadow-lg shadow-orange-500/20">
               <Bot className="text-white w-6 h-6" />
             </div>
-            <span className="text-xl font-bold font-poppins">JobHuntin</span>
+            <span className="text-xl font-bold font-display text-slate-900">JobHuntin</span>
           </Link>
-          <Link to="/" className="text-sm font-medium hover:text-[#FF6B35] flex items-center gap-2 group transition-colors">
+          <Link to="/" className="text-sm font-medium text-slate-600 hover:text-[#FF6B35] flex items-center gap-2 group transition-colors">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
           </Link>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-20">
+      <main className="max-w-7xl mx-auto px-6 py-24">
         <div className="flex flex-col lg:flex-row items-center gap-20">
           <div className="flex-1">
             <motion.div 
@@ -70,7 +71,7 @@ export default function ChromeExtension() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-5xl md:text-7xl font-extrabold font-poppins mb-8 leading-tight tracking-tight"
+              className="text-5xl md:text-7xl font-extrabold font-display text-slate-900 mb-8 leading-tight tracking-tight"
             >
               The "Add to Cart" <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B35] to-[#4A90E2]">for your career.</span>
@@ -80,7 +81,7 @@ export default function ChromeExtension() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xl text-gray-600 mb-10 leading-relaxed max-w-lg"
+              className="text-xl text-slate-500 mb-10 leading-relaxed max-w-lg font-medium"
             >
               Browse LinkedIn, Indeed, or Glassdoor. See a job you like? 
               Click one button. Our AI handles the resume tailoring, cover letter, and submission.
@@ -92,14 +93,14 @@ export default function ChromeExtension() {
               transition={{ delay: 0.3 }}
               className="flex flex-wrap gap-4"
             >
-              <button className="bg-[#2D2D2D] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#FF6B35] transition-colors flex items-center gap-3 shadow-xl hover:shadow-orange-500/20 transform hover:-translate-y-1">
+              <Button variant="secondary" size="lg" className="px-8 py-4 h-auto rounded-xl font-bold hover:bg-[#FF6B35] transition-colors flex items-center gap-3 shadow-xl hover:shadow-orange-500/20 transform hover:-translate-y-1">
                 <Download className="w-5 h-5" />
                 Add to Chrome
                 <span className="text-gray-400 font-normal text-sm ml-2">It's free</span>
-              </button>
-              <button className="bg-white border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-xl font-bold hover:border-[#4A90E2] hover:text-[#4A90E2] transition-colors">
+              </Button>
+              <Button variant="outline" size="lg" className="bg-white border-2 border-gray-200 text-slate-700 px-8 py-4 h-auto rounded-xl font-bold hover:border-[#4A90E2] hover:text-[#4A90E2] transition-colors">
                 Watch Demo
-              </button>
+              </Button>
             </motion.div>
           </div>
 
@@ -125,14 +126,14 @@ export default function ChromeExtension() {
               </div>
 
               {/* Web Content */}
-              <div className="p-6 h-[400px] bg-gray-50 relative">
+              <div className="p-4 sm:p-6 h-[300px] sm:h-[400px] bg-gray-50 relative">
                  {/* Job Header */}
                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">L</div>
+                    <div className="flex gap-2 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg sm:text-xl">L</div>
                       <div>
-                        <div className="h-4 w-48 bg-gray-800 rounded mb-2"></div>
-                        <div className="h-3 w-24 bg-gray-400 rounded"></div>
+                        <div className="h-3 sm:h-4 w-32 sm:w-48 bg-gray-800 rounded mb-2"></div>
+                        <div className="h-2 sm:h-3 w-16 sm:w-24 bg-gray-400 rounded"></div>
                       </div>
                     </div>
                     {/* The Magic Button */}
@@ -217,6 +218,7 @@ export default function ChromeExtension() {
                    }}
                    transition={{ duration: 1 }}
                    className="absolute top-0 left-0 w-6 h-6 pointer-events-none z-50"
+                   style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.2))" }}
                  >
                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                      <path d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z" fill="black" stroke="white" strokeWidth="2"/>
@@ -248,8 +250,8 @@ export default function ChromeExtension() {
                <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#FF6B35] group-hover:text-white transition-colors text-[#2D2D2D]">
                  <f.icon className="w-7 h-7" />
                </div>
-               <h3 className="text-xl font-bold mb-3 font-poppins">{f.title}</h3>
-               <p className="text-gray-600 leading-relaxed">{f.desc}</p>
+               <h3 className="text-xl font-bold mb-3 font-display text-slate-900">{f.title}</h3>
+               <p className="text-slate-500 leading-relaxed font-medium">{f.desc}</p>
              </motion.div>
            ))}
         </div>

@@ -123,11 +123,11 @@ export default function Pricing() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
           {/* Free Tier - Receipt Style */}
           <motion.div 
             whileHover={{ y: -10 }}
-            className="bg-white p-1 rounded-sm shadow-sm rotate-1 relative group"
+            className="bg-white p-1 rounded-sm shadow-sm rotate-1 relative group max-w-md mx-auto w-full lg:max-w-none"
           >
              <div className="bg-white border-x-2 border-t-2 border-b-[6px] border-gray-200 p-8 relative" style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
                 {/* Jagged Bottom */}
@@ -197,7 +197,7 @@ export default function Pricing() {
           {/* Agency - Corporate Card */}
           <motion.div 
             whileHover={{ y: -10 }}
-            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative overflow-hidden group"
+            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative overflow-hidden group max-w-md mx-auto w-full lg:max-w-none"
           >
              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#4A90E2] to-[#00C9A7]"></div>
              <h3 className="text-2xl font-bold font-poppins mb-2 text-gray-900">Agency</h3>

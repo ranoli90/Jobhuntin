@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, Quote, Play } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
+import { Button } from '../components/ui/Button';
 
 export default function SuccessStories() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -103,14 +104,61 @@ export default function SuccessStories() {
           </p>
         </div>
 
-        {/* Horizontal Scroll Section */}
-        <div ref={scrollRef} className="h-[300vh] relative">
+        {/* Responsive Layout: Stack on Mobile, Scroll on Desktop */}
+        <div className="lg:hidden px-6 space-y-12">
+          {stories.map((story, i) => (
+            <div 
+              key={i} 
+              className="w-full bg-white p-8 rounded-3xl border border-slate-100 shadow-xl relative"
+            >
+              {/* Hired Stamp */}
+              <div className="absolute -top-4 -right-4 border-2 border-emerald-500 text-emerald-600 font-black text-sm px-3 py-1 rounded-md uppercase tracking-widest bg-emerald-50 transform rotate-12 shadow-sm">
+                HIRED
+              </div>
+
+              <div className="flex items-center gap-4 mb-6">
+                <img src={story.image} alt={story.name} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md" />
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900">{story.name}</h3>
+                  <p className="text-slate-500 text-sm">{story.role}</p>
+                </div>
+              </div>
+
+              <p className="text-lg font-medium leading-relaxed text-slate-700 mb-6 relative z-10">
+                "{story.quote}"
+              </p>
+
+              <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+                <div className="flex gap-0.5 text-amber-400">
+                  {[1,2,3,4,5].map(s => <Star key={s} className="w-3 h-3 fill-current" />)}
+                </div>
+                <div className="font-mono text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full font-bold">
+                  {story.stat}
+                </div>
+              </div>
+            </div>
+          ))}
+          
+           {/* CTA Card Mobile */}
+           <div className="w-full bg-gradient-to-br from-primary-500 to-primary-600 p-8 rounded-3xl text-center relative overflow-hidden shadow-xl">
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+             <h3 className="text-3xl font-black mb-4 relative z-10 text-white">YOUR TURN.</h3>
+             <Button asChild className="w-full bg-white text-primary-600 hover:bg-slate-50 border-none shadow-lg text-lg font-bold">
+               <Link to="/login">
+                 Start Free Trial
+               </Link>
+             </Button>
+           </div>
+        </div>
+
+        {/* Horizontal Scroll Section - Desktop Only */}
+        <div ref={scrollRef} className="hidden lg:block h-[300vh] relative">
           <div className="sticky top-40 overflow-hidden">
             <motion.div style={{ x }} className="flex gap-12 pl-12 pr-12 w-max">
               {stories.map((story, i) => (
                 <div 
                   key={i} 
-                  className="w-[400px] md:w-[500px] bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50 relative flex-shrink-0 group hover:border-primary-200 transition-colors"
+                  className="w-[500px] bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50 relative flex-shrink-0 group hover:border-primary-200 transition-colors"
                 >
                   {/* Dynamic Hired Stamp */}
                   <motion.div 
@@ -155,13 +203,15 @@ export default function SuccessStories() {
               ))}
               
               {/* CTA Card at the end */}
-              <div className="w-[400px] md:w-[500px] bg-gradient-to-br from-primary-500 to-primary-600 p-10 rounded-[3rem] flex flex-col justify-center items-center text-center relative overflow-hidden shadow-2xl shadow-primary-500/30">
+              <div className="w-[500px] bg-gradient-to-br from-primary-500 to-primary-600 p-10 rounded-[3rem] flex flex-col justify-center items-center text-center relative overflow-hidden shadow-2xl shadow-primary-500/30">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                 <h3 className="text-4xl font-black mb-6 relative z-10 text-white">YOUR TURN.</h3>
                 <p className="text-white/90 mb-8 relative z-10 text-lg font-medium">Don't let another dream job slip away.</p>
-                <Link to="/login" className="bg-white text-primary-600 px-8 py-4 rounded-2xl font-bold text-xl hover:scale-105 transition-transform relative z-10 shadow-xl hover:shadow-2xl">
-                  Start Free Trial
-                </Link>
+                <Button asChild className="bg-white text-primary-600 hover:bg-slate-50 hover:scale-105 transition-transform relative z-10 shadow-xl hover:shadow-2xl h-16 px-8 text-xl font-bold rounded-2xl border-none">
+                  <Link to="/login">
+                    Start Free Trial
+                  </Link>
+                </Button>
               </div>
             </motion.div>
           </div>

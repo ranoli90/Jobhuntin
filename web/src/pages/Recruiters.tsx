@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Terminal, User, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
+import { Button } from '../components/ui/Button';
 
 export default function Recruiters() {
   const [view, setView] = useState<'human' | 'terminal'>('human');
@@ -16,7 +17,7 @@ export default function Recruiters() {
         canonicalUrl="https://jobhuntin.com/recruiters"
       />
       
-      <main className="max-w-7xl mx-auto px-6 py-12 relative">
+      <main className="max-w-7xl mx-auto px-6 py-24 relative">
         {/* View Toggle */}
         <div className="flex justify-center mb-16">
             <div className={`p-1 rounded-full flex gap-1 relative shadow-sm border ${view === 'terminal' ? 'bg-gray-800 border-gray-700' : 'bg-white border-slate-200'}`}>
@@ -59,9 +60,9 @@ export default function Recruiters() {
                   <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-8 font-medium">
                     Our AI pre-interviews every candidate before they reach your inbox. You get structured data, not PDF chaos.
                   </p>
-                  <button className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-primary-600 transition-colors shadow-lg hover:shadow-primary-500/20">
+                  <Button variant="secondary" size="lg" className="px-8 py-4 h-auto rounded-xl text-lg shadow-lg hover:shadow-primary-500/20">
                     Request API Access
-                  </button>
+                  </Button>
                </div>
 
                <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -118,9 +119,9 @@ export default function Recruiters() {
                   <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
                     Direct pipe to the top 1% of the market. Webhooks, JSON streams, and zero UI friction.
                   </p>
-                  <button className="border border-emerald-500 text-emerald-500 px-8 py-4 rounded-xl font-bold hover:bg-emerald-500/10 transition-colors">
+                  <Button variant="outline" size="lg" className="border-emerald-500 text-emerald-500 bg-transparent hover:bg-emerald-500/10 px-8 py-4 h-auto rounded-xl font-bold transition-colors">
                     Generate API Key
-                  </button>
+                  </Button>
                </div>
 
                <div className="max-w-4xl mx-auto bg-[#0d1117] border border-gray-800 rounded-lg overflow-hidden shadow-2xl">
@@ -130,26 +131,28 @@ export default function Recruiters() {
                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
                    <span className="ml-2 text-xs text-gray-500">bash — 80x24</span>
                  </div>
-                 <div className="p-6 text-sm text-gray-300 overflow-x-auto">
-                   <p className="mb-2"><span className="text-emerald-400">➜</span> <span className="text-blue-400">~</span> curl -X POST https://api.jobhuntin.io/webhook \</p>
-                   <p className="mb-2 pl-4">-H "Authorization: Bearer sk_live_..." \</p>
-                   <p className="mb-4 pl-4">-d '{"{"}"criteria": ["react", "node", "5+ years"]{"}"}'</p>
-                   
-                   <p className="mb-2 text-gray-500"># Response stream initiating...</p>
-                   <p className="mb-2 text-emerald-400">{"{"}</p>
-                   <p className="mb-1 pl-4">"id": "cand_892301",</p>
-                   <p className="mb-1 pl-4">"match_score": 0.98,</p>
-                   <p className="mb-1 pl-4">"github_activity": "high",</p>
-                   <p className="mb-1 pl-4">"screening": {"{"}</p>
-                   <p className="mb-1 pl-8">"q1_scale": "Architected k8s cluster for...",</p>
-                   <p className="mb-1 pl-8">"q2_salary": "160000"</p>
-                   <p className="mb-1 pl-4">{"}"}</p>
-                   <p className="text-emerald-400">{"}"}</p>
-                   <motion.div 
-                     animate={{ opacity: [0, 1, 0] }}
-                     transition={{ repeat: Infinity, duration: 0.8 }}
-                     className="inline-block w-2 h-4 bg-emerald-400 ml-1 align-middle"
-                   />
+                 <div className="p-4 sm:p-6 text-xs sm:text-sm text-gray-300 overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed">
+                   <div className="min-w-[300px]">
+                     <p className="mb-2"><span className="text-emerald-400">➜</span> <span className="text-blue-400">~</span> curl -X POST https://api.jobhuntin.io/webhook \</p>
+                     <p className="mb-2 pl-4">-H "Authorization: Bearer sk_live_..." \</p>
+                     <p className="mb-4 pl-4">-d '{"{"}"criteria": ["react", "node", "5+ years"]{"}"}'</p>
+                     
+                     <p className="mb-2 text-gray-500"># Response stream initiating...</p>
+                     <p className="mb-2 text-emerald-400">{"{"}</p>
+                     <p className="mb-1 pl-4">"id": "cand_892301",</p>
+                     <p className="mb-1 pl-4">"match_score": 0.98,</p>
+                     <p className="mb-1 pl-4">"github_activity": "high",</p>
+                     <p className="mb-1 pl-4">"screening": {"{"}</p>
+                     <p className="mb-1 pl-8">"q1_scale": "Architected k8s cluster for...",</p>
+                     <p className="mb-1 pl-8">"q2_salary": "160000"</p>
+                     <p className="mb-1 pl-4">{"}"}</p>
+                     <p className="text-emerald-400">{"}"}</p>
+                     <motion.div 
+                       animate={{ opacity: [0, 1, 0] }}
+                       transition={{ repeat: Infinity, duration: 0.8 }}
+                       className="inline-block w-2 h-4 bg-emerald-400 ml-1 align-middle"
+                     />
+                   </div>
                  </div>
                </div>
             </motion.div>

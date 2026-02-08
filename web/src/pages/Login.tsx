@@ -243,7 +243,7 @@ export default function Login() {
           "Return to this tab and sign in securely",
         ];
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans text-slate-900 relative overflow-hidden">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans text-slate-900 relative overflow-hidden pt-24">
          {/* Background Decoration for Success State */}
          <div className="absolute inset-0 pointer-events-none opacity-30">
           <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-400/10 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
@@ -312,259 +312,209 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-900 relative overflow-hidden lg:items-stretch">
-      {/* Left Artistic Panel - Hidden on Mobile */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#0F172A] items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-grid-premium-dark opacity-20 pointer-events-none" />
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-500/20 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
-        
-        {/* Generative Background Blobs */}
-        <div className="absolute inset-0 pointer-events-none">
-          {particles.map((particle) => (
-            <motion.div
-              key={particle.id}
-              className="absolute rounded-full"
-              animate={{ 
-                y: [0, particle.yMove, 0],
-                x: [0, particle.xMove, 0],
-                scale: [1, 1.1, 1],
-                opacity: [0.3, 0.5, 0.3]
-              }}
-              transition={{ 
-                duration: particle.duration, 
-                repeat: Infinity, 
-                ease: "easeInOut",
-                delay: particle.delay
-              }}
-              style={{
-                left: `${particle.left}%`,
-                top: `${particle.top}%`,
-                width: particle.size,
-                height: particle.size,
-                background: particle.color,
-                filter: particle.blur,
-                willChange: "transform"
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="relative z-10 text-center px-12">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-900 relative overflow-hidden py-20 lg:py-32">
+      {/* Generative Background Blobs */}
+      <div className="absolute inset-0 pointer-events-none">
+        {particles.map((particle) => (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="mb-8"
-          >
-            <div className="bg-primary-500 w-20 h-20 rounded-3xl rotate-6 shadow-2xl shadow-primary-500/30 flex items-center justify-center mx-auto mb-6">
-              <Bot className="text-white w-10 h-10" />
-            </div>
-            <h2 className="text-5xl font-black font-display text-white leading-tight mb-4 tracking-tighter">
-              Join the Elite <br />
-              <span className="text-primary-500">Job Hunters</span>
-            </h2>
-            <p className="text-slate-400 text-xl max-w-md mx-auto leading-relaxed font-light">
-              Experience the first-of-its-kind AI agent that transforms your career while you sleep.
-            </p>
-          </motion.div>
-        </div>
-
-        {/* Floating Stat Pills */}
-        <motion.div 
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="absolute bottom-12 left-12 glass-panel-dark px-4 py-2 rounded-full text-xs text-white flex items-center gap-2 border-white/10"
-        >
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          1,247 active hunts in Denver
-        </motion.div>
+            key={particle.id}
+            className="absolute rounded-full"
+            animate={{ 
+              y: [0, particle.yMove, 0],
+              x: [0, particle.xMove, 0],
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ 
+              duration: particle.duration, 
+              repeat: Infinity, 
+              ease: "easeInOut",
+              delay: particle.delay
+            }}
+            style={{
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
+              width: particle.size,
+              height: particle.size,
+              background: particle.color,
+              filter: particle.blur,
+              willChange: "transform"
+            }}
+          />
+        ))}
       </div>
 
-      {/* Right Form Panel */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-12 relative z-10 min-h-screen lg:min-h-0">
-        {/* Mobile Background Texture */}
-        <div className="lg:hidden absolute inset-0 pointer-events-none overflow-hidden">
-             <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary-500/5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/5 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
-        </div>
+      <div className="w-full max-w-md relative z-10 px-6">
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="glass-panel rounded-[2.5rem] p-8 sm:p-10 shadow-2xl shadow-slate-200/50 border-white/60 bg-white/80 backdrop-blur-xl"
+        >
+          <div className="mb-8 text-center">
+            <h1 className="font-display text-3xl font-black text-slate-900 mb-3 tracking-tight">
+              {mode === "magic" ? "Let's get hunting" : mode === "password" ? "Welcome back" : "Create your vault"}
+            </h1>
+            <p className="text-slate-500 font-medium text-sm">{destinationHint}</p>
+          </div>
 
-        <div className="w-full max-w-md relative z-10 flex flex-col h-full lg:h-auto justify-center">
-          <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-primary-600 mb-6 lg:mb-12 transition-colors font-medium group self-start lg:self-auto">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> <span className="hidden sm:inline">Back to Home</span><span className="sm:hidden">Home</span>
-          </Link>
-
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="glass-panel rounded-3xl lg:rounded-[2.5rem] p-6 sm:p-12 shadow-2xl shadow-slate-200/50 border-white/60 bg-white/80 backdrop-blur-xl"
-          >
-            <div className="mb-6 lg:mb-10">
-              <h1 className="font-display text-2xl lg:text-3xl font-black text-slate-900 mb-2 tracking-tight">
-                {mode === "magic" ? "Let's get hunting" : mode === "password" ? "Welcome back" : "Create your vault"}
-              </h1>
-              <p className="text-slate-500 font-medium text-sm lg:text-base">{destinationHint}</p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-6 lg:mb-10 bg-slate-100 p-1 lg:p-1.5 rounded-xl lg:rounded-2xl" role="tablist">
-              {AUTH_MODE_OPTIONS.map((option) => (
-                <button
-                  type="button"
-                  key={option.key}
-                  onClick={() => setMode(option.key)}
-                  role="tab"
-                  className={cn(
-                    "rounded-lg lg:rounded-xl py-2 lg:py-2.5 text-center transition-all text-[10px] lg:text-xs font-bold uppercase tracking-wider",
-                    mode === option.key
-                      ? "bg-white text-primary-600 shadow-sm ring-1 ring-black/5"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
-                  )}
-                >
-                  {option.label.split(' ')[0]}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-4 mb-6 lg:mb-10">
-              <Button
-                variant="outline"
+          <div className="grid grid-cols-3 gap-2 mb-8 bg-slate-100 p-1.5 rounded-2xl" role="tablist">
+            {AUTH_MODE_OPTIONS.map((option) => (
+              <button
                 type="button"
-                onClick={() => handleSocialLogin("google")}
-                disabled={!!socialProviderLoading}
-                className="w-full justify-center gap-2 lg:gap-3 py-4 lg:py-6 rounded-xl lg:rounded-2xl font-bold text-slate-700 text-xs lg:text-sm"
+                key={option.key}
+                onClick={() => setMode(option.key)}
+                role="tab"
+                className={cn(
+                  "rounded-xl py-2.5 text-center transition-all text-xs font-bold uppercase tracking-wider",
+                  mode === option.key
+                    ? "bg-white text-primary-600 shadow-sm ring-1 ring-black/5"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                )}
               >
-                {socialProviderLoading === "google" ? (
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
-                ) : (
-                  <Chrome className="w-4 h-4 lg:w-5 lg:h-5 text-slate-900" />
-                )}
-                <span className="hidden sm:inline">Continue with Google</span><span className="sm:hidden">Google</span>
-              </Button>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => handleSocialLogin("linkedin_oidc")}
-                disabled={!!socialProviderLoading}
-                className="w-full justify-center gap-2 lg:gap-3 py-4 lg:py-6 rounded-xl lg:rounded-2xl font-bold text-slate-700 text-xs lg:text-sm"
-              >
-                {socialProviderLoading === "linkedin" ? (
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
-                ) : (
-                  <Linkedin className="w-4 h-4 lg:w-5 lg:h-5 text-[#0077b5]" />
-                )}
-                <span className="hidden sm:inline">Continue with LinkedIn</span><span className="sm:hidden">LinkedIn</span>
-              </Button>
-            </div>
+                {option.label.split(' ')[0]}
+              </button>
+            ))}
+          </div>
 
-            <div className="relative mb-6 lg:mb-10">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200"></div>
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-4 bg-white/80 text-slate-400 font-bold uppercase tracking-widest backdrop-blur-xl">Or with email</span>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
-              <div className="space-y-3 lg:space-y-4">
-                <Input
-                    type="email"
-                    placeholder="tech-wizard@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    icon={<Mail className="w-5 h-5" />}
-                    required
-                    className="py-3 lg:py-4"
-                />
-
-                {mode !== "magic" && (
-                  <motion.div 
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    className="overflow-hidden"
-                  >
-                    <Input
-                      type="password"
-                      placeholder={mode === "register" ? "Create a strong password" : "••••••••"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      icon={<Lock className="w-5 h-5" />}
-                      className="py-3 lg:py-4"
-                    />
-                  </motion.div>
-                )}
-
-                {mode === "register" && (
-                  <motion.div 
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    className="overflow-hidden"
-                  >
-                    <Input
-                      type="password"
-                      placeholder="Confirm password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      icon={<Lock className="w-5 h-5" />}
-                      className="py-3 lg:py-4"
-                    />
-                  </motion.div>
-                )}
-              </div>
-
-              {mode === "register" && (
-                <div className="bg-slate-50/80 rounded-2xl p-4 lg:p-5 space-y-3 border border-slate-100">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black">Security Checklist</p>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    {passwordChecks.map((check) => (
-                      <div key={check.label} className="flex items-center gap-2 text-[10px] lg:text-[11px] font-bold">
-                        <CheckCircle className={cn("w-3 h-3", check.pass ? "text-green-500" : "text-slate-300")} />
-                        <span className={cn(check.pass ? "text-slate-700" : "text-slate-400")}>{check.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {!passwordsMatch && confirmPassword.length > 0 && (
-                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Passwords must match</p>
-                  )}
-                </div>
+          <div className="grid grid-cols-1 gap-4 mb-8">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => handleSocialLogin("google")}
+              disabled={!!socialProviderLoading}
+              className="w-full justify-center gap-3 py-6 rounded-2xl font-bold text-slate-700 text-sm hover:bg-white hover:shadow-lg transition-all border-slate-200"
+            >
+              {socialProviderLoading === "google" ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
+              ) : (
+                <Chrome className="w-5 h-5 text-slate-900" />
               )}
+              Continue with Google
+            </Button>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => handleSocialLogin("linkedin_oidc")}
+              disabled={!!socialProviderLoading}
+              className="w-full justify-center gap-3 py-6 rounded-2xl font-bold text-slate-700 text-sm hover:bg-white hover:shadow-lg transition-all border-slate-200"
+            >
+              {socialProviderLoading === "linkedin" ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
+              ) : (
+                <Linkedin className="w-5 h-5 text-[#0077b5]" />
+              )}
+              Continue with LinkedIn
+            </Button>
+          </div>
 
-              {formError && (
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-4 bg-white/80 text-slate-400 font-bold uppercase tracking-widest backdrop-blur-xl">Or with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <Input
+                  type="email"
+                  placeholder="tech-wizard@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  icon={<Mail className="w-5 h-5" />}
+                  required
+                  className="py-4 bg-white/50 border-slate-200 focus:bg-white transition-all"
+              />
+
+              {mode !== "magic" && (
                 <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-red-100"
-                  role="alert"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="overflow-hidden"
                 >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {formError}
+                  <Input
+                    type="password"
+                    placeholder={mode === "register" ? "Create a strong password" : "••••••••"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    icon={<Lock className="w-5 h-5" />}
+                    className="py-4 bg-white/50 border-slate-200 focus:bg-white transition-all"
+                  />
                 </motion.div>
               )}
 
-              <Button
-                type="submit"
-                disabled={isLoading || !canSubmit || !!rateLimitCountdown}
-                variant="primary"
-                size="lg"
-                className="w-full py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-xl shadow-primary-500/20 uppercase tracking-widest text-xs lg:text-sm font-black"
-              >
-                {isLoading ? (
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                    <Sparkles className="w-5 h-5" />
-                  </motion.div>
-                ) : (
-                  <>
-                    {mode === "magic" ? "Send Magic Link" : mode === "password" ? "Sign In" : "Create Account"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-
-              {rateLimitCountdown && (
-                <p className="text-xs text-center text-orange-600 font-bold uppercase tracking-wider">Cooldown active · {rateLimitCountdown}s</p>
+              {mode === "register" && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="overflow-hidden"
+                >
+                  <Input
+                    type="password"
+                    placeholder="Confirm password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    icon={<Lock className="w-5 h-5" />}
+                    className="py-4 bg-white/50 border-slate-200 focus:bg-white transition-all"
+                  />
+                </motion.div>
               )}
-            </form>
-          </motion.div>
+            </div>
+
+            {mode === "register" && (
+              <div className="bg-slate-50/80 rounded-2xl p-4 lg:p-5 space-y-3 border border-slate-100">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black">Security Checklist</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  {passwordChecks.map((check) => (
+                    <div key={check.label} className="flex items-center gap-2 text-[10px] lg:text-[11px] font-bold">
+                      <CheckCircle className={cn("w-3 h-3", check.pass ? "text-green-500" : "text-slate-300")} />
+                      <span className={cn(check.pass ? "text-slate-700" : "text-slate-400")}>{check.label}</span>
+                    </div>
+                  ))}
+                </div>
+                {!passwordsMatch && confirmPassword.length > 0 && (
+                  <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Passwords must match</p>
+                )}
+              </div>
+            )}
+
+            {formError && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-red-100"
+                role="alert"
+              >
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {formError}
+              </motion.div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={isLoading || !canSubmit || !!rateLimitCountdown}
+              variant="primary"
+              size="lg"
+              className="w-full py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-xl shadow-primary-500/20 uppercase tracking-widest text-xs lg:text-sm font-black"
+            >
+              {isLoading ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                  <Sparkles className="w-5 h-5" />
+                </motion.div>
+              ) : (
+                <>
+                  {mode === "magic" ? "Send Magic Link" : mode === "password" ? "Sign In" : "Create Account"}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+
+            {rateLimitCountdown && (
+              <p className="text-xs text-center text-orange-600 font-bold uppercase tracking-wider">Cooldown active · {rateLimitCountdown}s</p>
+            )}
+          </form>
 
           <p className="mt-6 lg:mt-10 text-center text-xs text-slate-400 font-medium relative z-10 pb-4 lg:pb-0">
             By joining, you agree to our{' '}
@@ -572,7 +522,7 @@ export default function Login() {
             {' '}and{' '}
             <Link to="/privacy" className="underline hover:text-primary-500">Privacy Policy</Link>.
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

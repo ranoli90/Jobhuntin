@@ -73,10 +73,10 @@ export default function GuidePage() {
 
   if (!guide) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#FAF9F6]">
-        <BookOpen className="w-16 h-16 text-[#FF6B35] mb-4 animate-pulse" />
-        <h1 className="text-2xl font-bold mb-4">Guide Not Found</h1>
-        <Link to="/guides" className="text-[#4A90E2] hover:underline flex items-center gap-2">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
+        <BookOpen className="w-16 h-16 text-primary-500 mb-4 animate-pulse" />
+        <h1 className="text-2xl font-bold mb-4 text-slate-900">Guide Not Found</h1>
+        <Link to="/guides" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
           <ArrowLeft className="w-4 h-4" /> Back to Playbook
         </Link>
       </div>
@@ -84,7 +84,7 @@ export default function GuidePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] font-inter text-[#2D2D2D]">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO 
         title={`${guide.title} | JobHuntin Playbook`}
         description={`Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin AI automation playbook.`}
@@ -104,13 +104,13 @@ export default function GuidePage() {
       <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/guides" className="flex items-center gap-2">
-            <div className="bg-[#FF6B35] p-2 rounded-xl rotate-3">
+            <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
               <Bot className="text-white w-6 h-6" />
             </div>
-            <span className="text-xl font-bold font-poppins">JobHuntin <span className="text-gray-400 font-normal">Playbook</span></span>
+            <span className="text-xl font-bold font-display text-slate-900">JobHuntin <span className="text-slate-400 font-normal">Playbook</span></span>
           </Link>
-          <Link to="/guides" className="text-sm font-medium hover:text-[#FF6B35] flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" /> Back to Guides
+          <Link to="/guides" className="text-sm font-medium text-slate-600 hover:text-primary-600 flex items-center gap-2 group transition-colors">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Guides
           </Link>
         </div>
       </nav>
@@ -121,76 +121,76 @@ export default function GuidePage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <div className="flex items-center gap-4 text-sm text-gray-400 font-bold uppercase tracking-widest mb-6">
-            <span className="text-[#FF6B35]">{guide.category}</span>
-            <span className="w-1 h-1 bg-gray-300 rounded-full" />
+          <div className="flex items-center gap-4 text-sm text-slate-400 font-bold uppercase tracking-widest mb-6">
+            <span className="text-primary-500">{guide.category}</span>
+            <span className="w-1 h-1 bg-slate-300 rounded-full" />
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" /> {guide.readTime}
             </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold font-poppins mb-8 leading-tight">
+          <h1 className="text-4xl md:text-6xl font-black font-display mb-8 leading-tight text-slate-900">
             {guide.title}
           </h1>
-          <div className="flex items-center justify-between border-y border-gray-100 py-6">
+          <div className="flex items-center justify-between border-y border-slate-200 py-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white font-bold text-xs">JH</div>
+              <div className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xs">JH</div>
               <div>
-                <p className="text-sm font-bold">JobHuntin Research Team</p>
-                <p className="text-xs text-gray-400">Updated Feb 8, 2026</p>
+                <p className="text-sm font-bold text-slate-900">JobHuntin Research Team</p>
+                <p className="text-xs text-slate-500">Updated Feb 8, 2026</p>
               </div>
             </div>
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <Share2 className="w-5 h-5 text-gray-400" />
+            <button className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-900">
+              <Share2 className="w-5 h-5" />
             </button>
           </div>
         </motion.div>
 
         <article 
-          className="prose prose-lg max-w-none prose-headings:font-poppins prose-headings:text-[#2D2D2D] prose-p:text-gray-600 prose-a:text-[#4A90E2] mb-20"
+          className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-primary-600 mb-20 prose-strong:text-slate-900"
           dangerouslySetInnerHTML={{ __html: guide.content }}
         />
 
-        <div className="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm mb-20">
-          <h3 className="text-2xl font-bold mb-6">Related Tools</h3>
+        <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm mb-20">
+          <h3 className="text-2xl font-bold mb-6 font-display text-slate-900">Related Tools</h3>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Link to="/chrome-extension" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-              <div className="w-12 h-12 bg-orange-50 text-[#FF6B35] rounded-xl flex items-center justify-center flex-shrink-0">
+            <Link to="/chrome-extension" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
+              <div className="w-12 h-12 bg-orange-50 text-primary-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500 group-hover:text-white transition-colors">
                 <Zap className="w-6 h-6" />
               </div>
               <div>
-                <p className="font-bold text-sm">Chrome Extension</p>
-                <p className="text-xs text-gray-400">Auto-apply while browsing</p>
+                <p className="font-bold text-sm text-slate-900">Chrome Extension</p>
+                <p className="text-xs text-slate-400">Auto-apply while browsing</p>
               </div>
             </Link>
-            <Link to="/pricing" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-              <div className="w-12 h-12 bg-blue-50 text-[#4A90E2] rounded-xl flex items-center justify-center flex-shrink-0">
+            <Link to="/pricing" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
+              <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                 <Target className="w-6 h-6" />
               </div>
               <div>
-                <p className="font-bold text-sm">Pro Hunter Plan</p>
-                <p className="text-xs text-gray-400">Scale your hunt 10x</p>
+                <p className="font-bold text-sm text-slate-900">Pro Hunter Plan</p>
+                <p className="text-xs text-slate-400">Scale your hunt 10x</p>
               </div>
             </Link>
           </div>
         </div>
 
-        <div className="bg-gray-900 rounded-[3rem] p-12 text-white text-center relative overflow-hidden">
+        <div className="bg-slate-900 rounded-[3rem] p-12 text-white text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-          <h2 className="text-3xl font-bold mb-6 relative z-10">Experience the automation.</h2>
-          <p className="text-gray-400 mb-10 relative z-10 max-w-lg mx-auto">
+          <h2 className="text-3xl font-bold mb-6 relative z-10 font-display">Experience the automation.</h2>
+          <p className="text-slate-400 mb-10 relative z-10 max-w-lg mx-auto text-lg">
             Ready to put these strategies into practice? Let our agent handle your next 50 applications.
           </p>
           <Link 
             to="/login" 
-            className="inline-block bg-[#FF6B35] text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-orange-500/20"
+            className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-primary-500/20"
           >
             Start Your Run
           </Link>
         </div>
       </main>
 
-      <footer className="bg-white border-t border-gray-200 py-12 mt-20">
-        <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
+      <footer className="bg-white border-t border-slate-200 py-12 mt-20">
+        <div className="max-w-7xl mx-auto px-6 text-center text-slate-400 text-sm font-medium">
           &copy; {new Date().getFullYear()} JobHuntin AI. All rights reserved.
         </div>
       </footer>

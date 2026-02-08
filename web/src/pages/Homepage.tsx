@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useSpring, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
@@ -10,6 +10,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
+import { Button } from '../components/ui/Button';
 
 // --- UTILS ---
 function cn(...inputs: ClassValue[]) {
@@ -196,7 +197,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[85vh] pt-20 md:pt-32 pb-12 flex items-center justify-center overflow-hidden bg-slate-50">
+    <section className="relative min-h-[85vh] pt-32 pb-12 flex items-center justify-center overflow-hidden bg-slate-50">
       {/* Premium Background Layers */}
       <div className="absolute inset-0 bg-grid-premium opacity-[0.4] pointer-events-none" />
       
@@ -231,28 +232,28 @@ const Hero = () => {
         ))}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid lg:grid-cols-2 gap-10 items-center">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         {/* Left Content */}
-        <div className="text-center lg:text-left">
+        <div className="text-center lg:text-left pt-10 lg:pt-0">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm mb-6 border border-primary-100"
           >
             <Sparkles className="w-4 h-4 text-primary-500" />
-            <span className="text-sm font-semibold text-slate-600">
+            <span className="text-xs sm:text-sm font-semibold text-slate-600">
               AI Hunts Jobs For You
             </span>
           </motion.div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black font-display text-slate-900 leading-[0.9] mb-8 tracking-tighter">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black font-display text-slate-900 leading-[0.95] mb-6 sm:mb-8 tracking-tighter">
             Hunt Jobs with <br />
             <span className="relative inline-block mt-2">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-amber-500 to-red-500 animate-gradient-x">
                 AI Magic
               </span>
               <motion.span 
-                className="absolute -top-4 -right-10 text-4xl sm:text-5xl pointer-events-none"
+                className="absolute -top-4 -right-8 sm:-right-10 text-4xl sm:text-5xl pointer-events-none"
                 animate={{ 
                   rotate: [0, 15, -15, 0],
                   scale: [1, 1.2, 1],
@@ -264,7 +265,7 @@ const Hero = () => {
             </span>
           </h1>
 
-          <p className="text-xl sm:text-2xl text-slate-500 mb-10 max-w-lg mx-auto lg:mx-0 leading-tight font-medium">
+          <p className="text-lg sm:text-xl lg:text-2xl text-slate-500 mb-8 sm:mb-10 max-w-lg mx-auto lg:mx-0 leading-tight font-medium">
             Upload once. AI swipes & applies to 100s of jobs while you sleep. 
             <span className="text-slate-900 border-b-2 border-primary-500/30"> Beats Sorce.jobs</span> on every metric.
           </p>
@@ -299,9 +300,12 @@ const Hero = () => {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <button 
+              <Button 
+                type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto bg-slate-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-primary-600 transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-lg hover:shadow-primary-500/25"
+                variant="secondary"
+                size="lg"
+                className="w-full sm:w-auto px-8 py-3 rounded-lg shadow-lg hover:shadow-primary-500/25 whitespace-nowrap"
               >
                 {isSubmitting ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
@@ -309,10 +313,10 @@ const Hero = () => {
                   </motion.div>
                 ) : (
                   <>
-                    Start Hunt <ArrowRight className="w-4 h-4" />
+                    Start Hunt <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
-              </button>
+              </Button>
             </form>
           </div>
           )}
@@ -552,12 +556,12 @@ const AutomationEdge = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <button 
-              className="bg-[#0088cc] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#0077b5] transition-colors flex items-center gap-3 shadow-lg shadow-blue-500/30"
+            <Button 
+              className="bg-[#0088cc] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#0077b5] transition-colors flex items-center gap-3 shadow-lg shadow-blue-500/30 h-auto"
             >
               <Smartphone className="w-6 h-6" />
               Add JobHuntin Bot
-            </button>
+            </Button>
             <div className="flex items-center gap-2 text-sm text-slate-400">
               <QrCode className="w-4 h-4" />
               <span>or scan QR code</span>
