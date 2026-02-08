@@ -459,10 +459,28 @@ const Hero = ({ muted }: { muted: boolean }) => {
       });
 
       if (!resp.ok) {
-        const errText = await resp.text();
+        let bodyText = await resp.text();
+        let bodyJson: any = null;
+        try {
+          bodyJson = JSON.parse(bodyText || '{}');
+        } catch (_) {
+          // ignore JSON parse errors
+        }
+
+        const apiMessage = bodyJson?.error || bodyJson?.message;
         const message = resp.status === 429
           ? "You've hit the limit for magic links. Please wait a bit before trying again."
-          : errText || "Failed to send magic link";
+          : `Magic link failed (${resp.status}): ${apiMessage || bodyText || 'Unknown error'}`;
+
+        console.error('[magic-link] failure', {
+          status: resp.status,
+          statusText: resp.statusText,
+          bodyText,
+          bodyJson,
+          email: normalizedEmail,
+          returnUrl,
+        });
+
         throw new Error(message);
       }
 
@@ -498,6 +516,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
       setIsSubmitting(false);
       setSentEmail(null);
       const message = err?.message || "Failed to send magic link";
+      console.error('[magic-link] unexpected error', err);
       setEmailError(message);
       pushToast({ title: "Error", description: message, tone: "error" });
     }
