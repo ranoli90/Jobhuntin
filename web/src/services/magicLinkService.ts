@@ -59,7 +59,13 @@ class MagicLinkService {
       const sanitizedReturnTo = this.sanitizeReturnTo(returnTo);
       const redirectUrl = `${origin}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
 
+      console.log(`[MagicLink] Origin: ${origin}`);
       console.log(`[MagicLink] Sending to: ${normalizedEmail}, Redirect: ${redirectUrl}`);
+      
+      // Validate the redirect URL is properly formed
+      if (!redirectUrl.startsWith('http')) {
+        throw new Error('Invalid redirect URL: must be absolute URL');
+      }
 
       const { error } = await supabase.auth.signInWithOtp({
         email: normalizedEmail,

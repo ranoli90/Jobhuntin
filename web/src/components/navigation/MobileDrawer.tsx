@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "../ui/Button";
 
@@ -11,8 +12,43 @@ interface MobileDrawerProps {
 }
 
 export function MobileDrawer({ isOpen, onClose, children, side = "left" }: MobileDrawerProps) {
-  return (
-    <AnimatePresence>
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      // Prevent iOS bounce effect
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+    };
+  }, [isOpen]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <AnimatePresence mode="wait">
       {isOpen && (
         <>
           {/* Backdrop */}
@@ -20,7 +56,8 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm md:hidden"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -30,14 +67,18 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
             initial={{ x: side === "left" ? "-100%" : "100%" }}
             animate={{ x: 0 }}
             exit={{ x: side === "left" ? "-100%" : "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className={`fixed inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} z-50 w-64 flex flex-col bg-white shadow-xl md:hidden`}
+            transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+            className={`fixed inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} z-[9999] w-[85vw] max-w-sm flex flex-col bg-white shadow-2xl md:hidden`}
+            drag={side === "left" ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.05}
           >
             {children}
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

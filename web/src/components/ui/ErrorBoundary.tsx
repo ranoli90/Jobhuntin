@@ -27,6 +27,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
+    // Log additional context for debugging
+    console.error('Current URL:', window.location.href);
+    console.error('User Agent:', navigator.userAgent);
+    console.error('Timestamp:', new Date().toISOString());
   }
 
   render() {

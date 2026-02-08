@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft, BookOpen, Zap, Shield, Search, Sparkles, ChevronRight, Target } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
+import { GoogleSearch } from '../components/ui/GoogleSearch';
 
 const GUIDES = [
   {
@@ -84,6 +85,10 @@ export default function GuidesHome() {
           <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
             Deep-dives into the mechanisms of modern visibility and discovery in the job market.
           </p>
+          
+          <div className="mt-12">
+            <GoogleSearch />
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
