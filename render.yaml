@@ -72,7 +72,7 @@ services:
       - key: LOG_LEVEL
         value: INFO
       - key: APP_BASE_URL
-        value: https://sorce-web.onrender.com
+        value: https://jobhuntin.com
       - key: RESEND_API_KEY
         sync: false
     plan: starter

@@ -165,7 +165,7 @@ export default function JobsFeed() {
               </div>
               <h3 className="font-display text-2xl text-brand-ink">Application sent!</h3>
               <p className="mt-2 text-brand-ink/70">
-                Skedaddle will handle the heavy lifting. We'll notify you when there's an update.
+                JobHuntin will handle the heavy lifting. We'll notify you when there's an update.
               </p>
               <div className="mt-6 space-y-3">
                 <Button

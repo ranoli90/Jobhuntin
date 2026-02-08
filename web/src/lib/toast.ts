@@ -5,7 +5,7 @@ export type ToastPayload = {
   tone?: "success" | "error" | "info";
 };
 
-const TOAST_EVENT = "skedaddle-toast";
+const TOAST_EVENT = "jobhuntin-toast";
 
 export function pushToast(payload: ToastPayload) {
   if (typeof window === "undefined") return;

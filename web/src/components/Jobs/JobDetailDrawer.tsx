@@ -69,7 +69,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
           <Card tone="lagoon" className="mt-6 p-4">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="h-5 w-5 text-brand-lagoon" />
-              <h3 className="font-display text-lg">What Skedaddle submits</h3>
+              <h3 className="font-display text-lg">What JobHuntin submits</h3>
             </div>
             <ul className="space-y-2 text-sm text-brand-ink/80">
               <li className="flex items-start gap-2">
@@ -114,7 +114,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
                 onClose();
               }}
             >
-              Apply via Skedaddle
+              Apply via JobHuntin
               <Sparkles className="h-4 w-4" />
             </Button>
             

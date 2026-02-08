@@ -7,10 +7,10 @@ interface OnboardingStep {
 }
 
 const STEPS: OnboardingStep[] = [
-  { id: "welcome", title: "Welcome to Skedaddle", description: "Let's get you set up in 2 minutes" },
+  { id: "welcome", title: "Welcome to JobHuntin", description: "Let's get you set up in 2 minutes" },
   { id: "resume", title: "Upload your resume", description: "We'll use this to find perfect matches" },
   { id: "preferences", title: "Job preferences", description: "Tell us what you're looking for" },
-  { id: "ready", title: "You're ready!", description: "Time to start applying" },
+  { id: "ready", title: "You're ready!", description: "Time to start job hunting" },
 ];
 
 export function useOnboarding() {

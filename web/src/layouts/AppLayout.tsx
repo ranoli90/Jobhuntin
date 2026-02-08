@@ -49,10 +49,10 @@ export default function AppLayout() {
         <div className="border-b border-slate-200 px-6 py-5">
           <Link to="/app/dashboard" className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 text-white font-semibold grid place-items-center">
-              S
+              JH
             </div>
             <div>
-              <p className="text-lg font-semibold">Skedaddle</p>
+              <p className="text-lg font-semibold">JobHuntin</p>
               <p className="text-xs text-slate-500">Intelligence console</p>
             </div>
           </Link>
@@ -71,10 +71,10 @@ export default function AppLayout() {
         <div className="border-t border-slate-200 px-4 py-5">
           <div className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-semibold grid place-items-center">
-              {user?.email?.slice(0, 2).toUpperCase() ?? "SK"}
+              {user?.email?.slice(0, 2).toUpperCase() ?? "JH"}
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium truncate">{user?.email ?? "hello@skedaddle.com"}</p>
+              <p className="text-sm font-medium truncate">{user?.email ?? "hello@jobhuntin.com"}</p>
               <Badge variant="outline" size="sm" className="mt-1">
                 {plan ?? "Free"}
               </Badge>
@@ -108,9 +108,9 @@ export default function AppLayout() {
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <Link to="/app/dashboard" className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 text-white font-semibold grid place-items-center">
-              S
+              JH
             </div>
-            <span className="text-lg font-semibold">Skedaddle</span>
+            <span className="text-lg font-semibold">JobHuntin</span>
           </Link>
           <Button variant="ghost" size="icon" onClick={closeMobile} aria-label="Close menu">
             <X className="h-5 w-5" />

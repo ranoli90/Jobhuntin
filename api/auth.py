@@ -88,12 +88,12 @@ def _render_email_html(action_link: str, return_to: str | None) -> str:
             <tr>
               <td style="text-align:center;">
                 <div style="display:inline-flex;align-items:center;gap:12px;margin-bottom:24px;">
-                  <span style="width:44px;height:44px;border-radius:14px;background:#FF9C6B;color:#fff;font-weight:700;display:grid;place-items:center;font-size:18px;">Sk</span>
-                  <span style="font-size:28px;color:#101828;font-weight:700;">Skedaddle</span>
+                  <span style="width:44px;height:44px;border-radius:14px;background:#FF9C6B;color:#fff;font-weight:700;display:grid;place-items:center;font-size:18px;">JH</span>
+                  <span style="font-size:28px;color:#101828;font-weight:700;">JobHuntin</span>
                 </div>
                 <h1 style="font-size:26px;color:#101828;margin:0 0 12px;">Your magic link is ready ✨</h1>
-                <p style="font-size:16px;color:#475467;margin:0 0 32px;">Tap the button to hop back into your Skedaddle workspace.<br />We'll take you to <strong>{destination}</strong>.</p>
-                <a href="{action_link}" style="display:inline-block;background:#17BEBB;color:#fff;font-weight:600;padding:14px 32px;border-radius:999px;text-decoration:none;box-shadow:0 18px 40px rgba(23,190,187,0.35);">Open Skedaddle</a>
+                <p style="font-size:16px;color:#475467;margin:0 0 32px;">Tap the button to hop back into your JobHuntin workspace.<br />We'll take you to <strong>{destination}</strong>.</p>
+                <a href="{action_link}" style="display:inline-block;background:#17BEBB;color:#fff;font-weight:600;padding:14px 32px;border-radius:999px;text-decoration:none;box-shadow:0 18px 40px rgba(23,190,187,0.35);">Open JobHuntin</a>
                 <p style="font-size:14px;color:#98A2B3;margin:32px 0 8px;">Link expires in 1 hour. Not you? Ignore this email.</p>
                 <p style="font-size:13px;color:#98A2B3;margin:0;">Or copy & paste this link:<br /><a href="{action_link}" style="color:#17BEBB;word-break:break-all;">{action_link}</a></p>
               </td>
@@ -112,7 +112,7 @@ async def _send_magic_link_email(settings: Settings, email: str, action_link: st
     payload = {
         "from": settings.email_from,
         "to": [email],
-        "subject": "Sign in to Skedaddle",
+        "subject": "Sign in to JobHuntin",
         "html": html,
         "text": f"Use this link to sign in: {action_link}",
     }

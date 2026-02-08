@@ -23,9 +23,9 @@ export default function MarketingLayout() {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                S
+                JH
               </div>
-              <span className="font-semibold text-xl tracking-tight">Skedaddle</span>
+              <span className="font-semibold text-xl tracking-tight">JobHuntin</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -144,7 +144,7 @@ export default function MarketingLayout() {
           {/* Bottom bar */}
           <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} Skedaddle. All rights reserved.
+              © {new Date().getFullYear()} JobHuntin. All rights reserved.
             </p>
             <div className="flex gap-6">
               <a href="#" className="text-sm text-slate-500 hover:text-slate-700">Privacy Policy</a>

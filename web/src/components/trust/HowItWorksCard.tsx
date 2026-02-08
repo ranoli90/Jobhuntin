@@ -29,7 +29,7 @@ export function HowItWorksCard() {
   return (
     <Card tone="shell" shadow="lift" className="p-6">
       <h3 className="mb-6 font-display text-xl text-brand-ink">
-        How Skedaddle applies on your behalf
+        How JobHuntin applies on your behalf
       </h3>
       <div className="space-y-4">
         {STEPS.map((step, index) => {

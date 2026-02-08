@@ -24,11 +24,11 @@
   --color-slate-950: 2 6 23;
 
   /* Legacy mapping for compatibility */
-  --skedaddle-sunrise: 59 130 246;
-  --skedaddle-lagoon: 6 182 212;
-  --skedaddle-mango: 245 158 11;
-  --skedaddle-ink: 15 23 42;
-  --skedaddle-shell: 248 250 252;
+  --jobhuntin-sunrise: 59 130 246;
+  --jobhuntin-lagoon: 6 182 212;
+  --jobhuntin-mango: 245 158 11;
+  --jobhuntin-ink: 15 23 42;
+  --jobhuntin-shell: 248 250 252;
 }
 
 * {

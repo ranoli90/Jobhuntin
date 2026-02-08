@@ -306,7 +306,7 @@ export function HowItWorks() {
           transition={{ duration: 0.8 }}
         >
           <span className="inline-block px-4 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-sm font-medium text-slate-400 mb-6">
-            How Skedaddle Works
+            How JobHuntin Works
           </span>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
             From search to offer,

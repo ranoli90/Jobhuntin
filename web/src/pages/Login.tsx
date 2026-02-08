@@ -149,7 +149,7 @@ export default function Login() {
           <div className="h-9 w-9 rounded-xl bg-brand-sunrise text-white grid place-items-center text-sm font-bold">
             Sk
           </div>
-          <span className="font-display text-xl">Skedaddle</span>
+          <span className="font-display text-xl">JobHuntin</span>
         </Link>
 
         <Card tone="shell" shadow="lift" className="p-8">

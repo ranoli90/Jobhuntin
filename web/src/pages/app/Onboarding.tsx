@@ -88,7 +88,7 @@ export default function Onboarding() {
   const handleComplete = async () => {
     try {
       await completeOnboarding();
-      pushToast({ title: "You're all set! Let's skedaddle! 🚀", tone: "success" });
+      pushToast({ title: "You're all set! Let's job hunt! 🚀", tone: "success" });
       navigate("/app/jobs");
     } catch (err) {
       pushToast({ title: "Almost there!", description: "Please try again.", tone: "error" });
@@ -173,7 +173,7 @@ export default function Onboarding() {
                 <Rocket className="h-10 w-10 text-brand-sunrise" />
               </div>
               <h1 className="mb-4 font-display text-3xl text-brand-ink">
-                Welcome to Skedaddle!
+                Welcome to JobHuntin!
               </h1>
               <p className="mb-6 text-brand-ink/70">
                 We're going to get you set up in just 2 minutes. Here's what we'll do:
@@ -397,7 +397,7 @@ export default function Onboarding() {
                 <Badge variant="lagoon" className="text-lg">🎉</Badge>
               </div>
               <h1 className="mb-4 font-display text-3xl text-brand-ink">
-                You're ready to skedaddle!
+                You're ready to job hunt!
               </h1>
               <p className="mb-6 text-brand-ink/70">
                 We've got your resume and preferences. Let's find you some perfect job matches.

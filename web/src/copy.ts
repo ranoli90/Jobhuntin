@@ -1,15 +1,15 @@
-// Skedaddle Brand Voice & Copy Constants
+// JobHuntin Brand Voice & Copy Constants
 // Central source of truth for all user-facing copy
 
 export const COPY = {
   // Brand basics
-  brandName: "Skedaddle",
+  brandName: "JobHuntin",
   tagline: "Apply to 100 jobs before breakfast",
   
   // Hero / Landing
   hero: {
     headline: "Apply to 100 jobs before breakfast",
-    subheadline: "Skedaddle is your AI job-hunting teammate. We find perfect matches, fill out applications, and handle the boring stuff—so you can focus on nailing interviews.",
+    subheadline: "JobHuntin is your AI job-hunting teammate. We find perfect matches, fill out applications, and handle the boring stuff—so you can focus on nailing interviews.",
     ctaPrimary: "Start applying free",
     ctaSecondary: "See how it works",
     trustBadge: "No credit card required • 10 free applications • Cancel anytime",
@@ -17,7 +17,7 @@ export const COPY = {
   
   // Actions / Buttons
   actions: {
-    apply: "Skedaddle this job",
+    apply: "JobHuntin this job",
     skip: "Not for me",
     save: "Save for later",
     continue: "Let's go",
@@ -65,7 +65,7 @@ export const COPY = {
   
   // Success messages (celebratory, playful)
   success: {
-    applied: "🚀 Skedaddled! Application sent.",
+    applied: "🚀 JobHuntin'd! Application sent.",
     saved: "✓ Saved to your list",
     uploaded: "✓ Resume uploaded and parsed",
     preferences: "✓ Preferences saved—we'll find better matches now",
@@ -81,7 +81,7 @@ export const COPY = {
   // Onboarding
   onboarding: {
     step1: {
-      title: "Welcome to Skedaddle!",
+      title: "Welcome to JobHuntin!",
       description: "We're going to get you set up in just 2 minutes.",
       checklist: [
         "Upload your resume (or paste your LinkedIn)",
@@ -98,7 +98,7 @@ export const COPY = {
       description: "Tell us what you're looking for",
     },
     step4: {
-      title: "You're ready to skedaddle!",
+      title: "You're ready to job hunt!",
       description: "We've got your resume and preferences. Let's find you some perfect job matches.",
       nextSteps: [
         "We'll scan for jobs matching your profile",
@@ -111,7 +111,7 @@ export const COPY = {
   
   // Trust & Safety
   trust: {
-    howItWorks: "How Skedaddle applies on your behalf",
+    howItWorks: "How JobHuntin applies on your behalf",
     whatWeNeverDo: "What we never do",
     pillars: [
       { title: "We never spam employers", description: "Every application is thoughtful and tailored. We don't blast generic resumes." },

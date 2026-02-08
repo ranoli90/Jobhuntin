@@ -5,7 +5,7 @@ import { ArrowUpRight, Quote, Star, TrendingUp, Clock, Briefcase } from "lucide-
 
 const TESTIMONIALS = [
   {
-    quote: "I applied to 47 jobs in one afternoon. Got 6 interviews that week. Skedaddle is like having a personal recruiter who never sleeps.",
+    quote: "I applied to 47 jobs in one afternoon. Got 6 interviews that week. JobHuntin is like having a personal recruiter who never sleeps.",
     author: "Sarah Chen",
     role: "Product Designer",
     avatar: "SC",
@@ -27,7 +27,7 @@ const TESTIMONIALS = [
     stats: { applications: 62, offers: 3, salaryIncrease: "15%" },
   },
   {
-    quote: "As a career switcher, I didn't know how to position myself. Skedaddle figured out my transferable skills and found roles I'd never have found.",
+    quote: "As a career switcher, I didn't know how to position myself. JobHuntin figured out my transferable skills and found roles I'd never have found.",
     author: "Priya Patel",
     role: "Former Teacher",
     newRole: "UX Researcher",

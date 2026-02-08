@@ -27,7 +27,7 @@ const FAQS = [
     highlight: "Bank-level security",
   },
   {
-    question: "Do employers know I used Skedaddle?",
+    question: "Do employers know I used JobHuntin?",
     answer: "Nope. Every application comes from your email, with your name, using your LinkedIn profile. We just make you look incredibly organized and responsive. Employers see a polished, enthusiastic candidate—never a 'bot.'",
     icon: Eye,
     color: "from-cyan-500 to-blue-600",

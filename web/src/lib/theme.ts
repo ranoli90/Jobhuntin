@@ -1,5 +1,5 @@
-export const skedaddleTheme = {
-  name: "SKEDADDLE",
+export const jobhuntinTheme = {
+  name: "JOBHUNTIN",
   brandVoice: ["playful", "scrappy", "energetic"],
   colors: {
     sunrise: "#FF9C6B",
@@ -41,4 +41,4 @@ export const skedaddleTheme = {
   },
 };
 
-export type SkedaddleTheme = typeof skedaddleTheme;
+export type JobHuntinTheme = typeof jobhuntinTheme;
