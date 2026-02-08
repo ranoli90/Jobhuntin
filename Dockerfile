@@ -30,6 +30,7 @@ COPY blueprints/ ./blueprints/
 COPY partners/ ./partners/
 COPY worker/ ./worker/
 COPY supabase/ ./supabase/
+COPY templates/ ./templates/
 
 RUN chown -R sorce:sorce /app
 
