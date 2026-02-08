@@ -331,11 +331,12 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex flex-col lg:flex-row font-inter text-[#2D2D2D] relative overflow-hidden">
+    <div className="min-h-screen bg-[#FAF9F6] flex flex-col lg:flex-row font-inter text-[#2D2D2D] relative overflow-hidden lg:items-stretch">
       {/* Left Artistic Panel - Hidden on Mobile */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-[#1a1a1a] items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-grid-premium-dark opacity-20 pointer-events-none" />
-        
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#FF6B35]/15 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#4A90E2]/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
         {/* Generative Background Blobs */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((particle) => (

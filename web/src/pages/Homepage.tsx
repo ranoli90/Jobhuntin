@@ -299,8 +299,8 @@ const Navbar = ({ muted, toggleMute }: { muted: boolean, toggleMute: () => void 
         
         <div className="hidden md:flex items-center gap-8 font-medium text-gray-600">
           <a href="#how-it-works" className="hover:text-[#FF6B35] transition-colors" onMouseEnter={() => playHoverSound(muted)}>How it Works</a>
-          <a href="#jobs" className="hover:text-[#FF6B35] transition-colors" onMouseEnter={() => playHoverSound(muted)}>Live Jobs</a>
-          <a href="#comparison" className="hover:text-[#FF6B35] transition-colors" onMouseEnter={() => playHoverSound(muted)}>Vs Sorce</a>
+          <Link to="/jobs" className="hover:text-[#FF6B35] transition-colors" onMouseEnter={() => playHoverSound(muted)}>Live Jobs</Link>
+          <Link to="/vs/sorce" className="hover:text-[#FF6B35] transition-colors" onMouseEnter={() => playHoverSound(muted)}>Vs Sorce</Link>
           <button 
             onClick={toggleMute}
             className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500"
@@ -331,8 +331,8 @@ const Navbar = ({ muted, toggleMute }: { muted: boolean, toggleMute: () => void 
             className="absolute top-full left-0 right-0 bg-white border-b shadow-lg p-6 flex flex-col gap-4 md:hidden"
           >
             <a href="#how-it-works" className="text-lg font-medium">How it Works</a>
-            <a href="#jobs" className="text-lg font-medium">Live Jobs</a>
-            <a href="#comparison" className="text-lg font-medium">Vs Sorce</a>
+            <Link to="/jobs" className="text-lg font-medium">Live Jobs</Link>
+            <Link to="/vs/sorce" className="text-lg font-medium">Vs Sorce</Link>
             <button 
               onClick={() => navigate('/login')}
               className="bg-[#FF6B35] text-white w-full py-3 rounded-xl font-bold"
@@ -534,7 +534,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
   };
 
   return (
-    <section className="relative min-h-screen pt-24 pb-12 flex items-center justify-center overflow-hidden bg-[#FAF9F6]">
+    <section className="relative min-h-[85vh] pt-20 md:pt-24 pb-12 flex items-center justify-center overflow-hidden bg-[#FAF9F6]">
       {/* Premium Background Layers */}
       <div className="absolute inset-0 bg-grid-premium opacity-[0.4] pointer-events-none" />
       
@@ -569,7 +569,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
         ))}
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 relative z-10 grid lg:grid-cols-2 gap-10 items-center">
         {/* Left Content */}
         <div className="text-center lg:text-left">
           <motion.div
@@ -916,101 +916,7 @@ const Onboarding = () => {
   );
 };
 
-// 9. Featured Jobs with Live Demo
-const FeaturedJobs = ({ muted }: { muted: boolean }) => {
-  return (
-    <section id="jobs" className="py-24 bg-[#FAF9F6]">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold font-poppins mb-4">Fresh Hunts</h2>
-          <p className="text-gray-600">AI is currently applying to these roles for users like you.</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {JOBS_DATA.map((job, i) => (
-            <motion.div
-              key={job.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -5, scale: 1.02 }}
-              onMouseEnter={() => playHoverSound(muted)}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 group relative overflow-hidden"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-400">
-                  {job.company[0]}
-                </div>
-                <div className="flex items-center gap-1 text-[#FF6B35] font-bold text-sm">
-                  <Sparkles className="w-3 h-3" />
-                  {job.score}% Match
-                </div>
-              </div>
-              
-              <h3 className="text-xl font-bold text-gray-900 mb-1">{job.title}</h3>
-              <p className="text-[#4A90E2] font-medium mb-4">{job.company}</p>
-              
-              <div className="flex flex-wrap gap-2 mb-6">
-                <span className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-medium">{job.salary}</span>
-                {job.remote && <span className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-medium">Remote</span>}
-                {job.location && <span className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-medium">{job.location}</span>}
-              </div>
-
-              <div className="flex gap-2 mb-6 flex-wrap">
-                {job.tags.map(tag => (
-                  <span key={tag} className={`text-[10px] px-2 py-1 rounded-full ${job.color} bg-opacity-20`}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <button className="w-full py-3 rounded-xl border-2 border-[#FF6B35] text-[#FF6B35] font-bold group-hover:bg-[#FF6B35] group-hover:text-white transition-all flex items-center justify-center gap-2">
-                <Bot className="w-4 h-4" />
-                One-Click Apply
-              </button>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Live Bot Demo */}
-        <div className="mt-20 max-w-4xl mx-auto bg-gray-900 rounded-3xl p-8 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#4A90E2]/20 rounded-full blur-3xl" />
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-            <div className="flex-1">
-              <h3 className="text-2xl font-bold mb-4">See It In Action</h3>
-              <p className="text-gray-400 mb-6">Connect your profile. We'll simulate how our AI pitches your skills to recruiters.</p>
-              <button className="bg-[#4A90E2] hover:bg-[#357abd] text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
-                <Rocket className="w-5 h-5" /> Test My Profile
-              </button>
-            </div>
-            <div className="w-full md:w-1/2 bg-gray-800 rounded-xl p-4 h-64 overflow-hidden relative border border-gray-700">
-               <div className="absolute top-2 left-4 text-xs text-gray-500 font-mono">Simulating Recruiter View...</div>
-               <div className="mt-6 space-y-3">
-                 {[1,2,3].map((_, i) => (
-                   <motion.div 
-                     key={i}
-                     initial={{ x: 100, opacity: 0 }}
-                     animate={{ x: 0, opacity: 1 }}
-                     transition={{ delay: i * 1.5, repeat: Infinity, repeatDelay: 5 }}
-                     className="bg-gray-700 p-3 rounded-lg flex items-center gap-3"
-                   >
-                     <div className="w-8 h-8 bg-gray-600 rounded-full" />
-                     <div className="flex-1">
-                       <div className="h-2 w-20 bg-gray-500 rounded mb-1" />
-                       <div className="h-2 w-32 bg-gray-600 rounded" />
-                     </div>
-                     <CheckCircle className="w-4 h-4 text-green-400" />
-                   </motion.div>
-                 ))}
-               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
+// 9. Featured Jobs with Live Demo (removed)
 
 // 10. Automation Edge & Telegram
 const AutomationEdge = ({ muted }: { muted: boolean }) => {
@@ -1215,7 +1121,6 @@ export default function Homepage() {
       <main>
         <Hero muted={muted} />
         <Onboarding />
-        <FeaturedJobs muted={muted} />
         <AutomationEdge muted={muted} />
       </main>
       <Footer muted={muted} />

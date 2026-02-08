@@ -99,6 +99,8 @@ app.add_middleware(
         "https://sorce-admin.onrender.com",
         "http://localhost:5173",
         "http://localhost:3000",
+        _settings.app_base_url.rstrip("/"),
+        "https://jobhuntin.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
