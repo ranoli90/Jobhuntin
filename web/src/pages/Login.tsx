@@ -43,6 +43,22 @@ export default function Login() {
   const [rateLimitReset, setRateLimitReset] = useState<number | null>(null);
   const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(null);
 
+  // Background Particles Data - Shared artistic style
+  const particles = React.useMemo(() => {
+    return [...Array(20)].map((_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      size: i < 3 ? Math.random() * 200 + 150 : Math.random() * 60 + 20,
+      duration: Math.random() * 30 + 30,
+      delay: Math.random() * 10,
+      yMove: (Math.random() - 0.5) * 100,
+      xMove: (Math.random() - 0.5) * 100,
+      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.2)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+      blur: i < 3 ? 'blur(80px)' : 'none'
+    }));
+  }, []);
+
   useEffect(() => {
     if (!authLoading && session) {
       navigate(returnTo, { replace: true });
@@ -315,197 +331,254 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex flex-col items-center justify-center p-6 font-inter text-[#2D2D2D] relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#FF6B35]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#4A90E2]/10 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-[#FAF9F6] flex flex-col lg:flex-row font-inter text-[#2D2D2D] relative overflow-hidden">
+      {/* Left Artistic Panel - Hidden on Mobile */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-[#1a1a1a] items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-grid-premium-dark opacity-20 pointer-events-none" />
+        
+        {/* Generative Background Blobs */}
+        <div className="absolute inset-0 pointer-events-none">
+          {particles.map((particle) => (
+            <motion.div
+              key={particle.id}
+              className="absolute rounded-full"
+              animate={{ 
+                y: [0, particle.yMove, 0],
+                x: [0, particle.xMove, 0],
+                scale: [1, 1.1, 1],
+                opacity: [0.3, 0.5, 0.3]
+              }}
+              transition={{ 
+                duration: particle.duration, 
+                repeat: Infinity, 
+                ease: "easeInOut",
+                delay: particle.delay
+              }}
+              style={{
+                left: `${particle.left}%`,
+                top: `${particle.top}%`,
+                width: particle.size,
+                height: particle.size,
+                background: particle.color,
+                filter: particle.blur,
+                willChange: "transform"
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 text-center px-12">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="mb-8"
+          >
+            <div className="bg-[#FF6B35] w-20 h-20 rounded-3xl rotate-6 shadow-2xl flex items-center justify-center mx-auto mb-6">
+              <Bot className="text-white w-10 h-10" />
+            </div>
+            <h2 className="text-5xl font-black font-poppins text-white leading-tight mb-4 tracking-tighter">
+              Join the Elite <br />
+              <span className="text-[#FF6B35]">Job Hunters</span>
+            </h2>
+            <p className="text-gray-400 text-xl max-w-md mx-auto leading-relaxed">
+              Experience the first-of-its-kind AI agent that transforms your career while you sleep.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Floating Stat Pills */}
+        <motion.div 
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute bottom-12 left-12 glass-panel-dark px-4 py-2 rounded-full text-xs text-white flex items-center gap-2 border-white/10"
+        >
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          1,247 active hunts in Denver
+        </motion.div>
       </div>
 
-      <div className="w-full max-w-md relative z-10">
-        <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-[#FF6B35] mb-8 transition-colors font-medium">
-          <ArrowLeft className="w-4 h-4" /> Back to Home
-        </Link>
+      {/* Right Form Panel */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 relative z-10">
+        <div className="w-full max-w-md">
+          <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-[#FF6B35] mb-12 transition-colors font-medium group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
+          </Link>
 
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="bg-white rounded-3xl shadow-xl p-8 sm:p-10 border border-gray-100"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="bg-[#FF6B35] p-2 rounded-xl rotate-3 shadow-sm">
-              <Bot className="text-white w-6 h-6" />
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="glass-panel rounded-[2.5rem] p-8 sm:p-12 shadow-2xl border-white/40"
+          >
+            <div className="mb-10">
+              <h1 className="font-poppins text-3xl font-black text-[#2D2D2D] mb-2 tracking-tight">
+                {mode === "magic" ? "Let's get hunting" : mode === "password" ? "Welcome back" : "Create your vault"}
+              </h1>
+              <p className="text-gray-500 font-medium">{destinationHint}</p>
             </div>
-            <h1 className="font-poppins text-2xl font-bold text-[#2D2D2D]">
-              {mode === "magic" ? "Let's get hunting" : mode === "password" ? "Welcome back" : "Create your vault"}
-            </h1>
-          </div>
-          <p className="text-sm text-gray-500 mb-6">{destinationHint}</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6" role="tablist">
-            {AUTH_MODE_OPTIONS.map((option) => (
+            <div className="grid grid-cols-3 gap-2 mb-10 bg-gray-100/50 p-1.5 rounded-2xl" role="tablist">
+              {AUTH_MODE_OPTIONS.map((option) => (
+                <button
+                  type="button"
+                  key={option.key}
+                  onClick={() => setMode(option.key)}
+                  role="tab"
+                  className={cn(
+                    "rounded-xl py-2.5 text-center transition-all text-xs font-bold uppercase tracking-wider",
+                    mode === option.key
+                      ? "bg-white text-[#FF6B35] shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  )}
+                >
+                  {option.label.split(' ')[0]}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-4 mb-10">
               <button
-                type="button"
-                key={option.key}
-                onClick={() => setMode(option.key)}
-                role="tab"
-                aria-pressed={mode === option.key}
-                aria-selected={mode === option.key}
-                className={cn(
-                  "rounded-2xl border px-3 py-3 text-left transition-all",
-                  mode === option.key
-                    ? "border-[#FF6B35] bg-[#FF6B35]/10 text-[#2D2D2D] shadow-sm"
-                    : "border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200"
-                )}
+                onClick={() => handleSocialLogin("google")}
+                disabled={!!socialProviderLoading}
+                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-100 hover:border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-2xl transition-all shadow-sm group"
               >
-                <p className="text-sm font-semibold">{option.label}</p>
-                <p className="text-xs text-gray-400">{option.description}</p>
+                {socialProviderLoading === "google" ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
+                ) : (
+                  <Chrome className="w-5 h-5 text-gray-900 group-hover:scale-110 transition-transform" />
+                )}
+                Continue with Google
               </button>
-            ))}
-          </div>
-
-          <div className="space-y-4 mb-8">
-            <button
-              onClick={() => handleSocialLogin("google")}
-              disabled={!!socialProviderLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl transition-all"
-            >
-              {socialProviderLoading === "google" ? (
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
-              ) : (
-                <Chrome className="w-5 h-5 text-gray-900" />
-              )}
-              Continue with Google
-            </button>
-            <button
-              onClick={() => handleSocialLogin("linkedin")}
-              disabled={!!socialProviderLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl transition-all"
-            >
-              {socialProviderLoading === "linkedin" ? (
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
-              ) : (
-                <Linkedin className="w-5 h-5 text-[#0077b5]" />
-              )}
-              Continue with LinkedIn
-            </button>
-          </div>
-
-          <div className="relative mb-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-100"></div>
+              <button
+                onClick={() => handleSocialLogin("linkedin")}
+                disabled={!!socialProviderLoading}
+                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-100 hover:border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-2xl transition-all shadow-sm group"
+              >
+                {socialProviderLoading === "linkedin" ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
+                ) : (
+                  <Linkedin className="w-5 h-5 text-[#0077b5] group-hover:scale-110 transition-transform" />
+                )}
+                Continue with LinkedIn
+              </button>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-400">Or with email</span>
-            </div>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="email"
-                  placeholder="tech-wizard@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 focus:border-[#FF6B35] transition-all font-medium"
-                />
+            <div className="relative mb-10">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-100"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-4 bg-transparent text-gray-400 font-bold uppercase tracking-widest">Or with email</span>
               </div>
             </div>
 
-            {mode !== "magic" && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                className="relative"
-              >
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="password"
-                  placeholder={mode === "register" ? "Create a strong password" : "••••••••"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 focus:border-[#FF6B35] transition-all font-medium"
-                />
-              </motion.div>
-            )}
-
-            {mode === "register" && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                className="relative"
-              >
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="password"
-                  placeholder="Confirm password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 focus:border-[#FF6B35] transition-all font-medium"
-                />
-              </motion.div>
-            )}
-
-            {mode === "register" && (
-              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-2">
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Password Checklist</p>
-                <div className="grid grid-cols-1 gap-2">
-                  {passwordChecks.map((check) => (
-                    <div key={check.label} className="flex items-center gap-2 text-sm">
-                      <CheckCircle className={cn("w-4 h-4", check.pass ? "text-green-500" : "text-gray-300")} />
-                      <span className={cn(check.pass ? "text-gray-700" : "text-gray-400")}>{check.label}</span>
-                    </div>
-                  ))}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    placeholder="tech-wizard@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#FF6B35]/10 focus:border-[#FF6B35] transition-all font-medium placeholder:text-gray-300"
+                  />
                 </div>
-                {!passwordsMatch && confirmPassword.length > 0 && (
-                  <p className="text-sm text-red-500 font-medium">Passwords must match exactly.</p>
+
+                {mode !== "magic" && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    className="relative"
+                  >
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="password"
+                      placeholder={mode === "register" ? "Create a strong password" : "••••••••"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#FF6B35]/10 focus:border-[#FF6B35] transition-all font-medium placeholder:text-gray-300"
+                    />
+                  </motion.div>
+                )}
+
+                {mode === "register" && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    className="relative"
+                  >
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="password"
+                      placeholder="Confirm password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#FF6B35]/10 focus:border-[#FF6B35] transition-all font-medium placeholder:text-gray-300"
+                    />
+                  </motion.div>
                 )}
               </div>
-            )}
 
-            {formError && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 text-red-500 text-sm font-medium bg-red-50 p-3 rounded-lg"
-                role="alert"
-              >
-                <AlertCircle className="w-4 h-4" />
-                {formError}
-              </motion.div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading || !canSubmit || !!rateLimitCountdown}
-              className="w-full bg-[#2D2D2D] hover:bg-[#FF6B35] text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                  <Sparkles className="w-5 h-5" />
-                </motion.div>
-              ) : (
-                <>
-                  {mode === "magic" ? "Send Magic Link" : mode === "password" ? "Sign In" : "Create Account"}
-                  <ArrowRight className="w-4 h-4" />
-                </>
+              {mode === "register" && (
+                <div className="bg-gray-50/50 rounded-2xl p-5 space-y-3">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black">Security Checklist</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    {passwordChecks.map((check) => (
+                      <div key={check.label} className="flex items-center gap-2 text-[11px] font-bold">
+                        <CheckCircle className={cn("w-3 h-3", check.pass ? "text-green-500" : "text-gray-300")} />
+                        <span className={cn(check.pass ? "text-gray-700" : "text-gray-400")}>{check.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {!passwordsMatch && confirmPassword.length > 0 && (
+                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Passwords must match</p>
+                  )}
+                </div>
               )}
-            </button>
 
-            {rateLimitCountdown && (
-              <p className="text-sm text-center text-orange-600 font-medium">Cooldown active · Retry in {rateLimitCountdown}s</p>
-            )}
-          </form>
-        </motion.div>
+              {formError && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-red-500 text-xs font-bold bg-red-50 p-4 rounded-2xl border border-red-100"
+                  role="alert"
+                >
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {formError}
+                </motion.div>
+              )}
 
-        <p className="mt-8 text-center text-sm text-gray-400">
-          By joining, you agree to our{' '}
-          <Link to="/terms" className="underline hover:text-[#FF6B35]">Terms</Link>
-          {' '}and{' '}
-          <Link to="/privacy" className="underline hover:text-[#FF6B35]">Privacy Policy</Link>.
-        </p>
+              <button
+                type="submit"
+                disabled={isLoading || !canSubmit || !!rateLimitCountdown}
+                className="w-full bg-[#2D2D2D] hover:bg-[#FF6B35] text-white font-black py-4 rounded-2xl transition-all shadow-xl hover:shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
+              >
+                {isLoading ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                    <Sparkles className="w-5 h-5" />
+                  </motion.div>
+                ) : (
+                  <>
+                    {mode === "magic" ? "Send Magic Link" : mode === "password" ? "Sign In" : "Create Account"}
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+
+              {rateLimitCountdown && (
+                <p className="text-xs text-center text-orange-600 font-bold uppercase tracking-wider">Cooldown active · {rateLimitCountdown}s</p>
+              )}
+            </form>
+          </motion.div>
+
+          <p className="mt-10 text-center text-xs text-gray-400 font-medium">
+            By joining, you agree to our{' '}
+            <Link to="/terms" className="underline hover:text-[#FF6B35]">Terms</Link>
+            {' '}and{' '}
+            <Link to="/privacy" className="underline hover:text-[#FF6B35]">Privacy Policy</Link>.
+          </p>
+        </div>
       </div>
     </div>
   );

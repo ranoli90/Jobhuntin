@@ -15,9 +15,9 @@ import { useForm } from 'react-hook-form';
 import confetti from 'canvas-confetti';
 import { 
   Rocket, Sparkles, Bot, Zap, CheckCircle, ArrowRight, UploadCloud, 
-  Search, Code, X, Github, Gamepad2, Globe, MapPin, 
+  Search, Code, X, Github, Gamepad2, Globe, MapPin, Trophy, Network, Star,
   Volume2, VolumeX, MousePointer2, QrCode, Smartphone, Menu,
-  MailCheck
+  MailCheck, Play
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -28,62 +28,60 @@ import { SEO } from '../components/marketing/SEO';
 
 const ResearchInsights = () => {
   return (
-    <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+    <section className="py-32 bg-[#0a0a0a] text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-premium-dark opacity-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FF6B35] to-transparent opacity-20" />
+      
       <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-5xl mx-auto text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-[#FF6B35]/15 text-[#FF6B35] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-[0.2em] mb-6">
+        <div className="max-w-5xl mx-auto text-center mb-24">
+          <div className="inline-flex items-center gap-3 bg-[#FF6B35]/10 text-[#FF6B35] px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-8 border border-[#FF6B35]/20">
             <Sparkles className="w-4 h-4" />
-            Private Signals
+            Private Signals v2.4
           </div>
-          <h2 className="text-4xl md:text-6xl font-extrabold font-poppins leading-tight">
-            Proof you can feel, not just read
+          <h2 className="text-5xl md:text-7xl font-black font-poppins leading-[0.9] tracking-tighter mb-8">
+            Proof you can <br />
+            <span className="text-gray-500">feel, not just read.</span>
           </h2>
-          <p className="text-gray-400 mt-4 text-lg max-w-3xl mx-auto">
-            Every night we run live scouts across markets, quietly learning what gets a human response. Here’s what’s working this week.
+          <p className="text-gray-400 mt-4 text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+            Every night we run live scouts across global markets, quietly learning what gets a human response. Here’s the intelligence for this week.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm text-left">
-            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-[#4A90E2]">
-              <Search className="w-4 h-4" />
-              Signal Coverage
-            </div>
-            <h3 className="text-3xl font-bold mb-3">9.2 / 10</h3>
-            <p className="text-gray-400 text-sm mb-6">Resume + profile alignment scored nightly against the roles you care about.</p>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div className="h-full bg-[#4A90E2]" initial={{ width: 0 }} whileInView={{ width: "92%" }} transition={{ duration: 0.8 }} />
-            </div>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm text-left">
-            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-[#FF6B35]">
-              <Zap className="w-4 h-4" />
-              Response Velocity
-            </div>
-            <h3 className="text-3xl font-bold mb-3">18 min</h3>
-            <p className="text-gray-400 text-sm mb-6">Median time to first touchback after a personalized batch goes out overnight.</p>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div className="h-full bg-[#FF6B35]" initial={{ width: 0 }} whileInView={{ width: "78%" }} transition={{ duration: 0.8 }} />
-            </div>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm text-left">
-            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-emerald-300">
-              <CheckCircle className="w-4 h-4" />
-              Human Feel
-            </div>
-            <h3 className="text-3xl font-bold mb-3">94% pass</h3>
-            <p className="text-gray-400 text-sm mb-6">Apps that clear employer filters for “written by a person” and earn a human review.</p>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div className="h-full bg-emerald-300" initial={{ width: 0 }} whileInView={{ width: "94%" }} transition={{ duration: 0.8 }} />
-            </div>
-          </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            { label: "Signal Coverage", val: "9.2 / 10", desc: "Resume + profile alignment scored nightly against the roles you care about.", color: "#4A90E2", pct: "92%" },
+            { label: "Response Velocity", val: "18 min", desc: "Median time to first touchback after a personalized batch goes out overnight.", color: "#FF6B35", pct: "78%" },
+            { label: "Human Feel", val: "94% pass", desc: "Apps that clear employer filters for “written by a person” and earn a human review.", color: "#10b981", pct: "94%" }
+          ].map((stat, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
+              className="glass-panel-dark border-white/5 rounded-[2.5rem] p-10 backdrop-blur-xl text-left hover:border-white/10 transition-colors group"
+            >
+              <div className="flex items-center gap-3 mb-8 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-white transition-colors">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: stat.color }} />
+                {stat.label}
+              </div>
+              <h3 className="text-5xl font-black mb-4 tracking-tighter">{stat.val}</h3>
+              <p className="text-gray-500 text-sm mb-10 leading-relaxed font-medium group-hover:text-gray-400 transition-colors">{stat.desc}</p>
+              <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full" 
+                  style={{ background: stat.color }}
+                  initial={{ width: 0 }} 
+                  whileInView={{ width: stat.pct }} 
+                  transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }} 
+                />
+              </div>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <Link to="/guides" className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors group">
+        <div className="mt-20 text-center">
+          <Link to="/guides" className="inline-flex items-center gap-3 text-gray-400 hover:text-white transition-all group font-bold uppercase tracking-widest text-xs">
             See how we’re testing this week
             <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
           </Link>
@@ -112,9 +110,9 @@ const JOBS_DATA = [
 ];
 
 const TEASER_JOBS = [
-  { title: "Marketing Lead", status: "AI Applied 2m ago" },
-  { title: "Sales Manager", status: "Matching..." },
-  { title: "Operations Dir", status: "Interview Request!" },
+  { id: "t1", title: "Marketing Lead", status: "AI Applied 2m ago" },
+  { id: "t2", title: "Sales Manager", status: "Matching..." },
+  { id: "t3", title: "Operations Dir", status: "Interview Request!" },
 ];
 
 // --- SOUND UTILS ---
@@ -198,57 +196,100 @@ const ActivityFeed = () => {
   );
 };
 
-const StealthModeVisualizer = () => {
+const NeuralCoreVisualizer = () => {
   return (
-    <div className="bg-gray-900 rounded-3xl p-8 text-white relative overflow-hidden border border-gray-800">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF6B35]/10 rounded-full blur-3xl" />
-      <div className="text-center mb-10 relative z-10">
-        <h3 className="text-2xl font-bold mb-2">Comfortably Invisible</h3>
-        <p className="text-gray-400">We move through job sites gently so your account stays safe and your brand looks polished.</p>
+    <div className="glass-panel-dark rounded-[3rem] p-12 text-white relative overflow-hidden border-white/5 shadow-2xl">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#FF6B35]/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+      <div className="text-center mb-16 relative z-10">
+        <div className="inline-block bg-[#FF6B35]/10 text-[#FF6B35] px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-4 border border-[#FF6B35]/20">
+          The Neural Core
+        </div>
+        <h3 className="text-4xl sm:text-5xl font-black mb-4 tracking-tighter">Surgical Market Domination</h3>
+        <p className="text-gray-400 text-lg max-w-2xl mx-auto font-medium leading-relaxed">
+          Our high-frequency hunting engine doesn't just apply—it orchestrates a multi-channel campaign to put you in front of decision makers.
+        </p>
       </div>
       
-      <div className="flex flex-col md:flex-row gap-8 items-center justify-center relative z-10">
-        {/* Radar Chart Mock */}
-        <div className="relative w-64 h-64">
-           <div className="absolute inset-0 border border-gray-700 rounded-full" />
-           <div className="absolute inset-8 border border-gray-700 rounded-full" />
-           <div className="absolute inset-16 border border-gray-700 rounded-full" />
+      <div className="flex flex-col lg:flex-row gap-16 items-center justify-center relative z-10">
+        {/* Intelligence Visualization */}
+        <div className="relative w-72 h-72">
+           {/* Animated Rings */}
+           {[...Array(3)].map((_, i) => (
+             <motion.div
+               key={i}
+               className="absolute inset-0 border border-white/10 rounded-full"
+               animate={{ 
+                 scale: [1, 1.1, 1],
+                 opacity: [0.1, 0.3, 0.1],
+                 rotate: [0, 180, 360]
+               }}
+               transition={{ 
+                 duration: 10 + i * 5, 
+                 repeat: Infinity, 
+                 ease: "linear" 
+               }}
+               style={{ padding: i * 24 }}
+             />
+           ))}
+           
            <div className="absolute inset-0 flex items-center justify-center">
-             <div className="w-1 h-full bg-gray-800" />
-             <div className="h-1 w-full bg-gray-800 absolute" />
+             <div className="w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+             <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent absolute" />
            </div>
             
-            {/* The Shape */}
-           <svg className="absolute inset-0 w-full h-full overflow-visible">
+            {/* The Intelligence Polygon */}
+           <svg className="absolute inset-0 w-full h-full overflow-visible drop-shadow-[0_0_20px_rgba(74,144,226,0.5)]">
              <motion.path 
-               d="M128 32 L200 80 L180 180 L76 180 L56 80 Z"
-               fill="rgba(74, 144, 226, 0.3)"
+               d="M144 40 L220 90 L200 220 L88 220 L66 90 Z"
+               fill="rgba(74, 144, 226, 0.2)"
                stroke="#4A90E2"
-               strokeWidth="2"
-               initial={{ d: "M128 128 L128 128 L128 128 L128 128 L128 128 Z" }}
-               whileInView={{ d: "M128 32 L200 80 L180 180 L76 180 L56 80 Z" }}
-               transition={{ duration: 1.5, ease: "easeOut" }}
+               strokeWidth="3"
+               strokeLinejoin="round"
+               initial={{ d: "M144 144 L144 144 L144 144 L144 144 L144 144 Z" }}
+               whileInView={{ d: "M144 40 L220 90 L200 220 L88 220 L66 90 Z" }}
+               transition={{ duration: 2, ease: "circOut" }}
              />
+             {/* Data Points */}
+             {[
+               { x: 144, y: 40 }, { x: 220, y: 90 }, { x: 200, y: 220 }, { x: 88, y: 220 }, { x: 66, y: 90 }
+             ].map((pt, i) => (
+               <motion.circle
+                 key={i}
+                 cx={pt.x}
+                 cy={pt.y}
+                 r="4"
+                 fill="#4A90E2"
+                 initial={{ opacity: 0 }}
+                 whileInView={{ opacity: 1 }}
+                 transition={{ delay: 1.5 + i * 0.1 }}
+               />
+             ))}
            </svg>
            
-           {/* Labels */}
-           <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-[#4A90E2] font-bold">Mouse Jitter</div>
-           <div className="absolute top-1/2 -right-12 -translate-y-1/2 text-xs text-[#4A90E2] font-bold">Scroll Speed</div>
-           <div className="absolute bottom-4 -right-4 text-xs text-[#4A90E2] font-bold">Click Timing</div>
-           <div className="absolute bottom-4 -left-4 text-xs text-[#4A90E2] font-bold">Typing WPM</div>
-           <div className="absolute top-1/2 -left-16 -translate-y-1/2 text-xs text-[#4A90E2] font-bold">Pause Duration</div>
+           {/* Axis Labels - Premium Style */}
+           <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest">Market Fit</div>
+           <div className="absolute top-1/2 -right-20 -translate-y-1/2 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest">Velocity</div>
+           <div className="absolute -bottom-10 right-0 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest text-right">Reach</div>
+           <div className="absolute -bottom-10 left-0 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest">Conversion</div>
+           <div className="absolute top-1/2 -left-24 -translate-y-1/2 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest text-right">Intel</div>
         </div>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
           {[
-            { label: "Bot Detection Score", val: "0.02%", color: "text-green-400" },
-            { label: "Human Similarity", val: "99.8%", color: "text-green-400" },
-            { label: "IP Reputation", val: "Clean", color: "text-green-400" }
+            { label: "Neural Match Precision", val: "99.98%", color: "text-[#4A90E2]" },
+            { label: "Global Reach Velocity", val: "High Freq", color: "text-[#FF6B35]" },
+            { label: "Campaign Strength", val: "Tier 1", color: "text-emerald-400" }
           ].map((stat, i) => (
-            <div key={i} className="bg-gray-800/50 p-4 rounded-xl w-48 border border-gray-700">
-              <div className="text-xs text-gray-500 mb-1">{stat.label}</div>
-              <div className={`text-xl font-mono font-bold ${stat.color}`}>{stat.val}</div>
-            </div>
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.2 }}
+              className="bg-white/5 p-6 rounded-[2rem] w-64 border border-white/5 hover:border-white/10 transition-colors"
+            >
+              <div className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-2">{stat.label}</div>
+              <div className={`text-2xl font-black tracking-tight ${stat.color}`}>{stat.val}</div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -274,7 +315,7 @@ const CustomCursor = () => {
   return (
     <div 
       ref={cursorRef} 
-      className="fixed top-0 left-0 w-8 h-8 pointer-events-none z-[100] hidden lg:block -mt-4 -ml-4 transition-transform duration-75 ease-out will-change-transform"
+      className="fixed top-0 left-0 w-8 h-8 pointer-events-none z-[100] hidden lg:block -mt-4 -ml-4 will-change-transform"
     >
       <Bot className="w-8 h-8 text-[#FF6B35] drop-shadow-glow" />
     </div>
@@ -303,40 +344,200 @@ const ProgressBar = () => {
   );
 };
 
-// 4. Social Proof Pulse
-const SocialProofPulse = () => {
-  const [count, setCount] = useState(1247);
-  
+// 4. Success Vault (replaces "Comfortably Invisible")
+const SuccessVault = () => {
+  const [liveCount, setLiveCount] = useState(324);
+  const [showModal, setShowModal] = useState(false);
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCount(prev => prev + Math.floor(Math.random() * 3));
-    }, 5000);
-    return () => clearInterval(interval);
+    const timer = setInterval(() => {
+      setLiveCount((c) => c + 1);
+    }, 3000);
+    return () => clearInterval(timer);
   }, []);
 
+  const cards = [
+    {
+      icon: Rocket,
+      title: "FAANG in 14 days",
+      subtitle: "Sarah, ex-Google",
+      detail: "Denver Python roles → Senior Eng",
+      meta: "5.0",
+      badge: "5-star glow",
+    },
+    {
+      icon: Network,
+      title: "6-figure remote gig",
+      subtitle: "Mike, bootstrapped",
+      detail: "Story walkthrough",
+      badge: "Watch clip",
+      play: true,
+    },
+    {
+      icon: Trophy,
+      title: "Hidden ops exposed",
+      subtitle: "Vault intelligence",
+      detail: `${liveCount} live Denver matches`,
+      badge: "+1 every 3s",
+      pulse: true,
+    },
+  ];
+
   return (
-    <div className="fixed bottom-6 left-6 z-40 flex flex-col gap-2 pointer-events-none">
-      <motion.div 
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        className="bg-white/90 backdrop-blur border border-gray-200 shadow-lg rounded-full px-4 py-2 flex items-center gap-2 text-sm font-medium text-gray-700 pointer-events-auto"
-      >
-        <div className="relative">
-          <div className="w-2 h-2 bg-green-500 rounded-full" />
-          <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping" />
+    <section className="relative bg-[#FAF9F6] text-[#2D2D2D] py-24 overflow-hidden border-t border-orange-100" id="success-vault">
+      <div className="absolute inset-0 bg-grid-premium opacity-[0.25] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,107,53,0.08),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(74,144,226,0.10),transparent_32%)]" />
+      <div className="max-w-7xl mx-auto px-6 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="max-w-3xl"
+        >
+          <p className="text-sm uppercase tracking-[0.35em] text-[#FF6B35] mb-4 font-semibold">Success Vault</p>
+          <h2
+            className="text-[32px] sm:text-[40px] md:text-[48px] leading-[1.05] text-[#d4af37] drop-shadow-[0_0_16px_rgba(212,175,55,0.18)]"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Elite Wins Unlocked
+          </h2>
+          <div className="h-1 w-28 bg-gradient-to-r from-[#FF6B35] via-[#d4af37] to-[#4A90E2] rounded-full mt-3" />
+          <p className="text-lg sm:text-xl text-gray-600 mt-4 max-w-2xl" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+            Real members landing dream roles—join the vault.
+          </p>
+        </motion.div>
+
+        <div className="mt-12 grid gap-6 sm:gap-8 md:grid-cols-3">
+          {cards.map((card, idx) => {
+            const Icon = card.icon;
+            return (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: idx * 0.12 }}
+                whileHover={{ y: -8, rotateX: -2, rotateY: 2 }}
+                className="group relative rounded-3xl overflow-hidden bg-white border border-gray-100 p-8 shadow-[0_25px_60px_rgba(0,0,0,0.08)]"
+              >
+                <div className="absolute inset-px rounded-[22px] bg-gradient-to-br from-white via-transparent to-[#FF6B35]/5" />
+                <div className="relative z-10 flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF6B35]/15 to-[#4A90E2]/15 border border-orange-100 flex items-center justify-center text-[#FF6B35]">
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide bg-[#4A90E2]/10 text-[#4A90E2] border border-[#4A90E2]/30">
+                    {card.badge}
+                  </span>
+                </div>
+                <div className="relative z-10 space-y-2">
+                  <h3 className="text-2xl font-bold text-[#2D2D2D]" style={{ fontFamily: "'Playfair Display', serif" }}>{card.title}</h3>
+                  <p className="text-[#4A90E2] text-sm font-semibold">{card.subtitle}</p>
+                  <p className="text-gray-700 text-base">{card.detail}</p>
+                </div>
+
+                {card.meta && (
+                  <div className="mt-6 flex items-center gap-2 text-[#d4af37]">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-[#d4af37] text-[#d4af37] drop-shadow-[0_0_8px_rgba(212,175,55,0.45)]" />
+                    ))}
+                    <span className="text-sm font-semibold text-white/80">{card.meta}</span>
+                  </div>
+                )}
+
+                {card.play && (
+                  <div className="mt-6 relative">
+                    <div className="aspect-video rounded-2xl bg-gradient-to-br from-[#4A90E2]/10 to-[#FF6B35]/10 border border-gray-100 flex items-center justify-center text-[#2D2D2D]">
+                      <Play className="w-10 h-10" />
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl shadow-[0_0_40px_rgba(212,175,55,0.35)] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                )}
+
+                {card.pulse && (
+                  <div className="mt-6 flex items-center gap-3 text-[#d4af37] font-semibold">
+                    <div className="relative">
+                      <div className="w-3 h-3 rounded-full bg-[#d4af37] animate-ping" />
+                      <div className="absolute inset-0 w-3 h-3 rounded-full bg-[#d4af37]" />
+                    </div>
+                    <span className="text-[#2D2D2D]">{liveCount.toLocaleString()} live Denver matches</span>
+                  </div>
+                )}
+
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-white via-transparent to-[#FF6B35]/10" />
+                <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 1px 0 rgba(0,0,0,0.04)" }} />
+                <div className="absolute inset-x-4 bottom-4 flex items-center justify-between text-sm text-gray-600 group-hover:text-[#FF6B35]">
+                  <span>Your turn → Audit Resume Free</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
-        {count.toLocaleString()} Hunters Active
-      </motion.div>
-      <motion.div 
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="bg-white/90 backdrop-blur border border-gray-200 shadow-lg rounded-full px-4 py-2 flex items-center gap-2 text-xs font-medium text-gray-500 pointer-events-auto"
-      >
-        <MapPin className="w-3 h-3 text-[#FF6B35]" />
-        Denver: 324 Online
-      </motion.div>
-    </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-12 bg-white border border-gray-100 rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm"
+        >
+          <div className="text-gray-700">
+            <p className="text-sm uppercase tracking-[0.3em] text-[#FF6B35]">Join the vault</p>
+            <p className="text-lg font-semibold">Premium, distraction-free wins. No gimmicks.</p>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF6B35] to-[#4A90E2] text-white font-bold shadow-[0_12px_30px_rgba(255,107,53,0.25)] hover:translate-y-[-1px] transition-transform"
+          >
+            Enter Vault – Free Trial <ArrowRight className="w-4 h-4" />
+          </button>
+        </motion.div>
+
+        <AnimatePresence>
+          {showModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[120] flex items-center justify-center p-6"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="max-w-lg w-full bg-[#0f1310] text-white rounded-3xl border border-white/10 p-8 shadow-2xl relative"
+              >
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70 mb-3">Vault Waitlist</p>
+                <h3 className="text-3xl font-bold text-[#d4af37] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  Get the invite
+                </h3>
+                <p className="text-gray-300 mb-6">Drop your best email. We’ll send a concierge link to audit your resume and unlock private roles.</p>
+                <form className="space-y-4">
+                  <input
+                    type="email"
+                    placeholder="you@elite.dev"
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/60 text-white"
+                  />
+                  <button
+                    type="button"
+                    className="w-full py-3 rounded-xl bg-[#d4af37] text-[#0b0f0d] font-bold hover:translate-y-[-1px] transition-transform"
+                  >
+                    Save my spot
+                  </button>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </section>
   );
 };
 
@@ -518,6 +719,23 @@ const Hero = ({ muted }: { muted: boolean }) => {
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
   const autoDismissTimer = useRef<number | null>(null);
+
+  // Background Particles Data - Refined for a more artistic look
+  const particles = React.useMemo(() => {
+    return [...Array(25)].map((_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      size: i < 5 ? Math.random() * 150 + 100 : Math.random() * 40 + 10, // Mix of large blobs and small dots
+      duration: Math.random() * 20 + 20,
+      delay: Math.random() * 10,
+      yMove: (Math.random() - 0.5) * 150,
+      xMove: (Math.random() - 0.5) * 150,
+      rotate: Math.random() * 360,
+      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(250, 249, 246, 0.3)',
+      blur: i < 5 ? 'blur(60px)' : 'none'
+    }));
+  }, []);
   
   // A/B Test Logic
   useEffect(() => {
@@ -651,61 +869,45 @@ const Hero = ({ muted }: { muted: boolean }) => {
   const removeJob = (index: number) => {
     setJobs(prev => prev.filter((_, i) => i !== index));
     setTimeout(() => {
-      setJobs(prev => [...prev, { title: "New Match Found!", status: "Analyzing..." }]);
+      setJobs(prev => [...prev, { 
+        id: Math.random().toString(36).substr(2, 9),
+        title: "New Match Found!", 
+        status: "Analyzing..." 
+      }]);
     }, 500);
   };
 
   return (
     <section className="relative min-h-screen pt-24 pb-12 flex items-center justify-center overflow-hidden bg-[#FAF9F6]">
-      {/* Floating gradient accents behind the title */}
-      <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          className="absolute -top-24 left-1/3 w-80 h-80 rounded-full bg-gradient-to-br from-[#FF6B35]/35 via-[#FF9B6A]/25 to-[#4A90E2]/30 blur-3xl"
-          animate={{ y: [0, -20, 0], opacity: [0.7, 1, 0.7] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute top-10 right-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-[#4A90E2]/30 via-[#7DB7F2]/25 to-[#FF6B35]/25 blur-3xl"
-          animate={{ y: [0, 25, 0], opacity: [0.6, 0.9, 0.6] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-        />
-        <motion.div
-          className="absolute -bottom-10 left-12 w-56 h-56 rounded-full bg-gradient-to-br from-[#FF6B35]/25 via-[#FFC8A1]/30 to-transparent blur-3xl"
-          animate={{ y: [0, -15, 0], opacity: [0.5, 0.85, 0.5] }}
-          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-        />
-        {/* Floating rings */}
-        <motion.div
-          className="absolute top-6 left-8 w-48 h-48 border border-[#FF6B35]/30 rounded-full"
-          animate={{ rotate: [0, 12, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute -top-6 right-12 w-60 h-60 border border-[#4A90E2]/30 rounded-full"
-          animate={{ rotate: [0, -10, 0] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
-      </div>
-
-      {/* Background Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+      {/* Premium Background Layers */}
+      <div className="absolute inset-0 bg-grid-premium opacity-[0.4] pointer-events-none" />
+      
+      {/* Large Artistic Gradient Blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {particles.map((particle) => (
           <motion.div
-            key={i}
-            className="absolute rounded-full opacity-20"
-            initial={{ 
-              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800)
-            }}
+            key={particle.id}
+            className="absolute rounded-full"
             animate={{ 
-              y: [0, Math.random() * -100],
-              x: [0, (Math.random() - 0.5) * 50]
+              y: [0, particle.yMove, 0],
+              x: [0, particle.xMove, 0],
+              rotate: [0, 360],
+              scale: [1, 1.1, 1]
             }}
-            transition={{ duration: Math.random() * 10 + 10, repeat: Infinity, ease: "linear" }}
+            transition={{ 
+              duration: particle.duration, 
+              repeat: Infinity, 
+              ease: "easeInOut",
+              delay: particle.delay
+            }}
             style={{
-              width: Math.random() * 50 + 10,
-              height: Math.random() * 50 + 10,
-              background: i % 2 === 0 ? '#FF6B35' : '#4A90E2'
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
+              width: particle.size,
+              height: particle.size,
+              background: particle.color,
+              filter: particle.blur,
+              willChange: "transform"
             }}
           />
         ))}
@@ -725,23 +927,29 @@ const Hero = ({ muted }: { muted: boolean }) => {
             </span>
           </motion.div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold font-poppins text-[#2D2D2D] leading-tight mb-6 tracking-tight">
+          <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black font-poppins text-[#2D2D2D] leading-[0.9] mb-8 tracking-tighter">
             Hunt Jobs with <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B35] to-[#4A90E2] relative inline-block">
-              AI Magic
+            <span className="relative inline-block mt-2">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B35] via-[#FF8B55] to-[#4A90E2] animate-gradient-x">
+                AI Magic
+              </span>
               <motion.span 
-                className="absolute -top-2 -right-6 text-2xl sm:text-3xl"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 2 }}
+                className="absolute -top-4 -right-10 text-4xl sm:text-5xl pointer-events-none"
+                animate={{ 
+                  rotate: [0, 15, -15, 0],
+                  scale: [1, 1.2, 1],
+                  filter: ["drop-shadow(0 0 0px rgba(255,107,53,0))", "drop-shadow(0 0 20px rgba(255,107,53,0.5))", "drop-shadow(0 0 0px rgba(255,107,53,0))"]
+                }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
               >
                 ✨
               </motion.span>
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-            Upload your resume. AI swipes & applies to 100s of jobs while you sleep. 
-            <span className="font-semibold text-gray-900"> Beats Sorce.jobs</span> for any role.
+          <p className="text-xl sm:text-2xl text-gray-500 mb-10 max-w-lg mx-auto lg:mx-0 leading-tight font-medium">
+            Upload once. AI swipes & applies to 100s of jobs while you sleep. 
+            <span className="text-[#2D2D2D] border-b-2 border-[#FF6B35]/30"> Beats Sorce.jobs</span> on every metric.
           </p>
 
           {MISSING_API_BASE && (
@@ -893,7 +1101,7 @@ const Hero = ({ muted }: { muted: boolean }) => {
            <AnimatePresence>
             {jobs.slice(0, 3).map((job, index) => (
               <motion.div
-                key={job.title + index}
+                key={job.id}
                 className="absolute w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 cursor-grab active:cursor-grabbing touch-pan-y"
                 style={{ zIndex: jobs.length - index }}
                 initial={{ scale: 0.9, y: 50 * index, opacity: 1 - index * 0.3 }}
@@ -971,74 +1179,103 @@ const Onboarding = () => {
   }, []);
 
   return (
-    <section id="how-it-works" className="py-24 bg-white relative">
-      <div className="container mx-auto px-6">
-        {/* Local Stat Bar */}
-        <div className="bg-gray-900 text-white rounded-2xl p-6 mb-16 flex flex-col md:flex-row items-center justify-between shadow-xl transform -translate-y-12">
-          <div className="flex items-center gap-4 mb-4 md:mb-0">
-            <MapPin className="text-[#FF6B35] w-8 h-8" />
+    <section id="how-it-works" className="py-32 bg-white relative overflow-hidden">
+      {/* Subtle Background Art */}
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gray-50 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      
+      <div className="container mx-auto px-6 relative z-10">
+        {/* Local Stat Bar - Premium Glassmorphism */}
+        <div className="glass-panel rounded-[2rem] p-10 mb-24 flex flex-col md:flex-row items-center justify-between shadow-2xl border-white/50 transform -translate-y-16">
+          <div className="flex items-center gap-6 mb-8 md:mb-0">
+            <div className="w-16 h-16 bg-[#FF6B35]/10 rounded-2xl flex items-center justify-center">
+              <MapPin className="text-[#FF6B35] w-8 h-8" />
+            </div>
             <div>
-              <p className="text-gray-400 text-sm uppercase tracking-wider">Detected Location</p>
-              <h3 className="text-2xl font-bold">Denver Tech Jobs: <span className="text-[#4A90E2]">{count} Open</span></h3>
+              <p className="text-gray-400 text-xs font-black uppercase tracking-[0.2em] mb-1">Live Intelligence</p>
+              <h3 className="text-3xl font-black text-[#2D2D2D] tracking-tight">Denver: <span className="text-[#4A90E2]">{count} Elite Openings</span></h3>
             </div>
           </div>
-          <div className="flex gap-8 text-center">
-            <div>
-              <div className="text-2xl font-bold text-[#FF6B35]">10x</div>
-              <div className="text-xs text-gray-400">Faster Apps</div>
+          <div className="flex gap-12">
+            <div className="text-center">
+              <div className="text-4xl font-black text-[#FF6B35] leading-none mb-1">10x</div>
+              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Velocity</div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-[#4A90E2]">47%</div>
-              <div className="text-xs text-gray-400">Higher Response</div>
+            <div className="text-center border-l border-gray-100 pl-12">
+              <div className="text-4xl font-black text-[#4A90E2] leading-none mb-1">47%</div>
+              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Conversion</div>
             </div>
           </div>
         </div>
 
-        <div className="mb-20">
-           <StealthModeVisualizer />
+        <div className="mb-32">
+           <NeuralCoreVisualizer />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div className="relative">
+        <div className="grid lg:grid-cols-2 gap-24 items-center">
+          <div className="relative group">
              <motion.div 
-               className="aspect-square bg-[#FAF9F6] rounded-full flex items-center justify-center relative z-10"
-               initial={{ scale: 0.8, opacity: 0 }}
+               className="aspect-square bg-gray-50 rounded-[3rem] flex items-center justify-center relative z-10 overflow-hidden shadow-inner"
+               initial={{ scale: 0.9, opacity: 0 }}
                whileInView={{ scale: 1, opacity: 1 }}
                viewport={{ once: true }}
              >
-                <Bot className="w-32 h-32 text-gray-300" />
+                <Bot className="w-48 h-48 text-gray-200 group-hover:text-[#FF6B35]/20 transition-colors duration-700" />
+                
+                {/* Scanner Animation */}
                 <motion.div 
-                  className="absolute inset-0 bg-gradient-to-b from-transparent via-[#FF6B35]/20 to-transparent w-full h-8"
-                  animate={{ top: ["0%", "100%", "0%"] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 bg-gradient-to-b from-transparent via-[#FF6B35]/10 to-transparent w-full h-20"
+                  animate={{ top: ["-20%", "100%", "-20%"] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                 />
+
+                {/* Particle Overlay */}
+                <div className="absolute inset-0 opacity-30">
+                  {[...Array(10)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-1 h-1 bg-[#FF6B35] rounded-full"
+                      animate={{ 
+                        x: [Math.random() * 400, Math.random() * 400],
+                        y: [Math.random() * 400, Math.random() * 400],
+                        opacity: [0, 1, 0]
+                      }}
+                      transition={{ duration: Math.random() * 3 + 2, repeat: Infinity }}
+                    />
+                  ))}
+                </div>
              </motion.div>
-             <div className="absolute -top-10 -left-10 w-20 h-20 bg-[#FF6B35]/20 rounded-full blur-xl" />
-             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[#4A90E2]/20 rounded-full blur-xl" />
+             <div className="absolute -top-12 -left-12 w-48 h-48 bg-[#FF6B35]/5 rounded-full blur-3xl" />
+             <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-[#4A90E2]/5 rounded-full blur-3xl" />
           </div>
 
           <div>
-            <h2 className="text-4xl font-bold font-poppins mb-8">One Click.<br/>Infinite Applications.</h2>
-            <div className="space-y-8">
+            <div className="inline-block bg-[#FF6B35]/10 text-[#FF6B35] px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+              The Protocol
+            </div>
+            <h2 className="text-5xl sm:text-6xl font-black font-poppins text-[#2D2D2D] leading-[1.1] mb-12 tracking-tighter">
+              One Click. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B35] to-[#4A90E2]">Infinite Reach.</span>
+            </h2>
+            <div className="space-y-12">
               {[
-                { icon: Code, title: "AI Reads Your Superpowers", desc: "We analyze your GitHub & Resume to find your edge." },
-                { icon: Zap, title: "Swipes 100s of Matches", desc: "Better than Sorce. We filter out spam & mismatch." },
-                { icon: Rocket, title: "Auto-Applies Instantly", desc: "Custom cover letters generated for every single role." }
+                { icon: Code, title: "Deep Profile Ingestion", desc: "Our AI doesn't just read your resume. It parses your GitHub, projects, and latent skills to build a high-dimensional match vector." },
+                { icon: Zap, title: "Precision Filtering", desc: "Skip the noise. We match you with roles that actually align with your trajectory, filtering out the legacy tech and low-growth traps." },
+                { icon: Rocket, title: "Autonomous Submission", desc: "Every application is unique. Custom-tailored cover letters and optimized form-filling happen in milliseconds, not minutes." }
               ].map((step, i) => (
                 <motion.div 
                   key={i}
-                  className="flex gap-4"
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  className="flex gap-8 group"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.2 }}
                   viewport={{ once: true }}
                 >
-                  <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <step.icon className="w-6 h-6 text-[#FF6B35]" />
+                  <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-[#FF6B35] group-hover:rotate-6 transition-all duration-500 shadow-sm group-hover:shadow-orange-500/20">
+                    <step.icon className="w-8 h-8 text-[#FF6B35] group-hover:text-white transition-colors" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">{step.title}</h3>
-                    <p className="text-gray-600">{step.desc}</p>
+                    <h3 className="text-2xl font-black text-[#2D2D2D] mb-2 tracking-tight">{step.title}</h3>
+                    <p className="text-gray-500 text-lg leading-relaxed font-medium">{step.desc}</p>
                   </div>
                 </motion.div>
               ))}
@@ -1437,6 +1674,7 @@ export default function Homepage() {
       <Navbar muted={muted} toggleMute={() => setMuted(!muted)} />
       <main>
         <Hero muted={muted} />
+        <SuccessVault />
         <Onboarding />
         <FeaturedJobs muted={muted} />
         <AutomationEdge muted={muted} />
@@ -1445,7 +1683,6 @@ export default function Homepage() {
       </main>
       <Footer muted={muted} />
       <ExitIntentPopup />
-      <SocialProofPulse />
     </div>
   );
 }
