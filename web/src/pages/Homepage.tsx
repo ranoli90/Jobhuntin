@@ -15,9 +15,9 @@ import { useForm } from 'react-hook-form';
 import confetti from 'canvas-confetti';
 import { 
   Rocket, Sparkles, Bot, Zap, CheckCircle, ArrowRight, UploadCloud, 
-  Search, Code, X, Github, Gamepad2, Globe, MapPin, Trophy, Network, Star,
+  Search, Code, X, Github, Gamepad2, Globe, 
   Volume2, VolumeX, MousePointer2, QrCode, Smartphone, Menu,
-  MailCheck, Play
+  MailCheck
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -25,71 +25,6 @@ import { pushToast } from '../lib/toast';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { SEO } from '../components/marketing/SEO';
-
-const ResearchInsights = () => {
-  return (
-    <section className="py-32 bg-[#0a0a0a] text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-grid-premium-dark opacity-10 pointer-events-none" />
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FF6B35] to-transparent opacity-20" />
-      
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-5xl mx-auto text-center mb-24">
-          <div className="inline-flex items-center gap-3 bg-[#FF6B35]/10 text-[#FF6B35] px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-8 border border-[#FF6B35]/20">
-            <Sparkles className="w-4 h-4" />
-            Private Signals v2.4
-          </div>
-          <h2 className="text-5xl md:text-7xl font-black font-poppins leading-[0.9] tracking-tighter mb-8">
-            Proof you can <br />
-            <span className="text-gray-500">feel, not just read.</span>
-          </h2>
-          <p className="text-gray-400 mt-4 text-xl max-w-2xl mx-auto font-medium leading-relaxed">
-            Every night we run live scouts across global markets, quietly learning what gets a human response. Here’s the intelligence for this week.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            { label: "Signal Coverage", val: "9.2 / 10", desc: "Resume + profile alignment scored nightly against the roles you care about.", color: "#4A90E2", pct: "92%" },
-            { label: "Response Velocity", val: "18 min", desc: "Median time to first touchback after a personalized batch goes out overnight.", color: "#FF6B35", pct: "78%" },
-            { label: "Human Feel", val: "94% pass", desc: "Apps that clear employer filters for “written by a person” and earn a human review.", color: "#10b981", pct: "94%" }
-          ].map((stat, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className="glass-panel-dark border-white/5 rounded-[2.5rem] p-10 backdrop-blur-xl text-left hover:border-white/10 transition-colors group"
-            >
-              <div className="flex items-center gap-3 mb-8 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-white transition-colors">
-                <div className="w-1.5 h-1.5 rounded-full" style={{ background: stat.color }} />
-                {stat.label}
-              </div>
-              <h3 className="text-5xl font-black mb-4 tracking-tighter">{stat.val}</h3>
-              <p className="text-gray-500 text-sm mb-10 leading-relaxed font-medium group-hover:text-gray-400 transition-colors">{stat.desc}</p>
-              <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                <motion.div 
-                  className="h-full" 
-                  style={{ background: stat.color }}
-                  initial={{ width: 0 }} 
-                  whileInView={{ width: stat.pct }} 
-                  transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }} 
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="mt-20 text-center">
-          <Link to="/guides" className="inline-flex items-center gap-3 text-gray-400 hover:text-white transition-all group font-bold uppercase tracking-widest text-xs">
-            See how we’re testing this week
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 const MISSING_API_BASE = !API_BASE;
@@ -196,107 +131,6 @@ const ActivityFeed = () => {
   );
 };
 
-const NeuralCoreVisualizer = () => {
-  return (
-    <div className="glass-panel-dark rounded-[3rem] p-12 text-white relative overflow-hidden border-white/5 shadow-2xl">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#FF6B35]/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
-      <div className="text-center mb-16 relative z-10">
-        <div className="inline-block bg-[#FF6B35]/10 text-[#FF6B35] px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-4 border border-[#FF6B35]/20">
-          The Neural Core
-        </div>
-        <h3 className="text-4xl sm:text-5xl font-black mb-4 tracking-tighter">Surgical Market Domination</h3>
-        <p className="text-gray-400 text-lg max-w-2xl mx-auto font-medium leading-relaxed">
-          Our high-frequency hunting engine doesn't just apply—it orchestrates a multi-channel campaign to put you in front of decision makers.
-        </p>
-      </div>
-      
-      <div className="flex flex-col lg:flex-row gap-16 items-center justify-center relative z-10">
-        {/* Intelligence Visualization */}
-        <div className="relative w-72 h-72">
-           {/* Animated Rings */}
-           {[...Array(3)].map((_, i) => (
-             <motion.div
-               key={i}
-               className="absolute inset-0 border border-white/10 rounded-full"
-               animate={{ 
-                 scale: [1, 1.1, 1],
-                 opacity: [0.1, 0.3, 0.1],
-                 rotate: [0, 180, 360]
-               }}
-               transition={{ 
-                 duration: 10 + i * 5, 
-                 repeat: Infinity, 
-                 ease: "linear" 
-               }}
-               style={{ padding: i * 24 }}
-             />
-           ))}
-           
-           <div className="absolute inset-0 flex items-center justify-center">
-             <div className="w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent" />
-             <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent absolute" />
-           </div>
-            
-            {/* The Intelligence Polygon */}
-           <svg className="absolute inset-0 w-full h-full overflow-visible drop-shadow-[0_0_20px_rgba(74,144,226,0.5)]">
-             <motion.path 
-               d="M144 40 L220 90 L200 220 L88 220 L66 90 Z"
-               fill="rgba(74, 144, 226, 0.2)"
-               stroke="#4A90E2"
-               strokeWidth="3"
-               strokeLinejoin="round"
-               initial={{ d: "M144 144 L144 144 L144 144 L144 144 L144 144 Z" }}
-               whileInView={{ d: "M144 40 L220 90 L200 220 L88 220 L66 90 Z" }}
-               transition={{ duration: 2, ease: "circOut" }}
-             />
-             {/* Data Points */}
-             {[
-               { x: 144, y: 40 }, { x: 220, y: 90 }, { x: 200, y: 220 }, { x: 88, y: 220 }, { x: 66, y: 90 }
-             ].map((pt, i) => (
-               <motion.circle
-                 key={i}
-                 cx={pt.x}
-                 cy={pt.y}
-                 r="4"
-                 fill="#4A90E2"
-                 initial={{ opacity: 0 }}
-                 whileInView={{ opacity: 1 }}
-                 transition={{ delay: 1.5 + i * 0.1 }}
-               />
-             ))}
-           </svg>
-           
-           {/* Axis Labels - Premium Style */}
-           <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest">Market Fit</div>
-           <div className="absolute top-1/2 -right-20 -translate-y-1/2 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest">Velocity</div>
-           <div className="absolute -bottom-10 right-0 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest text-right">Reach</div>
-           <div className="absolute -bottom-10 left-0 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest">Conversion</div>
-           <div className="absolute top-1/2 -left-24 -translate-y-1/2 text-[10px] text-[#4A90E2] font-black uppercase tracking-widest text-right">Intel</div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
-          {[
-            { label: "Neural Match Precision", val: "99.98%", color: "text-[#4A90E2]" },
-            { label: "Global Reach Velocity", val: "High Freq", color: "text-[#FF6B35]" },
-            { label: "Campaign Strength", val: "Tier 1", color: "text-emerald-400" }
-          ].map((stat, i) => (
-            <motion.div 
-              key={i} 
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.2 }}
-              className="bg-white/5 p-6 rounded-[2rem] w-64 border border-white/5 hover:border-white/10 transition-colors"
-            >
-              <div className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-2">{stat.label}</div>
-              <div className={`text-2xl font-black tracking-tight ${stat.color}`}>{stat.val}</div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // 2. Custom Cursor
 const CustomCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -341,203 +175,6 @@ const ProgressBar = () => {
         AI Hunt Progress
       </div>
     </div>
-  );
-};
-
-// 4. Success Vault (replaces "Comfortably Invisible")
-const SuccessVault = () => {
-  const [liveCount, setLiveCount] = useState(324);
-  const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setLiveCount((c) => c + 1);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const cards = [
-    {
-      icon: Rocket,
-      title: "FAANG in 14 days",
-      subtitle: "Sarah, ex-Google",
-      detail: "Denver Python roles → Senior Eng",
-      meta: "5.0",
-      badge: "5-star glow",
-    },
-    {
-      icon: Network,
-      title: "6-figure remote gig",
-      subtitle: "Mike, bootstrapped",
-      detail: "Story walkthrough",
-      badge: "Watch clip",
-      play: true,
-    },
-    {
-      icon: Trophy,
-      title: "Hidden ops exposed",
-      subtitle: "Vault intelligence",
-      detail: `${liveCount} live Denver matches`,
-      badge: "+1 every 3s",
-      pulse: true,
-    },
-  ];
-
-  return (
-    <section className="relative bg-[#FAF9F6] text-[#2D2D2D] py-24 overflow-hidden border-t border-orange-100" id="success-vault">
-      <div className="absolute inset-0 bg-grid-premium opacity-[0.25] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,107,53,0.08),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(74,144,226,0.10),transparent_32%)]" />
-      <div className="max-w-7xl mx-auto px-6 relative">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-3xl"
-        >
-          <p className="text-sm uppercase tracking-[0.35em] text-[#FF6B35] mb-4 font-semibold">Success Vault</p>
-          <h2
-            className="text-[32px] sm:text-[40px] md:text-[48px] leading-[1.05] text-[#d4af37] drop-shadow-[0_0_16px_rgba(212,175,55,0.18)]"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Elite Wins Unlocked
-          </h2>
-          <div className="h-1 w-28 bg-gradient-to-r from-[#FF6B35] via-[#d4af37] to-[#4A90E2] rounded-full mt-3" />
-          <p className="text-lg sm:text-xl text-gray-600 mt-4 max-w-2xl" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
-            Real members landing dream roles—join the vault.
-          </p>
-        </motion.div>
-
-        <div className="mt-12 grid gap-6 sm:gap-8 md:grid-cols-3">
-          {cards.map((card, idx) => {
-            const Icon = card.icon;
-            return (
-              <motion.div
-                key={card.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: idx * 0.12 }}
-                whileHover={{ y: -8, rotateX: -2, rotateY: 2 }}
-                className="group relative rounded-3xl overflow-hidden bg-white border border-gray-100 p-8 shadow-[0_25px_60px_rgba(0,0,0,0.08)]"
-              >
-                <div className="absolute inset-px rounded-[22px] bg-gradient-to-br from-white via-transparent to-[#FF6B35]/5" />
-                <div className="relative z-10 flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF6B35]/15 to-[#4A90E2]/15 border border-orange-100 flex items-center justify-center text-[#FF6B35]">
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide bg-[#4A90E2]/10 text-[#4A90E2] border border-[#4A90E2]/30">
-                    {card.badge}
-                  </span>
-                </div>
-                <div className="relative z-10 space-y-2">
-                  <h3 className="text-2xl font-bold text-[#2D2D2D]" style={{ fontFamily: "'Playfair Display', serif" }}>{card.title}</h3>
-                  <p className="text-[#4A90E2] text-sm font-semibold">{card.subtitle}</p>
-                  <p className="text-gray-700 text-base">{card.detail}</p>
-                </div>
-
-                {card.meta && (
-                  <div className="mt-6 flex items-center gap-2 text-[#d4af37]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-[#d4af37] text-[#d4af37] drop-shadow-[0_0_8px_rgba(212,175,55,0.45)]" />
-                    ))}
-                    <span className="text-sm font-semibold text-white/80">{card.meta}</span>
-                  </div>
-                )}
-
-                {card.play && (
-                  <div className="mt-6 relative">
-                    <div className="aspect-video rounded-2xl bg-gradient-to-br from-[#4A90E2]/10 to-[#FF6B35]/10 border border-gray-100 flex items-center justify-center text-[#2D2D2D]">
-                      <Play className="w-10 h-10" />
-                    </div>
-                    <div className="absolute inset-0 rounded-2xl shadow-[0_0_40px_rgba(212,175,55,0.35)] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                )}
-
-                {card.pulse && (
-                  <div className="mt-6 flex items-center gap-3 text-[#d4af37] font-semibold">
-                    <div className="relative">
-                      <div className="w-3 h-3 rounded-full bg-[#d4af37] animate-ping" />
-                      <div className="absolute inset-0 w-3 h-3 rounded-full bg-[#d4af37]" />
-                    </div>
-                    <span className="text-[#2D2D2D]">{liveCount.toLocaleString()} live Denver matches</span>
-                  </div>
-                )}
-
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-white via-transparent to-[#FF6B35]/10" />
-                <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 1px 0 rgba(0,0,0,0.04)" }} />
-                <div className="absolute inset-x-4 bottom-4 flex items-center justify-between text-sm text-gray-600 group-hover:text-[#FF6B35]">
-                  <span>Your turn → Audit Resume Free</span>
-                  <ArrowRight className="w-4 h-4" />
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-12 bg-white border border-gray-100 rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm"
-        >
-          <div className="text-gray-700">
-            <p className="text-sm uppercase tracking-[0.3em] text-[#FF6B35]">Join the vault</p>
-            <p className="text-lg font-semibold">Premium, distraction-free wins. No gimmicks.</p>
-          </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF6B35] to-[#4A90E2] text-white font-bold shadow-[0_12px_30px_rgba(255,107,53,0.25)] hover:translate-y-[-1px] transition-transform"
-          >
-            Enter Vault – Free Trial <ArrowRight className="w-4 h-4" />
-          </button>
-        </motion.div>
-
-        <AnimatePresence>
-          {showModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[120] flex items-center justify-center p-6"
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="max-w-lg w-full bg-[#0f1310] text-white rounded-3xl border border-white/10 p-8 shadow-2xl relative"
-              >
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-white"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-                <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70 mb-3">Vault Waitlist</p>
-                <h3 className="text-3xl font-bold text-[#d4af37] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  Get the invite
-                </h3>
-                <p className="text-gray-300 mb-6">Drop your best email. We’ll send a concierge link to audit your resume and unlock private roles.</p>
-                <form className="space-y-4">
-                  <input
-                    type="email"
-                    placeholder="you@elite.dev"
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/60 text-white"
-                  />
-                  <button
-                    type="button"
-                    className="w-full py-3 rounded-xl bg-[#d4af37] text-[#0b0f0d] font-bold hover:translate-y-[-1px] transition-transform"
-                  >
-                    Save my spot
-                  </button>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </section>
   );
 };
 
@@ -1184,33 +821,6 @@ const Onboarding = () => {
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gray-50 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       
       <div className="container mx-auto px-6 relative z-10">
-        {/* Local Stat Bar - Premium Glassmorphism */}
-        <div className="glass-panel rounded-[2rem] p-10 mb-24 flex flex-col md:flex-row items-center justify-between shadow-2xl border-white/50 transform -translate-y-16">
-          <div className="flex items-center gap-6 mb-8 md:mb-0">
-            <div className="w-16 h-16 bg-[#FF6B35]/10 rounded-2xl flex items-center justify-center">
-              <MapPin className="text-[#FF6B35] w-8 h-8" />
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs font-black uppercase tracking-[0.2em] mb-1">Live Intelligence</p>
-              <h3 className="text-3xl font-black text-[#2D2D2D] tracking-tight">Denver: <span className="text-[#4A90E2]">{count} Elite Openings</span></h3>
-            </div>
-          </div>
-          <div className="flex gap-12">
-            <div className="text-center">
-              <div className="text-4xl font-black text-[#FF6B35] leading-none mb-1">10x</div>
-              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Velocity</div>
-            </div>
-            <div className="text-center border-l border-gray-100 pl-12">
-              <div className="text-4xl font-black text-[#4A90E2] leading-none mb-1">47%</div>
-              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Conversion</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-32">
-           <NeuralCoreVisualizer />
-        </div>
-
         <div className="grid lg:grid-cols-2 gap-24 items-center">
           <div className="relative group">
              <motion.div 
@@ -1674,12 +1284,10 @@ export default function Homepage() {
       <Navbar muted={muted} toggleMute={() => setMuted(!muted)} />
       <main>
         <Hero muted={muted} />
-        <SuccessVault />
         <Onboarding />
         <FeaturedJobs muted={muted} />
         <AutomationEdge muted={muted} />
         <Comparison />
-        <ResearchInsights />
       </main>
       <Footer muted={muted} />
       <ExitIntentPopup />
