@@ -65,18 +65,29 @@ export default function Login() {
   useEffect(() => {
     const handleHash = async () => {
         const hash = window.location.hash;
+        console.log('[Login] Hash detected:', hash);
         if (hash && hash.includes('access_token')) {
             try {
-                // The useAuth hook also handles this, but redundancy in the page component can ensure 
-                // we catch the session if the hook hasn't yet or if there's a race condition.
-                // However, let's rely on useAuth for setting the session state and just handle navigation here if session becomes available.
+                // Parse the hash fragment to extract the access token
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+                console.log('[Login] Access token found:', !!accessToken);
+                
+                if (accessToken && !authLoading && session) {
+                    console.log('[Login] Session available, navigating to:', returnTo);
+                    // If we have a valid session from the hash, navigate to the intended destination
+                    const decodedReturnTo = decodeURIComponent(returnTo);
+                    const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;
+                    navigate(finalDest, { replace: true });
+                }
             } catch (error) {
-                console.error("Error handling hash in Login:", error);
+                console.error("[Login] Error handling hash:", error);
+                setFormError("Failed to process authentication. Please try again.");
             }
         }
     };
     handleHash();
-  }, []);
+  }, [authLoading, session, navigate, returnTo]);
 
 
   useEffect(() => {

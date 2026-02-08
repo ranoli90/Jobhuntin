@@ -125,6 +125,10 @@ services:
         value: https://zglovpfwyobbbaaocawz.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
         sync: false
+      - key: VITE_GOOGLE_API_KEY
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
     routes:
       - type: rewrite
         source: /*

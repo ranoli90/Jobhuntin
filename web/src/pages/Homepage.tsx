@@ -149,10 +149,9 @@ const Hero = () => {
         throw new Error(result.error || "Failed to send magic link");
       }
 
-      // Safe Animation Trigger
+      // Safe Animation Trigger - wrapped in try-catch to prevent crashes
       try {
         if (typeof window !== 'undefined') {
-          let start = 0;
           const end = 47;
           const duration = 1000;
           const startTime = performance.now();
@@ -168,18 +167,22 @@ const Hero = () => {
         }
       } catch (e) {
         console.warn("Animation failed", e);
+        // Don't crash if animation fails
       }
 
-      // Safe Confetti Trigger
+      // Safe Confetti Trigger - wrapped in try-catch to prevent crashes
       try {
-        confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
-        });
+        if (typeof window !== 'undefined' && confetti) {
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
+          });
+        }
       } catch (e) {
         console.warn("Confetti failed", e);
+        // Don't crash if confetti fails
       }
 
       pushToast({ title: "Magic Link Sent! 📧", description: "Check your email to start hunting.", tone: "success" });
