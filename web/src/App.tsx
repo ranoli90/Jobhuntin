@@ -52,8 +52,8 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Homepage />} />
       <Route element={<MarketingLayout />}>
-        <Route path="/" element={<Homepage />} />
         <Route path="/login" element={<Login />} />
       </Route>
 
