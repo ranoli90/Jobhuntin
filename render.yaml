@@ -71,6 +71,10 @@ services:
         value: "true"
       - key: LOG_LEVEL
         value: INFO
+      - key: APP_BASE_URL
+        value: https://sorce-web.onrender.com
+      - key: RESEND_API_KEY
+        sync: false
     plan: starter
     region: ohio
 
