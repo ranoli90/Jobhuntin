@@ -1,0 +1,64 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - navigation [ref=e5]:
+      - link "Sk Skedaddle chase the yes" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: Sk
+        - generic [ref=e8]:
+          - text: Skedaddle
+          - paragraph [ref=e9]: chase the yes
+      - generic [ref=e10]:
+        - link "How" [ref=e11] [cursor=pointer]:
+          - /url: "#how"
+        - link "Proof" [ref=e12] [cursor=pointer]:
+          - /url: "#proof"
+        - link "Pricing" [ref=e13] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "Login" [ref=e14] [cursor=pointer]:
+          - /url: /login
+        - link "Start free" [ref=e15] [cursor=pointer]:
+          - /url: /login
+  - main [ref=e16]:
+    - generic [ref=e18]:
+      - link "Sk Skedaddle" [ref=e19] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e20]: Sk
+        - generic [ref=e21]: Skedaddle
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - img [ref=e24]
+          - heading "Sign in or create an account" [level=1] [ref=e26]
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: Email
+            - generic [ref=e30]:
+              - img [ref=e31]
+              - textbox "you@example.com" [ref=e34]: testmagic1770516885450@example.com
+          - button "Send magic link" [ref=e36] [cursor=pointer]:
+            - text: Send magic link
+            - img [ref=e37]
+        - button "Use password instead" [ref=e40] [cursor=pointer]
+      - paragraph [ref=e41]:
+        - text: By continuing, you agree to our
+        - link "Terms" [ref=e42] [cursor=pointer]:
+          - /url: "#"
+        - text: and
+        - link "Privacy Policy" [ref=e43] [cursor=pointer]:
+          - /url: "#"
+        - text: .
+  - contentinfo [ref=e44]:
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - paragraph [ref=e47]: Skedaddle
+        - paragraph [ref=e48]: © 2026 Skedaddle. All rights reserved.
+      - generic [ref=e49]:
+        - link "Company" [ref=e50] [cursor=pointer]:
+          - /url: /
+        - link "Privacy" [ref=e51] [cursor=pointer]:
+          - /url: "#"
+        - link "Terms" [ref=e52] [cursor=pointer]:
+          - /url: "#"
+```

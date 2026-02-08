@@ -1,25 +1,35 @@
 import { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useBilling } from "../hooks/useBilling";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { ToastShelf } from "../components/ui/ToastShelf";
 import { cn } from "../lib/utils";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  Briefcase,
+  FileText,
+  HelpCircle,
+  Users,
+  CreditCard,
+  Settings,
+  LogOut,
+} from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", to: "/app/dashboard" },
-  { label: "Jobs", to: "/app/jobs" },
-  { label: "Applications", to: "/app/applications" },
-  { label: "HOLDs", to: "/app/holds" },
-  { label: "Team", to: "/app/team" },
-  { label: "Billing", to: "/app/billing" },
-  { label: "Settings", to: "/app/settings" },
+  { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
+  { label: "Jobs", to: "/app/jobs", icon: Briefcase },
+  { label: "Applications", to: "/app/applications", icon: FileText },
+  { label: "HOLDs", to: "/app/holds", icon: HelpCircle },
+  { label: "Team", to: "/app/team", icon: Users },
+  { label: "Billing", to: "/app/billing", icon: CreditCard },
+  { label: "Settings", to: "/app/settings", icon: Settings },
 ];
 
 export default function AppLayout() {
-  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { plan } = useBilling();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,30 +37,57 @@ export default function AppLayout() {
   const closeMobile = () => setMobileMenuOpen(false);
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all",
-      isActive ? "bg-brand-shell text-brand-ink" : "text-brand-ink/70 hover:bg-brand-shell/70",
+      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+      isActive
+        ? "bg-primary-50 text-primary-700"
+        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
     );
 
   return (
-    <div className="flex min-h-screen bg-brand-shell text-brand-ink">
-      <aside className="hidden w-64 flex-col border-r border-white/70 bg-white/90 px-6 py-8 md:flex">
-        <div>
-          <p className="font-display text-2xl">Skedaddle</p>
-          <p className="text-xs uppercase tracking-[0.4em] text-brand-ink/60">app</p>
+    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+      <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white md:flex">
+        <div className="border-b border-slate-200 px-6 py-5">
+          <Link to="/app/dashboard" className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 text-white font-semibold grid place-items-center">
+              S
+            </div>
+            <div>
+              <p className="text-lg font-semibold">Skedaddle</p>
+              <p className="text-xs text-slate-500">Intelligence console</p>
+            </div>
+          </Link>
         </div>
-        <nav className="mt-8 space-y-1">
-          {NAV_ITEMS.map((item) => (
-            <NavLink key={item.to} to={item.to} className={navLinkClass}>
-              {item.label}
-              <span>→</span>
-            </NavLink>
-          ))}
+        <nav className="flex-1 space-y-1 px-4 py-6">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink key={item.to} to={item.to} className={navLinkClass}>
+                <Icon className="h-4 w-4" />
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
-        <div className="mt-auto space-y-2 text-xs text-brand-ink/70">
-          <Button variant="ghost" className="w-full justify-center" onClick={signOut}>
-            Logout
+        <div className="border-t border-slate-200 px-4 py-5">
+          <div className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-semibold grid place-items-center">
+              {user?.email?.slice(0, 2).toUpperCase() ?? "SK"}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium truncate">{user?.email ?? "hello@skedaddle.com"}</p>
+              <Badge variant="outline" size="sm" className="mt-1">
+                {plan ?? "Free"}
+              </Badge>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-3 w-full justify-start text-slate-600"
+            onClick={signOut}
+          >
+            <LogOut className="mr-2 h-4 w-4" /> Sign out
           </Button>
-          <p className="text-[11px]">support@skedaddle.com</p>
         </div>
       </aside>
 
@@ -64,57 +101,83 @@ export default function AppLayout() {
       )}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 flex-col border-r border-white/70 bg-white/90 px-6 py-8 shadow-xl transition-transform md:hidden",
+          "fixed inset-y-0 left-0 z-50 w-64 flex-col border-r border-slate-200 bg-white px-4 py-6 shadow-xl transition-transform md:hidden",
           mobileMenuOpen ? "flex translate-x-0" : "flex -translate-x-full",
         )}
       >
-        <div className="flex items-center justify-between">
-          <p className="font-display text-2xl">Skedaddle</p>
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+          <Link to="/app/dashboard" className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 text-white font-semibold grid place-items-center">
+              S
+            </div>
+            <span className="text-lg font-semibold">Skedaddle</span>
+          </Link>
           <Button variant="ghost" size="icon" onClick={closeMobile} aria-label="Close menu">
             <X className="h-5 w-5" />
           </Button>
         </div>
-        <nav className="mt-8 space-y-1">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={navLinkClass}
-              onClick={closeMobile}
-            >
-              {item.label}
-              <span>→</span>
-            </NavLink>
-          ))}
+        <nav className="mt-5 flex-1 space-y-1 overflow-y-auto">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={navLinkClass}
+                onClick={closeMobile}
+              >
+                <Icon className="h-4 w-4" />
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
-        <div className="mt-auto space-y-2 text-xs text-brand-ink/70">
-          <Button variant="ghost" className="w-full justify-center" onClick={() => { signOut(); closeMobile(); }}>
-            Logout
+        <div className="border-t border-slate-200 pt-4">
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => {
+              signOut();
+              closeMobile();
+            }}
+          >
+            <LogOut className="mr-2 h-4 w-4" /> Sign out
           </Button>
         </div>
       </div>
       <div className="flex flex-1 flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/70 bg-white/80 px-6 py-4 backdrop-blur">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
               <Menu className="h-5 w-5" />
             </Button>
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-brand-ink/70">Plan</p>
-              <Badge variant="lagoon">{plan}</Badge>
+              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Workspace</p>
+              <p className="text-sm font-semibold text-slate-900">Command Center</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-semibold">{user?.email ?? "hello@skedaddle.com"}</p>
-              <p className="text-xs text-brand-ink/60">Account owner</p>
-            </div>
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-brand-sunrise text-white font-semibold">
-              {user?.email?.slice(0, 2).toUpperCase() ?? "SK"}
+          <div className="flex items-center gap-3">
+            <Badge variant="primary" size="sm">
+              {plan ?? "Free"}
+            </Badge>
+            <div className="hidden items-center gap-3 md:flex">
+              <div className="text-right">
+                <p className="text-sm font-semibold">{user?.email ?? "hello@skedaddle.com"}</p>
+                <p className="text-xs text-slate-500">Account owner</p>
+              </div>
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-semibold">
+                {user?.email?.slice(0, 2).toUpperCase() ?? "SK"}
+              </div>
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto px-6 py-8">
+        <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 lg:py-8">
           <Outlet />
         </main>
         <ToastShelf />

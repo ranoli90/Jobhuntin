@@ -7,27 +7,44 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ["'Baloo 2'", ...fontFamily.sans],
-        body: ["'Space Grotesk'", ...fontFamily.sans],
+        sans: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        display: ["Inter", ...fontFamily.sans],
+        mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
+        primary: {
+          50: "#eff6ff", 100: "#dbeafe", 200: "#bfdbfe", 300: "#93c5fd",
+          400: "#60a5fa", 500: "#3b82f6", 600: "#2563eb", 700: "#1d4ed8",
+          800: "#1e40af", 900: "#1e3a8a", 950: "#172554",
+        },
+        slate: {
+          50: "#f8fafc", 100: "#f1f5f9", 200: "#e2e8f0", 300: "#cbd5e1",
+          400: "#94a3b8", 500: "#64748b", 600: "#475569", 700: "#334155",
+          800: "#1e293b", 900: "#0f172a", 950: "#020617",
+        },
+        success: { 50: "#f0fdf4", 500: "#22c55e", 600: "#16a34a" },
+        warning: { 50: "#fffbeb", 500: "#f59e0b", 600: "#d97706" },
+        error: { 50: "#fef2f2", 500: "#ef4444", 600: "#dc2626" },
         brand: {
-          sunrise: "rgb(var(--skedaddle-sunrise) / <alpha-value>)",
-          lagoon: "rgb(var(--skedaddle-lagoon) / <alpha-value>)",
-          mango: "rgb(var(--skedaddle-mango) / <alpha-value>)",
-          ink: "rgb(var(--skedaddle-ink) / <alpha-value>)",
-          shell: "rgb(var(--skedaddle-shell) / <alpha-value>)",
+          sunrise: "#3b82f6", lagoon: "#06b6d4", mango: "#f59e0b",
+          ink: "#0f172a", shell: "#f8fafc",
         },
       },
       boxShadow: {
-        wobble: "0 25px 70px rgba(15, 23, 42, 0.15)",
-        pill: "0 12px 30px rgba(255, 152, 67, 0.35)",
+        sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        DEFAULT: "0 1px 3px 0 rgb(0 0 0 / 0.1)",
+        md: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+        lg: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+        xl: "0 20px 25px -5px rgb(0 0 0 / 0.1)",
+        glow: "0 0 20px rgba(59, 130, 246, 0.15)",
       },
       borderRadius: {
-        blob: "2rem",
+        sm: "0.25rem", DEFAULT: "0.5rem", md: "0.5rem", lg: "0.625rem",
+        xl: "0.75rem", "2xl": "1rem", blob: "1rem",
       },
       transitionTimingFunction: {
-        scoot: "cubic-bezier(0.32, 1.1, 0.3, 1)",
+        DEFAULT: "cubic-bezier(0.4, 0, 0.2, 1)",
+        scoot: "cubic-bezier(0.4, 0, 0.2, 1)",
       },
     },
   },

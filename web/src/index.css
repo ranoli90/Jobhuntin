@@ -1,24 +1,95 @@
-@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --skedaddle-sunrise: 255 156 107;
-  --skedaddle-lagoon: 23 190 187;
-  --skedaddle-mango: 255 200 87;
-  --skedaddle-plum: 106 76 147;
-  --skedaddle-ink: 16 24 40;
-  --skedaddle-shell: 255 248 241;
+  /* Professional SaaS color system */
+  --color-primary-50: 239 246 255;
+  --color-primary-500: 59 130 246;
+  --color-primary-600: 37 99 235;
+  --color-primary-700: 29 78 216;
+  
+  --color-slate-50: 248 250 252;
+  --color-slate-100: 241 245 249;
+  --color-slate-200: 226 232 240;
+  --color-slate-300: 203 213 225;
+  --color-slate-400: 148 163 184;
+  --color-slate-500: 100 116 139;
+  --color-slate-600: 71 85 105;
+  --color-slate-700: 51 65 85;
+  --color-slate-800: 30 41 59;
+  --color-slate-900: 15 23 42;
+  --color-slate-950: 2 6 23;
+
+  /* Legacy mapping for compatibility */
+  --skedaddle-sunrise: 59 130 246;
+  --skedaddle-lagoon: 6 182 212;
+  --skedaddle-mango: 245 158 11;
+  --skedaddle-ink: 15 23 42;
+  --skedaddle-shell: 248 250 252;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #fff8f1;
-  color: #101828;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+  line-height: 1.6;
 }
 
+/* Professional selection styling */
 ::selection {
-  background-color: rgba(255, 156, 107, 0.4);
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+}
+
+/* Focus visible styles for accessibility */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Utility classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .gradient-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  }
+  
+  .gradient-subtle {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  }
 }

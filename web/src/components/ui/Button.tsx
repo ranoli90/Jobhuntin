@@ -4,28 +4,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-full font-semibold transition-all duration-300 ease-scoot focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-[1px]",
+  "inline-flex items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
   {
     variants: {
       variant: {
         primary:
-          "bg-[#FF9C6B] text-white shadow-[0_18px_40px_rgba(255,156,107,0.35)] hover:-translate-y-0.5 hover:shadow-[0_25px_55px_rgba(255,156,107,0.45)] focus-visible:ring-[#FF9C6B]/40",
+          "bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:shadow-md",
         secondary:
-          "bg-[#101828] text-white hover:bg-[#1d2740]",
-        lagoon:
-          "bg-[#17BEBB] text-[#0B1C1C] shadow-pill hover:-translate-y-0.5 hover:bg-[#11a6a3]",
+          "bg-slate-900 text-white shadow-sm hover:bg-slate-800 hover:shadow-md",
         outline:
-          "border border-[#FF9C6B] text-[#FF9C6B] bg-transparent hover:bg-[#FFF2E8]",
-        ghost: "text-[#101828] hover:bg-[#FFF2E8]",
+          "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400",
+        ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+        danger: "bg-error-600 text-white shadow-sm hover:bg-error-700",
+        success: "bg-success-600 text-white shadow-sm hover:bg-success-700",
       },
       size: {
-        sm: "px-4 py-2 text-sm",
-        md: "px-6 py-2.5 text-base",
-        lg: "px-8 py-3 text-lg",
-        icon: "h-10 w-10 p-0",
+        sm: "h-8 px-3 text-sm rounded-md",
+        md: "h-10 px-4 text-sm rounded-lg",
+        lg: "h-12 px-6 text-base rounded-lg",
+        icon: "h-10 w-10 p-0 rounded-lg",
       },
       wobble: {
-        true: "hover:-rotate-1",
+        true: "",
         false: "",
       },
     },
