@@ -63,6 +63,6 @@ EXPOSE 8000
 USER sorce
 
 ENV PORT=8000
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/healthz || exit 1
+# Render handles health checks externally via http request to /health
+# We remove the internal Docker HEALTHCHECK to avoid port mismatches and dependency issues
 CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info

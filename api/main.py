@@ -201,6 +201,7 @@ class DatabasePoolManager:
         # Resolve the DB hostname to IPv4 to avoid [Errno 101] on Render (no IPv6).
         from shared.db import resolve_dsn_ipv4
         db_dsn = resolve_dsn_ipv4(s.database_url)
+        db_dsn = self._fix_pooler_dsn(db_dsn, s)
 
         for attempt in range(1, 4):
             try:
@@ -221,7 +222,8 @@ class DatabasePoolManager:
                 raise
         else:
             logger.error("Could not create DB pool after 3 attempts")
-            raise RuntimeError("Failed to initialize database pool")
+            # Do not raise RuntimeError, allow app to start in degraded mode
+            # raise RuntimeError("Failed to initialize database pool")
 
         await self._run_migrations()
 
@@ -246,6 +248,50 @@ class DatabasePoolManager:
             logger.warning("Auto-migration check failed (DB error): %s", exc)
         except Exception as exc:
             logger.warning("Auto-migration check failed: %s", exc)
+
+    def _fix_pooler_dsn(self, dsn: str, settings: Any) -> str:
+        """Fix Supabase pooler DSN by ensuring username includes project ref."""
+        try:
+            from urllib.parse import quote, urlparse, urlunparse
+
+            parsed = urlparse(dsn)
+            if not parsed.hostname or "pooler.supabase.com" not in parsed.hostname:
+                return dsn
+
+            if parsed.username and "." in parsed.username:
+                return dsn
+
+            if not settings.supabase_url:
+                return dsn
+
+            ref_parsed = urlparse(settings.supabase_url)
+            if not ref_parsed.hostname:
+                return dsn
+
+            parts = ref_parsed.hostname.split(".")
+            if len(parts) < 2:
+                return dsn
+
+            project_ref = parts[0]
+            new_username = f"{parsed.username}.{project_ref}"
+
+            encoded_user = quote(new_username)
+            encoded_pass = quote(parsed.password) if parsed.password else ""
+
+            netloc = f"{encoded_user}"
+            if encoded_pass:
+                netloc += f":{encoded_pass}"
+            netloc += f"@{parsed.hostname}"
+            if parsed.port:
+                netloc += f":{parsed.port}"
+
+            fixed_dsn = urlunparse(parsed._replace(netloc=netloc))
+            logger.info("Fixed Supabase pooler username: %s -> %s", parsed.username, new_username)
+            return fixed_dsn
+
+        except Exception as exc:
+            logger.warning("Failed to fix Supabase pooler DSN: %s", exc)
+            return dsn
 
     @staticmethod
     def _get_ssl_config(settings: Any) -> Any:
