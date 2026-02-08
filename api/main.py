@@ -1,4 +1,3 @@
-<<<<<<< C:/Users/Administrator/Desktop/Quickly/api/main.py
 """
 Part 3: API and Worker Coordination (FastAPI)
 
