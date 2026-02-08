@@ -249,7 +249,8 @@ async def startup() -> None:
     global pool
     s = get_settings()
     from backend.blueprints.registry import load_default_blueprints
-    load_default_blueprints()
+    enabled = [slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()]
+    load_default_blueprints(enabled_slugs=enabled or None)
     # Determine SSL: skip for Render internal connections, use for external.
     # Supabase direct DB uses a self-signed certificate in its chain, so full
     # verification (create_default_context) fails.  Disable cert verification

@@ -65,21 +65,17 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="onboarding" element={<Onboarding />} />
 
-          <Route path="*" element={
-            <OnboardingGuard>
-              <Routes>
-                <Route index element={<Navigate to="/app/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="jobs" element={<JobsFeed />} />
-                <Route path="applications" element={<ApplicationsPage />} />
-                <Route path="holds" element={<HoldInbox />} />
-                <Route path="team" element={<TeamView />} />
-                <Route path="billing" element={<BillingPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
-              </Routes>
-            </OnboardingGuard>
-          } />
+          <Route element={<OnboardingGuard><Outlet /></OnboardingGuard>}>
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="jobs" element={<JobsFeed />} />
+            <Route path="applications" element={<ApplicationsPage />} />
+            <Route path="holds" element={<HoldInbox />} />
+            <Route path="team" element={<TeamView />} />
+            <Route path="billing" element={<BillingPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+          </Route>
         </Route>
       </Route>
 

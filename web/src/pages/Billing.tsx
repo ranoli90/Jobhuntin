@@ -82,7 +82,7 @@ export default function BillingPage() {
             <div className="mt-4 space-y-4">
               <UsageBars
                 used={usage?.applications_used ?? 0}
-                limit={plan === "FREE" ? 50 : plan === "PRO" ? 200 : undefined}
+                limit={usage?.applications_limit ?? (plan === "FREE" ? 50 : plan === "PRO" ? 200 : undefined)}
                 label="Applications submitted"
               />
               <div className="flex items-center justify-between text-sm">

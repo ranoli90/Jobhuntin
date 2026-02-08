@@ -8,6 +8,7 @@ import { Badge } from "../components/ui/Badge";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useNavigate } from "react-router-dom";
+import { pushToast } from "../lib/toast";
 
 export default function HoldInbox() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function HoldInbox() {
     return [...holdApplications].sort((a, b) => {
       const aDate = a.last_activity ? new Date(a.last_activity).getTime() : 0;
       const bDate = b.last_activity ? new Date(b.last_activity).getTime() : 0;
-      return aDate - bDate;
+      return bDate - aDate; // newest first to prioritize fresh/urgent holds
     });
   }, [holdApplications]);
 
@@ -54,9 +55,11 @@ export default function HoldInbox() {
       }
 
       await answerHold(activeHoldId, answerText);
+      pushToast({ title: "Answer sent", tone: "success" });
       closeModal();
     } catch (err) {
       console.error("Failed to answer hold:", err);
+      pushToast({ title: "Could not send answer", description: (err as Error)?.message, tone: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -65,11 +68,13 @@ export default function HoldInbox() {
   const handleSnooze = async (holdId: string) => {
     try {
       await snoozeApplication(holdId, 24);
+      pushToast({ title: "Snoozed for 24h", tone: "info" });
       if (activeHoldId === holdId) {
         closeModal();
       }
     } catch (err) {
       console.error("Failed to snooze hold:", err);
+      pushToast({ title: "Could not snooze", description: (err as Error)?.message, tone: "error" });
     }
   };
 

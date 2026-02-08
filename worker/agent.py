@@ -805,7 +805,8 @@ class FormAgent:
 
 async def worker_loop() -> None:
     s = get_settings()
-    load_default_blueprints()
+    enabled = [slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()]
+    load_default_blueprints(enabled_slugs=enabled or None)
     pool = await create_pool()
 
     async with async_playwright() as pw:

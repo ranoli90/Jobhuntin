@@ -11,7 +11,7 @@ import { pushToast } from "../../lib/toast";
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep } = useOnboarding();
+  const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding } = useOnboarding();
   const { profile, loading, uploadResume, savePreferences, completeOnboarding } = useProfile();
 
   const [resumeFile, setResumeFile] = React.useState<File | null>(null);
@@ -26,6 +26,8 @@ export default function Onboarding() {
 
   const [parsedResume, setParsedResume] = React.useState<{title?: string; skills?: string[]; years?: number; summary?: string; headline?: string} | null>(null);
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
+  const [isSavingPreferences, setIsSavingPreferences] = React.useState(false);
+  const [isCompleting, setIsCompleting] = React.useState(false);
 
   React.useEffect(() => {
     if (profile?.preferences) {
@@ -41,9 +43,10 @@ export default function Onboarding() {
 
   React.useEffect(() => {
     if (profile?.has_completed_onboarding) {
+      resetOnboarding();
       navigate("/app/jobs");
     }
-  }, [profile, navigate]);
+  }, [profile, navigate, resetOnboarding]);
 
   const handleResumeUpload = async () => {
     if (!resumeFile) return;
@@ -91,6 +94,7 @@ export default function Onboarding() {
 
   const handleSavePreferences = async () => {
     try {
+      setIsSavingPreferences(true);
       await savePreferences({
         location: preferences.location || undefined,
         role_type: preferences.role_type || undefined,
@@ -100,16 +104,22 @@ export default function Onboarding() {
       nextStep();
     } catch (err) {
       pushToast({ title: "Something went sideways", description: "Your data is safe. Please try again.", tone: "error" });
+    } finally {
+      setIsSavingPreferences(false);
     }
   };
 
   const handleComplete = async () => {
     try {
+      setIsCompleting(true);
       await completeOnboarding();
+      resetOnboarding();
       pushToast({ title: "You're all set! Let's job hunt! 🚀", tone: "success" });
       navigate("/app/jobs");
     } catch (err) {
       pushToast({ title: "Almost there!", description: "Please try again.", tone: "error" });
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -426,7 +436,7 @@ export default function Onboarding() {
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                <Button onClick={handleSavePreferences} className="flex-1">
+                <Button onClick={handleSavePreferences} className="flex-1" disabled={isSavingPreferences}>
                   Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -500,8 +510,8 @@ export default function Onboarding() {
                 </ul>
               </div>
 
-              <Button size="lg" variant="primary" wobble onClick={handleComplete} className="w-full">
-                Let's find jobs!
+              <Button size="lg" variant="primary" wobble onClick={handleComplete} className="w-full" disabled={isCompleting}>
+                {isCompleting ? "Finishing..." : "Let's find jobs!"}
                 <Rocket className="ml-2 h-4 w-4" />
               </Button>
             </div>

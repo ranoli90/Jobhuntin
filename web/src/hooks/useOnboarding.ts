@@ -1,10 +1,12 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 interface OnboardingStep {
   id: string;
   title: string;
   description: string;
 }
+
+const STORAGE_KEY = "onboarding_step";
 
 const STEPS: OnboardingStep[] = [
   { id: "welcome", title: "Welcome to JobHuntin", description: "Let's get you set up in 2 minutes" },
@@ -14,7 +16,14 @@ const STEPS: OnboardingStep[] = [
 ];
 
 export function useOnboarding() {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(() => {
+    try {
+      const stored = Number(localStorage.getItem(STORAGE_KEY));
+      return Number.isFinite(stored) && stored >= 0 && stored < STEPS.length ? stored : 0;
+    } catch {
+      return 0;
+    }
+  });
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   const currentStepData = STEPS[currentStep];
@@ -41,6 +50,24 @@ export function useOnboarding() {
     }
   }, []);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(currentStep));
+    } catch {
+      /* ignore storage issues */
+    }
+  }, [currentStep]);
+
+  const resetOnboarding = useCallback(() => {
+    setCurrentStep(0);
+    setCompletedSteps([]);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   return {
     steps: STEPS,
     currentStep,
@@ -52,5 +79,6 @@ export function useOnboarding() {
     nextStep,
     prevStep,
     goToStep,
+    resetOnboarding,
   };
 }

@@ -161,8 +161,8 @@ export default function Dashboard() {
                 <motion.div 
                   className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
                   initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, 30 + Math.random() * 70)}%` }}
-                  transition={{ delay: 0.3 + index * 0.1, duration: 1, type: 'spring' }}
+                  animate={{ width: `${Math.min(100, 30 + index * 10)}%` }}
+                  transition={{ delay: 0.3 + index * 0.1, duration: 0.8, type: 'spring' }}
                 />
               </div>
             </Card>

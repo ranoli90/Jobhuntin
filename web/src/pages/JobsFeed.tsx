@@ -26,8 +26,12 @@ export default function JobsFeed() {
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(() => {
-    const stored = localStorage.getItem("savedJobs");
-    return stored ? new Set(JSON.parse(stored)) : new Set();
+    try {
+      const stored = localStorage.getItem("savedJobs");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
   });
 
   const stack = useMemo(() => jobs.slice(currentIndex, currentIndex + 3), [jobs, currentIndex]);
@@ -54,7 +58,11 @@ export default function JobsFeed() {
       } else {
         next.add(jobId);
       }
-      localStorage.setItem("savedJobs", JSON.stringify([...next]));
+      try {
+        localStorage.setItem("savedJobs", JSON.stringify([...next]));
+      } catch {
+        // ignore storage failures (private mode / quota)
+      }
       return next;
     });
   };

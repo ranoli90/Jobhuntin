@@ -16,7 +16,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+const API_BASE = ((import.meta.env.VITE_API_URL ?? "") || `${window.location.origin}/api`).replace(/\/$/, "");
 type AuthMode = "magic" | "password" | "register";
 
 const AUTH_MODE_OPTIONS: { key: AuthMode; label: string; description: string }[] = [
@@ -79,11 +79,17 @@ export default function Login() {
     }
   }, [mode]);
 
-  const destinationHint = useMemo(() => {
-    if (returnTo === "/app/onboarding") return "We'll drop you into onboarding as soon as you're verified.";
-    if (returnTo === "/app/dashboard") return "You'll land on your dashboard after signing in.";
-    return `We'll take you to ${returnTo} once you're in.`;
+  const safeReturnTo = useMemo(() => {
+    if (!returnTo.startsWith("/")) return "/app/dashboard";
+    if (returnTo.startsWith("//")) return "/app/dashboard";
+    return returnTo;
   }, [returnTo]);
+
+  const destinationHint = useMemo(() => {
+    if (safeReturnTo === "/app/onboarding") return "We'll drop you into onboarding as soon as you're verified.";
+    if (safeReturnTo === "/app/dashboard") return "You'll land on your dashboard after signing in.";
+    return `We'll take you to ${safeReturnTo} once you're in.`;
+  }, [safeReturnTo]);
 
   useEffect(() => {
     if (!rateLimitReset) {
@@ -122,28 +128,41 @@ export default function Login() {
   };
 
   const sendMagicLink = async (targetEmail: string, destination: string) => {
-    if (!API_BASE) throw new Error("Magic links are warming up. Please try again soon.");
     const normalizedEmail = targetEmail.trim().toLowerCase();
-    const resp = await fetch(`${API_BASE}/auth/magic-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: normalizedEmail,
-        return_to: destination,
-      }),
-    });
+    try {
+      const resp = await fetch(`${API_BASE}/auth/magic-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          return_to: destination,
+        }),
+      });
 
-    if (!resp.ok) {
-      const errText = await resp.text();
-      if (resp.status === 429) {
-        setRateLimitReset(Date.now() + 60_000);
-        throw new Error("Too many magic link requests. Please wait before trying again.");
+      if (!resp.ok) {
+        let message = "Magic link failed";
+        try {
+          const data = await resp.json();
+          message = data?.detail || data?.error || message;
+        } catch {
+          const errText = await resp.text();
+          message = errText || message;
+        }
+        if (resp.status === 429) {
+          setRateLimitReset(Date.now() + 60_000);
+          message = "Too many magic link requests. Please wait before trying again.";
+        }
+        throw new Error(message);
       }
-      throw new Error(errText || "Magic link failed");
-    }
 
-    setRateLimitReset(null);
-    return normalizedEmail;
+      setRateLimitReset(null);
+      return normalizedEmail;
+    } catch (err: any) {
+      if (!API_BASE) {
+        throw new Error("Magic links are warming up. Please try again soon.");
+      }
+      throw err;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -156,7 +175,7 @@ export default function Login() {
 
     try {
       if (mode === "magic") {
-        const normalized = await sendMagicLink(email, returnTo);
+        const normalized = await sendMagicLink(email, safeReturnTo);
         setSuccessState({ type: "magic", email: normalized });
         pushToast({ title: "Check your email! 📧", tone: "success" });
       } else if (mode === "password") {
@@ -181,9 +200,9 @@ export default function Login() {
           email: email.trim(),
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/login?returnTo=${encodeURIComponent(returnTo)}`,
+            emailRedirectTo: `${window.location.origin}/login?returnTo=${encodeURIComponent(safeReturnTo)}`,
             data: {
-              onboarding_intent: returnTo,
+              onboarding_intent: safeReturnTo,
             },
           },
         });
@@ -266,7 +285,7 @@ export default function Login() {
                 onClick={async () => {
                   try {
                     setResendLoading(true);
-                    await sendMagicLink(successState.email, returnTo);
+                    await sendMagicLink(successState.email, safeReturnTo);
                     pushToast({ title: "Magic link resent", tone: "success" });
                   } catch (err: any) {
                     setFormError(err?.message || "Unable to resend");
