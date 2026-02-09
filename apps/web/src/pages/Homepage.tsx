@@ -120,6 +120,14 @@ const Hero = () => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
+  const glowBackground = useMotionTemplate`
+    radial-gradient(
+      650px circle at ${mouseX}px ${mouseY}px,
+      rgba(255, 255, 255, 0.4),
+      transparent 40%
+    )
+  `;
+
   function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
     const { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
@@ -296,13 +304,7 @@ const Hero = () => {
             <motion.div
               className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
               style={{
-                background: useMotionTemplate`
-                  radial-gradient(
-                    650px circle at ${mouseX}px ${mouseY}px,
-                    rgba(255, 255, 255, 0.4),
-                    transparent 40%
-                  )
-                `,
+                background: glowBackground,
               }}
             />
             <form onSubmit={onSubmit} className="bg-white rounded-xl p-2 flex flex-col sm:flex-row gap-2 relative z-10">

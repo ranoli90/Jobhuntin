@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ export interface AuthState {
 export function useAuth(): AuthState {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(true);
   const navigate = useNavigate();
 
   const signOut = useCallback(async () => {
@@ -21,6 +22,7 @@ export function useAuth(): AuthState {
 
   useEffect(() => {
     let mounted = true;
+    loadingRef.current = loading;
 
     const initializeAuth = async () => {
       try {
@@ -56,15 +58,15 @@ export function useAuth(): AuthState {
 
     // Fallback: If we are stuck in loading state (e.g. hash was present but Supabase failed to process it)
     const timeout = setTimeout(() => {
-        if (mounted && loading) {
-            console.log("Auth loading timeout reached, forcing completion");
-            supabase.auth.getSession().then(({ data }) => {
-                if (mounted) {
-                    setSession(data.session);
-                    setLoading(false);
-                }
-            });
-        }
+      if (mounted && loadingRef.current) {
+        console.log("Auth loading timeout reached, forcing completion");
+        supabase.auth.getSession().then(({ data }) => {
+          if (mounted) {
+            setSession(data.session);
+            setLoading(false);
+          }
+        });
+      }
     }, 4000);
 
     return () => {
@@ -73,6 +75,10 @@ export function useAuth(): AuthState {
       subscription?.subscription?.unsubscribe();
     };
   }, []); // Remove 'loading' from dependency array to avoid re-running
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   return {
     session,

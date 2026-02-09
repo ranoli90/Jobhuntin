@@ -124,7 +124,7 @@ async def get_usage(
         # For simplicity, we assume standard plan limits unless we fetch tenant row
         tenant_row = await conn.fetchrow("SELECT plan, metadata FROM public.tenants WHERE id = $1", ctx.tenant_id)
         plan = tenant_row["plan"] if tenant_row else "FREE"
-        metadata = tenant_row.get("metadata") # Assuming jsonb metadata might contain plan overrides
+        metadata = tenant_row["metadata"] if tenant_row and "metadata" in tenant_row else None  # jsonb metadata might contain plan overrides
 
         config = plan_config_for(plan, metadata)
 
