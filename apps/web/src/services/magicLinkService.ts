@@ -173,14 +173,8 @@ class MagicLinkService {
    */
   private isValidURL(url: string): boolean {
     try {
-      // Try URL.canParse first (modern browsers)
-      if (typeof URL !== 'undefined' && 'canParse' in URL) {
-        return (URL as any).canParse(url);
-      }
-
-      // Fallback to URL constructor
-      new URL(url);
-      return true;
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
     } catch {
       return false;
     }
@@ -270,10 +264,11 @@ class MagicLinkService {
   /**
    * Validate magic link token
    */
-  async validateToken(token: string): Promise<{ valid: boolean; error?: string }> {
+  async validateToken(token: string, email: string): Promise<{ valid: boolean; error?: string }> {
     try {
       const { data, error } = await supabase.auth.verifyOtp({
         token,
+        email,
         type: 'email'
       });
 

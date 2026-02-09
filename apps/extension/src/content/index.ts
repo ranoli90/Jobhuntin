@@ -1,5 +1,5 @@
 import { LinkedInScraper } from './scrapers/linkedin'
-import { JobData } from './scrapers/types'
+import type { JobData } from './scrapers/types'
 
 console.log('Sorce Content Script Active')
 

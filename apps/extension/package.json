@@ -12,6 +12,7 @@
   "dependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.33",
     "@supabase/supabase-js": "^2.95.3",
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/chrome": "^0.1.36",
     "autoprefixer": "^10.4.24",
     "axios": "^1.13.5",

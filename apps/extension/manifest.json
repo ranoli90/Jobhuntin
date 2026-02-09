@@ -3,7 +3,11 @@
   "name": "Sorce - AI Job Copilot",
   "version": "1.0.0",
   "description": "Capture job postings and apply faster with AI.",
-  "permissions": ["activeTab", "storage", "scripting"],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
   "host_permissions": [
     "https://*.linkedin.com/*",
     "https://*.indeed.com/*",
@@ -16,8 +20,23 @@
   },
   "content_scripts": [
     {
-      "js": ["src/content/index.ts"],
-      "matches": ["https://*.linkedin.com/jobs/*", "https://*.indeed.com/viewjob*"]
+      "js": [
+        "src/content/index.ts"
+      ],
+      "matches": [
+        "https://*.linkedin.com/jobs/*",
+        "https://*.indeed.com/viewjob*"
+      ]
+    },
+    {
+      "js": [
+        "src/content/auth.ts"
+      ],
+      "matches": [
+        "http://localhost:5173/*",
+        "https://jobhuntin.com/*",
+        "https://sorce-web.onrender.com/*"
+      ]
     }
   ],
   "background": {
@@ -26,8 +45,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["assets/*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "assets/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

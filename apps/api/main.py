@@ -125,8 +125,33 @@ app.add_middleware(
 # Add Request ID middleware for distributed tracing
 setup_request_id_middleware(app)
 
-# Add CSRF protection (disabled if no secret configured)
-setup_csrf_middleware(app, _settings.csrf_secret)
+from shared.metrics import get_rate_limiter
+
+
+# ---------------------------------------------------------------------------  
+# Rate Limiting Middleware
+# ---------------------------------------------------------------------------
+
+@app.middleware("http")
+async def rate_limiting_middleware(request: Request, call_next):
+    """Rate limiting middleware for API endpoints."""
+    # Skip rate limiting for health checks and static files
+    if request.url.path in ["/health", "/healthz"] or request.url.path.startswith("/static"):
+        return await call_next(request)
+    
+    # Get client identifier (IP address)
+    client_ip = request.client.host if request.client else "unknown"
+    
+    # Get rate limiter for this client
+    limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)  # 100 requests per minute
+    
+    if not limiter.allow():
+        raise HTTPException(
+            status_code=429, 
+            detail="Rate limit exceeded. Please try again later."
+        )
+    
+    return await call_next(request)
 
 
 # ---------------------------------------------------------------------------
@@ -210,6 +235,7 @@ def _mount_sub_routers() -> None:
 
     # AI Suggestions for smart onboarding
     import api.ai as ai_mod
+    app.dependency_overrides[ai_mod._get_pool] = get_pool
     app.include_router(ai_mod.router)
 
 # NOTE: _mount_sub_routers() is called at the bottom of this file,

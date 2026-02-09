@@ -569,3 +569,66 @@ class TenantRepo:
             tenant_id,
         )
         return int(row["cnt"]) if row else 0
+
+
+# ---------------------------------------------------------------------------
+# CoverLetterRepo
+# ---------------------------------------------------------------------------
+
+class CoverLetterRepo:
+    """CRUD for cover letters."""
+
+    @staticmethod
+    async def create(
+        conn: asyncpg.Connection,
+        user_id: str,
+        job_id: str,
+        content: str,
+        template_id: str | None = None,
+        tone: str | None = None,
+        quality_score: float | None = None,
+        suggestions: list[str] | None = None,
+    ) -> dict:
+        row = await conn.fetchrow(
+            """
+            INSERT INTO public.cover_letters (
+                user_id, job_id, content, template_id, tone, 
+                quality_score, suggestions
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+            RETURNING *
+            """,
+            user_id, job_id, content, template_id, tone,
+            quality_score, json.dumps(suggestions) if suggestions else None,
+        )
+        return dict(row)
+
+    @staticmethod
+    async def list_by_user(
+        conn: asyncpg.Connection,
+        user_id: str,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[dict]:
+        rows = await conn.fetch(
+            """
+            SELECT * FROM public.cover_letters
+            WHERE  user_id = $1
+            ORDER  BY created_at DESC
+            LIMIT  $2 OFFSET $3
+            """,
+            user_id, limit, offset,
+        )
+        return [dict(r) for r in rows]
+
+    @staticmethod
+    async def get_by_id(
+        conn: asyncpg.Connection,
+        letter_id: str,
+    ) -> dict | None:
+        row = await conn.fetchrow(
+            "SELECT * FROM public.cover_letters WHERE id = $1",
+            letter_id,
+        )
+        return dict(row) if row else None
+

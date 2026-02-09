@@ -53,16 +53,16 @@ export function useOptimisticUpdates() {
 
     switch (type) {
       case 'create':
-        newCache = Array.isArray(currentCache) 
+        newCache = Array.isArray(currentCache)
           ? [...currentCache, data]
           : data;
         break;
       case 'update':
         newCache = Array.isArray(currentCache)
-          ? currentCache.map((item: any) => 
-              item.id === id ? { ...item, ...data } : item
-            )
-          : { ...currentCache, ...data };
+          ? currentCache.map((item: any) =>
+            item.id === id ? { ...item, ...data } : item
+          )
+          : { ...(currentCache as object), ...(data as object) };
         break;
       case 'delete':
         newCache = Array.isArray(currentCache)
@@ -72,9 +72,9 @@ export function useOptimisticUpdates() {
     }
 
     queryClient.setQueryData(queryKey, newCache);
-    queryClient.invalidateQueries({ 
-      queryKey, 
-      refetchType: 'none' 
+    queryClient.invalidateQueries({
+      queryKey,
+      refetchType: 'none'
     });
 
     // Set up timeout for rollback
@@ -110,9 +110,9 @@ export function useOptimisticUpdates() {
           break;
         case 'update':
           rolledBackCache = Array.isArray(currentCache)
-            ? currentCache.map((item: any) => 
-                item.id === id ? update.rollbackData : item
-              )
+            ? currentCache.map((item: any) =>
+              item.id === id ? update.rollbackData : item
+            )
             : update.rollbackData;
           break;
         case 'delete':
@@ -155,7 +155,7 @@ export function useOptimisticUpdates() {
 
   // Get pending updates for query
   const getPendingUpdatesForQuery = useCallback((queryKey: string[]) => {
-    return updates.filter(u => 
+    return updates.filter(u =>
       JSON.stringify(u.queryKey) === JSON.stringify(queryKey)
     );
   }, [updates]);
@@ -171,9 +171,9 @@ export function useOptimisticUpdates() {
 
     // Refetch all affected queries
     const uniqueQueryKeys = Array.from(new Set(
-      updates.flatMap(u => u.queryKey.map(JSON.stringify))
+      updates.flatMap(u => u.queryKey.map(k => JSON.stringify(k)))
     ));
-    
+
     uniqueQueryKeys.forEach(keyStr => {
       queryClient.invalidateQueries({ queryKey: JSON.parse(keyStr) });
     });
@@ -183,14 +183,14 @@ export function useOptimisticUpdates() {
     pending: updates,
     isUpdating: updates.length > 0,
     lastUpdate: updates.length > 0 ? Math.max(...updates.map(u => u.timestamp)) : null,
-    
+
     actions: {
       addOptimisticUpdate,
       rollbackUpdate,
       completeUpdate,
       clearAllUpdates,
     },
-    
+
     utils: {
       isUpdatePending,
       getPendingUpdatesForQuery,
@@ -203,7 +203,7 @@ export function useOptimisticApplications() {
   const optimistic = useOptimisticUpdates();
 
   const applyToJob = useCallback((jobId: string, applicationData: any) => {
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       `app-${jobId}`,
       'create',
       {
@@ -220,11 +220,11 @@ export function useOptimisticApplications() {
   }, [optimistic]);
 
   const updateApplicationStatus = useCallback((
-    applicationId: string, 
-    status: string, 
+    applicationId: string,
+    status: string,
     additionalData?: any
   ) => {
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       applicationId,
       'update',
       {
@@ -234,16 +234,16 @@ export function useOptimisticApplications() {
       },
       ['applications'],
       // Get current data for rollback
-      optimistic.getPendingUpdatesForQuery(['applications'])
+      optimistic.utils.getPendingUpdatesForQuery(['applications'])
         .find(u => u.id === applicationId)?.rollbackData
     );
   }, [optimistic]);
 
   const deleteApplication = useCallback((applicationId: string) => {
-    const currentData = optimistic.getPendingUpdatesForQuery(['applications'])
+    const currentData = optimistic.utils.getPendingUpdatesForQuery(['applications'])
       .find(u => u.id === applicationId)?.rollbackData;
 
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       applicationId,
       'delete',
       {},
@@ -267,11 +267,11 @@ export function useOptimisticJobs() {
   const optimistic = useOptimisticUpdates();
 
   const swipeJob = useCallback((
-    jobId: string, 
+    jobId: string,
     decision: 'ACCEPT' | 'REJECT',
     callbackData?: any
   ) => {
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       `swipe-${jobId}`,
       'update',
       {
@@ -286,7 +286,7 @@ export function useOptimisticJobs() {
   }, [optimistic]);
 
   const saveJob = useCallback((jobId: string, notes?: string) => {
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       `save-${jobId}`,
       'update',
       {
@@ -301,7 +301,7 @@ export function useOptimisticJobs() {
   }, [optimistic]);
 
   const hideJob = useCallback((jobId: string) => {
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       `hide-${jobId}`,
       'update',
       {
@@ -329,7 +329,7 @@ export function useOptimisticProfile() {
   const optimistic = useOptimisticUpdates();
 
   const updateProfile = useCallback((updates: any) => {
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       'profile',
       'update',
       {
@@ -343,7 +343,7 @@ export function useOptimisticProfile() {
   }, [optimistic]);
 
   const uploadResume = useCallback((resumeData: any) => {
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       'resume',
       'update',
       {
@@ -358,7 +358,7 @@ export function useOptimisticProfile() {
   }, [optimistic]);
 
   const completeResumeUpload = useCallback((finalResumeData: any) => {
-    optimistic.addOptimisticUpdate(
+    optimistic.actions.addOptimisticUpdate(
       'resume',
       'update',
       {
@@ -393,7 +393,7 @@ export function useBatchOptimisticUpdates() {
     swipes.forEach(({ jobId, decision }, index) => {
       // Add small delay to prevent race conditions
       setTimeout(() => {
-        optimistic.addOptimisticUpdate(
+        optimistic.actions.addOptimisticUpdate(
           `batch-swipe-${jobId}`,
           'update',
           {
@@ -414,7 +414,7 @@ export function useBatchOptimisticUpdates() {
   ) => {
     applications.forEach(({ jobId, applicationData }, index) => {
       setTimeout(() => {
-        optimistic.addOptimisticUpdate(
+        optimistic.actions.addOptimisticUpdate(
           `batch-apply-${jobId}`,
           'create',
           {

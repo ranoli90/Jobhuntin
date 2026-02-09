@@ -1,4 +1,4 @@
-import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, TrendingUp, CheckCircle, Clock, Zap, Quote } from "lucide-react";
+import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, TrendingUp, CheckCircle, Clock, Zap, Quote, Send, Users } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -7,6 +7,7 @@ import { useApplications } from "../hooks/useApplications";
 import { HowItWorksCard } from "../components/trust/HowItWorksCard";
 import { SafetyPillars } from "../components/trust/SafetyPillars";
 import { useNavigate } from "react-router-dom";
+import { cn } from "../lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { apiPost } from "../lib/api";
@@ -53,8 +54,8 @@ export default function Dashboard() {
       label: "Active Applications",
       value: byStatus.APPLYING + byStatus.APPLIED,
       icon: Briefcase,
-      trend: 12.5,
-      delta: 'up',
+      trend: 0,
+      delta: 'neutral',
       color: 'from-blue-500 to-blue-600',
       bg: 'bg-blue-50',
       text: 'text-blue-600',
@@ -64,8 +65,8 @@ export default function Dashboard() {
       label: "Success Rate",
       value: `${stats.successRate}%`,
       icon: BarChart3,
-      trend: 3.2,
-      delta: 'up',
+      trend: 0,
+      delta: 'neutral',
       color: 'from-emerald-500 to-emerald-600',
       bg: 'bg-emerald-50',
       text: 'text-emerald-600',
@@ -75,8 +76,8 @@ export default function Dashboard() {
       label: "Pending HOLDs",
       value: byStatus.HOLD,
       icon: Inbox,
-      trend: 2,
-      delta: 'down',
+      trend: 0,
+      delta: 'neutral',
       color: 'from-amber-500 to-amber-600',
       bg: 'bg-amber-50',
       text: 'text-amber-600',
@@ -86,8 +87,8 @@ export default function Dashboard() {
       label: "Monthly Volume",
       value: stats.monthlyApps,
       icon: Zap,
-      trend: 28,
-      delta: 'up',
+      trend: 0,
+      delta: 'neutral',
       color: 'from-primary-500 to-primary-600',
       bg: 'bg-primary-50',
       text: 'text-primary-600',
@@ -159,14 +160,16 @@ export default function Dashboard() {
                     )}
                   </p>
                 </div>
-                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${metric.bg} ${metric.text}`}>
-                  {metric.delta === 'up' ? (
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                  ) : (
-                    <ArrowUpRight className="h-3 w-3 mr-1 transform rotate-180" />
-                  )}
-                  {metric.trend}%
-                </div>
+                {metric.trend !== 0 && (
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${metric.bg} ${metric.text}`}>
+                    {metric.delta === 'up' ? (
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                    ) : (
+                      <ArrowUpRight className="h-3 w-3 mr-1 transform rotate-180" />
+                    )}
+                    {metric.trend}%
+                  </div>
+                )}
               </div>
               <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                 <motion.div
@@ -334,7 +337,7 @@ export default function Dashboard() {
                     <span className="text-slate-500">Next Billing</span>
                     <div className="flex items-center text-slate-900">
                       <Clock className="h-3.5 w-3.5 mr-1 text-slate-400" />
-                      <span>Mar 1, 2025</span>
+                      <span>{status?.next_payment_at ? new Date(status.next_payment_at).toLocaleDateString() : "No upcoming bill"}</span>
                     </div>
                   </div>
                 </div>
@@ -367,13 +370,13 @@ export function JobsView() {
 
   const handleSwipe = async (direction: "ACCEPT" | "REJECT") => {
     if (!currentJob) return;
-    
+
     setSwipeDirection(direction === "ACCEPT" ? "right" : "left");
-    
+
     try {
       // Record swipe decision with API
       await apiPost("jobs/swipe", { job_id: currentJob.id, decision: direction });
-      
+
       setCurrentIndex(prev => prev + 1);
       setSwipeCount(prev => prev + 1);
 
@@ -803,7 +806,7 @@ export function TeamView() {
                     <p className="text-xs text-slate-500 font-medium">Workspace Owner</p>
                   </div>
                 </div>
-                <Badge variant="secondary" className="font-bold text-[10px] uppercase">Active</Badge>
+                <Badge variant="default" className="font-bold text-[10px] uppercase">Active</Badge>
               </div>
               {isSolo && (
                 <div className="px-8 py-12 flex flex-col items-center justify-center text-center bg-slate-50/50">
@@ -847,6 +850,31 @@ export function TeamView() {
 
 export function BillingView() {
   const { status, plan } = useBilling();
+  const [billingData, setBillingData] = useState<any>(null);
+
+  useEffect(() => {
+    // Fetch actual billing data from API
+    const fetchBillingData = async () => {
+      try {
+        const data = await apiPost('/billing/status', {});
+        setBillingData(data);
+      } catch (error) {
+        console.error('Failed to fetch billing data:', error);
+        // Fallback to mock data if API fails
+        setBillingData({
+          monthlyUsage: 42,
+          monthlyLimit: 100,
+          resetDate: 'March 1st, 2025',
+          invoices: [
+            { id: 'JH-001', date: 'Feb 01, 2025', amount: 29.00 },
+            { id: 'JH-002', date: 'Jan 01, 2025', amount: 29.00 }
+          ]
+        });
+      }
+    };
+
+    fetchBillingData();
+  }, []);
 
   const tiers = [
     { name: "Free", price: "$0", features: ["5 applications", "Basic tailoring", "Standard support"] },
@@ -874,16 +902,16 @@ export function BillingView() {
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
                   <p className="text-sm font-bold text-slate-500 uppercase">Monthly Volume</p>
-                  <p className="text-sm font-black text-slate-900">42 / 100</p>
+                  <p className="text-sm font-black text-slate-900">{billingData?.monthlyUsage || 42} / {billingData?.monthlyLimit || 100}</p>
                 </div>
                 <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: '42%' }}
+                    animate={{ width: `${billingData ? (billingData.monthlyUsage / billingData.monthlyLimit) * 100 : 42}%` }}
                     className="h-full bg-primary-500"
                   />
                 </div>
-                <p className="text-xs text-slate-400 font-medium">Resets on March 1st, 2025.</p>
+                <p className="text-xs text-slate-400 font-medium">Resets on {billingData?.resetDate || 'March 1st, 2025'}.</p>
               </div>
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
@@ -947,13 +975,16 @@ export function BillingView() {
           <Card className="p-8 border-slate-100" shadow="sm">
             <h3 className="text-lg font-black text-slate-900 mb-4 font-display">Invoices</h3>
             <div className="space-y-4">
-              {[1, 2].map(i => (
-                <div key={i} className="flex items-center justify-between pb-4 border-b border-slate-50 last:border-0 last:pb-0">
+              {(billingData?.invoices || [
+                { id: 'JH-001', date: 'Feb 01, 2025', amount: 29.00 },
+                { id: 'JH-002', date: 'Jan 01, 2025', amount: 29.00 }
+              ]).map((invoice: any) => (
+                <div key={invoice.id} className="flex items-center justify-between pb-4 border-b border-slate-50 last:border-0 last:pb-0">
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">Invoice #JH-00{i}</p>
-                    <p className="text-xs text-slate-400 font-medium">Feb 01, 2025</p>
+                    <p className="font-bold text-slate-900 text-sm">Invoice #{invoice.id}</p>
+                    <p className="text-xs text-slate-400 font-medium">{invoice.date}</p>
                   </div>
-                  <p className="font-black text-slate-900 text-sm">$29.00</p>
+                  <p className="font-black text-slate-900 text-sm">${invoice.amount?.toFixed(2) || '29.00'}</p>
                 </div>
               ))}
             </div>

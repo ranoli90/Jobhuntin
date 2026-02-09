@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Briefcase, LogOut } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { Login } from './popup/Login'
-import { Session } from '@supabase/supabase-js'
+import type { Session } from '@supabase/supabase-js'
 
 function App() {
   const [session, setSession] = useState<Session | null>(null)

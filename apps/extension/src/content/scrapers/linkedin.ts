@@ -1,4 +1,4 @@
-import { JobData, Scraper } from './types'
+import type { JobData, Scraper } from './types'
 
 export const LinkedInScraper: Scraper = {
     canScrape(url: string) {
