@@ -25,13 +25,14 @@ const Onboarding = React.lazy(() => import("./pages/app/Onboarding"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Import Dashboard sub-components directly if they are exported from the same file, 
-// or lazy load them if they are heavy. For now, assuming they are light enough or part of Dashboard bundle.
-// If they are exported from Dashboard.tsx, we can't easily lazy load them individually without changing Dashboard.tsx 
-// to export them as default from separate files. 
-// However, since we are lazy loading Dashboard, these imports will happen when Dashboard chunk loads.
-// We need to import them from the module.
-import { JobsView, ApplicationsView, HoldsView, TeamView, BillingView } from "./pages/Dashboard";
+// Dashboard sub-component wrappers for lazy loading
+const JobsViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.JobsView })));
+const ApplicationsViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.ApplicationsView })));
+const HoldsViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.HoldsView })));
+const TeamViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.TeamView })));
+const BillingViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.BillingView })));
+
+// Dashboard sub-components are exported from Dashboard.tsx and will be loaded when Dashboard chunk loads
 
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -89,11 +90,11 @@ export default function App() {
             <Route element={<OnboardingGuard><AppLayout /></OnboardingGuard>}>
               <Route index element={<Navigate to="/app/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
-              <Route path="jobs" element={<JobsView />} />
-              <Route path="applications" element={<ApplicationsView />} />
-              <Route path="holds" element={<HoldsView />} />
-              <Route path="team" element={<TeamView />} />
-              <Route path="billing" element={<BillingView />} />
+              <Route path="jobs" element={<React.Suspense fallback={<PageLoader />}><JobsViewWrapper /></React.Suspense>} />
+              <Route path="applications" element={<React.Suspense fallback={<PageLoader />}><ApplicationsViewWrapper /></React.Suspense>} />
+              <Route path="holds" element={<React.Suspense fallback={<PageLoader />}><HoldsViewWrapper /></React.Suspense>} />
+              <Route path="team" element={<React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense>} />
+              <Route path="billing" element={<React.Suspense fallback={<PageLoader />}><BillingViewWrapper /></React.Suspense>} />
               <Route path="settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
             </Route>

@@ -56,7 +56,7 @@ from backend.domain.tenant import (
     TenantContext,
     resolve_tenant_context,
 )
-from shared.config import get_settings
+from shared.config import Environment, get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import dump as metrics_dump
 from shared.metrics import incr
@@ -74,18 +74,28 @@ setup_logging(
 
 logger = get_logger("sorce.api")
 
-app = FastAPI(title="Sorce API", version="0.4.0")
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await _pool_manager.initialize()
+    yield
+    # Shutdown
+    await _pool_manager.close()
+
+app = FastAPI(title="Sorce API", version="0.4.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+    allow_origins=list({
         "https://sorce-web.onrender.com",
         "https://sorce-admin.onrender.com",
         "http://localhost:5173",
         "http://localhost:3000",
         _settings.app_base_url.rstrip("/"),
         "https://jobhuntin.com",
-    ],
+    }),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -320,14 +330,7 @@ class DatabasePoolManager:
 _pool_manager = DatabasePoolManager()
 
 
-@app.on_event("startup")
-async def startup() -> None:
-    await _pool_manager.initialize()
 
-
-@app.on_event("shutdown")
-async def shutdown() -> None:
-    await _pool_manager.close()
 
 
 def get_pool() -> asyncpg.Pool:
@@ -337,6 +340,9 @@ def get_pool() -> asyncpg.Pool:
 @app.post("/debug/run-migration")
 async def debug_run_migration(db: asyncpg.Pool = Depends(get_pool)) -> dict[str, Any]:
     """Manually trigger migration with verbose output."""
+    if _settings.env != Environment.LOCAL:
+        raise HTTPException(status_code=403, detail="Debug endpoints disabled in non-local environments")
+    
     log_lines: list[str] = []
     async with db.acquire() as conn:
         # 1. Auth shim
@@ -361,6 +367,9 @@ async def debug_run_migration(db: asyncpg.Pool = Depends(get_pool)) -> dict[str,
 @app.get("/debug/db-tables")
 async def debug_db_tables(db: asyncpg.Pool = Depends(get_pool)) -> dict[str, Any]:
     """Check which tables exist in the DB and test tenant provisioning."""
+    if _settings.env != Environment.LOCAL:
+        raise HTTPException(status_code=403, detail="Debug endpoints disabled in non-local environments")
+    
     async with db.acquire() as conn:
         tables = await conn.fetch(
             "SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('public','auth') ORDER BY 1,2"

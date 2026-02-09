@@ -32,7 +32,7 @@ logger = get_logger("sorce.api_v2")
 router = APIRouter(prefix="/api/v2", tags=["api-v2"])
 
 def _get_pool() -> asyncpg.Pool:
-    return (_ for _ in ()).throw(NotImplementedError)
+    raise NotImplementedError("Pool dependency not injected")
 
 
 # ---------------------------------------------------------------------------

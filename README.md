@@ -61,6 +61,8 @@ This monorepo contains the following components:
 
 2.  **Run the Backend:**
     ```bash
+    # Set PYTHONPATH to include the apps and packages directories
+    export PYTHONPATH=apps:packages
     uvicorn api.main:app --reload
     ```
 

@@ -25,8 +25,8 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 # Dependencies (injected by main.py)
 # ---------------------------------------------------------------------------
 
-async def _get_pool() -> asyncpg.Pool:
-    raise NotImplementedError
+def _get_pool() -> asyncpg.Pool:
+    raise NotImplementedError("Pool dependency not injected")
 
 async def _get_tenant_ctx() -> TenantContext:
     raise NotImplementedError
@@ -259,8 +259,11 @@ async def stripe_webhook(
         )
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
+    except Exception as e:
+        # Check if it's a signature verification error (handle both stripe.error and stripe namespaces)
+        if "signature" in str(e).lower():
+            raise HTTPException(status_code=400, detail="Invalid signature")
+        raise
 
     data = event["data"]["object"]
     event_type = event["type"]
