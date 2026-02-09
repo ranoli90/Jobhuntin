@@ -1,4 +1,4 @@
-import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, TrendingUp, CheckCircle, Clock, Zap } from "lucide-react";
+import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, TrendingUp, CheckCircle, Clock, Zap, Quote } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -7,8 +7,13 @@ import { useApplications } from "../hooks/useApplications";
 import { HowItWorksCard } from "../components/trust/HowItWorksCard";
 import { SafetyPillars } from "../components/trust/SafetyPillars";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { apiPost } from "../lib/api";
+import { pushToast } from "../lib/toast";
+import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { useJobs } from "../hooks/useJobs";
+import type { JobFilters } from "../hooks/useJobs";
 
 const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -356,21 +361,40 @@ export function JobsView() {
   const { jobs, isLoading } = useJobs(filters);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
 
   const currentJob = jobs[currentIndex];
 
-  const handleSwipe = (direction: "ACCEPT" | "REJECT") => {
-    // In a real app, we'd call an API here to record the swipe
-    // apiPost("jobs/swipe", { job_id: currentJob.id, decision: direction });
-    setCurrentIndex(prev => prev + 1);
-    setSwipeCount(prev => prev + 1);
+  const handleSwipe = async (direction: "ACCEPT" | "REJECT") => {
+    if (!currentJob) return;
+    
+    setSwipeDirection(direction === "ACCEPT" ? "right" : "left");
+    
+    try {
+      // Record swipe decision with API
+      await apiPost("jobs/swipe", { job_id: currentJob.id, decision: direction });
+      
+      setCurrentIndex(prev => prev + 1);
+      setSwipeCount(prev => prev + 1);
 
-    if (direction === "ACCEPT") {
+      if (direction === "ACCEPT") {
+        pushToast({
+          title: "Match queued! 🚀",
+          description: `AI is now tailoring your resume for ${currentJob.company}.`,
+          tone: "success"
+        });
+      }
+    } catch (error) {
+      // Revert UI state on API failure
+      setSwipeDirection(null);
       pushToast({
-        title: "Match queued! 🚀",
-        description: `AI is now tailoring your resume for ${currentJob.company}.`,
-        tone: "success"
+        title: "Failed to record decision",
+        description: "Please try again.",
+        tone: "error"
       });
+    } finally {
+      // Clear swipe direction after animation
+      setTimeout(() => setSwipeDirection(null), 500);
     }
   };
 
@@ -532,7 +556,6 @@ export function JobsView() {
   );
 }
 
-let swipeDirection: 'left' | 'right' | null = null;
 
 
 export function ApplicationsView() {
@@ -608,7 +631,7 @@ export function ApplicationsView() {
                         variant={
                           app.status === 'APPLIED' ? 'success' :
                             app.status === 'HOLD' ? 'warning' :
-                              app.status === 'FAILED' ? 'error' : 'secondary'
+                              app.status === 'FAILED' ? 'error' : 'default'
                         }
                         className="rounded-lg px-3 py-1 font-bold text-[10px] tracking-wider uppercase border-none"
                       >

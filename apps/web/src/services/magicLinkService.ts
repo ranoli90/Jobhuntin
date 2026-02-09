@@ -5,6 +5,7 @@
 
 import { config } from '../config';
 import { supabase } from '../lib/supabase';
+import { ValidationUtils } from '../lib/validation';
 
 export interface MagicLinkResponse {
   status: string;
@@ -21,20 +22,21 @@ class MagicLinkService {
   private rateLimitResets: Map<string, number> = new Map();
 
   /**
-   * Send a magic link to the user's email
+   * Send a magic link to user's email
    */
   async sendMagicLink(
     email: string,
     returnTo: string = '/app/onboarding'
   ): Promise<{ success: boolean; email: string; error?: string; retryAfter?: number }> {
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = ValidationUtils.sanitizeInput(email.trim().toLowerCase(), 254);
 
-    // Validate email
-    if (!config.validation.emailRegex.test(normalizedEmail)) {
+    // Enhanced email validation
+    const emailValidation = ValidationUtils.validate.email(normalizedEmail);
+    if (!emailValidation.isValid) {
       return {
         success: false,
         email: normalizedEmail,
-        error: 'Please enter a valid email address',
+        error: emailValidation.errors.join(', '),
       };
     }
 
@@ -45,6 +47,17 @@ class MagicLinkService {
         success: false,
         email: normalizedEmail,
         error: 'System configuration error: Missing authentication settings.',
+      };
+    }
+
+    // Enhanced rate limiting with validation
+    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 3, 300000); // 3 requests per 5 minutes
+    if (!rateLimitCheck.allowed) {
+      return {
+        success: false,
+        email: normalizedEmail,
+        error: `Too many requests. Please wait ${rateLimitCheck.resetIn}s before trying again.`,
+        retryAfter: rateLimitCheck.resetIn,
       };
     }
 
@@ -68,24 +81,25 @@ class MagicLinkService {
       // Prefer canonical app base URL to avoid Supabase redirect whitelist errors
       const configuredOrigin = config.appBaseUrl?.trim();
       const browserOrigin = typeof window !== 'undefined' ? window.location.origin : '';
-      
-      if (configuredOrigin && !URL.canParse(configuredOrigin)) {
+
+      // Enhanced URL validation
+      if (configuredOrigin && !this.isValidURL(configuredOrigin)) {
         throw new Error('Invalid appBaseUrl configuration: malformed URL');
       }
-      
+
       const origin = configuredOrigin || browserOrigin;
-      
+
       if (!origin) {
         throw new Error('App base URL is not configured and origin is unavailable');
       }
-      
+
       if (!configuredOrigin && browserOrigin) {
         console.warn('[MagicLink] Using browser origin as fallback - configure appBaseUrl for production');
       }
-      
+
       // Construct redirect URL to go through /login page first
-      // This ensures we have a stable entry point to handle the hash fragment
-      // before redirecting to the protected route
+      // This ensures we have a stable entry point to handle hash fragment
+      // before redirecting to protected route
       const sanitizedReturnTo = this.sanitizeReturnTo(returnTo);
       const redirectUrl = `${origin.replace(/\/$/, '')}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
 
@@ -95,8 +109,8 @@ class MagicLinkService {
       console.log('Return To:', sanitizedReturnTo);
       console.log('Full Redirect URL:', redirectUrl);
       console.groupEnd();
-      
-      // Validate the redirect URL is properly formed
+
+      // Validate redirect URL is properly formed
       if (!redirectUrl.startsWith('http')) {
         throw new Error('Invalid redirect URL: must be absolute URL with protocol');
       }
@@ -114,7 +128,7 @@ class MagicLinkService {
         console.error('Status:', error.status);
         console.error('Name:', error.name);
         console.groupEnd();
-        
+
         // Handle rate limits specifically if Supabase returns them (usually 429 status in error)
         if (error.status === 429) {
           // Respect server suggested retry window if present, otherwise default to 60s
@@ -155,10 +169,29 @@ class MagicLinkService {
   }
 
   /**
+   * Enhanced URL validation with security checks
+   */
+  private isValidURL(url: string): boolean {
+    try {
+      // Try URL.canParse first (modern browsers)
+      if (typeof URL !== 'undefined' && 'canParse' in URL) {
+        return (URL as any).canParse(url);
+      }
+
+      // Fallback to URL constructor
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Get rate limit countdown for an email
    */
   getRateLimitCountdown(email: string): number | null {
-    const reset = this.rateLimitResets.get(email.toLowerCase());
+    const normalizedEmail = ValidationUtils.sanitizeInput(email.toLowerCase(), 254);
+    const reset = this.rateLimitResets.get(normalizedEmail);
     if (!reset || reset <= Date.now()) {
       return null;
     }
@@ -166,14 +199,14 @@ class MagicLinkService {
   }
 
   /**
-   * Sanitize return_to URL to prevent open redirects
+   * Enhanced return_to sanitization with security
    */
   private sanitizeReturnTo(url: string): string {
     if (!url || typeof url !== 'string') {
       return '/app/onboarding';
     }
 
-    const trimmed = url.trim();
+    const trimmed = ValidationUtils.sanitizeInput(url.trim(), 2048);
 
     // Must start with /
     if (!trimmed.startsWith('/')) {
@@ -185,7 +218,12 @@ class MagicLinkService {
       return '/app/onboarding';
     }
 
-    // Whitelist known paths
+    // Prevent javascript: and data: protocols
+    if (trimmed.toLowerCase().startsWith('javascript:') || trimmed.toLowerCase().startsWith('data:')) {
+      return '/app/onboarding';
+    }
+
+    // Enhanced whitelist with security considerations
     const allowedPaths = [
       '/app/onboarding',
       '/app/dashboard',
@@ -194,7 +232,13 @@ class MagicLinkService {
       '/app/holds',
       '/app/billing',
       '/app/settings',
+      '/app/team',
     ];
+
+    // Check for path traversal attempts
+    if (trimmed.includes('../') || trimmed.includes('..\\')) {
+      return '/app/onboarding';
+    }
 
     if (allowedPaths.includes(trimmed)) {
       return trimmed;
@@ -215,10 +259,47 @@ class MagicLinkService {
       case '/app/dashboard':
         return "You'll land on your dashboard after signing in.";
       case '/app/jobs':
-        return "You'll go straight to the job feed.";
+        return "You'll go straight to job feed.";
+      case '/app/team':
+        return "You'll access your team workspace.";
       default:
         return `We'll take you to ${sanitized} once you're in.`;
     }
+  }
+
+  /**
+   * Validate magic link token
+   */
+  async validateToken(token: string): Promise<{ valid: boolean; error?: string }> {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        token,
+        type: 'email'
+      });
+
+      if (error) {
+        return {
+          valid: false,
+          error: error.message
+        };
+      }
+
+      return {
+        valid: !!data.user
+      };
+    } catch (error) {
+      return {
+        valid: false,
+        error: error instanceof Error ? error.message : 'Token validation failed'
+      };
+    }
+  }
+
+  /**
+   * Clear all rate limits (for testing/admin)
+   */
+  clearRateLimits(): void {
+    this.rateLimitResets.clear();
   }
 }
 
