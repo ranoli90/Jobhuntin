@@ -16,13 +16,14 @@ from pydantic import BaseModel, EmailStr
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
 from shared.metrics import RateLimiter, incr
+from shared.repo_root import find_repo_root
 
 logger = get_logger("sorce.api.auth")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-_template_path = Path(__file__).resolve().parent.parent / "templates" / "emails" / "magic_link.html"
+_template_path = find_repo_root(Path(__file__)) / "templates" / "emails" / "magic_link.html"
 try:
     MAGIC_LINK_TEMPLATE = _template_path.read_text(encoding="utf-8")
 except FileNotFoundError:

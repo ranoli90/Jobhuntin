@@ -8,17 +8,17 @@
 # ---------------------------------------------------------------------------
 
 dev-backend:
-	uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+	PYTHONPATH=apps:packages uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
 dev-worker:
-	python -m worker.agent
+	PYTHONPATH=apps:packages python -m worker.agent
 
 test-backend:
 	pytest tests/ -v -s --tb=short
 
 lint-backend:
 	ruff check . --select E,W,F,I
-	mypy api/ worker/ backend/ shared/ --ignore-missing-imports
+	PYTHONPATH=apps:packages mypy apps/api/ apps/worker/ packages/backend/ packages/shared/ --ignore-missing-imports
 
 fmt-backend:
 	ruff format .
@@ -73,6 +73,6 @@ db-reset:
 	psql $(DATABASE_URL) -c "CREATE SCHEMA IF NOT EXISTS auth; CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY);"
 	psql $(DATABASE_URL) -c "CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS \$$\$$ SELECT '00000000-0000-0000-0000-000000000000'::uuid; \$$\$$ LANGUAGE sql;"
 	psql $(DATABASE_URL) -c "CREATE PUBLICATION IF NOT EXISTS supabase_realtime;"
-	psql $(DATABASE_URL) -f supabase/schema.sql
-	for f in supabase/migrations/0*.sql; do psql $(DATABASE_URL) -f "$$f"; done
+	psql $(DATABASE_URL) -f infra/supabase/schema.sql
+	for f in infra/supabase/migrations/0*.sql; do psql $(DATABASE_URL) -f "$$f"; done
 	@echo "Done."
