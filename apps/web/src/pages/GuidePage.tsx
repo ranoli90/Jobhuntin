@@ -85,7 +85,7 @@ export default function GuidePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
-      <SEO 
+      <SEO
         title={`${guide.title} | JobHuntin Playbook`}
         description={`Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin AI automation playbook.`}
         ogTitle={`${guide.title} | JobHuntin Playbook`}
@@ -100,23 +100,10 @@ export default function GuidePage() {
           "about": guide.category
         }}
       />
-      
-      <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/guides" className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
-              <Bot className="text-white w-6 h-6" />
-            </div>
-            <span className="text-xl font-bold font-display text-slate-900">JobHuntin <span className="text-slate-400 font-normal">Playbook</span></span>
-          </Link>
-          <Link to="/guides" className="text-sm font-medium text-slate-600 hover:text-primary-600 flex items-center gap-2 group transition-colors">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Guides
-          </Link>
-        </div>
-      </nav>
+
 
       <main className="max-w-4xl mx-auto px-6 py-20">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
@@ -145,7 +132,7 @@ export default function GuidePage() {
           </div>
         </motion.div>
 
-        <article 
+        <article
           className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-primary-600 mb-20 prose-strong:text-slate-900"
           dangerouslySetInnerHTML={{ __html: guide.content }}
         />
@@ -154,7 +141,7 @@ export default function GuidePage() {
           <h3 className="text-2xl font-bold mb-6 font-display text-slate-900">Related Tools</h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <Link to="/chrome-extension" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
-              <div className="w-12 h-12 bg-orange-50 text-primary-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500 group-hover:text-white transition-colors">
+              <div className="w-12 h-12 bg-primary-50 text-primary-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500 group-hover:text-white transition-colors">
                 <Zap className="w-6 h-6" />
               </div>
               <div>
@@ -180,8 +167,8 @@ export default function GuidePage() {
           <p className="text-slate-400 mb-10 relative z-10 max-w-lg mx-auto text-lg">
             Ready to put these strategies into practice? Let our agent handle your next 50 applications.
           </p>
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-primary-500/20"
           >
             Start Your Run

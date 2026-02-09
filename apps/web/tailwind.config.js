@@ -25,22 +25,12 @@ export default {
         },
         brand: {
           ink: "#0F172A",
-          lagoon: {
-            DEFAULT: "#06b6d4",
-            300: "#67e8f9",
-          },
+          accent: "#2563eb",
           shell: "#f8fafc",
-        },
-        jobhunt: {
-          primary: "#FF6B35", // Vibrant Denver sunset orange
-          secondary: "#4A90E2", // Cool tech blue
-          background: "#FAF9F6", // Warm off-white
-          text: "#2D2D2D", // Soft charcoal gray
-          "text-light": "#64748B",
         },
       },
       boxShadow: {
-        glow: "0 0 20px rgba(255, 107, 53, 0.3)",
+        glow: "0 0 20px rgba(59, 130, 246, 0.3)",
       },
       animation: {
         "float": "float 6s ease-in-out infinite",
@@ -57,8 +47,8 @@ export default {
           "50%": { transform: "translateY(-20px)" },
         },
         "pulse-glow": {
-          "0%, 100%": { opacity: "1", boxShadow: "0 0 20px rgba(255, 107, 53, 0.3)" },
-          "50%": { opacity: "0.8", boxShadow: "0 0 30px rgba(255, 107, 53, 0.6)" },
+          "0%, 100%": { opacity: "1", boxShadow: "0 0 20px rgba(59, 130, 246, 0.3)" },
+          "50%": { opacity: "0.8", boxShadow: "0 0 30px rgba(59, 130, 246, 0.6)" },
         },
       },
     },

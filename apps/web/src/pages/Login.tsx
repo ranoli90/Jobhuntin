@@ -5,19 +5,15 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { pushToast } from '../lib/toast';
 import { magicLinkService } from '../services/magicLinkService';
-import { 
-  ArrowRight, Mail, Lock, Sparkles, AlertCircle, 
-  Chrome, Linkedin, Bot, CheckCircle, ArrowLeft,
+import {
+  ArrowRight, Mail, Lock, Sparkles, AlertCircle,
+  Chrome, Linkedin, CheckCircle, ArrowLeft,
   ShieldCheck, MailCheck
 } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { Logo } from '../components/brand/Logo';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '../lib/utils';
 
 type AuthMode = "magic" | "password" | "register";
 
@@ -56,7 +52,7 @@ export default function Login() {
       delay: Math.random() * 10,
       yMove: (Math.random() - 0.5) * 100,
       xMove: (Math.random() - 0.5) * 100,
-      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+      color: i % 3 === 0 ? 'rgba(59, 130, 246, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(255, 255, 255, 0.05)',
       blur: i < 3 ? 'blur(80px)' : 'none'
     }));
   }, []);
@@ -64,27 +60,27 @@ export default function Login() {
   // Handle hash fragment manually for magic link redirect flow
   useEffect(() => {
     const handleHash = async () => {
-        const hash = window.location.hash;
-        console.log('[Login] Hash detected:', hash);
-        if (hash && hash.includes('access_token')) {
-            try {
-                // Parse the hash fragment to extract the access token
-                const params = new URLSearchParams(hash.substring(1));
-                const accessToken = params.get('access_token');
-                console.log('[Login] Access token found:', !!accessToken);
-                
-                if (accessToken && !authLoading && session) {
-                    console.log('[Login] Session available, navigating to:', returnTo);
-                    // If we have a valid session from the hash, navigate to the intended destination
-                    const decodedReturnTo = decodeURIComponent(returnTo);
-                    const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;
-                    navigate(finalDest, { replace: true });
-                }
-            } catch (error) {
-                console.error("[Login] Error handling hash:", error);
-                setFormError("Failed to process authentication. Please try again.");
-            }
+      const hash = window.location.hash;
+      console.log('[Login] Hash detected:', hash);
+      if (hash && hash.includes('access_token')) {
+        try {
+          // Parse the hash fragment to extract the access token
+          const params = new URLSearchParams(hash.substring(1));
+          const accessToken = params.get('access_token');
+          console.log('[Login] Access token found:', !!accessToken);
+
+          if (accessToken && !authLoading && session) {
+            console.log('[Login] Session available, navigating to:', returnTo);
+            // If we have a valid session from the hash, navigate to the intended destination
+            const decodedReturnTo = decodeURIComponent(returnTo);
+            const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;
+            navigate(finalDest, { replace: true });
+          }
+        } catch (error) {
+          console.error("[Login] Error handling hash:", error);
+          setFormError("Failed to process authentication. Please try again.");
         }
+      }
     };
     handleHash();
   }, [authLoading, session, navigate, returnTo]);
@@ -196,7 +192,7 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailIsValid) return;
-    
+
     setIsLoading(true);
     setFormError(null);
     setSuccessState(null);
@@ -249,7 +245,7 @@ export default function Login() {
       const message = err.message || "Sign-in failed";
       setFormError(message);
       if (message.includes("System configuration error")) {
-         pushToast({ title: "Config Error", description: "Check console for details", tone: "error" });
+        pushToast({ title: "Config Error", description: "Check console for details", tone: "error" });
       }
     } finally {
       setIsLoading(false);
@@ -259,7 +255,7 @@ export default function Login() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1 }}
         >
@@ -273,24 +269,24 @@ export default function Login() {
     const isMagic = successState.type === "magic";
     const steps = isMagic
       ? [
-          "Open the inbox (or spam) for " + successState.email,
-          "Look for the email titled 'Start your JobHuntin run' from noreply@sorce.app",
-          "Tap the magic link and keep this tab open—onboarding launches instantly",
-        ]
+        "Open the inbox (or spam) for " + successState.email,
+        "Look for the email titled 'Start your JobHuntin run' from noreply@sorce.app",
+        "Tap the magic link and keep this tab open—onboarding launches instantly",
+      ]
       : [
-          "Check " + successState.email + " for 'Verify your JobHuntin account'",
-          "Click the confirm button to lock in your password",
-          "Return to this tab and sign in securely",
-        ];
+        "Check " + successState.email + " for 'Verify your JobHuntin account'",
+        "Click the confirm button to lock in your password",
+        "Return to this tab and sign in securely",
+      ];
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans text-slate-900 relative overflow-hidden pt-24">
-         {/* Background Decoration for Success State */}
-         <div className="absolute inset-0 pointer-events-none opacity-30">
+        {/* Background Decoration for Success State */}
+        <div className="absolute inset-0 pointer-events-none opacity-30">
           <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-400/10 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
           <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
         </div>
 
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full shadow-2xl shadow-primary-500/5 text-center border border-white/50 relative z-10"
@@ -336,7 +332,7 @@ export default function Login() {
                 {resendLoading ? "Resending..." : rateLimitCountdown ? `Retry in ${rateLimitCountdown}s` : "Resend magic link"}
               </Button>
             )}
-            <Button 
+            <Button
               variant="outline"
               onClick={() => setSuccessState(null)}
             >
@@ -359,15 +355,15 @@ export default function Login() {
           <motion.div
             key={particle.id}
             className="absolute rounded-full"
-            animate={{ 
+            animate={{
               y: [0, particle.yMove, 0],
               x: [0, particle.xMove, 0],
               scale: [1, 1.1, 1],
               opacity: [0.3, 0.5, 0.3]
             }}
-            transition={{ 
-              duration: particle.duration, 
-              repeat: Infinity, 
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
               ease: "easeInOut",
               delay: particle.delay
             }}
@@ -385,12 +381,13 @@ export default function Login() {
       </div>
 
       <div className="w-full max-w-md relative z-10 px-6">
-        <motion.div 
+        <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="glass-panel rounded-[2.5rem] p-8 sm:p-10 shadow-2xl shadow-slate-200/50 border-white/60 bg-white/80 backdrop-blur-xl"
         >
           <div className="mb-8 text-center">
+            <Logo className="mx-auto mb-6" />
             <h1 className="font-display text-3xl font-black text-slate-900 mb-3 tracking-tight">
               {mode === "magic" ? "Let's get hunting" : mode === "password" ? "Welcome back" : "Create your vault"}
             </h1>
@@ -459,17 +456,17 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <Input
-                  type="email"
-                  placeholder="tech-wizard@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  icon={<Mail className="w-5 h-5" />}
-                  required
-                  className="py-4 bg-white/50 border-slate-200 focus:bg-white transition-all"
+                type="email"
+                placeholder="tech-wizard@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                icon={<Mail className="w-5 h-5" />}
+                required
+                className="py-4 bg-white/50 border-slate-200 focus:bg-white transition-all"
               />
 
               {mode !== "magic" && (
-                <motion.div 
+                <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   className="overflow-hidden"
@@ -486,7 +483,7 @@ export default function Login() {
               )}
 
               {mode === "register" && (
-                <motion.div 
+                <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   className="overflow-hidden"
@@ -521,7 +518,7 @@ export default function Login() {
             )}
 
             {formError && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-red-100"

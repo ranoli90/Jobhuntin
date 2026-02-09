@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 export default function JobNiche() {
   const { role, city } = useParams<{ role: string; city: string }>();
-  
+
   const formattedRole = role?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || "Professional";
   const formattedCity = city?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || "Remote";
 
@@ -17,7 +17,7 @@ export default function JobNiche() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
-      <SEO 
+      <SEO
         title={title}
         description={description}
         ogTitle={title}
@@ -36,28 +36,15 @@ export default function JobNiche() {
           }
         }}
       />
-      
-      <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
-              <Bot className="text-white w-6 h-6" />
-            </div>
-            <span className="text-xl font-bold font-display text-slate-900">JobHuntin</span>
-          </Link>
-          <Link to="/" className="text-sm font-medium text-slate-600 hover:text-primary-600 flex items-center gap-2 group transition-colors">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
-          </Link>
-        </div>
-      </nav>
+
 
       <main className="max-w-5xl mx-auto px-6 py-16">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 bg-orange-50 text-primary-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-orange-100">
+          <div className="inline-flex items-center gap-2 bg-primary-50 text-primary-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-primary-100">
             <Sparkles className="w-4 h-4" />
             AI-Powered Job Search in {formattedCity}
           </div>
@@ -99,8 +86,8 @@ export default function JobNiche() {
           <p className="text-slate-400 mb-10 relative z-10 max-w-lg mx-auto text-lg font-medium">
             Join thousands of {formattedRole}s who have skipped the application line using JobHuntin.
           </p>
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-primary-500/20"
           >
             Start My {formattedCity} Run

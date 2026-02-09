@@ -94,7 +94,7 @@ body {
   }
 
   .gradient-primary {
-    background: linear-gradient(135deg, #FF6B35 0%, #ea580c 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   }
 
   .gradient-subtle {
@@ -106,7 +106,7 @@ body {
   }
 
   .drop-shadow-glow {
-    filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.4));
+    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.4));
   }
 
   .glass-panel {
@@ -122,7 +122,7 @@ body {
   }
 
   .text-glow {
-    text-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
 
   .bg-grid-premium {
@@ -139,12 +139,9 @@ body {
       linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   }
 
-  /* Lock body scroll when mobile menu is open */
-  html:has(body.menu-open),
+  /* Lock body scroll when mobile menu is open - improved for universal stability */
   body.menu-open {
     overflow: hidden;
-    height: 100%;
-    width: 100%;
-    position: fixed;
+    touch-action: none;
   }
 }

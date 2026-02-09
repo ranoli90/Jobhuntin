@@ -4,6 +4,7 @@ import { Bot, ArrowLeft, Download, Linkedin, Briefcase, Plus, Check } from 'luci
 import { motion, AnimatePresence } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
+import { Logo } from '../components/brand/Logo';
 
 export default function ChromeExtension() {
   const [activeStep, setActiveStep] = useState(0);
@@ -42,20 +43,6 @@ export default function ChromeExtension() {
           }
         }}
       />
-      <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-primary-500 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
-              <Bot className="text-white w-6 h-6" />
-            </div>
-            <span className="text-xl font-bold font-display text-slate-900">JobHuntin</span>
-          </Link>
-          <Link to="/" className="text-sm font-bold text-slate-600 hover:text-primary-600 flex items-center gap-2 group transition-colors uppercase tracking-wider">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
-          </Link>
-        </div>
-      </nav>
-
       <main className="max-w-7xl mx-auto px-6 py-24">
         <div className="flex flex-col lg:flex-row items-center gap-20">
           <div className="flex-1">

@@ -39,7 +39,7 @@ const GUIDES = [
 export default function GuidesHome() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
-      <SEO 
+      <SEO
         title="Job Search Playbook | AI Automation Guides"
         description="Master the art of automated job hunting. Explore our deep-dive guides on beating ATS, ethical AI usage, and scaling your search safely."
         ogTitle="Job Search Playbook | AI Automation Guides"
@@ -53,39 +53,26 @@ export default function GuidesHome() {
           "url": "https://jobhuntin.com/guides"
         }}
       />
-      
-      <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
-              <Bot className="text-white w-6 h-6" />
-            </div>
-            <span className="text-xl font-bold font-display text-slate-900">JobHuntin</span>
-          </Link>
-          <Link to="/" className="text-sm font-medium text-slate-600 hover:text-primary-600 flex items-center gap-2 group transition-colors">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
-          </Link>
-        </div>
-      </nav>
+
 
       <main className="max-w-7xl mx-auto px-6 py-24">
         <div className="text-center mb-24">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-orange-50 text-primary-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-orange-100"
+            className="inline-flex items-center gap-2 bg-primary-50 text-primary-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-primary-100"
           >
             <BookOpen className="w-4 h-4" />
             Topical Authority Hub
           </motion.div>
           <h1 className="text-5xl md:text-7xl font-black font-display mb-8 leading-tight text-slate-900">
-            The AI Job Search <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">Playbook</span>
+            The AI Job Search <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">Playbook</span>
           </h1>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
             Deep-dives into the mechanisms of modern visibility and discovery in the job market.
           </p>
-          
+
           <div className="mt-12">
             <GoogleSearch />
           </div>
@@ -117,8 +104,8 @@ export default function GuidesHome() {
                   {guide.desc}
                 </p>
               </div>
-              <Link 
-                to={`/guides/${guide.slug}`} 
+              <Link
+                to={`/guides/${guide.slug}`}
                 className="inline-flex items-center gap-2 font-bold text-slate-900 hover:text-primary-600 hover:gap-4 transition-all"
               >
                 Read Guide <ChevronRight className="w-5 h-5" />

@@ -47,7 +47,7 @@ export default function ComparisonPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
-      <SEO 
+      <SEO
         title={title}
         description={description}
         ogTitle={title}
@@ -62,23 +62,10 @@ export default function ComparisonPage() {
           "about": competitor.name
         }}
       />
-      
-      <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
-              <Bot className="text-white w-6 h-6" />
-            </div>
-            <span className="text-xl font-bold font-display text-slate-900">JobHuntin</span>
-          </Link>
-          <Link to="/" className="text-sm font-medium text-slate-600 hover:text-primary-600 flex items-center gap-2 group transition-colors">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
-          </Link>
-        </div>
-      </nav>
+
 
       <main className="max-w-5xl mx-auto px-6 py-24">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-20"
@@ -88,7 +75,7 @@ export default function ComparisonPage() {
             Competitive Authority Modeling
           </div>
           <h1 className="text-5xl md:text-7xl font-black font-display mb-8 leading-tight text-slate-900">
-            Better than <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">{competitor.name}</span>
+            Better than <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">{competitor.name}</span>
           </h1>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
             Experience the next evolution of career automation. While others fill forms, we hunt roles.
@@ -103,8 +90,8 @@ export default function ComparisonPage() {
             { icon: Zap, title: "Autonomous", desc: "Set it and forget it. Our agent works while you sleep." },
             { icon: Target, title: "High Quality", desc: "Custom cover letters and resume tailoring for every role." }
           ].map((item, i) => (
-            <motion.div 
-              key={i} 
+            <motion.div
+              key={i}
               className="text-center bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -123,7 +110,7 @@ export default function ComparisonPage() {
         <div className="mt-32 bg-slate-900 rounded-[3rem] p-12 text-white text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/20 rounded-full blur-[100px] -mr-48 -mt-48" />
-          
+
           <h2 className="text-4xl font-bold mb-6 relative z-10 font-display">Stop grinding. Start interviewing.</h2>
           <p className="text-slate-400 mb-10 relative z-10 max-w-lg mx-auto text-lg">
             Join the elite hunters who have already switched from {competitor.name} to JobHuntin.

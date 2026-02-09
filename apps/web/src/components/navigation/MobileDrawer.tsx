@@ -19,14 +19,20 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
     return () => setMounted(false);
   }, []);
 
-  // Lock body scroll when drawer is open without breaking desktop trackpads
+  // Lock body scroll when drawer is open
   useEffect(() => {
     if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
       document.body.classList.add('menu-open');
     } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
       document.body.classList.remove('menu-open');
     }
     return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
       document.body.classList.remove('menu-open');
     };
   }, [isOpen]);
@@ -36,15 +42,19 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
   return createPortal(
     <AnimatePresence mode="wait">
       {isOpen && (
-        <>
+        <div className="fixed inset-0 z-[100] md:hidden">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm md:hidden"
-            onClick={onClose}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
             aria-hidden="true"
           />
 
@@ -53,13 +63,13 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
             initial={{ x: side === "left" ? "-100%" : "100%" }}
             animate={{ x: 0 }}
             exit={{ x: side === "left" ? "-100%" : "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
-            className={`fixed inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} z-[9999] w-[85vw] max-w-sm flex flex-col bg-white shadow-2xl md:hidden`}
+            transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
+            className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[320px] flex flex-col bg-white shadow-[0_0_50px_rgba(0,0,0,0.1)] border-slate-100 ring-1 ring-slate-900/5`}
             onClick={(e) => e.stopPropagation()}
           >
             {children}
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>,
     document.body

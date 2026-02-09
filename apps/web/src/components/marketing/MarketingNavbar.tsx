@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bot, Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Logo } from '../brand/Logo';
 import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from '../navigation/MobileDrawer';
 
 export function MarketingNavbar() {
@@ -11,9 +12,9 @@ export function MarketingNavbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 10);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -22,8 +23,6 @@ export function MarketingNavbar() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Lock body scroll is handled by MobileDrawer now
-
   const navLinks = [
     { name: "Pricing", path: "/pricing" },
     { name: "Success Stories", path: "/success-stories" },
@@ -31,19 +30,18 @@ export function MarketingNavbar() {
     { name: "Extension", path: "/chrome-extension" },
   ];
 
+  const closeMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm' : 'bg-transparent'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen
+        ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/60 shadow-sm'
+        : 'bg-transparent'
         }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group z-[70] relative">
-          <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20 group-hover:rotate-6 transition-transform duration-300">
-            <Bot className="text-white w-6 h-6" />
-          </div>
-          <span className="text-xl font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
-        </Link>
+        <Logo to="/" onClick={closeMenu} />
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
@@ -51,7 +49,7 @@ export function MarketingNavbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`text-sm font-medium transition-colors hover:text-primary-600 ${location.pathname === link.path ? 'text-primary-600' : 'text-slate-600'
+              className={`text-sm font-bold transition-all hover:text-primary-600 active:scale-95 ${location.pathname === link.path ? 'text-primary-600' : 'text-slate-600'
                 }`}
             >
               {link.name}
@@ -61,11 +59,11 @@ export function MarketingNavbar() {
 
         {/* CTA Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link to="/login?mode=login" className="text-sm font-bold text-slate-700 hover:text-slate-900 transition-colors">
+          <Link to="/login?mode=login" className="text-sm font-black text-slate-700 hover:text-primary-600 transition-colors uppercase tracking-wider">
             Log in
           </Link>
           <Link to="/login">
-            <Button variant="primary" size="sm" className="rounded-full px-6 shadow-lg shadow-primary-500/20">
+            <Button variant="primary" size="sm" className="rounded-2xl px-6 shadow-xl shadow-primary-500/20 font-bold">
               Get Started <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
@@ -73,7 +71,7 @@ export function MarketingNavbar() {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden p-2 text-slate-600 hover:text-slate-900 z-[70] relative"
+          className="md:hidden p-3 -mr-2 text-slate-600 hover:text-slate-900 bg-slate-100/50 hover:bg-slate-100 rounded-xl transition-all active:scale-90"
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="Open menu"
         >
@@ -82,27 +80,21 @@ export function MarketingNavbar() {
       </div>
 
       {/* Universal Mobile Drawer */}
-      <MobileDrawer isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} side="right">
-        <MobileDrawerHeader onClose={() => setIsMobileMenuOpen(false)}>
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-1.5 rounded-lg rotate-3 shadow-sm">
-              <Bot className="text-white w-5 h-5" />
-            </div>
-            <span className="text-lg font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
-          </div>
+      <MobileDrawer isOpen={isMobileMenuOpen} onClose={closeMenu} side="right">
+        <MobileDrawerHeader onClose={closeMenu}>
+          <Logo to="/" onClick={closeMenu} size="sm" />
         </MobileDrawerHeader>
 
         <MobileDrawerBody>
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col space-y-1 mt-2">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`text-lg font-bold block py-3 px-2 rounded-xl transition-colors touch-manipulation ${location.pathname === link.path ? 'bg-primary-50 text-primary-600' : 'text-slate-700 hover:bg-slate-50'
+                onClick={closeMenu}
+                className={`text-lg font-black block py-4 px-4 rounded-2xl transition-all active:scale-[0.98] ${location.pathname === link.path
+                  ? 'bg-primary-50 text-primary-600 shadow-sm'
+                  : 'text-slate-700 hover:bg-slate-50'
                   }`}
               >
                 {link.name}
@@ -115,17 +107,17 @@ export function MarketingNavbar() {
           <div className="flex flex-col gap-3">
             <Link
               to="/login?mode=login"
-              onClick={(e) => { e.stopPropagation(); setIsMobileMenuOpen(false); }}
-              className="block w-full touch-manipulation"
+              onClick={closeMenu}
+              className="block w-full"
             >
-              <Button variant="outline" size="lg" className="w-full justify-center text-base py-3 rounded-xl">Log in</Button>
+              <Button variant="outline" size="lg" className="w-full justify-center text-base py-4 rounded-2xl font-bold border-slate-200">Log in</Button>
             </Link>
             <Link
               to="/login"
-              onClick={(e) => { e.stopPropagation(); setIsMobileMenuOpen(false); }}
-              className="block w-full touch-manipulation"
+              onClick={closeMenu}
+              className="block w-full"
             >
-              <Button variant="primary" size="lg" className="w-full justify-center text-base py-3 rounded-xl shadow-xl shadow-primary-500/20">
+              <Button variant="primary" size="lg" className="w-full justify-center text-base py-4 rounded-2xl shadow-2xl shadow-primary-500/30 font-black">
                 Get Started Free
               </Button>
             </Link>

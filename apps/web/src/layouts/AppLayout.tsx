@@ -8,6 +8,7 @@ import { ToastShelf } from "../components/ui/ToastShelf";
 import { PageTransition } from "../components/navigation/PageTransition";
 import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from "../components/navigation/MobileDrawer";
 import { AnimatePresence } from "framer-motion";
+import { Logo } from "../components/brand/Logo";
 import { cn } from "../lib/utils";
 import {
   Menu,
@@ -19,7 +20,6 @@ import {
   CreditCard,
   Settings,
   LogOut,
-  Bot,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -41,28 +41,21 @@ export default function AppLayout() {
   const closeMobile = () => setMobileMenuOpen(false);
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+      "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98]",
       isActive
-        ? "bg-primary-50 text-primary-700"
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+        ? "bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-100"
+        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
     );
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white md:flex">
-        <div className="border-b border-slate-200 px-6 py-5">
-          <Link to="/app/dashboard" className="flex items-center gap-3 group">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-primary-500 to-primary-600 text-white grid place-items-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform">
-              <Bot className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold">JobHuntin</p>
-              <p className="text-xs text-slate-500">Intelligence console</p>
-            </div>
-          </Link>
+      <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white md:flex">
+        <div className="border-b border-slate-200 px-8 py-6">
+          <Logo to="/app/dashboard" size="md" />
+          <p className="text-[10px] text-slate-400 mt-2 font-black uppercase tracking-[0.2em] ml-1">Intelligence Console</p>
         </div>
-        <nav className="flex-1 space-y-1 px-4 py-6">
+        <nav className="flex-1 space-y-1 px-4 py-8">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
@@ -73,14 +66,14 @@ export default function AppLayout() {
             );
           })}
         </nav>
-        <div className="border-t border-slate-200 px-4 py-5">
-          <div className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-semibold grid place-items-center">
-              {user?.email?.slice(0, 2).toUpperCase() ?? "JH"}
+        <div className="border-t border-slate-200 px-4 py-6">
+          <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/50">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white font-black grid place-items-center shadow-lg shadow-primary-500/20">
+              {user?.email?.slice(0, 1).toUpperCase() ?? "J"}
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium truncate">{user?.email ?? "hello@jobhuntin.com"}</p>
-              <Badge variant="outline" size="sm" className="mt-1">
+            <div className="flex-1 overflow-hidden">
+              <p className="text-sm font-bold truncate text-slate-900">{user?.email ?? "hello@user.com"}</p>
+              <Badge variant="outline" size="sm" className="mt-0.5 text-[10px] uppercase font-black tracking-widest bg-white border-slate-200">
                 {plan ?? "Free"}
               </Badge>
             </div>
@@ -88,7 +81,7 @@ export default function AppLayout() {
           <Button
             variant="ghost"
             size="sm"
-            className="mt-3 w-full justify-start text-slate-600"
+            className="mt-4 w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-bold"
             onClick={signOut}
           >
             <LogOut className="mr-2 h-4 w-4" /> Sign out
@@ -99,16 +92,11 @@ export default function AppLayout() {
       {/* Universal Mobile Drawer */}
       <MobileDrawer isOpen={mobileMenuOpen} onClose={closeMobile}>
         <MobileDrawerHeader onClose={closeMobile}>
-          <Link to="/app/dashboard" className="flex items-center gap-3" onClick={closeMobile}>
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-primary-500 to-primary-600 text-white grid place-items-center shadow-sm">
-              <Bot className="h-5 w-5" />
-            </div>
-            <span className="text-lg font-semibold">JobHuntin</span>
-          </Link>
+          <Logo to="/app/dashboard" size="sm" onClick={closeMobile} />
         </MobileDrawerHeader>
-        
+
         <MobileDrawerBody>
-          <nav className="space-y-1">
+          <nav className="space-y-1 mt-2">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               return (
@@ -129,7 +117,7 @@ export default function AppLayout() {
         <MobileDrawerFooter>
           <Button
             variant="ghost"
-            className="w-full justify-start"
+            className="w-full justify-start text-red-600 hover:bg-red-50 rounded-xl font-bold"
             onClick={() => {
               signOut();
               closeMobile();
@@ -141,47 +129,45 @@ export default function AppLayout() {
       </MobileDrawer>
 
       <div className="flex flex-1 flex-col h-screen overflow-hidden">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3 shrink-0">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
+        <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-xl px-6 shrink-0 z-40">
+          <div className="flex items-center gap-4">
+            <button
+              className="md:hidden p-2.5 -ml-2 text-slate-600 bg-slate-100 rounded-xl active:scale-90 transition-all"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <Link to="/app/dashboard" className="flex items-center gap-2 group">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-primary-500 to-primary-600 text-white grid place-items-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform">
-                <Bot className="h-5 w-5" />
+              <Menu className="h-6 w-6" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="hidden md:block">
+                <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400 font-black">Environment</p>
+                <p className="text-sm font-black text-slate-900">Production Console</p>
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Workspace</p>
-                <p className="text-sm font-semibold text-slate-900">Command Center</p>
+              <div className="md:hidden">
+                <Logo iconOnly size="sm" />
               </div>
-            </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="primary" size="sm">
+          <div className="flex items-center gap-4">
+            <Badge variant="primary" size="sm" className="font-black px-3">
               {plan ?? "Free"}
             </Badge>
-            <div className="hidden items-center gap-3 md:flex">
-              <div className="text-right">
-                <p className="text-sm font-semibold">{user?.email ?? "hello@jobhuntin.com"}</p>
-                <p className="text-xs text-slate-500">Account owner</p>
+            <div className="flex items-center gap-3">
+              <div className="hidden text-right md:block">
+                <p className="text-sm font-black text-slate-900">{user?.email?.split('@')[0] ?? "User"}</p>
+                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Account Active</p>
               </div>
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-semibold">
-                {user?.email?.slice(0, 2).toUpperCase() ?? "JH"}
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-50 border border-slate-200 text-primary-600 font-black shadow-sm">
+                {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
               </div>
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 lg:py-8 bg-slate-50">
+        <main className="flex-1 overflow-y-auto bg-slate-50/50">
           <AnimatePresence mode="wait">
-             <PageTransition key={location.pathname} className="h-full">
-                <Outlet />
-             </PageTransition>
+            <PageTransition key={location.pathname} className="h-full">
+              <Outlet />
+            </PageTransition>
           </AnimatePresence>
         </main>
         <ToastShelf />
