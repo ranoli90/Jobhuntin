@@ -1,8 +1,74 @@
-import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Bot } from 'lucide-react';
+import { Bot, Search, FileText, Send, CheckCircle, Sparkles, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { SEO } from '../components/marketing/SEO';
+
+// --- Simulation Components ---
+
+const SimulationLog = () => {
+    const [logs, setLogs] = useState<string[]>([
+        "Initializing JobHuntin Engine v2.4...",
+        "Scanning LinkedIn for 'Senior React Engineer'...",
+        "Found matching job at Vercel (Score: 94%)",
+        "Tailoring cover letter based on summary..."
+    ]);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            const newLogs = [
+                "Analyzing req: 'Must have Framer Motion exp'...",
+                "Updating resume skillset: +Advanced Animation",
+                "Submitting application to Stripe...",
+                "Success! ID: app_492013",
+                "Next scan in 3.4s..."
+            ];
+            setLogs(prev => [...prev.slice(-4), newLogs[Math.floor(Math.random() * newLogs.length)]]);
+        }, 2500);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <div className="font-mono text-[10px] md:text-sm text-primary-400 p-6 bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+            {logs.map((log, i) => (
+                <motion.div
+                    key={i + log}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-1 flex gap-2"
+                >
+                    <span className="text-primary-600/50">[{new Date().toLocaleTimeString()}]</span>
+                    <span>{log}</span>
+                </motion.div>
+            ))}
+            <motion.div
+                animate={{ opacity: [1, 0] }}
+                transition={{ repeat: Infinity, duration: 0.8 }}
+                className="w-2 h-4 bg-primary-500 inline-block align-middle ml-1"
+            />
+        </div>
+    );
+};
+
+const ProcessStep = ({ icon: Icon, title, desc, delay }: { icon: any, title: string, desc: string, delay: number }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.8 }}
+        viewport={{ once: true }}
+        className="relative group"
+    >
+        <div className="absolute -inset-4 bg-primary-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
+        <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <Icon className="w-8 h-8 text-primary-600" />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 mb-2">{title}</h3>
+            <p className="text-slate-500 leading-relaxed font-medium">{desc}</p>
+        </div>
+    </motion.div>
+);
 
 export default function About() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -11,230 +77,204 @@ export default function About() {
         offset: ["start start", "end end"]
     });
 
-    const opacity1 = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
-    const opacity2 = useTransform(scrollYProgress, [0.15, 0.3, 0.45], [0, 1, 0]);
-    const opacity3 = useTransform(scrollYProgress, [0.45, 0.6, 0.75], [0, 1, 0]);
-    const opacity4 = useTransform(scrollYProgress, [0.75, 0.9], [0, 1]);
-
-    const y1 = useTransform(scrollYProgress, [0, 0.15], [0, -50]);
-    const y2 = useTransform(scrollYProgress, [0.15, 0.3], [50, 0]);
-    const y3 = useTransform(scrollYProgress, [0.45, 0.6], [50, 0]);
-    const y4 = useTransform(scrollYProgress, [0.75, 0.9], [50, 0]);
+    const heroScale = useTransform(scrollYProgress, [0, 0.1], [1, 0.85]);
+    const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
 
     return (
-        <div ref={containerRef} className="bg-slate-50">
-            {/* Sticky scroll container */}
-            <div className="h-[400vh] relative">
-                <div className="sticky top-0 h-screen overflow-hidden">
-                    {/* Background gradient that shifts */}
-                    <motion.div
-                        className="absolute inset-0"
-                        style={{
-                            background: `radial-gradient(ellipse 80% 50% at 50% 50%, rgba(255, 107, 53, 0.08) 0%, transparent 60%)`
-                        }}
-                    />
+        <div className="bg-white overflow-x-hidden">
+            <SEO
+                title="About Us | JobHuntin AI - The Team Behind the Engine"
+                description="We built JobHuntin because we were tired of the manual job search grind. Meet the team redefining career automation with AI agents that hunt for you."
+                ogTitle="About Us | JobHuntin AI"
+                canonicalUrl="https://jobhuntin.com/about"
+            />
+            {/* --- HERO SECTION --- */}
+            <section className="relative min-h-[90vh] flex items-center justify-center pt-24 px-6">
+                <div className="absolute inset-0 z-0">
+                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-[120px] animate-pulse" />
+                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+                </div>
 
-                    {/* Scene 1: The Problem */}
+                <motion.div
+                    style={{ scale: heroScale, opacity: heroOpacity }}
+                    className="max-w-5xl mx-auto text-center relative z-10"
+                >
                     <motion.div
-                        className="absolute inset-0 flex items-center justify-center px-6"
-                        style={{ opacity: opacity1, y: y1 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="inline-flex items-center gap-2 bg-slate-900/5 backdrop-blur-sm border border-slate-900/10 px-4 py-2 rounded-full text-sm font-bold text-slate-800 mb-8"
                     >
-                        <div className="max-w-4xl text-center">
-                            <motion.div
-                                initial={{ scale: 0.9 }}
-                                animate={{ scale: 1 }}
-                                transition={{ duration: 0.8 }}
-                            >
-                                <p className="text-lg md:text-xl text-slate-500 mb-4 font-medium">You know the feeling.</p>
-                                <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-slate-900 leading-tight mb-8">
-                                    50 applications.<br />
-                                    <span className="text-slate-400">Zero responses.</span>
-                                </h1>
-                                <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                                    Hours spent tailoring each one. Copy. Paste. Tweak. Repeat.<br />
-                                    <span className="text-slate-400">It's exhausting.</span>
-                                </p>
-                            </motion.div>
-
-                            {/* Scroll indicator */}
-                            <motion.div
-                                className="absolute bottom-12 left-1/2 -translate-x-1/2"
-                                animate={{ y: [0, 10, 0] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                            >
-                                <div className="w-6 h-10 border-2 border-slate-300 rounded-full flex justify-center pt-2">
-                                    <div className="w-1 h-2 bg-slate-400 rounded-full" />
-                                </div>
-                            </motion.div>
-                        </div>
+                        <Sparkles className="w-4 h-4 text-primary-600" />
+                        <span>Redefining Job Search for the AI Age</span>
                     </motion.div>
 
-                    {/* Scene 2: The Realization */}
-                    <motion.div
-                        className="absolute inset-0 flex items-center justify-center px-6"
-                        style={{ opacity: opacity2, y: y2 }}
-                    >
-                        <div className="max-w-4xl">
-                            <div className="grid md:grid-cols-2 gap-12 items-center">
-                                <div>
-                                    <p className="text-primary-600 font-bold mb-4 tracking-wide uppercase text-sm">The realization</p>
-                                    <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-6">
-                                        What if a machine could do the boring parts?
-                                    </h2>
-                                    <p className="text-lg text-slate-600 leading-relaxed">
-                                        Not a bot that spams everywhere. Something smarter.
-                                        Something that actually reads job posts, understands what they want,
-                                        and writes applications that sound like <em>you</em>.
-                                    </p>
-                                </div>
-                                <div className="relative">
-                                    {/* Abstract representation - flowing lines */}
-                                    <svg viewBox="0 0 400 400" className="w-full max-w-md mx-auto">
-                                        <motion.path
-                                            d="M50 200 Q150 100 200 200 Q250 300 350 200"
-                                            stroke="url(#gradient1)"
-                                            strokeWidth="3"
-                                            fill="none"
-                                            initial={{ pathLength: 0 }}
-                                            animate={{ pathLength: 1 }}
-                                            transition={{ duration: 2, ease: "easeInOut" }}
-                                        />
-                                        <motion.path
-                                            d="M50 220 Q150 120 200 220 Q250 320 350 220"
-                                            stroke="url(#gradient2)"
-                                            strokeWidth="2"
-                                            fill="none"
-                                            initial={{ pathLength: 0 }}
-                                            animate={{ pathLength: 1 }}
-                                            transition={{ duration: 2, delay: 0.3, ease: "easeInOut" }}
-                                        />
-                                        <motion.circle
-                                            cx="350"
-                                            cy="200"
-                                            r="8"
-                                            fill="#FF6B35"
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            transition={{ duration: 0.5, delay: 1.8 }}
-                                        />
-                                        <defs>
-                                            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                <stop offset="0%" stopColor="#94a3b8" />
-                                                <stop offset="100%" stopColor="#FF6B35" />
-                                            </linearGradient>
-                                            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                <stop offset="0%" stopColor="#cbd5e1" />
-                                                <stop offset="100%" stopColor="#f97316" />
-                                            </linearGradient>
-                                        </defs>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
+                    <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-[0.9] tracking-tighter mb-8">
+                        The end of the <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">infinite scroll.</span>
+                    </h1>
 
-                    {/* Scene 3: What We Built */}
-                    <motion.div
-                        className="absolute inset-0 flex items-center justify-center px-6"
-                        style={{ opacity: opacity3, y: y3 }}
-                    >
-                        <div className="max-w-5xl">
-                            <div className="text-center mb-16">
-                                <p className="text-primary-600 font-bold mb-4 tracking-wide uppercase text-sm">So we built it</p>
+                    <p className="text-xl md:text-2xl text-slate-500 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
+                        We built Hubhuntin because we were tired of the "full-time job" that is finding a job.
+                        So we moved the hard part to an engine that never sleeps.
+                    </p>
+
+                    <div className="flex flex-wrap justify-center gap-4">
+                        <Link to="/login">
+                            <Button variant="primary" size="lg" className="rounded-2xl px-8 py-6 text-lg font-bold shadow-2xl shadow-primary-500/20">
+                                Experience the magic
+                            </Button>
+                        </Link>
+                        <Button variant="ghost" size="lg" className="rounded-2xl px-8 py-6 text-lg font-bold">
+                            Watch the story
+                        </Button>
+                    </div>
+                </motion.div>
+            </section>
+
+            {/* --- SUPERIOR TECHNOLOGY SECTION --- */}
+            <section className="py-32 px-6 relative">
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid lg:grid-cols-2 gap-20 items-center">
+                        <div className="space-y-8">
+                            <div className="space-y-4">
+                                <p className="text-primary-600 font-black tracking-widest uppercase text-sm">Enterprise-Grade Intelligence</p>
                                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
-                                    An AI that hunts jobs<br />while you sleep.
+                                    A digital double that <br /> hunts for you.
                                 </h2>
+                                <p className="text-lg text-slate-500 font-medium leading-relaxed">
+                                    Our system doesn't just "find" jobs. It analyzes your unique skills, matches them against real market demand,
+                                    and handles the entire application lifecycle — from the initial find to the final submit.
+                                </p>
                             </div>
 
-                            {/* Visual representation */}
-                            <div className="relative max-w-3xl mx-auto">
-                                <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200/50 border border-slate-100 p-8 md:p-12">
-                                    <div className="flex items-start gap-6">
-                                        <div className="flex-shrink-0">
-                                            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/20">
-                                                <Bot className="w-8 h-8 text-white" />
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                                <span className="text-sm font-medium text-slate-500">Working right now</span>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <motion.div
-                                                    className="h-3 bg-slate-100 rounded-full overflow-hidden"
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: "100%" }}
-                                                >
-                                                    <motion.div
-                                                        className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full"
-                                                        initial={{ width: "0%" }}
-                                                        animate={{ width: "75%" }}
-                                                        transition={{ duration: 2, delay: 0.5 }}
-                                                    />
-                                                </motion.div>
-                                                <p className="text-sm text-slate-500">Found 23 matching jobs · Applied to 18 · 3 responses</p>
-                                            </div>
-                                            <p className="text-slate-600 leading-relaxed">
-                                                It scans thousands of listings. Finds the ones that actually match your skills.
-                                                Writes cover letters that don't sound like a robot. Submits. Tracks. Follows up.
-                                            </p>
-                                        </div>
+                            <div className="space-y-6">
+                                <div className="flex gap-4 p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-transform hover:-translate-y-1">
+                                    <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                                        <ShieldCheck className="w-6 h-6 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-900">Privacy First</h4>
+                                        <p className="text-sm text-slate-500 font-medium">Your data is yours. We encrypt everything and only share what recruiters need to see.</p>
                                     </div>
                                 </div>
-
-                                {/* Floating elements */}
-                                <motion.div
-                                    className="absolute -top-4 -right-4 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold shadow-lg"
-                                    animate={{ y: [0, -5, 0] }}
-                                    transition={{ duration: 3, repeat: Infinity }}
-                                >
-                                    Interview request! 🎉
-                                </motion.div>
+                                <div className="flex gap-4 p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-transform hover:-translate-y-1">
+                                    <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                                        <Zap className="w-6 h-6 text-primary-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-900">Lightning Precision</h4>
+                                        <p className="text-sm text-slate-500 font-medium">We parse thousands of jobs per minute, matching you in milliseconds.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </motion.div>
 
-                    {/* Scene 4: CTA */}
-                    <motion.div
-                        className="absolute inset-0 flex items-center justify-center px-6"
-                        style={{ opacity: opacity4, y: y4 }}
-                    >
-                        <div className="max-w-3xl text-center">
-                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 leading-tight mb-8">
-                                Your next job is out there.<br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">
-                                    Let us find it.
-                                </span>
-                            </h2>
-                            <p className="text-xl text-slate-600 mb-12 max-w-xl mx-auto">
-                                Join thousands who've stopped the scroll and started getting interviews.
-                            </p>
-                            <Link to="/login">
-                                <Button
-                                    variant="primary"
-                                    size="lg"
-                                    className="rounded-full px-10 py-6 text-lg font-bold shadow-2xl shadow-primary-500/20 hover:shadow-primary-500/40 transition-shadow"
-                                >
-                                    Start Hunting Free
-                                    <ArrowRight className="w-5 h-5 ml-2" />
-                                </Button>
-                            </Link>
-                            <p className="text-sm text-slate-400 mt-6">No credit card. Cancel anytime. Actually works.</p>
+                        <div className="relative">
+                            <div className="absolute -inset-4 bg-gradient-to-tr from-primary-500 to-blue-500 rounded-[3rem] blur-2xl opacity-10 animate-pulse" />
+                            <div className="relative bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl overflow-hidden p-8 aspect-square flex flex-col justify-center gap-8">
+                                <SimulationLog />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 text-center">
+                                        <p className="text-[10px] uppercase font-black text-primary-600 mb-1">Success Rate</p>
+                                        <p className="text-3xl font-black text-primary-700">92%</p>
+                                    </div>
+                                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
+                                        <p className="text-[10px] uppercase font-black text-blue-600 mb-1">Time Saved</p>
+                                        <p className="text-3xl font-black text-blue-700">40h+</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            {/* Final static section */}
-            <div className="bg-slate-900 py-24 px-6">
-                <div className="max-w-4xl mx-auto text-center">
-                    <p className="text-slate-400 text-lg mb-2">Built by people who were tired of job hunting.</p>
-                    <p className="text-slate-500 text-sm">
-                        We're a small team that believes finding a job shouldn't be a full-time job.
-                    </p>
+            {/* --- THE PROCESS --- */}
+            <section className="py-32 bg-slate-50/50 px-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-24 max-w-3xl mx-auto">
+                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">How the engine works.</h2>
+                        <p className="text-lg text-slate-500 font-medium leading-relaxed">
+                            We took the chaotic job search process and turned it into a streamlined assembly line of success.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-4 gap-12">
+                        <ProcessStep
+                            icon={Bot}
+                            title="Parse"
+                            desc="We build your digital twin from your resume and LinkedIn."
+                            delay={0.1}
+                        />
+                        <ProcessStep
+                            icon={Search}
+                            title="Scout"
+                            desc="AI agents scan the web for jobs that match your DNA."
+                            delay={0.2}
+                        />
+                        <ProcessStep
+                            icon={FileText}
+                            title="Tailor"
+                            desc="Resumes and cover letters are rewritten for every single job."
+                            delay={0.3}
+                        />
+                        <ProcessStep
+                            icon={Send}
+                            title="Apply"
+                            desc="Submissions happen automatically. You just track notifications."
+                            delay={0.4}
+                        />
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            {/* --- THE VISION --- */}
+            <section className="py-40 px-6 relative overflow-hidden">
+                <div className="max-w-4xl mx-auto text-center relative z-10">
+                    <h2 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 leading-tight tracking-tight">
+                        Stop scrolling.<br />
+                        Start getting interviewed.
+                    </h2>
+                    <p className="text-xl text-slate-500 mb-12 font-medium">
+                        We're building the future of employment. A future where your time is spent in interviews,
+                        not on job boards. Join the movement.
+                    </p>
+                    <Link to="/login">
+                        <Button size="lg" className="rounded-2xl px-12 py-8 text-xl font-bold bg-slate-900 text-white hover:bg-black hover:shadow-2xl transition-all group">
+                            Get Started for Free
+                            <ArrowRight className="ml-3 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                    </Link>
+                    <p className="mt-8 text-slate-400 font-medium text-sm">No credit card required. Cancel anytime. Actually works.</p>
+                </div>
+
+                {/* Floating Background Sparkles */}
+                <div className="absolute top-1/2 left-0 w-full h-full pointer-events-none">
+                    <motion.div
+                        animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ repeat: Infinity, duration: 5 }}
+                        className="absolute top-0 left-10 w-2 h-2 bg-primary-500 rounded-full"
+                    />
+                    <motion.div
+                        animate={{ y: [0, 30, 0], opacity: [0.2, 0.5, 0.2] }}
+                        transition={{ repeat: Infinity, duration: 7, delay: 1 }}
+                        className="absolute bottom-10 right-20 w-3 h-3 bg-blue-500 rounded-full"
+                    />
+                </div>
+            </section>
+
+            {/* --- FOOTER CTA --- */}
+            <footer className="bg-slate-900 py-12 px-6 border-t border-white/5">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-primary-500 p-2 rounded-xl">
+                            <Bot className="text-white w-6 h-6" />
+                        </div>
+                        <span className="text-xl font-bold text-white tracking-tight">JobHuntin</span>
+                    </div>
+                    <p className="text-slate-500 text-sm font-medium">© 2024 Hubhuntin AI Inc. All rights reserved.</p>
+                </div>
+            </footer>
         </div>
     );
 }

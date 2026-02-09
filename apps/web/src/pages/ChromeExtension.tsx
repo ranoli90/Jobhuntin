@@ -232,24 +232,51 @@ export default function ChromeExtension() {
           </motion.div>
         </div>
 
-        {/* Integrated feature strip instead of cards */}
-        <div className="mt-24 py-12 border-t border-slate-200">
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 text-slate-500">
-            <div className="flex items-center gap-3">
-              <Linkedin className="w-5 h-5 text-[#0077b5]" />
-              <span className="font-medium">Works on LinkedIn</span>
+        {/* Premium Supported Platforms Section */}
+        <div className="mt-32 relative">
+          <div className="absolute inset-0 bg-slate-900/[0.02] -skew-y-3 rounded-[4rem] -z-10" />
+          <div className="py-20 px-6">
+            <div className="text-center mb-16">
+              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">Works where you hunt.</h3>
+              <p className="text-slate-500 font-medium">Native integration with the platforms you already use.</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📋</span>
-              <span className="font-medium">One-click apply</span>
+
+            <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
+              <div className="flex items-center gap-3">
+                <Linkedin className="w-8 h-8 text-[#0077b5]" />
+                <span className="text-xl font-bold tracking-tight">LinkedIn</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-black italic">f</div>
+                <span className="text-xl font-bold tracking-tight">FlexJobs</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-black">W</div>
+                <span className="text-xl font-bold tracking-tight">Wellfound</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-[#212121] rounded-full flex items-center justify-center text-white font-black text-[10px]">IND</div>
+                <span className="text-xl font-bold tracking-tight">Indeed</span>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🎯</span>
-              <span className="font-medium">Instant match scores</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">⚡</span>
-              <span className="font-medium">Resume auto-tailoring</span>
+
+            {/* Performance Stats Overlay */}
+            <div className="grid md:grid-cols-3 gap-8 mt-24">
+              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/20 text-center group hover:-translate-y-2 transition-transform">
+                <p className="text-primary-600 font-black text-4xl mb-2">0.4s</p>
+                <p className="text-slate-900 font-bold uppercase text-[10px] tracking-widest">Parsing Latency</p>
+                <div className="h-1 w-8 bg-primary-100 mx-auto mt-4 group-hover:w-16 transition-all" />
+              </div>
+              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/20 text-center group hover:-translate-y-2 transition-transform">
+                <p className="text-blue-600 font-black text-4xl mb-2">99.8%</p>
+                <p className="text-slate-900 font-bold uppercase text-[10px] tracking-widest">Field Accuracy</p>
+                <div className="h-1 w-8 bg-blue-100 mx-auto mt-4 group-hover:w-16 transition-all" />
+              </div>
+              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/20 text-center group hover:-translate-y-2 transition-transform">
+                <p className="text-emerald-600 font-black text-4xl mb-2">24/7</p>
+                <p className="text-slate-900 font-bold uppercase text-[10px] tracking-widest">Active Scouting</p>
+                <div className="h-1 w-8 bg-emerald-100 mx-auto mt-4 group-hover:w-16 transition-all" />
+              </div>
             </div>
           </div>
         </div>

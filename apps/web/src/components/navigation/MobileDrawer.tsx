@@ -68,19 +68,21 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
 
 export function MobileDrawerHeader({ children, onClose }: { children: ReactNode; onClose?: () => void }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-200 px-4 py-6 pb-4">
+    <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
       {children}
       {onClose && (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }}
+          className="p-3 -mr-3 text-slate-400 hover:text-slate-900 transition-colors active:scale-90 touch-manipulation"
           aria-label="Close menu"
-          className="touch-manipulation"
         >
-          <X className="h-5 w-5" />
-        </Button>
+          <X className="h-6 w-6" />
+        </button>
       )}
     </div>
   );
