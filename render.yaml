@@ -116,8 +116,9 @@ services:
     runtime: static
     repo: https://github.com/ranoli90/sorce
     branch: main
-    buildCommand: cd apps/web && npm install && npm run build
-    staticPublishPath: apps/web/dist
+    rootDir: apps/web
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
         value: https://sorce-api.onrender.com
@@ -140,8 +141,9 @@ services:
     runtime: static
     repo: https://github.com/ranoli90/sorce
     branch: main
-    buildCommand: cd apps/web-admin && npm install && npm run build
-    staticPublishPath: apps/web-admin/dist
+    rootDir: apps/web-admin
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
         value: https://sorce-api.onrender.com
