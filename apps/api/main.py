@@ -60,6 +60,9 @@ from shared.config import Environment, get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import dump as metrics_dump
 from shared.metrics import incr
+from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
+from shared.telemetry import setup_telemetry
+from shared.redis_client import get_redis, close_redis
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -80,26 +83,50 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     await _pool_manager.initialize()
+    # Initialize Redis (optional, but good to fail fast if config is bad)
+    try:
+        r = await get_redis()
+        await r.ping()
+        logger.info("Redis connected")
+    except Exception as e:
+        logger.warning(f"Redis connection failed: {e}")
+
     yield
     # Shutdown
+    await close_redis()
     await _pool_manager.close()
 
 app = FastAPI(title="Sorce API", version="0.4.0", lifespan=lifespan)
 
+# OpenTelemetry instrumentation
+setup_telemetry("sorce-api", app)
+
 app.add_middleware(
     CORSMiddleware,
+    # Environment-aware origins - localhost only in development
     allow_origins=list({
         "https://sorce-web.onrender.com",
         "https://sorce-admin.onrender.com",
-        "http://localhost:5173",
-        "http://localhost:3000",
         _settings.app_base_url.rstrip("/"),
         "https://jobhuntin.com",
+        "https://app.jobhuntin.com",
+        # Include localhost ONLY in non-production environments
+        *(["http://localhost:5173", "http://localhost:3000"] if _settings.env.value != "prod" else []),
     }),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # Explicit method list instead of wildcard
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    # Explicit header list instead of wildcard
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token"],
+    expose_headers=["X-Request-ID"],
+    max_age=3600,  # Cache preflight for 1 hour to reduce OPTIONS requests
 )
+
+# Add Request ID middleware for distributed tracing
+setup_request_id_middleware(app)
+
+# Add CSRF protection (disabled if no secret configured)
+setup_csrf_middleware(app, _settings.csrf_secret)
 
 
 # ---------------------------------------------------------------------------
@@ -181,6 +208,10 @@ def _mount_sub_routers() -> None:
     import api.og as og_mod
     app.include_router(og_mod.router)
 
+    # AI Suggestions for smart onboarding
+    import api.ai as ai_mod
+    app.include_router(ai_mod.router)
+
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
 
@@ -192,12 +223,20 @@ class DatabasePoolManager:
 
     def __init__(self) -> None:
         self._pool: asyncpg.Pool | None = None
+        self._read_pool: asyncpg.Pool | None = None
 
     @property
     def pool(self) -> asyncpg.Pool:
         if self._pool is None:
             raise HTTPException(status_code=503, detail="Database pool not available")
         return self._pool
+
+    @property
+    def read_pool(self) -> asyncpg.Pool:
+        """Return the read replica pool if available, otherwise the primary pool."""
+        if self._read_pool:
+            return self._read_pool
+        return self.pool
 
     async def initialize(self) -> None:
         """Initialize the database pool on startup."""
@@ -236,6 +275,22 @@ class DatabasePoolManager:
             # raise RuntimeError("Failed to initialize database pool")
 
         await self._run_migrations()
+
+        # Initialize read replica if configured
+        if s.read_replica_url and s.read_replica_url != s.database_url:
+            read_dsn = resolve_dsn_ipv4(s.read_replica_url)
+            # Read replicas might not need pooler fix if direct, but safer to apply if it matches
+            read_dsn = self._fix_pooler_dsn(read_dsn, s)
+            
+            try:
+                self._read_pool = await asyncpg.create_pool(
+                    read_dsn, min_size=s.db_pool_min, max_size=s.db_pool_max,
+                    ssl=ssl_arg,
+                    statement_cache_size=0,
+                )
+                logger.info("Read replica pool initialized")
+            except Exception as exc:
+                logger.warning("Failed to initialize read replica (falling back to primary): %s", exc)
 
     async def _run_migrations(self) -> None:
         """Run auto-migrations if needed."""
@@ -324,6 +379,9 @@ class DatabasePoolManager:
         if self._pool:
             await self._pool.close()
             self._pool = None
+        if self._read_pool:
+            await self._read_pool.close()
+            self._read_pool = None
 
 
 # Global pool manager instance
@@ -335,6 +393,11 @@ _pool_manager = DatabasePoolManager()
 
 def get_pool() -> asyncpg.Pool:
     return _pool_manager.pool
+
+
+def get_read_pool() -> asyncpg.Pool:
+    """Dependency for read-only database operations."""
+    return _pool_manager.read_pool
 
 
 @app.post("/debug/run-migration")
@@ -407,23 +470,53 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 # JWKS cache for ES256 token verification
 # ---------------------------------------------------------------------------
 _jwks_cache: dict[str, Any] = {}  # kid -> PyJWT key object
+_jwks_last_fetch: float = 0
+_jwks_fetch_interval: int = 300  # 5 minutes
 
 async def _get_jwk(supabase_url: str, kid: str) -> Any:
     """Fetch the ES256 public key from Supabase JWKS, with in-memory cache."""
+    global _jwks_last_fetch
+    import time
+    
+    # Return cached key if present
     if kid in _jwks_cache:
         return _jwks_cache[kid]
+        
+    # Rate limit fetched: only fetch if cache is stale or key missing
+    now = time.time()
+    if now - _jwks_fetch_interval < _jwks_last_fetch:
+        # If we fetched recently and key is still not found, it's invalid
+        raise ValueError(f"Key {kid} not found (JWKS recently refreshed)")
+        
     import httpx
     jwks_url = f"{supabase_url}/auth/v1/.well-known/jwks.json"
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(jwks_url, timeout=10)
-        resp.raise_for_status()
-        jwks = resp.json()
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(jwks_url, timeout=10)
+            resp.raise_for_status()
+            jwks = resp.json()
+            _jwks_last_fetch = now
+    except Exception as e:
+        logger.error(f"Failed to fetch JWKS: {e}")
+        # If fetch fails, we can't do anything but re-raise or fail
+        raise ValueError(f"Failed to fetch authentication keys: {e}")
+
+    from jwt.algorithms import ECAlgorithm
+
+    # Update cache with all keys found
     for key_data in jwks.get("keys", []):
-        if key_data.get("kid") == kid:
-            from jwt.algorithms import ECAlgorithm
-            pub_key = ECAlgorithm.from_jwk(key_data)
-            _jwks_cache[kid] = pub_key
-            return pub_key
+        k_id = key_data.get("kid")
+        if k_id:
+            try:
+                pub_key = ECAlgorithm.from_jwk(key_data)
+                _jwks_cache[k_id] = pub_key
+            except Exception as e:
+                logger.warning(f"Failed to parse JWK {k_id}: {e}")
+
+    if kid in _jwks_cache:
+        return _jwks_cache[kid]
+        
     raise ValueError(f"Key {kid} not found in JWKS")
 
 
@@ -758,6 +851,8 @@ async def healthz(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Deep health check: pings DB and returns env + metrics summary."""
+    from shared.circuit_breaker import get_all_circuit_breaker_statuses
+    
     s = get_settings()
     db_ok = False
     try:
@@ -767,11 +862,17 @@ async def healthz(
     except Exception:
         pass
 
-    status = "ok" if db_ok else "degraded"
+    # Get circuit breaker statuses
+    circuit_breakers = get_all_circuit_breaker_statuses()
+    cb_status = {cb["name"]: cb["state"] for cb in circuit_breakers}
+    any_open = any(cb["state"] == "open" for cb in circuit_breakers)
+
+    status = "ok" if db_ok and not any_open else "degraded"
     return {
         "status": status,
         "env": s.env.value,
         "db": "ok" if db_ok else "unreachable",
+        "circuit_breakers": cb_status,
         "metrics": metrics_dump(),
     }
 

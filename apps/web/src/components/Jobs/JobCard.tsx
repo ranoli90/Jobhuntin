@@ -2,6 +2,7 @@ import * as React from "react";
 import { Briefcase, MapPin, DollarSign, Eye, Bookmark } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
+import { AIMatchBadge } from "../ui/AIMatchBadge";
 import type { JobPosting } from "../../hooks/useJobs";
 import { cn } from "../../lib/utils";
 
@@ -13,9 +14,23 @@ export interface JobCardProps {
   onViewDetail: () => void;
   isSaved: boolean;
   onSave: () => void;
+  /** AI match score (0-100) */
+  matchScore?: number;
+  /** Whether match score is being loaded */
+  matchScoreLoading?: boolean;
 }
 
-export function JobCard({ job, index, isActive, onSwipe, onViewDetail, isSaved, onSave }: JobCardProps) {
+export function JobCard({
+  job,
+  index,
+  isActive,
+  onSwipe,
+  onViewDetail,
+  isSaved,
+  onSave,
+  matchScore,
+  matchScoreLoading,
+}: JobCardProps) {
   return (
     <div
       className={cn(
@@ -26,7 +41,17 @@ export function JobCard({ job, index, isActive, onSwipe, onViewDetail, isSaved, 
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">Headline</p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">Headline</p>
+            {/* AI Match Badge */}
+            {(matchScore !== undefined || matchScoreLoading) && (
+              <AIMatchBadge
+                score={matchScore}
+                loading={matchScoreLoading}
+                size="sm"
+              />
+            )}
+          </div>
           <h2 className="font-display text-3xl text-brand-ink">{job.title}</h2>
           <p className="text-brand-ink/70">{job.company}</p>
         </div>
@@ -56,10 +81,17 @@ export function JobCard({ job, index, isActive, onSwipe, onViewDetail, isSaved, 
           <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
           {isSaved ? "Saved" : "Save"}
         </Button>
-        <Badge variant="lagoon" className="ml-auto">
-          Unlimited PRO swipes
-        </Badge>
+        {matchScore !== undefined && matchScore >= 80 ? (
+          <Badge variant="lagoon" className="ml-auto">
+            ✨ Great Match
+          </Badge>
+        ) : (
+          <Badge variant="lagoon" className="ml-auto">
+            Unlimited PRO swipes
+          </Badge>
+        )}
       </div>
     </div>
   );
 }
+

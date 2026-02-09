@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 import asyncpg
 
 from backend.domain.audit import record_audit_event
+from backend.domain.stripe_client import get_stripe, protected_stripe_call
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -24,11 +25,8 @@ SUBSCRIPTION_STATUS_MAP: dict[str, str] = {
 }
 
 def get_stripe_client():
-    """Lazy-import stripe and configure API key."""
-    import stripe
-    s = get_settings()
-    stripe.api_key = s.stripe_secret_key
-    return stripe
+    """Lazy-import stripe and configure API key. Deprecated: use get_stripe() instead."""
+    return get_stripe()
 
 async def ensure_stripe_customer(
     conn: asyncpg.Connection,
@@ -43,11 +41,17 @@ async def ensure_stripe_customer(
     if row and row["provider_customer_id"]:
         return row["provider_customer_id"]
 
-    stripe = get_stripe_client()
-    customer = stripe.Customer.create(
-        metadata={"tenant_id": tenant_id},
-        email=user_email,
+    stripe = get_stripe()
+    # Protected Stripe call with circuit breaker
+    customer = protected_stripe_call(
+        lambda: stripe.Customer.create(
+            metadata={"tenant_id": tenant_id},
+            email=user_email,
+        )
     )
+    
+    if customer is None:
+        raise Exception("Failed to create Stripe customer - circuit breaker open")
 
     await conn.execute(
         """
@@ -158,20 +162,24 @@ async def handle_team_checkout(
     # Store the seat subscription_item_id
     if sub_id:
         try:
-            stripe = get_stripe_client()
+            stripe = get_stripe()
             s = get_settings()
-            subscription = stripe.Subscription.retrieve(sub_id)
-            for item in subscription.get("items", {}).get("data", []):
-                if item.get("price", {}).get("id") == s.stripe_team_seat_price_id:
-                    await conn.execute(
-                        """
-                        UPDATE public.billing_customers
-                        SET stripe_subscription_item_id = $2
-                        WHERE provider_customer_id = $1
-                        """,
-                        customer_id, item["id"],
-                    )
-                    break
+            # Protected Stripe call
+            subscription = protected_stripe_call(
+                lambda: stripe.Subscription.retrieve(sub_id)
+            )
+            if subscription:
+                for item in subscription.get("items", {}).get("data", []):
+                    if item.get("price", {}).get("id") == s.stripe_team_seat_price_id:
+                        await conn.execute(
+                            """
+                            UPDATE public.billing_customers
+                            SET stripe_subscription_item_id = $2
+                            WHERE provider_customer_id = $1
+                            """,
+                            customer_id, item["id"],
+                        )
+                        break
         except Exception as seat_exc:
             logger.warning("Failed to store seat subscription item: %s", seat_exc)
 

@@ -77,22 +77,60 @@ def _metric_key(name: str, tags: dict[str, str] | None) -> str:
 
 class RateLimiter:
     """
-    Simple sliding-window rate limiter.
+    Sliding-window rate limiter with Redis backend support (async) and in-memory fallback.
 
     Usage:
-        limiter = RateLimiter(max_calls=60, window_seconds=60)
-        if not limiter.allow():
+        limiter = RateLimiter(name="my_limit", max_calls=60, window_seconds=60)
+        if not await limiter.allow():
             # back off
     """
 
-    def __init__(self, max_calls: int, window_seconds: float = 60.0):
+    def __init__(self, max_calls: int, window_seconds: float = 60.0, name: str | None = None):
+        self.name = name
         self.max_calls = max_calls
-        self.window = window_seconds
+        self.window = int(window_seconds)
+        # In-memory fallback
         self._timestamps: list[float] = []
         self._lock = threading.Lock()
 
+    async def acquire(self) -> bool:
+        """Async check with Redis support (if name provided), else sync fallback."""
+        if not self.name:
+            return self.allow()
+            
+        from shared.redis_client import get_redis
+        try:
+            client = await get_redis()
+            now = time.time()
+            cutoff = now - self.window
+            key = f"rate_limit:{self.name}"
+            
+            # Use a pipeline for atomicity
+            async with client.pipeline(transaction=True) as pipe:
+                await pipe.zremrangebyscore(key, 0, cutoff)
+                await pipe.zcard(key)
+                results = await pipe.execute()
+            
+            count = results[1]
+            if count >= self.max_calls:
+                return False
+                
+            # Add current timestamp
+            # We don't need a transaction here strictly, but it's fine
+            await client.zadd(key, {str(now): now})
+            await client.expire(key, self.window + 10)
+            return True
+
+        except Exception:
+            # Fallback to in-memory if Redis fails
+            return self.allow()
+
     def allow(self) -> bool:
-        """Return True if the call is within rate limit, False otherwise."""
+        """In-memory synchronous check (backward compatible)."""
+        return self.allow_sync()
+
+    def allow_sync(self) -> bool:
+        """In-memory synchronous check."""
         now = time.monotonic()
         with self._lock:
             # Prune expired timestamps
@@ -104,6 +142,8 @@ class RateLimiter:
             return True
 
     def current_count(self) -> int:
+        # Note: accurate only for in-memory or one node. 
+        # For Redis, one should query Redis, but we keep this simple.
         now = time.monotonic()
         with self._lock:
             cutoff = now - self.window

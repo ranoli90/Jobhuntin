@@ -1,9 +1,11 @@
 import * as React from "react";
-import { X, MapPin, DollarSign, ExternalLink, Bookmark, Share2, CheckCircle, Briefcase, Sparkles } from "lucide-react";
+import { X, MapPin, DollarSign, ExternalLink, Bookmark, Share2, CheckCircle, Briefcase, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import type { JobPosting } from "../../hooks/useJobs";
+import { CoverLetterGenerator } from "./CoverLetterGenerator";
+import { useState } from "react";
 
 interface JobDetailDrawerProps {
   job: JobPosting | null;
@@ -15,16 +17,18 @@ interface JobDetailDrawerProps {
 }
 
 export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved }: JobDetailDrawerProps) {
+  const [showGenerator, setShowGenerator] = useState(false);
+
   if (!isOpen || !job) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 z-40 bg-black/40 transition-opacity" 
+      <div
+        className="fixed inset-0 z-40 bg-black/40 transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Drawer */}
       <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white shadow-2xl">
         <div className="p-8">
@@ -104,10 +108,10 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
 
           {/* Actions */}
           <div className="mt-8 space-y-3">
-            <Button 
-              variant="lagoon" 
-              wobble 
-              size="lg" 
+            <Button
+              variant="lagoon"
+              wobble
+              size="lg"
               className="w-full gap-2"
               onClick={() => {
                 onApply();
@@ -117,18 +121,27 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
               Apply via JobHuntin
               <Sparkles className="h-4 w-4" />
             </Button>
-            
+
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-dashed border-slate-300 text-slate-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50"
+              onClick={() => setShowGenerator(true)}
+            >
+              <Wand2 className="h-4 w-4" />
+              Draft Cover Letter with AI
+            </Button>
+
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-1 gap-2"
                 onClick={onSave}
               >
                 <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
                 {isSaved ? "Saved" : "Save for later"}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-1 gap-2"
                 onClick={() => {
                   if (job.url) window.open(job.url, "_blank");
@@ -139,9 +152,9 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
                 View original
               </Button>
             </div>
-            
-            <Button 
-              variant="ghost" 
+
+            <Button
+              variant="ghost"
               className="w-full gap-2"
               onClick={() => {
                 navigator.share?.({
@@ -159,6 +172,12 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
           </div>
         </div>
       </div>
+
+      <CoverLetterGenerator
+        job={job}
+        isOpen={showGenerator}
+        onClose={() => setShowGenerator(false)}
+      />
     </>
   );
 }

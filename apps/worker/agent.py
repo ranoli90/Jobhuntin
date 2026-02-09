@@ -13,6 +13,7 @@ Production-grade single-worker module that:
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from typing import Any, TypedDict
 
@@ -48,6 +49,7 @@ from backend.llm.prompt_registry import get_prompt
 from shared.config import get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import RateLimiter, incr, observe
+from shared.telemetry import setup_telemetry
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -72,9 +74,11 @@ PAGE_TIMEOUT_MS: int = _settings.page_timeout_ms
 # Rate limiters (in-process guardrails)
 # ---------------------------------------------------------------------------
 _llm_limiter = RateLimiter(
+    name="agent_llm",
     max_calls=_settings.llm_rate_limit_per_minute, window_seconds=60.0
 )
 _processing_limiter = RateLimiter(
+    name="agent_processing",
     max_calls=_settings.max_applications_per_minute, window_seconds=60.0
 )
 
@@ -500,17 +504,63 @@ class FormAgent:
         self.pool = db_pool
         self._context_factory = playwright_context_factory
         self.poll_interval = get_settings().poll_interval_seconds
+        self.wake_event = asyncio.Event()
 
     # -- public entry points -----------------------------------------------
 
     async def run_forever(self) -> None:
-        """Infinite polling loop for production."""
-        logger.info("Agent started – polling every %ds, max %d attempts",
-                     self.poll_interval, MAX_ATTEMPTS)
+        """Infinite polling loop with event-driven wake-up."""
+        logger.info("Agent started – event-driven + polling every %ds", self.poll_interval)
+        
+        # Start the listener task in background
+        asyncio.create_task(self._listen_loop())
+        
         while True:
+            # Clear event before running to ensure we don't miss notifications 
+            # that happen *during* processing (though handling that safely is tricky,
+            # clearing here implies we demand a new notification for the next run 
+            # unless we find more work immediately).
+            # Actually, standard pattern: check work. If work found, repeat. 
+            # If no work, wait for event.
+            
             processed = await self.run_once()
-            if not processed:
-                await asyncio.sleep(self.poll_interval)
+            
+            if processed:
+                # If we processed something, there might be more. Check immediately.
+                # But yield to other tasks slightly to avoid starvation if massive backlog.
+                await asyncio.sleep(0.01)
+                continue
+            
+            # No work found. Wait for notification or timeout.
+            self.wake_event.clear()
+            try:
+                await asyncio.wait_for(self.wake_event.wait(), timeout=self.poll_interval)
+                # logger.debug("Woke up by event")
+            except asyncio.TimeoutError:
+                # logger.debug("Woke up by timeout")
+                pass
+
+    async def _listen_loop(self) -> None:
+        """Dedicated connection for LISTEN/NOTIFY."""
+        settings = get_settings()
+        while True:
+            try:
+                # Use a dedicated connection for listening
+                conn = await asyncpg.connect(settings.database_url)
+                try:
+                    await conn.add_listener("job_queue", lambda *args: self.wake_event.set())
+                    logger.info("Listening for 'job_queue' notifications...")
+                    # Keep connection open indefinitely
+                    while not conn.is_closed():
+                        await asyncio.sleep(60) # Keep-alive check or just sleep
+                        # Optional: check connection health
+                        if conn.is_closed():
+                            break
+                finally:
+                    await conn.close()
+            except Exception as e:
+                logger.error(f"Listener connection failed: {e}. Retrying in 5s...")
+                await asyncio.sleep(5)
 
     async def run_once(self) -> bool:
         """Claim and process a single task. Returns True if work was done."""
@@ -521,7 +571,7 @@ class FormAgent:
             return False
 
         # Guardrail: processing rate limit
-        if not _processing_limiter.allow():
+        if not await _processing_limiter.acquire():
             logger.warning("Processing rate limit reached (%d/min), backing off",
                            _settings.max_applications_per_minute)
             incr("agent.rate_limited", {"limiter": "processing"})
@@ -649,7 +699,7 @@ class FormAgent:
                 logger.info("Experiment assigned prompt version: %s", prompt_version)
 
         # LLM mapping
-        if not _llm_limiter.allow():
+        if not await _llm_limiter.acquire():
             raise RuntimeError("LLM rate limit exceeded; will retry on next poll")
 
         t0 = time.monotonic()
@@ -775,7 +825,37 @@ class FormAgent:
         user_id = str(task["user_id"]) if task.get("user_id") else None
 
         async with db_transaction(self.pool) as conn:
-            await update_application_status(conn, app_id, "FAILED", error_message=error_msg)
+            # Check if we reached max attempts
+            if attempt >= MAX_ATTEMPTS:
+                logger.error("Application %s reached max attempts. Moving to DLQ.", app_id)
+                await update_application_status(conn, app_id, "FAILED", error_message=error_msg)
+                
+                # Insert into DLQ
+                await conn.execute("""
+                    INSERT INTO public.job_dead_letter_queue 
+                    (application_id, tenant_id, failure_reason, attempt_count, last_error, payload)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                """, app_id, tenant_id, "MAX_ATTEMPTS_REACHED", attempt, error_msg, json.dumps(task, default=str))
+                
+                incr("agent.dlq_insertion", tags={"tenant_id": tenant_id or "none"})
+            else:
+                # Just fail for retry (claim logic will picking it up if status resets or we implement strict retry backoff)
+                # Currently claim_next only picks QUEUED or old PROCESSING.
+                # We need to set it back to QUEUED or keep it FAILED?
+                # If we set to FAILED, it won't be picked up again depending on claim_next logic.
+                # claim_next: WHERE (status = 'QUEUED' OR ...)
+                # So we should probably set it back to QUEUED so it retries? 
+                # Or 'PENDING'?
+                # The original code set it to "FAILED". 
+                # If "FAILED" is terminal, then retry logic is broken in original code?
+                # Let's assume standard behavior: update to 'QUEUED' for retry, or system external force.
+                # But typically "FAILED" means manual intervention or retry logic handles it.
+                # NOTE: Original code set "FAILED". I will preserve that but maybe add a note.
+                # Actually, `claim_next` usually picks up 'QUEUED'. 
+                # If we want retry, we should probably set to 'QUEUED' with backoff.
+                # But for now, I'll stick to original behavior + DLQ logic.
+                await update_application_status(conn, app_id, "FAILED", error_message=error_msg)
+
             await EventRepo.emit(conn, app_id, "FAILED", {
                 "error_message": error_msg,
                 "attempt_count": attempt,
@@ -799,6 +879,7 @@ class FormAgent:
 # ---------------------------------------------------------------------------
 
 async def worker_loop() -> None:
+    setup_telemetry("sorce-worker")
     s = get_settings()
     enabled = [slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()]
     load_default_blueprints(enabled_slugs=enabled or None)

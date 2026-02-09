@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     # ── Web App ──────────────────────────────────────────────────
     app_base_url: str = "http://localhost:5173"
 
+    # ── Redis ────────────────────────────────────────────────────
+    redis_url: str = "redis://localhost:6379"
+
     # ── Supabase ─────────────────────────────────────────────────
     supabase_url: str = ""
     supabase_service_key: str = ""
@@ -75,6 +78,10 @@ class Settings(BaseSettings):
     # ── Blueprints ────────────────────────────────────────────────
     default_blueprint_key: str = "job-app"
     enabled_blueprints: str = "job-app,grant,staffing-agency"  # comma-separated list
+
+    # ── Security ─────────────────────────────────────────────────
+    csrf_secret: str = ""  # Required in prod - generate with: secrets.token_hex(32)
+    request_id_header: str = "X-Request-ID"
 
     # ── Adzuna Job Board API ─────────────────────────────────────
     adzuna_app_id: str = ""

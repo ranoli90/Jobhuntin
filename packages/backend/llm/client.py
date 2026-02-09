@@ -25,6 +25,7 @@ from pydantic import BaseModel, ValidationError
 from shared.config import Settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
+from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
 
 logger = get_logger("sorce.llm")
 
@@ -57,6 +58,7 @@ class LLMClient:
         self.max_tokens = settings.llm_max_tokens
         self.retry_count = settings.llm_retry_count
         self.timeout = settings.llm_timeout_seconds
+        self._circuit_breaker = get_circuit_breaker("llm")
 
     async def call(
         self,
@@ -130,11 +132,18 @@ class LLMClient:
         raise LLMError(f"LLM call failed after {self.retry_count + 1} attempts: {last_error}") from last_error
 
     async def _request(self, payload: dict) -> dict:
-        """Make the HTTP request and extract the JSON content."""
-        data = await self._make_http_request(payload)
-        content = self._extract_content(data)
-        cleaned_content = self._clean_content(content)
-        return self._parse_json(cleaned_content)
+        """Make the HTTP request with circuit breaker protection."""
+        try:
+            async with self._circuit_breaker:
+                data = await self._make_http_request(payload)
+                content = self._extract_content(data)
+                cleaned_content = self._clean_content(content)
+                return self._parse_json(cleaned_content)
+        except CircuitBreakerOpen as exc:
+            incr("llm.circuit_breaker.open", {})
+            raise LLMError(
+                f"LLM service unavailable (circuit breaker open). Retry in {exc.retry_after:.0f}s"
+            ) from exc
 
     async def _make_http_request(self, payload: dict) -> dict:
         """Execute the raw HTTP POST."""
@@ -143,6 +152,10 @@ class LLMClient:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
+        # Add OpenRouter-specific headers if using OpenRouter
+        if "openrouter.ai" in self.api_base:
+            headers["HTTP-Referer"] = "https://jobhuntin.com"
+            headers["X-Title"] = "JobHuntin AI"
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             resp = await client.post(url, json=payload, headers=headers)
             resp.raise_for_status()

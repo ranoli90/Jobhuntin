@@ -23,11 +23,11 @@ services:
       - key: SUPABASE_STORAGE_BUCKET
         value: resumes
       - key: LLM_API_BASE
-        value: https://api.openai.com/v1
+        value: https://openrouter.ai/api/v1
       - key: LLM_API_KEY
         sync: false
       - key: LLM_MODEL
-        value: gpt-4o-mini
+        value: google/gemma-2-9b-it:free
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
@@ -51,8 +51,10 @@ services:
       - key: API_V2_METERED_PRICE_ID
         value: price_1SyCHHFZF27VelA7G43q2L3t
       - key: ADZUNA_APP_ID
-        value: sorce
+        value: feca1a79
       - key: ADZUNA_API_KEY
+        sync: false
+      - key: CSRF_SECRET
         sync: false
       - key: WEBHOOK_SIGNING_SECRET
         sync: false
@@ -66,6 +68,11 @@ services:
         value: https://jobhuntin.com
       - key: RESEND_API_KEY
         sync: false
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: sorce-redis
+          property: connectionString
     plan: starter
     region: ohio
 
@@ -92,11 +99,15 @@ services:
       - key: SUPABASE_STORAGE_BUCKET
         value: resumes
       - key: LLM_API_BASE
-        value: https://api.openai.com/v1
+        value: https://openrouter.ai/api/v1
       - key: LLM_API_KEY
         sync: false
       - key: LLM_MODEL
-        value: gpt-4o-mini
+        value: google/gemma-2-9b-it:free
+      - key: ADZUNA_APP_ID
+        value: feca1a79
+      - key: ADZUNA_API_KEY
+        sync: false
       - key: AGENT_ENABLED
         value: "true"
       - key: LOG_JSON
@@ -107,6 +118,11 @@ services:
         value: chromium
       - key: PLAYWRIGHT_HEADLESS
         value: "true"
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: sorce-redis
+          property: connectionString
     plan: starter
     region: ohio
 
@@ -155,6 +171,14 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
+        destination: /index.html
+
+  # ── Redis Cache ────────────────────────────────────────────
+  - type: redis
+    name: sorce-redis
+    region: ohio
+    plan: starter
 
 databases:
   - name: sorce-db

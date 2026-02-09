@@ -1,19 +1,23 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Upload, MapPin, Briefcase, DollarSign, Rocket, ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, User } from "lucide-react";
+import { Check, Upload, MapPin, Briefcase, DollarSign, Rocket, ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, User, Zap } from "lucide-react";
 import { Logo } from '../../components/brand/Logo';
 import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
+import { useAISuggestions } from "../../hooks/useAISuggestions";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { AISuggestionCard, SalarySuggestionCard } from "../../components/ui/AISuggestionCard";
 import { pushToast } from "../../lib/toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding } = useOnboarding();
   const { profile, loading, uploadResume, savePreferences, completeOnboarding } = useProfile();
+  const aiSuggestions = useAISuggestions();
 
   const [resumeFile, setResumeFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
@@ -30,6 +34,7 @@ export default function Onboarding() {
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = React.useState(false);
   const [isCompleting, setIsCompleting] = React.useState(false);
+  const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown> | null>(null);
 
   React.useEffect(() => {
     if (profile?.preferences) {
@@ -68,6 +73,18 @@ export default function Onboarding() {
           headline: p.headline,
         });
         setShowParsingPreview(true);
+
+        // Store the full parsed profile for AI suggestions
+        setParsedProfile(data.parsed_profile);
+
+        // Fetch AI suggestions in background (don't block)
+        aiSuggestions.fetchAllSuggestions(
+          data.parsed_profile,
+          data.preferences?.location || data.contact?.location || ""
+        ).catch(() => {
+          // Non-critical failure, just log
+          console.log("AI suggestions fetch failed, will continue without");
+        });
       }
     } catch (err) {
       const message = (err as Error).message;
@@ -139,11 +156,12 @@ export default function Onboarding() {
       <header className="px-6 h-20 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50">
         <Logo to="/app/onboarding" size="sm" />
         <div className="flex items-center gap-4">
-          <Badge variant="outline" className="hidden sm:flex text-slate-500 border-slate-200 font-bold uppercase tracking-widest text-[10px]">
-            Secure Setup
-          </Badge>
-          <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-xs font-bold uppercase">
-            Reset
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
+            <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+            <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">AI Calibration Active</span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-xs font-bold uppercase hover:bg-slate-100">
+            Restart
           </Button>
         </div>
       </header>
@@ -154,368 +172,575 @@ export default function Onboarding() {
           <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary-500/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
           {/* Progress bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-slate-900">
-                Step {currentStep + 1} of {steps.length}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-3 px-1">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                Calibration Progress — {(progress).toFixed(0)}%
               </span>
-              <span className="text-sm text-slate-500 font-medium">{currentStepData.title}</span>
+              <span className="text-xs font-black text-primary-600 uppercase tracking-[0.2em]">{currentStepData.title}</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-slate-200">
-              <div
-                className="h-full rounded-full bg-primary-600 transition-all duration-500 shadow-sm"
-                style={{ width: `${progress}%` }}
+            <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                className="h-full bg-primary-600 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                transition={{ type: "spring", stiffness: 50, damping: 15 }}
               />
             </div>
           </div>
 
-          <Card tone="glass" shadow="lift" className="p-8 border-slate-200/60">
-            {/* Profile completeness indicator */}
-            <div className="mb-8 rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-emerald-600" />
-                  <span className="text-sm font-bold text-slate-900">Intelligence Profile</span>
-                </div>
-                <span className="text-sm font-black text-emerald-600">{completeness}%</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-white border border-emerald-100/50">
-                <div
-                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${completeness}%` }}
-                />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {(profile?.resume_url || resumeFile) && (
-                  <Badge className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border-none">
-                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                    Resume
-                  </Badge>
-                )}
-                {preferences.location && (
-                  <Badge className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border-none">
-                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                    Location
-                  </Badge>
-                )}
-                {preferences.role_type && (
-                  <Badge className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border-none">
-                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                    Role
-                  </Badge>
-                )}
-                {preferences.salary_min && (
-                  <Badge className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border-none">
-                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                    Salary
-                  </Badge>
-                )}
-              </div>
-            </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: -10 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <Card tone="glass" shadow="lift" className="p-8 border-slate-200/60 overflow-hidden relative">
+                {/* Decorative background elements inside card */}
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Step 1: Welcome */}
-            {currentStep === 0 && (
-              <div className="text-center">
-                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-slate-900 shadow-xl shadow-slate-200">
-                  <Rocket className="h-10 w-10 text-primary-400" />
-                </div>
-                <h1 className="mb-4 font-display text-4xl font-black text-slate-900">
-                  Welcome to Command.
-                </h1>
-                <p className="mb-8 text-slate-500 font-medium leading-relaxed">
-                  We're going to calibrate your AI agent in just 2 minutes. Let's build your digital hunting twin.
-                </p>
-                <ul className="mb-8 space-y-4 text-left">
-                  {[
-                    "Upload resume for skill matching",
-                    "Define your target salary & location",
-                    "Activate autonomous job hunting",
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center gap-4 text-slate-700 font-medium">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary-100 shadow-sm flex-shrink-0">
-                        <Check className="h-3.5 w-3.5 text-primary-600 stroke-[3]" />
+                {/* Profile completeness indicator */}
+                <div className="mb-10 rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors" />
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <Sparkles className="h-4 w-4 text-emerald-400" />
                       </div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <Button size="lg" onClick={nextStep} className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary-500/20 bg-primary-600 hover:bg-primary-500">
-                  Begin Calibration
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </div>
-            )}
-
-            {/* Step 2: Resume Upload */}
-            {currentStep === 1 && (
-              <div>
-                <div className="mb-8 flex items-center gap-4 border-b border-slate-100 pb-6">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 border border-primary-100 text-primary-600">
-                    <Upload className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <h2 className="font-display text-2xl font-black text-slate-900">Input Data Source</h2>
-                    <p className="text-sm text-slate-500 font-medium italic">We'll parse and map your experience in milliseconds.</p>
-                  </div>
-                </div>
-
-                <div className="mb-8 rounded-[2rem] border-2 border-dashed border-slate-200 bg-slate-50/50 p-10 text-center hover:bg-slate-50 hover:border-primary-300 transition-all cursor-pointer group">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                    id="resume-upload"
-                  />
-                  <label
-                    htmlFor="resume-upload"
-                    className="flex cursor-pointer flex-col items-center gap-4"
-                  >
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-md group-hover:scale-110 transition-transform">
-                      <FileText className="h-10 w-10 text-primary-500" />
+                      <div>
+                        <span className="block text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Intelligence Profile</span>
+                        <span className="text-xs font-bold text-white">System Confidence</span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-lg font-bold text-slate-900">
-                        {resumeFile ? resumeFile.name : "Drop Resume Here"}
-                      </p>
-                      <p className="text-sm text-slate-400 font-medium">PDF or DOCX (max 5MB)</p>
+                    <div className="text-right">
+                      <span className="text-2xl font-black text-white italic">{completeness}%</span>
                     </div>
-                  </label>
-                </div>
-
-                <div className="mb-8">
-                  <p className="mb-3 text-xs font-black text-slate-400 uppercase tracking-widest">Or Social Reference Filter</p>
-                  <input
-                    type="url"
-                    placeholder="https://linkedin.com/in/yourname"
-                    value={linkedinUrl}
-                    onChange={(e) => setLinkedinUrl(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-900 font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
-                  />
-                </div>
-
-                {resumeError && (
-                  <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600 font-medium">
-                    {resumeError}
                   </div>
-                )}
+                  <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${completeness}%` }}
+                      className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                      transition={{ type: "spring", stiffness: 40, damping: 12 }}
+                    />
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {(profile?.resume_url || resumeFile) && (
+                      <Badge className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                        Experience Mapped
+                      </Badge>
+                    )}
+                    {preferences.location && (
+                      <Badge className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                        Geospatial Set
+                      </Badge>
+                    )}
+                    {preferences.role_type && (
+                      <Badge className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                        Role Target Lock
+                      </Badge>
+                    )}
+                  </div>
+                </div>
 
-                <div className="flex gap-4">
-                  <Button variant="ghost" onClick={prevStep} className="flex-1 h-14 rounded-2xl font-bold text-slate-400 hover:text-slate-900 border border-slate-200">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  {resumeFile ? (
-                    <Button
-                      onClick={handleResumeUpload}
-                      disabled={isUploading}
-                      className="flex-[1.5] h-14 rounded-2xl font-bold bg-primary-600 hover:bg-primary-500 shadow-xl shadow-primary-500/20"
-                    >
-                      {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "Update Source" : "Extract Experience"}
-                      <ArrowRight className="ml-2 h-5 w-5" />
+                {/* Step 1: Welcome */}
+                {currentStep === 0 && (
+                  <div className="text-center py-4">
+                    <div className="mx-auto mb-8 relative">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 rounded-[2.5rem] border-2 border-dashed border-primary-500/20"
+                      />
+                      <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-110">
+                        <Rocket className="h-12 w-12 text-primary-400" />
+                      </div>
+                    </div>
+                    <h1 className="mb-4 font-display text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                      Initiate <span className="text-primary-600 italic">Hyper-Hunt.</span>
+                    </h1>
+                    <p className="mb-10 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-lg">
+                      We're about to build your digital autonomous twin. Calibration takes 90 seconds.
+                    </p>
+                    <div className="grid gap-4 mb-10">
+                      {[
+                        { title: "Skill Mapping", desc: "AI-driven resume vectorization", icon: Sparkles },
+                        { title: "Radar Tuning", desc: "Location & salary baseline profiling", icon: MapPin },
+                        { title: "Autonomous Launch", desc: "1-Click application engine activation", icon: Rocket },
+                      ].map((item, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 + i * 0.1 }}
+                          className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100/50 hover:bg-white hover:shadow-md transition-all group"
+                        >
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
+                            <item.icon className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{item.title}</p>
+                            <p className="text-xs text-slate-500 font-medium">{item.desc}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                    <Button size="lg" onClick={nextStep} className="w-full h-16 rounded-[1.5rem] text-xl font-black shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
+                      BEGIN CALIBRATION
+                      <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
                     </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      onClick={nextStep}
-                      className="flex-[1.5] h-14 rounded-2xl font-bold text-slate-500 hover:border-slate-900 hover:text-slate-900"
-                    >
-                      Skip to manual entry
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                {/* Resume Parsing Preview */}
-                {showParsingPreview && parsedResume && (
-                  <Card tone="lagoon" className="mt-8 p-6 rounded-[2rem] border-primary-100 bg-primary-50/30">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Sparkles className="h-5 w-5 text-primary-600" />
-                      <h3 className="font-black text-slate-900 text-lg">Parsed Intelligence:</h3>
+                {/* Step 2: Resume Upload */}
+                {currentStep === 1 && (
+                  <div className="py-2">
+                    <div className="mb-10 flex items-center gap-5 border-b border-slate-100 pb-8">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-primary-50 border border-primary-100 text-primary-600 shadow-inner">
+                        <Upload className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <h2 className="font-display text-3xl font-black text-slate-900 tracking-tight">Experience Input</h2>
+                        <p className="text-sm text-slate-500 font-medium italic">Feed the AI your career history for optimization.</p>
+                      </div>
                     </div>
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                          <User className="h-4 w-4 text-primary-500" />
+
+                    <div className="mb-8 relative group">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="resume-upload"
+                        disabled={isUploading}
+                      />
+                      <label
+                        htmlFor="resume-upload"
+                        className={`flex cursor-pointer flex-col items-center gap-6 rounded-[2.5rem] border-3 border-dashed p-14 text-center transition-all ${resumeFile
+                          ? "bg-primary-50/50 border-primary-300"
+                          : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-primary-300"
+                          }`}
+                      >
+                        <div className={`flex h-24 w-24 items-center justify-center rounded-[2rem] bg-white shadow-xl transition-all ${isUploading ? 'animate-pulse scale-90' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
+                          {isUploading ? (
+                            <div className="relative">
+                              <Sparkles className="h-12 w-12 text-primary-400 animate-spin-slow" />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-6 h-6 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                              </div>
+                            </div>
+                          ) : (
+                            <FileText className={`h-12 w-12 ${resumeFile ? 'text-primary-600' : 'text-slate-300'}`} />
+                          )}
                         </div>
-                        <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inferred Title</p>
-                          <p className="font-bold text-slate-900">{parsedResume.title}</p>
+                        <div className="space-y-2">
+                          <p className={`text-xl font-black ${resumeFile ? 'text-primary-700' : 'text-slate-900'}`}>
+                            {resumeFile ? resumeFile.name : "Drop Intelligence File"}
+                          </p>
+                          <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">PDF, DOCX — AI Optimization Ready</p>
                         </div>
+                      </label>
+                      {isUploading && (
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[2.5rem] flex flex-col items-center justify-center gap-4 z-10">
+                          <div className="w-64 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-100 shadow-inner">
+                            <motion.div
+                              className="h-full bg-primary-500"
+                              initial={{ width: "0%" }}
+                              animate={{ width: "100%" }}
+                              transition={{ duration: 4, repeat: Infinity }}
+                            />
+                          </div>
+                          <p className="text-xs font-black text-primary-600 uppercase tracking-widest animate-pulse">Scanning Vector Space...</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mb-10">
+                      <div className="flex items-center gap-2 mb-4 px-1">
+                        <div className="h-[1px] flex-1 bg-slate-100" />
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">or social reference</span>
+                        <div className="h-[1px] flex-1 bg-slate-100" />
                       </div>
-                      <div className="flex items-start gap-4">
-                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                          <Briefcase className="h-4 w-4 text-primary-500" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Experience Depth</p>
-                          <p className="font-bold text-slate-900">{parsedResume.years} years</p>
-                        </div>
+                      <div className="relative">
+                        <User className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                        <input
+                          type="url"
+                          placeholder="LinkedIn URL (optional context)"
+                          value={linkedinUrl}
+                          onChange={(e) => setLinkedinUrl(e.target.value)}
+                          className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 transition-all shadow-sm text-lg placeholder:text-slate-300 placeholder:font-medium"
+                        />
                       </div>
-                      <div className="flex items-start gap-4">
-                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                          <CheckCircle2 className="h-4 w-4 text-primary-500" />
-                        </div>
+                    </div>
+
+                    {resumeError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-600 font-bold flex items-center gap-3"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        {resumeError}
+                      </motion.div>
+                    )}
+
+                    <div className="flex gap-4">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
+                        <ArrowLeft className="mr-2 h-5 w-5" />
+                        PREV
+                      </Button>
+                      {resumeFile ? (
+                        <Button
+                          onClick={handleResumeUpload}
+                          disabled={isUploading}
+                          className="flex-[2] h-16 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-lg group overflow-hidden relative"
+                        >
+                          <span className="relative z-10 flex items-center justify-center">
+                            {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "SYNC NEW SOURCE" : "EXTRACT EXPERIENCE"}
+                            <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                          </span>
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={nextStep}
+                          className="flex-[2] h-16 rounded-[1.25rem] font-black text-slate-500 hover:border-slate-900 hover:text-slate-900 border-2 border-slate-200 transition-all text-lg"
+                        >
+                          SKIP TO MANUAL ENTRY
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Resume Parsing Preview */}
+                    <AnimatePresence>
+                      {showParsingPreview && parsedResume && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0, y: 20 }}
+                          animate={{ opacity: 1, height: 'auto', y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: 20 }}
+                          className="overflow-hidden"
+                        >
+                          <Card className="mt-10 p-8 rounded-[2.5rem] border-primary-100 bg-primary-50/40 relative shadow-xl">
+                            <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">
+                              98% Accuracy
+                            </div>
+                            <div className="flex items-center gap-3 mb-8">
+                              <div className="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-lg shadow-primary-500/20">
+                                <Sparkles className="h-6 w-6" />
+                              </div>
+                              <h3 className="font-black text-slate-900 text-xl tracking-tight">System Extraction Result:</h3>
+                            </div>
+                            <div className="grid gap-6">
+                              <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/80 border border-white shadow-sm">
+                                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary-500 shadow-inner">
+                                  <User className="h-5 w-5" />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Inferred Professional Title</p>
+                                  <p className="font-black text-slate-900 text-lg">{parsedResume.title}</p>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/80 border border-white shadow-sm">
+                                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary-500 shadow-inner">
+                                    <Briefcase className="h-5 w-5" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Depth</p>
+                                    <p className="font-black text-slate-900 text-lg">{parsedResume.years} Years</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/80 border border-white shadow-sm">
+                                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary-500 shadow-inner">
+                                    <Sparkles className="h-5 w-5" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Core Stack</p>
+                                    <p className="font-black text-slate-900 text-lg">{parsedResume.skills?.length || 0} Skills</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="p-4 rounded-2xl bg-white/80 border border-white shadow-sm">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Extracted Competencies</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {parsedResume.skills?.map((skill, i) => (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.8 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      transition={{ delay: i * 0.05 }}
+                                      key={skill}
+                                    >
+                                      <Badge variant="outline" className="text-[10px] font-black bg-white border-slate-100 text-slate-700 px-3 py-1 uppercase tracking-wider">{skill}</Badge>
+                                    </motion.div>
+                                  ))}
+                                  {(!parsedResume.skills || parsedResume.skills.length === 0) && (
+                                    <span className="text-xs text-slate-400 font-medium">Automatic extraction pending manual review...</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              variant="primary"
+                              className="w-full mt-10 h-16 rounded-[1.25rem] font-black text-lg bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-500/20"
+                              onClick={handleConfirmParsing}
+                            >
+                              LOCK IN & PROCEED
+                            </Button>
+                          </Card>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                {/* Step 3: Preferences */}
+                {currentStep === 2 && (
+                  <div className="space-y-10 py-2">
+                    <div className="flex items-center gap-5 border-b border-slate-100 pb-8">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
+                        <MapPin className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <h2 className="font-display text-3xl font-black text-slate-900 tracking-tight">Active Parameters</h2>
+                        <p className="text-sm text-slate-500 font-medium italic">Define the geospatial and fiscal bounds for the AI.</p>
+                      </div>
+                    </div>
+
+                    {/* AI Suggestions Section */}
+                    {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
+                      <div className="grid md:grid-cols-2 gap-6 mb-8">
+                        {/* Role Suggestions */}
+                        <AISuggestionCard
+                          title="Suggested Roles"
+                          subtitle="Based on your experience"
+                          suggestions={aiSuggestions.roles.data?.suggested_roles || []}
+                          confidence={aiSuggestions.roles.data?.confidence}
+                          reasoning={aiSuggestions.roles.data?.reasoning}
+                          loading={aiSuggestions.roles.loading}
+                          error={aiSuggestions.roles.error}
+                          onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
+                          onReject={() => { }}
+                        />
+
+                        {/* Location Suggestions */}
+                        <AISuggestionCard
+                          title="Recommended Locations"
+                          subtitle={aiSuggestions.locations.data?.remote_friendly_score
+                            ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote-friendly role`
+                            : "Based on your skills"
+                          }
+                          suggestions={aiSuggestions.locations.data?.suggested_locations || []}
+                          confidence={aiSuggestions.locations.data?.remote_friendly_score}
+                          reasoning={aiSuggestions.locations.data?.reasoning}
+                          loading={aiSuggestions.locations.loading}
+                          error={aiSuggestions.locations.error}
+                          onAccept={(location) => setPreferences(p => ({ ...p, location }))}
+                          onReject={() => { }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Salary Suggestion */}
+                    {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
+                      <div className="mb-8">
+                        <SalarySuggestionCard
+                          minSalary={aiSuggestions.salary.data?.min_salary || 0}
+                          maxSalary={aiSuggestions.salary.data?.max_salary || 0}
+                          marketMedian={aiSuggestions.salary.data?.market_median || 0}
+                          currency={aiSuggestions.salary.data?.currency}
+                          confidence={aiSuggestions.salary.data?.confidence}
+                          factors={aiSuggestions.salary.data?.factors}
+                          reasoning={aiSuggestions.salary.data?.reasoning}
+                          loading={aiSuggestions.salary.loading}
+                          error={aiSuggestions.salary.error}
+                          onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
+                          onReject={() => { }}
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-8">
+                      <div className="grid gap-8">
                         <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Extracted Stack</p>
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {parsedResume.skills?.map((skill) => (
-                              <Badge key={skill} variant="outline" className="text-[10px] font-bold bg-white">{skill}</Badge>
-                            ))}
+                          <label className="mb-4 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            <div className="w-1 h-1 rounded-full bg-primary-500" />
+                            Primary Operation Hub
+                          </label>
+                          <div className="relative">
+                            <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                            <input
+                              type="text"
+                              placeholder="e.g., Remote, Austin TX, London"
+                              value={preferences.location}
+                              onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
+                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="mb-4 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            <div className="w-1 h-1 rounded-full bg-primary-500" />
+                            Target Role Classification
+                          </label>
+                          <div className="relative">
+                            <Briefcase className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                            <input
+                              type="text"
+                              placeholder="e.g., Staff AI Engineer"
+                              value={preferences.role_type}
+                              onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
+                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                            />
                           </div>
                         </div>
                       </div>
+
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <div>
+                          <label className="mb-4 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            <div className="w-1 h-1 rounded-full bg-primary-500" />
+                            Min Multiplier (Salary)
+                          </label>
+                          <div className="relative">
+                            <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                            <input
+                              type="number"
+                              placeholder="150000"
+                              value={preferences.salary_min}
+                              onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
+                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col justify-end">
+                          <label className={`flex items-center gap-4 p-5 rounded-[1.25rem] cursor-pointer border-2 transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${preferences.remote_only ? 'bg-primary-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
+                              <Zap className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Geo-Agnostic Only</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">100% Remote Filter</p>
+                            </div>
+                            <input
+                              type="checkbox"
+                              checked={preferences.remote_only}
+                              onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
+                              className="h-6 w-6 rounded-lg border-slate-300 text-primary-600 focus:ring-primary-500"
+                            />
+                          </label>
+                        </div>
+                      </div>
                     </div>
-                    <Button
-                      variant="primary"
-                      className="w-full mt-6 h-12 rounded-xl font-bold"
-                      onClick={handleConfirmParsing}
-                    >
-                      Confirm & Proceed
-                    </Button>
-                  </Card>
+
+                    <div className="flex gap-4 pt-10">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
+                        <ArrowLeft className="mr-2 h-5 w-5" />
+                        PREV
+                      </Button>
+                      <Button onClick={handleSavePreferences} className="flex-[2] h-16 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-lg sm:text-xl group" disabled={isSavingPreferences}>
+                        {isSavingPreferences ? <LoadingSpinner size="sm" /> : "DEPLOY HUNTER ENGINE"}
+                        <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              </div>
-            )}
 
-            {/* Step 3: Preferences */}
-            {currentStep === 2 && (
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 border border-amber-100 text-amber-600">
-                    <MapPin className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <h2 className="font-display text-2xl font-black text-slate-900">Targeting Parameters</h2>
-                    <p className="text-sm text-slate-500 font-medium italic">Define where the AI should hunt.</p>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <label className="mb-3 flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
-                      <MapPin className="h-3.5 w-3.5" />
-                      Preferred Hub
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., San Francisco, Remote, London"
-                      value={preferences.location}
-                      onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-900 font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-3 flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
-                      <Briefcase className="h-3.5 w-3.5" />
-                      Role Classification
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., Senior Fullstack Engineer"
-                      value={preferences.role_type}
-                      onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-900 font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
-                    />
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="mb-3 flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
-                        <DollarSign className="h-3.5 w-3.5" />
-                        Min Baseline Salary
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="e.g., 140000"
-                        value={preferences.salary_min}
-                        onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-900 font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
+                {/* Step 4: Review & Ready! */}
+                {currentStep === 3 && (
+                  <div className="text-center py-6">
+                    <div className="mx-auto mb-10 relative">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 0.5, times: [0, 0.5, 1] }}
+                        className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl"
                       />
-                    </div>
-                    <div className="flex flex-col justify-end">
-                      <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 cursor-pointer border border-slate-100 hover:border-slate-200 transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={preferences.remote_only}
-                          onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
-                          className="h-5 w-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-                        />
-                        <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Socially Remote Only</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <Button variant="ghost" onClick={prevStep} className="flex-1 h-14 rounded-2xl font-bold text-slate-400 hover:text-slate-900 border border-slate-200">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button onClick={handleSavePreferences} className="flex-1 h-14 rounded-2xl font-bold bg-primary-600 hover:bg-primary-500 shadow-xl shadow-primary-500/20" disabled={isSavingPreferences}>
-                    {isSavingPreferences ? <LoadingSpinner size="sm" /> : "Deploy Parameters"}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Review & Ready! */}
-            {currentStep === 3 && (
-              <div className="text-center">
-                <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-emerald-500 shadow-2xl shadow-emerald-200 animate-bounce">
-                  <CheckCircle2 className="h-12 w-12 text-white" />
-                </div>
-                <h1 className="mb-4 font-display text-4xl font-black text-slate-900">
-                  System Ready.
-                </h1>
-                <p className="mb-10 text-slate-500 font-medium max-w-sm mx-auto">
-                  Calibration complete. Your digital double is primed for the market.
-                </p>
-
-                {/* Preferences Summary */}
-                <div className="mb-10 grid gap-4 text-left">
-                  <div className="p-6 rounded-[2rem] bg-slate-900 text-white relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/20 rounded-full blur-3xl" />
-                    <h3 className="mb-6 font-black text-primary-400 text-sm uppercase tracking-widest">Active Objectives:</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                        <span className="text-white/50 text-xs font-bold uppercase">AOI Location</span>
-                        <span className="font-bold text-sm">{preferences.location || "Global"}</span>
-                      </div>
-                      <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                        <span className="text-white/50 text-xs font-bold uppercase">Role Target</span>
-                        <span className="font-bold text-sm">{preferences.role_type || "Any High-Value"}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-white/50 text-xs font-bold uppercase">Comp Baseline</span>
-                        <span className="font-bold text-sm">
-                          {preferences.salary_min ? `$${(Number(preferences.salary_min) / 1000).toFixed(0)}k+` : "Premium Only"}
-                        </span>
+                      <div className="relative mx-auto flex h-28 w-28 items-center justify-center rounded-[3rem] bg-emerald-500 shadow-2xl shadow-emerald-200">
+                        <CheckCircle2 className="h-16 w-16 text-white" />
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex gap-4">
-                    <div className="flex-1 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-center">
-                      <p className="text-[10px] uppercase font-black text-emerald-600 mb-1">Success Match</p>
-                      <p className="text-2xl font-black text-emerald-700">98%</p>
-                    </div>
-                    <div className="flex-1 p-4 rounded-2xl bg-primary-50 border border-primary-100 text-center">
-                      <p className="text-[10px] uppercase font-black text-primary-600 mb-1">Time to Deploy</p>
-                      <p className="text-2xl font-black text-primary-700">&lt;2s</p>
-                    </div>
-                  </div>
-                </div>
+                    <h1 className="mb-4 font-display text-5xl font-black text-slate-900 tracking-tight">
+                      System <span className="text-emerald-500 italic">Online.</span>
+                    </h1>
+                    <p className="mb-12 text-slate-500 font-medium max-w-sm mx-auto text-lg leading-relaxed">
+                      Calibration successful. Your digital twin is initialized and ready for high-velocity deployment.
+                    </p>
 
-                <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-16 rounded-[1.5rem] text-xl font-black shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 group transition-all" disabled={isCompleting}>
-                  {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
-                  <Rocket className="ml-3 h-6 w-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                </Button>
-              </div>
-            )}
-          </Card>
+                    {/* Preferences Summary Table */}
+                    <div className="mb-12 relative">
+                      <div className="absolute -inset-4 bg-gradient-to-b from-slate-900/5 to-transparent rounded-[3rem] -z-10" />
+                      <Card className="bg-slate-950 text-white p-8 rounded-[2.5rem] shadow-2xl text-left relative overflow-hidden border-white/5 border-t-white/10">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px]" />
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-3 mb-8 border-b border-white/5 pb-4">
+                            <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-primary-400">
+                              <Rocket className="h-4 w-4" />
+                            </div>
+                            <h3 className="font-black text-white/50 text-[10px] uppercase tracking-[0.3em]">Operational Directives</h3>
+                          </div>
+                          <div className="space-y-6">
+                            <div className="flex items-start justify-between group">
+                              <div>
+                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">AOI GEOLOCATION</p>
+                                <p className="font-black text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.location || "Global Priority"}</p>
+                              </div>
+                              <MapPin className="h-5 w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
+                            </div>
+                            <div className="flex items-start justify-between group">
+                              <div>
+                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">TARGET CLASSIFICATION</p>
+                                <p className="font-black text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.role_type || "Senior Impact Role"}</p>
+                              </div>
+                              <Briefcase className="h-5 w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
+                            </div>
+                            <div className="flex items-start justify-between group">
+                              <div>
+                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">MIN COMP BASELINE</p>
+                                <p className="font-black text-lg text-white group-hover:text-primary-400 transition-colors uppercase">
+                                  {preferences.salary_min ? `$${(Number(preferences.salary_min) / 1000).toFixed(0)}k ANNUAL` : "PREMIUM ONLY"}
+                                </p>
+                              </div>
+                              <DollarSign className="h-5 w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
+                            </div>
+                          </div>
+                          <div className="mt-10 pt-8 border-t border-white/5 grid grid-cols-2 gap-6">
+                            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 group">
+                              <p className="text-[9px] uppercase font-black text-emerald-500/70 mb-1 tracking-widest">Match Strength</p>
+                              <p className="text-2xl font-black text-emerald-400 italic">98.4%</p>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-primary-500/10 border border-primary-500/20 group">
+                              <p className="text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Sync Latency</p>
+                              <p className="text-2xl font-black text-primary-400 italic">&lt;140ms</p>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+
+                    <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-20 rounded-[2rem] text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
+                      <span className="relative z-10 flex items-center justify-center gap-4">
+                        {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
+                        <Rocket className="h-8 w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
+                      </span>
+                      <motion.div
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
+                      />
+                    </Button>
+                    <p className="mt-8 text-[10px] text-slate-400 font-black uppercase tracking-[0.4em]">Full system authority granted.</p>
+                  </div>
+                )}
+              </Card>
+            </motion.div>
+          </AnimatePresence>
 
           {/* Helper text */}
           <p className="mt-8 text-center text-xs text-slate-400 font-medium">
