@@ -50,21 +50,36 @@ class MagicLinkService {
     }
 
     try {
-      // Use window.location.origin but log warning if it's localhost in production
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      // Prefer canonical app base URL to avoid Supabase redirect whitelist errors
+      const configuredOrigin = config.appBaseUrl?.trim();
+      const browserOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+      
+      if (configuredOrigin && !URL.canParse(configuredOrigin)) {
+        throw new Error('Invalid appBaseUrl configuration: malformed URL');
+      }
+      
+      const origin = configuredOrigin || browserOrigin;
+      
+      if (!origin) {
+        throw new Error('App base URL is not configured and origin is unavailable');
+      }
+      
+      if (!configuredOrigin && browserOrigin) {
+        console.warn('[MagicLink] Using browser origin as fallback - configure appBaseUrl for production');
+      }
       
       // Construct redirect URL to go through /login page first
       // This ensures we have a stable entry point to handle the hash fragment
       // before redirecting to the protected route
       const sanitizedReturnTo = this.sanitizeReturnTo(returnTo);
-      const redirectUrl = `${origin}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
+      const redirectUrl = `${origin.replace(/\/$/, '')}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
 
       console.log(`[MagicLink] Origin: ${origin}`);
       console.log(`[MagicLink] Sending to: ${normalizedEmail}, Redirect: ${redirectUrl}`);
       
       // Validate the redirect URL is properly formed
       if (!redirectUrl.startsWith('http')) {
-        throw new Error('Invalid redirect URL: must be absolute URL');
+        throw new Error('Invalid redirect URL: must be absolute URL with protocol');
       }
 
       const { error } = await supabase.auth.signInWithOtp({

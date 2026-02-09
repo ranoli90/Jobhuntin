@@ -17,6 +17,11 @@ export function MarketingNavbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu when the route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   // Lock body scroll is handled by MobileDrawer now
 
   const navLinks = [
