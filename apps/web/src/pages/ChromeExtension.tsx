@@ -17,7 +17,7 @@ export default function ChromeExtension() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] font-sans text-slate-900 selection:bg-[#FF6B35] selection:text-white">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
         title="Chrome Extension | JobHuntin AI - The 'Add to Cart' for Your Career"
         description="Automate your job search directly from LinkedIn, Indeed, and Glassdoor. One click to auto-apply, tailor resumes, and draft cover letters."
@@ -42,15 +42,15 @@ export default function ChromeExtension() {
           }
         }}
       />
-      <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+      <nav className="px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="bg-[#FF6B35] p-2 rounded-xl rotate-3 shadow-lg shadow-orange-500/20">
+            <div className="bg-primary-500 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
               <Bot className="text-white w-6 h-6" />
             </div>
             <span className="text-xl font-bold font-display text-slate-900">JobHuntin</span>
           </Link>
-          <Link to="/" className="text-sm font-medium text-slate-600 hover:text-[#FF6B35] flex items-center gap-2 group transition-colors">
+          <Link to="/" className="text-sm font-bold text-slate-600 hover:text-primary-600 flex items-center gap-2 group transition-colors uppercase tracking-wider">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
           </Link>
         </div>
@@ -62,7 +62,7 @@ export default function ChromeExtension() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-block bg-blue-50 text-[#4A90E2] px-4 py-1 rounded-full text-sm font-bold mb-6"
+              className="inline-block bg-primary-100 text-primary-700 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-6"
             >
               v2.0 Now Available
             </motion.div>
@@ -71,10 +71,10 @@ export default function ChromeExtension() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-5xl md:text-7xl font-extrabold font-display text-slate-900 mb-8 leading-tight tracking-tight"
+              className="text-5xl md:text-7xl font-black font-display text-slate-900 mb-8 leading-tight tracking-tight"
             >
               The "Add to Cart" <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B35] to-[#4A90E2]">for your career.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">for your career.</span>
             </motion.h1>
 
             <motion.p
@@ -93,12 +93,12 @@ export default function ChromeExtension() {
               transition={{ delay: 0.3 }}
               className="flex flex-wrap gap-4"
             >
-              <Button variant="secondary" size="lg" className="px-8 py-4 h-auto rounded-xl font-bold hover:bg-[#FF6B35] transition-colors flex items-center gap-3 shadow-xl hover:shadow-orange-500/20 transform hover:-translate-y-1">
+              <Button variant="primary" size="lg" className="px-8 py-4 h-auto rounded-xl font-bold bg-primary-600 hover:bg-primary-500 transition-colors flex items-center gap-3 shadow-xl shadow-primary-500/20 transform hover:-translate-y-1">
                 <Download className="w-5 h-5" />
                 Add to Chrome
-                <span className="text-gray-400 font-normal text-sm ml-2">It's free</span>
+                <span className="text-white/50 font-normal text-sm ml-2 font-mono">v2.4</span>
               </Button>
-              <Button variant="outline" size="lg" className="bg-white border-2 border-gray-200 text-slate-700 px-8 py-4 h-auto rounded-xl font-bold hover:border-[#4A90E2] hover:text-[#4A90E2] transition-colors">
+              <Button variant="outline" size="lg" className="bg-white border-2 border-slate-200 text-slate-700 px-8 py-4 h-auto rounded-xl font-bold hover:border-primary-500 hover:text-primary-500 transition-colors">
                 Watch Demo
               </Button>
             </motion.div>
@@ -112,52 +112,53 @@ export default function ChromeExtension() {
             className="flex-1 w-full max-w-2xl relative"
           >
             {/* Browser Window */}
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden relative z-10">
+            <div className="bg-white rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden relative z-10">
               {/* Browser Bar */}
-              <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 flex items-center gap-4">
+              <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-4">
                 <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-400" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                  <div className="w-3 h-3 rounded-full bg-green-400" />
+                  <div className="w-3 h-3 rounded-full bg-slate-300" />
+                  <div className="w-3 h-3 rounded-full bg-slate-300" />
+                  <div className="w-3 h-3 rounded-full bg-slate-300" />
                 </div>
-                <div className="bg-white rounded-md flex-1 px-3 py-1 text-xs text-gray-400 font-mono flex items-center">
-                  <span className="text-gray-300 mr-2">🔒</span> linkedin.com/jobs/view/382910...
+                <div className="bg-white rounded-lg flex-1 px-4 py-1.5 text-[10px] text-slate-400 font-mono flex items-center border border-slate-200">
+                  <span className="text-emerald-500 mr-2">🔒</span> linkedin.com/jobs/view/382910...
                 </div>
               </div>
 
               {/* Web Content */}
-              <div className="p-4 sm:p-6 h-[300px] sm:h-[400px] bg-gray-50 relative">
+              <div className="p-4 sm:p-8 h-[300px] sm:h-[450px] bg-white relative">
                 {/* Job Header */}
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex gap-2 sm:gap-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg sm:text-xl">L</div>
+                <div className="flex justify-between items-start mb-8">
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black text-xl">L</div>
                     <div>
-                      <div className="h-3 sm:h-4 w-32 sm:w-48 bg-gray-800 rounded mb-2"></div>
-                      <div className="h-2 sm:h-3 w-16 sm:w-24 bg-gray-400 rounded"></div>
+                      <div className="h-4 w-48 bg-slate-900 rounded-full mb-3"></div>
+                      <div className="h-3 w-24 bg-slate-200 rounded-full"></div>
                     </div>
                   </div>
                   {/* The Magic Button */}
                   <motion.button
                     animate={{
-                      scale: activeStep === 1 ? [1, 0.9, 1] : 1,
-                      backgroundColor: activeStep >= 2 ? "#10B981" : "#2D2D2D"
+                      scale: activeStep === 1 ? [1, 0.95, 1] : 1,
+                      backgroundColor: activeStep >= 2 ? "#10B981" : "#2563eb"
                     }}
-                    className="bg-[#2D2D2D] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg relative z-50"
+                    className="bg-primary-600 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-primary-500/20 relative z-50 transition-colors"
                   >
                     {activeStep >= 2 ? (
-                      <><Check className="w-4 h-4" /> Added to Queue</>
+                      <><Check className="w-4 h-4 stroke-[3]" /> Added to Queue</>
                     ) : (
-                      <><Plus className="w-4 h-4" /> Auto-Apply</>
+                      <><Plus className="w-4 h-4 stroke-[3]" /> Auto-Apply</>
                     )}
                   </motion.button>
                 </div>
 
                 {/* Job Body */}
-                <div className="space-y-3 opacity-30">
-                  <div className="h-3 w-full bg-gray-300 rounded"></div>
-                  <div className="h-3 w-full bg-gray-300 rounded"></div>
-                  <div className="h-3 w-3/4 bg-gray-300 rounded"></div>
-                  <div className="h-3 w-full bg-gray-300 rounded"></div>
+                <div className="space-y-4 opacity-10">
+                  <div className="h-3 w-full bg-slate-400 rounded-full"></div>
+                  <div className="h-3 w-full bg-slate-400 rounded-full"></div>
+                  <div className="h-3 w-3/4 bg-slate-400 rounded-full"></div>
+                  <div className="h-3 w-full bg-slate-400 rounded-full"></div>
+                  <div className="h-3 w-5/6 bg-slate-400 rounded-full"></div>
                 </div>
 
                 {/* Extension Overlay */}
@@ -167,42 +168,42 @@ export default function ChromeExtension() {
                       initial={{ x: 300, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       exit={{ x: 300, opacity: 0 }}
-                      className="absolute top-4 right-4 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 p-4 z-40"
+                      className="absolute top-6 right-6 w-72 bg-slate-900 text-white rounded-2xl shadow-2xl p-5 z-40 border border-white/10"
                     >
-                      <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2">
-                        <div className="bg-[#FF6B35] p-1 rounded-lg">
+                      <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-3">
+                        <div className="bg-primary-500 p-1.5 rounded-lg">
                           <Bot className="w-4 h-4 text-white" />
                         </div>
-                        <span className="font-bold text-sm">JobHuntin Agent</span>
+                        <span className="font-bold text-xs uppercase tracking-widest text-primary-400">Agent Intelligence</span>
                       </div>
 
                       {activeStep === 1 && (
-                        <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <div className="w-4 h-4 border-2 border-[#FF6B35] border-t-transparent rounded-full animate-spin" />
-                          Parsing job details...
+                        <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                          <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                          Parsing opportunities...
                         </div>
                       )}
 
                       {activeStep === 2 && (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
-                            <Check className="w-4 h-4" /> Match Score: 94%
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 text-xs text-emerald-400 font-black uppercase tracking-wider">
+                            <Check className="w-4 h-4 stroke-[3]" /> Match Score: 94%
                           </div>
-                          <div className="bg-gray-50 p-2 rounded text-xs text-gray-500 font-mono">
-                            &gt; Tailoring resume...<br />
-                            &gt; Drafting cover letter...<br />
-                            &gt; Added to priority queue.
+                          <div className="bg-white/5 p-3 rounded-xl text-[10px] text-slate-400 font-mono leading-relaxed">
+                            <span className="text-primary-400">&gt;</span> Tailoring resume for role...<br />
+                            <span className="text-primary-400">&gt;</span> Drafting cover letter...<br />
+                            <span className="text-primary-400">&gt;</span> Task queued in cloud.
                           </div>
                         </div>
                       )}
 
                       {activeStep === 3 && (
                         <div className="text-center py-4">
-                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 text-green-600">
-                            <Check className="w-6 h-6" />
+                          <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-emerald-400 border border-emerald-500/50">
+                            <Check className="w-6 h-6 stroke-[3]" />
                           </div>
-                          <h4 className="font-bold text-gray-900">Ready to Apply!</h4>
-                          <p className="text-xs text-gray-500">Agent will submit in ~2 mins</p>
+                          <h4 className="font-black text-white text-xs uppercase tracking-widest">Autonomous Sync</h4>
+                          <p className="text-[10px] text-slate-400 mt-1">Application pending submission</p>
                         </div>
                       )}
                     </motion.div>
@@ -213,12 +214,12 @@ export default function ChromeExtension() {
                 <motion.div
                   animate={{
                     x: activeStep === 0 ? 380 : 400,
-                    y: activeStep === 0 ? 40 : 50,
+                    y: activeStep === 0 ? 50 : 60,
                     scale: activeStep === 1 ? 0.9 : 1
                   }}
                   transition={{ duration: 1 }}
                   className="absolute top-0 left-0 w-6 h-6 pointer-events-none z-50"
-                  style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.2))" }}
+                  style={{ filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.3))" }}
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z" fill="black" stroke="white" strokeWidth="2" />
@@ -228,7 +229,7 @@ export default function ChromeExtension() {
             </div>
 
             {/* Background Blob */}
-            <div className="absolute -inset-10 bg-gradient-to-tr from-[#FF6B35] to-[#4A90E2] rounded-full blur-[80px] opacity-20 -z-10" />
+            <div className="absolute -inset-20 bg-gradient-to-tr from-primary-500/20 to-blue-500/20 rounded-full blur-[100px] -z-10 animate-pulse" />
           </motion.div>
         </div>
 

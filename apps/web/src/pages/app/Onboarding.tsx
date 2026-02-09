@@ -25,7 +25,7 @@ export default function Onboarding() {
   });
 
   const [linkedinUrl, setLinkedinUrl] = React.useState("");
-  const [parsedResume, setParsedResume] = React.useState<{title?: string; skills?: string[]; years?: number; summary?: string; headline?: string} | null>(null);
+  const [parsedResume, setParsedResume] = React.useState<{ title?: string; skills?: string[]; years?: number; summary?: string; headline?: string } | null>(null);
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = React.useState(false);
   const [isCompleting, setIsCompleting] = React.useState(false);
@@ -133,405 +133,411 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-shell px-6 py-12">
-      <div className="mx-auto max-w-2xl">
-        {/* Progress bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-brand-ink">
-              Step {currentStep + 1} of {steps.length}
-            </span>
-            <span className="text-sm text-brand-ink/60">{currentStepData.title}</span>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Minimal Header */}
+      <header className="px-6 h-20 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20">
+            <Bot className="text-white w-5 h-5" />
           </div>
-          <div className="h-2 w-full rounded-full bg-white">
-            <div
-              className="h-full rounded-full bg-brand-sunrise transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <span className="text-xl font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
         </div>
+        <div className="flex items-center gap-4">
+          <Badge variant="outline" className="hidden sm:flex text-slate-500 border-slate-200">
+            Secure Setup
+          </Badge>
+          <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-xs font-bold uppercase">
+            Reset
+          </Button>
+        </div>
+      </header>
 
-        <Card tone="shell" shadow="lift" className="p-8">
-          {/* Profile completeness indicator */}
-          <div className="mb-6 rounded-2xl bg-brand-lagoon/10 p-4">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 md:py-20 bg-grid-premium opacity-100">
+        <div className="w-full max-w-2xl relative">
+          {/* Subtle background glow */}
+          <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary-500/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+          {/* Progress bar */}
+          <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-brand-lagoon" />
-                <span className="text-sm font-medium text-brand-ink">Profile completeness</span>
-              </div>
-              <span className="text-sm font-bold text-brand-lagoon">{completeness}%</span>
+              <span className="text-sm font-medium text-slate-900">
+                Step {currentStep + 1} of {steps.length}
+              </span>
+              <span className="text-sm text-slate-500 font-medium">{currentStepData.title}</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-white">
+            <div className="h-2 w-full rounded-full bg-slate-200">
               <div
-                className="h-full rounded-full bg-brand-lagoon transition-all duration-500"
-                style={{ width: `${completeness}%` }}
+                className="h-full rounded-full bg-primary-600 transition-all duration-500 shadow-sm"
+                style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {(profile?.resume_url || resumeFile) && (
-                <Badge variant="lagoon" className="text-xs">
-                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                  Resume uploaded
-                </Badge>
-              )}
-              {preferences.location && (
-                <Badge variant="lagoon" className="text-xs">
-                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                  Location set
-                </Badge>
-              )}
-              {preferences.role_type && (
-                <Badge variant="lagoon" className="text-xs">
-                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                  Role type set
-                </Badge>
-              )}
-              {preferences.salary_min && (
-                <Badge variant="lagoon" className="text-xs">
-                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                  Salary set
-                </Badge>
-              )}
-            </div>
           </div>
 
-          {/* Step 1: Welcome */}
-          {currentStep === 0 && (
-            <div className="text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand-sunrise/20">
-                <Rocket className="h-10 w-10 text-brand-sunrise" />
-              </div>
-              <h1 className="mb-4 font-display text-3xl text-brand-ink">
-                Welcome to JobHuntin!
-              </h1>
-              <p className="mb-6 text-brand-ink/70">
-                We're going to get you set up in just 2 minutes. Here's what we'll do:
-              </p>
-              <ul className="mb-8 space-y-3 text-left">
-                {[
-                  "Upload your resume (or paste your LinkedIn)",
-                  "Set your job preferences",
-                  "Start applying to perfect matches",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-brand-ink">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-lagoon/20">
-                      <Check className="h-4 w-4 text-brand-lagoon" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Button size="lg" wobble onClick={nextStep} className="w-full">
-                Let's go!
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          )}
-
-          {/* Step 2: Resume Upload */}
-          {currentStep === 1 && (
-            <div>
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-lagoon/20">
-                  <Upload className="h-6 w-6 text-brand-lagoon" />
+          <Card tone="glass" shadow="lift" className="p-8 border-slate-200/60">
+            {/* Profile completeness indicator */}
+            <div className="mb-8 rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-emerald-600" />
+                  <span className="text-sm font-bold text-slate-900">Intelligence Profile</span>
                 </div>
-                <div>
-                  <h2 className="font-display text-2xl text-brand-ink">Upload your resume</h2>
-                  <p className="text-sm text-brand-ink/60">PDF or Word doc — we'll extract your skills automatically</p>
-                </div>
+                <span className="text-sm font-black text-emerald-600">{completeness}%</span>
               </div>
-
-              <div className="mb-6 rounded-2xl border-2 border-dashed border-brand-ink/20 bg-white/50 p-8 text-center">
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                  id="resume-upload"
-                />
-                <label
-                  htmlFor="resume-upload"
-                  className="flex cursor-pointer flex-col items-center gap-3"
-                >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-shell">
-                    <FileText className="h-8 w-8 text-brand-ink/60" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-brand-ink">
-                      {resumeFile ? resumeFile.name : "Click to upload your resume"}
-                    </p>
-                    <p className="text-sm text-brand-ink/50">Or drag and drop here</p>
-                  </div>
-                </label>
-              </div>
-
-              <div className="mb-6">
-                <p className="mb-2 text-sm text-brand-ink/60">Or paste your LinkedIn URL:</p>
-                <input
-                  type="url"
-                  placeholder="https://linkedin.com/in/yourname"
-                  value={linkedinUrl}
-                  onChange={(e) => setLinkedinUrl(e.target.value)}
-                  className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
+              <div className="h-2 w-full rounded-full bg-white border border-emerald-100/50">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${completeness}%` }}
                 />
               </div>
-
-              {resumeError && (
-                <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {resumeError}
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <Button variant="ghost" onClick={prevStep} className="flex-1">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-                {resumeFile ? (
-                  <Button
-                    onClick={handleResumeUpload}
-                    disabled={isUploading}
-                    className="flex-1"
-                  >
-                    {isUploading ? "Uploading..." : showParsingPreview ? "Re-upload" : "Upload & Continue"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={nextStep}
-                    className="flex-1"
-                  >
-                    Skip for now
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(profile?.resume_url || resumeFile) && (
+                  <Badge className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border-none">
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    Resume
+                  </Badge>
+                )}
+                {preferences.location && (
+                  <Badge className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border-none">
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    Location
+                  </Badge>
+                )}
+                {preferences.role_type && (
+                  <Badge className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border-none">
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    Role
+                  </Badge>
+                )}
+                {preferences.salary_min && (
+                  <Badge className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border-none">
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    Salary
+                  </Badge>
                 )}
               </div>
-
-              {/* Resume Parsing Preview */}
-              {showParsingPreview && parsedResume && (
-                <Card tone="lagoon" className="mt-6 p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Sparkles className="h-5 w-5 text-brand-lagoon" />
-                    <h3 className="font-display text-lg">We found from your resume:</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <User className="h-4 w-4 text-brand-lagoon mt-1" />
-                      <div>
-                        <p className="text-sm font-medium text-brand-ink">Title</p>
-                        <p className="text-brand-ink/70">{parsedResume.title}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Briefcase className="h-4 w-4 text-brand-lagoon mt-1" />
-                      <div>
-                        <p className="text-sm font-medium text-brand-ink">Experience</p>
-                        <p className="text-brand-ink/70">{parsedResume.years} years</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="h-4 w-4 text-brand-lagoon mt-1" />
-                      <div>
-                        <p className="text-sm font-medium text-brand-ink">Top Skills</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {parsedResume.skills?.map((skill) => (
-                            <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    {parsedResume.summary && (
-                      <div className="flex items-start gap-3">
-                        <Sparkles className="h-4 w-4 text-brand-lagoon mt-1" />
-                        <div>
-                          <p className="text-sm font-medium text-brand-ink">Summary</p>
-                          <p className="text-brand-ink/70">{parsedResume.summary}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <p className="mt-4 text-sm text-brand-ink/60">
-                    Does this look right? We'll use these details to personalize your applications.
-                  </p>
-                  <Button 
-                    variant="lagoon" 
-                    className="w-full mt-4"
-                    onClick={handleConfirmParsing}
-                  >
-                    Looks good, continue
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full mt-3"
-                    onClick={() => {
-                      setShowParsingPreview(false);
-                      setResumeFile(null);
-                      setParsedResume(null);
-                    }}
-                  >
-                    Re-upload
-                  </Button>
-                </Card>
-              )}
             </div>
-          )}
 
-          {/* Step 3: Preferences */}
-          {currentStep === 2 && (
-            <div>
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-plum/20">
-                  <Briefcase className="h-6 w-6 text-brand-plum" />
+            {/* Step 1: Welcome */}
+            {currentStep === 0 && (
+              <div className="text-center">
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-slate-900 shadow-xl shadow-slate-200">
+                  <Rocket className="h-10 w-10 text-primary-400" />
                 </div>
-                <div>
-                  <h2 className="font-display text-2xl text-brand-ink">Job preferences</h2>
-                  <p className="text-sm text-brand-ink/60">Tell us what you're looking for</p>
-                </div>
-              </div>
-
-              <div className="mb-6 space-y-4">
-                <div>
-                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                    <MapPin className="h-4 w-4" />
-                    Preferred location
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., San Francisco, Remote, Europe"
-                    value={preferences.location}
-                    onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
-                    className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                    <Briefcase className="h-4 w-4" />
-                    Role type
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Product Designer, Software Engineer"
-                    value={preferences.role_type}
-                    onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
-                    className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                    <DollarSign className="h-4 w-4" />
-                    Minimum salary
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="e.g., 100000"
-                    value={preferences.salary_min}
-                    onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
-                    className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
-                  />
-                </div>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={preferences.remote_only}
-                    onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
-                    className="h-5 w-5 rounded border-brand-ink/20"
-                  />
-                  <span className="text-brand-ink">Remote only</span>
-                </label>
-              </div>
-
-              <div className="flex gap-3">
-                <Button variant="ghost" onClick={prevStep} className="flex-1">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-                <Button onClick={handleSavePreferences} className="flex-1" disabled={isSavingPreferences}>
-                  Continue
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Review & Ready! */}
-          {currentStep === 3 && (
-            <div className="text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand-lagoon/20">
-                <Badge variant="lagoon" className="text-lg">🎉</Badge>
-              </div>
-              <h1 className="mb-4 font-display text-3xl text-brand-ink">
-                You're ready to job hunt!
-              </h1>
-              <p className="mb-6 text-brand-ink/70">
-                We've got your resume and preferences. Let's find you some perfect job matches.
-              </p>
-
-              {/* Preferences Summary */}
-              <Card tone="shell" className="mb-6 p-5 text-left">
-                <h3 className="mb-4 font-display text-lg text-brand-ink">Your preferences:</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-brand-ink/60">Location</span>
-                    <span className="font-medium text-brand-ink">{preferences.location || "Not specified"}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-brand-ink/60">Role type</span>
-                    <span className="font-medium text-brand-ink">{preferences.role_type || "Not specified"}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-brand-ink/60">Minimum salary</span>
-                    <span className="font-medium text-brand-ink">
-                      {preferences.salary_min ? `$${Number(preferences.salary_min).toLocaleString()}` : "Not specified"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-brand-ink/60">Remote only</span>
-                    <span className="font-medium text-brand-ink">{preferences.remote_only ? "Yes" : "No"}</span>
-                  </div>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full mt-4"
-                  onClick={() => prevStep()}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Edit preferences
-                </Button>
-              </Card>
-
-              <div className="mb-8 rounded-2xl bg-brand-shell/70 p-6">
-                <h3 className="mb-4 font-display text-lg text-brand-ink">What happens next:</h3>
-                <ul className="space-y-3 text-left">
+                <h1 className="mb-4 font-display text-4xl font-black text-slate-900">
+                  Welcome to Command.
+                </h1>
+                <p className="mb-8 text-slate-500 font-medium leading-relaxed">
+                  We're going to calibrate your AI agent in just 2 minutes. Let's build your digital hunting twin.
+                </p>
+                <ul className="mb-8 space-y-4 text-left">
                   {[
-                    "We'll scan for jobs matching your profile",
-                    "You swipe right on jobs you like",
-                    "We apply for you with a personalized message",
-                    "You get interview requests directly",
+                    "Upload resume for skill matching",
+                    "Define your target salary & location",
+                    "Activate autonomous job hunting",
                   ].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-brand-ink">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-sunrise/20">
-                        <span className="text-sm font-bold text-brand-sunrise">{i + 1}</span>
+                    <li key={i} className="flex items-center gap-4 text-slate-700 font-medium">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary-100 shadow-sm flex-shrink-0">
+                        <Check className="h-3.5 w-3.5 text-primary-600 stroke-[3]" />
                       </div>
                       {item}
                     </li>
                   ))}
                 </ul>
+                <Button size="lg" onClick={nextStep} className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary-500/20 bg-primary-600 hover:bg-primary-500">
+                  Begin Calibration
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </div>
+            )}
 
-              <Button size="lg" variant="primary" wobble onClick={handleComplete} className="w-full" disabled={isCompleting}>
-                {isCompleting ? "Finishing..." : "Let's find jobs!"}
-                <Rocket className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </Card>
-      </div>
+            {/* Step 2: Resume Upload */}
+            {currentStep === 1 && (
+              <div>
+                <div className="mb-8 flex items-center gap-4 border-b border-slate-100 pb-6">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 border border-primary-100 text-primary-600">
+                    <Upload className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-2xl font-black text-slate-900">Input Data Source</h2>
+                    <p className="text-sm text-slate-500 font-medium italic">We'll parse and map your experience in milliseconds.</p>
+                  </div>
+                </div>
+
+                <div className="mb-8 rounded-[2rem] border-2 border-dashed border-slate-200 bg-slate-50/50 p-10 text-center hover:bg-slate-50 hover:border-primary-300 transition-all cursor-pointer group">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                    id="resume-upload"
+                  />
+                  <label
+                    htmlFor="resume-upload"
+                    className="flex cursor-pointer flex-col items-center gap-4"
+                  >
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-md group-hover:scale-110 transition-transform">
+                      <FileText className="h-10 w-10 text-primary-500" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-slate-900">
+                        {resumeFile ? resumeFile.name : "Drop Resume Here"}
+                      </p>
+                      <p className="text-sm text-slate-400 font-medium">PDF or DOCX (max 5MB)</p>
+                    </div>
+                  </label>
+                </div>
+
+                <div className="mb-8">
+                  <p className="mb-3 text-xs font-black text-slate-400 uppercase tracking-widest">Or Social Reference Filter</p>
+                  <input
+                    type="url"
+                    placeholder="https://linkedin.com/in/yourname"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-900 font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
+                  />
+                </div>
+
+                {resumeError && (
+                  <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600 font-medium">
+                    {resumeError}
+                  </div>
+                )}
+
+                <div className="flex gap-4">
+                  <Button variant="ghost" onClick={prevStep} className="flex-1 h-14 rounded-2xl font-bold text-slate-400 hover:text-slate-900 border border-slate-200">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  {resumeFile ? (
+                    <Button
+                      onClick={handleResumeUpload}
+                      disabled={isUploading}
+                      className="flex-[1.5] h-14 rounded-2xl font-bold bg-primary-600 hover:bg-primary-500 shadow-xl shadow-primary-500/20"
+                    >
+                      {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "Update Source" : "Extract Experience"}
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={nextStep}
+                      className="flex-[1.5] h-14 rounded-2xl font-bold text-slate-500 hover:border-slate-900 hover:text-slate-900"
+                    >
+                      Skip to manual entry
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Resume Parsing Preview */}
+                {showParsingPreview && parsedResume && (
+                  <Card tone="lagoon" className="mt-8 p-6 rounded-[2rem] border-primary-100 bg-primary-50/30">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="h-5 w-5 text-primary-600" />
+                      <h3 className="font-black text-slate-900 text-lg">Parsed Intelligence:</h3>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                          <User className="h-4 w-4 text-primary-500" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inferred Title</p>
+                          <p className="font-bold text-slate-900">{parsedResume.title}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                          <Briefcase className="h-4 w-4 text-primary-500" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Experience Depth</p>
+                          <p className="font-bold text-slate-900">{parsedResume.years} years</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                          <CheckCircle2 className="h-4 w-4 text-primary-500" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Extracted Stack</p>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {parsedResume.skills?.map((skill) => (
+                              <Badge key={skill} variant="outline" className="text-[10px] font-bold bg-white">{skill}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="primary"
+                      className="w-full mt-6 h-12 rounded-xl font-bold"
+                      onClick={handleConfirmParsing}
+                    >
+                      Confirm & Proceed
+                    </Button>
+                  </Card>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Preferences */}
+            {currentStep === 2 && (
+              <div className="space-y-8">
+                <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 border border-amber-100 text-amber-600">
+                    <MapPin className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-2xl font-black text-slate-900">Targeting Parameters</h2>
+                    <p className="text-sm text-slate-500 font-medium italic">Define where the AI should hunt.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="mb-3 flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Preferred Hub
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., San Francisco, Remote, London"
+                      value={preferences.location}
+                      onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-900 font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-3 flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                      <Briefcase className="h-3.5 w-3.5" />
+                      Role Classification
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Senior Fullstack Engineer"
+                      value={preferences.role_type}
+                      onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-900 font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="mb-3 flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        Min Baseline Salary
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g., 140000"
+                        value={preferences.salary_min}
+                        onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-900 font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="flex flex-col justify-end">
+                      <label className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 cursor-pointer border border-slate-100 hover:border-slate-200 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={preferences.remote_only}
+                          onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
+                          className="h-5 w-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Socially Remote Only</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <Button variant="ghost" onClick={prevStep} className="flex-1 h-14 rounded-2xl font-bold text-slate-400 hover:text-slate-900 border border-slate-200">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button onClick={handleSavePreferences} className="flex-1 h-14 rounded-2xl font-bold bg-primary-600 hover:bg-primary-500 shadow-xl shadow-primary-500/20" disabled={isSavingPreferences}>
+                    {isSavingPreferences ? <LoadingSpinner size="sm" /> : "Deploy Parameters"}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Review & Ready! */}
+            {currentStep === 3 && (
+              <div className="text-center">
+                <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-emerald-500 shadow-2xl shadow-emerald-200 animate-bounce">
+                  <CheckCircle2 className="h-12 w-12 text-white" />
+                </div>
+                <h1 className="mb-4 font-display text-4xl font-black text-slate-900">
+                  System Ready.
+                </h1>
+                <p className="mb-10 text-slate-500 font-medium max-w-sm mx-auto">
+                  Calibration complete. Your digital double is primed for the market.
+                </p>
+
+                {/* Preferences Summary */}
+                <div className="mb-10 grid gap-4 text-left">
+                  <div className="p-6 rounded-[2rem] bg-slate-900 text-white relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/20 rounded-full blur-3xl" />
+                    <h3 className="mb-6 font-black text-primary-400 text-sm uppercase tracking-widest">Active Objectives:</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                        <span className="text-white/50 text-xs font-bold uppercase">AOI Location</span>
+                        <span className="font-bold text-sm">{preferences.location || "Global"}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                        <span className="text-white/50 text-xs font-bold uppercase">Role Target</span>
+                        <span className="font-bold text-sm">{preferences.role_type || "Any High-Value"}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-white/50 text-xs font-bold uppercase">Comp Baseline</span>
+                        <span className="font-bold text-sm">
+                          {preferences.salary_min ? `$${(Number(preferences.salary_min) / 1000).toFixed(0)}k+` : "Premium Only"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="flex-1 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-center">
+                      <p className="text-[10px] uppercase font-black text-emerald-600 mb-1">Success Match</p>
+                      <p className="text-2xl font-black text-emerald-700">98%</p>
+                    </div>
+                    <div className="flex-1 p-4 rounded-2xl bg-primary-50 border border-primary-100 text-center">
+                      <p className="text-[10px] uppercase font-black text-primary-600 mb-1">Time to Deploy</p>
+                      <p className="text-2xl font-black text-primary-700">&lt;2s</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-16 rounded-[1.5rem] text-xl font-black shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 group transition-all" disabled={isCompleting}>
+                  {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
+                  <Rocket className="ml-3 h-6 w-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                </Button>
+              </div>
+            )}
+          </Card>
+
+          {/* Helper text */}
+          <p className="mt-8 text-center text-xs text-slate-400 font-medium">
+            Step recorded at {new Date().toLocaleTimeString()} • Secured by 256-bit encryption
+          </p>
+        </div>
+      </main>
+
+      {/* Minimal Footer */}
+      <footer className="px-6 py-8 border-t border-slate-200 bg-white">
+        <div className="max-w-2xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-slate-400 font-medium font-bold">© 2024 JobHuntin AI. Intelligence for Career Acceleration.</p>
+          <div className="flex gap-6">
+            <a href="/privacy" className="text-xs text-slate-400 hover:text-slate-900 font-bold uppercase transition-colors">Privacy</a>
+            <a href="/terms" className="text-xs text-slate-400 hover:text-slate-900 font-bold uppercase transition-colors">Terms</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

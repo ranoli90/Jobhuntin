@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useSpring, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
-import { 
-  Rocket, Sparkles, Bot, Zap, CheckCircle, ArrowRight, UploadCloud, 
+import {
+  Rocket, Sparkles, Bot, Zap, CheckCircle, ArrowRight, UploadCloud,
   Code, MailCheck, Smartphone, QrCode, UserCircle, Target, Brain
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
@@ -38,7 +38,7 @@ const ActivityFeed = () => {
     const interval = setInterval(() => {
       const newActivities = [
         "Sarah just applied to Google",
-        "Mike landed an interview at Stripe", 
+        "Mike landed an interview at Stripe",
         "David sent 12 apps in 1 min",
         "Jenny got a reply from Airbnb",
         "Tom's bot is on fire: 50 apps sent",
@@ -99,7 +99,7 @@ const Hero = () => {
   const [jobs, setJobs] = useState(TEASER_JOBS);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
-  
+
   // Background Particles Data - Refined for a more artistic look
   const particles = React.useMemo(() => {
     return [...Array(25)].map((_, i) => ({
@@ -111,11 +111,11 @@ const Hero = () => {
       delay: Math.random() * 10,
       yMove: (Math.random() - 0.5) * 150,
       xMove: (Math.random() - 0.5) * 150,
-      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(250, 249, 246, 0.3)',
+      color: i % 3 === 0 ? 'rgba(59, 130, 246, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(250, 249, 246, 0.3)',
       blur: i < 5 ? 'blur(60px)' : 'none'
     }));
   }, []);
-  
+
   // Mouse Glow
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -189,7 +189,7 @@ const Hero = () => {
             particleCount: 150,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
+            colors: ['#3b82f6', '#4A90E2', '#FAF9F6']
           });
         }
       } catch (e) {
@@ -214,10 +214,10 @@ const Hero = () => {
   const removeJob = (index: number) => {
     setJobs(prev => prev.filter((_, i) => i !== index));
     setTimeout(() => {
-      setJobs(prev => [...prev, { 
+      setJobs(prev => [...prev, {
         id: Math.random().toString(36).substr(2, 9),
-        title: "New Match Found!", 
-        status: "Analyzing..." 
+        title: "New Match Found!",
+        status: "Analyzing..."
       }]);
     }, 500);
   };
@@ -226,22 +226,22 @@ const Hero = () => {
     <section className="relative min-h-[85vh] pt-32 pb-12 flex items-center justify-center overflow-hidden bg-slate-50">
       {/* Premium Background Layers */}
       <div className="absolute inset-0 bg-grid-premium opacity-[0.4] pointer-events-none" />
-      
+
       {/* Large Artistic Gradient Blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {particles.map((particle) => (
           <motion.div
             key={particle.id}
             className="absolute rounded-full"
-            animate={{ 
+            animate={{
               y: [0, particle.yMove, 0],
               x: [0, particle.xMove, 0],
               rotate: [0, 360],
               scale: [1, 1.1, 1]
             }}
-            transition={{ 
-              duration: particle.duration, 
-              repeat: Infinity, 
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
               ease: "easeInOut",
               delay: particle.delay
             }}
@@ -278,9 +278,9 @@ const Hero = () => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-amber-500 to-red-500 animate-gradient-x">
                 AI Magic
               </span>
-              <motion.span 
+              <motion.span
                 className="absolute -top-4 -right-8 sm:-right-10 text-4xl sm:text-5xl pointer-events-none"
-                animate={{ 
+                animate={{
                   rotate: [0, 15, -15, 0],
                   scale: [1, 1.2, 1],
                 }}
@@ -292,60 +292,60 @@ const Hero = () => {
           </h1>
 
           <p className="text-lg sm:text-xl lg:text-2xl text-slate-500 mb-8 sm:mb-10 max-w-lg mx-auto lg:mx-0 leading-tight font-medium">
-            Upload once. AI swipes & applies to 100s of jobs while you sleep. 
+            Upload once. AI swipes & applies to 100s of jobs while you sleep.
             <span className="text-slate-900 border-b-2 border-primary-500/30"> Beats Sorce.jobs</span> on every metric.
           </p>
 
           {!sentEmail && (
-          <div 
-            className="group relative max-w-md mx-auto lg:mx-0 p-1 rounded-2xl bg-gradient-to-r from-primary-500 to-amber-500 transition-transform hover:scale-[1.01]"
-            onMouseMove={handleMouseMove}
-          >
-            <motion.div
-              className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-              style={{
-                background: glowBackground,
-              }}
-            />
-            <form onSubmit={onSubmit} className="bg-white rounded-xl p-2 flex flex-col sm:flex-row gap-2 relative z-10">
-              <div className="flex-1">
-                <input 
-                  type="email" 
-                  placeholder="you@example.com"  
-                  className={cn(
-                    "w-full px-4 py-3 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 transition-all text-slate-900",
-                    emailError ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-primary-500/20"
+            <div
+              className="group relative max-w-md mx-auto lg:mx-0 p-1 rounded-2xl bg-gradient-to-r from-primary-500 to-amber-500 transition-transform hover:scale-[1.01]"
+              onMouseMove={handleMouseMove}
+            >
+              <motion.div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{
+                  background: glowBackground,
+                }}
+              />
+              <form onSubmit={onSubmit} className="bg-white rounded-xl p-2 flex flex-col sm:flex-row gap-2 relative z-10">
+                <div className="flex-1">
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    className={cn(
+                      "w-full px-4 py-3 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 transition-all text-slate-900",
+                      emailError ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-primary-500/20"
+                    )}
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError("");
+                    }}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  variant="secondary"
+                  size="lg"
+                  className="w-full sm:w-auto px-8 py-3 rounded-lg shadow-lg hover:shadow-primary-500/25 whitespace-nowrap"
+                >
+                  {isSubmitting ? (
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                      <Sparkles className="w-5 h-5" />
+                    </motion.div>
+                  ) : (
+                    <>
+                      Start Hunt <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
                   )}
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (emailError) setEmailError("");
-                  }}
-                />
-              </div>
-              <Button 
-                type="submit"
-                disabled={isSubmitting}
-                variant="secondary"
-                size="lg"
-                className="w-full sm:w-auto px-8 py-3 rounded-lg shadow-lg hover:shadow-primary-500/25 whitespace-nowrap"
-              >
-                {isSubmitting ? (
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                    <Sparkles className="w-5 h-5" />
-                  </motion.div>
-                ) : (
-                  <>
-                    Start Hunt <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </form>
-          </div>
+                </Button>
+              </form>
+            </div>
           )}
-          
+
           {emailError && (
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-red-500 text-sm mt-2 font-medium"
@@ -355,7 +355,7 @@ const Hero = () => {
           )}
 
           {matchCount > 0 && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 flex items-center gap-2 justify-center lg:justify-start text-primary-600 font-bold"
@@ -367,8 +367,8 @@ const Hero = () => {
 
           {/* Live Activity Feed */}
           <div className="mt-8 relative h-12 overflow-hidden max-w-sm mx-auto lg:mx-0">
-             <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-transparent to-slate-50 z-10 pointer-events-none" />
-             <ActivityFeed />
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-transparent to-slate-50 z-10 pointer-events-none" />
+            <ActivityFeed />
           </div>
 
           {sentEmail && (
@@ -411,7 +411,7 @@ const Hero = () => {
               <UploadCloud className="w-6 h-6 text-primary-500" />
             </div>
             <p className="leading-tight">
-              <span className="font-bold text-slate-900">Drag & Drop Resume</span><br/>
+              <span className="font-bold text-slate-900">Drag & Drop Resume</span><br />
               to activate auto-apply
             </p>
           </div>
@@ -419,7 +419,7 @@ const Hero = () => {
 
         {/* Right Content - Swipe Cards */}
         <div className="relative h-[400px] sm:h-[500px] flex items-center justify-center perspective-1000 mt-10 lg:mt-0">
-           <AnimatePresence>
+          <AnimatePresence>
             {jobs.slice(0, 3).map((job, index) => (
               <motion.div
                 key={job.id}
@@ -447,8 +447,8 @@ const Hero = () => {
                 <h3 className="text-xl font-bold text-slate-900">{job.title}</h3>
                 <p className="text-slate-500 mb-4">{job.status}</p>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-primary-500" 
+                  <motion.div
+                    className="h-full bg-primary-500"
                     initial={{ width: 0 }}
                     animate={{ width: "98%" }}
                     transition={{ duration: 1.5, delay: 0.5 }}
@@ -458,8 +458,8 @@ const Hero = () => {
               </motion.div>
             ))}
           </AnimatePresence>
-          
-          <motion.div 
+
+          <motion.div
             className="absolute bottom-4 sm:bottom-10 right-10 text-slate-400 flex items-center gap-2 pointer-events-none bg-white/50 backdrop-blur px-2 py-1 rounded"
             animate={{ x: [0, 20, 0] }}
             transition={{ repeat: Infinity, duration: 2 }}
@@ -469,11 +469,11 @@ const Hero = () => {
           </motion.div>
         </div>
       </div>
-      
+
       {/* Wavy Divider */}
       <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none">
         <svg className="relative block w-[calc(100%+1.3px)] h-[50px] sm:h-[100px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-white"></path>
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-white"></path>
         </svg>
       </div>
     </section>
@@ -486,43 +486,43 @@ const Onboarding = () => {
     <section id="how-it-works" className="py-32 bg-white relative overflow-hidden">
       {/* Subtle Background Art */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-slate-50 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-      
+
       <div className="container mx-auto px-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-24 items-center">
           <div className="relative group">
-             <motion.div 
-               className="aspect-square bg-slate-50 rounded-[3rem] flex items-center justify-center relative z-10 overflow-hidden shadow-inner"
-               initial={{ scale: 0.9, opacity: 0 }}
-               whileInView={{ scale: 1, opacity: 1 }}
-               viewport={{ once: true }}
-             >
-                <Bot className="w-48 h-48 text-slate-200 group-hover:text-primary-500/20 transition-colors duration-700" />
-                
-                {/* Scanner Animation */}
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/10 to-transparent w-full h-20"
-                  animate={{ top: ["-20%", "100%", "-20%"] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                />
+            <motion.div
+              className="aspect-square bg-slate-50 rounded-[3rem] flex items-center justify-center relative z-10 overflow-hidden shadow-inner"
+              initial={{ scale: 0.9, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <Bot className="w-48 h-48 text-slate-200 group-hover:text-primary-500/20 transition-colors duration-700" />
 
-                {/* Particle Overlay */}
-                <div className="absolute inset-0 opacity-30">
-                  {[...Array(10)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute w-1 h-1 bg-primary-500 rounded-full"
-                      animate={{ 
-                        x: [Math.random() * 400, Math.random() * 400],
-                        y: [Math.random() * 400, Math.random() * 400],
-                        opacity: [0, 1, 0]
-                      }}
-                      transition={{ duration: Math.random() * 3 + 2, repeat: Infinity }}
-                    />
-                  ))}
-                </div>
-             </motion.div>
-             <div className="absolute -top-12 -left-12 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl" />
-             <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
+              {/* Scanner Animation */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/10 to-transparent w-full h-20"
+                animate={{ top: ["-20%", "100%", "-20%"] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              />
+
+              {/* Particle Overlay */}
+              <div className="absolute inset-0 opacity-30">
+                {[...Array(10)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-primary-500 rounded-full"
+                    animate={{
+                      x: [Math.random() * 400, Math.random() * 400],
+                      y: [Math.random() * 400, Math.random() * 400],
+                      opacity: [0, 1, 0]
+                    }}
+                    transition={{ duration: Math.random() * 3 + 2, repeat: Infinity }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+            <div className="absolute -top-12 -left-12 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl" />
+            <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
           </div>
 
           <div>
@@ -535,23 +535,23 @@ const Onboarding = () => {
             </h2>
             <div className="space-y-12">
               {[
-                { 
-                  icon: UserCircle, 
-                  title: "We See The Real You", 
-                  desc: "Forget keywords. We build a psychological profile of your career narrative, capturing the nuance, ambition, and potential that resumes often miss. We translate 'you' into a language recruiters crave." 
+                {
+                  icon: UserCircle,
+                  title: "We See The Real You",
+                  desc: "Forget keywords. We build a psychological profile of your career narrative, capturing the nuance, ambition, and potential that resumes often miss. We translate 'you' into a language recruiters crave."
                 },
-                { 
-                  icon: Target, 
-                  title: "Stop Wasting Emotional Energy", 
-                  desc: "Applying is draining. Rejection is personal. We detach the emotion from the process. Our agent acts as your relentless, unfeeling advocate, ensuring you only engage when there's a real signal." 
+                {
+                  icon: Target,
+                  title: "Stop Wasting Emotional Energy",
+                  desc: "Applying is draining. Rejection is personal. We detach the emotion from the process. Our agent acts as your relentless, unfeeling advocate, ensuring you only engage when there's a real signal."
                 },
-                { 
-                  icon: Rocket, 
-                  title: "Autonomous Submission", 
-                  desc: "Every application is unique. Custom-tailored cover letters and optimized form-filling happen in milliseconds, not minutes. We handle the grind; you handle the interview." 
+                {
+                  icon: Rocket,
+                  title: "Autonomous Submission",
+                  desc: "Every application is unique. Custom-tailored cover letters and optimized form-filling happen in milliseconds, not minutes. We handle the grind; you handle the interview."
                 }
               ].map((step, i) => (
-                <motion.div 
+                <motion.div
                   key={i}
                   className="flex gap-8 group"
                   initial={{ opacity: 0, y: 20 }}
@@ -589,9 +589,9 @@ const AutomationEdge = () => {
           <p className="text-slate-500 text-lg mb-10">
             Get instant notifications when AI lands you an interview. Approve applications with one tap.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Button 
+            <Button
               className="bg-[#0088cc] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#0077b5] transition-colors flex items-center gap-3 shadow-lg shadow-blue-500/30 h-auto"
             >
               <Smartphone className="w-6 h-6" />
@@ -612,7 +612,7 @@ const AutomationEdge = () => {
 export default function Homepage() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden selection:bg-primary-500/20 selection:text-primary-700">
-      <SEO 
+      <SEO
         title="JobHuntin: AI Auto-Applies to Jobs | Beat Sorce with Bot Powers"
         description="Upload resume once. AI applies to 100s of jobs daily. Marketing, Sales, Admin & more. Denver focus."
         ogTitle="JobHuntin: AI Auto-Applies to Jobs | Beat Sorce with Bot Powers"
