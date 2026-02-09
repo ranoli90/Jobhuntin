@@ -38,6 +38,16 @@ class MagicLinkService {
       };
     }
 
+    // Validate Supabase Configuration
+    if (!config.auth.supabaseUrl || !config.auth.supabaseAnonKey) {
+      console.error('[MagicLink] Missing Supabase configuration. Check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+      return {
+        success: false,
+        email: normalizedEmail,
+        error: 'System configuration error: Missing authentication settings.',
+      };
+    }
+
     // Check local cooldown to avoid unnecessary calls when we KNOW a recent 429 occurred
     const rateLimitReset = this.rateLimitResets.get(normalizedEmail);
     if (rateLimitReset) {
@@ -79,8 +89,12 @@ class MagicLinkService {
       const sanitizedReturnTo = this.sanitizeReturnTo(returnTo);
       const redirectUrl = `${origin.replace(/\/$/, '')}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
 
-      console.log(`[MagicLink] Origin: ${origin}`);
-      console.log(`[MagicLink] Sending to: ${normalizedEmail}, Redirect: ${redirectUrl}`);
+      console.group('[MagicLink] Request Details');
+      console.log('Target Email:', normalizedEmail);
+      console.log('Origin:', origin);
+      console.log('Return To:', sanitizedReturnTo);
+      console.log('Full Redirect URL:', redirectUrl);
+      console.groupEnd();
       
       // Validate the redirect URL is properly formed
       if (!redirectUrl.startsWith('http')) {
@@ -95,7 +109,11 @@ class MagicLinkService {
       });
 
       if (error) {
-        console.error('[MagicLink] Supabase Error:', error);
+        console.group('[MagicLink] Supabase Error');
+        console.error('Message:', error.message);
+        console.error('Status:', error.status);
+        console.error('Name:', error.name);
+        console.groupEnd();
         
         // Handle rate limits specifically if Supabase returns them (usually 429 status in error)
         if (error.status === 429) {

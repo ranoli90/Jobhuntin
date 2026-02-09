@@ -246,7 +246,11 @@ export default function Login() {
         setConfirmPassword("");
       }
     } catch (err: any) {
-      setFormError(err.message || "Sign-in failed");
+      const message = err.message || "Sign-in failed";
+      setFormError(message);
+      if (message.includes("System configuration error")) {
+         pushToast({ title: "Config Error", description: "Check console for details", tone: "error" });
+      }
     } finally {
       setIsLoading(false);
     }
