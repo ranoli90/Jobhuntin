@@ -41,7 +41,7 @@
 ## 🔧 Code Changes
 
 ### Backend Changes
-**File:** `api/main.py`
+**File:** `apps/api/main.py`
 - ✅ Replaced global `pool` variable with `DatabasePoolManager` class
 - ✅ Improved exception handling with specific types
 - ✅ Extracted SSL configuration logic
@@ -55,10 +55,10 @@
 3. `web/src/config.ts` - Centralized configuration
 
 **Modified Files:**
-1. `web/src/main.tsx` - Added ErrorBoundary and AppProvider
-2. `web/src/App.tsx` - Added ErrorBoundary import
-3. `web/src/hooks/useAuth.ts` - Fixed cleanup and error handling
-4. `web/src/hooks/useProfile.ts` - Fixed cleanup and error handling
+1. `apps/web/src/main.tsx` - Added ErrorBoundary and AppProvider
+2. `apps/web/src/App.tsx` - Added ErrorBoundary import
+3. `apps/web/src/hooks/useAuth.ts` - Fixed cleanup and error handling
+4. `apps/web/src/hooks/useProfile.ts` - Fixed cleanup and error handling
 
 ---
 
@@ -175,10 +175,10 @@ Quickly/
 ├── VERIFICATION_CHECKLIST.md (Implementation tracking)
 ├── ANTIPATTERNS_FIXES.md (Original summary)
 │
-├── api/
+├── apps/api/
 │   └── main.py (Backend fixes)
 │
-└── web/src/
+└── apps/web/src/
     ├── main.tsx (App setup)
     ├── App.tsx (Routing)
     ├── config.ts (NEW - Configuration)

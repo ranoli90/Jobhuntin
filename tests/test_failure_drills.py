@@ -25,6 +25,8 @@ import pytest_asyncio
 from playwright.async_api import Route, async_playwright
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "packages"))
 
 from backend.domain.repositories import record_event
 from worker.agent import (

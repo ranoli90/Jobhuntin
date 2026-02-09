@@ -1,8 +1,15 @@
 import os
+import sys
 
 import asyncpg
 import pytest
 import pytest_asyncio
+
+# Monorepo layout: make `apps/` and `packages/` importable for tests
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, _REPO_ROOT)
+sys.path.insert(0, os.path.join(_REPO_ROOT, "apps"))
+sys.path.insert(0, os.path.join(_REPO_ROOT, "packages"))
 
 # Use local DB by default for tests
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")

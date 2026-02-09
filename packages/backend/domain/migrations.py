@@ -9,6 +9,7 @@ import re
 import asyncpg
 
 from shared.logging_config import get_logger
+from shared.repo_root import find_repo_root
 
 logger = get_logger("sorce.migrations")
 
@@ -69,14 +70,19 @@ async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> N
     """)
     logger.info("  auth shim created")
 
+    repo_root = find_repo_root(base_path)
+    supabase_dir = repo_root / "supabase"
+    if not supabase_dir.exists():
+        supabase_dir = repo_root / "infra" / "supabase"
+
     # 2. Base schema
-    schema_file = base_path / "supabase" / "schema.sql"
+    schema_file = supabase_dir / "schema.sql"
     if schema_file.exists():
         ok, skip = await _exec_stmts(schema_file.read_text(encoding="utf-8"), "schema")
         logger.info("  schema.sql: %d applied, %d skipped", ok, skip)
 
     # 3. Numbered migrations
-    mig_dir = base_path / "supabase" / "migrations"
+    mig_dir = supabase_dir / "migrations"
     if mig_dir.exists():
         for mf in sorted(mig_dir.glob("[0-9]*.sql")):
             sql = mf.read_text(encoding="utf-8").strip()

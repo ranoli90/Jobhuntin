@@ -6,14 +6,22 @@
 
 This monorepo contains the following components:
 
-- **`api/`**: FastAPI backend service.
-- **`web/`**: React/Vite frontend application (JobHuntin).
-- **`web-admin/`**: React/Vite admin dashboard.
-- **`worker/`**: Background worker for processing job applications (Python).
+- **`apps/api/`**: FastAPI backend service.
+- **`apps/web/`**: React/Vite frontend application (JobHuntin).
+- **`apps/web-admin/`**: React/Vite admin dashboard.
+- **`apps/worker/`**: Background worker for processing job applications (Python).
 - **`mobile/`**: React Native / Expo mobile app.
-- **`shared/`**: Shared Python logic and utilities.
-- **`supabase/`**: Database migrations and configuration.
+- **`packages/`**: Shared Python libraries used by the backend/worker.
+- **`infra/supabase/`**: Database schema + migrations.
 - **`scripts/`**: Utility and maintenance scripts.
+
+## Repo Map
+
+- [Docs Index](docs/INDEX.md)
+- [Reports & Historical Notes](docs/reports/root-docs/INDEX.md)
+- [Apps](apps/)
+- [Packages](packages/)
+- [Infrastructure](infra/)
 
 ## Getting Started
 
@@ -41,7 +49,7 @@ This monorepo contains the following components:
 
 3.  **Frontend Setup:**
     ```bash
-    cd web
+    cd apps/web
     npm install
     ```
 
@@ -58,7 +66,7 @@ This monorepo contains the following components:
 
 3.  **Run the Frontend:**
     ```bash
-    cd web
+    cd apps/web
     npm run dev
     ```
 
@@ -70,7 +78,7 @@ This monorepo contains the following components:
     ```
 - **Frontend:**
     ```bash
-    cd web
+    cd apps/web
     npm test
     ```
 

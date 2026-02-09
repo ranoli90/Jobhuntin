@@ -32,14 +32,14 @@ COPY . .
 
 RUN rm -f .env
 
-COPY shared/ ./shared/
-COPY backend/ ./backend/
-COPY api/ ./api/
-COPY api_v2/ ./api_v2/
-COPY blueprints/ ./blueprints/
-COPY partners/ ./partners/
-COPY worker/ ./worker/
-COPY supabase/ ./supabase/
+COPY packages/shared/ ./shared/
+COPY packages/backend/ ./backend/
+COPY packages/blueprints/ ./blueprints/
+COPY packages/partners/ ./partners/
+COPY apps/api/ ./api/
+COPY apps/api_v2/ ./api_v2/
+COPY apps/worker/ ./worker/
+COPY infra/supabase/ ./supabase/
 COPY templates/ ./templates/
 
 RUN chown -R sorce:sorce /app
