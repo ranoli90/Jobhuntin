@@ -19,6 +19,7 @@ import {
   CreditCard,
   Settings,
   LogOut,
+  Bot,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -51,9 +52,9 @@ export default function AppLayout() {
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white md:flex">
         <div className="border-b border-slate-200 px-6 py-5">
-          <Link to="/app/dashboard" className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 text-white font-semibold grid place-items-center">
-              JH
+          <Link to="/app/dashboard" className="flex items-center gap-3 group">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-primary-500 to-primary-600 text-white grid place-items-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform">
+              <Bot className="h-5 w-5" />
             </div>
             <div>
               <p className="text-lg font-semibold">JobHuntin</p>
@@ -99,8 +100,8 @@ export default function AppLayout() {
       <MobileDrawer isOpen={mobileMenuOpen} onClose={closeMobile}>
         <MobileDrawerHeader onClose={closeMobile}>
           <Link to="/app/dashboard" className="flex items-center gap-3" onClick={closeMobile}>
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 text-white font-semibold grid place-items-center">
-              JH
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-primary-500 to-primary-600 text-white grid place-items-center shadow-sm">
+              <Bot className="h-5 w-5" />
             </div>
             <span className="text-lg font-semibold">JobHuntin</span>
           </Link>
@@ -151,10 +152,15 @@ export default function AppLayout() {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Workspace</p>
-              <p className="text-sm font-semibold text-slate-900">Command Center</p>
-            </div>
+            <Link to="/app/dashboard" className="flex items-center gap-2 group">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-primary-500 to-primary-600 text-white grid place-items-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform">
+                <Bot className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Workspace</p>
+                <p className="text-sm font-semibold text-slate-900">Command Center</p>
+              </div>
+            </Link>
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="primary" size="sm">

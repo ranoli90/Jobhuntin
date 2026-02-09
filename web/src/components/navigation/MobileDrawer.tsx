@@ -19,29 +19,15 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
     return () => setMounted(false);
   }, []);
 
-  // Lock body scroll when drawer is open
+  // Lock body scroll when drawer is open without breaking desktop trackpads
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      // Prevent iOS bounce effect
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = `-${window.scrollY}px`;
+      document.body.classList.add('menu-open');
     } else {
-      const scrollY = document.body.style.top;
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
+      document.body.classList.remove('menu-open');
     }
     return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
+      document.body.classList.remove('menu-open');
     };
   }, [isOpen]);
 

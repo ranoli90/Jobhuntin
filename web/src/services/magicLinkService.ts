@@ -26,7 +26,7 @@ class MagicLinkService {
   async sendMagicLink(
     email: string,
     returnTo: string = '/app/onboarding'
-  ): Promise<{ success: boolean; email: string; error?: string }> {
+  ): Promise<{ success: boolean; email: string; error?: string; retryAfter?: number }> {
     const normalizedEmail = email.trim().toLowerCase();
 
     // Validate email
@@ -38,15 +38,20 @@ class MagicLinkService {
       };
     }
 
-    // Check rate limit
+    // Check local cooldown to avoid unnecessary calls when we KNOW a recent 429 occurred
     const rateLimitReset = this.rateLimitResets.get(normalizedEmail);
-    if (rateLimitReset && rateLimitReset > Date.now()) {
-      const secondsLeft = Math.ceil((rateLimitReset - Date.now()) / 1000);
-      return {
-        success: false,
-        email: normalizedEmail,
-        error: `Too many requests. Please wait ${secondsLeft}s before trying again.`,
-      };
+    if (rateLimitReset) {
+      if (rateLimitReset > Date.now()) {
+        const secondsLeft = Math.max(1, Math.ceil((rateLimitReset - Date.now()) / 1000));
+        return {
+          success: false,
+          email: normalizedEmail,
+          error: `Too many requests. Please wait ${secondsLeft}s before trying again.`,
+          retryAfter: secondsLeft,
+        };
+      }
+      // Expired cooldown -> clean up
+      this.rateLimitResets.delete(normalizedEmail);
     }
 
     try {
@@ -94,11 +99,15 @@ class MagicLinkService {
         
         // Handle rate limits specifically if Supabase returns them (usually 429 status in error)
         if (error.status === 429) {
-          this.rateLimitResets.set(normalizedEmail, Date.now() + 60_000);
+          // Respect server suggested retry window if present, otherwise default to 60s
+          const retryAfterMatch = /([0-9]{1,3})\s*second/i.exec(error.message || "");
+          const retryAfter = retryAfterMatch ? Number(retryAfterMatch[1]) : 60;
+          this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
           return {
             success: false,
             email: normalizedEmail,
-            error: 'Too many magic link requests. Please wait 60 seconds.',
+            error: `Too many magic link requests. Please wait ${retryAfter} seconds.`,
+            retryAfter,
           };
         }
 

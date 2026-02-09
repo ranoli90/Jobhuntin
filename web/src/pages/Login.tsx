@@ -182,7 +182,9 @@ export default function Login() {
   const sendMagicLink = async (targetEmail: string, destination: string) => {
     const result = await magicLinkService.sendMagicLink(targetEmail, destination);
     if (!result.success) {
-      if (result.error?.includes("Too many")) {
+      if (result.retryAfter) {
+        setRateLimitReset(Date.now() + result.retryAfter * 1000);
+      } else if (result.error?.toLowerCase().includes("too many")) {
         setRateLimitReset(Date.now() + 60_000);
       }
       throw new Error(result.error || "Magic link failed");
