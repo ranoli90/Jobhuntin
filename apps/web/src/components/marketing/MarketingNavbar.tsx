@@ -27,15 +27,14 @@ export function MarketingNavbar() {
   const navLinks = [
     { name: "Pricing", path: "/pricing" },
     { name: "Success Stories", path: "/success-stories" },
+    { name: "About", path: "/about" },
     { name: "Extension", path: "/chrome-extension" },
-    { name: "Recruiters", path: "/recruiters" },
   ];
 
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled || isMobileMenuOpen ? 'bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm' : 'bg-transparent'
-      }`}
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm' : 'bg-transparent'
+        }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
@@ -49,12 +48,11 @@ export function MarketingNavbar() {
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <Link 
+            <Link
               key={link.path}
-              to={link.path} 
-              className={`text-sm font-medium transition-colors hover:text-primary-600 ${
-                location.pathname === link.path ? 'text-primary-600' : 'text-slate-600'
-              }`}
+              to={link.path}
+              className={`text-sm font-medium transition-colors hover:text-primary-600 ${location.pathname === link.path ? 'text-primary-600' : 'text-slate-600'
+                }`}
             >
               {link.name}
             </Link>
@@ -74,7 +72,7 @@ export function MarketingNavbar() {
         </div>
 
         {/* Mobile Menu Toggle */}
-        <button 
+        <button
           className="md:hidden p-2 text-slate-600 hover:text-slate-900 z-[70] relative"
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="Open menu"
@@ -86,42 +84,52 @@ export function MarketingNavbar() {
       {/* Universal Mobile Drawer */}
       <MobileDrawer isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} side="right">
         <MobileDrawerHeader onClose={() => setIsMobileMenuOpen(false)}>
-            <div className="flex items-center gap-2">
-                <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-1.5 rounded-lg rotate-3 shadow-sm">
-                    <Bot className="text-white w-5 h-5" />
-                </div>
-                <span className="text-lg font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
+          <div className="flex items-center gap-2">
+            <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-1.5 rounded-lg rotate-3 shadow-sm">
+              <Bot className="text-white w-5 h-5" />
             </div>
+            <span className="text-lg font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
+          </div>
         </MobileDrawerHeader>
 
         <MobileDrawerBody>
-            <div className="flex flex-col space-y-2">
-              {navLinks.map((link) => (
-                <Link 
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-lg font-bold block py-3 px-2 rounded-xl transition-colors ${
-                    location.pathname === link.path ? 'bg-primary-50 text-primary-600' : 'text-slate-700 hover:bg-slate-50'
+          <div className="flex flex-col space-y-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`text-lg font-bold block py-3 px-2 rounded-xl transition-colors touch-manipulation ${location.pathname === link.path ? 'bg-primary-50 text-primary-600' : 'text-slate-700 hover:bg-slate-50'
                   }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
         </MobileDrawerBody>
-        
+
         <MobileDrawerFooter>
-            <div className="flex flex-col gap-3">
-                <Link to="/login?mode=login" onClick={() => setIsMobileMenuOpen(false)} className="block w-full">
-                  <Button variant="outline" size="lg" className="w-full justify-center text-base py-3 rounded-xl">Log in</Button>
-                </Link>
-                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block w-full">
-                  <Button variant="primary" size="lg" className="w-full justify-center text-base py-3 rounded-xl shadow-xl shadow-primary-500/20">
-                    Get Started Free
-                  </Button>
-                </Link>
-            </div>
+          <div className="flex flex-col gap-3">
+            <Link
+              to="/login?mode=login"
+              onClick={(e) => { e.stopPropagation(); setIsMobileMenuOpen(false); }}
+              className="block w-full touch-manipulation"
+            >
+              <Button variant="outline" size="lg" className="w-full justify-center text-base py-3 rounded-xl">Log in</Button>
+            </Link>
+            <Link
+              to="/login"
+              onClick={(e) => { e.stopPropagation(); setIsMobileMenuOpen(false); }}
+              className="block w-full touch-manipulation"
+            >
+              <Button variant="primary" size="lg" className="w-full justify-center text-base py-3 rounded-xl shadow-xl shadow-primary-500/20">
+                Get Started Free
+              </Button>
+            </Link>
+          </div>
         </MobileDrawerFooter>
       </MobileDrawer>
     </nav>

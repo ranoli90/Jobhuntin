@@ -47,7 +47,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
             onClick={onClose}
             aria-hidden="true"
           />
-          
+
           {/* Drawer */}
           <motion.div
             initial={{ x: side === "left" ? "-100%" : "100%" }}
@@ -55,9 +55,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
             exit={{ x: side === "left" ? "-100%" : "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
             className={`fixed inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} z-[9999] w-[85vw] max-w-sm flex flex-col bg-white shadow-2xl md:hidden`}
-            drag={side === "left" ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.05}
+            onClick={(e) => e.stopPropagation()}
           >
             {children}
           </motion.div>
@@ -73,7 +71,14 @@ export function MobileDrawerHeader({ children, onClose }: { children: ReactNode;
     <div className="flex items-center justify-between border-b border-slate-200 px-4 py-6 pb-4">
       {children}
       {onClose && (
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close menu">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
+          aria-label="Close menu"
+          className="touch-manipulation"
+        >
           <X className="h-5 w-5" />
         </Button>
       )}
