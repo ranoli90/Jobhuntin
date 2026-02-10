@@ -66,8 +66,8 @@ class MagicLinkService {
       this.rateLimitResets.delete(normalizedEmail);
     }
 
-    // Enhanced rate limiting with validation - more restrictive to match Supabase's actual limits
-    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 1, 60000); // 1 request per 60 seconds
+    // Enhanced rate limiting with validation - relaxed to 30 seconds for better UX
+    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 1, 30000); // 1 request per 30 seconds
     if (!rateLimitCheck.allowed) {
       return {
         success: false,
@@ -115,12 +115,18 @@ class MagicLinkService {
         throw new Error('Invalid redirect URL: must be absolute URL with protocol');
       }
 
+      console.log('[MagicLink] Sending OTP to:', normalizedEmail, 'redirect to:', redirectUrl);
       const { error } = await supabase.auth.signInWithOtp({
         email: normalizedEmail,
         options: {
           emailRedirectTo: redirectUrl,
         },
       });
+      if (error) {
+        console.error('[MagicLink] Supabase error:', error);
+      } else {
+        console.log('[MagicLink] OTP sent successfully');
+      }
 
       if (error) {
         /* console.group('[MagicLink] Supabase Error');
@@ -131,9 +137,9 @@ class MagicLinkService {
 
         // Handle rate limits specifically if Supabase returns them (usually 429 status in error)
         if (error.status === 429) {
-          // Respect server suggested retry window if present, otherwise default to 60s
+          // Respect server suggested retry window if present, otherwise default to 30s
           const retryAfterMatch = /([0-9]{1,3})\s*second/i.exec(error.message || "");
-          const retryAfter = retryAfterMatch ? Number(retryAfterMatch[1]) : 60;
+          const retryAfter = retryAfterMatch ? Number(retryAfterMatch[1]) : 30;
           this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
           return {
             success: false,

@@ -163,8 +163,8 @@ const Hero = () => {
       size: i < 5 ? Math.random() * 150 + 100 : Math.random() * 40 + 10,
       duration: Math.random() * 20 + 20,
       delay: Math.random() * 10,
-      yMove: (Math.random() - 0.5) * 150,
-      xMove: (Math.random() - 0.5) * 150,
+      yMove: (Math.random() - 0.5) * 100,
+      xMove: (Math.random() - 0.5) * 50,
       color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(250, 249, 246, 0.3)',
       blur: i < 5 ? 'blur(60px)' : 'none'
     }));
@@ -341,7 +341,7 @@ const Hero = () => {
             </span>
           </motion.div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black font-display text-slate-900 leading-[0.95] mb-6 sm:mb-8 tracking-tighter">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black font-display text-slate-900 leading-[0.95] mb-6 sm:mb-8 tracking-tighter">
             Stop applying.<br />
             <span className="relative inline-block mt-2">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-amber-500 to-red-500 animate-gradient-x">
