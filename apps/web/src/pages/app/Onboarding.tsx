@@ -6,6 +6,7 @@ import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
 import { useAISuggestions } from "../../hooks/useAISuggestions";
 import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -22,6 +23,7 @@ export default function Onboarding() {
   const [resumeFile, setResumeFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [resumeError, setResumeError] = React.useState<string | null>(null);
+  const [isDragging, setIsDragging] = React.useState(false);
   const [preferences, setPreferences] = React.useState({
     location: "",
     role_type: "",
@@ -142,6 +144,24 @@ export default function Onboarding() {
       pushToast({ title: "Failed to save contact info", description: "Please try again.", tone: "error" });
     } finally {
       setIsSavingContact(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setResumeFile(e.dataTransfer.files[0]);
     }
   };
 
@@ -368,7 +388,12 @@ export default function Onboarding() {
                       </div>
                     </div>
 
-                    <div className="mb-8 relative group">
+                    <div
+                      className="mb-8 relative group"
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                    >
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx"
@@ -379,28 +404,30 @@ export default function Onboarding() {
                       />
                       <label
                         htmlFor="resume-upload"
-                        className={`flex cursor-pointer flex-col items-center gap-6 rounded-[2.5rem] border-3 border-dashed p-14 text-center transition-all ${resumeFile
-                          ? "bg-primary-50/50 border-primary-300"
-                          : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-primary-300"
+                        className={`flex cursor-pointer flex-col items-center gap-6 rounded-[2.5rem] border-3 border-dashed p-10 text-center transition-all duration-300 ${isDragging
+                          ? "bg-primary-50 border-primary-500 scale-[1.02] shadow-xl"
+                          : resumeFile
+                            ? "bg-primary-50/50 border-primary-300"
+                            : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-primary-300"
                           }`}
                       >
-                        <div className={`flex h-24 w-24 items-center justify-center rounded-[2rem] bg-white shadow-xl transition-all ${isUploading ? 'animate-pulse scale-90' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
+                        <div className={`flex h-20 w-20 items-center justify-center rounded-[2rem] bg-white shadow-xl transition-all ${isUploading ? 'animate-pulse scale-90' : isDragging ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
                           {isUploading ? (
                             <div className="relative">
-                              <Sparkles className="h-12 w-12 text-primary-400 animate-spin-slow" />
+                              <Sparkles className="h-10 w-10 text-primary-400 animate-spin-slow" />
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-6 h-6 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                                <div className="w-5 h-5 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
                               </div>
                             </div>
                           ) : (
-                            <FileText className={`h-12 w-12 ${resumeFile ? 'text-primary-600' : 'text-slate-300'}`} />
+                            <FileText className={`h-10 w-10 ${resumeFile || isDragging ? 'text-primary-600' : 'text-slate-300'}`} />
                           )}
                         </div>
                         <div className="space-y-2">
-                          <p className={`text-xl font-black ${resumeFile ? 'text-primary-700' : 'text-slate-900'}`}>
-                            {resumeFile ? resumeFile.name : "Drop Intelligence File"}
+                          <p className={`text-xl font-black ${resumeFile || isDragging ? 'text-primary-700' : 'text-slate-900'}`}>
+                            {resumeFile ? resumeFile.name : isDragging ? "Drop to Analyze" : "Drop Intelligence File"}
                           </p>
-                          <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">PDF, DOCX — AI Optimization Ready</p>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">PDF, DOCX — AI Optimization Ready</p>
                         </div>
                       </label>
                       {isUploading && (
@@ -425,13 +452,13 @@ export default function Onboarding() {
                         <div className="h-[1px] flex-1 bg-slate-100" />
                       </div>
                       <div className="relative">
-                        <User className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <input
+                        <Input
+                          icon={<User className="h-5 w-5" />}
                           type="url"
                           placeholder="LinkedIn URL (optional context)"
                           value={linkedinUrl}
                           onChange={(e) => setLinkedinUrl(e.target.value)}
-                          className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 transition-all shadow-sm text-lg placeholder:text-slate-300 placeholder:font-medium"
+                          className="bg-white shadow-sm"
                         />
                       </div>
                     </div>
@@ -577,13 +604,13 @@ export default function Onboarding() {
                             First Name <span className="text-red-400">*</span>
                           </label>
                           <div className="relative">
-                            <User className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                            <input
+                            <Input
+                              icon={<User className="h-5 w-5" />}
                               type="text"
                               placeholder="John"
                               value={contactInfo.first_name}
                               onChange={(e) => setContactInfo(c => ({ ...c, first_name: e.target.value }))}
-                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                              className="bg-white shadow-sm"
                             />
                           </div>
                         </div>
@@ -593,13 +620,13 @@ export default function Onboarding() {
                             Last Name <span className="text-red-400">*</span>
                           </label>
                           <div className="relative">
-                            <User className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                            <input
+                            <Input
+                              icon={<User className="h-5 w-5" />}
                               type="text"
                               placeholder="Doe"
                               value={contactInfo.last_name}
                               onChange={(e) => setContactInfo(c => ({ ...c, last_name: e.target.value }))}
-                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                              className="bg-white shadow-sm"
                             />
                           </div>
                         </div>
@@ -611,13 +638,13 @@ export default function Onboarding() {
                           Email Address <span className="text-red-400">*</span>
                         </label>
                         <div className="relative">
-                          <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                          <input
+                          <Input
+                            icon={<Mail className="h-5 w-5" />}
                             type="email"
                             placeholder="john@example.com"
                             value={contactInfo.email}
                             onChange={(e) => setContactInfo(c => ({ ...c, email: e.target.value }))}
-                            className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                            className="bg-white shadow-sm"
                           />
                         </div>
                       </div>
@@ -628,13 +655,13 @@ export default function Onboarding() {
                           Phone Number
                         </label>
                         <div className="relative">
-                          <Phone className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                          <input
+                          <Input
+                            icon={<Phone className="h-5 w-5" />}
                             type="tel"
                             placeholder="+1 (555) 123-4567"
                             value={contactInfo.phone}
                             onChange={(e) => setContactInfo(c => ({ ...c, phone: e.target.value }))}
-                            className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                            className="bg-white shadow-sm"
                           />
                         </div>
                       </div>
@@ -741,13 +768,13 @@ export default function Onboarding() {
                             Primary Operation Hub
                           </label>
                           <div className="relative">
-                            <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                            <input
+                            <Input
+                              icon={<MapPin className="h-5 w-5" />}
                               type="text"
                               placeholder="e.g., Remote, Austin TX, London"
                               value={preferences.location}
                               onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
-                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                              className="bg-white shadow-sm"
                             />
                           </div>
                         </div>
@@ -758,13 +785,13 @@ export default function Onboarding() {
                             Target Role Classification
                           </label>
                           <div className="relative">
-                            <Briefcase className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                            <input
+                            <Input
+                              icon={<Briefcase className="h-5 w-5" />}
                               type="text"
                               placeholder="e.g., Staff AI Engineer"
                               value={preferences.role_type}
                               onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
-                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                              className="bg-white shadow-sm"
                             />
                           </div>
                         </div>
@@ -777,13 +804,13 @@ export default function Onboarding() {
                             Min Multiplier (Salary)
                           </label>
                           <div className="relative">
-                            <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                            <input
+                            <Input
+                              icon={<DollarSign className="h-5 w-5" />}
                               type="number"
                               placeholder="150000"
                               value={preferences.salary_min}
                               onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
-                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                              className="bg-white shadow-sm"
                             />
                           </div>
                         </div>
@@ -933,7 +960,7 @@ export default function Onboarding() {
                       </Card>
                     </div>
 
-                    <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-20 rounded-[2rem] text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
+                    <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-16 rounded-[2rem] text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
                       <span className="relative z-10 flex items-center justify-center gap-4">
                         {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
                         <Rocket className="h-8 w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />

@@ -8,6 +8,7 @@
  * Usage:
  *   npx tsx scripts/seo/generate-competitor-content.ts "CompetitorName"
  *   npx tsx scripts/seo/generate-competitor-content.ts "CompetitorName" --url "https://competitor.com"
+ *   npx tsx scripts/seo/generate-competitor-content.ts "CompetitorName" --model "google/gemini-2.0-flash-lite-preview-02-05:free"
  * 
  * Environment variables:
  *   LLM_API_KEY - OpenRouter API Key
@@ -25,11 +26,15 @@ const DEFAULT_KEY = "sk-or-v1-21aaee67c168bf51a73a31f99c7dd873ae5b11fbe123fc66fa
 
 // List of free models to try in order
 const FREE_MODELS = [
+  'mistralai/mistral-7b-instruct:free',
   'google/gemini-2.0-flash-lite-preview-02-05:free',
   'meta-llama/llama-3-8b-instruct:free',
   'microsoft/phi-3-medium-128k-instruct:free',
   'huggingfaceh4/zephyr-7b-beta:free',
-  'openchat/openchat-7b:free'
+  'openchat/openchat-7b:free',
+  'deepseek/deepseek-r1:free',
+  'qwen/qwen-vl-plus:free',
+  'gryphe/mythomax-l2-13b:free'
 ];
 
 interface Competitor {
@@ -69,7 +74,7 @@ interface Competitor {
   };
 }
 
-async function generateCompetitorData(name: string, url?: string): Promise<Competitor> {
+async function generateCompetitorData(name: string, url?: string, explicitModel?: string): Promise<Competitor> {
   const apiKey = process.env.LLM_API_KEY || DEFAULT_KEY;
 
   if (!apiKey) {
@@ -122,11 +127,14 @@ async function generateCompetitorData(name: string, url?: string): Promise<Compe
     Be objective but highlight where it lacks compared to a comprehensive AI agent like JobHuntin.
   `;
 
+  const modelsToTry = explicitModel ? [explicitModel] : FREE_MODELS;
   let lastError: Error | null = null;
+  let triedModels = [];
 
-  for (const model of FREE_MODELS) {
+  for (const model of modelsToTry) {
     try {
       console.log(`🤖 Attempting research with model: ${model}...`);
+      triedModels.push(model);
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -145,18 +153,20 @@ async function generateCompetitorData(name: string, url?: string): Promise<Compe
 
       if (!response.ok) {
         const errText = await response.text();
-        // If 404 (model not found/unavailable), try next
-        if (response.status === 404 || response.status === 429) { // 429 rate limit also try next? usually standard, but let's try
-          console.warn(`⚠️  Model ${model} failed: ${response.status} - ${errText}`);
+        // If 404 (model not found/unavailable) or 400 (bad params/model id), try next
+        if (response.status === 404 || response.status === 400 || response.status === 429) {
+          const msg = `Model ${model} failed: ${response.status} - ${errText}`;
+          console.warn(`⚠️  ${msg}`);
+          lastError = new Error(msg);
           continue;
         }
         throw new Error(`OpenRouter API Error: ${response.status} - ${errText}`);
       }
 
       const data = await response.json();
-      // Check for error inside 200 OK (OpenRouter sometimes does this for some upstream errors)
       if (data.error) {
         console.warn(`⚠️  Model ${model} returned error: ${JSON.stringify(data.error)}`);
+        lastError = new Error(JSON.stringify(data.error));
         continue;
       }
 
@@ -187,16 +197,33 @@ async function generateCompetitorData(name: string, url?: string): Promise<Compe
     }
   }
 
-  throw new Error(`All free models failed. Last error: ${lastError?.message}`);
+  throw new Error(
+    `All models failed.\nLast error: ${lastError?.message}\n` +
+    `Tried: ${triedModels.join(', ')}\n` +
+    `Check working free models at: https://openrouter.ai/models?q=free\n` +
+    `Usage: npx tsx scripts/seo/generate-competitor-content.ts "Name" --model "your/model:free"`
+  );
 }
 
 async function main() {
   const name = process.argv[2];
-  const urlArgIndex = process.argv.indexOf('--url');
-  const url = urlArgIndex > -1 ? process.argv[urlArgIndex + 1] : undefined;
+  const args = process.argv.slice(3);
+
+  let url: string | undefined;
+  let model: string | undefined;
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--url' && args[i + 1]) {
+      url = args[i + 1];
+      i++;
+    } else if (args[i] === '--model' && args[i + 1]) {
+      model = args[i + 1];
+      i++;
+    }
+  }
 
   if (!name) {
-    console.error('Usage: npx tsx scripts/seo/generate-competitor-content.ts "Competitor Name" [--url "https://..."]');
+    console.error('Usage: npx tsx scripts/seo/generate-competitor-content.ts "Competitor Name" [--url "https://..."] [--model "provider/model"]');
     process.exit(1);
   }
 
@@ -213,7 +240,7 @@ async function main() {
   }
 
   try {
-    const newCompetitor = await generateCompetitorData(name, url);
+    const newCompetitor = await generateCompetitorData(name, url, model);
 
     // Safety check for slug collision
     if (competitors.find(c => c.slug === newCompetitor.slug)) {
