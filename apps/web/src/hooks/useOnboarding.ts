@@ -6,7 +6,18 @@ interface OnboardingStep {
   description: string;
 }
 
-const STORAGE_KEY = "onboarding_step";
+interface OnboardingState {
+  currentStep: number;
+  completedSteps: string[];
+  formData: {
+    linkedinUrl?: string;
+    preferences?: any;
+    resumeFile?: any;
+    parsedResume?: any;
+  };
+}
+
+const STORAGE_KEY = "onboarding_state";
 
 const STEPS: OnboardingStep[] = [
   { id: "welcome", title: "Welcome to JobHuntin", description: "Let's get you set up in 2 minutes" },
@@ -18,18 +29,64 @@ const STEPS: OnboardingStep[] = [
 export function useOnboarding() {
   const [currentStep, setCurrentStep] = useState(() => {
     try {
-      const stored = Number(localStorage.getItem(STORAGE_KEY));
-      return Number.isFinite(stored) && stored >= 0 && stored < STEPS.length ? stored : 0;
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const state: OnboardingState = JSON.parse(stored);
+        return state.currentStep || 0;
+      }
     } catch {
-      return 0;
+      // ignore
     }
+    return 0;
   });
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+
+  const [completedSteps, setCompletedSteps] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const state: OnboardingState = JSON.parse(stored);
+        return state.completedSteps || [];
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  });
+
+  const [formData, setFormData] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const state: OnboardingState = JSON.parse(stored);
+        return state.formData || {};
+      }
+    } catch {
+      // ignore
+    }
+    return {};
+  });
 
   const currentStepData = STEPS[currentStep];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === STEPS.length - 1;
   const progress = ((currentStep + 1) / STEPS.length) * 100;
+
+  const saveState = useCallback(() => {
+    try {
+      const state: OnboardingState = {
+        currentStep,
+        completedSteps,
+        formData,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.warn("Failed to save onboarding state:", error);
+    }
+  }, [currentStep, completedSteps, formData]);
+
+  const updateFormData = useCallback((updates: Partial<OnboardingState['formData']>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  }, []);
 
   const nextStep = useCallback(() => {
     if (!isLastStep) {
@@ -51,16 +108,13 @@ export function useOnboarding() {
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, String(currentStep));
-    } catch {
-      /* ignore storage issues */
-    }
-  }, [currentStep]);
+    saveState();
+  }, [currentStep, completedSteps, formData, saveState]);
 
   const resetOnboarding = useCallback(() => {
     setCurrentStep(0);
     setCompletedSteps([]);
+    setFormData({});
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
@@ -73,12 +127,14 @@ export function useOnboarding() {
     currentStep,
     currentStepData,
     completedSteps,
+    formData,
     progress,
     isFirstStep,
     isLastStep,
     nextStep,
     prevStep,
     goToStep,
+    updateFormData,
     resetOnboarding,
   };
 }

@@ -23,11 +23,11 @@ services:
       - key: SUPABASE_STORAGE_BUCKET
         value: resumes
       - key: LLM_API_BASE
-        value: https://openrouter.ai/api/v1
+        value: https://api.openai.com/v1
       - key: LLM_API_KEY
         sync: false
       - key: LLM_MODEL
-        value: google/gemma-2-9b-it:free
+        value: gpt-4o-mini
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
@@ -51,10 +51,8 @@ services:
       - key: API_V2_METERED_PRICE_ID
         value: price_1SyCHHFZF27VelA7G43q2L3t
       - key: ADZUNA_APP_ID
-        value: feca1a79
+        value: sorce
       - key: ADZUNA_API_KEY
-        sync: false
-      - key: CSRF_SECRET
         sync: false
       - key: WEBHOOK_SIGNING_SECRET
         sync: false
@@ -68,11 +66,6 @@ services:
         value: https://jobhuntin.com
       - key: RESEND_API_KEY
         sync: false
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: sorce-redis
-          property: connectionString
     plan: starter
     region: ohio
 
@@ -99,15 +92,11 @@ services:
       - key: SUPABASE_STORAGE_BUCKET
         value: resumes
       - key: LLM_API_BASE
-        value: https://openrouter.ai/api/v1
+        value: https://api.openai.com/v1
       - key: LLM_API_KEY
         sync: false
       - key: LLM_MODEL
-        value: google/gemma-2-9b-it:free
-      - key: ADZUNA_APP_ID
-        value: feca1a79
-      - key: ADZUNA_API_KEY
-        sync: false
+        value: gpt-4o-mini
       - key: AGENT_ENABLED
         value: "true"
       - key: LOG_JSON
@@ -118,11 +107,6 @@ services:
         value: chromium
       - key: PLAYWRIGHT_HEADLESS
         value: "true"
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: sorce-redis
-          property: connectionString
     plan: starter
     region: ohio
 
@@ -132,9 +116,8 @@ services:
     runtime: static
     repo: https://github.com/ranoli90/sorce
     branch: main
-    rootDir: apps/web
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    buildCommand: cd apps/web && npm install && npm run build
+    staticPublishPath: apps/web/dist
     envVars:
       - key: VITE_API_URL
         value: https://sorce-api.onrender.com
@@ -157,9 +140,8 @@ services:
     runtime: static
     repo: https://github.com/ranoli90/sorce
     branch: main
-    rootDir: apps/web-admin
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    buildCommand: cd apps/web-admin && npm install && npm run build
+    staticPublishPath: apps/web-admin/dist
     envVars:
       - key: VITE_API_URL
         value: https://sorce-api.onrender.com
@@ -171,14 +153,6 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
-
-        destination: /index.html
-
-  # ── Redis Cache ────────────────────────────────────────────
-  - type: redis
-    name: sorce-redis
-    region: ohio
-    plan: starter
 
 databases:
   - name: sorce-db

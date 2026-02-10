@@ -20,7 +20,32 @@ function App() {
       setSession(session)
     })
 
-    return () => subscription.unsubscribe()
+    // Listen for SYNC_SESSION storage changes from the background script
+    // and hydrate the Supabase client so getSession() returns the synced session
+    const storageListener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+      if (area === 'local' && changes.session?.newValue) {
+        const synced = changes.session.newValue as { access_token?: string; refresh_token?: string }
+        if (synced.access_token && synced.refresh_token) {
+          supabase.auth.setSession({
+            access_token: synced.access_token,
+            refresh_token: synced.refresh_token,
+          }).then(({ data }) => {
+            if (data.session) {
+              setSession(data.session)
+            }
+          }).catch(() => {
+            // If setSession fails, fall back to raw session object
+            setSession(synced as any)
+          })
+        }
+      }
+    }
+    chrome.storage.onChanged.addListener(storageListener)
+
+    return () => {
+      subscription.unsubscribe()
+      chrome.storage.onChanged.removeListener(storageListener)
+    }
   }, [])
 
   const handleLogout = async () => {
@@ -32,7 +57,12 @@ function App() {
   }
 
   if (!session) {
-    return <Login onLogin={() => { }} />
+    return <Login onLogin={() => {
+      // Re-check session from the Supabase client when Login detects a sync
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (s) setSession(s)
+      })
+    }} />
   }
 
   return (

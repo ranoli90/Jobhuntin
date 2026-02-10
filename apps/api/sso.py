@@ -8,23 +8,45 @@ from __future__ import annotations
 
 from typing import Any
 
-import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel
-
-from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
-from backend.sso.saml import (
-    create_sso_session_token,
-    find_tenant_by_sso_domain,
-    generate_sp_metadata,
-    get_sso_config,
-    parse_saml_response,
-    upsert_sso_config,
-)
+import httpx
 from shared.config import get_settings
-from shared.logging_config import get_logger
-from shared.metrics import incr
+
+
+async def _create_supabase_user(email: str, tenant_id: str) -> str:
+    """Create a user in Supabase via Admin API."""
+    s = get_settings()
+    if not s.supabase_url or not s.supabase_service_key:
+        raise HTTPException(status_code=500, detail="Supabase credentials not configured")
+
+    payload = {
+        "email": email,
+        "email_confirm": True,  # Auto-confirm email for SSO users
+        "user_metadata": {
+            "tenant_id": tenant_id,
+            "sso_provisioned": True,
+        },
+    }
+    headers = {
+        "apikey": s.supabase_service_key,
+        "Authorization": f"Bearer {s.supabase_service_key}",
+        "Content-Type": "application/json",
+    }
+    url = f"{s.supabase_url.rstrip('/')}/auth/v1/admin/users"
+    
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.post(url, headers=headers, json=payload)
+    
+    if resp.status_code >= 400:
+        logger.error("Supabase create user failed: %s - %s", resp.status_code, resp.text[:200])
+        raise HTTPException(status_code=502, detail="Failed to create SSO user")
+    
+    data = resp.json()
+    user_id = data.get("id")
+    if not user_id:
+        logger.error("Supabase create user response missing id: %s", data)
+        raise HTTPException(status_code=502, detail="Failed to create SSO user")
+    
+    return str(user_id)
 
 logger = get_logger("sorce.api.sso")
 
@@ -136,10 +158,8 @@ async def saml_acs(
             user_id = str(user_row["id"])
         else:
             # Auto-provision user for SSO enterprise tenants
-            import uuid
-            user_id = str(uuid.uuid4())
-            # In production, use Supabase Admin API to create user
-            logger.info("SSO: would auto-provision user %s for tenant %s", email, tenant_id)
+            user_id = await _create_supabase_user(email, tenant_id)
+            logger.info("SSO: auto-provisioned user %s for tenant %s", email, tenant_id)
 
         # Ensure user is member of tenant
         await conn.execute(

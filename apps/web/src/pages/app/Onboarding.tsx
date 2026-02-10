@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function Onboarding() {
   const navigate = useNavigate();
   const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding } = useOnboarding();
-  const { profile, loading, uploadResume, savePreferences, completeOnboarding } = useProfile();
+  const { profile, loading, uploadResume, savePreferences, completeOnboarding, updateProfile } = useProfile();
   const aiSuggestions = useAISuggestions();
 
   const [resumeFile, setResumeFile] = React.useState<File | null>(null);
@@ -120,6 +120,16 @@ export default function Onboarding() {
         salary_min: preferences.salary_min ? Number(preferences.salary_min) : undefined,
         remote_only: preferences.remote_only,
       });
+
+      // Update contact info separately if LinkedIn URL is provided
+      if (linkedinUrl) {
+        await updateProfile({
+          contact: {
+            linkedin_url: linkedinUrl,
+            location: preferences.location || undefined,
+          }
+        });
+      }
       nextStep();
     } catch (err) {
       pushToast({ title: "Something went sideways", description: "Your data is safe. Please try again.", tone: "error" });

@@ -11,6 +11,7 @@ const routes = [
   { path: '/recruiters', priority: 0.7, changefreq: 'monthly' },
   { path: '/privacy', priority: 0.3, changefreq: 'monthly' },
   { path: '/terms', priority: 0.3, changefreq: 'monthly' },
+  { path: '/about', priority: 0.5, changefreq: 'monthly' },
   // Programmatic Niche Routes
   { path: '/jobs/marketing-manager/denver', priority: 0.6, changefreq: 'daily' },
   { path: '/jobs/software-engineer/boulder', priority: 0.6, changefreq: 'daily' },
@@ -32,15 +33,15 @@ const generateSitemap = () => {
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${routes
-  .map((route) => {
-    return `  <url>
+      .map((route) => {
+        return `  <url>
     <loc>${BASE_URL}${route.path}</loc>
     <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority}</priority>
   </url>`;
-  })
-  .join('\n')}
+      })
+      .join('\n')}
 </urlset>`;
 
   const publicPath = path.resolve(__dirname, '../public/sitemap.xml');

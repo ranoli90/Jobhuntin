@@ -25,6 +25,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         storage: storageAdapter,
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true,
+        detectSessionInUrl: false, // Extensions don't receive URL redirects
     },
 })

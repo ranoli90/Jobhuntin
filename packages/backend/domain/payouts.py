@@ -13,6 +13,7 @@ import asyncpg
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
+from backend.domain.stripe_client import get_stripe, get_protected_stripe, protected_stripe_call
 
 logger = get_logger("sorce.payouts")
 
@@ -33,15 +34,19 @@ async def get_or_create_connect_account(
     if not s.stripe_secret_key:
         raise RuntimeError("Stripe not configured")
 
-    import stripe
-    stripe.api_key = s.stripe_secret_key
+    stripe = get_stripe()
 
-    account = stripe.Account.create(
-        type="express",
-        email=email,
-        capabilities={"transfers": {"requested": True}},
-        metadata={"tenant_id": tenant_id},
+    account = protected_stripe_call(
+        lambda: stripe.Account.create(
+            type="express",
+            email=email,
+            capabilities={"transfers": {"requested": True}},
+            metadata={"tenant_id": tenant_id},
+        )
     )
+
+    if not account:
+        raise RuntimeError("Failed to create Stripe Connect account (circuit open)")
 
     await conn.execute(
         "UPDATE public.tenants SET stripe_connect_id = $2 WHERE id = $1",
@@ -62,15 +67,18 @@ async def create_connect_onboarding_link(
     account_id = await get_or_create_connect_account(conn, tenant_id, email)
 
     s = get_settings()
-    import stripe
-    stripe.api_key = s.stripe_secret_key
-
-    link = stripe.AccountLink.create(
-        account=account_id,
-        refresh_url=return_url,
-        return_url=return_url,
-        type="account_onboarding",
+    stripe = get_stripe()
+    link = protected_stripe_call(
+        lambda: stripe.AccountLink.create(
+            account=account_id,
+            refresh_url=return_url,
+            return_url=return_url,
+            type="account_onboarding",
+        )
     )
+
+    if not link:
+        raise RuntimeError("Failed to create onboarding link (circuit open)")
 
     return link.url
 
@@ -113,6 +121,8 @@ async def process_marketplace_payouts(
     stripe.api_key = s.stripe_secret_key
 
     results = []
+    stripe_cb = get_protected_stripe()
+    
     for row in rows:
         total_revenue = row["price_cents"] * row["active_installs"]
         author_share = row.get("revenue_share_pct", 70)
@@ -124,17 +134,22 @@ async def process_marketplace_payouts(
 
         try:
             # Create Stripe transfer to Connected account
-            transfer = stripe.Transfer.create(
-                amount=author_amount,
-                currency="usd",
-                destination=row["stripe_connect_id"],
-                description=f"Sorce marketplace payout - {row['active_installs']} installs",
-                metadata={
-                    "blueprint_id": str(row["blueprint_id"]),
-                    "author_tenant_id": str(row["author_tenant_id"]),
-                    "period": period_end or "current",
-                },
+            transfer = stripe_cb.call(
+                lambda: stripe.Transfer.create(
+                    amount=author_amount,
+                    currency="usd",
+                    destination=row["stripe_connect_id"],
+                    description=f"Sorce marketplace payout - {row['active_installs']} installs",
+                    metadata={
+                        "blueprint_id": str(row["blueprint_id"]),
+                        "author_tenant_id": str(row["author_tenant_id"]),
+                        "period": period_end or "current",
+                    },
+                )
             )
+
+            if not transfer:
+                raise RuntimeError("Transfer failed (circuit open)")
 
             # Record payout
             await conn.execute(

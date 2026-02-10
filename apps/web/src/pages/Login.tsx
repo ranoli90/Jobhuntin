@@ -8,7 +8,7 @@ import { magicLinkService } from '../services/magicLinkService';
 import {
   ArrowRight, Mail, Lock, Sparkles, AlertCircle,
   Chrome, Linkedin, CheckCircle, ArrowLeft,
-  ShieldCheck, MailCheck
+  ShieldCheck, MailCheck, Bot
 } from 'lucide-react';
 import { Logo } from '../components/brand/Logo';
 import { Button } from '../components/ui/Button';
@@ -61,16 +61,16 @@ export default function Login() {
   useEffect(() => {
     const handleHash = async () => {
       const hash = window.location.hash;
-      console.log('[Login] Hash detected:', hash);
+      console.log('[Login] Hash detected');
       if (hash && hash.includes('access_token')) {
         try {
           // Parse the hash fragment to extract the access token
           const params = new URLSearchParams(hash.substring(1));
           const accessToken = params.get('access_token');
-          console.log('[Login] Access token found:', !!accessToken);
+          // console.log('[Login] Access token found');
 
           if (accessToken && !authLoading && session) {
-            console.log('[Login] Session available, navigating to:', returnTo);
+            console.log('[Login] Session available, navigating...');
             // If we have a valid session from the hash, navigate to the intended destination
             const decodedReturnTo = decodeURIComponent(returnTo);
             const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;

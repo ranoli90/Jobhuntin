@@ -103,12 +103,12 @@ class MagicLinkService {
       const sanitizedReturnTo = this.sanitizeReturnTo(returnTo);
       const redirectUrl = `${origin.replace(/\/$/, '')}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
 
-      console.group('[MagicLink] Request Details');
+      /* console.group('[MagicLink] Request Details');
       console.log('Target Email:', normalizedEmail);
       console.log('Origin:', origin);
       console.log('Return To:', sanitizedReturnTo);
       console.log('Full Redirect URL:', redirectUrl);
-      console.groupEnd();
+      console.groupEnd(); */
 
       // Validate redirect URL is properly formed
       if (!redirectUrl.startsWith('http')) {
@@ -123,11 +123,11 @@ class MagicLinkService {
       });
 
       if (error) {
-        console.group('[MagicLink] Supabase Error');
+        /* console.group('[MagicLink] Supabase Error');
         console.error('Message:', error.message);
         console.error('Status:', error.status);
         console.error('Name:', error.name);
-        console.groupEnd();
+        console.groupEnd(); */
 
         // Handle rate limits specifically if Supabase returns them (usually 429 status in error)
         if (error.status === 429) {

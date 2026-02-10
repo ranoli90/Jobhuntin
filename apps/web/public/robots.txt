@@ -2,5 +2,11 @@ User-agent: *
 Allow: /
 
 Sitemap: https://jobhuntin.com/sitemap.xml
+
+# Disallow App & Private Routes
 Disallow: /app/
+Disallow: /onboarding
+Disallow: /dashboard
 Disallow: /login
+Disallow: /settings
+Disallow: /api/

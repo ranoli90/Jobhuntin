@@ -15,6 +15,16 @@ export default function Recruiters() {
         ogTitle="For Recruiters | JobHuntin AI"
         ogImage="https://jobhuntin.com/og/recruiters.png"
         canonicalUrl="https://jobhuntin.com/recruiters"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "JobHuntin Recruiter API",
+          "description": "AI-powered candidate screening and structured data delivery for recruiters.",
+          "provider": {
+            "@type": "Organization",
+            "name": "JobHuntin"
+          }
+        }}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-24 relative">

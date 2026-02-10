@@ -32,6 +32,19 @@ MAX_RETRIES = 3
 RETRY_DELAYS = [5, 30, 120]  # seconds
 
 
+async def _schedule_retry(
+    pool: asyncpg.Pool,
+    endpoint: dict,
+    payload: bytes,
+    signature: str,
+    attempt: int,
+    delay: int,
+) -> None:
+    """Schedule a webhook retry after delay."""
+    await asyncio.sleep(delay)
+    await _deliver_webhook(pool, endpoint, payload, signature, attempt)
+
+
 async def fire_webhooks_for_status_change(
     pool: asyncpg.Pool,
     tenant_id: str,
@@ -134,12 +147,19 @@ async def _deliver_webhook(
                     endpoint["id"],
                 )
 
-                # Retry
+                # Retry asynchronously
                 if attempt < MAX_RETRIES:
                     delay = RETRY_DELAYS[attempt - 1]
-                    logger.info("Webhook retry %d for %s in %ds", attempt + 1, endpoint["url"], delay)
-                    await asyncio.sleep(delay)
-                    return await _deliver_webhook(pool, endpoint, payload, signature, attempt + 1)
+                    logger.info("Webhook retry %d for %s scheduled in %ds", attempt + 1, endpoint["url"], delay)
+                    # Schedule retry asynchronously to avoid blocking
+                    asyncio.create_task(_schedule_retry(pool, endpoint, payload, signature, attempt + 1, delay))
+                    return {
+                        "endpoint_id": str(endpoint["id"]),
+                        "url": endpoint["url"],
+                        "status": "retry_scheduled",
+                        "attempt": attempt,
+                        "next_attempt_in": delay,
+                    }
 
         return {
             "endpoint_id": str(endpoint["id"]),
@@ -167,8 +187,17 @@ async def _deliver_webhook(
 
         if attempt < MAX_RETRIES:
             delay = RETRY_DELAYS[attempt - 1]
-            await asyncio.sleep(delay)
-            return await _deliver_webhook(pool, endpoint, payload, signature, attempt + 1)
+            logger.info("Webhook retry %d for %s scheduled in %ds", attempt + 1, endpoint["url"], delay)
+            # Schedule retry asynchronously to avoid blocking
+            asyncio.create_task(_schedule_retry(pool, endpoint, payload, signature, attempt + 1, delay))
+            return {
+                "endpoint_id": str(endpoint["id"]),
+                "url": endpoint["url"],
+                "status": "retry_scheduled",
+                "error": str(exc),
+                "attempt": attempt,
+                "next_attempt_in": delay,
+            }
 
         return {
             "endpoint_id": str(endpoint["id"]),

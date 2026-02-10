@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "notifications"
   ],
   "host_permissions": [
     "https://*.linkedin.com/*",
@@ -49,7 +50,12 @@
         "assets/*"
       ],
       "matches": [
-        "<all_urls>"
+        "https://*.linkedin.com/*",
+        "https://*.indeed.com/*",
+        "https://*.glassdoor.com/*",
+        "http://localhost:5173/*",
+        "https://jobhuntin.com/*",
+        "https://sorce-web.onrender.com/*"
       ]
     }
   ]

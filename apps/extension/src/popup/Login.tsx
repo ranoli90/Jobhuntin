@@ -11,12 +11,27 @@ export function Login({ onLogin }: { onLogin: () => void }) {
             }
         };
         const interval = setInterval(checkSession, 1000);
-        return () => clearInterval(interval);
+
+        // Also react immediately to storage changes (covers SYNC_SESSION)
+        const storageListener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+            if (area === 'local' && changes.session?.newValue) {
+                onLogin();
+            }
+        };
+        chrome.storage.onChanged.addListener(storageListener);
+
+        return () => {
+            clearInterval(interval);
+            chrome.storage.onChanged.removeListener(storageListener);
+        };
     }, [onLogin]);
 
     const openWebApp = () => {
-        chrome.tabs.create({ url: 'http://localhost:5173/login' });
-        // In prod: chrome.tabs.create({ url: 'https://jobhuntin.com/login' });
+        // Use production URL for production builds, localhost for development
+        const webAppUrl = import.meta.env.MODE === 'production'
+            ? 'https://jobhuntin.com/login'
+            : 'http://localhost:5173/login';
+        chrome.tabs.create({ url: webAppUrl });
     };
 
     return (

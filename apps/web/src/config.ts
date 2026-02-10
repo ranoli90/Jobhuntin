@@ -32,7 +32,7 @@ export const config = {
 
   // URLs
   urls: {
-    homepage: "https://jobhuntin.com",
+    homepage: import.meta.env.VITE_APP_BASE_URL || "https://jobhuntin.com",
     pricing: "/pricing",
     successStories: "/success-stories",
     chromeExtension: "/chrome-extension",
@@ -40,6 +40,7 @@ export const config = {
     guides: "/guides",
     privacy: "/privacy",
     terms: "/terms",
+    og: import.meta.env.VITE_APP_BASE_URL || "https://jobhuntin.com",
   },
 
   // Validation

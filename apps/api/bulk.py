@@ -13,10 +13,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
-from shared.logging_config import get_logger
-from shared.metrics import incr
+from backend.domain.repositories import db_transaction
 
 logger = get_logger("sorce.api.bulk")
 
@@ -165,36 +162,38 @@ async def start_campaign(
         from backend.domain.priority import compute_priority_score
         priority = compute_priority_score(ctx.plan, is_bulk=True)
 
-        # Create applications for each job
-        blueprint_key = filters.get("blueprint_key", "job-app")
-        for job in job_rows:
-            await conn.execute(
+        # Create applications for each job in a transaction
+        async with db_transaction(db) as txn_conn:
+            # Create applications for each job
+            blueprint_key = filters.get("blueprint_key", "job-app")
+            for job in job_rows:
+                await txn_conn.execute(
+                    """
+                    INSERT INTO public.applications
+                        (user_id, job_id, tenant_id, blueprint_key, status, priority_score)
+                    VALUES ($1, $2, $3, $4, 'QUEUED', $5)
+                    ON CONFLICT DO NOTHING
+                    """,
+                    ctx.user_id, job["id"], ctx.tenant_id, blueprint_key, priority,
+                )
+
+            # Update campaign
+            await txn_conn.execute(
                 """
-                INSERT INTO public.applications
-                    (user_id, job_id, tenant_id, blueprint_key, status, priority_score)
-                VALUES ($1, $2, $3, $4, 'QUEUED', $5)
-                ON CONFLICT DO NOTHING
+                UPDATE public.bulk_campaigns
+                SET status = 'running', total_jobs = $2, started_at = now()
+                WHERE id = $1
                 """,
-                ctx.user_id, job["id"], ctx.tenant_id, blueprint_key, priority,
+                campaign_id, total,
             )
 
-        # Update campaign
-        await conn.execute(
-            """
-            UPDATE public.bulk_campaigns
-            SET status = 'running', total_jobs = $2, started_at = now()
-            WHERE id = $1
-            """,
-            campaign_id, total,
-        )
-
-        await record_audit_event(
-            conn, ctx.tenant_id, ctx.user_id,
-            action="bulk.campaign_started",
-            resource="bulk_campaign",
-            resource_id=campaign_id,
-            details={"total_jobs": total, "filters": filters},
-        )
+            await record_audit_event(
+                txn_conn, ctx.tenant_id, ctx.user_id,
+                action="bulk.campaign_started",
+                resource="bulk_campaign",
+                resource_id=campaign_id,
+                details={"total_jobs": total, "filters": filters},
+            )
 
     incr("bulk.campaign.started", tags={"tenant_id": ctx.tenant_id, "jobs": str(total)})
     return {"status": "running", "campaign_id": campaign_id, "total_jobs": total}

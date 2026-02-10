@@ -137,7 +137,8 @@ def verify_sso_session_token(token: str) -> dict[str, Any] | None:
         if payload.get("exp", 0) < time.time():
             return None
         return payload
-    except Exception:
+    except Exception as exc:
+        logger.error("SSO session verification failed: %s", exc)
         return None
 
 

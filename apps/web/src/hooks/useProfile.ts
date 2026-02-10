@@ -37,6 +37,7 @@ export interface ProfileUpdatePayload {
   bio?: string;
   has_completed_onboarding?: boolean;
   preferences?: Preferences;
+  contact?: ContactInfo;
   avatar_url?: string;
   resume_url?: string;
 }
@@ -63,7 +64,7 @@ export function useProfile() {
       const message = err instanceof Error ? err.message : "Unknown error";
       setError(message);
       // Don't throw here, just set error/profile to null so UI can decide what to do
-      setProfile(null); 
+      setProfile(null);
       return null;
     } finally {
       setLoading(false);
@@ -118,7 +119,7 @@ export function useProfile() {
     });
     // If we didn't have a profile before, refresh to get the full object
     if (!profile) {
-        await refreshProfile();
+      await refreshProfile();
     }
     return data;
   };

@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 interface SEOProps {
   title: string;
@@ -15,6 +16,7 @@ interface SEOProps {
 }
 
 const DEFAULT_OG_IMAGE = "https://sorce-api.onrender.com/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global";
+const BASE_URL = "https://jobhuntin.com";
 
 export const SEO = ({
   title,
@@ -29,125 +31,96 @@ export const SEO = ({
   themeColor = "#FF6B35",
   schema
 }: SEOProps) => {
-  useEffect(() => {
-    document.title = title;
+  const location = useLocation();
+  const resolvedCanonical = canonicalUrl || `${BASE_URL}${location.pathname === "/" ? "" : location.pathname}`;
 
-    const updateMeta = (name: string, content: string, attr: string = 'name') => {
-      let el = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!el) {
-        el = document.createElement('meta');
-        el.setAttribute(attr, name);
-        document.head.appendChild(el);
-      }
-      el.setAttribute('content', content);
-    };
-
-    const resolvedCanonical = canonicalUrl || (typeof window !== 'undefined' ? window.location.href : "https://jobhuntin.com");
-
-    updateMeta("description", description);
-    updateMeta("og:title", ogTitle || title, 'property');
-    updateMeta("og:description", ogDescription || description, 'property');
-    updateMeta("og:type", "website", 'property');
-    updateMeta("og:url", resolvedCanonical, 'property');
-    
-    // OG Image tags for iMessage/Social optimization
-    updateMeta("og:image", ogImage, 'property');
-    updateMeta("og:image:width", ogImageWidth, 'property');
-    updateMeta("og:image:height", ogImageHeight, 'property');
-    updateMeta("og:image:alt", ogTitle || title, 'property');
-
-    updateMeta("og:site_name", "JobHuntin", 'property');
-    updateMeta("theme-color", themeColor);
-    updateMeta("robots", robots);
-    
-    // Twitter Card tags
-    updateMeta("twitter:card", "summary_large_image");
-    updateMeta("twitter:site", "@jobhuntin");
-    updateMeta("twitter:title", ogTitle || title);
-    updateMeta("twitter:description", ogDescription || description);
-    updateMeta("twitter:image", ogImage);
-    updateMeta("twitter:image:alt", ogTitle || title);
-
-    // Canonical
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.setAttribute('rel', 'canonical');
-      document.head.appendChild(canonical);
+  const baseSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "JobHuntin",
+    "url": BASE_URL,
+    "description": description,
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": `${BASE_URL}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string"
     }
-    canonical.setAttribute('href', resolvedCanonical);
+  };
 
-    // Schema.org JSON-LD
-    const scriptId = 'seo-schema-jsonld';
-    let script = document.getElementById(scriptId) as HTMLScriptElement;
-    if (!script) {
-      script = document.createElement('script');
-      script.id = scriptId;
-      script.type = "application/ld+json";
-      document.head.appendChild(script);
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "JobHuntin",
+    "url": BASE_URL,
+    "logo": `${BASE_URL}/logo.png`,
+    "sameAs": [
+      "https://twitter.com/jobhuntin",
+      "https://github.com/jobhuntin"
+    ]
+  };
+
+  // Breadcrumb Schema
+  const pathSegments = location.pathname.split('/').filter(Boolean);
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": BASE_URL
+      },
+      ...pathSegments.map((segment, index) => ({
+        "@type": "ListItem",
+        "position": index + 2,
+        "name": segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' '),
+        "item": `${BASE_URL}/${pathSegments.slice(0, index + 1).join('/')}`
+      }))
+    ]
+  };
+
+  const finalSchema: any[] = [baseSchema, organizationSchema, breadcrumbSchema];
+  if (schema) {
+    if (Array.isArray(schema)) {
+      finalSchema.push(...schema);
+    } else {
+      finalSchema.push(schema);
     }
+  }
 
-    const baseSchema = {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "JobHuntin",
-      "url": resolvedCanonical,
-      "description": description,
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": `${resolvedCanonical}/search?q={search_term_string}`,
-        "query-input": "required name=search_term_string"
-      }
-    };
+  return (
+    <Helmet>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <link rel="canonical" href={resolvedCanonical} />
+      <meta name="robots" content={robots} />
+      <meta name="theme-color" content={themeColor} />
 
-    const organizationSchema = {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "JobHuntin",
-      "url": "https://jobhuntin.com",
-      "logo": "https://jobhuntin.com/logo.png",
-      "sameAs": [
-        "https://twitter.com/jobhuntin",
-        "https://github.com/jobhuntin"
-      ]
-    };
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={resolvedCanonical} />
+      <meta property="og:title" content={ogTitle || title} />
+      <meta property="og:description" content={ogDescription || description} />
+      <meta property="og:image" content={ogImage} />
+      <meta property="og:image:width" content={ogImageWidth} />
+      <meta property="og:image:height" content={ogImageHeight} />
+      <meta property="og:image:alt" content={ogTitle || title} />
+      <meta property="og:site_name" content="JobHuntin" />
 
-    // Breadcrumb Schema
-    const pathSegments = window.location.pathname.split('/').filter(Boolean);
-    const breadcrumbSchema = {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://jobhuntin.com"
-        },
-        ...pathSegments.map((segment, index) => ({
-          "@type": "ListItem",
-          "position": index + 2,
-          "name": segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' '),
-          "item": `https://jobhuntin.com/${pathSegments.slice(0, index + 1).join('/')}`
-        }))
-      ]
-    };
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@jobhuntin" />
+      <meta name="twitter:title" content={ogTitle || title} />
+      <meta name="twitter:description" content={ogDescription || description} />
+      <meta name="twitter:image" content={ogImage} />
+      <meta name="twitter:image:alt" content={ogTitle || title} />
 
-    const finalSchema: any[] = [baseSchema, organizationSchema, breadcrumbSchema];
-    if (schema) {
-      if (Array.isArray(schema)) {
-        finalSchema.push(...schema);
-      } else {
-        finalSchema.push(schema);
-      }
-    }
-
-    script.text = JSON.stringify(finalSchema);
-
-    return () => {
-      // Cleanup if needed
-    };
-  }, [title, description, ogTitle, ogDescription, ogImage, ogImageWidth, ogImageHeight, canonicalUrl, robots, themeColor, schema]);
-
-  return null;
+      {/* JSON-LD Structured Data */}
+      <script type="application/ld+json">
+        {JSON.stringify(finalSchema)}
+      </script>
+    </Helmet>
+  );
 };
+

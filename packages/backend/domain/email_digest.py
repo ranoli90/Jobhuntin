@@ -15,6 +15,7 @@ import asyncpg
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
+from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
 
 logger = get_logger("sorce.email_digest")
 
@@ -166,25 +167,31 @@ async def send_digest_email(
         logger.warning("Resend API key not set, skipping email send")
         return False
 
+    cb = get_circuit_breaker("resend")
+
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {s.resend_api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "from": s.email_from,
-                    "to": [to_email],
-                    "subject": subject,
-                    "html": html,
-                },
-            )
-            if resp.status_code in (200, 201):
-                return True
-            logger.error("Resend error: %d %s", resp.status_code, resp.text[:200])
-            return False
+        async with cb:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post(
+                    "https://api.resend.com/emails",
+                    headers={
+                        "Authorization": f"Bearer {s.resend_api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "from": s.email_from,
+                        "to": [to_email],
+                        "subject": subject,
+                        "html": html,
+                    },
+                )
+                if resp.status_code in (200, 201):
+                    return True
+                logger.error("Resend error: %d %s", resp.status_code, resp.text[:200])
+                return False
+    except CircuitBreakerOpen as exc:
+        logger.warning("Resend circuit breaker open: %s", exc)
+        return False
     except Exception as exc:
         logger.error("Email send failed: %s", exc)
         return False

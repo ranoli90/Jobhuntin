@@ -26,7 +26,7 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
             setCopied(false);
             reset();
         }
-    }, [isOpen]);
+    }, [isOpen, reset]);
 
     if (!isOpen) return null;
 
@@ -35,11 +35,15 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
         await generate(profile, job, tone);
     };
 
-    const handleCopy = () => {
+    const handleCopy = async () => {
         if (result) {
-            navigator.clipboard.writeText(result.content);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            try {
+                await navigator.clipboard.writeText(result.content);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            } catch (err) {
+                console.error("Failed to copy to clipboard:", err);
+            }
         }
     };
 

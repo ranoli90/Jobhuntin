@@ -207,6 +207,7 @@ def get_circuit_breaker(name: str, **config_overrides: Any) -> CircuitBreaker:
             "stripe": {"failure_threshold": 5, "timeout_seconds": 30.0},
             "supabase": {"failure_threshold": 5, "timeout_seconds": 15.0},
             "adzuna": {"failure_threshold": 10, "timeout_seconds": 120.0},
+            "resend": {"failure_threshold": 5, "timeout_seconds": 30.0},
         }
         config_kwargs = {"name": name, **defaults.get(name, {}), **config_overrides}
         config = CircuitBreakerConfig(**config_kwargs)

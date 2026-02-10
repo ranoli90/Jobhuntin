@@ -2,21 +2,14 @@
 // Auth Signal Content Script
 // Detects Supabase session from the main web app and syncs it to the extension
 
-console.log("Sorce Auth Sync Script Loaded");
+// The web app stores the actual Supabase session under the standard
+// `sb-<project-ref>-auth-token` localStorage key.  The lightweight
+// `sorce-session` key only contains a login-status flag (no tokens).
+// We sync the REAL Supabase session to the extension background so the
+// popup can call `supabase.auth.getSession()` successfully.
 
-// Function to find the Supabase token in localStorage
-const findAuthToken = () => {
-    // 1. Check explicit sorce-session key first
-    const sorceSession = localStorage.getItem('sorce-session');
-    if (sorceSession) {
-        try {
-            return JSON.parse(sorceSession);
-        } catch (e) {
-            console.error("Failed to parse sorce-session", e);
-        }
-    }
-
-    // 2. Fallback: Look for keys starting with sb- and ending with -auth-token
+const findAuthSession = () => {
+    // Look for the standard Supabase auth token key
     const keys = Object.keys(localStorage);
     const authKey = keys.find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
 
@@ -24,10 +17,9 @@ const findAuthToken = () => {
         const sessionStr = localStorage.getItem(authKey);
         if (sessionStr) {
             try {
-                const session = JSON.parse(sessionStr);
-                return session;
+                return JSON.parse(sessionStr);
             } catch (e) {
-                console.error("Failed to parse auth session", e);
+                console.error('Failed to parse Supabase auth session', e);
             }
         }
     }
@@ -35,19 +27,15 @@ const findAuthToken = () => {
 };
 
 const syncSession = () => {
-    const session = findAuthToken();
+    const session = findAuthSession();
     if (session) {
-        console.log("Sorce: Found session, syncing to extension...");
         chrome.runtime.sendMessage({
             type: 'SYNC_SESSION',
             session: session
-        }, (response) => {
+        }, () => {
             // Handle runtime.lastError to avoid noise
             if (chrome.runtime.lastError) {
                 // This is expected if extension is not installed or background script is inactive
-                // console.log("Extension not reachable"); 
-            } else {
-                console.log("Sorce: Sync response", response);
             }
         });
     }
@@ -58,7 +46,11 @@ syncSession();
 
 // Sync on storage changes (login/logout)
 window.addEventListener('storage', (event) => {
-    if (event.key === 'sorce-session' || (event.key && event.key.startsWith('sb-') && event.key.endsWith('-auth-token'))) {
+    // React to Supabase auth key changes OR the lightweight sorce-session flag
+    if (
+        (event.key && event.key.startsWith('sb-') && event.key.endsWith('-auth-token')) ||
+        event.key === 'sorce-session'
+    ) {
         syncSession();
     }
 });

@@ -3,7 +3,7 @@
  * Microsoft-level implementation with comprehensive error handling and caching
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiPost, apiGet } from "../lib/api";
 import { useProfile } from "./useProfile";
@@ -100,7 +100,7 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
           }
         }
       });
-      
+
       const queryString = params.toString();
       const path = queryString ? `jobs/enhanced?${queryString}` : "jobs/enhanced";
       return await apiGet<EnhancedJobPosting[]>(path);
@@ -121,7 +121,7 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
     setMatchingState(prev => ({ ...prev, isScoring: true, lastScoredJob: job.id }));
 
     try {
-      const score = await apiPost<JobMatchScore>("ai/score-job", {
+      const score = await apiPost<JobMatchScore>("ai/match-job", {
         job_id: job.id,
         profile_context: {
           preferences: profile.preferences,
@@ -139,8 +139,8 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
       // Update job in cache with match score
       queryClient.setQueryData(
         ["enhanced-jobs", filters],
-        (oldJobs: EnhancedJobPosting[] | undefined) => 
-          oldJobs?.map(j => 
+        (oldJobs: EnhancedJobPosting[] | undefined) =>
+          oldJobs?.map(j =>
             j.id === job.id ? { ...j, match_score: score } : j
           )
       );
@@ -189,9 +189,9 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
       // Update all jobs in cache with their scores
       queryClient.setQueryData(
         ["enhanced-jobs", filters],
-        (oldJobs: EnhancedJobPosting[] | undefined) => 
-          oldJobs?.map(job => 
-            results.scores[job.id] 
+        (oldJobs: EnhancedJobPosting[] | undefined) =>
+          oldJobs?.map(job =>
+            results.scores[job.id]
               ? { ...job, match_score: results.scores[job.id] }
               : job
           )
@@ -210,39 +210,63 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
   }, [profile, filters, queryClient]);
 
   // Auto-score jobs as they load
+  const scoredJobIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
+    let cancelled = false;
+
     if (jobs.length > 0 && profile) {
-      const unscoredJobs = jobs.filter((job: EnhancedJobPosting) => !job.match_score);
+      const unscoredJobs = jobs.filter(
+        (job: EnhancedJobPosting) => !job.match_score && !scoredJobIdsRef.current.has(job.id)
+      );
       if (unscoredJobs.length > 0) {
+        // Mark them as being scored to prevent re-triggering
+        unscoredJobs.forEach((job: EnhancedJobPosting) => scoredJobIdsRef.current.add(job.id));
+
         // Score first 10 jobs immediately, rest in background
         const immediateJobs = unscoredJobs.slice(0, 10);
         const backgroundJobs = unscoredJobs.slice(10);
 
-        immediateJobs.forEach((job: EnhancedJobPosting) => {
-          scoreJob(job);
-        });
+        if (!cancelled) {
+          immediateJobs.forEach((job: EnhancedJobPosting) => {
+            scoreJob(job);
+          });
+        }
 
-        if (backgroundJobs.length > 0) {
-          setTimeout(() => {
-            scoreJobsBatch(
-              backgroundJobs.map((j: EnhancedJobPosting) => j.id),
-              (completed: number, total: number) => {
-                setMatchingState(prev => ({
-                  ...prev,
-                  batchProgress: completed,
-                  totalBatch: total,
-                }));
-              }
-            );
+        let bgTimer: ReturnType<typeof setTimeout> | null = null;
+        if (backgroundJobs.length > 0 && !cancelled) {
+          bgTimer = setTimeout(() => {
+            if (!cancelled) {
+              scoreJobsBatch(
+                backgroundJobs.map((j: EnhancedJobPosting) => j.id),
+                (completed: number, total: number) => {
+                  if (!cancelled) {
+                    setMatchingState(prev => ({
+                      ...prev,
+                      batchProgress: completed,
+                      totalBatch: total,
+                    }));
+                  }
+                }
+              );
+            }
           }, 1000);
         }
+
+        return () => {
+          cancelled = true;
+          if (bgTimer) clearTimeout(bgTimer);
+        };
       }
     }
-  }, [jobs, profile, scoreJob, scoreJobsBatch]);
 
-  // Debounced filter updates
-  const debouncedSetFilters = useCallback(
-    debounce((newFilters: MatchingFilters) => {
+    return () => {
+      cancelled = true;
+    };
+  }, [jobs, profile]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounced filter updates — use useMemo to create a stable debounced function
+  const debouncedSetFilters = useMemo(
+    () => debounce((newFilters: MatchingFilters) => {
       setFilters(newFilters);
     }, 300),
     []
@@ -261,7 +285,7 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
 
   // Get jobs with potential issues (red flags)
   const getJobsWithWarnings = useCallback((): EnhancedJobPosting[] => {
-    return jobs.filter((job: EnhancedJobPosting) => 
+    return jobs.filter((job: EnhancedJobPosting) =>
       job.match_score && job.match_score.red_flags.length > 0
     );
   }, [jobs]);
@@ -269,7 +293,7 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
   // Update filters with validation
   const updateFilters = useCallback((newFilters: Partial<MatchingFilters>) => {
     const validatedFilters = { ...filters, ...newFilters };
-    
+
     // Validate numeric inputs
     if (validatedFilters.minSalary !== undefined) {
       validatedFilters.minSalary = Math.max(0, validatedFilters.minSalary);
@@ -288,7 +312,7 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
   const clearScores = useCallback(() => {
     queryClient.setQueryData(
       ["enhanced-jobs", filters],
-      (oldJobs: EnhancedJobPosting[] | undefined) => 
+      (oldJobs: EnhancedJobPosting[] | undefined) =>
         oldJobs?.map(job => ({ ...job, match_score: undefined }))
     );
   }, [filters, queryClient]);
@@ -296,23 +320,24 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
   return {
     // Data
     jobs,
-    recommendedJobs: getRecommendedJobs(),
-    jobsWithWarnings: getJobsWithWarnings(),
-    
+    // Memoized derived data
+    recommendedJobs: useMemo(() => getRecommendedJobs(), [getRecommendedJobs]),
+    jobsWithWarnings: useMemo(() => getJobsWithWarnings(), [getJobsWithWarnings]),
+
     // Loading states
     isLoading: jobsLoading,
     isScoring: matchingState.isScoring,
     scoringProgress: {
       current: matchingState.batchProgress,
       total: matchingState.totalBatch,
-      percentage: matchingState.totalBatch > 0 
-        ? (matchingState.batchProgress / matchingState.totalBatch) * 100 
+      percentage: matchingState.totalBatch > 0
+        ? (matchingState.batchProgress / matchingState.totalBatch) * 100
         : 0,
     },
-    
+
     // Error handling
     error: jobsError,
-    
+
     // Actions
     scoreJob,
     scoreJobsBatch,
@@ -320,7 +345,7 @@ export function useJobMatching(initialFilters: MatchingFilters = {}) {
     setFilters: debouncedSetFilters,
     clearScores,
     refetchJobs,
-    
+
     // State
     filters,
     matchingState,

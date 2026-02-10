@@ -176,8 +176,9 @@ export function useAISuggestions() {
         ]);
 
         // Fetch salary after we have a role suggestion
+        let salaryResult = null;
         if (rolesResult?.primary_role) {
-            await suggestSalary(
+            salaryResult = await suggestSalary(
                 profile,
                 rolesResult.primary_role,
                 locationsResult?.suggested_locations?.[0] || currentLocation || "Remote"
@@ -187,9 +188,9 @@ export function useAISuggestions() {
         return {
             roles: rolesResult,
             locations: locationsResult,
-            salary: salary.data,
+            salary: salaryResult,
         };
-    }, [suggestRoles, suggestLocations, suggestSalary, salary.data]);
+    }, [suggestRoles, suggestLocations, suggestSalary]);
 
     const isLoading = roles.loading || salary.loading || locations.loading;
     const hasAnyData = roles.data || salary.data || locations.data;

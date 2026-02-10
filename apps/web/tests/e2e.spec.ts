@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('JobHuntin E2E User Journey', () => {
   test('Complete User Journey: Homepage -> Magic Link -> Onboarding -> Dashboard', async ({ page }) => {
     // 1. Homepage Access
-    await page.goto('https://jobhuntin.com/');
+    await page.goto('http://localhost:5173/');
     await expect(page).toHaveTitle(/JobHuntin/);
 
     // 2. Scrolling and Interaction (Simulate user behavior)
@@ -18,7 +18,7 @@ test.describe('JobHuntin E2E User Journey', () => {
 
     // 3. Magic Link Authentication
     // Fill email in the Hero section form
-    const emailInput = page.getByPlaceholder('you@example.com').first();
+    const emailInput = page.getByPlaceholder('tech-wizard@example.com').first();
     await emailInput.fill('testuser@jobhuntin.com');
     
     // Click "Start Hunt"

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Bot, ArrowLeft, BookOpen, Clock, Calendar, Share2, ChevronRight, Zap, Shield, Target } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
+import { config } from '../config';
 
 const GUIDE_CONTENT: Record<string, any> = {
   'how-to-beat-ats-with-ai': {
@@ -89,8 +90,8 @@ export default function GuidePage() {
         title={`${guide.title} | JobHuntin Playbook`}
         description={`Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin AI automation playbook.`}
         ogTitle={`${guide.title} | JobHuntin Playbook`}
-        ogImage={`https://sorce-web.onrender.com/api/og?job=${encodeURIComponent(guide.title)}&company=JobHuntin&score=100&location=Global`}
-        canonicalUrl={`https://jobhuntin.com/guides/${guideSlug}`}
+        ogImage={`${config.urls.og}/api/og?job=${encodeURIComponent(guide.title)}&company=JobHuntin&score=100&location=Global`}
+        canonicalUrl={`${config.urls.homepage}/guides/${guideSlug}`}
         schema={{
           "@context": "https://schema.org",
           "@type": "Article",

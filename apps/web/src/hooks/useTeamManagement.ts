@@ -5,25 +5,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { apiPost, apiGet, apiPatch } from "../lib/api";
+import { apiPost, apiGet, apiPatch, apiDelete } from "../lib/api";
 import { useProfile } from "./useProfile";
-
-// Add apiDelete function since it's not in the main API file
-async function apiDelete(path: string): Promise<any> {
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/${path}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('supabase_token')}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-  
-  return response.json();
-}
 
 export interface TeamMember {
   id: string;
@@ -174,7 +157,7 @@ export function useTeamManagement() {
   const inviteMemberMutation = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: "admin" | "member" | "viewer" }) => {
       setTeamState(prev => ({ ...prev, isInviting: true }));
-      
+
       const result = await apiPost<TeamInvitation>("team/invite", {
         email,
         role,
@@ -199,14 +182,14 @@ export function useTeamManagement() {
   const updateRoleMutation = useMutation({
     mutationFn: async ({ memberId, role }: { memberId: string; role: "admin" | "member" | "viewer" }) => {
       setTeamState(prev => ({ ...prev, isUpdatingRole: true }));
-      
+
       return await apiPatch<TeamMember>(`team/members/${memberId}`, { role });
     },
     onSuccess: (updatedMember) => {
       queryClient.setQueryData(
         ["team-members"],
-        (oldMembers: TeamMember[] | undefined) => 
-          oldMembers?.map(member => 
+        (oldMembers: TeamMember[] | undefined) =>
+          oldMembers?.map(member =>
             member.id === updatedMember.id ? updatedMember : member
           )
       );
@@ -227,7 +210,7 @@ export function useTeamManagement() {
     onSuccess: (_, memberId) => {
       queryClient.setQueryData(
         ["team-members"],
-        (oldMembers: TeamMember[] | undefined) => 
+        (oldMembers: TeamMember[] | undefined) =>
           oldMembers?.filter(member => member.id !== memberId)
       );
     },
@@ -244,7 +227,7 @@ export function useTeamManagement() {
     onSuccess: (_, invitationId) => {
       queryClient.setQueryData(
         ["team-invitations"],
-        (oldInvitations: TeamInvitation[] | undefined) => 
+        (oldInvitations: TeamInvitation[] | undefined) =>
           oldInvitations?.filter(inv => inv.id !== invitationId)
       );
     },
@@ -321,7 +304,7 @@ export function useTeamManagement() {
   // Check if user can perform action
   const canPerformAction = useCallback((action: keyof TeamPermissions, memberRole?: "admin" | "member" | "viewer"): boolean => {
     const role = memberRole || "member"; // Default to member since profile.role doesn't exist
-    
+
     const permissionMatrix: Record<string, TeamPermissions> = {
       admin: {
         can_view_jobs: true,
@@ -390,7 +373,7 @@ export function useTeamManagement() {
     invitations,
     teamSettings,
     teamAnalytics,
-    
+
     // Loading states
     isLoading: {
       members: membersLoading,
@@ -400,32 +383,32 @@ export function useTeamManagement() {
       inviting: inviteMemberMutation.isPending,
       updatingRole: updateRoleMutation.isPending,
     },
-    
+
     // Errors
     errors: {
       members: membersError,
     },
-    
+
     // Actions
     inviteMember,
     updateMemberRole,
     removeTeamMember,
     revokeInvitation,
     updateTeamSettings,
-    
+
     // Utilities
     getMemberById,
     getActiveMembers,
     getMembersByRole,
     canPerformAction,
     getTeamStats,
-    
+
     // UI State
     teamState,
     openInvitationModal,
     closeInvitationModal,
     selectMember,
-    
+
     // Refetch functions
     refetchMembers,
     refetchInvitations,

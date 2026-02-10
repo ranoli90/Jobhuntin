@@ -3,7 +3,7 @@
  * Microsoft-level implementation for instant UI feedback with rollback capability
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 export interface OptimisticUpdate<T> {
@@ -24,7 +24,19 @@ export interface OptimisticState<T> {
 export function useOptimisticUpdates() {
   const queryClient = useQueryClient();
   const [updates, setUpdates] = useState<OptimisticUpdate<any>[]>([]);
-  const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const updatesRef = useRef<OptimisticUpdate<any>[]>([]);
+  const timeoutRefs = useRef<Map<string, any>>(new Map());
+
+  // Keep ref in sync with state
+  updatesRef.current = updates;
+
+  // Cleanup all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId));
+      timeoutRefs.current.clear();
+    };
+  }, []);
 
   // Add optimistic update
   const addOptimisticUpdate = useCallback(<T>(
@@ -87,7 +99,7 @@ export function useOptimisticUpdates() {
 
   // Rollback update
   const rollbackUpdate = useCallback((id: string) => {
-    const update = updates.find(u => u.id === id);
+    const update = updatesRef.current.find(u => u.id === id);
     if (!update) return;
 
     // Clear timeout
@@ -127,7 +139,7 @@ export function useOptimisticUpdates() {
 
     // Remove from pending updates
     setUpdates(prev => prev.filter(u => u.id !== id));
-  }, [updates, queryClient]);
+  }, [queryClient]);
 
   // Complete update successfully
   const completeUpdate = useCallback((id: string) => {
@@ -142,11 +154,11 @@ export function useOptimisticUpdates() {
     setUpdates(prev => prev.filter(u => u.id !== id));
 
     // Invalidate query to refetch fresh data
-    const update = updates.find(u => u.id === id);
+    const update = updatesRef.current.find(u => u.id === id);
     if (update) {
       queryClient.invalidateQueries({ queryKey: update.queryKey });
     }
-  }, [updates, queryClient]);
+  }, [queryClient]);
 
   // Check if update is pending
   const isUpdatePending = useCallback((id: string) => {
@@ -166,18 +178,20 @@ export function useOptimisticUpdates() {
     timeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId));
     timeoutRefs.current.clear();
 
+    // Collect affected query keys before clearing
+    const affectedUpdates = updatesRef.current;
+    const uniqueQueryKeys = Array.from(new Set(
+      affectedUpdates.flatMap(u => u.queryKey.map(k => JSON.stringify(k)))
+    ));
+
     // Clear all updates
     setUpdates([]);
 
     // Refetch all affected queries
-    const uniqueQueryKeys = Array.from(new Set(
-      updates.flatMap(u => u.queryKey.map(k => JSON.stringify(k)))
-    ));
-
     uniqueQueryKeys.forEach(keyStr => {
       queryClient.invalidateQueries({ queryKey: JSON.parse(keyStr) });
     });
-  }, [updates, queryClient]);
+  }, [queryClient]);
 
   return {
     pending: updates,

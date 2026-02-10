@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "../ui/Button";
@@ -11,8 +11,13 @@ interface MobileDrawerProps {
   side?: "left" | "right";
 }
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function MobileDrawer({ isOpen, onClose, children, side = "left" }: MobileDrawerProps) {
   const [mounted, setMounted] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<Element | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -37,12 +42,84 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
     };
   }, [isOpen]);
 
+  // Save trigger element to restore focus on close
+  useEffect(() => {
+    if (isOpen) {
+      triggerRef.current = document.activeElement;
+    } else if (triggerRef.current && triggerRef.current instanceof HTMLElement) {
+      triggerRef.current.focus();
+      triggerRef.current = null;
+    }
+  }, [isOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Focus trap: keep Tab cycling within the drawer
+  const handleFocusTrap = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !drawerRef.current) return;
+
+      const focusableElements = drawerRef.current.querySelectorAll(FOCUSABLE_SELECTOR);
+      if (focusableElements.length === 0) return;
+
+      const firstFocusable = focusableElements[0] as HTMLElement;
+      const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    document.addEventListener("keydown", handleFocusTrap);
+    return () => document.removeEventListener("keydown", handleFocusTrap);
+  }, [isOpen, handleFocusTrap]);
+
+  // Auto-focus first focusable element when drawer opens
+  useEffect(() => {
+    if (isOpen && drawerRef.current) {
+      // Small delay to ensure animation has started and elements are rendered
+      const timeout = setTimeout(() => {
+        const firstFocusable = drawerRef.current?.querySelector(FOCUSABLE_SELECTOR) as HTMLElement | null;
+        firstFocusable?.focus();
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen]);
+
   if (!mounted) return null;
 
   return createPortal(
     <AnimatePresence mode="wait">
       {isOpen && (
-        <div className="fixed inset-0 z-[100] md:hidden">
+        <div
+          className="fixed inset-0 z-[100] md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+        >
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -60,6 +137,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
 
           {/* Drawer */}
           <motion.div
+            ref={drawerRef}
             initial={{ x: side === "left" ? "-100%" : "100%" }}
             animate={{ x: 0 }}
             exit={{ x: side === "left" ? "-100%" : "100%" }}

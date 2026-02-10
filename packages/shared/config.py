@@ -14,6 +14,11 @@ import os
 import sys
 from enum import StrEnum
 from functools import lru_cache
+import logging
+
+# Basic logging before shared.logging_config is ready
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("sorce.config")
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
@@ -194,10 +199,10 @@ class Settings(BaseSettings):
             if not self.app_base_url:
                 missing.append("APP_BASE_URL")
             if missing:
-                print(
-                    f"FATAL: Missing critical env vars for {self.env.value}: "
-                    + ", ".join(missing),
-                    file=sys.stderr,
+                logger.critical(
+                    "FATAL: Missing critical env vars for %s: %s",
+                    self.env.value,
+                    ", ".join(missing)
                 )
                 sys.exit(1)
 

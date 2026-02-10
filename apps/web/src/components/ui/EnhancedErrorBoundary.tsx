@@ -42,7 +42,7 @@ interface ErrorReport {
 }
 
 class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  private retryTimeouts: Map<string, NodeJS.Timeout> = new Map();
+  private retryTimeouts: Map<string, any> = new Map();
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -66,7 +66,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const errorId = `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     this.setState({
       error,
       errorInfo,
@@ -103,8 +103,8 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
           name: error.name || 'UnknownError',
         },
         componentStack: errorInfo.componentStack || '',
-        buildVersion: process.env.npm_package_version || 'unknown',
-        environment: process.env.NODE_ENV || 'unknown',
+        buildVersion: (import.meta as any).env?.VITE_APP_VERSION || 'unknown',
+        environment: import.meta.env.MODE || 'unknown',
       };
 
       // Send to error reporting service
@@ -119,17 +119,23 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
       });
 
       // Also send to external service if configured
-      const externalEndpoint = process.env.VITE_ERROR_REPORTING_ENDPOINT;
+      const externalEndpoint = (import.meta as any).env?.VITE_ERROR_REPORTING_ENDPOINT;
       if (externalEndpoint) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
         fetch(externalEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(report),
-        }).catch(err => {
-          console.warn('Failed to send external error report:', err);
-        });
+          signal: controller.signal,
+        }).then(() => clearTimeout(timeoutId))
+          .catch(err => {
+            clearTimeout(timeoutId);
+            console.warn('Failed to send external error report:', err);
+          });
       }
     } catch (err) {
       console.warn('Error reporting failed:', err);
@@ -169,7 +175,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
 
     // Exponential backoff for retry
     const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-    
+
     const timeoutId = setTimeout(() => {
       this.setState(prev => ({
         hasError: false,
@@ -209,7 +215,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
 
     try {
       await this.sendErrorReport(error, errorInfo, errorId || 'manual');
-      
+
       // Show success message
       if (typeof window !== 'undefined') {
         const message = document.createElement('div');
@@ -231,7 +237,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
           </div>
         `;
         document.body.appendChild(message);
-        
+
         setTimeout(() => {
           document.body.removeChild(message);
         }, 3000);
@@ -290,7 +296,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
                   {isRecovering ? 'Recovering...' : 'Try Again'}
                 </button>
               )}
-              
+
               <button
                 onClick={this.handleReset}
                 className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
@@ -325,7 +331,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
                       </code>
                     </div>
                   )}
-                  
+
                   <div>
                     <span className="font-medium text-slate-700">Message:</span>
                     <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded text-red-800">
@@ -366,7 +372,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
             </div>
 
             {/* Debug Info (development only) */}
-            {process.env.NODE_ENV === 'development' && errorInfo && (
+            {import.meta.env.DEV && errorInfo && (
               <details className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <summary className="cursor-pointer font-medium text-yellow-800 mb-2">
                   Debug Information (Development)
@@ -404,7 +410,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
     ];
 
     return retryableErrors.includes(error.name) ||
-           retryablePatterns.some(pattern => pattern.test(error.message));
+      retryablePatterns.some(pattern => pattern.test(error.message));
   }
 }
 
@@ -413,7 +419,7 @@ export function useErrorBoundary() {
   const handleError = (error: Error, errorInfo: ErrorInfo) => {
     // Log to external service
     console.error('Error caught by boundary:', error, errorInfo);
-    
+
     // You can integrate with Sentry, LogRocket, etc.
     if (typeof window !== 'undefined' && (window as any).Sentry) {
       (window as any).Sentry.captureException(error, {

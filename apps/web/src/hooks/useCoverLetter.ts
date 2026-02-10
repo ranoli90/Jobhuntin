@@ -51,8 +51,8 @@ export interface CoverLetterAnalytics {
 
 // Legacy interface for backward compatibility
 export interface CoverLetterResponse {
-    content: string;
-    subject_line: string;
+  content: string;
+  subject_line: string;
 }
 
 interface GenerationState {
@@ -105,7 +105,7 @@ export function useCoverLetter() {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiPost<CoverLetterResponse>("/ai/generate-cover-letter", {
+      const data = await apiPost<CoverLetterResponse>("ai/generate-cover-letter", {
         profile: profileData,
         job,
         tone,
@@ -136,19 +136,20 @@ export function useCoverLetter() {
       progress: 0,
       estimatedTime: 30, // 30 seconds estimate
     });
+    setError(null);
+
+    // Start progress simulation
+    const progressInterval = setInterval(() => {
+      setGenerationState(prev => {
+        if (prev.progress >= 90) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        return { ...prev, progress: prev.progress + 10 };
+      });
+    }, 300);
 
     try {
-      // Start progress simulation
-      const progressInterval = setInterval(() => {
-        setGenerationState(prev => {
-          if (prev.progress >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return { ...prev, progress: prev.progress + 10 };
-        });
-      }, 300);
-
       const enhancedRequest = {
         ...request,
         profile_context: {
@@ -179,13 +180,16 @@ export function useCoverLetter() {
       // Update cache
       queryClient.setQueryData(
         ["cover-letters"],
-        (oldLetters: GeneratedCoverLetter[] | undefined) => 
+        (oldLetters: GeneratedCoverLetter[] | undefined) =>
           oldLetters ? [result, ...oldLetters] : [result]
       );
 
       return result;
     } catch (error) {
+      clearInterval(progressInterval);
+      const message = error instanceof Error ? error.message : "Failed to generate cover letter";
       console.error("Failed to generate cover letter:", error);
+      setError(message);
       setGenerationState({
         isGenerating: false,
         currentJobId: null,
@@ -213,7 +217,7 @@ export function useCoverLetter() {
     };
 
     const text = (jobTitle + " " + jobDescription).toLowerCase();
-    
+
     for (const [category, words] of Object.entries(keywords)) {
       if (words.some(word => text.includes(word))) {
         const template = templates.find(t => t.category === category && t.is_default);
@@ -246,13 +250,26 @@ export function useCoverLetter() {
     };
   }, [generationState]);
 
-  return { 
+  // Reset hook state
+  const reset = useCallback(() => {
+    setResult(null);
+    setError(null);
+    setGenerationState({
+      isGenerating: false,
+      currentJobId: null,
+      progress: 0,
+      estimatedTime: 0,
+    });
+  }, []);
+
+  return {
     // Legacy API
-    generate, 
-    loading, 
-    error, 
+    generate,
+    reset,
+    loading,
+    error,
     result,
-    
+
     // Enhanced API
     templates,
     generatedLetters,
@@ -262,7 +279,7 @@ export function useCoverLetter() {
     getGenerationProgress,
     refetchLetters,
     generationState,
-    
+
     // Loading states
     isLoading: {
       templates: templatesLoading,

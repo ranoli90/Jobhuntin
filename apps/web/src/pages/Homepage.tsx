@@ -111,7 +111,7 @@ const Hero = () => {
       delay: Math.random() * 10,
       yMove: (Math.random() - 0.5) * 150,
       xMove: (Math.random() - 0.5) * 150,
-      color: i % 3 === 0 ? 'rgba(59, 130, 246, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(250, 249, 246, 0.3)',
+      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(250, 249, 246, 0.3)',
       blur: i < 5 ? 'blur(60px)' : 'none'
     }));
   }, []);
@@ -119,14 +119,6 @@ const Hero = () => {
   // Mouse Glow
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-
-  const glowBackground = useMotionTemplate`
-    radial-gradient(
-      650px circle at ${mouseX}px ${mouseY}px,
-      rgba(255, 255, 255, 0.4),
-      transparent 40%
-    )
-  `;
 
   function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
     const { left, top } = currentTarget.getBoundingClientRect();
@@ -137,6 +129,17 @@ const Hero = () => {
   const validateEmail = (e: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
   };
+
+  const timeoutRef = React.useRef<any>(null);
+  const animationRef = React.useRef<any>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,10 +175,10 @@ const Hero = () => {
             const progress = Math.min(elapsed / duration, 1);
             setMatchCount(Math.floor(progress * end));
             if (progress < 1) {
-              requestAnimationFrame(animateCounter);
+              animationRef.current = requestAnimationFrame(animateCounter);
             }
           };
-          requestAnimationFrame(animateCounter);
+          animationRef.current = requestAnimationFrame(animateCounter);
         }
       } catch (e) {
         console.warn("Animation failed", e);
@@ -189,7 +192,7 @@ const Hero = () => {
             particleCount: 150,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#3b82f6', '#4A90E2', '#FAF9F6']
+            colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
           });
         }
       } catch (e) {
@@ -213,7 +216,8 @@ const Hero = () => {
 
   const removeJob = (index: number) => {
     setJobs(prev => prev.filter((_, i) => i !== index));
-    setTimeout(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
       setJobs(prev => [...prev, {
         id: Math.random().toString(36).substr(2, 9),
         title: "New Match Found!",
@@ -304,7 +308,13 @@ const Hero = () => {
               <motion.div
                 className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                 style={{
-                  background: glowBackground,
+                  background: useMotionTemplate`
+                  radial-gradient(
+                    650px circle at ${mouseX}px ${mouseY}px,
+                    rgba(255, 255, 255, 0.4),
+                    transparent 40%
+                  )
+                `,
                 }}
               />
               <form onSubmit={onSubmit} className="bg-white rounded-xl p-2 flex flex-col sm:flex-row gap-2 relative z-10">

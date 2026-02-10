@@ -14,9 +14,12 @@ export interface JobMatchScore {
     skill_match: number;
     experience_match: number;
     location_match: number;
+    salary_match: number;
     culture_signals: string[];
     red_flags: string[];
     summary: string;
+    confidence: number;
+    reasoning: string;
 }
 
 interface ScoreCache {
@@ -28,6 +31,12 @@ export function useJobMatchScores() {
     const [loading, setLoading] = useState<Set<string>>(new Set());
     const [error, setError] = useState<string | null>(null);
     const profileRef = useRef<Record<string, unknown> | null>(null);
+    const scoresRef = useRef<ScoreCache>({});
+    const loadingRef = useRef<Set<string>>(new Set());
+
+    // Keep refs in sync
+    scoresRef.current = scores;
+    loadingRef.current = loading;
 
     /**
      * Set the user profile for scoring
@@ -45,8 +54,12 @@ export function useJobMatchScores() {
             return;
         }
 
+        // Use refs to read current state without depending on it
+        const currentScores = scoresRef.current;
+        const currentLoading = loadingRef.current;
+
         // Filter out already scored jobs
-        const unscored = jobs.filter(job => !scores[job.id] && !loading.has(job.id));
+        const unscored = jobs.filter(job => !currentScores[job.id] && !currentLoading.has(job.id));
         if (unscored.length === 0) return;
 
         // Mark as loading
@@ -85,6 +98,8 @@ export function useJobMatchScores() {
                 return next;
             });
 
+            setError(null);
+
             if (response.errors.length > 0) {
                 console.warn("Some jobs failed to score:", response.errors);
             }
@@ -97,7 +112,7 @@ export function useJobMatchScores() {
                 return next;
             });
         }
-    }, [scores, loading]);
+    }, []); // Stable reference — reads state through refs
 
     /**
      * Get the score for a specific job

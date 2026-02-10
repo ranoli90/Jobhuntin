@@ -365,6 +365,13 @@ export function JobsView() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+  const swipeTimeoutRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
+    };
+  }, []);
 
   const currentJob = jobs[currentIndex];
 
@@ -397,7 +404,11 @@ export function JobsView() {
       });
     } finally {
       // Clear swipe direction after animation
-      setTimeout(() => setSwipeDirection(null), 500);
+      if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
+      swipeTimeoutRef.current = setTimeout(() => {
+        setSwipeDirection(null);
+        swipeTimeoutRef.current = null;
+      }, 500);
     }
   };
 

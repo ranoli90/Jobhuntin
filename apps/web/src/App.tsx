@@ -1,11 +1,13 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import React, { Suspense } from 'react';
+import { Helmet } from "react-helmet-async";
 import ScrollToTop from "./components/ScrollToTop";
 import MarketingLayout from "./layouts/MarketingLayout";
 import AuthGuard from "./guards/AuthGuard";
 import AppLayout from "./layouts/AppLayout";
 import { useProfile } from "./hooks/useProfile";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import { config } from "./config";
 
 // Lazy Load Pages for Performance
 const Homepage = React.lazy(() => import("./pages/Homepage"));
@@ -62,8 +64,26 @@ const PageLoader = () => (
 );
 
 export default function App() {
+  const location = useLocation();
+  const isAppRoute = location.pathname.startsWith("/app");
+
   return (
     <>
+      <Helmet>
+        <title>JobHuntin | AI Job Search Automation & Auto-Apply</title>
+        <meta name="description" content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily. Built for high-volume, high-quality hunting." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={config.urls.homepage} />
+        <meta property="og:title" content="JobHuntin | AI Job Search Automation & Auto-Apply" />
+        <meta property="og:description" content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily." />
+        <meta property="og:image" content={`${config.urls.og}/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="JobHuntin | AI Job Search Automation & Auto-Apply" />
+        <meta name="twitter:description" content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily." />
+        <meta name="twitter:image" content={`${config.urls.og}/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global`} />
+        {isAppRoute && <meta name="robots" content="noindex, nofollow" />}
+        <link rel="canonical" href={`${config.urls.homepage}${location.pathname === "/" ? "" : location.pathname}`} />
+      </Helmet>
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -106,3 +126,4 @@ export default function App() {
     </>
   );
 }
+

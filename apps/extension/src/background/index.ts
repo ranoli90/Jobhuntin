@@ -1,11 +1,10 @@
 // Sorce Extension Background Worker
-console.log("Sorce Background Worker Loaded");
+// console removed: Background Worker Loaded
 
-const API_BASE_URL = "https://sorce-api.onrender.com";
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "https://sorce-api.onrender.com").replace(/\/$/, "");
 
 // Handle messages from content scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Background received message:", message);
 
   if (message.type === 'JOB_DETECTED') {
     handleJobDetected(message.data, sender)
@@ -15,9 +14,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'SYNC_SESSION') {
-    console.log("Received session sync:", message.session);
-    chrome.storage.local.set({ session: message.session }, () => {
-      console.log("Session saved to extension storage");
+    // Store under generic key for backward compat
+    const storageUpdate: Record<string, unknown> = { session: message.session };
+
+    // Also store under the Supabase storage key so supabase.auth.getSession()
+    // in the popup picks up the synced session from the web app.
+    // The Supabase JS client stores sessions as `sb-<project-ref>-auth-token`.
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''; // Available at build time
+    try {
+      const url = new URL(supabaseUrl || '');
+      const projectRef = url.hostname.split('.')[0];
+      if (projectRef) {
+        storageUpdate[`sb-${projectRef}-auth-token`] = JSON.stringify(message.session);
+      }
+    } catch {
+      // URL parsing failed — fall back to generic key only
+    }
+
+    chrome.storage.local.set(storageUpdate, () => {
       sendResponse({ success: true });
 
       // Notify user
@@ -40,7 +54,6 @@ async function getAuthToken(): Promise<string | null> {
 
 async function handleJobDetected(jobData: any, sender: chrome.runtime.MessageSender) {
   try {
-    console.log("Processing job data:", jobData);
 
     const token = await getAuthToken();
 
@@ -58,7 +71,6 @@ async function handleJobDetected(jobData: any, sender: chrome.runtime.MessageSen
         url: sender.tab?.url || jobData.url
       });
       await chrome.storage.local.set({ savedJobs });
-      console.log("Job saved to local storage");
     }
 
     // Send to API if authenticated
@@ -85,7 +97,6 @@ async function handleJobDetected(jobData: any, sender: chrome.runtime.MessageSen
           throw new Error(`API error: ${response.status}`);
         }
 
-        console.log("Job sent to API successfully");
 
         // Show success notification
         chrome.notifications.create({
@@ -123,5 +134,4 @@ async function handleJobDetected(jobData: any, sender: chrome.runtime.MessageSen
 
 // Handle extension installation
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Sorce extension installed");
 });
