@@ -32,11 +32,14 @@ from backend.domain.repositories import CoverLetterRepo
 import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
-from apps.api.auth import get_current_user
 
 logger = get_logger("sorce.api.ai")
 
 async def _get_pool() -> asyncpg.Pool:
+    """Dependency override required"""
+    raise NotImplementedError
+
+async def _get_user_id() -> str:
     """Dependency override required"""
     raise NotImplementedError
 
@@ -207,7 +210,7 @@ class CoverLetterGenerationRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 @router.post("/suggest-roles", response_model=RoleSuggestionResponse_V1)
-async def suggest_roles(request: RoleSuggestionRequest, user = Depends(get_current_user)) -> RoleSuggestionResponse_V1:
+async def suggest_roles(request: RoleSuggestionRequest, user_id: str = Depends(_get_user_id)) -> RoleSuggestionResponse_V1:
     """
     Get AI-suggested job roles based on parsed resume profile.
     
@@ -234,7 +237,7 @@ async def suggest_roles(request: RoleSuggestionRequest, user = Depends(get_curre
 
 
 @router.post("/suggest-salary", response_model=SalarySuggestionResponse_V1)
-async def suggest_salary(request: SalarySuggestionRequest, user = Depends(get_current_user)) -> SalarySuggestionResponse_V1:
+async def suggest_salary(request: SalarySuggestionRequest, user_id: str = Depends(_get_user_id)) -> SalarySuggestionResponse_V1:
     """
     Get AI-suggested salary range based on role, location, and skills.
     
@@ -274,7 +277,7 @@ async def suggest_salary(request: SalarySuggestionRequest, user = Depends(get_cu
 
 
 @router.post("/suggest-locations", response_model=LocationSuggestionResponse_V1)
-async def suggest_locations(request: LocationSuggestionRequest, user = Depends(get_current_user)) -> LocationSuggestionResponse_V1:
+async def suggest_locations(request: LocationSuggestionRequest, user_id: str = Depends(_get_user_id)) -> LocationSuggestionResponse_V1:
     """
     Get AI-suggested work locations based on skills and job market.
     
@@ -304,7 +307,7 @@ async def suggest_locations(request: LocationSuggestionRequest, user = Depends(g
 
 
 @router.post("/match-job", response_model=JobMatchScore_V1)
-async def match_job(request: JobMatchRequest, user = Depends(get_current_user)) -> JobMatchScore_V1:
+async def match_job(request: JobMatchRequest, user_id: str = Depends(_get_user_id)) -> JobMatchScore_V1:
     """
     Get AI-generated match score between candidate and a single job.
     
@@ -335,7 +338,7 @@ async def match_job(request: JobMatchRequest, user = Depends(get_current_user)) 
 
 
 @router.post("/match-jobs-batch", response_model=BatchJobMatchResponse)
-async def match_jobs_batch(request: BatchJobMatchRequest, user = Depends(get_current_user)) -> BatchJobMatchResponse:
+async def match_jobs_batch(request: BatchJobMatchRequest, user_id: str = Depends(_get_user_id)) -> BatchJobMatchResponse:
     """
     Score multiple jobs against a candidate profile in batch.
     
@@ -385,7 +388,7 @@ async def match_jobs_batch(request: BatchJobMatchRequest, user = Depends(get_cur
 # ---------------------------------------------------------------------------
 
 @router.get("/cover-letters/templates", response_model=list[CoverLetterTemplate])
-async def list_cover_letter_templates(user = Depends(get_current_user)) -> list[CoverLetterTemplate]:
+async def list_cover_letter_templates(user_id: str = Depends(_get_user_id)) -> list[CoverLetterTemplate]:
     """Get available cover letter templates."""
     # For now, return hardcoded templates
     # In production, this would fetch from database
@@ -458,12 +461,12 @@ Best regards,
 
 @router.get("/cover-letters", response_model=list[GeneratedCoverLetter])
 async def list_generated_cover_letters(
-    user = Depends(get_current_user),
+    user_id: str = Depends(_get_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> list[GeneratedCoverLetter]:
     """Get user's generated cover letters."""
     async with db.acquire() as conn:
-        rows = await CoverLetterRepo.list_by_user(conn, user.id)
+        rows = await CoverLetterRepo.list_by_user(conn, user_id)
     
     return [
         GeneratedCoverLetter(
@@ -484,7 +487,7 @@ async def list_generated_cover_letters(
 @router.post("/cover-letters/generate", response_model=GeneratedCoverLetter)
 async def generate_cover_letter_enhanced(
     request: CoverLetterGenerationRequest,
-    user = Depends(get_current_user),
+    user_id: str = Depends(_get_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> GeneratedCoverLetter:
     """Generate a personalized cover letter (enhanced endpoint)."""
@@ -538,7 +541,7 @@ Make it specific to the job and company. Keep it professional and concise."""
         async with db.acquire() as conn:
             saved = await CoverLetterRepo.create(
                 conn,
-                user_id=user.id,
+                user_id=user_id,
                 job_id=request.job_id,  # Assume valid UUID or strict string
                 content=result.content,
                 template_id=request.template_id,
@@ -581,7 +584,7 @@ from backend.llm.contracts import (
 )
 
 @router.post("/generate-cover-letter", response_model=CoverLetterResponse_V1)
-async def generate_cover_letter(request: CoverLetterRequest, user = Depends(get_current_user)) -> CoverLetterResponse_V1:
+async def generate_cover_letter(request: CoverLetterRequest, user_id: str = Depends(_get_user_id)) -> CoverLetterResponse_V1:
     """
     Generate a personalized cover letter for a specific job.
     """

@@ -236,6 +236,7 @@ def _mount_sub_routers() -> None:
     # AI Suggestions for smart onboarding
     import api.ai as ai_mod
     app.dependency_overrides[ai_mod._get_pool] = get_pool
+    app.dependency_overrides[ai_mod._get_user_id] = get_current_user_id
     app.include_router(ai_mod.router)
 
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
