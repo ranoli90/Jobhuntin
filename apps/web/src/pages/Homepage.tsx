@@ -239,7 +239,7 @@ const Hero = () => {
         // Don't crash if animation fails
       }
 
-      // Safe Confetti Trigger - wrapped in try-catch to prevent crashes
+      // Safe Confetti Trigger
       try {
         if (typeof window !== 'undefined' && confetti) {
           confetti({
@@ -251,15 +251,22 @@ const Hero = () => {
         }
       } catch (e) {
         console.warn("Confetti failed", e);
-        // Don't crash if confetti fails
       }
 
-      pushToast({ title: "Magic Link Sent! 📧", description: "Check your email to start hunting.", tone: "success" });
-      setSentEmail(result.email);
-      setEmail(""); // Clear
-      setIsSubmitting(false);
+      // Success state updates
+      try {
+        console.log("Magic link success, updating state", result);
+        pushToast({ title: "Magic Link Sent! 📧", description: "Check your email to start hunting.", tone: "success" });
+        setSentEmail(result.email);
+        setEmail(""); // Clear
+        setIsSubmitting(false);
+      } catch (innerErr) {
+        console.error("Critical error updating success state", innerErr);
+        throw innerErr; // Re-throw to trigger outer catch
+      }
 
     } catch (err: any) {
+      console.error("Magic Link Submit Error:", err);
       setIsSubmitting(false);
       setSentEmail(null);
       const message = err?.message || "Failed to send magic link";
