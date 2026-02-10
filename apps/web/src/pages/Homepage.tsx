@@ -3,13 +3,15 @@ import { motion, useScroll, useSpring, useMotionValue, useMotionTemplate, Animat
 import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
 import {
-  Rocket, Sparkles, Bot, Zap, CheckCircle, ArrowRight, UploadCloud,
-  Code, MailCheck, Smartphone, QrCode, UserCircle, Target, Brain
+  Rocket, Sparkles, Zap, CheckCircle, ArrowRight, UploadCloud,
+  MailCheck, UserCircle, Target, Brain, Bell, Bot,
+  Upload, Search, Send, Lock, Shield, Clock
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
+import { MarketingFooter } from '../components/marketing/MarketingFooter';
 import { Button } from '../components/ui/Button';
 
 // --- UTILS ---
@@ -26,48 +28,100 @@ const TEASER_JOBS = [
 
 // --- COMPONENTS ---
 
-// 0. Live Activity Feed
-const ActivityFeed = () => {
-  const [activities, setActivities] = useState([
-    { text: "Sarah just applied to Google", time: "2s ago" },
-    { text: "Mike landed an interview at Stripe", time: "5s ago" },
-    { text: "David sent 12 apps in 1 min", time: "8s ago" },
-  ]);
+// Animated Terminal Product Demo (replaces static Bot icon)
+const ProductFlowDemo = () => {
+  const [activeStep, setActiveStep] = useState(0);
+  const steps = [
+    { icon: Upload, label: "Resume Uploaded", detail: "PDF parsed in 1.2s", color: "from-blue-500 to-blue-600" },
+    { icon: Search, label: "AI Scans 12,400 Jobs", detail: "Matching skills & context", color: "from-violet-500 to-violet-600" },
+    { icon: Send, label: "47 Applications Sent", detail: "Custom-tailored each one", color: "from-emerald-500 to-emerald-600" },
+    { icon: Bell, label: "3 Interview Requests", detail: "Recruiter responded!", color: "from-amber-500 to-amber-600" },
+  ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const newActivities = [
-        "Sarah just applied to Google",
-        "Mike landed an interview at Stripe",
-        "David sent 12 apps in 1 min",
-        "Jenny got a reply from Airbnb",
-        "Tom's bot is on fire: 50 apps sent",
-        "New job match found in Denver",
-        "Alex skipped the line at Netflix"
-      ];
-      const randomActivity = newActivities[Math.floor(Math.random() * newActivities.length)];
-      setActivities(prev => [{ text: randomActivity, time: "Just now" }, ...prev.slice(0, 2)]);
-    }, 3000);
-    return () => clearInterval(interval);
+    const timer = setInterval(() => setActiveStep(s => (s + 1) % steps.length), 3000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className="flex flex-col gap-2">
-      <AnimatePresence>
-        {activities.map((activity, index) => (
-          <motion.div
-            key={index + activity.text}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="flex items-center gap-2 text-xs text-slate-500"
-          >
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-medium text-slate-700">{activity.text}</span>
-            <span className="text-slate-400 opacity-60">{activity.time}</span>
-          </motion.div>
-        ))}
-      </AnimatePresence>
+    <div className="relative w-full h-full flex items-center justify-center">
+      <div className="w-full max-w-md bg-slate-950 rounded-[2rem] p-6 sm:p-8 shadow-2xl border border-white/5 overflow-hidden relative">
+        {/* Scan line */}
+        <motion.div
+          className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-primary-400/60 to-transparent"
+          animate={{ top: ["0%", "100%", "0%"] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+        />
+        <div className="absolute inset-0 bg-grid-premium-dark opacity-40 pointer-events-none" />
+
+        {/* Terminal header */}
+        <div className="relative z-10 flex items-center gap-2 mb-6 pb-3 border-b border-white/5">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+          <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+          <span className="ml-2 text-[9px] font-mono text-white/30 uppercase tracking-widest">agent v2.1 — live</span>
+        </div>
+
+        {/* Steps */}
+        <div className="relative z-10 space-y-3">
+          {steps.map((step, i) => {
+            const isActive = i === activeStep;
+            const isPast = i < activeStep;
+            return (
+              <motion.div
+                key={i}
+                animate={{
+                  opacity: isActive ? 1 : isPast ? 0.5 : 0.2,
+                  x: isActive ? 0 : isPast ? -4 : 4,
+                  scale: isActive ? 1 : 0.97,
+                }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="flex items-center gap-3"
+              >
+                <div className={cn(
+                  "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-500",
+                  isActive ? `bg-gradient-to-br ${step.color} shadow-lg` : "bg-white/5"
+                )}>
+                  <step.icon className={cn("w-4 h-4", isActive ? "text-white" : "text-white/30")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className={cn("text-sm font-bold tracking-tight", isActive ? "text-white" : "text-white/30")}>
+                      {step.label}
+                    </p>
+                    {isPast && <CheckCircle className="w-3 h-3 text-emerald-400" />}
+                  </div>
+                  <p className={cn("text-xs font-mono", isActive ? "text-white/60" : "text-white/15")}>
+                    {step.detail}
+                  </p>
+                </div>
+                {isActive && (
+                  <motion.div
+                    className="w-2 h-2 rounded-full bg-emerald-400"
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Progress bar */}
+        <div className="relative z-10 mt-6 pt-4 border-t border-white/5">
+          <div className="flex justify-between text-[9px] font-mono text-white/30 mb-1.5 uppercase tracking-widest">
+            <span>Agent Progress</span>
+            <span>{((activeStep + 1) / steps.length * 100).toFixed(0)}%</span>
+          </div>
+          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-primary-500 to-emerald-500 rounded-full"
+              animate={{ width: `${((activeStep + 1) / steps.length) * 100}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -277,27 +331,18 @@ const Hero = () => {
           </motion.div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black font-display text-slate-900 leading-[0.95] mb-6 sm:mb-8 tracking-tighter">
-            Hunt Jobs with <br />
+            Stop applying.<br />
             <span className="relative inline-block mt-2">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-amber-500 to-red-500 animate-gradient-x">
-                AI Magic
+                Start landing.
               </span>
-              <motion.span
-                className="absolute -top-4 -right-8 sm:-right-10 text-4xl sm:text-5xl pointer-events-none"
-                animate={{
-                  rotate: [0, 15, -15, 0],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              >
-                ✨
-              </motion.span>
             </span>
           </h1>
 
           <p className="text-lg sm:text-xl lg:text-2xl text-slate-500 mb-8 sm:mb-10 max-w-lg mx-auto lg:mx-0 leading-tight font-medium">
-            Upload once. AI swipes & applies to 100s of jobs while you sleep.
-            <span className="text-slate-900 border-b-2 border-primary-500/30"> Beats Sorce.jobs</span> on every metric.
+            You've spent <span className="text-slate-900 font-bold">200+ hours</span> applying to jobs this year.
+            Your AI agent does it in <span className="text-emerald-600 font-bold">20 minutes</span>.
+            Upload once — it applies, tailors, and follows up while you sleep.
           </p>
 
           {!sentEmail && (
@@ -375,10 +420,11 @@ const Hero = () => {
             </motion.div>
           )}
 
-          {/* Live Activity Feed */}
-          <div className="mt-8 relative h-12 overflow-hidden max-w-sm mx-auto lg:mx-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-transparent to-slate-50 z-10 pointer-events-none" />
-            <ActivityFeed />
+          {/* Trust Signals */}
+          <div className="mt-6 flex items-center justify-center lg:justify-start gap-5 text-xs text-slate-400 font-medium">
+            <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> No credit card</span>
+            <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Encrypted data</span>
+            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 2 min setup</span>
           </div>
 
           {sentEmail && (
@@ -506,30 +552,7 @@ const Onboarding = () => {
               whileInView={{ scale: 1, opacity: 1 }}
               viewport={{ once: true }}
             >
-              <Bot className="w-48 h-48 text-slate-200 group-hover:text-primary-500/20 transition-colors duration-700" />
-
-              {/* Scanner Animation */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-500/10 to-transparent w-full h-20"
-                animate={{ top: ["-20%", "100%", "-20%"] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-              />
-
-              {/* Particle Overlay */}
-              <div className="absolute inset-0 opacity-30">
-                {[...Array(10)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-1 h-1 bg-primary-500 rounded-full"
-                    animate={{
-                      x: [Math.random() * 400, Math.random() * 400],
-                      y: [Math.random() * 400, Math.random() * 400],
-                      opacity: [0, 1, 0]
-                    }}
-                    transition={{ duration: Math.random() * 3 + 2, repeat: Infinity }}
-                  />
-                ))}
-              </div>
+              <ProductFlowDemo />
             </motion.div>
             <div className="absolute -top-12 -left-12 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl" />
             <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
@@ -559,6 +582,11 @@ const Onboarding = () => {
                   icon: Rocket,
                   title: "Autonomous Submission",
                   desc: "Every application is unique. Custom-tailored cover letters and optimized form-filling happen in milliseconds, not minutes. We handle the grind; you handle the interview."
+                },
+                {
+                  icon: Bell,
+                  title: "You Only Show Up for Wins",
+                  desc: "Get notified the moment a recruiter responds. Approve next steps with one tap via Telegram or email. We handle the grind — you handle the interview."
                 }
               ].map((step, i) => (
                 <motion.div
@@ -586,46 +614,16 @@ const Onboarding = () => {
   );
 };
 
-// 10. Automation Edge & Telegram
-const AutomationEdge = () => {
-  return (
-    <section className="py-24 bg-white overflow-hidden">
-      <div className="container mx-auto px-6 relative">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-block bg-blue-50 px-4 py-1 rounded-full text-sm font-mono text-blue-500 mb-6">
-            New: Control via Telegram
-          </div>
-          <h2 className="text-4xl font-bold font-display text-slate-900 mb-6">Control the Hunt via Telegram</h2>
-          <p className="text-slate-500 text-lg mb-10">
-            Get instant notifications when AI lands you an interview. Approve applications with one tap.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Button
-              className="bg-[#0088cc] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#0077b5] transition-colors flex items-center gap-3 shadow-lg shadow-blue-500/30 h-auto"
-            >
-              <Smartphone className="w-6 h-6" />
-              Add JobHuntin Bot
-            </Button>
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-              <QrCode className="w-4 h-4" />
-              <span>or scan QR code</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
+// AutomationEdge removed — Telegram integrated into Protocol Step 4
 
 // --- MAIN PAGE ---
 export default function Homepage() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
-        title="JobHuntin: AI Auto-Applies to Jobs | Beat Sorce with Bot Powers"
-        description="Upload resume once. AI applies to 100s of jobs daily. Marketing, Sales, Admin & more. Denver focus."
-        ogTitle="JobHuntin: AI Auto-Applies to Jobs | Beat Sorce with Bot Powers"
+        title="JobHuntin — AI That Applies to Jobs While You Sleep"
+        description="Upload your resume once. Your AI agent tailors and applies to hundreds of jobs daily. Land 3.4× more interviews with zero effort."
+        ogTitle="JobHuntin — AI That Applies to Jobs While You Sleep"
         canonicalUrl="https://jobhuntin.com/"
         schema={{
           "@context": "https://schema.org",
@@ -662,8 +660,8 @@ export default function Homepage() {
       <main>
         <Hero />
         <Onboarding />
-        <AutomationEdge />
       </main>
+      <MarketingFooter />
     </div>
   );
 }
