@@ -1,11 +1,50 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Bot, ArrowLeft, CheckCircle, Zap, Crown, Receipt, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
+import { useAuth } from '../hooks/useAuth';
+import { useBilling } from '../hooks/useBilling';
 
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { plan, loading: billingLoading, upgrade } = useBilling();
+
+  const isLoggedIn = !!user;
+  const isProOrHigher = plan === 'PRO' || plan === 'TEAM';
+
+  const handleFreeCta = () => {
+    if (isLoggedIn) {
+      navigate('/app/jobs');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleProCta = async () => {
+    if (!isLoggedIn) {
+      navigate('/login?returnTo=/pricing');
+      return;
+    }
+    if (isProOrHigher) {
+      navigate('/app/billing');
+      return;
+    }
+    try {
+      await upgrade();
+    } catch (err) {
+      console.error('Checkout failed:', err);
+    }
+  };
+
+  const getProCtaLabel = () => {
+    if (authLoading || billingLoading) return 'Loading...';
+    if (!isLoggedIn) return 'Start Free 7-Day Trial';
+    if (isProOrHigher) return 'Current Plan';
+    return 'Start Free 7-Day Trial';
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700 pb-20">
@@ -75,9 +114,9 @@ export default function Pricing() {
                 <div className="flex justify-between font-bold pt-2 border-t border-gray-200 mt-2"><span>TOTAL</span> <span>$0.00</span></div>
               </div>
 
-              <Link to="/login" className="block w-full py-3 border-2 border-black text-center font-bold font-mono hover:bg-black hover:text-white transition-all uppercase">
-                Print Ticket
-              </Link>
+              <button onClick={handleFreeCta} className="block w-full py-3 border-2 border-black text-center font-bold font-mono hover:bg-black hover:text-white transition-all uppercase">
+                {isLoggedIn ? 'Go to Dashboard' : 'Print Ticket'}
+              </button>
             </div>
           </motion.div>
 
@@ -103,9 +142,16 @@ export default function Pricing() {
               </div>
               <p className="text-gray-400 text-sm mb-8">Billed {annual ? 'annually' : 'monthly'}</p>
 
-              <Link to="/login" className="block w-full py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-center font-bold text-lg shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all transform hover:-translate-y-1">
-                Start Free 7-Day Trial
-              </Link>
+              <button
+                onClick={handleProCta}
+                disabled={isProOrHigher && isLoggedIn}
+                className={`block w-full py-4 rounded-xl text-center font-bold text-lg shadow-lg transition-all transform hover:-translate-y-1 ${isProOrHigher && isLoggedIn
+                    ? 'bg-gray-600 cursor-default shadow-none hover:translate-y-0'
+                    : 'bg-gradient-to-r from-primary-600 to-primary-500 shadow-primary-500/30 hover:shadow-primary-500/50'
+                  }`}
+              >
+                {getProCtaLabel()}
+              </button>
 
               <div className="mt-8 space-y-4">
                 {[
@@ -178,3 +224,4 @@ export default function Pricing() {
     </div>
   );
 }
+

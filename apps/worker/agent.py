@@ -31,6 +31,7 @@ from backend.domain.models import (
     CanonicalProfile,
     normalize_profile,
 )
+from backend.domain.resume import download_from_supabase_storage
 from backend.domain.notifications import notify_application_submitted, notify_hold_questions
 from backend.domain.repositories import (
     ApplicationRepo,
@@ -402,6 +403,7 @@ async def fill_form_from_mapping(
     page: Page,
     field_values: dict[str, str],
     form_fields: list[FormField],
+    resume_path: str | None = None,
 ) -> None:
     """Fill each field using selector → value from the LLM mapping."""
     field_lookup: dict[str, FormField] = {f["selector"]: f for f in form_fields}
@@ -423,7 +425,12 @@ async def fill_form_from_mapping(
             elif field_type == "textarea":
                 await el.fill(value)
             elif field_type == "file":
-                logger.warning("File upload for %s – skipping (not supported yet)", selector)
+                if resume_path:
+                    await el.set_input_files(resume_path)
+                    logger.info("Uploaded resume to file input %s", selector)
+                else:
+                    logger.warning("File upload for %s – no resume available, skipping", selector)
+                continue  # skip the generic log below
             else:
                 await el.fill(value)
 
@@ -610,26 +617,36 @@ class FormAgent:
 
     async def _process_task(self, page: Page, task: dict) -> None:
         ctx = await self._build_context(task)
-        await self._emit_started(ctx)
+        try:
+            await self._emit_started(ctx)
 
-        # Navigate & Extract
-        await self._navigate_to_app(page, ctx)
-        form_fields = await self._extract_fields(page)
+            # Navigate & Extract
+            await self._navigate_to_app(page, ctx)
+            form_fields = await self._extract_fields(page)
 
-        # LLM Mapping
-        mapping = await self._map_fields(form_fields, ctx)
+            # LLM Mapping
+            mapping = await self._map_fields(form_fields, ctx)
 
-        # Hold Logic
-        if mapping["unresolved_required_fields"]:
-            await self._enter_hold(ctx["app_id"], mapping["unresolved_required_fields"], form_fields, tenant_id=ctx["tenant_id"])
-            return
+            # Hold Logic
+            if mapping["unresolved_required_fields"]:
+                await self._enter_hold(ctx["app_id"], mapping["unresolved_required_fields"], form_fields, tenant_id=ctx["tenant_id"])
+                return
 
-        # Fill & Submit
-        await self._fill_form(page, mapping, form_fields, ctx)
-        await self._submit_application(page, ctx)
+            # Fill & Submit
+            await self._fill_form(page, mapping, form_fields, ctx)
+            await self._submit_application(page, ctx)
 
-        # Success
-        await self._handle_success(task, ctx)
+            # Success
+            await self._handle_success(task, ctx)
+        finally:
+            # Clean up downloaded resume temp file
+            import os
+            resume_path = ctx.get("resume_path")
+            if resume_path and os.path.exists(resume_path):
+                try:
+                    os.unlink(resume_path)
+                except OSError:
+                    pass
 
     async def _build_context(self, task: dict) -> dict:
         """Construct the execution context from task payload and DB."""
@@ -645,6 +662,16 @@ class FormAgent:
         raw_profile = await fetch_profile(self.pool, user_id)
         profile = normalize_profile(raw_profile)
 
+        # Download resume for file upload fields
+        resume_path = None
+        resume_url = raw_profile.get("resume_url")
+        if resume_url:
+            try:
+                resume_path = await download_from_supabase_storage(resume_url)
+                logger.info("Resume downloaded for user %s: %s", user_id, resume_path)
+            except Exception as exc:
+                logger.warning("Failed to download resume for user %s: %s", user_id, exc)
+
         return {
             "app_id": app_id,
             "user_id": user_id,
@@ -655,7 +682,8 @@ class FormAgent:
             "blueprint": blueprint,
             "job": job,
             "profile": profile,
-            "application_url": job["application_url"]
+            "application_url": job["application_url"],
+            "resume_path": resume_path,
         }
 
     async def _emit_started(self, ctx: dict) -> None:
@@ -722,7 +750,7 @@ class FormAgent:
             step_fields = [f for f in form_fields if f["step_index"] == step]
 
             if step_values:
-                await fill_form_from_mapping(page, step_values, step_fields)
+                await fill_form_from_mapping(page, step_values, step_fields, resume_path=ctx.get("resume_path"))
 
             if step < max_step:
                 advanced = await click_next_button(page)

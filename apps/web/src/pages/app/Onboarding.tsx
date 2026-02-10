@@ -723,11 +723,11 @@ export default function Onboarding() {
                           <div className="mt-10 pt-8 border-t border-white/5 grid grid-cols-2 gap-6">
                             <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 group">
                               <p className="text-[9px] uppercase font-black text-emerald-500/70 mb-1 tracking-widest">Match Strength</p>
-                              <p className="text-2xl font-black text-emerald-400 italic">98.4%</p>
+                              <p className="text-2xl font-black text-emerald-400 italic">{completeness}%</p>
                             </div>
                             <div className="p-4 rounded-2xl bg-primary-500/10 border border-primary-500/20 group">
-                              <p className="text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Sync Latency</p>
-                              <p className="text-2xl font-black text-primary-400 italic">&lt;140ms</p>
+                              <p className="text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Data Points</p>
+                              <p className="text-2xl font-black text-primary-400 italic">{[preferences.location, preferences.role_type, preferences.salary_min, (profile?.resume_url || resumeFile)].filter(Boolean).length}/4</p>
                             </div>
                           </div>
                         </div>

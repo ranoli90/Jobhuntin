@@ -43,6 +43,34 @@ async def upload_to_supabase_storage(
     return f"{s.supabase_url}/storage/v1/object/public/{bucket}/{path}"
 
 
+async def download_from_supabase_storage(resume_url: str) -> str:
+    """Download a file from Supabase Storage to a temp path. Returns local file path."""
+    import tempfile
+    import os
+
+    s = get_settings()
+    headers = {"Authorization": f"Bearer {s.supabase_service_key}"}
+
+    suffix = ".pdf"
+    fd, tmp_path = tempfile.mkstemp(suffix=suffix)
+    os.close(fd)
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.get(resume_url, headers=headers, follow_redirects=True)
+            resp.raise_for_status()
+            with open(tmp_path, "wb") as f:
+                f.write(resp.content)
+    except Exception:
+        # Clean up on failure
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
+
+    logger.info("Downloaded resume to %s (%d bytes)", tmp_path, os.path.getsize(tmp_path))
+    return tmp_path
+
+
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:
     text_parts: list[str] = []
     with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
