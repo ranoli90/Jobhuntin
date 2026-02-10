@@ -8,8 +8,25 @@ from __future__ import annotations
 
 from typing import Any
 
+import asyncpg
 import httpx
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from pydantic import BaseModel
+
 from shared.config import get_settings
+from shared.logging_config import get_logger
+from shared.metrics import incr
+
+from backend.domain.audit import record_audit_event
+from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from backend.sso.saml import (
+    create_sso_session_token,
+    find_tenant_by_sso_domain,
+    generate_sp_metadata,
+    get_sso_config,
+    parse_saml_response,
+    upsert_sso_config,
+)
 
 
 async def _create_supabase_user(email: str, tenant_id: str) -> str:
