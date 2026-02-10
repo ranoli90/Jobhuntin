@@ -9,7 +9,7 @@ import { SafetyPillars } from "../components/trust/SafetyPillars";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiPost } from "../lib/api";
 import { pushToast } from "../lib/toast";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";

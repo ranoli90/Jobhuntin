@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 
 // Mock components and hooks
 import Dashboard from '../../pages/Dashboard';
@@ -67,7 +68,7 @@ const createTestQueryClient = () => new QueryClient({
 
 const renderWithProviders = (ui: React.ReactElement, queryClient?: QueryClient) => {
   const client = queryClient || createTestQueryClient();
-  
+
   return render(
     <QueryClientProvider client={client}>
       <BrowserRouter>
@@ -92,7 +93,7 @@ describe('Job Application Flow', () => {
   beforeEach(() => {
     queryClient = createTestQueryClient();
     vi.clearAllMocks();
-    
+
     // Setup default mock responses
     mockApiGet.mockResolvedValue(mockJobs);
     mockApiPost.mockResolvedValue({ success: true });
@@ -105,7 +106,7 @@ describe('Job Application Flow', () => {
   describe('Job Discovery and Matching', () => {
     it('should display available jobs', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
@@ -116,7 +117,7 @@ describe('Job Application Flow', () => {
 
     it('should filter jobs by location', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       const locationFilter = screen.getByPlaceholderText('Filter location...');
       fireEvent.change(locationFilter, { target: { value: 'Remote' } });
 
@@ -138,9 +139,9 @@ describe('Job Application Flow', () => {
       }));
 
       mockApiGet.mockResolvedValue(jobsWithScores);
-      
+
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('85%')).toBeInTheDocument();
       });
@@ -150,7 +151,7 @@ describe('Job Application Flow', () => {
   describe('Job Swipe Actions', () => {
     it('should handle job acceptance', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
@@ -169,7 +170,7 @@ describe('Job Application Flow', () => {
 
     it('should handle job rejection', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
@@ -188,16 +189,16 @@ describe('Job Application Flow', () => {
 
     it('should show optimistic UI updates', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
 
       const acceptButton = screen.getByLabelText('Accept job');
-      
+
       // Click accept
       fireEvent.click(acceptButton);
-      
+
       // Check for optimistic update
       await waitFor(() => {
         expect(screen.getByText('Match queued! 🚀')).toBeInTheDocument();
@@ -208,9 +209,9 @@ describe('Job Application Flow', () => {
   describe('Application Management', () => {
     it('should display application status', async () => {
       mockApiGet.mockResolvedValue(mockApplications);
-      
+
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Transmissions')).toBeInTheDocument();
         expect(screen.getByText('APPLIED')).toBeInTheDocument();
@@ -219,14 +220,14 @@ describe('Job Application Flow', () => {
     });
 
     it('should handle hold questions', async () => {
-      const applicationsWithHold = mockApplications.map(app => 
+      const applicationsWithHold = mockApplications.map(app =>
         app.status === 'HOLD' ? app : null
       ).filter(Boolean);
 
       mockApiGet.mockResolvedValue(applicationsWithHold);
-      
+
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('What is your experience with TypeScript?')).toBeInTheDocument();
       });
@@ -234,7 +235,7 @@ describe('Job Application Flow', () => {
 
     it('should submit hold answers', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Transmissions')).toBeInTheDocument();
       });
@@ -242,8 +243,8 @@ describe('Job Application Flow', () => {
       // Find answer textarea and submit button
       const answerTextarea = screen.getByPlaceholderText('Type your response here...');
       const submitButton = screen.getByText('Submit Answer');
-      
-      fireEvent.change(answerTextarea, { 
+
+      fireEvent.change(answerTextarea, {
         target: { value: 'I have 5 years of experience with TypeScript.' }
       });
       fireEvent.click(submitButton);
@@ -259,9 +260,9 @@ describe('Job Application Flow', () => {
   describe('Error Handling', () => {
     it('should handle network errors gracefully', async () => {
       mockApiPost.mockRejectedValue(new Error('Network error'));
-      
+
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
@@ -278,9 +279,9 @@ describe('Job Application Flow', () => {
       mockApiPost
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce({ success: true });
-      
+
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
@@ -303,13 +304,13 @@ describe('Job Application Flow', () => {
   describe('Performance', () => {
     it('should load jobs within performance budget', async () => {
       const startTime = performance.now();
-      
+
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
-      
+
       const loadTime = performance.now() - startTime;
       expect(loadTime).toBeLessThan(2000); // 2 seconds budget
     });
@@ -325,14 +326,14 @@ describe('Job Application Flow', () => {
       }));
 
       mockApiGet.mockResolvedValue(largeJobList);
-      
+
       const startTime = performance.now();
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
-      
+
       const renderTime = performance.now() - startTime;
       expect(renderTime).toBeLessThan(3000); // 3 seconds for large list
     });
@@ -341,7 +342,7 @@ describe('Job Application Flow', () => {
   describe('Accessibility', () => {
     it('should be keyboard navigable', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
@@ -349,9 +350,9 @@ describe('Job Application Flow', () => {
       // Test keyboard navigation
       const acceptButton = screen.getByLabelText('Accept job');
       acceptButton.focus();
-      
+
       fireEvent.keyDown(acceptButton, { key: 'Enter' });
-      
+
       await waitFor(() => {
         expect(mockApiPost).toHaveBeenCalled();
       });
@@ -359,7 +360,7 @@ describe('Job Application Flow', () => {
 
     it('should have proper ARIA labels', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
@@ -372,7 +373,7 @@ describe('Job Application Flow', () => {
 
     it('should support screen readers', async () => {
       renderWithProviders(<Dashboard />, queryClient);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Active Radar')).toBeInTheDocument();
       });
@@ -380,7 +381,7 @@ describe('Job Application Flow', () => {
       // Check for proper semantic structure
       const mainContent = screen.getByRole('main');
       expect(mainContent).toBeInTheDocument();
-      
+
       const jobCards = screen.getAllByRole('article');
       expect(jobCards.length).toBeGreaterThan(0);
     });
@@ -391,7 +392,7 @@ describe('Optimistic Updates', () => {
   it('should update UI optimistically', async () => {
     const TestComponent = () => {
       const { actions } = useOptimisticApplications();
-      
+
       const handleApply = () => {
         actions.applyToJob('job-1', {
           cover_letter: 'Test cover letter',
@@ -409,8 +410,8 @@ describe('Optimistic Updates', () => {
       );
     };
 
-    renderWithProviders(<TestComponent />, queryClient);
-    
+    renderWithProviders(<TestComponent />, createTestQueryClient());
+
     const applyButton = screen.getByText('Apply to Job');
     fireEvent.click(applyButton);
 
@@ -424,10 +425,10 @@ describe('Optimistic Updates', () => {
 
   it('should rollback on error', async () => {
     mockApiPost.mockRejectedValue(new Error('Application failed'));
-    
+
     const TestComponent = () => {
       const { actions } = useOptimisticApplications();
-      
+
       const handleApply = () => {
         actions.applyToJob('job-1', {
           cover_letter: 'Test cover letter',
@@ -445,8 +446,8 @@ describe('Optimistic Updates', () => {
       );
     };
 
-    renderWithProviders(<TestComponent />, queryClient);
-    
+    renderWithProviders(<TestComponent />, createTestQueryClient());
+
     const applyButton = screen.getByText('Apply to Job');
     fireEvent.click(applyButton);
 
@@ -461,16 +462,16 @@ describe('Optimistic Updates', () => {
 
 describe('Security', () => {
   it('should sanitize user inputs', async () => {
-    renderWithProviders(<Dashboard />, queryClient);
-    
+    renderWithProviders(<Dashboard />, createTestQueryClient());
+
     await waitFor(() => {
       expect(screen.getByText('Active Radar')).toBeInTheDocument();
     });
 
     const locationFilter = screen.getByPlaceholderText('Filter location...');
-    
+
     // Test XSS injection
-    fireEvent.change(locationFilter, { 
+    fireEvent.change(locationFilter, {
       target: { value: '<script>alert("xss")</script>' }
     });
 
@@ -487,9 +488,9 @@ describe('Security', () => {
     };
 
     mockApiGet.mockResolvedValue([maliciousResponse]);
-    
-    renderWithProviders(<Dashboard />, queryClient);
-    
+
+    renderWithProviders(<Dashboard />, createTestQueryClient());
+
     await waitFor(() => {
       expect(screen.queryByText('<script>alert("xss")</script>')).not.toBeInTheDocument();
       expect(screen.queryByText('Click here for malware:')).not.toBeInTheDocument();

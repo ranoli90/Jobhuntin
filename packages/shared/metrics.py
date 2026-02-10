@@ -149,3 +149,28 @@ class RateLimiter:
             cutoff = now - self.window
             self._timestamps = [t for t in self._timestamps if t > cutoff]
             return len(self._timestamps)
+
+
+# ---------------------------------------------------------------------------
+# Rate limiter factory (cached instances)
+# ---------------------------------------------------------------------------
+
+_rate_limiters: dict[str, RateLimiter] = {}
+_rate_limiter_lock = threading.Lock()
+
+
+def get_rate_limiter(
+    name: str, max_calls: int = 60, window_seconds: float = 60.0
+) -> RateLimiter:
+    """Return a cached RateLimiter instance for the given name.
+
+    If a limiter with that name already exists, the existing instance is
+    returned (max_calls / window_seconds are NOT updated – they are set once).
+    This ensures the sliding window is preserved across requests.
+    """
+    with _rate_limiter_lock:
+        limiter = _rate_limiters.get(name)
+        if limiter is None:
+            limiter = RateLimiter(max_calls=max_calls, window_seconds=window_seconds, name=name)
+            _rate_limiters[name] = limiter
+        return limiter

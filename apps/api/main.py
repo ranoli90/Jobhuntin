@@ -145,7 +145,7 @@ async def rate_limiting_middleware(request: Request, call_next):
     # Get rate limiter for this client
     limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)  # 100 requests per minute
     
-    if not limiter.allow():
+    if not await limiter.acquire():
         raise HTTPException(
             status_code=429, 
             detail="Rate limit exceeded. Please try again later."
