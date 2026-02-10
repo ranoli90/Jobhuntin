@@ -13,9 +13,10 @@ const COMPETITORS_MAP = Object.fromEntries(
     competitorsData.map(c => [c.slug, c])
 );
 
-function calculateOverallScore(ratings: Record<string, number[]>): number {
+function calculateOverallScore(ratings?: Record<string, number[]>): number {
+    if (!ratings) return 0;
     const values = Object.values(ratings).map(([them]) => them);
-    return Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10;
+    return values.length > 0 ? Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10 : 0;
 }
 
 function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
@@ -30,7 +31,7 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
         },
         {
             question: `How much does ${competitor.name} cost?`,
-            answer: `${competitor.name} ${competitor.pricing.free_tier ? 'offers a free tier and' : ''} starts at ${competitor.pricing.starts_at}. Available plans: ${competitor.pricing.tiers.join(', ')}. For comparison, JobHuntin offers a free tier with Pro plans that include unlimited AI-tailored applications and stealth mode.`,
+            answer: `${competitor.name} ${competitor.pricing.free_tier ? 'offers a free tier and' : ''} starts at ${competitor.pricing.starts_at}. Available plans: ${competitor.pricing.tiers?.join(', ') || 'N/A'}. For comparison, JobHuntin offers a free tier with Pro plans that include unlimited AI-tailored applications and stealth mode.`,
         },
         {
             question: `Is ${competitor.name} safe to use?`,
@@ -59,8 +60,8 @@ export default function ReviewPage() {
     }
 
     const overallScore = calculateOverallScore(competitor.rating_vs_jobhuntin);
-    const title = `${competitor.name} Review (2026) — Is It Worth It? | Honest Analysis`;
-    const description = `Honest ${competitor.name} review for 2026. We rate it ${overallScore}/10. See pros, cons, pricing, and how it compares to JobHuntin's autonomous AI job agent.`;
+    const title = `${competitor.name} Review — Is It Worth It? | Honest Analysis`;
+    const description = `Honest ${competitor.name} review. We rate it ${overallScore}/10. See pros, cons, pricing, and how it compares to JobHuntin's autonomous AI job agent.`;
     const canonicalUrl = `https://jobhuntin.com/reviews/${competitorSlug}`;
     const faq = generateFAQ(competitor);
 
@@ -71,6 +72,7 @@ export default function ReviewPage() {
                 description={description}
                 ogTitle={title}
                 canonicalUrl={canonicalUrl}
+                includeDate={true}
                 schema={[
                     {
                         "@context": "https://schema.org",
@@ -142,18 +144,21 @@ export default function ReviewPage() {
                             </div>
                         </div>
                         <div className="flex-1 space-y-3 w-full">
-                            {Object.entries(competitor.rating_vs_jobhuntin).map(([key, [score]]) => (
-                                <div key={key} className="flex items-center gap-3">
-                                    <span className="text-sm text-slate-500 capitalize w-24">{key.replace('_', ' ')}</span>
-                                    <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full ${score >= 7 ? 'bg-emerald-500' : score >= 4 ? 'bg-amber-400' : 'bg-red-400'}`}
-                                            style={{ width: `${score * 10}%` }}
-                                        />
+                            {Object.entries(competitor.rating_vs_jobhuntin || {}).map(([key, ratings]) => {
+                                const [score] = Array.isArray(ratings) ? ratings : [0];
+                                return (
+                                    <div key={key} className="flex items-center gap-3">
+                                        <span className="text-sm text-slate-500 capitalize w-24">{key.replace('_', ' ')}</span>
+                                        <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full ${score >= 7 ? 'bg-emerald-500' : score >= 4 ? 'bg-amber-400' : 'bg-red-400'}`}
+                                                style={{ width: `${score * 10}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-sm font-bold text-slate-700 w-8">{score}</span>
                                     </div>
-                                    <span className="text-sm font-bold text-slate-700 w-8">{score}</span>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -227,7 +232,7 @@ export default function ReviewPage() {
                             {competitor.pricing.free_tier && <span className="text-emerald-600 text-sm ml-2">• Free tier available</span>}
                         </p>
                         <ul className="space-y-2">
-                            {competitor.pricing.tiers.map((t, i) => (
+                            {competitor.pricing.tiers?.map((t, i) => (
                                 <li key={i} className="text-slate-600 text-sm font-medium flex items-center gap-2">
                                     <span className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
                                     {t}

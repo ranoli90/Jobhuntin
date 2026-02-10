@@ -20,6 +20,7 @@
  *   5. Set GOOGLE_SERVICE_ACCOUNT_KEY env var to the path of the JSON key file
  */
 
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -33,6 +34,12 @@ const competitors = JSON.parse(
 );
 const categories = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, '../../src/data/categories.json'), 'utf-8')
+);
+const roles = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, '../../src/data/roles.json'), 'utf-8')
+);
+const locations = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, '../../src/data/locations.json'), 'utf-8')
 );
 
 // Parse CLI args
@@ -71,6 +78,18 @@ function getAllUrls(): string[] {
     // Category hubs
     for (const cat of categories) {
         urls.push(`${BASE_URL}/best/${cat.slug}`);
+    }
+
+    // Local Job Niche routes (Roles × Locations)
+    // We limit this for Indexing API submission to top priority combos to stay within default quotas
+    // but the sitemap will have all of them.
+    const priorityLocations = locations.slice(0, 30); // Top 30 cities
+    const priorityRoles = roles.slice(0, 10); // Top 10 roles
+
+    for (const role of priorityRoles) {
+        for (const loc of priorityLocations) {
+            urls.push(`${BASE_URL}/jobs/${role.id}/${loc.id}`);
+        }
     }
 
     return urls;
@@ -115,15 +134,26 @@ async function getAccessToken(keyConfig: string): Promise<string> {
             }
         }
 
-        const jwtClient = new google.auth.JWT(
-            key.client_email,
-            undefined,
-            key.private_key,
-            ['https://www.googleapis.com/auth/indexing'],
-        );
+        // Sanitize private key - Google's library needs actual newlines
+        if (key.private_key && typeof key.private_key === 'string') {
+            key.private_key = key.private_key
+                .replace(/\\n/g, '\n')
+                .replace(/\"/g, '')
+                .trim();
 
-        const tokens = await jwtClient.authorize();
-        return tokens.access_token!;
+            // Ensure PEM start/end tags have newlines around them if missing
+            if (key.private_key.includes('BEGIN PRIVATE KEY') && !key.private_key.startsWith('-----BEGIN')) {
+                // Try to fix formatting
+            }
+        }
+
+        const auth = new google.auth.GoogleAuth({
+            credentials: key,
+            scopes: ['https://www.googleapis.com/auth/indexing'],
+        });
+
+        const tokens = await auth.getAccessToken();
+        return tokens!;
     } catch (error) {
         throw new Error(
             `Failed to authenticate. Ensure GOOGLE_SERVICE_ACCOUNT_KEY points to a valid service account JSON key.\n` +
@@ -208,6 +238,7 @@ async function main() {
 
     // Rename variable to reflect it can be content too
     const keyConfig = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    console.log(`DEBUG: GOOGLE_SERVICE_ACCOUNT_KEY found: ${!!keyConfig}`);
     if (!keyConfig) {
         console.log('⚠️  GOOGLE_SERVICE_ACCOUNT_KEY environment variable not set.');
         console.log('');

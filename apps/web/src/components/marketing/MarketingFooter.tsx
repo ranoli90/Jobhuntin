@@ -44,6 +44,17 @@ export function MarketingFooter() {
         { name: "Terms of Service", path: "/terms" },
         { name: "Contact", path: "mailto:support@jobhuntin.com" },
       ]
+    },
+    {
+      title: "Top Locations",
+      links: [
+        { name: "AI Jobs in NYC", path: "/jobs/software-engineer/new-york" },
+        { name: "London AI Careers", path: "/jobs/marketing-manager/london" },
+        { name: "SF Tech Jobs", path: "/jobs/ai-developer/san-francisco" },
+        { name: "Austin Software", path: "/jobs/software-engineer/austin" },
+        { name: "Berlin Startups", path: "/jobs/product-manager/berlin" },
+        { name: "Toronto Fintech", path: "/jobs/data-scientist/toronto" },
+      ]
     }
   ];
 

@@ -229,9 +229,9 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex flex-col relative touch-none">
       {/* Minimal Header */}
-      <header className="px-6 h-12 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50">
+      <header className="px-4 md:px-6 h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50">
         <Logo to="/app/onboarding" size="sm" />
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
@@ -244,13 +244,13 @@ export default function Onboarding() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-12 bg-grid-premium opacity-100">
-        <div className="w-full max-w-2xl relative">
+      <main className="flex-1 w-full flex flex-col items-center justify-center p-2 md:p-4 overflow-hidden bg-grid-premium opacity-100 relative">
+        <div className="w-full max-w-xl lg:max-w-2xl h-full max-h-full flex flex-col relative justify-center">
           {/* Subtle background glow */}
-          <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary-500/10 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
-          {/* Progress bar */}
-          <div className="mb-8">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-500/5 rounded-full blur-[100px] pointer-events-none" />
+
+          {/* Progress bar - Condensed */}
+          <div className="mb-4 md:mb-6 shrink-0 z-10">
             <div className="flex items-center justify-between mb-3 px-1">
               <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                 Calibration Progress — {(progress).toFixed(0)}%
@@ -270,33 +270,34 @@ export default function Onboarding() {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
+              className="flex-1 min-h-0 flex flex-col"
               initial={{ opacity: 0, scale: 0.98, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: -10 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <Card tone="glass" shadow="lift" className="p-8 border-slate-200/60 overflow-hidden relative">
+              <Card tone="glass" shadow="lift" className="flex flex-col flex-1 p-4 md:p-8 border-slate-200/60 overflow-hidden relative max-h-full">
                 {/* Decorative background elements inside card */}
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl pointer-events-none" />
 
-                {/* Profile completeness indicator */}
-                <div className="mb-6 rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-xl relative overflow-hidden group">
+                {/* Profile completeness indicator - Compact for mobile */}
+                <div className="mb-4 md:mb-6 shrink-0 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-xl relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors" />
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-2 md:mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <Sparkles className="h-4 w-4 text-emerald-400" />
+                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-emerald-400" />
                       </div>
                       <div>
-                        <span className="block text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Intelligence Profile</span>
-                        <span className="text-xs font-bold text-white">System Confidence</span>
+                        <span className="block text-[8px] md:text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Intelligence Profile</span>
+                        <span className="text-[10px] md:text-xs font-bold text-white">System Confidence</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-black text-white italic">{completeness}%</span>
+                      <span className="text-lg md:text-2xl font-black text-white italic">{completeness}%</span>
                     </div>
                   </div>
-                  <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                  <div className="h-1 md:h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${completeness}%` }}
@@ -304,7 +305,7 @@ export default function Onboarding() {
                       transition={{ type: "spring", stiffness: 40, damping: 12 }}
                     />
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-2 md:mt-4 flex flex-wrap gap-1 md:gap-2 hidden sm:flex">
                     {(profile?.resume_url || resumeFile) && (
                       <Badge className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
                         <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -326,177 +327,186 @@ export default function Onboarding() {
                   </div>
                 </div>
 
-                {/* Step 1: Welcome */}
+                {/* Step 1: Welcome - Scrollable Content */}
                 {currentStep === 0 && (
-                  <div className="text-center py-4">
-                    <div className="mx-auto mb-6 relative">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 rounded-[2rem] border-2 border-dashed border-primary-500/20"
-                      />
-                      <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-100">
-                        <Rocket className="h-10 w-10 text-primary-400" />
+                  <div className="flex flex-col h-full overflow-hidden">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
+                      <div className="text-center py-2 md:py-4">
+                        <div className="mx-auto mb-4 md:mb-6 relative">
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-0 rounded-[2rem] border-2 border-dashed border-primary-500/20"
+                          />
+                          <div className="relative mx-auto flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-[2rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-100">
+                            <Rocket className="h-8 w-8 md:h-10 md:w-10 text-primary-400" />
+                          </div>
+                        </div>
+                        <h1 className="mb-2 md:mb-3 font-display text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                          Initiate <span className="text-primary-600 italic">Hyper-Hunt.</span>
+                        </h1>
+                        <p className="mb-4 md:mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-sm md:text-base">
+                          We're about to build your digital autonomous twin. Calibration takes 90 seconds.
+                        </p>
+                        <div className="grid gap-2 md:gap-3 mb-6 md:mb-8 text-left">
+                          {[
+                            { title: "Skill Mapping", desc: "AI-driven resume vectorization", icon: Sparkles },
+                            { title: "Radar Tuning", desc: "Location & salary baseline profiling", icon: MapPin },
+                            { title: "Autonomous Launch", desc: "1-Click application engine activation", icon: Rocket },
+                          ].map((item, i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.2 + i * 0.1 }}
+                              className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl bg-slate-50 border border-slate-100/50 hover:bg-white hover:shadow-md transition-all group"
+                            >
+                              <div className="flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg md:rounded-xl bg-primary-100 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
+                                <item.icon className="h-4 w-4 md:h-5 md:w-5" />
+                              </div>
+                              <div className="text-left min-w-0">
+                                <p className="text-xs md:text-sm font-black text-slate-900 uppercase tracking-tight truncate">{item.title}</p>
+                                <p className="text-[10px] md:text-xs text-slate-500 font-medium truncate">{item.desc}</p>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    <h1 className="mb-3 font-display text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                      Initiate <span className="text-primary-600 italic">Hyper-Hunt.</span>
-                    </h1>
-                    <p className="mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-base">
-                      We're about to build your digital autonomous twin. Calibration takes 90 seconds.
-                    </p>
-                    <div className="grid gap-3 mb-8">
-                      {[
-                        { title: "Skill Mapping", desc: "AI-driven resume vectorization", icon: Sparkles },
-                        { title: "Radar Tuning", desc: "Location & salary baseline profiling", icon: MapPin },
-                        { title: "Autonomous Launch", desc: "1-Click application engine activation", icon: Rocket },
-                      ].map((item, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.2 + i * 0.1 }}
-                          className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100/50 hover:bg-white hover:shadow-md transition-all group"
-                        >
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
-                            <item.icon className="h-5 w-5" />
-                          </div>
-                          <div className="text-left">
-                            <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{item.title}</p>
-                            <p className="text-xs text-slate-500 font-medium">{item.desc}</p>
-                          </div>
-                        </motion.div>
-                      ))}
+                    <div className="pt-4 shrink-0 mt-auto">
+                      <Button size="lg" onClick={nextStep} className="w-full h-10 md:h-12 rounded-[1.25rem] text-lg md:text-xl font-black shadow-xl md:shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
+                        BEGIN CALIBRATION
+                        <ArrowRight className="ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
+                      </Button>
                     </div>
-                    <Button size="lg" onClick={nextStep} className="w-full h-12 rounded-[1.5rem] text-xl font-black shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
-                      BEGIN CALIBRATION
-                      <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
-                    </Button>
                   </div>
                 )}
 
                 {/* Step 2: Resume Upload */}
+                {/* Step 2: Resume Upload */}
                 {currentStep === 1 && (
-                  <div className="py-2">
-                    <div className="mb-10 flex items-center gap-5 border-b border-slate-100 pb-8">
-                      <div className="flex h-12 w-16 items-center justify-center rounded-[1.5rem] bg-primary-50 border border-primary-100 text-primary-600 shadow-inner">
-                        <Upload className="h-8 w-8" />
+                  <div className="flex flex-col h-full overflow-hidden">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
+                      <div className="mb-4 md:mb-8 flex items-center gap-3 md:gap-5 border-b border-slate-100 pb-4 md:pb-6">
+                        <div className="flex h-10 w-12 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] bg-primary-50 border border-primary-100 text-primary-600 shadow-inner">
+                          <Upload className="h-6 w-6 md:h-8 md:w-8" />
+                        </div>
+                        <div className="min-w-0">
+                          <h2 className="font-display text-2xl md:text-3xl font-black text-slate-900 tracking-tight truncate">Experience Input</h2>
+                          <p className="text-xs md:text-sm text-slate-500 font-medium italic truncate">Feed the AI your career history for optimization.</p>
+                        </div>
                       </div>
-                      <div>
-                        <h2 className="font-display text-3xl font-black text-slate-900 tracking-tight">Experience Input</h2>
-                        <p className="text-sm text-slate-500 font-medium italic">Feed the AI your career history for optimization.</p>
-                      </div>
-                    </div>
 
-                    <div
-                      className="mb-8 relative group"
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                    >
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                        className="hidden"
-                        id="resume-upload"
-                        disabled={isUploading}
-                      />
-                      <label
-                        htmlFor="resume-upload"
-                        className={`flex cursor-pointer flex-col items-center gap-6 rounded-[2.5rem] border-3 border-dashed p-10 text-center transition-all duration-300 ${isDragging
-                          ? "bg-primary-50 border-primary-500 scale-[1.02] shadow-xl"
-                          : resumeFile
-                            ? "bg-primary-50/50 border-primary-300"
-                            : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-primary-300"
-                          }`}
+                      <div
+                        className="mb-4 md:mb-8 relative group"
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
                       >
-                        <div className={`flex h-20 w-20 items-center justify-center rounded-[2rem] bg-white shadow-xl transition-all ${isUploading ? 'animate-pulse scale-90' : isDragging ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
-                          {isUploading ? (
-                            <div className="relative">
-                              <Sparkles className="h-10 w-10 text-primary-400 animate-spin-slow" />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-5 h-5 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                          className="hidden"
+                          id="resume-upload"
+                          disabled={isUploading}
+                        />
+                        <label
+                          htmlFor="resume-upload"
+                          className={`flex cursor-pointer flex-col items-center gap-2 md:gap-6 rounded-[1.5rem] md:rounded-[2.5rem] border-3 border-dashed p-4 md:p-10 text-center transition-all duration-300 ${isDragging
+                            ? "bg-primary-50 border-primary-500 scale-[1.02] shadow-xl"
+                            : resumeFile
+                              ? "bg-primary-50/50 border-primary-300"
+                              : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-primary-300"
+                            }`}
+                        >
+                          <div className={`flex h-12 w-12 md:h-20 md:w-20 items-center justify-center rounded-[1rem] md:rounded-[2rem] bg-white shadow-xl transition-all ${isUploading ? 'animate-pulse scale-90' : isDragging ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
+                            {isUploading ? (
+                              <div className="relative">
+                                <Sparkles className="h-6 w-6 md:h-10 md:w-10 text-primary-400 animate-spin-slow" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="w-3 h-3 md:w-5 md:h-5 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <FileText className={`h-10 w-10 ${resumeFile || isDragging ? 'text-primary-600' : 'text-slate-300'}`} />
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <p className={`text-xl font-black ${resumeFile || isDragging ? 'text-primary-700' : 'text-slate-900'}`}>
-                            {resumeFile ? resumeFile.name : isDragging ? "Drop to Analyze" : "Drop Intelligence File"}
-                          </p>
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">PDF, DOCX — AI Optimization Ready</p>
-                        </div>
-                      </label>
-                      {isUploading && (
-                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[2.5rem] flex flex-col items-center justify-center gap-4 z-10">
-                          <div className="w-64 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-100 shadow-inner">
-                            <motion.div
-                              className="h-full bg-primary-500"
-                              initial={{ width: "0%" }}
-                              animate={{ width: "100%" }}
-                              transition={{ duration: 4, repeat: Infinity }}
-                            />
+                            ) : (
+                              <FileText className={`h-6 w-6 md:h-10 md:w-10 ${resumeFile || isDragging ? 'text-primary-600' : 'text-slate-300'}`} />
+                            )}
                           </div>
-                          <p className="text-xs font-black text-primary-600 uppercase tracking-widest animate-pulse">Scanning Vector Space...</p>
+                          <div className="space-y-1 md:space-y-2">
+                            <p className={`text-sm md:text-xl font-black ${resumeFile || isDragging ? 'text-primary-700' : 'text-slate-900'}`}>
+                              {resumeFile ? resumeFile.name : isDragging ? "Drop to Analyze" : "Tap to Upload Resume"}
+                            </p>
+                            <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest leading-tight">PDF, DOCX — AI Optimization Ready</p>
+                          </div>
+                        </label>
+                        {isUploading && (
+                          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center justify-center gap-4 z-10">
+                            <div className="w-48 md:w-64 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-100 shadow-inner">
+                              <motion.div
+                                className="h-full bg-primary-500"
+                                initial={{ width: "0%" }}
+                                animate={{ width: "100%" }}
+                                transition={{ duration: 4, repeat: Infinity }}
+                              />
+                            </div>
+                            <p className="text-[10px] md:text-xs font-black text-primary-600 uppercase tracking-widest animate-pulse">Scanning Vector Space...</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mb-4 md:mb-10">
+                        <div className="flex items-center gap-2 mb-2 md:mb-4 px-1">
+                          <div className="h-[1px] flex-1 bg-slate-100" />
+                          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">or social reference</span>
+                          <div className="h-[1px] flex-1 bg-slate-100" />
                         </div>
+                        <div className="relative">
+                          <Input
+                            icon={<User className="h-5 w-5" />}
+                            type="url"
+                            placeholder="LinkedIn URL (optional)"
+                            value={linkedinUrl}
+                            onChange={(e) => setLinkedinUrl(e.target.value)}
+                            className="bg-white shadow-sm text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      {resumeError && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-600 font-bold flex items-center gap-3"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                          {resumeError}
+                        </motion.div>
                       )}
                     </div>
 
-                    <div className="mb-10">
-                      <div className="flex items-center gap-2 mb-4 px-1">
-                        <div className="h-[1px] flex-1 bg-slate-100" />
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">or social reference</span>
-                        <div className="h-[1px] flex-1 bg-slate-100" />
-                      </div>
-                      <div className="relative">
-                        <Input
-                          icon={<User className="h-5 w-5" />}
-                          type="url"
-                          placeholder="LinkedIn URL (optional context)"
-                          value={linkedinUrl}
-                          onChange={(e) => setLinkedinUrl(e.target.value)}
-                          className="bg-white shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    {resumeError && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-600 font-bold flex items-center gap-3"
-                      >
-                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                        {resumeError}
-                      </motion.div>
-                    )}
-
-                    <div className="flex gap-4">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
-                        <ArrowLeft className="mr-2 h-5 w-5" />
+                    <div className="flex gap-4 pt-4 shrink-0 mt-auto">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-10 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-xs md:text-base">
+                        <ArrowLeft className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                         PREV
                       </Button>
                       {resumeFile ? (
                         <Button
                           onClick={handleResumeUpload}
                           disabled={isUploading}
-                          className="flex-[2] h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-lg group overflow-hidden relative"
+                          className="flex-[2] h-10 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-sm md:text-lg group overflow-hidden relative"
                         >
                           <span className="relative z-10 flex items-center justify-center">
                             {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "SYNC NEW SOURCE" : "EXTRACT EXPERIENCE"}
-                            <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                            <ArrowRight className="ml-2 md:ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
                           </span>
                         </Button>
                       ) : (
                         <Button
                           variant="outline"
                           onClick={nextStep}
-                          className="flex-[2] h-12 rounded-[1.25rem] font-black text-slate-500 hover:border-slate-900 hover:text-slate-900 border-2 border-slate-200 transition-all text-lg"
+                          className="flex-[2] h-10 md:h-12 rounded-[1.25rem] font-black text-slate-500 hover:border-slate-900 hover:text-slate-900 border-2 border-slate-200 transition-all text-sm md:text-lg truncate"
                         >
-                          SKIP TO MANUAL ENTRY
+                          SKIP TO MANUAL
                         </Button>
                       )}
                     </div>
@@ -585,110 +595,112 @@ export default function Onboarding() {
 
                 {/* Step 3: Confirm Contact */}
                 {currentStep === 2 && (
-                  <div className="py-2">
-                    <div className="mb-10 flex items-center gap-5 border-b border-slate-100 pb-8">
-                      <div className="flex h-12 w-16 items-center justify-center rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
-                        <User className="h-8 w-8" />
+                  <div className="flex flex-col h-full overflow-hidden">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
+                      <div className="mb-4 md:mb-8 flex items-center gap-3 md:gap-5 border-b border-slate-100 pb-4 md:pb-6">
+                        <div className="flex h-10 w-12 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
+                          <User className="h-6 w-6 md:h-8 md:w-8" />
+                        </div>
+                        <div className="min-w-0">
+                          <h2 className="font-display text-2xl md:text-3xl font-black text-slate-900 tracking-tight truncate">Verify Identity</h2>
+                          <p className="text-xs md:text-sm text-slate-500 font-medium italic truncate">Confirm the details we extracted.</p>
+                        </div>
                       </div>
-                      <div>
-                        <h2 className="font-display text-3xl font-black text-slate-900 tracking-tight">Verify Identity</h2>
-                        <p className="text-sm text-slate-500 font-medium italic">Confirm the details we extracted. The AI uses these to apply on your behalf.</p>
-                      </div>
-                    </div>
 
-                    <div className="grid gap-8">
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid gap-4 md:gap-6">
+                        <div className="grid grid-cols-2 gap-3 md:gap-6">
+                          <div>
+                            <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                              <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                              First Name <span className="text-red-400">*</span>
+                            </label>
+                            <div className="relative">
+                              <Input
+                                icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
+                                type="text"
+                                placeholder="John"
+                                value={contactInfo.first_name}
+                                onChange={(e) => setContactInfo(c => ({ ...c, first_name: e.target.value }))}
+                                className="bg-white shadow-sm text-sm"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                              <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                              Last Name <span className="text-red-400">*</span>
+                            </label>
+                            <div className="relative">
+                              <Input
+                                icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
+                                type="text"
+                                placeholder="Doe"
+                                value={contactInfo.last_name}
+                                onChange={(e) => setContactInfo(c => ({ ...c, last_name: e.target.value }))}
+                                className="bg-white shadow-sm text-sm"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
                         <div>
-                          <label className="mb-3 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                          <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                             <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                            First Name <span className="text-red-400">*</span>
+                            Email Address <span className="text-red-400">*</span>
                           </label>
                           <div className="relative">
                             <Input
-                              icon={<User className="h-5 w-5" />}
-                              type="text"
-                              placeholder="John"
-                              value={contactInfo.first_name}
-                              onChange={(e) => setContactInfo(c => ({ ...c, first_name: e.target.value }))}
-                              className="bg-white shadow-sm"
+                              icon={<Mail className="h-4 w-4 md:h-5 md:w-5" />}
+                              type="email"
+                              placeholder="john@example.com"
+                              value={contactInfo.email}
+                              onChange={(e) => setContactInfo(c => ({ ...c, email: e.target.value }))}
+                              className="bg-white shadow-sm text-sm"
                             />
                           </div>
                         </div>
+
                         <div>
-                          <label className="mb-3 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                          <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                             <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                            Last Name <span className="text-red-400">*</span>
+                            Phone Number
                           </label>
                           <div className="relative">
                             <Input
-                              icon={<User className="h-5 w-5" />}
-                              type="text"
-                              placeholder="Doe"
-                              value={contactInfo.last_name}
-                              onChange={(e) => setContactInfo(c => ({ ...c, last_name: e.target.value }))}
-                              className="bg-white shadow-sm"
+                              icon={<Phone className="h-4 w-4 md:h-5 md:w-5" />}
+                              type="tel"
+                              placeholder="+1 (555) 123-4567"
+                              value={contactInfo.phone}
+                              onChange={(e) => setContactInfo(c => ({ ...c, phone: e.target.value }))}
+                              className="bg-white shadow-sm text-sm"
                             />
                           </div>
                         </div>
                       </div>
 
-                      <div>
-                        <label className="mb-3 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                          <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                          Email Address <span className="text-red-400">*</span>
-                        </label>
-                        <div className="relative">
-                          <Input
-                            icon={<Mail className="h-5 w-5" />}
-                            type="email"
-                            placeholder="john@example.com"
-                            value={contactInfo.email}
-                            onChange={(e) => setContactInfo(c => ({ ...c, email: e.target.value }))}
-                            className="bg-white shadow-sm"
-                          />
+                      {parsedResume && (
+                        <div className="mt-4 md:mt-8 p-3 md:p-5 rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100">
+                          <div className="flex items-center gap-2 mb-1 md:mb-2">
+                            <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-emerald-600" />
+                            <p className="text-[8px] md:text-[10px] font-black text-emerald-700 uppercase tracking-widest">AI-Extracted From Resume</p>
+                          </div>
+                          <p className="text-xs md:text-sm text-emerald-800 font-medium">We pre-filled these from your resume. Please verify details.</p>
                         </div>
-                      </div>
-
-                      <div>
-                        <label className="mb-3 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                          <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                          Phone Number
-                        </label>
-                        <div className="relative">
-                          <Input
-                            icon={<Phone className="h-5 w-5" />}
-                            type="tel"
-                            placeholder="+1 (555) 123-4567"
-                            value={contactInfo.phone}
-                            onChange={(e) => setContactInfo(c => ({ ...c, phone: e.target.value }))}
-                            className="bg-white shadow-sm"
-                          />
-                        </div>
-                      </div>
+                      )}
                     </div>
 
-                    {parsedResume && (
-                      <div className="mt-8 p-5 rounded-2xl bg-emerald-50 border border-emerald-100">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Sparkles className="h-4 w-4 text-emerald-600" />
-                          <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">AI-Extracted From Resume</p>
-                        </div>
-                        <p className="text-sm text-emerald-800 font-medium">We pre-filled these from your resume. Please verify and correct anything that looks off.</p>
-                      </div>
-                    )}
-
-                    <div className="flex gap-4 pt-10">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
-                        <ArrowLeft className="mr-2 h-5 w-5" />
+                    <div className="flex gap-4 pt-4 shrink-0 mt-auto">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-10 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-xs md:text-base">
+                        <ArrowLeft className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                         PREV
                       </Button>
                       <Button
                         onClick={handleSaveContact}
                         disabled={!contactInfo.first_name || !contactInfo.email || isSavingContact}
-                        className="flex-[2] h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
+                        className="flex-[2] h-10 md:h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-sm md:text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
                       >
                         {isSavingContact ? <LoadingSpinner size="sm" /> : "CONFIRM IDENTITY"}
-                        <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="ml-2 md:ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </div>
                   </div>
@@ -696,175 +708,177 @@ export default function Onboarding() {
 
                 {/* Step 4: Preferences */}
                 {currentStep === 3 && (
-                  <div className="space-y-10 py-2">
-                    <div className="flex items-center gap-5 border-b border-slate-100 pb-8">
-                      <div className="flex h-12 w-16 items-center justify-center rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
-                        <MapPin className="h-8 w-8" />
-                      </div>
-                      <div>
-                        <h2 className="font-display text-3xl font-black text-slate-900 tracking-tight">Active Parameters</h2>
-                        <p className="text-sm text-slate-500 font-medium italic">Define the geospatial and fiscal bounds for the AI.</p>
-                      </div>
-                    </div>
-
-                    {/* AI Suggestions Section */}
-                    {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
-                      <div className="grid md:grid-cols-2 gap-6 mb-8">
-                        {/* Role Suggestions */}
-                        <AISuggestionCard
-                          title="Suggested Roles"
-                          subtitle="Based on your experience"
-                          suggestions={aiSuggestions.roles.data?.suggested_roles || []}
-                          confidence={aiSuggestions.roles.data?.confidence}
-                          reasoning={aiSuggestions.roles.data?.reasoning}
-                          loading={aiSuggestions.roles.loading}
-                          error={aiSuggestions.roles.error}
-                          onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
-                          onReject={() => { }}
-                        />
-
-                        {/* Location Suggestions */}
-                        <AISuggestionCard
-                          title="Recommended Locations"
-                          subtitle={aiSuggestions.locations.data?.remote_friendly_score
-                            ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote-friendly role`
-                            : "Based on your skills"
-                          }
-                          suggestions={aiSuggestions.locations.data?.suggested_locations || []}
-                          confidence={aiSuggestions.locations.data?.remote_friendly_score}
-                          reasoning={aiSuggestions.locations.data?.reasoning}
-                          loading={aiSuggestions.locations.loading}
-                          error={aiSuggestions.locations.error}
-                          onAccept={(location) => setPreferences(p => ({ ...p, location }))}
-                          onReject={() => { }}
-                        />
-                      </div>
-                    )}
-
-                    {/* Salary Suggestion */}
-                    {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
-                      <div className="mb-8">
-                        <SalarySuggestionCard
-                          minSalary={aiSuggestions.salary.data?.min_salary || 0}
-                          maxSalary={aiSuggestions.salary.data?.max_salary || 0}
-                          marketMedian={aiSuggestions.salary.data?.market_median || 0}
-                          currency={aiSuggestions.salary.data?.currency}
-                          confidence={aiSuggestions.salary.data?.confidence}
-                          factors={aiSuggestions.salary.data?.factors}
-                          reasoning={aiSuggestions.salary.data?.reasoning}
-                          loading={aiSuggestions.salary.loading}
-                          error={aiSuggestions.salary.error}
-                          onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
-                          onReject={() => { }}
-                        />
-                      </div>
-                    )}
-
-                    <div className="space-y-8">
-                      <div className="grid gap-8">
-                        <div>
-                          <label className="mb-4 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            <div className="w-1 h-1 rounded-full bg-primary-500" />
-                            Primary Operation Hub
-                          </label>
-                          <div className="relative">
-                            <Input
-                              icon={<MapPin className="h-5 w-5" />}
-                              type="text"
-                              placeholder="e.g., Remote, Austin TX, London"
-                              value={preferences.location}
-                              onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
-                              className="bg-white shadow-sm"
-                            />
-                          </div>
+                  <div className="flex flex-col h-full overflow-hidden">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
+                      <div className="flex items-center gap-3 md:gap-5 border-b border-slate-100 pb-4 md:pb-6 mb-4 md:mb-8">
+                        <div className="flex h-10 w-12 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
+                          <MapPin className="h-6 w-6 md:h-8 md:w-8" />
                         </div>
-
-                        <div>
-                          <label className="mb-4 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            <div className="w-1 h-1 rounded-full bg-primary-500" />
-                            Target Role Classification
-                          </label>
-                          <div className="relative">
-                            <Input
-                              icon={<Briefcase className="h-5 w-5" />}
-                              type="text"
-                              placeholder="e.g., Staff AI Engineer"
-                              value={preferences.role_type}
-                              onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
-                              className="bg-white shadow-sm"
-                            />
-                          </div>
+                        <div className="min-w-0">
+                          <h2 className="font-display text-2xl md:text-3xl font-black text-slate-900 tracking-tight truncate">Active Parameters</h2>
+                          <p className="text-xs md:text-sm text-slate-500 font-medium italic truncate">Define the geospatial and fiscal bounds.</p>
                         </div>
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-8">
-                        <div>
-                          <label className="mb-4 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            <div className="w-1 h-1 rounded-full bg-primary-500" />
-                            Min Multiplier (Salary)
-                          </label>
-                          <div className="relative">
-                            <Input
-                              icon={<DollarSign className="h-5 w-5" />}
-                              type="number"
-                              placeholder="150000"
-                              value={preferences.salary_min}
-                              onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
-                              className="bg-white shadow-sm"
-                            />
-                          </div>
+                      {/* AI Suggestions Section */}
+                      {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
+                        <div className="grid md:grid-cols-2 gap-3 md:gap-6 mb-4 md:mb-8">
+                          {/* Role Suggestions */}
+                          <AISuggestionCard
+                            title="Suggested Roles"
+                            subtitle="Based on your experience"
+                            suggestions={aiSuggestions.roles.data?.suggested_roles || []}
+                            confidence={aiSuggestions.roles.data?.confidence}
+                            reasoning={aiSuggestions.roles.data?.reasoning}
+                            loading={aiSuggestions.roles.loading}
+                            error={aiSuggestions.roles.error}
+                            onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
+                            onReject={() => { }}
+                          />
+
+                          {/* Location Suggestions */}
+                          <AISuggestionCard
+                            title="Recommended Locations"
+                            subtitle={aiSuggestions.locations.data?.remote_friendly_score
+                              ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote`
+                              : "Based on your skills"
+                            }
+                            suggestions={aiSuggestions.locations.data?.suggested_locations || []}
+                            confidence={aiSuggestions.locations.data?.remote_friendly_score}
+                            reasoning={aiSuggestions.locations.data?.reasoning}
+                            loading={aiSuggestions.locations.loading}
+                            error={aiSuggestions.locations.error}
+                            onAccept={(location) => setPreferences(p => ({ ...p, location }))}
+                            onReject={() => { }}
+                          />
                         </div>
-                        <div className="flex flex-col justify-end">
-                          <label className={`flex items-center gap-4 p-5 rounded-[1.25rem] cursor-pointer border-2 transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${preferences.remote_only ? 'bg-primary-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
-                              <Zap className="h-5 w-5" />
+                      )}
+
+                      {/* Salary Suggestion */}
+                      {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
+                        <div className="mb-4 md:mb-8">
+                          <SalarySuggestionCard
+                            minSalary={aiSuggestions.salary.data?.min_salary || 0}
+                            maxSalary={aiSuggestions.salary.data?.max_salary || 0}
+                            marketMedian={aiSuggestions.salary.data?.market_median || 0}
+                            currency={aiSuggestions.salary.data?.currency}
+                            confidence={aiSuggestions.salary.data?.confidence}
+                            factors={aiSuggestions.salary.data?.factors}
+                            reasoning={aiSuggestions.salary.data?.reasoning}
+                            loading={aiSuggestions.salary.loading}
+                            error={aiSuggestions.salary.error}
+                            onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
+                            onReject={() => { }}
+                          />
+                        </div>
+                      )}
+
+                      <div className="space-y-4 md:space-y-8">
+                        <div className="grid gap-4 md:gap-8">
+                          <div>
+                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                              <div className="w-1 h-1 rounded-full bg-primary-500" />
+                              Primary Operation Hub
+                            </label>
+                            <div className="relative">
+                              <Input
+                                icon={<MapPin className="h-4 w-4 md:h-5 md:w-5" />}
+                                type="text"
+                                placeholder="e.g., Remote, Austin TX, London"
+                                value={preferences.location}
+                                onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
+                                className="bg-white shadow-sm text-sm"
+                              />
                             </div>
-                            <div className="flex-1">
-                              <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Geo-Agnostic Only</p>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">100% Remote Filter</p>
+                          </div>
+
+                          <div>
+                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                              <div className="w-1 h-1 rounded-full bg-primary-500" />
+                              Target Role Classification
+                            </label>
+                            <div className="relative">
+                              <Input
+                                icon={<Briefcase className="h-4 w-4 md:h-5 md:w-5" />}
+                                type="text"
+                                placeholder="e.g., Staff AI Engineer"
+                                value={preferences.role_type}
+                                onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
+                                className="bg-white shadow-sm text-sm"
+                              />
                             </div>
-                            <input
-                              type="checkbox"
-                              checked={preferences.remote_only}
-                              onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
-                              className="h-6 w-6 rounded-lg border-slate-300 text-primary-600 focus:ring-primary-500"
-                            />
-                          </label>
+                          </div>
                         </div>
+
+                        <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+                          <div>
+                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                              <div className="w-1 h-1 rounded-full bg-primary-500" />
+                              Min Multiplier (Salary)
+                            </label>
+                            <div className="relative">
+                              <Input
+                                icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5" />}
+                                type="number"
+                                placeholder="150000"
+                                value={preferences.salary_min}
+                                onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
+                                className="bg-white shadow-sm text-sm"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col justify-end">
+                            <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-5 rounded-2xl cursor-pointer border-2 transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
+                              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.remote_only ? 'bg-primary-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
+                                <Zap className="h-4 w-4 md:h-5 md:w-5" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Geo-Agnostic Only</p>
+                                <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">100% Remote Filter</p>
+                              </div>
+                              <input
+                                type="checkbox"
+                                checked={preferences.remote_only}
+                                onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
+                                className="h-5 w-5 md:h-6 md:w-6 rounded-lg border-slate-300 text-primary-600 focus:ring-primary-500"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Work Authorization */}
+                      <div className="pt-4 md:pt-6 border-t border-slate-100 mt-4 md:mt-8">
+                        <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                          <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                          Work Authorization
+                        </label>
+                        <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-5 rounded-2xl cursor-pointer border-2 transition-all ${preferences.work_authorized ? 'bg-emerald-50 border-emerald-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
+                          <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.work_authorized ? 'bg-emerald-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
+                            <Shield className="h-4 w-4 md:h-5 md:w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Authorized to Work</p>
+                            <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">No visa sponsorship needed</p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={preferences.work_authorized}
+                            onChange={(e) => setPreferences((p) => ({ ...p, work_authorized: e.target.checked }))}
+                            className="h-5 w-5 md:h-6 md:w-6 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                          />
+                        </label>
                       </div>
                     </div>
 
-                    {/* Work Authorization */}
-                    <div className="pt-6 border-t border-slate-100">
-                      <label className="mb-4 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                        Work Authorization
-                      </label>
-                      <label className={`flex items-center gap-4 p-5 rounded-[1.25rem] cursor-pointer border-2 transition-all ${preferences.work_authorized ? 'bg-emerald-50 border-emerald-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${preferences.work_authorized ? 'bg-emerald-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
-                          <Shield className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Authorized to Work</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No visa sponsorship needed</p>
-                        </div>
-                        <input
-                          type="checkbox"
-                          checked={preferences.work_authorized}
-                          onChange={(e) => setPreferences((p) => ({ ...p, work_authorized: e.target.checked }))}
-                          className="h-6 w-6 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="flex gap-4 pt-10">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
-                        <ArrowLeft className="mr-2 h-5 w-5" />
+                    <div className="flex gap-4 pt-4 shrink-0 mt-auto">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-10 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-xs md:text-base">
+                        <ArrowLeft className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                         PREV
                       </Button>
-                      <Button onClick={handleSavePreferences} className="flex-[2] h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-lg sm:text-xl group" disabled={isSavingPreferences}>
+                      <Button onClick={handleSavePreferences} className="flex-[2] h-10 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-sm md:text-xl group" disabled={isSavingPreferences}>
                         {isSavingPreferences ? <LoadingSpinner size="sm" /> : "DEPLOY HUNTER ENGINE"}
-                        <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="ml-2 md:ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </div>
                   </div>
@@ -872,106 +886,94 @@ export default function Onboarding() {
 
                 {/* Step 5: Review & Ready! */}
                 {currentStep === 4 && (
-                  <div className="text-center py-6">
-                    <div className="mx-auto mb-10 relative">
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 0.5, times: [0, 0.5, 1] }}
-                        className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl"
-                      />
-                      <div className="relative mx-auto flex h-28 w-28 items-center justify-center rounded-[3rem] bg-emerald-500 shadow-2xl shadow-emerald-200">
-                        <CheckCircle2 className="h-12 w-16 text-white" />
+                  <div className="flex flex-col h-full overflow-hidden">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
+                      <div className="text-center py-4 md:py-6">
+                        <div className="mx-auto mb-6 md:mb-10 relative">
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 0.5, times: [0, 0.5, 1] }}
+                            className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl"
+                          />
+                          <div className="relative mx-auto flex h-20 w-20 md:h-28 md:w-28 items-center justify-center rounded-[2rem] md:rounded-[3rem] bg-emerald-500 shadow-2xl shadow-emerald-200">
+                            <CheckCircle2 className="h-8 w-10 md:h-12 md:w-16 text-white" />
+                          </div>
+                        </div>
+
+                        <h1 className="mb-2 md:mb-4 font-display text-3xl md:text-5xl font-black text-slate-900 tracking-tight">
+                          System <span className="text-emerald-500 italic">Online.</span>
+                        </h1>
+                        <p className="mb-6 md:mb-12 text-slate-500 font-medium max-w-sm mx-auto text-base md:text-lg leading-relaxed">
+                          Calibration successful. Your digital twin is initialized.
+                        </p>
+
+                        {/* Preferences Summary Table */}
+                        <div className="mb-6 md:mb-12 relative">
+                          <div className="absolute -inset-4 bg-gradient-to-b from-slate-900/5 to-transparent rounded-[3rem] -z-10" />
+                          <Card className="bg-slate-950 text-white p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl text-left relative overflow-hidden border-white/5 border-t-white/10">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px]" />
+                            <div className="relative z-10">
+                              <div className="flex items-center gap-3 mb-4 md:mb-8 border-b border-white/5 pb-2 md:pb-4">
+                                <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-primary-400">
+                                  <Rocket className="h-3 w-3 md:h-4 md:w-4" />
+                                </div>
+                                <h3 className="font-black text-white/50 text-[8px] md:text-[10px] uppercase tracking-[0.3em]">Operational Directives</h3>
+                              </div>
+                              <div className="space-y-4 md:space-y-6">
+                                <div className="flex items-start justify-between group">
+                                  <div>
+                                    <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">CONFIRMED IDENTITY</p>
+                                    <p className="font-black text-sm md:text-lg text-white group-hover:text-emerald-400 transition-colors uppercase">{contactInfo.first_name} {contactInfo.last_name}</p>
+                                    <p className="text-[10px] md:text-xs text-white/40 font-medium mt-0.5 max-w-[150px] truncate">{contactInfo.email}</p>
+                                  </div>
+                                  <User className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-emerald-500 transition-colors" />
+                                </div>
+                                <div className="flex items-start justify-between group">
+                                  <div>
+                                    <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">AOI GEOLOCATION</p>
+                                    <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.location || "Global Priority"}</p>
+                                  </div>
+                                  <MapPin className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
+                                </div>
+                                <div className="flex items-start justify-between group">
+                                  <div>
+                                    <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">TARGET CLASSIFICATION</p>
+                                    <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.role_type || "Senior Impact Role"}</p>
+                                  </div>
+                                  <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
+                                </div>
+                              </div>
+                              <div className="mt-6 md:mt-10 pt-4 md:pt-8 border-t border-white/5 grid grid-cols-2 gap-3 md:gap-6">
+                                <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 group">
+                                  <p className="text-[8px] md:text-[9px] uppercase font-black text-emerald-500/70 mb-1 tracking-widest">Match Strength</p>
+                                  <p className="text-xl md:text-2xl font-black text-emerald-400 italic">{completeness}%</p>
+                                </div>
+                                <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-primary-500/10 border border-primary-500/20 group">
+                                  <p className="text-[8px] md:text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Data Points</p>
+                                  <p className="text-xl md:text-2xl font-black text-primary-400 italic">{[contactInfo.first_name, contactInfo.email, preferences.location, preferences.role_type, preferences.salary_min, (profile?.resume_url || resumeFile)].filter(Boolean).length}/6</p>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
                       </div>
                     </div>
 
-                    <h1 className="mb-4 font-display text-5xl font-black text-slate-900 tracking-tight">
-                      System <span className="text-emerald-500 italic">Online.</span>
-                    </h1>
-                    <p className="mb-12 text-slate-500 font-medium max-w-sm mx-auto text-lg leading-relaxed">
-                      Calibration successful. Your digital twin is initialized and ready for high-velocity deployment.
-                    </p>
-
-                    {/* Preferences Summary Table */}
-                    <div className="mb-12 relative">
-                      <div className="absolute -inset-4 bg-gradient-to-b from-slate-900/5 to-transparent rounded-[3rem] -z-10" />
-                      <Card className="bg-slate-950 text-white p-8 rounded-[2.5rem] shadow-2xl text-left relative overflow-hidden border-white/5 border-t-white/10">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px]" />
-                        <div className="relative z-10">
-                          <div className="flex items-center gap-3 mb-8 border-b border-white/5 pb-4">
-                            <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-primary-400">
-                              <Rocket className="h-4 w-4" />
-                            </div>
-                            <h3 className="font-black text-white/50 text-[10px] uppercase tracking-[0.3em]">Operational Directives</h3>
-                          </div>
-                          <div className="space-y-6">
-                            <div className="flex items-start justify-between group">
-                              <div>
-                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">CONFIRMED IDENTITY</p>
-                                <p className="font-black text-lg text-white group-hover:text-emerald-400 transition-colors uppercase">{contactInfo.first_name} {contactInfo.last_name}</p>
-                                <p className="text-xs text-white/40 font-medium mt-0.5">{contactInfo.email}{contactInfo.phone ? ` • ${contactInfo.phone}` : ''}</p>
-                              </div>
-                              <User className="h-5 w-5 text-white/10 group-hover:text-emerald-500 transition-colors" />
-                            </div>
-                            <div className="flex items-start justify-between group">
-                              <div>
-                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">AOI GEOLOCATION</p>
-                                <p className="font-black text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.location || "Global Priority"}</p>
-                              </div>
-                              <MapPin className="h-5 w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
-                            </div>
-                            <div className="flex items-start justify-between group">
-                              <div>
-                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">TARGET CLASSIFICATION</p>
-                                <p className="font-black text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.role_type || "Senior Impact Role"}</p>
-                              </div>
-                              <Briefcase className="h-5 w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
-                            </div>
-                            <div className="flex items-start justify-between group">
-                              <div>
-                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">MIN COMP BASELINE</p>
-                                <p className="font-black text-lg text-white group-hover:text-primary-400 transition-colors uppercase">
-                                  {preferences.salary_min ? `$${(Number(preferences.salary_min) / 1000).toFixed(0)}k ANNUAL` : "PREMIUM ONLY"}
-                                </p>
-                              </div>
-                              <DollarSign className="h-5 w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
-                            </div>
-                            <div className="flex items-start justify-between group">
-                              <div>
-                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">WORK AUTHORIZATION</p>
-                                <p className={`font-black text-lg transition-colors uppercase ${preferences.work_authorized ? 'text-emerald-400' : 'text-amber-400'}`}>
-                                  {preferences.work_authorized ? "AUTHORIZED — NO SPONSORSHIP" : "SPONSORSHIP REQUIRED"}
-                                </p>
-                              </div>
-                              <Shield className="h-5 w-5 text-white/10 group-hover:text-emerald-500 transition-colors" />
-                            </div>
-                          </div>
-                          <div className="mt-10 pt-8 border-t border-white/5 grid grid-cols-2 gap-6">
-                            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 group">
-                              <p className="text-[9px] uppercase font-black text-emerald-500/70 mb-1 tracking-widest">Match Strength</p>
-                              <p className="text-2xl font-black text-emerald-400 italic">{completeness}%</p>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-primary-500/10 border border-primary-500/20 group">
-                              <p className="text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Data Points</p>
-                              <p className="text-2xl font-black text-primary-400 italic">{[contactInfo.first_name, contactInfo.email, preferences.location, preferences.role_type, preferences.salary_min, (profile?.resume_url || resumeFile)].filter(Boolean).length}/6</p>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
+                    <div className="pt-4 shrink-0 mt-auto">
+                      <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-12 md:h-16 rounded-[1.5rem] md:rounded-[2rem] text-lg md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
+                        <span className="relative z-10 flex items-center justify-center gap-3 md:gap-4">
+                          {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
+                          <Rocket className="h-6 w-6 md:h-8 md:w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
+                        </span>
+                        <motion.div
+                          animate={{ x: ['-100%', '200%'] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
+                        />
+                      </Button>
+                      <p className="mt-4 md:mt-8 text-[8px] md:text-[10px] text-slate-400 font-black uppercase tracking-[0.4em] hidden sm:block">Full system authority granted.</p>
                     </div>
-
-                    <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-16 rounded-[2rem] text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
-                      <span className="relative z-10 flex items-center justify-center gap-4">
-                        {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
-                        <Rocket className="h-8 w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
-                      </span>
-                      <motion.div
-                        animate={{ x: ['-100%', '200%'] }}
-                        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
-                      />
-                    </Button>
-                    <p className="mt-8 text-[10px] text-slate-400 font-black uppercase tracking-[0.4em]">Full system authority granted.</p>
                   </div>
                 )}
               </Card>
@@ -985,8 +987,11 @@ export default function Onboarding() {
         </div>
       </main>
 
-      {/* Minimal Footer */}
-      <footer className="px-6 py-8 border-t border-slate-200 bg-white">
+      {/* Minimal Footer - Mobile hidden/minimal */}
+      <footer className="px-4 py-2 border-t border-slate-200 bg-white/80 backdrop-blur md:hidden text-center z-50 absolute bottom-0 w-full text-[10px] text-slate-300">
+        © 2024 JobHuntin
+      </footer>
+      <footer className="hidden md:block px-6 py-4 lg:py-8 border-t border-slate-200 bg-white shrink-0">
         <div className="max-w-2xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-slate-400 font-medium font-bold">© 2024 JobHuntin AI. Intelligence for Career Acceleration.</p>
           <div className="flex gap-6">

@@ -13,10 +13,18 @@ interface SEOProps {
   robots?: string;
   themeColor?: string;
   schema?: object | object[];
+  includeDate?: boolean;
 }
 
 const DEFAULT_OG_IMAGE = "https://sorce-api.onrender.com/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global";
 const BASE_URL = "https://jobhuntin.com";
+
+const getDynamicDate = () => {
+  const d = new Date();
+  const month = d.toLocaleString('default', { month: 'long' });
+  const year = d.getFullYear();
+  return `${month} ${year}`;
+};
 
 export const SEO = ({
   title,
@@ -29,10 +37,14 @@ export const SEO = ({
   canonicalUrl,
   robots = "index,follow",
   themeColor = "#FF6B35",
-  schema
+  schema,
+  includeDate = false
 }: SEOProps) => {
   const location = useLocation();
   const resolvedCanonical = canonicalUrl || `${BASE_URL}${location.pathname === "/" ? "" : location.pathname}`;
+
+  const displayTitle = includeDate ? `${title} (${getDynamicDate()})` : title;
+  const displayDescription = includeDate ? `${description} Updated ${getDynamicDate()}.` : description;
 
   const baseSchema = {
     "@context": "https://schema.org",
@@ -91,8 +103,8 @@ export const SEO = ({
 
   return (
     <Helmet>
-      <title>{title}</title>
-      <meta name="description" content={description} />
+      <title>{displayTitle}</title>
+      <meta name="description" content={displayDescription} />
       <link rel="canonical" href={resolvedCanonical} />
       <meta name="robots" content={robots} />
       <meta name="theme-color" content={themeColor} />
@@ -100,21 +112,21 @@ export const SEO = ({
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />
       <meta property="og:url" content={resolvedCanonical} />
-      <meta property="og:title" content={ogTitle || title} />
-      <meta property="og:description" content={ogDescription || description} />
+      <meta property="og:title" content={ogTitle || displayTitle} />
+      <meta property="og:description" content={ogDescription || displayDescription} />
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:width" content={ogImageWidth} />
       <meta property="og:image:height" content={ogImageHeight} />
-      <meta property="og:image:alt" content={ogTitle || title} />
+      <meta property="og:image:alt" content={ogTitle || displayTitle} />
       <meta property="og:site_name" content="JobHuntin" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@jobhuntin" />
-      <meta name="twitter:title" content={ogTitle || title} />
-      <meta name="twitter:description" content={ogDescription || description} />
+      <meta name="twitter:title" content={ogTitle || displayTitle} />
+      <meta name="twitter:description" content={ogDescription || displayDescription} />
       <meta name="twitter:image" content={ogImage} />
-      <meta name="twitter:image:alt" content={ogTitle || title} />
+      <meta name="twitter:image:alt" content={ogTitle || displayTitle} />
 
       {/* JSON-LD Structured Data */}
       <script type="application/ld+json">

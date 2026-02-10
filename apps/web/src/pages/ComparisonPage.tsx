@@ -23,7 +23,7 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
     },
     {
       question: `How much does ${competitor.name} cost compared to JobHuntin?`,
-      answer: `${competitor.name} starts at ${competitor.pricing.starts_at} with tiers: ${competitor.pricing.tiers.join(', ')}. JobHuntin offers a free tier to get started, with Pro plans that include unlimited AI-tailored applications, stealth mode, and autonomous operation — delivering significantly more value per dollar.`,
+      answer: `${competitor.name} starts at ${competitor.pricing.starts_at} with tiers: ${competitor.pricing.tiers?.join(', ') || 'N/A'}. JobHuntin offers a free tier to get started, with Pro plans that include unlimited AI-tailored applications, stealth mode, and autonomous operation — delivering significantly more value per dollar.`,
     },
     {
       question: `Can I switch from ${competitor.name} to JobHuntin?`,
@@ -82,7 +82,7 @@ export default function ComparisonPage() {
     );
   }
 
-  const title = `JobHuntin vs ${competitor.name} (2026) | Features, Pricing & Verdict`;
+  const title = `JobHuntin vs ${competitor.name} | Features, Pricing & Verdict`;
   const description = `Detailed comparison of JobHuntin vs ${competitor.name}. Compare features, pricing, automation level, and see why job hunters choose JobHuntin as the best ${competitor.name} alternative.`;
   const canonicalUrl = `https://jobhuntin.com/vs/${competitorSlug}`;
   const faq = generateFAQ(competitor);
@@ -94,6 +94,7 @@ export default function ComparisonPage() {
         description={description}
         ogTitle={title}
         canonicalUrl={canonicalUrl}
+        includeDate={true}
         schema={{
           "@context": "https://schema.org",
           "@type": "WebPage",
@@ -159,9 +160,10 @@ export default function ComparisonPage() {
             </span>
           </h2>
           <div className="space-y-6">
-            {Object.entries(competitor.rating_vs_jobhuntin).map(([key, [them, us]]) => (
-              <RatingBar key={key} label={key.replace('_', ' ')} them={them} us={us} />
-            ))}
+            {Object.entries(competitor.rating_vs_jobhuntin || {}).map(([key, ratings]) => {
+              const [them, us] = Array.isArray(ratings) ? ratings : [0, 0];
+              return <RatingBar key={key} label={key.replace('_', ' ')} them={them} us={us} />;
+            })}
           </div>
         </motion.div>
 
@@ -218,7 +220,7 @@ export default function ComparisonPage() {
                 {competitor.pricing.starts_at}
               </p>
               <ul className="text-sm text-slate-500 space-y-1 mt-4">
-                {competitor.pricing.tiers.map((t, i) => (
+                {competitor.pricing.tiers?.map((t, i) => (
                   <li key={i}>• {t}</li>
                 ))}
               </ul>

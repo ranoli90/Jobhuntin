@@ -7,6 +7,7 @@ import { ConversionCTA } from '../components/seo/ConversionCTA';
 import { motion } from 'framer-motion';
 import competitorsData from '../data/competitors.json';
 import categoriesData from '../data/categories.json';
+import { generateCategoryHubSEO } from '../utils/seoOptimizer';
 
 const CATEGORIES_MAP = Object.fromEntries(
     categoriesData.map(c => [c.slug, c])
@@ -65,49 +66,22 @@ export default function CategoryHub() {
         .map(slug => COMPETITORS_MAP[slug])
         .filter(Boolean);
 
-    const title = `${category.h1} — Compared & Ranked`;
-    const description = `${category.description}. Compare ${competitors.length}+ tools including ${competitors.slice(0, 3).map(c => c.name).join(', ')} and see why JobHuntin tops the list.`;
-    const canonicalUrl = `https://jobhuntin.com/best/${categorySlug}`;
+    // Generate aggressive SEO data
+    const seoData = generateCategoryHubSEO(category.name, category, competitors);
+    
+    // Merge generated schema with existing schema logic if needed, or just use generated schema
+    // The generated schema is more comprehensive, so we'll use that primarily.
+
     const faq = generateFAQ(category);
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
             <SEO
-                title={title}
-                description={description}
-                ogTitle={title}
-                canonicalUrl={canonicalUrl}
-                schema={[
-                    {
-                        "@context": "https://schema.org",
-                        "@type": "CollectionPage",
-                        "name": title,
-                        "description": description,
-                        "url": canonicalUrl,
-                    },
-                    {
-                        "@context": "https://schema.org",
-                        "@type": "ItemList",
-                        "name": category.h1,
-                        "numberOfItems": competitors.length + 1,
-                        "itemListElement": [
-                            {
-                                "@type": "ListItem",
-                                "position": 1,
-                                "name": "JobHuntin",
-                                "url": "https://jobhuntin.com",
-                                "description": "Autonomous AI job hunt automation with stealth mode and resume tailoring",
-                            },
-                            ...competitors.map((c, i) => ({
-                                "@type": "ListItem",
-                                "position": i + 2,
-                                "name": c.name,
-                                "url": `https://jobhuntin.com/vs/${c.slug}`,
-                                "description": c.tagline,
-                            })),
-                        ],
-                    },
-                ]}
+                title={seoData.title}
+                description={seoData.description}
+                ogTitle={seoData.title}
+                canonicalUrl={`https://jobhuntin.com/best/${categorySlug}`}
+                schema={seoData.schema}
             />
 
             <main className="max-w-5xl mx-auto px-6 py-24">
@@ -119,15 +93,37 @@ export default function CategoryHub() {
                 >
                     <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-amber-100">
                         <Trophy className="w-4 h-4" />
-                        Updated February 2026
+                        Updated {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900">
-                        {category.h1}
+                        {seoData.h1}
                     </h1>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
                         {category.description}. We tested {competitors.length}+ tools and ranked them by
                         automation level, quality, stealth capability, and value.
                     </p>
+                </motion.div>
+
+                {/* Content Section 1: Why Trust Our Rankings */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="mb-16"
+                >
+                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s[0]}</h2>
+                    <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+                        <p className="text-lg text-slate-600 leading-relaxed mb-6">
+                            {seoData.contentSections[0].content}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            {seoData.contentSections[0].keywords.map(keyword => (
+                                <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
+                                    {keyword}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
                 </motion.div>
 
                 {/* #1 Pick — JobHuntin */}
@@ -179,93 +175,140 @@ export default function CategoryHub() {
                     </div>
                 </motion.div>
 
-                {/* Competitor List */}
-                <div className="space-y-6 mb-20">
-                    {competitors.map((comp, i) => {
-                        const score = Math.round(
-                            Object.values(comp.rating_vs_jobhuntin).reduce(
-                                (sum, [them]) => sum + them, 0
-                            ) / Object.keys(comp.rating_vs_jobhuntin).length * 10
-                        ) / 10;
+                {/* Content Section 2: What Makes a Great Category */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="mb-16"
+                >
+                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s[1]}</h2>
+                    <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+                        <p className="text-lg text-slate-600 leading-relaxed mb-6">
+                            {seoData.contentSections[1].content}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            {seoData.contentSections[1].keywords.map(keyword => (
+                                <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
+                                    {keyword}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
 
-                        return (
-                            <motion.div
-                                key={comp.slug}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.05 }}
-                                className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow"
-                            >
-                                <div className="flex flex-col md:flex-row gap-6 items-start">
-                                    <div className="flex-shrink-0 w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 font-black text-lg">
-                                        #{i + 2}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h2 className="text-xl font-bold text-slate-900">{comp.name}</h2>
-                                            {comp.status === 'discontinued' && (
-                                                <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
-                                                    Discontinued
+                {/* Competitor List with H2 */}
+                <div className="mb-20">
+                    <h2 className="text-3xl font-black text-slate-900 mb-8">{seoData.h2s[2]}</h2>
+                    <div className="space-y-6">
+                        {competitors.map((comp, i) => {
+                            const score = Math.round(
+                                Object.values(comp.rating_vs_jobhuntin).reduce(
+                                    (sum, [them]) => sum + them, 0
+                                ) / Object.keys(comp.rating_vs_jobhuntin).length * 10
+                            ) / 10;
+
+                            return (
+                                <motion.div
+                                    key={comp.slug}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow"
+                                >
+                                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                                        <div className="flex-shrink-0 w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 font-black text-lg">
+                                            #{i + 2}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className="text-xl font-bold text-slate-900">{comp.name}</h3>
+                                                {comp.status === 'discontinued' && (
+                                                    <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
+                                                        Discontinued
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-slate-500 font-medium mb-3">{comp.tagline}</p>
+                                            <div className="flex items-center gap-1 mb-3">
+                                                {[1, 2, 3, 4, 5].map(s => (
+                                                    <Star
+                                                        key={s}
+                                                        className={`w-4 h-4 ${s <= Math.round(score / 2) ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}`}
+                                                    />
+                                                ))}
+                                                <span className="text-sm text-slate-500 font-bold ml-1">{score}/10</span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+                                                <span className="flex items-center gap-1">
+                                                    {comp.features.auto_apply ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
+                                                    Auto-Apply
                                                 </span>
-                                            )}
+                                                <span className="flex items-center gap-1">
+                                                    {comp.features.resume_tailoring ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
+                                                    Resume Tailoring
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    {comp.features.stealth_mode ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
+                                                    Stealth Mode
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    {comp.features.ai_agent ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
+                                                    AI Agent
+                                                </span>
+                                            </div>
+                                            <p className="mt-3 text-sm text-slate-500 font-medium">
+                                                Starting at {comp.pricing.starts_at}
+                                                {comp.pricing.free_tier && ' • Free tier available'}
+                                            </p>
                                         </div>
-                                        <p className="text-sm text-slate-500 font-medium mb-3">{comp.tagline}</p>
-                                        <div className="flex items-center gap-1 mb-3">
-                                            {[1, 2, 3, 4, 5].map(s => (
-                                                <Star
-                                                    key={s}
-                                                    className={`w-4 h-4 ${s <= Math.round(score / 2) ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}`}
-                                                />
-                                            ))}
-                                            <span className="text-sm text-slate-500 font-bold ml-1">{score}/10</span>
+                                        <div className="flex flex-col gap-2 flex-shrink-0">
+                                            <Link
+                                                to={`/vs/${comp.slug}`}
+                                                className="text-sm font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                                            >
+                                                Full Comparison <ArrowRight className="w-4 h-4" />
+                                            </Link>
+                                            <Link
+                                                to={`/reviews/${comp.slug}`}
+                                                className="text-sm font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1"
+                                            >
+                                                Read Review <ArrowRight className="w-4 h-4" />
+                                            </Link>
                                         </div>
-                                        <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                                            <span className="flex items-center gap-1">
-                                                {comp.features.auto_apply ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
-                                                Auto-Apply
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                {comp.features.resume_tailoring ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
-                                                Resume Tailoring
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                {comp.features.stealth_mode ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
-                                                Stealth Mode
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                {comp.features.ai_agent ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
-                                                AI Agent
-                                            </span>
-                                        </div>
-                                        <p className="mt-3 text-sm text-slate-500 font-medium">
-                                            Starting at {comp.pricing.starts_at}
-                                            {comp.pricing.free_tier && ' • Free tier available'}
-                                        </p>
                                     </div>
-                                    <div className="flex flex-col gap-2 flex-shrink-0">
-                                        <Link
-                                            to={`/vs/${comp.slug}`}
-                                            className="text-sm font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1"
-                                        >
-                                            Full Comparison <ArrowRight className="w-4 h-4" />
-                                        </Link>
-                                        <Link
-                                            to={`/reviews/${comp.slug}`}
-                                            className="text-sm font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1"
-                                        >
-                                            Read Review <ArrowRight className="w-4 h-4" />
-                                        </Link>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
+                                </motion.div>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                {/* Cross-link to other categories */}
+                {/* Content Section 3: Pricing Comparison */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="mb-16"
+                >
+                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s[3]}</h2>
+                    <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+                        <p className="text-lg text-slate-600 leading-relaxed mb-6">
+                            {seoData.contentSections[2].content}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            {seoData.contentSections[2].keywords.map(keyword => (
+                                <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
+                                    {keyword}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Cross-link to other categories with H2 */}
                 <div className="mb-16">
-                    <h2 className="text-2xl font-bold text-slate-900 mb-6">Browse Other Categories</h2>
+                    <h2 className="text-3xl font-black text-slate-900 mb-6">Browse Other Categories</h2>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {categoriesData
                             .filter(cat => cat.slug !== categorySlug)
@@ -282,8 +325,11 @@ export default function CategoryHub() {
                     </div>
                 </div>
 
-                {/* FAQ */}
-                <FAQAccordion items={faq} />
+                {/* FAQ with H2 */}
+                <div className="mb-16">
+                    <h2 className="text-3xl font-black text-slate-900 mb-8">{seoData.h2s[4]}</h2>
+                    <FAQAccordion items={faq} />
+                </div>
 
                 {/* CTA */}
                 <ConversionCTA variant="default" />

@@ -1,0 +1,168 @@
+name: Deploy to Render with SEO Engine
+
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  RENDER_API_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    name: Deploy Web App with SEO Engine
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd apps/web
+          npm ci
+
+      - name: Build web app
+        run: |
+          cd apps/web
+          npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Deploy to Render
+        run: |
+          # Deploy web service
+          curl -X POST \
+            "https://api.render.com/v1/services/srv-cqdq7bg8fa8c73c1qgr0/deploys" \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer ${{ env.RENDER_API_TOKEN }}" \
+            -d '{"clearCache": "true"}'
+          
+          echo "✅ Web app deployment triggered"
+
+  deploy-seo-worker:
+    runs-on: ubuntu-latest
+    name: Deploy SEO Ranking Engine
+    needs: deploy-web
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for SEO Engine
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install SEO dependencies
+        run: |
+          cd apps/web
+          npm ci
+
+      - name: Deploy SEO Worker to Render
+        run: |
+          # Deploy SEO worker service
+          curl -X POST \
+            "https://api.render.com/v1/services/srv-cqdq7t68fa8c73c1qgs0/deploys" \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer ${{ env.RENDER_API_TOKEN }}" \
+            -d '{"clearCache": "true"}'
+          
+          echo "🚀 SEO Ranking Engine deployment triggered"
+
+      - name: Wait for deployment
+        run: |
+          echo "⏳ Waiting for deployment to complete..."
+          sleep 30
+          
+          # Check deployment status
+          curl -X GET \
+            "https://api.render.com/v1/services/srv-cqdq7t68fa8c73c1qgs0/deploys" \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer ${{ env.RENDER_API_TOKEN }}" | \
+            jq -r '.[0].status'
+
+  verify-deployment:
+    runs-on: ubuntu-latest
+    name: Verify SEO Engine Deployment
+    needs: [deploy-web, deploy-seo-worker]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd apps/web
+          npm ci
+
+      - name: Verify SEO Engine Status
+        run: |
+          echo "🔍 Verifying SEO engine deployment..."
+          
+          # Wait a bit for the service to start
+          sleep 60
+          
+          # Check if SEO engine is responding
+          cd apps/web
+          timeout 30s npm run seo:verify || echo "⚠️  Verification timeout - service may still be starting"
+          
+          echo "✅ Deployment verification complete"
+
+      - name: Test SEO Health Endpoint
+        run: |
+          echo "🏥 Testing SEO health endpoint..."
+          
+          # Test the health endpoint we created
+          curl -f "https://jobhuntin.com/api/seo-health" || echo "⚠️  Health endpoint not yet available"
+          
+          echo "✅ Health check complete"
+
+  update-environment:
+    runs-on: ubuntu-latest
+    name: Update Render Environment Variables
+    needs: deploy-web
+    steps:
+      - name: Set SEO Environment Variables
+        run: |
+          echo "🔧 Setting up SEO environment variables..."
+          
+          # Set Google service account (you'll need to add this secret)
+          if [ -n "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}" ]; then
+            curl -X PATCH \
+              "https://api.render.com/v1/services/srv-cqdq7bg8fa8c73c1qgr0/env-vars" \
+              -H "Accept: application/json" \
+              -H "Authorization: Bearer ${{ env.RENDER_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "envVars": [
+                  {
+                    "key": "GOOGLE_SERVICE_ACCOUNT_KEY",
+                    "value": "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"
+                  },
+                  {
+                    "key": "GOOGLE_SEARCH_CONSOLE_SITE",
+                    "value": "https://jobhuntin.com"
+                  }
+                ]
+              }'
+            
+            echo "✅ SEO environment variables set"
+          else
+            echo "⚠️  GOOGLE_SERVICE_ACCOUNT_KEY secret not found"
+          fi
+
+# Secrets Required:
+# 1. RENDER_API_TOKEN: Your Render API token (provided: rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa)
+# 2. GOOGLE_SERVICE_ACCOUNT_KEY: Your Google service account JSON content

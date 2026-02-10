@@ -1,160 +1,79 @@
+# Render Deployment Configuration for SEO Ranking Engine
+# This file configures your automated SEO system to deploy with your backend
+
 services:
-  # ── FastAPI Backend (API) ──────────────────────────────────
+  # Web Application (Frontend)
   - type: web
-    name: sorce-api
-    runtime: docker
-    dockerContext: .
-    dockerfilePath: ./Dockerfile
-    dockerTarget: api
-    repo: https://github.com/ranoli90/sorce
-    branch: main
-    healthCheckPath: /health
+    name: jobhuntin-web
+    env: node
+    buildCommand: cd apps/web && npm ci && npm run build
+    startCommand: cd apps/web && npm run seo:backend
     envVars:
-      - key: ENV
-        value: prod
-      - key: DATABASE_URL
-        sync: false
-      - key: SUPABASE_URL
-        value: https://zglovpfwyobbbaaocawz.supabase.co
-      - key: SUPABASE_SERVICE_KEY
-        sync: false
-      - key: SUPABASE_JWT_SECRET
-        sync: false
-      - key: SUPABASE_STORAGE_BUCKET
-        value: resumes
-      - key: LLM_API_BASE
-        value: https://api.openai.com/v1
-      - key: LLM_API_KEY
-        sync: false
-      - key: LLM_MODEL
-        value: gpt-4o-mini
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
-      - key: STRIPE_PRO_PRICE_ID
-        value: price_1SyCGDFZF27VelA7tk9UQEos
-      - key: STRIPE_TEAM_BASE_PRICE_ID
-        value: price_1SyCGDFZF27VelA70XiRTwvx
-      - key: STRIPE_TEAM_SEAT_PRICE_ID
-        value: price_1SyCGEFZF27VelA70HPyVEoz
-      - key: STRIPE_ENTERPRISE_PRICE_ID
-        value: price_1SyCGDFZF27VelA7Iv7AnynR
-      - key: STRIPE_PRO_ANNUAL_PRICE_ID
-        value: price_1SyCGDFZF27VelA7km8z6pRq
-      - key: STRIPE_TEAM_ANNUAL_PRICE_ID
-        value: price_1SyCGEFZF27VelA7hBAzsH02
-      - key: STRIPE_ENTERPRISE_ANNUAL_PRICE_ID
-        value: price_1SyCGEFZF27VelA7bJNYVx8B
-      - key: API_V2_PRO_PRICE_ID
-        value: price_1SyCGEFZF27VelA7lHr9KhPh
-      - key: API_V2_METERED_PRICE_ID
-        value: price_1SyCHHFZF27VelA7G43q2L3t
-      - key: ADZUNA_APP_ID
-        value: sorce
-      - key: ADZUNA_API_KEY
-        sync: false
-      - key: WEBHOOK_SIGNING_SECRET
-        sync: false
-      - key: AGENT_ENABLED
-        value: "true"
-      - key: LOG_JSON
-        value: "true"
-      - key: LOG_LEVEL
-        value: INFO
-      - key: APP_BASE_URL
+      - key: GOOGLE_SERVICE_ACCOUNT_KEY
+        sync: false  # Set in Render dashboard
+      - key: GOOGLE_SEARCH_CONSOLE_SITE
         value: https://jobhuntin.com
-      - key: RESEND_API_KEY
-        sync: false
-    plan: starter
-    region: ohio
-
-  # ── Background Worker (Agent) ──────────────────────────────
-  - type: worker
-    name: sorce-worker
-    runtime: docker
-    dockerContext: .
-    dockerfilePath: ./Dockerfile
-    dockerTarget: worker
-    repo: https://github.com/ranoli90/sorce
-    branch: main
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    healthCheckPath: /api/seo-health
+    autoDeploy: true
+    
+  # API Backend
+  - type: web
+    name: jobhuntin-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m apps.api.main
     envVars:
-      - key: ENV
-        value: prod
       - key: DATABASE_URL
-        sync: false
+        sync: false  # Set in Render dashboard
       - key: SUPABASE_URL
-        value: https://zglovpfwyobbbaaocawz.supabase.co
-      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
         sync: false
       - key: SUPABASE_JWT_SECRET
         sync: false
-      - key: SUPABASE_STORAGE_BUCKET
-        value: resumes
-      - key: LLM_API_BASE
-        value: https://api.openai.com/v1
-      - key: LLM_API_KEY
-        sync: false
-      - key: LLM_MODEL
-        value: gpt-4o-mini
-      - key: AGENT_ENABLED
-        value: "true"
-      - key: LOG_JSON
-        value: "true"
-      - key: LOG_LEVEL
-        value: INFO
-      - key: PLAYWRIGHT_BROWSER_TYPE
-        value: chromium
-      - key: PLAYWRIGHT_HEADLESS
-        value: "true"
-    plan: starter
-    region: ohio
-
-  # ── Web Frontend (Main App) ────────────────────────────────
-  - type: web
-    name: sorce-web
-    runtime: static
-    repo: https://github.com/ranoli90/sorce
-    branch: main
-    buildCommand: cd apps/web && npm install && npm run build
-    staticPublishPath: apps/web/dist
+      - key: ENV
+        value: production
+    healthCheckPath: /healthz
+    autoDeploy: true
+    
+  # Background Worker (SEO Engine)
+  - type: worker
+    name: jobhuntin-seo-engine
+    env: node
+    buildCommand: cd apps/web && npm ci
+    startCommand: cd apps/web && npm run seo:engine
     envVars:
-      - key: VITE_API_URL
-        value: https://sorce-api.onrender.com
-      - key: VITE_SUPABASE_URL
-        value: https://zglovpfwyobbbaaocawz.supabase.co
-      - key: VITE_SUPABASE_ANON_KEY
-        sync: false
-      - key: VITE_GOOGLE_API_KEY
-        sync: false
-      - key: VITE_GOOGLE_CLIENT_ID
-        sync: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+      - key: GOOGLE_SERVICE_ACCOUNT_KEY
+        sync: false  # Set in Render dashboard
+      - key: GOOGLE_SEARCH_CONSOLE_SITE
+        value: https://jobhuntin.com
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
 
-  # ── Web Admin Frontend ─────────────────────────────────────
-  - type: web
-    name: sorce-admin
-    runtime: static
-    repo: https://github.com/ranoli90/sorce
-    branch: main
-    buildCommand: cd apps/web-admin && npm install && npm run build
-    staticPublishPath: apps/web-admin/dist
-    envVars:
-      - key: VITE_API_URL
-        value: https://sorce-api.onrender.com
-      - key: VITE_SUPABASE_URL
-        value: https://zglovpfwyobbbaaocawz.supabase.co
-      - key: VITE_SUPABASE_ANON_KEY
-        sync: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+# Environment Variables Setup Instructions:
+# 1. Go to your Render dashboard
+# 2. Add these environment variables to each service:
+#
+# For Web Service:
+# - GOOGLE_SERVICE_ACCOUNT_KEY: Paste your entire service account JSON
+# - GOOGLE_SEARCH_CONSOLE_SITE: https://jobhuntin.com
+#
+# For API Service:
+# - DATABASE_URL: Your PostgreSQL connection string
+# - SUPABASE_URL: Your Supabase project URL
+# - SUPABASE_ANON_KEY: Your Supabase anon key
+# - SUPABASE_JWT_SECRET: Your Supabase JWT secret
+#
+# For SEO Worker:
+# - GOOGLE_SERVICE_ACCOUNT_KEY: Same as web service
+# - GOOGLE_SEARCH_CONSOLE_SITE: Same as web service
 
-databases:
-  - name: sorce-db
-    plan: starter
-    region: ohio
+# Deployment Commands:
+# Install Render CLI: curl https://render.com/docs/install.sh | sh
+# Deploy: render deploy
+# Check status: render services

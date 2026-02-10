@@ -1,0 +1,654 @@
+[
+  {
+    "id": "accountant",
+    "name": "Accountant",
+    "keywords": [
+      "audit",
+      "tax",
+      "finance",
+      "cpa"
+    ]
+  },
+  {
+    "id": "ai-developer",
+    "name": "AI Developer",
+    "keywords": [
+      "llm",
+      "neural networks",
+      "nlp",
+      "artificial intelligence"
+    ]
+  },
+  {
+    "slug": "cloud-architect",
+    "name": "Cloud Architect",
+    "category": "Technology",
+    "avgSalary": 125000,
+    "demandLevel": "High",
+    "remotePercentage": 75,
+    "skills": [
+      "AWS",
+      "Microsoft Azure",
+      "Google Cloud Platform",
+      "Docker",
+      "Kubernetes",
+      "Terraform",
+      "Python",
+      "Java",
+      "CI/CD",
+      "Infrastructure as Code"
+    ],
+    "seoTitle": "Cloud Architect Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Cloud Architect career guide 2026. Average salary $125K, top skills, companies hiring, and how to land your dream Cloud Architect job faster.",
+    "h1": "Cloud Architect Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Cloud Architect Salary Ranges by Experience Level",
+      "Essential Cloud Architect Skills Employers Want in 2026",
+      "Cloud Architect vs Related Tech Roles: Which Pays More?",
+      "How to Become a Cloud Architect: Complete Career Path",
+      "Cloud Architect Certifications That Boost Your Salary",
+      "Remote Cloud Architect Jobs: Companies & Opportunities",
+      "Cloud Architect Career Growth: From Junior to Senior",
+      "Cloud Architect Interview Questions & How to Answer Them",
+      "Best Cloud Architect Tools & Technologies to Learn",
+      "Cloud Architect Job Search: Common Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Cloud Architect Salary Guide 2026: What You Should Be Earning",
+        "content": "The Cloud Architect role has become one of the most lucrative positions in tech, with average salaries reaching $125,000 nationally. Entry‑level Cloud Architects start at $85,000, while senior specialists can command salaries exceeding $180,000. The demand for skilled Cloud Architects continues to outpace supply, creating excellent negotiation opportunities for qualified candidates. Remote work has expanded opportunities, with many companies offering location‑independent roles with competitive compensation packages.",
+        "keywords": [
+          "Cloud Architect salary",
+          "Cloud Architect career path",
+          "Cloud Architect jobs"
+        ],
+        "entities": [
+          "Cloud Architect",
+          "Tech Careers",
+          "Salary Negotiation",
+          "Remote Work"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Cloud Architect",
+      "Cloud Architect jobs",
+      "Cloud Architect career",
+      "Cloud Architect salary",
+      "Cloud Architect skills",
+      "Cloud Architect requirements",
+      "Cloud Architect responsibilities",
+      "Cloud Architect interview",
+      "Cloud Architect resume",
+      "Cloud Architect portfolio"
+    ],
+    "semanticKeywords": [
+      "software development",
+      "programming",
+      "technology careers",
+      "IT jobs",
+      "computer science",
+      "engineering roles",
+      "technical positions",
+      "development work",
+      "coding careers",
+      "tech industry"
+    ],
+    "entityMentions": [
+      "Software Engineering",
+      "Computer Science",
+      "Information Technology",
+      "Web Development",
+      "Mobile Development",
+      "Cloud Computing",
+      "Artificial Intelligence",
+      "Machine Learning",
+      "Data Science",
+      "DevOps"
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Cloud Architect",
+        "predicate": "requiresSkill",
+        "object": "AWS"
+      },
+      {
+        "subject": "Cloud Architect",
+        "predicate": "requiresSkill",
+        "object": "Microsoft Azure"
+      },
+      {
+        "subject": "Cloud Architect",
+        "predicate": "requiresSkill",
+        "object": "Google Cloud Platform"
+      },
+      {
+        "subject": "Cloud Architect",
+        "predicate": "requiresSkill",
+        "object": "Docker"
+      },
+      {
+        "subject": "Cloud Architect",
+        "predicate": "requiresSkill",
+        "object": "Kubernetes"
+      },
+      {
+        "subject": "Cloud Architect",
+        "predicate": "requiresSkill",
+        "object": "Terraform"
+      },
+      {
+        "subject": "Cloud Architect",
+        "predicate": "hasSalaryRange",
+        "object": "$85K‑$210K"
+      },
+      {
+        "subject": "Amazon",
+        "predicate": "hiresFor",
+        "object": "Cloud Architect"
+      },
+      {
+        "subject": "Microsoft",
+        "predicate": "hiresFor",
+        "object": "Cloud Architect"
+      },
+      {
+        "subject": "Google",
+        "predicate": "hiresFor",
+        "object": "Cloud Architect"
+      },
+      {
+        "subject": "Cloud Architect",
+        "predicate": "locatedIn",
+        "object": "Seattle"
+      }
+    ],
+    "knowledgeGraphTargets": [
+      "Cloud Architect",
+      "AWS",
+      "Microsoft Azure",
+      "Google Cloud Platform",
+      "Docker",
+      "Kubernetes",
+      "Terraform"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Cloud Architect",
+        "description": "Professional Cloud Architect role with competitive salary and growth opportunities",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 85000,
+          "percentile25": 105000,
+          "median": 125000,
+          "percentile75": 150000,
+          "percentile90": 180000
+        }
+      }
+    ],
+    "lastUpdated": "2026-02-10"
+  },
+  {
+    "id": "customer-success",
+    "name": "Customer Success",
+    "keywords": [
+      "account management",
+      "client relations",
+      "retention"
+    ]
+  },
+  {
+    "id": "data-scientist",
+    "name": "Data Scientist",
+    "keywords": [
+      "machine learning",
+      "data analysis",
+      "python",
+      "ai research"
+    ],
+    "slug": "data-scientist",
+    "category": "Technology",
+    "avgSalary": 140000,
+    "demandLevel": "Very High",
+    "remotePercentage": 65,
+    "skills": [
+      "Python",
+      "SQL",
+      "Machine Learning",
+      "Data Visualization",
+      "Tableau",
+      "AWS"
+    ],
+    "seoTitle": "Data Scientist Career Guide: Salary, Skills & Jobs in San Francisco (2026)",
+    "seoDescription": "Complete Data Scientist career guide for San Francisco in 2026. Average salary $140K, top skills, companies hiring, and how to land your dream job faster.",
+    "h1": "Data Scientist Career Path in San Francisco: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Data Scientist Salary Ranges by Experience Level in San Francisco",
+      "Essential Data Scientist Skills Employers Want in the Bay Area",
+      "Data Scientist vs Related Tech Roles: Which Pays More in SF?",
+      "How to Become a Data Scientist: Complete Career Path in SF",
+      "Data Scientist Certifications That Boost Your Salary in San Francisco",
+      "Remote Data Scientist Jobs: Companies & Opportunities in SF",
+      "Data Scientist Career Growth: From Junior to Senior in the Bay Area",
+      "Data Scientist Interview Questions & How to Answer Them in San Francisco",
+      "Best Data Scientist Tools & Technologies to Learn for SF Jobs",
+      "Data Scientist Job Search: Common Mistakes to Avoid in San Francisco"
+    ],
+    "contentSections": [
+      {
+        "heading": "Data Scientist Salary Guide 2026: What You Should Be Earning in San Francisco",
+        "content": "The demand for skilled Data Scientist professionals in San Francisco has reached an all-time high, with average salaries reaching $140,000. Entry-level Data Scientist roles start at $110,000, while senior-level specialists can command salaries exceeding $180,000. The competitive job market, combined with the city's thriving tech ecosystem, creates excellent negotiation opportunities for qualified candidates. Remote work options have also expanded, with many San Francisco companies offering location-independent Data Scientist roles with competitive compensation packages.",
+        "keywords": [
+          "Data Scientist salary San Francisco",
+          "Data Scientist career path San Francisco",
+          "Data Scientist jobs San Francisco"
+        ],
+        "entities": [
+          "Data Scientist",
+          "San Francisco tech careers",
+          "salary negotiation",
+          "remote work"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Data Scientist San Francisco",
+      "Data Scientist jobs in San Francisco",
+      "Data Scientist career in San Francisco",
+      "Data Scientist salary in San Francisco",
+      "Data Scientist skills in San Francisco",
+      "Data Scientist requirements in San Francisco",
+      "Data Scientist responsibilities in San Francisco",
+      "Data Scientist interview in San Francisco",
+      "Data Scientist resume in San Francisco",
+      "Data Scientist portfolio in San Francisco"
+    ],
+    "semanticKeywords": [
+      "software development",
+      "programming",
+      "technology careers",
+      "IT jobs",
+      "computer science",
+      "engineering roles",
+      "technical positions",
+      "development work",
+      "coding careers",
+      "tech industry"
+    ],
+    "entityMentions": [
+      "Software Engineering",
+      "Computer Science",
+      "Information Technology",
+      "Web Development",
+      "Mobile Development",
+      "Cloud Computing",
+      "Artificial Intelligence",
+      "Machine Learning",
+      "Data Science",
+      "DevOps"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Data Scientist",
+        "description": "Professional Data Scientist role with competitive salary and growth opportunities in San Francisco",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 110000,
+          "percentile25": 125000,
+          "median": 140000,
+          "percentile75": 165000,
+          "percentile90": 180000
+        }
+      }
+    ]
+  },
+  {
+    "id": "hr-manager",
+    "name": "HR Manager",
+    "keywords": [
+      "talent acquisition",
+      "recruiting",
+      "human resources"
+    ]
+  },
+  {
+    "id": "legal-counsel",
+    "name": "Legal Counsel",
+    "keywords": [
+      "attorney",
+      "corporate law",
+      "compliance"
+    ]
+  },
+  {
+    "id": "marketing-manager",
+    "name": "Marketing Manager",
+    "keywords": [
+      "digital marketing",
+      "seo",
+      "content strategy",
+      "growth marketing"
+    ]
+  },
+  {
+    "id": "product-manager",
+    "name": "Product Manager",
+    "keywords": [
+      "product development",
+      "agile",
+      "scrum",
+      "product roadmap"
+    ],
+    "slug": "product-manager",
+    "category": "Technology",
+    "avgSalary": 125000,
+    "demandLevel": "High",
+    "remotePercentage": 65,
+    "skills": [
+      "Agile Methodologies",
+      "Product Roadmapping",
+      "User Research",
+      "A/B Testing",
+      "Data Analysis",
+      "Project Management"
+    ],
+    "seoTitle": "Product Manager Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Comprehensive Product Manager career guide for 2026. Average salary $125K, top skills, companies hiring, and how to land your dream Product Manager job faster.",
+    "h1": "Product Manager Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Product Manager Salary Ranges by Experience Level in San Francisco",
+      "Essential Product Manager Skills Employers Want in San Francisco 2026",
+      "Product Manager vs Related Tech Roles: Which Pays More in San Francisco?",
+      "How to Become a Product Manager: Complete Career Path Guide",
+      "Top Product Manager Certifications That Boost Your Salary in San Francisco",
+      "Remote Product Manager Jobs: Companies & Opportunities in San Francisco",
+      "Product Manager Career Growth: From Junior to Senior in San Francisco",
+      "Product Manager Interview Questions & How to Answer Them Effectively",
+      "Best Product Manager Tools & Technologies to Learn for San Francisco Jobs",
+      "Product Manager Job Search: Common Mistakes to Avoid in San Francisco"
+    ],
+    "contentSections": [
+      {
+        "heading": "Product Manager Salary Guide 2026: What You Should Be Earning in San Francisco",
+        "content": "The Product Manager role has become one of the most lucrative positions in San Francisco's thriving tech ecosystem, with average salaries reaching $125,000. Entry-level Product Manager professionals start at $95,000, while senior Product Manager specialists can command salaries exceeding $180,000. The demand for skilled Product Manager talent continues to outpace supply, creating excellent negotiation opportunities for qualified candidates. Remote work has expanded opportunities, with many San Francisco companies offering location-independent roles with competitive compensation packages.",
+        "keywords": [
+          "Product Manager salary San Francisco",
+          "Product Manager career path San Francisco",
+          "Product Manager jobs San Francisco"
+        ],
+        "entities": [
+          "Product Manager",
+          "tech careers San Francisco",
+          "salary negotiation",
+          "remote work"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Product Manager San Francisco",
+      "Product Manager jobs San Francisco",
+      "Product Manager career San Francisco",
+      "Product Manager salary San Francisco",
+      "Product Manager skills San Francisco",
+      "Product Manager requirements San Francisco",
+      "Product Manager responsibilities San Francisco",
+      "Product Manager interview San Francisco",
+      "Product Manager resume San Francisco",
+      "Product Manager portfolio San Francisco"
+    ],
+    "semanticKeywords": [
+      "software development San Francisco",
+      "programming San Francisco",
+      "technology careers San Francisco",
+      "IT jobs San Francisco",
+      "computer science San Francisco",
+      "engineering roles San Francisco",
+      "technical positions San Francisco",
+      "development work San Francisco",
+      "coding careers San Francisco",
+      "tech industry San Francisco"
+    ],
+    "entityMentions": [
+      "Software Engineering San Francisco",
+      "Computer Science San Francisco",
+      "Information Technology San Francisco",
+      "Web Development San Francisco",
+      "Mobile Development San Francisco",
+      "Cloud Computing San Francisco",
+      "Artificial Intelligence San Francisco",
+      "Machine Learning San Francisco",
+      "Data Science San Francisco",
+      "DevOps San Francisco"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Product Manager",
+        "description": "Professional Product Manager role with competitive salary and growth opportunities in San Francisco",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 95000,
+          "percentile25": 110000,
+          "median": 125000,
+          "percentile75": 150000,
+          "percentile90": 180000
+        }
+      }
+    ]
+  },
+  {
+    "id": "project-manager",
+    "name": "Project Manager",
+    "keywords": [
+      "operations",
+      "pmp",
+      "workflow automation"
+    ]
+  },
+  {
+    "id": "resume-expert",
+    "name": "Resume Expert",
+    "keywords": [
+      "resume writing",
+      "cv tailoring",
+      "ats optimization"
+    ]
+  },
+  {
+    "id": "sales-representative",
+    "name": "Sales Representative",
+    "keywords": [
+      "account executive",
+      "business development",
+      "sales outreach"
+    ]
+  },
+  {
+    "id": "software-engineer",
+    "name": "Software Engineer",
+    "keywords": [
+      "developer",
+      "coding",
+      "programming",
+      "software development"
+    ],
+    "slug": "software-engineer",
+    "category": "Technology",
+    "avgSalary": 125000,
+    "demandLevel": "High",
+    "remotePercentage": 75,
+    "skills": [
+      "JavaScript",
+      "Python",
+      "React",
+      "Node.js",
+      "AWS",
+      "Docker"
+    ],
+    "seoTitle": "Software Engineer Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Software Engineer career guide 2026. Average salary $125K, top skills, companies hiring, and how to land your dream Software Engineer job faster.",
+    "h1": "Software Engineer Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Software Engineer Salary Ranges by Experience Level",
+      "Essential Software Engineer Skills Employers Want in 2026",
+      "Software Engineer vs Related Tech Roles: Which Pays More?",
+      "How to Become a Software Engineer: Complete Career Path",
+      "Software Engineer Certifications That Boost Your Salary",
+      "Remote Software Engineer Jobs: Companies & Opportunities",
+      "Software Engineer Career Growth: From Junior to Senior",
+      "Software Engineer Interview Questions & How to Answer Them",
+      "Best Software Engineer Tools & Technologies to Learn",
+      "Software Engineer Job Search: Common Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Software Engineer Salary Guide 2026: What You Should Be Earning",
+        "content": "The Software Engineer role has become one of the most lucrative positions in tech, with average salaries reaching $125,000 nationally. Entry‑level Software Engineer professionals start at $85,000, while senior Software Engineer specialists can command salaries exceeding $180,000. The demand for skilled Software Engineer professionals continues to outpace supply, creating excellent negotiation opportunities for qualified candidates. Remote work has expanded opportunities, with many companies offering location‑independent roles with competitive compensation packages.",
+        "keywords": [
+          "Software Engineer salary",
+          "Software Engineer career path",
+          "Software Engineer jobs"
+        ],
+        "entities": [
+          "Software Engineer",
+          "tech careers",
+          "salary negotiation",
+          "remote work"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Software Engineer",
+      "Software Engineer jobs",
+      "Software Engineer career",
+      "Software Engineer salary",
+      "Software Engineer skills",
+      "Software Engineer requirements",
+      "Software Engineer responsibilities",
+      "Software Engineer interview",
+      "Software Engineer resume",
+      "Software Engineer portfolio"
+    ],
+    "semanticKeywords": [
+      "software development",
+      "programming",
+      "technology careers",
+      "IT jobs",
+      "computer science",
+      "engineering roles",
+      "technical positions",
+      "development work",
+      "coding careers",
+      "tech industry"
+    ],
+    "entityMentions": [
+      "Software Engineering",
+      "Computer Science",
+      "Information Technology",
+      "Web Development",
+      "Mobile Development",
+      "Cloud Computing",
+      "Artificial Intelligence",
+      "Machine Learning",
+      "Data Science",
+      "DevOps"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Software Engineer",
+        "description": "Professional Software Engineer role with competitive salary and growth opportunities",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 85000,
+          "percentile25": 105000,
+          "median": 125000,
+          "percentile75": 150000,
+          "percentile90": 180000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Software Engineer",
+        "predicate": "requiresSkill",
+        "object": "JavaScript"
+      },
+      {
+        "subject": "Software Engineer",
+        "predicate": "requiresSkill",
+        "object": "Python"
+      },
+      {
+        "subject": "Software Engineer",
+        "predicate": "requiresSkill",
+        "object": "React"
+      },
+      {
+        "subject": "Software Engineer",
+        "predicate": "requiresSkill",
+        "object": "Node.js"
+      },
+      {
+        "subject": "Software Engineer",
+        "predicate": "requiresSkill",
+        "object": "AWS"
+      },
+      {
+        "subject": "Software Engineer",
+        "predicate": "requiresSkill",
+        "object": "Docker"
+      },
+      {
+        "subject": "Software Engineer",
+        "predicate": "hasSalaryRange",
+        "object": "$85K‑$210K"
+      },
+      {
+        "subject": "Google",
+        "predicate": "hiresFor",
+        "object": "Software Engineer"
+      },
+      {
+        "subject": "Apple",
+        "predicate": "hiresFor",
+        "object": "Software Engineer"
+      },
+      {
+        "subject": "Meta",
+        "predicate": "hiresFor",
+        "object": "Software Engineer"
+      },
+      {
+        "subject": "Software Engineer",
+        "predicate": "locatedIn",
+        "object": "Austin"
+      }
+    ],
+    "lastUpdated": "2026-02-10"
+  },
+  {
+    "id": "ux-designer",
+    "name": "UX Designer",
+    "keywords": [
+      "ui design",
+      "user experience",
+      "figma",
+      "product design"
+    ]
+  }
+]

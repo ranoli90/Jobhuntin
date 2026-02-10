@@ -3,7 +3,7 @@ import { Check, X, Minus } from 'lucide-react';
 
 interface Competitor {
     name: string;
-    features: Record<string, boolean>;
+    features: Record<string, any>;
 }
 
 interface ComparisonTableProps {
@@ -84,7 +84,7 @@ export function ComparisonTable({ competitor, variant = 'full' }: ComparisonTabl
                                 <FeatureIcon value={JOBHUNTIN_FEATURES[featureKey]} />
                             </td>
                             <td className="px-6 py-4 text-center">
-                                <FeatureIcon value={competitor.features[featureKey]} />
+                                <FeatureIcon value={!!competitor.features[featureKey]} />
                             </td>
                         </tr>
                     ))}

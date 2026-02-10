@@ -22,10 +22,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.json');
 
 // Default key provided by user (should ideally be in .env)
-const DEFAULT_KEY = "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";
+const DEFAULT_KEY = "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";
 
 // List of free models to try in order
 const FREE_MODELS = [
+  'openrouter/aurora-alpha', // User requested
   'mistralai/mistral-7b-instruct:free',
   'google/gemini-2.0-flash-lite-preview-02-05:free',
   'meta-llama/llama-3-8b-instruct:free',

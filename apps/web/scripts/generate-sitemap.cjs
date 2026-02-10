@@ -10,6 +10,12 @@ const competitors = JSON.parse(
 const categories = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../src/data/categories.json'), 'utf-8')
 );
+const roles = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../src/data/roles.json'), 'utf-8')
+);
+const locations = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../src/data/locations.json'), 'utf-8')
+);
 
 // Static routes
 const staticRoutes = [
@@ -21,11 +27,6 @@ const staticRoutes = [
   { path: '/privacy', priority: 0.3, changefreq: 'monthly' },
   { path: '/terms', priority: 0.3, changefreq: 'monthly' },
   { path: '/about', priority: 0.5, changefreq: 'monthly' },
-  // Niche job pages
-  { path: '/jobs/marketing-manager/denver', priority: 0.6, changefreq: 'daily' },
-  { path: '/jobs/software-engineer/boulder', priority: 0.6, changefreq: 'daily' },
-  { path: '/jobs/product-manager/denver', priority: 0.6, changefreq: 'daily' },
-  { path: '/jobs/sales-representative/remote', priority: 0.6, changefreq: 'daily' },
   // Guides
   { path: '/guides', priority: 0.9, changefreq: 'weekly' },
   { path: '/guides/how-to-beat-ats-with-ai', priority: 0.8, changefreq: 'monthly' },
@@ -50,7 +51,16 @@ const categoryRoutes = categories.map((cat) => ({
   changefreq: 'weekly',
 }));
 
-const allRoutes = [...staticRoutes, ...competitorRoutes, ...categoryRoutes];
+// Local Job Niche routes (Roles × Locations)
+const localRoutes = roles.flatMap((role) =>
+  locations.map((loc) => ({
+    path: `/jobs/${role.id}/${loc.id}`,
+    priority: 0.7,
+    changefreq: 'daily',
+  }))
+);
+
+const allRoutes = [...staticRoutes, ...competitorRoutes, ...categoryRoutes, ...localRoutes];
 
 const generateSitemap = () => {
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

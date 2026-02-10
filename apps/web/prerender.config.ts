@@ -4,6 +4,8 @@
  */
 import competitorsData from './src/data/competitors.json';
 import categoriesData from './src/data/categories.json';
+import rolesData from './src/data/roles.json';
+import locationsData from './src/data/locations.json';
 
 // Static marketing routes
 const staticRoutes = [
@@ -21,11 +23,6 @@ const staticRoutes = [
     '/guides/automated-job-search-ethics',
     '/guides/scaling-your-applications-safely',
     '/guides/ai-cover-letter-mastery',
-    // Niche job pages
-    '/jobs/marketing-manager/denver',
-    '/jobs/software-engineer/boulder',
-    '/jobs/product-manager/denver',
-    '/jobs/sales-representative/remote',
 ];
 
 // Programmatic competitor routes (5 page types × N competitors)
@@ -40,10 +37,16 @@ const competitorRoutes = competitorsData.flatMap((c: { slug: string }) => [
 // Category hub routes
 const categoryRoutes = categoriesData.map((cat: { slug: string }) => `/best/${cat.slug}`);
 
+// Local Job Niche routes (Roles × Locations)
+const localRoutes = rolesData.flatMap((role: { id: string }) =>
+    locationsData.map((loc: { id: string }) => `/jobs/${role.id}/${loc.id}`)
+);
+
 export const prerenderRoutes = [
     ...staticRoutes,
     ...competitorRoutes,
     ...categoryRoutes,
+    ...localRoutes,
 ];
 
 export default prerenderRoutes;
