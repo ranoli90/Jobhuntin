@@ -14,6 +14,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.domain.repositories import db_transaction
+from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from backend.domain.audit import record_audit_event
+from shared.logging_config import get_logger
+from shared.metrics import incr
 
 logger = get_logger("sorce.api.bulk")
 
