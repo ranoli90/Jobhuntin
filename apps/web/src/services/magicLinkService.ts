@@ -66,14 +66,16 @@ class MagicLinkService {
       this.rateLimitResets.delete(normalizedEmail);
     }
 
-    // Enhanced rate limiting with validation - relaxed to 30 seconds for better UX
-    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 1, 30000); // 1 request per 30 seconds
+    // Enhanced rate limiting with validation - strict to 1 request per 60 seconds to avoid Supabase 429 errors
+    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 1, 60000); // 1 request per 60 seconds
     if (!rateLimitCheck.allowed) {
+      const retryAfter = rateLimitCheck.resetIn;
+      this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
       return {
         success: false,
         email: normalizedEmail,
-        error: `Too many requests. Please wait ${rateLimitCheck.resetIn}s before trying again.`,
-        retryAfter: rateLimitCheck.resetIn,
+        error: `Too many magic link requests. Please wait ${retryAfter} seconds.`,
+        retryAfter: retryAfter,
       };
     }
 

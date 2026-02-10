@@ -361,7 +361,7 @@ export class RateLimiter {
   
   static isAllowed(
     identifier: string,
-    maxAttempts: number = 5,
+    maxAttempts: number = 1,
     windowMs: number = 60000 // 1 minute
   ): { allowed: boolean; resetIn: number } {
     const now = Date.now();
