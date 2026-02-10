@@ -197,6 +197,10 @@ const Hero = () => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) {
+      console.log("Already submitting, ignoring duplicate request");
+      return;
+    }
     if (!validateEmail(email)) {
       setEmailError("Please enter a valid email address.");
       return;

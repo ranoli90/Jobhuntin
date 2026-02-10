@@ -50,18 +50,7 @@ class MagicLinkService {
       };
     }
 
-    // Enhanced rate limiting with validation
-    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 3, 300000); // 3 requests per 5 minutes
-    if (!rateLimitCheck.allowed) {
-      return {
-        success: false,
-        email: normalizedEmail,
-        error: `Too many requests. Please wait ${rateLimitCheck.resetIn}s before trying again.`,
-        retryAfter: rateLimitCheck.resetIn,
-      };
-    }
-
-    // Check local cooldown to avoid unnecessary calls when we KNOW a recent 429 occurred
+    // FIRST: Check local cooldown to avoid unnecessary calls when we KNOW a recent 429 occurred
     const rateLimitReset = this.rateLimitResets.get(normalizedEmail);
     if (rateLimitReset) {
       if (rateLimitReset > Date.now()) {
@@ -75,6 +64,17 @@ class MagicLinkService {
       }
       // Expired cooldown -> clean up
       this.rateLimitResets.delete(normalizedEmail);
+    }
+
+    // Enhanced rate limiting with validation - more restrictive to match Supabase's actual limits
+    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 1, 60000); // 1 request per 60 seconds
+    if (!rateLimitCheck.allowed) {
+      return {
+        success: false,
+        email: normalizedEmail,
+        error: `Too many requests. Please wait ${rateLimitCheck.resetIn}s before trying again.`,
+        retryAfter: rateLimitCheck.resetIn,
+      };
     }
 
     try {

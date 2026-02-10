@@ -374,6 +374,12 @@ export class RateLimiter {
       this.attempts.set(key, record);
     }
     
+    // Check if already over limit before incrementing
+    if (record.count >= maxAttempts) {
+      const resetIn = Math.max(0, Math.ceil((record.resetTime - now) / 1000));
+      return { allowed: false, resetIn };
+    }
+    
     record.count++;
     
     const allowed = record.count <= maxAttempts;
