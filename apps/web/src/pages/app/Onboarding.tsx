@@ -211,7 +211,7 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Minimal Header */}
-      <header className="px-6 h-20 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50">
+      <header className="px-6 h-12 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50">
         <Logo to="/app/onboarding" size="sm" />
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
@@ -224,13 +224,13 @@ export default function Onboarding() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 md:py-20 bg-grid-premium opacity-100">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-12 bg-grid-premium opacity-100">
         <div className="w-full max-w-2xl relative">
           {/* Subtle background glow */}
           <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary-500/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
           {/* Progress bar */}
-          <div className="mb-12">
+          <div className="mb-8">
             <div className="flex items-center justify-between mb-3 px-1">
               <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                 Calibration Progress — {(progress).toFixed(0)}%
@@ -260,7 +260,7 @@ export default function Onboarding() {
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl pointer-events-none" />
 
                 {/* Profile completeness indicator */}
-                <div className="mb-10 rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-2xl relative overflow-hidden group">
+                <div className="mb-6 rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-xl relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors" />
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -309,23 +309,23 @@ export default function Onboarding() {
                 {/* Step 1: Welcome */}
                 {currentStep === 0 && (
                   <div className="text-center py-4">
-                    <div className="mx-auto mb-8 relative">
+                    <div className="mx-auto mb-6 relative">
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 rounded-[2.5rem] border-2 border-dashed border-primary-500/20"
+                        className="absolute inset-0 rounded-[2rem] border-2 border-dashed border-primary-500/20"
                       />
-                      <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-110">
-                        <Rocket className="h-12 w-12 text-primary-400" />
+                      <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-100">
+                        <Rocket className="h-10 w-10 text-primary-400" />
                       </div>
                     </div>
-                    <h1 className="mb-4 font-display text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                    <h1 className="mb-3 font-display text-3xl font-black text-slate-900 tracking-tight leading-tight">
                       Initiate <span className="text-primary-600 italic">Hyper-Hunt.</span>
                     </h1>
-                    <p className="mb-10 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-lg">
+                    <p className="mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-base">
                       We're about to build your digital autonomous twin. Calibration takes 90 seconds.
                     </p>
-                    <div className="grid gap-4 mb-10">
+                    <div className="grid gap-3 mb-8">
                       {[
                         { title: "Skill Mapping", desc: "AI-driven resume vectorization", icon: Sparkles },
                         { title: "Radar Tuning", desc: "Location & salary baseline profiling", icon: MapPin },
@@ -348,7 +348,7 @@ export default function Onboarding() {
                         </motion.div>
                       ))}
                     </div>
-                    <Button size="lg" onClick={nextStep} className="w-full h-16 rounded-[1.5rem] text-xl font-black shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
+                    <Button size="lg" onClick={nextStep} className="w-full h-12 rounded-[1.5rem] text-xl font-black shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
                       BEGIN CALIBRATION
                       <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
                     </Button>
@@ -359,7 +359,7 @@ export default function Onboarding() {
                 {currentStep === 1 && (
                   <div className="py-2">
                     <div className="mb-10 flex items-center gap-5 border-b border-slate-100 pb-8">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-primary-50 border border-primary-100 text-primary-600 shadow-inner">
+                      <div className="flex h-12 w-16 items-center justify-center rounded-[1.5rem] bg-primary-50 border border-primary-100 text-primary-600 shadow-inner">
                         <Upload className="h-8 w-8" />
                       </div>
                       <div>
@@ -448,7 +448,7 @@ export default function Onboarding() {
                     )}
 
                     <div className="flex gap-4">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
                         <ArrowLeft className="mr-2 h-5 w-5" />
                         PREV
                       </Button>
@@ -456,7 +456,7 @@ export default function Onboarding() {
                         <Button
                           onClick={handleResumeUpload}
                           disabled={isUploading}
-                          className="flex-[2] h-16 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-lg group overflow-hidden relative"
+                          className="flex-[2] h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-lg group overflow-hidden relative"
                         >
                           <span className="relative z-10 flex items-center justify-center">
                             {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "SYNC NEW SOURCE" : "EXTRACT EXPERIENCE"}
@@ -467,7 +467,7 @@ export default function Onboarding() {
                         <Button
                           variant="outline"
                           onClick={nextStep}
-                          className="flex-[2] h-16 rounded-[1.25rem] font-black text-slate-500 hover:border-slate-900 hover:text-slate-900 border-2 border-slate-200 transition-all text-lg"
+                          className="flex-[2] h-12 rounded-[1.25rem] font-black text-slate-500 hover:border-slate-900 hover:text-slate-900 border-2 border-slate-200 transition-all text-lg"
                         >
                           SKIP TO MANUAL ENTRY
                         </Button>
@@ -544,7 +544,7 @@ export default function Onboarding() {
                             </div>
                             <Button
                               variant="primary"
-                              className="w-full mt-10 h-16 rounded-[1.25rem] font-black text-lg bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-500/20"
+                              className="w-full mt-10 h-12 rounded-[1.25rem] font-black text-lg bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-500/20"
                               onClick={handleConfirmParsing}
                             >
                               LOCK IN & PROCEED
@@ -560,7 +560,7 @@ export default function Onboarding() {
                 {currentStep === 2 && (
                   <div className="py-2">
                     <div className="mb-10 flex items-center gap-5 border-b border-slate-100 pb-8">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
+                      <div className="flex h-12 w-16 items-center justify-center rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
                         <User className="h-8 w-8" />
                       </div>
                       <div>
@@ -651,14 +651,14 @@ export default function Onboarding() {
                     )}
 
                     <div className="flex gap-4 pt-10">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
                         <ArrowLeft className="mr-2 h-5 w-5" />
                         PREV
                       </Button>
                       <Button
                         onClick={handleSaveContact}
                         disabled={!contactInfo.first_name || !contactInfo.email || isSavingContact}
-                        className="flex-[2] h-16 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
+                        className="flex-[2] h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
                       >
                         {isSavingContact ? <LoadingSpinner size="sm" /> : "CONFIRM IDENTITY"}
                         <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
@@ -671,7 +671,7 @@ export default function Onboarding() {
                 {currentStep === 3 && (
                   <div className="space-y-10 py-2">
                     <div className="flex items-center gap-5 border-b border-slate-100 pb-8">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
+                      <div className="flex h-12 w-16 items-center justify-center rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
                         <MapPin className="h-8 w-8" />
                       </div>
                       <div>
@@ -831,11 +831,11 @@ export default function Onboarding() {
                     </div>
 
                     <div className="flex gap-4 pt-10">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
                         <ArrowLeft className="mr-2 h-5 w-5" />
                         PREV
                       </Button>
-                      <Button onClick={handleSavePreferences} className="flex-[2] h-16 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-lg sm:text-xl group" disabled={isSavingPreferences}>
+                      <Button onClick={handleSavePreferences} className="flex-[2] h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-lg sm:text-xl group" disabled={isSavingPreferences}>
                         {isSavingPreferences ? <LoadingSpinner size="sm" /> : "DEPLOY HUNTER ENGINE"}
                         <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
                       </Button>
@@ -854,7 +854,7 @@ export default function Onboarding() {
                         className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl"
                       />
                       <div className="relative mx-auto flex h-28 w-28 items-center justify-center rounded-[3rem] bg-emerald-500 shadow-2xl shadow-emerald-200">
-                        <CheckCircle2 className="h-16 w-16 text-white" />
+                        <CheckCircle2 className="h-12 w-16 text-white" />
                       </div>
                     </div>
 

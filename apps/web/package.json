@@ -8,7 +8,10 @@
     "prebuild": "node scripts/generate-sitemap.cjs",
     "build": "vite build",
     "build:types": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seo:prerender": "npx tsx scripts/seo/prerender.ts",
+    "seo:generate": "npx tsx scripts/seo/generate-competitor-content.ts",
+    "seo:submit": "npx tsx scripts/seo/submit-to-google.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",

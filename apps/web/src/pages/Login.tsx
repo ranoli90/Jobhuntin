@@ -279,11 +279,11 @@ export default function Login() {
         "Return to this tab and sign in securely",
       ];
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans text-slate-900 relative overflow-hidden pt-24">
+      <div className="h-[100dvh] w-full bg-slate-50 flex flex-col items-center justify-center p-4 sm:p-6 font-sans text-slate-900 relative overflow-hidden">
         {/* Background Decoration for Success State */}
         <div className="absolute inset-0 pointer-events-none opacity-30">
-          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-400/10 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
-          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+          <div className="absolute top-0 left-0 w-[80vw] h-[80vw] max-w-[500px] max-h-[500px] bg-primary-400/10 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
+          <div className="absolute bottom-0 right-0 w-[90vw] h-[90vw] max-w-[600px] max-h-[600px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
         </div>
 
         <motion.div

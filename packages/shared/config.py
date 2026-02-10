@@ -151,7 +151,7 @@ class Settings(BaseSettings):
 
     # ── Email (Resend) ────────────────────────────────────────────
     resend_api_key: str = ""
-    email_from: str = "Sorce <noreply@sorce.app>"
+    email_from: str = "JobHuntin <noreply@sorce.app>"
 
     # ── Referral Program ──────────────────────────────────────────
     referral_reward_apps: int = 5  # bonus apps for both referrer and referee

@@ -117,46 +117,18 @@ class MagicLinkService {
         throw new Error('Invalid redirect URL: must be absolute URL with protocol');
       }
 
-      console.log('[MagicLink] Sending OTP to:', normalizedEmail, 'redirect to:', redirectUrl);
-      const { error } = await supabase.auth.signInWithOtp({
+      console.log('[MagicLink] Sending request to API:', normalizedEmail, 'return_to:', sanitizedReturnTo);
+
+      // Use the backend API to send the magic link
+      // This ensures we use the branded HTML template via Resend
+      const { apiPost } = await import('../lib/api');
+
+      await apiPost('/auth/magic-link', {
         email: normalizedEmail,
-        options: {
-          emailRedirectTo: redirectUrl,
-        },
+        return_to: sanitizedReturnTo
       });
-      if (error) {
-        console.error('[MagicLink] Supabase error:', error);
-      } else {
-        console.log('[MagicLink] OTP sent successfully');
-      }
 
-      if (error) {
-        /* console.group('[MagicLink] Supabase Error');
-        console.error('Message:', error.message);
-        console.error('Status:', error.status);
-        console.error('Name:', error.name);
-        console.groupEnd(); */
-
-        // Handle rate limits specifically if Supabase returns them (usually 429 status in error)
-        if (error.status === 429) {
-          // Respect server suggested retry window if present, otherwise default to 30s
-          const retryAfterMatch = /([0-9]{1,3})\s*second/i.exec(error.message || "");
-          const retryAfter = retryAfterMatch ? Number(retryAfterMatch[1]) : 30;
-          this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
-          return {
-            success: false,
-            email: normalizedEmail,
-            error: `Too many magic link requests. Please wait ${retryAfter} seconds.`,
-            retryAfter,
-          };
-        }
-
-        return {
-          success: false,
-          email: normalizedEmail,
-          error: error.message,
-        };
-      }
+      console.log('[MagicLink] API request successful');
 
       // Clear rate limit on success
       this.rateLimitResets.delete(normalizedEmail);
@@ -165,9 +137,22 @@ class MagicLinkService {
         success: true,
         email: normalizedEmail,
       };
-    } catch (error) {
-      console.error('[MagicLink] Unexpected Error:', error);
-      const message = error instanceof Error ? error.message : 'Network error';
+    } catch (error: any) {
+      console.error('[MagicLink] Error:', error);
+
+      // Handle 429 specifically
+      if (error?.status === 429 || error?.message?.includes('Too many requests')) {
+        const retryAfter = error.retryAfter || 60;
+        this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
+        return {
+          success: false,
+          email: normalizedEmail,
+          error: `Too many requests. Please wait ${retryAfter} seconds.`,
+          retryAfter
+        };
+      }
+
+      const message = error.message || 'Network error';
       return {
         success: false,
         email: normalizedEmail,
