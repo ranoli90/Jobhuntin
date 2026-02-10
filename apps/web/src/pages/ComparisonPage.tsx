@@ -1,49 +1,91 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bot, ArrowLeft, Sparkles, Shield, Zap, Target } from 'lucide-react';
+import { Bot, ArrowLeft, Sparkles, Shield, Zap, Target, TrendingUp, ArrowRight } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
-import { CompetitorComparison } from '../components/marketing/CompetitorComparison';
+import { ComparisonTable } from '../components/seo/ComparisonTable';
+import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
+import { InternalLinkMesh } from '../components/seo/InternalLinkMesh';
+import { ConversionCTA } from '../components/seo/ConversionCTA';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
+import competitorsData from '../data/competitors.json';
 
-const COMPETITORS_DATA: Record<string, { name: string; weakness: string; strength: string }> = {
-  'sorce': {
-    name: 'Sorce.jobs',
-    weakness: 'Manual intervention required for many steps. Lacks "Stealth Mode" human-browsing simulation.',
-    strength: 'Market familiarity and early mover advantage.'
-  },
-  'simplify': {
-    name: 'Simplify',
-    weakness: 'Primarily a form-filler extension, not an autonomous agent. Requires active tab focus.',
-    strength: 'Large database of common job application forms.'
-  },
-  'teal': {
-    name: 'Teal',
-    weakness: 'Broad career management tool. Lacks the specialized AI "hunting" focus for high-volume apps.',
-    strength: 'Strong resume builder and career tracking features.'
-  }
-};
+// Build lookup map from JSON data
+const COMPETITORS_MAP = Object.fromEntries(
+  competitorsData.map(c => [c.slug, c])
+);
+
+function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
+  return [
+    {
+      question: `Is JobHuntin better than ${competitor.name}?`,
+      answer: `JobHuntin offers fully autonomous AI-powered job applications with resume tailoring for every submission and stealth mode for undetectable browsing. ${competitor.name} ${competitor.features.auto_apply ? 'offers auto-apply but' : 'does not offer auto-apply and'} lacks the level of automation and personalization that JobHuntin provides. ${competitor.verdict}`,
+    },
+    {
+      question: `How much does ${competitor.name} cost compared to JobHuntin?`,
+      answer: `${competitor.name} starts at ${competitor.pricing.starts_at} with tiers: ${competitor.pricing.tiers.join(', ')}. JobHuntin offers a free tier to get started, with Pro plans that include unlimited AI-tailored applications, stealth mode, and autonomous operation — delivering significantly more value per dollar.`,
+    },
+    {
+      question: `Can I switch from ${competitor.name} to JobHuntin?`,
+      answer: `Yes! Switching to JobHuntin takes less than 2 minutes. Simply sign up, upload your resume, set your job preferences, and our AI agent takes over. There's no data migration needed — our agent discovers and applies to jobs independently. Many ${competitor.name} users have already switched and report 3x more interview callbacks.`,
+    },
+    {
+      question: `Does ${competitor.name} tailor resumes for each application?`,
+      answer: `${competitor.features.resume_tailoring ? `${competitor.name} offers some resume tailoring capabilities, but` : `No, ${competitor.name} does not tailor resumes per application.`} JobHuntin's AI agent customizes your resume and cover letter for every single job application, matching keywords, skills, and requirements from the job description to maximize your ATS score and interview chances.`,
+    },
+    {
+      question: `What makes JobHuntin different from ${competitor.name}?`,
+      answer: `The key differences are: ${competitor.differentiators.join('. ')}. While ${competitor.name} ${competitor.strengths[0]?.toLowerCase() || 'has its strengths'}, JobHuntin delivers a fully autonomous experience where the AI agent handles everything from job discovery to tailored applications — all while running undetectably in the background.`,
+    },
+  ];
+}
+
+function RatingBar({ label, them, us }: { label: string; them: number; us: number }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm font-medium">
+        <span className="text-slate-600 capitalize">{label}</span>
+        <span className="text-slate-400">{them}/10 vs <span className="text-primary-600 font-bold">{us}/10</span></span>
+      </div>
+      <div className="flex gap-2">
+        <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+          <div
+            className="bg-slate-400 h-full rounded-full transition-all duration-700"
+            style={{ width: `${them * 10}%` }}
+          />
+        </div>
+        <div className="flex-1 bg-primary-50 rounded-full h-2.5 overflow-hidden">
+          <div
+            className="bg-primary-500 h-full rounded-full transition-all duration-700"
+            style={{ width: `${us * 10}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ComparisonPage() {
   const { competitorSlug } = useParams<{ competitorSlug: string }>();
-  const competitor = competitorSlug ? COMPETITORS_DATA[competitorSlug] : null;
+  const competitor = competitorSlug ? COMPETITORS_MAP[competitorSlug] : null;
 
   if (!competitor) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
         <Bot className="w-16 h-16 text-primary-500 mb-4 animate-bounce" />
-        <h1 className="text-2xl font-bold mb-4 text-slate-900">Competitor Simulation Not Found</h1>
-        <Link to="/" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
-          <ArrowLeft className="w-4 h-4" /> Return to HQ
+        <h1 className="text-2xl font-bold mb-4 text-slate-900">Competitor Not Found</h1>
+        <p className="text-slate-500 mb-6">We don't have a comparison for this tool yet.</p>
+        <Link to="/best/ai-auto-apply-tools" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
+          <ArrowLeft className="w-4 h-4" /> Browse All Comparisons
         </Link>
       </div>
     );
   }
 
-  const title = `JobHuntin vs ${competitor.name} | The Best AI Job Hunter Alternative`;
-  const description = `Compare JobHuntin with ${competitor.name}. See why our autonomous AI agent is the superior alternative for high-volume, human-like job applications.`;
+  const title = `JobHuntin vs ${competitor.name} (2026) | Features, Pricing & Verdict`;
+  const description = `Detailed comparison of JobHuntin vs ${competitor.name}. Compare features, pricing, automation level, and see why job hunters choose JobHuntin as the best ${competitor.name} alternative.`;
   const canonicalUrl = `https://jobhuntin.com/vs/${competitorSlug}`;
-  const ogImage = `https://sorce-web.onrender.com/api/og?job=${encodeURIComponent(`Vs ${competitor.name}`)}&company=JobHuntin&score=100&location=Global`;
+  const faq = generateFAQ(competitor);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
@@ -51,20 +93,22 @@ export default function ComparisonPage() {
         title={title}
         description={description}
         ogTitle={title}
-        ogImage={ogImage}
         canonicalUrl={canonicalUrl}
         schema={{
           "@context": "https://schema.org",
-          "@type": "Article",
-          "headline": title,
+          "@type": "WebPage",
+          "name": title,
           "description": description,
           "url": canonicalUrl,
-          "about": competitor.name
+          "about": [
+            { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "Job Search Automation" },
+            { "@type": "SoftwareApplication", "name": competitor.name, "applicationCategory": "Job Search" },
+          ],
         }}
       />
 
-
       <main className="max-w-5xl mx-auto px-6 py-24">
+        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -72,23 +116,140 @@ export default function ComparisonPage() {
         >
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-blue-100">
             <Sparkles className="w-4 h-4" />
-            Competitive Authority Modeling
+            Head-to-Head Comparison
           </div>
-          <h1 className="text-5xl md:text-7xl font-black font-display mb-8 leading-tight text-slate-900">
-            Better than <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">{competitor.name}</span>
+          <h1 className="text-4xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900">
+            JobHuntin vs{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">
+              {competitor.name}
+            </span>
           </h1>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
-            Experience the next evolution of career automation. While others fill forms, we hunt roles.
+            {competitor.verdict}
           </p>
+          {competitor.status === 'discontinued' && (
+            <div className="mt-4 inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-bold border border-red-100">
+              ⚠️ {competitor.name} has been discontinued
+            </div>
+          )}
         </motion.div>
 
-        <CompetitorComparison competitor={competitor} />
+        {/* Feature Comparison Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-20"
+        >
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Feature Comparison</h2>
+          <ComparisonTable competitor={competitor} />
+        </motion.div>
 
-        <div className="mt-24 grid md:grid-cols-3 gap-12">
+        {/* Rating Bars */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-20 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm"
+        >
+          <h2 className="text-2xl font-bold text-slate-900 mb-8">
+            Performance Ratings
+            <span className="block text-sm font-normal text-slate-400 mt-1">
+              <span className="text-slate-500">{competitor.name}</span> vs <span className="text-primary-600">JobHuntin</span>
+            </span>
+          </h2>
+          <div className="space-y-6">
+            {Object.entries(competitor.rating_vs_jobhuntin).map(([key, [them, us]]) => (
+              <RatingBar key={key} label={key.replace('_', ' ')} them={them} us={us} />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Weaknesses section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-20 grid md:grid-cols-2 gap-8"
+        >
+          <div className="bg-white rounded-3xl border border-red-100 p-8 shadow-sm">
+            <h2 className="text-xl font-bold text-red-600 mb-6 flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Where {competitor.name} Falls Short
+            </h2>
+            <ul className="space-y-3">
+              {competitor.weaknesses.map((w, i) => (
+                <li key={i} className="flex items-start gap-3 text-slate-600">
+                  <span className="text-red-400 mt-1 text-lg leading-none">—</span>
+                  <span className="text-sm font-medium">{w}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-emerald-100 p-8 shadow-sm">
+            <h2 className="text-xl font-bold text-emerald-600 mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Why JobHuntin Wins
+            </h2>
+            <ul className="space-y-3">
+              {competitor.differentiators.map((d, i) => (
+                <li key={i} className="flex items-start gap-3 text-slate-600">
+                  <span className="text-emerald-500 mt-1 text-lg leading-none">✓</span>
+                  <span className="text-sm font-medium">{d}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </motion.div>
+
+        {/* Pricing Quick Compare */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-20"
+        >
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Pricing at a Glance</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-slate-100 rounded-3xl p-8">
+              <h3 className="text-lg font-bold text-slate-500 mb-3">{competitor.name}</h3>
+              <p className="text-3xl font-black text-slate-700 mb-2">
+                {competitor.pricing.starts_at}
+              </p>
+              <ul className="text-sm text-slate-500 space-y-1 mt-4">
+                {competitor.pricing.tiers.map((t, i) => (
+                  <li key={i}>• {t}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-primary-50 rounded-3xl p-8 border-2 border-primary-200 relative">
+              <div className="absolute -top-3 right-6 bg-primary-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                BETTER VALUE
+              </div>
+              <h3 className="text-lg font-bold text-primary-600 mb-3">JobHuntin</h3>
+              <p className="text-3xl font-black text-slate-900 mb-2">Free to Start</p>
+              <ul className="text-sm text-slate-600 space-y-1 mt-4">
+                <li>• Free tier — get started instantly</li>
+                <li>• Pro — unlimited AI applications</li>
+                <li>• Includes Stealth Mode & resume tailoring</li>
+              </ul>
+              <Link
+                to="/pricing"
+                className="inline-flex items-center gap-1 text-primary-600 font-bold text-sm mt-4 hover:gap-2 transition-all"
+              >
+                See full pricing <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Key Features Grid */}
+        <div className="mb-16 grid md:grid-cols-3 gap-8">
           {[
-            { icon: Shield, title: "Undetectable", desc: "Human-like browsing patterns bypass bot detection effortlessly." },
-            { icon: Zap, title: "Autonomous", desc: "Set it and forget it. Our agent works while you sleep." },
-            { icon: Target, title: "High Quality", desc: "Custom cover letters and resume tailoring for every role." }
+            { icon: Shield, title: "Undetectable", desc: "Stealth Mode simulates human browsing patterns to bypass bot detection on every job board." },
+            { icon: Zap, title: "Fully Autonomous", desc: "Set your preferences once. Our AI agent discovers jobs, tailors resumes, and submits applications 24/7." },
+            { icon: Target, title: "Personalized Quality", desc: "Every application gets a custom resume and cover letter optimized for the specific role's requirements." },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -98,29 +259,27 @@ export default function ComparisonPage() {
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
             >
-              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100 text-primary-500 group-hover:bg-primary-50 transition-colors">
-                <item.icon className="w-8 h-8" />
+              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-5 text-primary-500 border border-slate-100">
+                <item.icon className="w-7 h-7" />
               </div>
-              <h3 className="font-bold text-xl mb-3 text-slate-900">{item.title}</h3>
-              <p className="text-slate-500 leading-relaxed font-medium">{item.desc}</p>
+              <h3 className="font-bold text-lg mb-2 text-slate-900">{item.title}</h3>
+              <p className="text-slate-500 text-sm leading-relaxed font-medium">{item.desc}</p>
             </motion.div>
           ))}
         </div>
 
-        <div className="mt-32 bg-slate-900 rounded-[3rem] p-12 text-white text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/20 rounded-full blur-[100px] -mr-48 -mt-48" />
+        {/* FAQ */}
+        <FAQAccordion items={faq} competitorName={competitor.name} />
 
-          <h2 className="text-4xl font-bold mb-6 relative z-10 font-display">Stop grinding. Start interviewing.</h2>
-          <p className="text-slate-400 mb-10 relative z-10 max-w-lg mx-auto text-lg">
-            Join the elite hunters who have already switched from {competitor.name} to JobHuntin.
-          </p>
-          <Button asChild className="bg-primary-600 hover:bg-primary-700 text-white px-10 py-6 h-auto rounded-2xl font-bold text-xl shadow-xl shadow-primary-500/20 relative z-10 border-none">
-            <Link to="/login">
-              Switch to JobHuntin
-            </Link>
-          </Button>
-        </div>
+        {/* Internal Link Mesh */}
+        <InternalLinkMesh
+          currentSlug={competitorSlug!}
+          currentType="vs"
+          competitorCategory={competitor.category}
+        />
+
+        {/* Conversion CTA */}
+        <ConversionCTA competitorName={competitor.name} variant="compare" />
       </main>
 
       <footer className="bg-white border-t border-slate-200 py-12 mt-20">

@@ -8,6 +8,7 @@ import AppLayout from "./layouts/AppLayout";
 import { useProfile } from "./hooks/useProfile";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { config } from "./config";
+import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
 
 // Lazy Load Pages for Performance
 const Homepage = React.lazy(() => import("./pages/Homepage"));
@@ -17,6 +18,11 @@ const ChromeExtension = React.lazy(() => import("./pages/ChromeExtension"));
 const Recruiters = React.lazy(() => import("./pages/Recruiters"));
 const JobNiche = React.lazy(() => import("./pages/JobNiche"));
 const ComparisonPage = React.lazy(() => import("./pages/ComparisonPage"));
+const AlternativeTo = React.lazy(() => import("./pages/AlternativeTo"));
+const ReviewPage = React.lazy(() => import("./pages/ReviewPage"));
+const SwitchFrom = React.lazy(() => import("./pages/SwitchFrom"));
+const PricingVs = React.lazy(() => import("./pages/PricingVs"));
+const CategoryHub = React.lazy(() => import("./pages/CategoryHub"));
 const GuidesHome = React.lazy(() => import("./pages/GuidesHome"));
 const GuidePage = React.lazy(() => import("./pages/GuidePage"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -67,6 +73,9 @@ export default function App() {
   const location = useLocation();
   const isAppRoute = location.pathname.startsWith("/app");
 
+  // Track page views on route change
+  useGoogleAnalytics();
+
   return (
     <>
       <Helmet>
@@ -96,6 +105,11 @@ export default function App() {
             <Route path="/recruiters" element={<Recruiters />} />
             <Route path="/jobs/:role/:city" element={<JobNiche />} />
             <Route path="/vs/:competitorSlug" element={<ComparisonPage />} />
+            <Route path="/alternative-to/:competitorSlug" element={<AlternativeTo />} />
+            <Route path="/reviews/:competitorSlug" element={<ReviewPage />} />
+            <Route path="/switch-from/:competitorSlug" element={<SwitchFrom />} />
+            <Route path="/pricing-vs/:competitorSlug" element={<PricingVs />} />
+            <Route path="/best/:categorySlug" element={<CategoryHub />} />
             <Route path="/guides" element={<GuidesHome />} />
             <Route path="/guides/:guideSlug" element={<GuidePage />} />
             <Route path="/privacy" element={<Privacy />} />

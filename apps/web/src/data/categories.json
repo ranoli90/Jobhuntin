@@ -1,0 +1,122 @@
+[
+    {
+        "slug": "ai-auto-apply-tools",
+        "name": "AI Auto-Apply Tools",
+        "description": "Tools that automatically apply to jobs on your behalf using AI",
+        "h1": "Best AI Auto-Apply Tools in 2026",
+        "competitors": [
+            "lazyapply",
+            "sonara-ai",
+            "simplify",
+            "loopcv",
+            "jobright",
+            "autoapply",
+            "aiapply",
+            "apply-hero",
+            "jobcopilot",
+            "massive",
+            "careerflow",
+            "sorce",
+            "jobhire"
+        ]
+    },
+    {
+        "slug": "ai-resume-builders",
+        "name": "AI Resume Builders",
+        "description": "AI-powered tools that build and optimize your resume for ATS systems",
+        "h1": "Best AI Resume Builders in 2026",
+        "competitors": [
+            "teal",
+            "jobscan",
+            "aiapply",
+            "careerflow",
+            "jobright"
+        ]
+    },
+    {
+        "slug": "job-search-automation",
+        "name": "Job Search Automation",
+        "description": "Platforms that automate the entire job search process from discovery to application",
+        "h1": "Best Job Search Automation Tools in 2026",
+        "competitors": [
+            "lazyapply",
+            "sonara-ai",
+            "loopcv",
+            "jobright",
+            "autoapply",
+            "jobcopilot",
+            "sorce",
+            "jobhire"
+        ]
+    },
+    {
+        "slug": "browser-extension-job-tools",
+        "name": "Job Search Browser Extensions",
+        "description": "Chrome extensions that help you apply to jobs faster",
+        "h1": "Best Job Search Chrome Extensions in 2026",
+        "competitors": [
+            "simplify",
+            "teal",
+            "jobcopilot",
+            "careerflow",
+            "jobscan"
+        ]
+    },
+    {
+        "slug": "ai-cover-letter-generators",
+        "name": "AI Cover Letter Generators",
+        "description": "AI tools that generate personalized cover letters for job applications",
+        "h1": "Best AI Cover Letter Generators in 2026",
+        "competitors": [
+            "simplify",
+            "teal",
+            "jobright",
+            "aiapply",
+            "apply-hero",
+            "careerflow",
+            "jobhire"
+        ]
+    },
+    {
+        "slug": "ats-optimization-tools",
+        "name": "ATS Optimization Tools",
+        "description": "Tools that optimize your resume to pass Applicant Tracking Systems",
+        "h1": "Best ATS Optimization Tools in 2026",
+        "competitors": [
+            "jobscan",
+            "teal",
+            "autoapply",
+            "aiapply",
+            "jobright",
+            "jobhire"
+        ]
+    },
+    {
+        "slug": "sonara-ai-alternatives",
+        "name": "Sonara AI Alternatives",
+        "description": "The best alternatives to Sonara AI after it shut down in 2024",
+        "h1": "Best Sonara AI Alternatives Still Active in 2026",
+        "competitors": [
+            "lazyapply",
+            "simplify",
+            "loopcv",
+            "jobright",
+            "autoapply",
+            "sorce",
+            "jobhire"
+        ]
+    },
+    {
+        "slug": "job-tracking-apps",
+        "name": "Job Tracking Apps",
+        "description": "Apps that help you track and manage your job applications",
+        "h1": "Best Job Tracking Apps in 2026",
+        "competitors": [
+            "teal",
+            "loopcv",
+            "jobright",
+            "jobcopilot",
+            "careerflow"
+        ]
+    }
+]

@@ -1,0 +1,78 @@
+name: SEO Content Refresh
+
+on:
+  schedule:
+    # Run every Monday at 6:00 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Refresh mode'
+        required: false
+        default: 'sitemap-only'
+        type: choice
+        options:
+          - sitemap-only
+          - full-refresh
+          - submit-urls
+
+jobs:
+  refresh-seo:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Regenerate sitemap
+        run: node scripts/generate-sitemap.cjs
+
+      - name: Submit URLs to Google (if configured)
+        if: github.event.inputs.mode == 'submit-urls' || github.event_name == 'schedule'
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY_PATH }}
+        run: |
+          if [ -n "$GOOGLE_SERVICE_ACCOUNT_KEY" ]; then
+            npx tsx scripts/seo/submit-to-google.ts
+          else
+            echo "⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not configured, skipping URL submission"
+            npx tsx scripts/seo/submit-to-google.ts --dry-run
+          fi
+
+      - name: Build verification
+        run: npx vite build
+
+      - name: Commit updated sitemap
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add public/sitemap.xml
+          git diff --staged --quiet || git commit -m "chore(seo): refresh sitemap [$(date +%Y-%m-%d)]"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      - name: Summary
+        run: |
+          echo "## SEO Refresh Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Date:** $(date +%Y-%m-%d)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mode:** ${{ github.event.inputs.mode || 'scheduled' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Sitemap:** Updated" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build:** Verified" >> $GITHUB_STEP_SUMMARY

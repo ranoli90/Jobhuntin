@@ -5,6 +5,7 @@
 
 export const config = {
   // API Configuration
+  // API Configuration
   api: {
     baseUrl: (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, ""),
     timeout: 30000, // 30 seconds
@@ -23,6 +24,7 @@ export const config = {
   analytics: {
     gaId: import.meta.env.VITE_GA_ID || "",
     hotjarId: import.meta.env.VITE_HOTJAR_ID || "",
+    gtmId: import.meta.env.VITE_GTM_ID || "",
   },
 
   // Feature Flags

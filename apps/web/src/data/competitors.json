@@ -1,0 +1,1236 @@
+[
+    {
+        "slug": "lazyapply",
+        "name": "LazyApply",
+        "domain": "lazyapply.com",
+        "tagline": "One-click mass job applications",
+        "category": [
+            "auto-apply",
+            "browser-extension"
+        ],
+        "tier": 1,
+        "founded": 2021,
+        "status": "active",
+        "pricing": {
+            "free_tier": false,
+            "starts_at": "$29/mo",
+            "tiers": [
+                "Basic $29/mo",
+                "Premium $49/mo",
+                "Ultimate $99/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": false,
+            "cover_letter_gen": false,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": true,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": false
+        },
+        "weaknesses": [
+            "No resume tailoring per application — same resume sent everywhere",
+            "Spray-and-pray approach that reduces application quality",
+            "Requires active browser tab and manual monitoring",
+            "No stealth or human-like browsing simulation",
+            "Limited to LinkedIn and Indeed platforms"
+        ],
+        "strengths": [
+            "High volume — can apply to 100+ jobs per day",
+            "Simple one-click user interface",
+            "Established brand with a large user base"
+        ],
+        "seo_keywords": [
+            "lazyapply review",
+            "lazyapply alternative",
+            "lazyapply vs",
+            "is lazyapply worth it",
+            "lazyapply pricing",
+            "lazyapply cancel",
+            "lazyapply not working",
+            "lazyapply free"
+        ],
+        "differentiators": [
+            "JobHuntin tailors your resume for EVERY application automatically",
+            "Our AI agent runs autonomously — no active browser tab needed",
+            "Stealth Mode simulates human browsing patterns to avoid detection"
+        ],
+        "verdict": "LazyApply optimizes for speed and volume. JobHuntin optimizes for outcomes — every application is personalized.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                8,
+                9
+            ],
+            "quality": [
+                4,
+                9
+            ],
+            "automation": [
+                6,
+                10
+            ],
+            "stealth": [
+                2,
+                9
+            ],
+            "price_value": [
+                5,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "sonara-ai",
+        "name": "Sonara AI",
+        "domain": "sonara.ai",
+        "tagline": "AI-powered job discovery and auto-apply",
+        "category": [
+            "auto-apply",
+            "ai-agent"
+        ],
+        "tier": 1,
+        "founded": 2022,
+        "status": "discontinued",
+        "pricing": {
+            "free_tier": false,
+            "starts_at": "$24.99/mo",
+            "tiers": [
+                "Monthly $24.99/mo",
+                "Quarterly $19.99/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": false,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": true,
+            "browser_extension": false,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": false
+        },
+        "weaknesses": [
+            "Ceased operations in February 2024 due to funding issues",
+            "No resume tailoring — generic applications only",
+            "Limited job board coverage compared to alternatives",
+            "No browser extension for real-time capture",
+            "Users reported low interview callback rates"
+        ],
+        "strengths": [
+            "Fully automated job discovery pipeline",
+            "AI-powered job matching and filtering",
+            "Simple onboarding process"
+        ],
+        "seo_keywords": [
+            "sonara ai alternative",
+            "sonara ai review",
+            "sonara ai shut down",
+            "sonara ai replacement",
+            "sonara ai not working",
+            "sonara vs",
+            "best sonara alternative"
+        ],
+        "differentiators": [
+            "JobHuntin is actively maintained and growing — Sonara shut down in 2024",
+            "Every application includes a tailored resume and cover letter",
+            "Real agent automation with stealth mode for undetectable browsing"
+        ],
+        "verdict": "Sonara AI pioneered the concept but couldn't sustain it. JobHuntin picks up where Sonara left off — with better tech.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                7,
+                9
+            ],
+            "quality": [
+                5,
+                9
+            ],
+            "automation": [
+                7,
+                10
+            ],
+            "stealth": [
+                3,
+                9
+            ],
+            "price_value": [
+                6,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "simplify",
+        "name": "Simplify",
+        "domain": "simplify.jobs",
+        "tagline": "Autofill job applications with one click",
+        "category": [
+            "auto-apply",
+            "browser-extension",
+            "autofill"
+        ],
+        "tier": 1,
+        "founded": 2020,
+        "status": "active",
+        "pricing": {
+            "free_tier": true,
+            "starts_at": "Free",
+            "tiers": [
+                "Free (limited)",
+                "Premium $12/mo",
+                "Pro $29/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": false,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": true,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": false
+        },
+        "weaknesses": [
+            "Primarily a form-filler — not an autonomous agent",
+            "Requires active tab focus and user supervision",
+            "No resume tailoring per application",
+            "Limited to supported job board form formats",
+            "Free tier has significant limitations"
+        ],
+        "strengths": [
+            "Large database of common job application forms",
+            "Free tier available for basic usage",
+            "Clean browser extension experience",
+            "Widely adopted with strong community"
+        ],
+        "seo_keywords": [
+            "simplify jobs review",
+            "simplify alternative",
+            "simplify jobs vs",
+            "simplify chrome extension",
+            "simplify jobs pricing",
+            "simplify jobs free",
+            "is simplify worth it"
+        ],
+        "differentiators": [
+            "JobHuntin is an autonomous agent — Simplify is just a form filler",
+            "Resume and cover letter tailored for every single application",
+            "No browser tab required — our agent works in the background"
+        ],
+        "verdict": "Simplify fills forms faster. JobHuntin hunts, tailors, and applies autonomously.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                7,
+                9
+            ],
+            "quality": [
+                5,
+                9
+            ],
+            "automation": [
+                5,
+                10
+            ],
+            "stealth": [
+                3,
+                9
+            ],
+            "price_value": [
+                8,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "teal",
+        "name": "Teal",
+        "domain": "tealhq.com",
+        "tagline": "AI-powered career management platform",
+        "category": [
+            "resume-builder",
+            "job-tracker",
+            "career-management"
+        ],
+        "tier": 1,
+        "founded": 2019,
+        "status": "active",
+        "pricing": {
+            "free_tier": true,
+            "starts_at": "Free",
+            "tiers": [
+                "Free (limited)",
+                "Teal+ $29/mo",
+                "Teal Pro $49/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": false,
+            "resume_tailoring": true,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": true,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": true
+        },
+        "weaknesses": [
+            "No auto-apply — you still submit applications manually",
+            "Broad career management tool without the hunting focus",
+            "Doesn't automate the application submission step",
+            "ATS optimization is passive, not active",
+            "Requires significant manual effort for each application"
+        ],
+        "strengths": [
+            "Strong AI resume builder and keyword optimization",
+            "Comprehensive job tracking with Kanban board",
+            "Cover letter generation integrated into workflow",
+            "Free tier is genuinely useful"
+        ],
+        "seo_keywords": [
+            "teal resume builder review",
+            "teal alternative",
+            "teal hq vs",
+            "teal job tracker",
+            "teal pricing",
+            "teal free vs premium",
+            "is teal worth it"
+        ],
+        "differentiators": [
+            "Teal helps you prepare. JobHuntin prepares AND applies for you",
+            "Fully autonomous — no manual application submission needed",
+            "Stealth Mode ensures your applications look human-generated"
+        ],
+        "verdict": "Teal is a great career toolkit. JobHuntin is a career weapon — it does the applying for you.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                3,
+                9
+            ],
+            "quality": [
+                8,
+                9
+            ],
+            "automation": [
+                2,
+                10
+            ],
+            "stealth": [
+                1,
+                9
+            ],
+            "price_value": [
+                7,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "loopcv",
+        "name": "LoopCV",
+        "domain": "loopcv.pro",
+        "tagline": "Automate your job search on autopilot",
+        "category": [
+            "auto-apply",
+            "job-tracker"
+        ],
+        "tier": 1,
+        "founded": 2020,
+        "status": "active",
+        "pricing": {
+            "free_tier": true,
+            "starts_at": "Free",
+            "tiers": [
+                "Free (5 apps/day)",
+                "Basic $19/mo",
+                "Pro $39/mo",
+                "Premium $59/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": false,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": false,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": false
+        },
+        "weaknesses": [
+            "Free tier extremely limited at 5 applications per day",
+            "No resume tailoring — sends the same resume everywhere",
+            "Application quality is lower due to mass approach",
+            "No stealth or anti-detection features",
+            "Email-based applications often end up in spam"
+        ],
+        "strengths": [
+            "Continuous background job search and application",
+            "Supports scheduling and filtering for targeted searches",
+            "Dashboard tracking with response analytics",
+            "Multi-platform coverage"
+        ],
+        "seo_keywords": [
+            "loopcv review",
+            "loopcv alternative",
+            "loopcv vs",
+            "loopcv pricing",
+            "loopcv free",
+            "is loopcv legit",
+            "loopcv not working"
+        ],
+        "differentiators": [
+            "JobHuntin tailors every resume — LoopCV sends generic applications",
+            "Stealth Mode ensures applications aren't flagged as automated",
+            "Full AI agent that works autonomously, not just a scheduler"
+        ],
+        "verdict": "LoopCV automates the grind. JobHuntin automates with intelligence — every application is unique.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                7,
+                9
+            ],
+            "quality": [
+                4,
+                9
+            ],
+            "automation": [
+                7,
+                10
+            ],
+            "stealth": [
+                2,
+                9
+            ],
+            "price_value": [
+                6,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "jobright",
+        "name": "Jobright AI",
+        "domain": "jobright.ai",
+        "tagline": "AI job search copilot",
+        "category": [
+            "auto-apply",
+            "ai-agent",
+            "job-matching"
+        ],
+        "tier": 1,
+        "founded": 2022,
+        "status": "active",
+        "pricing": {
+            "free_tier": true,
+            "starts_at": "Free",
+            "tiers": [
+                "Free (limited)",
+                "Pro $29.99/mo",
+                "Enterprise custom"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": true,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": true,
+            "browser_extension": true,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": true
+        },
+        "weaknesses": [
+            "AI-assisted but still requires significant user input",
+            "No stealth mode — applications may be flagged as automated",
+            "Pro tier pricing is on the higher side",
+            "Copilot approach means you're still doing much of the work",
+            "Limited mobile experience"
+        ],
+        "strengths": [
+            "Good AI matching algorithm for job recommendations",
+            "Resume tailoring for individual applications",
+            "Large employer and job board coverage",
+            "Active development with regular feature updates"
+        ],
+        "seo_keywords": [
+            "jobright review",
+            "jobright alternative",
+            "jobright ai vs",
+            "jobright pricing",
+            "is jobright worth it",
+            "jobright free",
+            "jobright ai review 2026"
+        ],
+        "differentiators": [
+            "JobHuntin is fully autonomous — Jobright is a copilot that still needs you",
+            "Stealth Mode makes JobHuntin applications undetectable",
+            "Simpler pricing with more value per dollar"
+        ],
+        "verdict": "Jobright is a solid copilot. JobHuntin is an autopilot — set it and forget it.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                7,
+                9
+            ],
+            "quality": [
+                7,
+                9
+            ],
+            "automation": [
+                6,
+                10
+            ],
+            "stealth": [
+                3,
+                9
+            ],
+            "price_value": [
+                5,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "autoapply",
+        "name": "AutoApply",
+        "domain": "autoapply.jobs",
+        "tagline": "Automated job application submissions",
+        "category": [
+            "auto-apply"
+        ],
+        "tier": 1,
+        "founded": 2021,
+        "status": "active",
+        "pricing": {
+            "free_tier": false,
+            "starts_at": "$19/mo",
+            "tiers": [
+                "Starter $19/mo",
+                "Growth $39/mo",
+                "Pro $69/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": false,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": false,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": true
+        },
+        "weaknesses": [
+            "No resume tailoring — limited personalization per application",
+            "Lacks stealth or anti-detection capabilities",
+            "Smaller job board coverage than competitors",
+            "No autonomous agent — requires setup per search",
+            "UI feels dated compared to modern alternatives"
+        ],
+        "strengths": [
+            "Straightforward automated submission",
+            "ATS-optimized resume formatting",
+            "Affordable entry-level pricing",
+            "Cover letter generation included"
+        ],
+        "seo_keywords": [
+            "autoapply review",
+            "autoapply alternative",
+            "autoapply jobs review",
+            "autoapply pricing",
+            "is autoapply legit",
+            "autoapply vs"
+        ],
+        "differentiators": [
+            "JobHuntin's AI agent is truly autonomous — AutoApply still needs manual setup",
+            "Every resume is tailored per application with JobHuntin",
+            "Stealth Mode browsing means zero detection risk"
+        ],
+        "verdict": "AutoApply automates submissions. JobHuntin automates the entire job hunt from discovery to application.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                6,
+                9
+            ],
+            "quality": [
+                5,
+                9
+            ],
+            "automation": [
+                5,
+                10
+            ],
+            "stealth": [
+                2,
+                9
+            ],
+            "price_value": [
+                7,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "aiapply",
+        "name": "AIApply",
+        "domain": "aiapply.co",
+        "tagline": "Land your dream job with AI",
+        "category": [
+            "auto-apply",
+            "resume-builder"
+        ],
+        "tier": 1,
+        "founded": 2023,
+        "status": "active",
+        "pricing": {
+            "free_tier": true,
+            "starts_at": "Free",
+            "tiers": [
+                "Free (limited)",
+                "Pro $9.99/mo",
+                "Premium $19.99/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": true,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": false,
+            "mobile_app": false,
+            "job_tracking": false,
+            "ats_optimization": true
+        },
+        "weaknesses": [
+            "Newer platform with less proven track record",
+            "No stealth mode or anti-detection features",
+            "Job tracking is limited compared to full-featured alternatives",
+            "Auto-apply is basic compared to agent-based approaches",
+            "Limited customer support"
+        ],
+        "strengths": [
+            "Very affordable pricing with free tier",
+            "Resume tailoring built into the workflow",
+            "Cover letter and resume generation in one place",
+            "ATS-optimized output"
+        ],
+        "seo_keywords": [
+            "aiapply review",
+            "aiapply alternative",
+            "aiapply vs",
+            "aiapply pricing",
+            "is aiapply legit",
+            "aiapply free"
+        ],
+        "differentiators": [
+            "JobHuntin is a full autonomous agent — AIApply is a tool suite",
+            "Stealth Mode makes every application look human-generated",
+            "Background operation means zero effort after setup"
+        ],
+        "verdict": "AIApply offers good tools at a low price. JobHuntin offers a complete autonomous hunting experience.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                5,
+                9
+            ],
+            "quality": [
+                6,
+                9
+            ],
+            "automation": [
+                4,
+                10
+            ],
+            "stealth": [
+                2,
+                9
+            ],
+            "price_value": [
+                8,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "apply-hero",
+        "name": "Apply Hero",
+        "domain": "applyhero.ai",
+        "tagline": "Apply smarter, not harder",
+        "category": [
+            "auto-apply"
+        ],
+        "tier": 1,
+        "founded": 2023,
+        "status": "active",
+        "pricing": {
+            "free_tier": false,
+            "starts_at": "$14.99/mo",
+            "tiers": [
+                "Basic $14.99/mo",
+                "Pro $29.99/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": true,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": false,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": true
+        },
+        "weaknesses": [
+            "Newer entrant with smaller user base",
+            "No stealth or anti-detection features",
+            "Not fully autonomous — requires user guidance",
+            "Limited job board integrations",
+            "No browser extension for real-time capture"
+        ],
+        "strengths": [
+            "Focus on application quality over raw volume",
+            "Resume tailoring for specific job descriptions",
+            "Affordable mid-range pricing",
+            "Applies directly on company websites"
+        ],
+        "seo_keywords": [
+            "apply hero review",
+            "apply hero alternative",
+            "applyhero vs",
+            "apply hero pricing",
+            "is apply hero worth it"
+        ],
+        "differentiators": [
+            "JobHuntin is fully autonomous — Apply Hero still needs you to drive",
+            "Stealth Mode ensures zero detection by job boards",
+            "Massive job discovery across all major platforms simultaneously"
+        ],
+        "verdict": "Apply Hero focuses on quality. JobHuntin delivers quality AND volume autonomously.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                5,
+                9
+            ],
+            "quality": [
+                7,
+                9
+            ],
+            "automation": [
+                4,
+                10
+            ],
+            "stealth": [
+                2,
+                9
+            ],
+            "price_value": [
+                7,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "jobcopilot",
+        "name": "JobCopilot",
+        "domain": "jobcopilot.com",
+        "tagline": "AI-powered job application assistant",
+        "category": [
+            "auto-apply",
+            "browser-extension"
+        ],
+        "tier": 1,
+        "founded": 2022,
+        "status": "active",
+        "pricing": {
+            "free_tier": false,
+            "starts_at": "$19/mo",
+            "tiers": [
+                "Starter $19/mo",
+                "Pro $39/mo",
+                "Premium $79/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": false,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": true,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": false
+        },
+        "weaknesses": [
+            "Copilot model — assists but doesn't fully automate",
+            "No resume tailoring per application",
+            "No stealth or anti-detection features",
+            "requires active browser involvement",
+            "Premium tier is expensive for what's offered"
+        ],
+        "strengths": [
+            "Clean browser extension interface",
+            "Good job board coverage",
+            "Cover letter generation included",
+            "Application tracking dashboard"
+        ],
+        "seo_keywords": [
+            "jobcopilot review",
+            "jobcopilot alternative",
+            "jobcopilot vs",
+            "jobcopilot pricing",
+            "is jobcopilot worth it",
+            "jobcopilot free trial"
+        ],
+        "differentiators": [
+            "JobHuntin is autopilot, not copilot — fully autonomous operation",
+            "Resume tailored for every single application",
+            "Stealth Mode means undetectable application behavior"
+        ],
+        "verdict": "JobCopilot assists. JobHuntin takes over. Upgrade from copilot to autopilot.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                6,
+                9
+            ],
+            "quality": [
+                5,
+                9
+            ],
+            "automation": [
+                5,
+                10
+            ],
+            "stealth": [
+                2,
+                9
+            ],
+            "price_value": [
+                5,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "massive",
+        "name": "Massive",
+        "domain": "massive.app",
+        "tagline": "Anonymous AI job applications",
+        "category": [
+            "auto-apply",
+            "privacy"
+        ],
+        "tier": 1,
+        "founded": 2022,
+        "status": "active",
+        "pricing": {
+            "free_tier": false,
+            "starts_at": "$29/mo",
+            "tiers": [
+                "Standard $29/mo",
+                "Pro $59/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": false,
+            "cover_letter_gen": false,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": false,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": false
+        },
+        "weaknesses": [
+            "Anonymous approach limits direct employer connections",
+            "No resume tailoring per application",
+            "No cover letter generation",
+            "Relies on staffing agency partnerships",
+            "Less transparency in the application process"
+        ],
+        "strengths": [
+            "Privacy-focused approach for discreet job searches",
+            "Partnerships with hiring agencies for faster placement",
+            "Good for passive job seekers who want anonymity"
+        ],
+        "seo_keywords": [
+            "massive app review",
+            "massive alternative",
+            "massive vs",
+            "massive job search",
+            "is massive app legit"
+        ],
+        "differentiators": [
+            "JobHuntin applies directly to employers — not through middlemen",
+            "Full resume and cover letter personalization for every application",
+            "You control every aspect of your applications with full transparency"
+        ],
+        "verdict": "Massive is for passive searchers. JobHuntin is for active hunters who want maximum control and volume.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                5,
+                9
+            ],
+            "quality": [
+                4,
+                9
+            ],
+            "automation": [
+                6,
+                10
+            ],
+            "stealth": [
+                8,
+                9
+            ],
+            "price_value": [
+                4,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "careerflow",
+        "name": "Careerflow",
+        "domain": "careerflow.ai",
+        "tagline": "AI-powered career management suite",
+        "category": [
+            "job-tracker",
+            "browser-extension",
+            "career-management"
+        ],
+        "tier": 1,
+        "founded": 2022,
+        "status": "active",
+        "pricing": {
+            "free_tier": true,
+            "starts_at": "Free",
+            "tiers": [
+                "Free (limited)",
+                "Pro $11.99/mo",
+                "Premium $24.99/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": true,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": true,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": true
+        },
+        "weaknesses": [
+            "Auto-apply is basic form-filling, not autonomous",
+            "No stealth mode or anti-detection",
+            "LinkedIn optimization focus limits broader use",
+            "Free tier is very restricted",
+            "No background autonomous operation"
+        ],
+        "strengths": [
+            "Comprehensive career management toolkit",
+            "LinkedIn profile optimization features",
+            "Cover letter and resume generation",
+            "Affordable pricing across tiers"
+        ],
+        "seo_keywords": [
+            "careerflow review",
+            "careerflow alternative",
+            "careerflow vs",
+            "careerflow pricing",
+            "careerflow free",
+            "is careerflow legit"
+        ],
+        "differentiators": [
+            "JobHuntin is an autonomous AI agent — Careerflow is a toolkit you operate",
+            "Stealth Mode and background operation set JobHuntin apart",
+            "Focus on high-volume, high-quality application output"
+        ],
+        "verdict": "Careerflow organizes your search. JobHuntin does your search for you.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                5,
+                9
+            ],
+            "quality": [
+                6,
+                9
+            ],
+            "automation": [
+                4,
+                10
+            ],
+            "stealth": [
+                2,
+                9
+            ],
+            "price_value": [
+                7,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "sorce",
+        "name": "Sorce.jobs",
+        "domain": "sorce.jobs",
+        "tagline": "AI-powered job-matching with swipe interface",
+        "category": [
+            "auto-apply",
+            "ai-agent",
+            "mobile-app"
+        ],
+        "tier": 1,
+        "founded": 2023,
+        "status": "active",
+        "pricing": {
+            "free_tier": true,
+            "starts_at": "Free",
+            "tiers": [
+                "Free (limited)",
+                "Pro $19/mo",
+                "Enterprise custom"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": true,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": true,
+            "browser_extension": false,
+            "mobile_app": true,
+            "job_tracking": true,
+            "ats_optimization": false
+        },
+        "weaknesses": [
+            "Manual intervention required for many application steps",
+            "No stealth mode or human-browsing simulation",
+            "Swipe interface can lead to impulsive, low-quality matches",
+            "Limited desktop experience — mobile-first focus",
+            "Newer platform with smaller employer network"
+        ],
+        "strengths": [
+            "Intuitive Tinder-style swipe interface for job matching",
+            "AI agent applies on your behalf after approval",
+            "Large and growing job database",
+            "Mobile-first design for on-the-go job hunting"
+        ],
+        "seo_keywords": [
+            "sorce jobs review",
+            "sorce alternative",
+            "sorce.jobs vs",
+            "sorce ai",
+            "is sorce jobs legit",
+            "sorce jobs pricing",
+            "sorce app review"
+        ],
+        "differentiators": [
+            "JobHuntin is fully autonomous — no swipe-by-swipe approval needed",
+            "Stealth Mode ensures applications bypass bot detection",
+            "Desktop and mobile experience with background operation"
+        ],
+        "verdict": "Sorce gamifies job hunting. JobHuntin weaponizes it — fully autonomous, fully tailored, fully undetectable.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                6,
+                9
+            ],
+            "quality": [
+                6,
+                9
+            ],
+            "automation": [
+                7,
+                10
+            ],
+            "stealth": [
+                3,
+                9
+            ],
+            "price_value": [
+                7,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "jobhire",
+        "name": "JobHire.ai",
+        "domain": "jobhire.ai",
+        "tagline": "Fully automated AI job search assistant",
+        "category": [
+            "auto-apply",
+            "ai-agent"
+        ],
+        "tier": 1,
+        "founded": 2023,
+        "status": "active",
+        "pricing": {
+            "free_tier": false,
+            "starts_at": "$14.99/mo",
+            "tiers": [
+                "Basic $14.99/mo",
+                "Pro $29.99/mo",
+                "Unlimited $49.99/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": true,
+            "resume_tailoring": true,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": true,
+            "browser_extension": false,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": true
+        },
+        "weaknesses": [
+            "Newer player with less brand recognition",
+            "No stealth or anti-detection capabilities",
+            "Application quality varies with AI generation",
+            "Limited platform integrations compared to established tools",
+            "Support response times can be slow"
+        ],
+        "strengths": [
+            "Full automation from search to application",
+            "Resume and cover letter tailoring included",
+            "ATS optimization built into generation",
+            "Competitive pricing"
+        ],
+        "seo_keywords": [
+            "jobhire ai review",
+            "jobhire alternative",
+            "jobhire vs",
+            "jobhire pricing",
+            "is jobhire ai legit"
+        ],
+        "differentiators": [
+            "JobHuntin's Stealth Mode is unmatched — zero detection by job boards",
+            "Proven track record with a growing user base and success stories",
+            "Chrome extension for real-time job capture from any site"
+        ],
+        "verdict": "JobHire.ai is a solid newcomer. JobHuntin is the established leader in autonomous job hunting.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                7,
+                9
+            ],
+            "quality": [
+                6,
+                9
+            ],
+            "automation": [
+                7,
+                10
+            ],
+            "stealth": [
+                2,
+                9
+            ],
+            "price_value": [
+                7,
+                8
+            ]
+        }
+    },
+    {
+        "slug": "jobscan",
+        "name": "Jobscan",
+        "domain": "jobscan.co",
+        "tagline": "Optimize your resume for ATS",
+        "category": [
+            "resume-builder",
+            "ats-optimization"
+        ],
+        "tier": 1,
+        "founded": 2014,
+        "status": "active",
+        "pricing": {
+            "free_tier": true,
+            "starts_at": "Free",
+            "tiers": [
+                "Free (limited scans)",
+                "Premium $49.95/mo",
+                "Premium+ $89.95/mo"
+            ]
+        },
+        "features": {
+            "auto_apply": false,
+            "resume_tailoring": true,
+            "cover_letter_gen": true,
+            "stealth_mode": false,
+            "ai_agent": false,
+            "browser_extension": true,
+            "mobile_app": false,
+            "job_tracking": true,
+            "ats_optimization": true
+        },
+        "weaknesses": [
+            "No auto-apply functionality at all — you still apply manually",
+            "Premium pricing is expensive for what's essentially a comparison tool",
+            "ATS scanning is useful but doesn't automate the application",
+            "No autonomous agent capability",
+            "Limited to resume optimization — doesn't cover the full pipeline"
+        ],
+        "strengths": [
+            "Industry leader in ATS optimization and keyword analysis",
+            "Detailed resume-to-job-description matching reports",
+            "Established brand with strong industry reputation",
+            "Educational resources about ATS systems"
+        ],
+        "seo_keywords": [
+            "jobscan review",
+            "jobscan alternative",
+            "jobscan vs",
+            "jobscan pricing",
+            "jobscan free",
+            "is jobscan worth it",
+            "jobscan premium review"
+        ],
+        "differentiators": [
+            "Jobscan optimizes your resume. JobHuntin optimizes, tailors, AND submits it",
+            "Full autonomous agent — not just a scanning tool",
+            "Stealth Mode and background operation included at lower price"
+        ],
+        "verdict": "Jobscan tells you what to fix. JobHuntin fixes it AND applies for you. Stop analyzing, start landing.",
+        "rating_vs_jobhuntin": {
+            "speed": [
+                2,
+                9
+            ],
+            "quality": [
+                8,
+                9
+            ],
+            "automation": [
+                1,
+                10
+            ],
+            "stealth": [
+                1,
+                9
+            ],
+            "price_value": [
+                4,
+                8
+            ]
+        }
+    }
+]
