@@ -6,6 +6,7 @@ export interface Preferences {
   role_type?: string;
   salary_min?: number;
   remote_only?: boolean;
+  work_authorized?: boolean;
 }
 
 export interface ContactInfo {
@@ -137,6 +138,13 @@ export function useProfile() {
   };
 
   const completeOnboarding = async () => {
+    // Validate minimum profile completeness
+    const c = profile?.contact;
+    const hasName = c?.first_name || c?.full_name;
+    const hasEmail = c?.email || profile?.email;
+    if (!hasName || !hasEmail) {
+      throw new Error("Please confirm your name and email before launching.");
+    }
     return updateProfile({ has_completed_onboarding: true });
   };
 

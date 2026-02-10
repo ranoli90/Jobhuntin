@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Upload, MapPin, Briefcase, DollarSign, Rocket, ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, User, Zap } from "lucide-react";
+import { Check, Upload, MapPin, Briefcase, DollarSign, Rocket, ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, User, Zap, Mail, Phone, Shield } from "lucide-react";
 import { Logo } from '../../components/brand/Logo';
 import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
@@ -27,7 +27,16 @@ export default function Onboarding() {
     role_type: "",
     salary_min: "",
     remote_only: false,
+    work_authorized: true,
   });
+
+  const [contactInfo, setContactInfo] = React.useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+  });
+  const [isSavingContact, setIsSavingContact] = React.useState(false);
 
   const [linkedinUrl, setLinkedinUrl] = React.useState("");
   const [parsedResume, setParsedResume] = React.useState<{ title?: string; skills?: string[]; years?: number; summary?: string; headline?: string } | null>(null);
@@ -44,9 +53,23 @@ export default function Onboarding() {
         role_type: p.role_type ?? "",
         salary_min: p.salary_min ? String(p.salary_min) : "",
         remote_only: p.remote_only ?? false,
+        work_authorized: p.work_authorized ?? true,
       });
     }
   }, [profile?.preferences]);
+
+  // Pre-fill contact info from profile
+  React.useEffect(() => {
+    if (profile?.contact) {
+      const c = profile.contact;
+      setContactInfo(prev => ({
+        first_name: prev.first_name || c.first_name || "",
+        last_name: prev.last_name || c.last_name || "",
+        email: prev.email || c.email || profile.email || "",
+        phone: prev.phone || c.phone || "",
+      }));
+    }
+  }, [profile?.contact, profile?.email]);
 
   React.useEffect(() => {
     if (profile?.has_completed_onboarding) {
@@ -100,12 +123,36 @@ export default function Onboarding() {
     nextStep();
   };
 
+  const handleSaveContact = async () => {
+    try {
+      setIsSavingContact(true);
+      await updateProfile({
+        contact: {
+          ...profile?.contact,
+          first_name: contactInfo.first_name,
+          last_name: contactInfo.last_name,
+          full_name: `${contactInfo.first_name} ${contactInfo.last_name}`.trim(),
+          email: contactInfo.email,
+          phone: contactInfo.phone,
+          linkedin_url: linkedinUrl || profile?.contact?.linkedin_url || undefined,
+        },
+      });
+      nextStep();
+    } catch (err) {
+      pushToast({ title: "Failed to save contact info", description: "Please try again.", tone: "error" });
+    } finally {
+      setIsSavingContact(false);
+    }
+  };
+
   const calculateCompleteness = () => {
     let score = 0;
-    if (profile?.resume_url || resumeFile) score += 40;
-    if (preferences.location) score += 20;
-    if (preferences.role_type) score += 20;
-    if (preferences.salary_min) score += 20;
+    if (profile?.resume_url || resumeFile) score += 25;
+    if (contactInfo.first_name && contactInfo.email) score += 25;
+    if (preferences.location) score += 10;
+    if (preferences.role_type) score += 15;
+    if (preferences.salary_min) score += 15;
+    if (preferences.work_authorized !== undefined) score += 10;
     return score;
   };
 
@@ -119,6 +166,7 @@ export default function Onboarding() {
         role_type: preferences.role_type || undefined,
         salary_min: preferences.salary_min ? Number(preferences.salary_min) : undefined,
         remote_only: preferences.remote_only,
+        work_authorized: preferences.work_authorized,
       });
 
       // Update contact info separately if LinkedIn URL is provided
@@ -508,8 +556,119 @@ export default function Onboarding() {
                   </div>
                 )}
 
-                {/* Step 3: Preferences */}
+                {/* Step 3: Confirm Contact */}
                 {currentStep === 2 && (
+                  <div className="py-2">
+                    <div className="mb-10 flex items-center gap-5 border-b border-slate-100 pb-8">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
+                        <User className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <h2 className="font-display text-3xl font-black text-slate-900 tracking-tight">Verify Identity</h2>
+                        <p className="text-sm text-slate-500 font-medium italic">Confirm the details we extracted. The AI uses these to apply on your behalf.</p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-8">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="mb-3 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                            First Name <span className="text-red-400">*</span>
+                          </label>
+                          <div className="relative">
+                            <User className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                            <input
+                              type="text"
+                              placeholder="John"
+                              value={contactInfo.first_name}
+                              onChange={(e) => setContactInfo(c => ({ ...c, first_name: e.target.value }))}
+                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="mb-3 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                            Last Name <span className="text-red-400">*</span>
+                          </label>
+                          <div className="relative">
+                            <User className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                            <input
+                              type="text"
+                              placeholder="Doe"
+                              value={contactInfo.last_name}
+                              onChange={(e) => setContactInfo(c => ({ ...c, last_name: e.target.value }))}
+                              className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="mb-3 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                          <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                          Email Address <span className="text-red-400">*</span>
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <input
+                            type="email"
+                            placeholder="john@example.com"
+                            value={contactInfo.email}
+                            onChange={(e) => setContactInfo(c => ({ ...c, email: e.target.value }))}
+                            className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="mb-3 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                          <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                          Phone Number
+                        </label>
+                        <div className="relative">
+                          <Phone className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <input
+                            type="tel"
+                            placeholder="+1 (555) 123-4567"
+                            value={contactInfo.phone}
+                            onChange={(e) => setContactInfo(c => ({ ...c, phone: e.target.value }))}
+                            className="w-full rounded-[1.25rem] border border-slate-200 bg-white pl-14 pr-5 py-5 text-slate-900 font-bold outline-none focus:ring-8 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm text-lg placeholder:text-slate-200"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {parsedResume && (
+                      <div className="mt-8 p-5 rounded-2xl bg-emerald-50 border border-emerald-100">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="h-4 w-4 text-emerald-600" />
+                          <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">AI-Extracted From Resume</p>
+                        </div>
+                        <p className="text-sm text-emerald-800 font-medium">We pre-filled these from your resume. Please verify and correct anything that looks off.</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-4 pt-10">
+                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
+                        <ArrowLeft className="mr-2 h-5 w-5" />
+                        PREV
+                      </Button>
+                      <Button
+                        onClick={handleSaveContact}
+                        disabled={!contactInfo.first_name || !contactInfo.email || isSavingContact}
+                        className="flex-[2] h-16 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
+                      >
+                        {isSavingContact ? <LoadingSpinner size="sm" /> : "CONFIRM IDENTITY"}
+                        <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Preferences */}
+                {currentStep === 3 && (
                   <div className="space-y-10 py-2">
                     <div className="flex items-center gap-5 border-b border-slate-100 pb-8">
                       <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
@@ -648,6 +807,29 @@ export default function Onboarding() {
                       </div>
                     </div>
 
+                    {/* Work Authorization */}
+                    <div className="pt-6 border-t border-slate-100">
+                      <label className="mb-4 flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                        Work Authorization
+                      </label>
+                      <label className={`flex items-center gap-4 p-5 rounded-[1.25rem] cursor-pointer border-2 transition-all ${preferences.work_authorized ? 'bg-emerald-50 border-emerald-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${preferences.work_authorized ? 'bg-emerald-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
+                          <Shield className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Authorized to Work</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No visa sponsorship needed</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={preferences.work_authorized}
+                          onChange={(e) => setPreferences((p) => ({ ...p, work_authorized: e.target.checked }))}
+                          className="h-6 w-6 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                        />
+                      </label>
+                    </div>
+
                     <div className="flex gap-4 pt-10">
                       <Button variant="ghost" onClick={prevStep} className="flex-1 h-16 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all">
                         <ArrowLeft className="mr-2 h-5 w-5" />
@@ -661,8 +843,8 @@ export default function Onboarding() {
                   </div>
                 )}
 
-                {/* Step 4: Review & Ready! */}
-                {currentStep === 3 && (
+                {/* Step 5: Review & Ready! */}
+                {currentStep === 4 && (
                   <div className="text-center py-6">
                     <div className="mx-auto mb-10 relative">
                       <motion.div
@@ -698,6 +880,14 @@ export default function Onboarding() {
                           <div className="space-y-6">
                             <div className="flex items-start justify-between group">
                               <div>
+                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">CONFIRMED IDENTITY</p>
+                                <p className="font-black text-lg text-white group-hover:text-emerald-400 transition-colors uppercase">{contactInfo.first_name} {contactInfo.last_name}</p>
+                                <p className="text-xs text-white/40 font-medium mt-0.5">{contactInfo.email}{contactInfo.phone ? ` • ${contactInfo.phone}` : ''}</p>
+                              </div>
+                              <User className="h-5 w-5 text-white/10 group-hover:text-emerald-500 transition-colors" />
+                            </div>
+                            <div className="flex items-start justify-between group">
+                              <div>
                                 <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">AOI GEOLOCATION</p>
                                 <p className="font-black text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.location || "Global Priority"}</p>
                               </div>
@@ -719,6 +909,15 @@ export default function Onboarding() {
                               </div>
                               <DollarSign className="h-5 w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
                             </div>
+                            <div className="flex items-start justify-between group">
+                              <div>
+                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">WORK AUTHORIZATION</p>
+                                <p className={`font-black text-lg transition-colors uppercase ${preferences.work_authorized ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                  {preferences.work_authorized ? "AUTHORIZED — NO SPONSORSHIP" : "SPONSORSHIP REQUIRED"}
+                                </p>
+                              </div>
+                              <Shield className="h-5 w-5 text-white/10 group-hover:text-emerald-500 transition-colors" />
+                            </div>
                           </div>
                           <div className="mt-10 pt-8 border-t border-white/5 grid grid-cols-2 gap-6">
                             <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 group">
@@ -727,7 +926,7 @@ export default function Onboarding() {
                             </div>
                             <div className="p-4 rounded-2xl bg-primary-500/10 border border-primary-500/20 group">
                               <p className="text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Data Points</p>
-                              <p className="text-2xl font-black text-primary-400 italic">{[preferences.location, preferences.role_type, preferences.salary_min, (profile?.resume_url || resumeFile)].filter(Boolean).length}/4</p>
+                              <p className="text-2xl font-black text-primary-400 italic">{[contactInfo.first_name, contactInfo.email, preferences.location, preferences.role_type, preferences.salary_min, (profile?.resume_url || resumeFile)].filter(Boolean).length}/6</p>
                             </div>
                           </div>
                         </div>
