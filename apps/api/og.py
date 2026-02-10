@@ -14,9 +14,9 @@ SECONDARY_COLOR = "#4A90E2"  # Tech blue
 TEXT_COLOR = "#2D2D2D"  # Charcoal gray
 ACCENT_COLOR = "#FFFFFF"
 
-# Font URLs (Google Fonts)
-FONT_URL_BOLD = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Bold.ttf"
-FONT_URL_REGULAR = "https://github.com/google/fonts/raw/main/ofl/inter/Inter-Regular.ttf"
+# Font URLs (Google Fonts - using raw.githubusercontent.com for stability)
+FONT_URL_BOLD = "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf"
+FONT_URL_REGULAR = "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter-Regular.ttf"
 
 # In-memory cache for fonts
 _font_cache = {}

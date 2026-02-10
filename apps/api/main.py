@@ -84,12 +84,15 @@ async def lifespan(app: FastAPI):
     # Startup
     await _pool_manager.initialize()
     # Initialize Redis (optional, but good to fail fast if config is bad)
-    try:
-        r = await get_redis()
-        await r.ping()
-        logger.info("Redis connected")
-    except Exception as e:
-        logger.warning(f"Redis connection failed: {e}")
+    if _settings.redis_url:
+        try:
+            r = await get_redis()
+            await r.ping()
+            logger.info("Redis connected")
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}")
+    else:
+        logger.info("Redis disabled (REDIS_URL not set)")
 
     yield
     # Shutdown

@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     app_base_url: str = "http://localhost:5173"
 
     # ── Redis ────────────────────────────────────────────────────
-    redis_url: str = "redis://localhost:6379"
+    redis_url: str | None = None
 
     # ── Supabase ─────────────────────────────────────────────────
     supabase_url: str = ""
