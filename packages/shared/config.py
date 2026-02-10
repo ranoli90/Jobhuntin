@@ -76,8 +76,8 @@ class Settings(BaseSettings):
 
     # ── Rate limiting / guardrails ───────────────────────────────
     max_applications_per_minute: int = 30
-    magic_link_requests_per_hour: int = 5
-    magic_link_rate_limit_window_seconds: int = 3600
+    magic_link_requests_per_hour: int = 20
+    magic_link_rate_limit_window_seconds: int = 300
     magic_link_token_ttl_seconds: int = 3600
 
     # ── Blueprints ────────────────────────────────────────────────
