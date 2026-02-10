@@ -28,119 +28,54 @@ const TEASER_JOBS = [
 
 // --- COMPONENTS ---
 
-// Animated Terminal Product Demo (replaces static Bot icon)
-const ProductFlowDemo = () => {
-  const [activeStep, setActiveStep] = useState(0);
+// Animated Vertical Timeline (replaces Terminal)
+const AgentTimeline = () => {
   const steps = [
-    { icon: Upload, label: "Resume Uploaded", detail: "PDF parsed in 1.2s", color: "from-blue-500 to-blue-600" },
-    { icon: Search, label: "AI Scans 12,400 Jobs", detail: "Matching skills & context", color: "from-violet-500 to-violet-600" },
-    { icon: Send, label: "47 Applications Sent", detail: "Custom-tailored each one", color: "from-emerald-500 to-emerald-600" },
-    { icon: Bell, label: "3 Interview Requests", detail: "Recruiter responded!", color: "from-amber-500 to-amber-600" },
+    { icon: Upload, label: "Resume Uploaded", detail: "PDF parsed in 1.2s", status: "complete" },
+    { icon: Search, label: "AI Scans 12,400 Jobs", detail: "Matching skills & context", status: "active" },
+    { icon: Send, label: "47 Applications Sent", detail: "Custom-tailored each one", status: "pending" },
   ];
 
-  useEffect(() => {
-    const timer = setInterval(() => setActiveStep(s => (s + 1) % steps.length), 3000);
-    return () => clearInterval(timer);
-  }, []);
-
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <div className="w-full max-w-md bg-slate-950 rounded-[2rem] p-6 sm:p-8 shadow-2xl border border-white/5 overflow-hidden relative">
-        {/* Scan line */}
-        <motion.div
-          className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-primary-400/60 to-transparent"
-          animate={{ top: ["0%", "100%", "0%"] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-        />
-        <div className="absolute inset-0 bg-grid-premium-dark opacity-40 pointer-events-none" />
+    <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 max-w-sm mx-auto w-full relative overflow-hidden">
+      {/* Decorative gradient blob */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-100 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
-        {/* Terminal header */}
-        <div className="relative z-10 flex items-center gap-2 mb-6 pb-3 border-b border-white/5">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-          <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-          <span className="ml-2 text-[9px] font-mono text-white/30 uppercase tracking-widest">agent v2.1 — live</span>
-        </div>
+      <div className="relative">
+        {/* Thread line */}
+        <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-slate-100"></div>
 
-        {/* Steps */}
-        <div className="relative z-10 space-y-3">
-          {steps.map((step, i) => {
-            const isActive = i === activeStep;
-            const isPast = i < activeStep;
-            return (
-              <motion.div
-                key={i}
-                animate={{
-                  opacity: isActive ? 1 : isPast ? 0.5 : 0.2,
-                  x: isActive ? 0 : isPast ? -4 : 4,
-                  scale: isActive ? 1 : 0.97,
-                }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="flex items-center gap-3"
-              >
-                <div className={cn(
-                  "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-500",
-                  isActive ? `bg-gradient-to-br ${step.color} shadow-lg` : "bg-white/5"
-                )}>
-                  <step.icon className={cn("w-4 h-4", isActive ? "text-white" : "text-white/30")} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className={cn("text-sm font-bold tracking-tight", isActive ? "text-white" : "text-white/30")}>
-                      {step.label}
-                    </p>
-                    {isPast && <CheckCircle className="w-3 h-3 text-emerald-400" />}
-                  </div>
-                  <p className={cn("text-xs font-mono", isActive ? "text-white/60" : "text-white/15")}>
-                    {step.detail}
-                  </p>
-                </div>
-                {isActive && (
-                  <motion.div
-                    className="w-2 h-2 rounded-full bg-emerald-400"
-                    animate={{ opacity: [1, 0.3, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  />
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Progress bar */}
-        <div className="relative z-10 mt-6 pt-4 border-t border-white/5">
-          <div className="flex justify-between text-[9px] font-mono text-white/30 mb-1.5 uppercase tracking-widest">
-            <span>Agent Progress</span>
-            <span>{((activeStep + 1) / steps.length * 100).toFixed(0)}%</span>
-          </div>
-          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+        <div className="space-y-10">
+          {steps.map((step, i) => (
             <motion.div
-              className="h-full bg-gradient-to-r from-primary-500 to-emerald-500 rounded-full"
-              animate={{ width: `${((activeStep + 1) / steps.length) * 100}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
-          </div>
+              key={i}
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.2 }}
+              className="relative flex gap-5"
+            >
+              <div className={cn(
+                "relative z-10 w-12 h-12 rounded-full flex items-center justify-center border-4 border-white shadow-sm transition-all duration-500",
+                step.status === 'complete' ? "bg-slate-50 text-slate-400" :
+                  step.status === 'active' ? "bg-primary-500 text-white scale-110 shadow-primary-500/30" : "bg-slate-50 text-slate-200"
+              )}>
+                {step.status === 'complete' ? (
+                  <CheckCircle className="w-5 h-5 text-emerald-500" />
+                ) : (
+                  <step.icon className="w-5 h-5" />
+                )}
+              </div>
+              <div className="pt-2">
+                <h4 className={cn("font-bold text-base leading-none mb-1.5", step.status === 'pending' ? "text-slate-400" : "text-slate-900")}>
+                  {step.label}
+                </h4>
+                <p className="text-xs text-slate-500 font-medium tracking-wide bg-slate-50 px-2 py-1 rounded inline-block">{step.detail}</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
-    </div>
-  );
-};
-
-// 3. Progress Bar
-const ProgressBar = () => {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
-
-  return (
-    <div className="fixed top-0 left-0 right-0 h-1 bg-slate-100 z-[60]">
-      <motion.div
-        className="h-full bg-gradient-to-r from-primary-500 to-amber-500"
-        style={{ scaleX, transformOrigin: "0%" }}
-      />
     </div>
   );
 };
@@ -150,40 +85,10 @@ const Hero = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [matchCount, setMatchCount] = useState(0);
-  const [jobs, setJobs] = useState(TEASER_JOBS);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
 
-  // Background Particles Data - Refined for a more artistic look
-  const particles = React.useMemo(() => {
-    return [...Array(25)].map((_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      size: i < 5 ? Math.random() * 150 + 100 : Math.random() * 40 + 10,
-      duration: Math.random() * 20 + 20,
-      delay: Math.random() * 10,
-      yMove: (Math.random() - 0.5) * 150,
-      xMove: (Math.random() - 0.5) * 150,
-      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(250, 249, 246, 0.3)',
-      blur: i < 5 ? 'blur(60px)' : 'none'
-    }));
-  }, []);
-
-  // Mouse Glow
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-    const { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
-  }
-
-  const validateEmail = (e: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
-  };
-
+  // Animation refs for cleanup
   const timeoutRef = React.useRef<any>(null);
   const animationRef = React.useRef<any>(null);
 
@@ -194,6 +99,10 @@ const Hero = () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, []);
+
+  const validateEmail = (e: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -214,7 +123,7 @@ const Hero = () => {
         throw new Error(result.error || "Failed to send magic link");
       }
 
-      // Safe Animation Trigger - wrapped in try-catch to prevent crashes
+      // Safe Animation Trigger
       try {
         if (
           typeof window !== 'undefined' &&
@@ -236,7 +145,6 @@ const Hero = () => {
         }
       } catch (e) {
         console.warn("Animation failed", e);
-        // Don't crash if animation fails
       }
 
       // Safe Confetti Trigger
@@ -246,7 +154,7 @@ const Hero = () => {
             particleCount: 150,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#FF6B35', '#4A90E2', '#FAF9F6']
+            colors: ['#FF9500', '#EA580C', '#FAFAFA'] // Updated to orange palette
           });
         }
       } catch (e) {
@@ -262,7 +170,7 @@ const Hero = () => {
         setIsSubmitting(false);
       } catch (innerErr) {
         console.error("Critical error updating success state", innerErr);
-        throw innerErr; // Re-throw to trigger outer catch
+        throw innerErr;
       }
 
     } catch (err: any) {
@@ -275,269 +183,204 @@ const Hero = () => {
     }
   };
 
-  const removeJob = (index: number) => {
-    setJobs(prev => prev.filter((_, i) => i !== index));
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setJobs(prev => [...prev, {
-        id: Math.random().toString(36).substr(2, 9),
-        title: "New Match Found!",
-        status: "Analyzing..."
-      }]);
-    }, 500);
-  };
-
   return (
-    <section className="relative min-h-[85vh] pt-32 pb-12 flex items-center justify-center overflow-hidden bg-slate-50">
-      {/* Premium Background Layers */}
-      <div className="absolute inset-0 bg-grid-premium opacity-[0.4] pointer-events-none" />
+    <>
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 bg-slate-50 overflow-hidden">
+        {/* Subtle background mesh if needed, but keeping it clean for now */}
 
-      {/* Large Artistic Gradient Blobs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className="absolute rounded-full"
-            animate={{
-              y: [0, particle.yMove, 0],
-              x: [0, particle.xMove, 0],
-              rotate: [0, 360],
-              scale: [1, 1.1, 1]
-            }}
-            transition={{
-              duration: particle.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: particle.delay
-            }}
-            style={{
-              left: `${particle.left}%`,
-              top: `${particle.top}%`,
-              width: particle.size,
-              height: particle.size,
-              background: particle.color,
-              filter: particle.blur,
-              willChange: "transform"
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-        {/* Left Content */}
-        <div className="text-center lg:text-left pt-10 lg:pt-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm mb-6 border border-primary-100"
-          >
-            <Sparkles className="w-4 h-4 text-primary-500" />
-            <span className="text-xs sm:text-sm font-semibold text-slate-600">
-              AI Hunts Jobs For You
-            </span>
-          </motion.div>
-
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black font-display text-slate-900 leading-[0.95] mb-6 sm:mb-8 tracking-tighter">
-            Stop applying.<br />
-            <span className="relative inline-block mt-2">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-amber-500 to-red-500 animate-gradient-x">
-                Start landing.
-              </span>
-            </span>
-          </h1>
-
-          <p className="text-lg sm:text-xl lg:text-2xl text-slate-500 mb-8 sm:mb-10 max-w-lg mx-auto lg:mx-0 leading-tight font-medium">
-            You've spent <span className="text-slate-900 font-bold">200+ hours</span> applying to jobs this year.
-            Your AI agent does it in <span className="text-emerald-600 font-bold">20 minutes</span>.
-            Upload once — it applies, tailors, and follows up while you sleep.
-          </p>
-
-          {!sentEmail && (
-            <div
-              className="group relative max-w-md mx-auto lg:mx-0 p-1 rounded-2xl bg-gradient-to-r from-primary-500 to-amber-500 transition-transform hover:scale-[1.01]"
-              onMouseMove={handleMouseMove}
-            >
-              <motion.div
-                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                style={{
-                  background: useMotionTemplate`
-                  radial-gradient(
-                    650px circle at ${mouseX}px ${mouseY}px,
-                    rgba(255, 255, 255, 0.4),
-                    transparent 40%
-                  )
-                `,
-                }}
-              />
-              <form onSubmit={onSubmit} className="bg-white rounded-xl p-2 flex flex-col sm:flex-row gap-2 relative z-10">
-                <div className="flex-1">
-                  <input
-                    type="email"
-                    placeholder="you@example.com"
-                    className={cn(
-                      "w-full px-4 py-3 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 transition-all text-slate-900",
-                      emailError ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-primary-500/20"
-                    )}
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (emailError) setEmailError("");
-                    }}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  variant="secondary"
-                  size="lg"
-                  className="w-full sm:w-auto px-8 py-3 rounded-lg shadow-lg hover:shadow-primary-500/25 whitespace-nowrap"
-                >
-                  {isSubmitting ? (
-                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                      <Sparkles className="w-5 h-5" />
-                    </motion.div>
-                  ) : (
-                    <>
-                      Start Hunt <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              </form>
-            </div>
-          )}
-
-          {emailError && (
-            <motion.p
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-red-500 text-sm mt-2 font-medium"
-            >
-              {emailError}
-            </motion.p>
-          )}
-
-          {matchCount > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 flex items-center gap-2 justify-center lg:justify-start text-primary-600 font-bold"
-            >
-              <CheckCircle className="w-5 h-5" />
-              Found {matchCount} Denver matches!
-            </motion.div>
-          )}
-
-          {/* Trust Signals */}
-          <div className="mt-6 flex items-center justify-center lg:justify-start gap-5 text-xs text-slate-400 font-medium">
-            <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> No credit card</span>
-            <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Encrypted data</span>
-            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 2 min setup</span>
-          </div>
-
-          {sentEmail && (
+        <div className="container mx-auto px-4 max-w-6xl relative z-10 transition-all duration-500">
+          <div className="text-center max-w-4xl mx-auto mb-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-6 bg-white border border-slate-100 rounded-2xl p-5 shadow-lg text-left"
+              className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-full px-4 py-1.5 mb-8 shadow-sm"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
-                  <MailCheck className="w-5 h-5 text-primary-500" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400 font-semibold">Magic link en route</p>
-                  <p className="text-base font-semibold text-slate-900">Sent to {sentEmail}</p>
-                </div>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+              </span>
+              <span className="text-xs font-semibold text-slate-600 tracking-wide uppercase">
+                AI Agent v2.1 Now Live
+              </span>
+            </motion.div>
+
+            <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold font-display text-slate-900 tracking-tight leading-[1] mb-8">
+              Stop applying. <br className="hidden sm:block" />
+              <span className="text-primary-500">Start landing.</span>
+            </h1>
+
+            <p className="text-lg sm:text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+              You've spent <span className="text-slate-900 font-semibold">200+ hours</span> applying.
+              Your AI agent does it in <span className="text-primary-600 font-semibold">20 minutes</span>.
+              Upload once — it applies, tailors, and follows up while you sleep.
+            </p>
+
+            {/* Email Input Form */}
+            {!sentEmail ? (
+              <div className="max-w-md mx-auto relative group">
+                <form onSubmit={onSubmit} className="relative z-10">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MailCheck className="h-5 w-5 text-slate-400" />
+                      </div>
+                      <input
+                        type="email"
+                        placeholder="you@example.com"
+                        className={cn(
+                          "w-full pl-10 pr-4 py-3.5 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm",
+                          emailError && "border-red-300 focus:ring-red-200 focus:border-red-500"
+                        )}
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (emailError) setEmailError("");
+                        }}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-8 py-3.5 rounded-lg font-semibold shadow-lg shadow-primary-500/20 hover:shadow-primary-500/30 transition-all bg-primary-500 hover:bg-primary-600 text-white whitespace-nowrap"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                            <Sparkles className="w-4 h-4" />
+                          </motion.div>
+                          <span>Starting...</span>
+                        </div>
+                      ) : (
+                        <span className="flex items-center gap-2">Start Hunt <ArrowRight className="w-4 h-4" /></span>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+                {/* Error Message */}
+                {emailError && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute -bottom-8 left-0 right-0 text-center text-red-500 text-sm font-medium"
+                  >
+                    {emailError}
+                  </motion.p>
+                )}
               </div>
-              <p className="text-sm text-slate-600 mb-3">
-                Look for an email from <span className="font-semibold">noreply@jobhuntin.com</span>. When you tap the link we’ll drop you straight into onboarding.
-              </p>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600">
-                <li>Open the inbox (or spam folder) for {sentEmail}.</li>
-                <li>Find the message titled <em>“Start your JobHuntin run”</em> and press the button.</li>
-                <li>Keep this tab open—onboarding launches as soon as the link opens.</li>
-              </ol>
-              <div className="flex flex-wrap gap-3 mt-4">
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="max-w-md mx-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-xl text-left"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                    <MailCheck className="w-6 h-6 text-green-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900">Check your inbox!</h3>
+                    <p className="text-sm text-slate-500">We sent a magic link to <span className="font-semibold text-slate-900">{sentEmail}</span></p>
+                  </div>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-4 mb-4 text-sm text-slate-600 border border-slate-100">
+                  <p className="flex items-start gap-2">
+                    <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></span>
+                    Tap the button in the email to sign in instantly.
+                  </p>
+                </div>
                 <button
-                  type="button"
                   onClick={() => setSentEmail(null)}
-                  className="text-sm font-semibold text-primary-600 hover:underline"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline w-full text-center"
                 >
                   Use a different email
                 </button>
-              </div>
-            </motion.div>
-          )}
-
-          <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
-            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center animate-bounce-slow">
-              <UploadCloud className="w-6 h-6 text-primary-500" />
-            </div>
-            <p className="leading-tight">
-              <span className="font-bold text-slate-900">Drag & Drop Resume</span><br />
-              to activate auto-apply
-            </p>
-          </div>
-        </div>
-
-        {/* Right Content - Swipe Cards */}
-        <div className="relative h-[400px] sm:h-[500px] flex items-center justify-center perspective-1000 mt-10 lg:mt-0">
-          <AnimatePresence>
-            {jobs.slice(0, 3).map((job, index) => (
-              <motion.div
-                key={job.id}
-                className="absolute w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 border border-slate-100 cursor-grab active:cursor-grabbing touch-pan-y"
-                style={{ zIndex: jobs.length - index }}
-                initial={{ scale: 0.9, y: 50 * index, opacity: 1 - index * 0.3 }}
-                animate={{ scale: 1 - index * 0.05, y: 20 * index, opacity: 1 - index * 0.2 }}
-                exit={{ x: 200, opacity: 0, rotate: 20 }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x > 100 || info.offset.x < -100) {
-                    removeJob(index);
-                  }
-                }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                    <Bot className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <span className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">
-                    98% Match
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">{job.title}</h3>
-                <p className="text-slate-500 mb-4">{job.status}</p>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-primary-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: "98%" }}
-                    transition={{ duration: 1.5, delay: 0.5 }}
-                  />
-                </div>
-                <p className="text-xs text-right mt-1 text-slate-400">AI Analysis Complete</p>
               </motion.div>
-            ))}
-          </AnimatePresence>
+            )}
+          </div>
 
+          {/* Hero Video Placeholder */}
           <motion.div
-            className="absolute bottom-4 sm:bottom-10 right-10 text-slate-400 flex items-center gap-2 pointer-events-none bg-white/50 backdrop-blur px-2 py-1 rounded"
-            animate={{ x: [0, 20, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="relative aspect-video bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 overflow-hidden mx-auto max-w-5xl group"
           >
-            <span className="text-sm font-medium">Swipe to apply</span>
-            <ArrowRight className="w-4 h-4" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900 opacity-90"></div>
+            {/* Abstract UI Mockup in background */}
+            <div className="absolute inset-x-12 top-12 bottom-0 bg-slate-950 rounded-t-xl border-t border-l border-r border-slate-800 shadow-2xl opacity-50 transform translate-y-4"></div>
+
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/10 group-hover:scale-110 transition-transform duration-300 cursor-pointer">
+                  <div className="ml-1 w-0 h-0 border-t-[12px] border-t-transparent border-l-[20px] border-l-white border-b-[12px] border-b-transparent shadow-lg"></div>
+                </div>
+                <p className="text-slate-400 font-medium tracking-wide uppercase text-sm">Watch the Demo</p>
+              </div>
+            </div>
           </motion.div>
         </div>
-      </div>
+      </section>
 
-      {/* Wavy Divider */}
-      <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none">
-        <svg className="relative block w-[calc(100%+1.3px)] h-[50px] sm:h-[100px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-white"></path>
-        </svg>
+      <JobMatchingSection />
+    </>
+  );
+};
+
+// New Job Matching Grid Section
+const JobMatchingSection = () => {
+  return (
+    <section className="py-24 bg-white border-b border-slate-100">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">Matches that actually fit.</h2>
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+            Our AI analyzes 50+ data points to ensure 98% compatibility before you even see the role.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {TEASER_JOBS.map((job, i) => (
+            <motion.div
+              key={job.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-white rounded-xl p-6 border border-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 group"
+            >
+              <div className="flex items-start justify-between mb-6">
+                <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 group-hover:border-primary-100 group-hover:bg-primary-50 transition-colors">
+                  <Target className="w-6 h-6 text-slate-400 group-hover:text-primary-500 transition-colors" />
+                </div>
+                <div className="relative">
+                  <svg className="w-12 h-12 transform -rotate-90">
+                    <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-slate-100" />
+                    <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-primary-500" strokeDasharray="125.6" strokeDashoffset="10" strokeLinecap="round" />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-700">98%</span>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">{job.title}</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-sm font-medium text-emerald-600">{job.status}</span>
+              </div>
+
+              <div className="w-full bg-slate-50 rounded-lg p-3 border border-slate-100 mt-4">
+                <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                  <Brain className="w-3.5 h-3.5" />
+                  <span>AI Analysis</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-slate-900 w-[92%] rounded-full"></div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -559,7 +402,7 @@ const Onboarding = () => {
               whileInView={{ scale: 1, opacity: 1 }}
               viewport={{ once: true }}
             >
-              <ProductFlowDemo />
+              <AgentTimeline />
             </motion.div>
             <div className="absolute -top-12 -left-12 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl" />
             <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
@@ -663,7 +506,7 @@ export default function Homepage() {
           ]
         }}
       />
-      <ProgressBar />
+
       <main>
         <Hero />
         <Onboarding />

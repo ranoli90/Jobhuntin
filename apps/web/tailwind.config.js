@@ -24,17 +24,17 @@ export default {
           700: "rgb(var(--color-primary-700) / <alpha-value>)",
         },
         brand: {
-          ink: "#0F172A",
-          accent: "#2563eb",
-          shell: "#f8fafc",
+          ink: "#171717",
+          accent: "#FF9500",
+          shell: "#FAFAFA",
         },
       },
       boxShadow: {
-        glow: "0 0 20px rgba(59, 130, 246, 0.3)",
+        glow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
       },
       animation: {
         "float": "float 6s ease-in-out infinite",
-        "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "pulse-subtle": "pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "gradient-x": "gradient-x 5s ease infinite",
       },
       keyframes: {
@@ -46,9 +46,9 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-20px)" },
         },
-        "pulse-glow": {
-          "0%, 100%": { opacity: "1", boxShadow: "0 0 20px rgba(59, 130, 246, 0.3)" },
-          "50%": { opacity: "0.8", boxShadow: "0 0 30px rgba(59, 130, 246, 0.6)" },
+        "pulse-subtle": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.8" },
         },
       },
     },

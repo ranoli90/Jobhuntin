@@ -35,58 +35,29 @@ export function MarketingFooter() {
   ];
 
   return (
-    <footer className="bg-slate-50 pt-20 pb-10 border-t border-slate-200">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
-          <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2 group mb-6">
-              <div className="bg-gradient-to-tr from-primary-500 to-primary-600 p-2 rounded-xl rotate-3 shadow-lg shadow-primary-500/20 group-hover:rotate-6 transition-transform duration-300">
-                <Bot className="text-white w-6 h-6" />
-              </div>
-              <span className="text-xl font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
-            </Link>
-            <p className="text-slate-500 mb-8 max-w-sm leading-relaxed">
-              The AI agent that applies to jobs while you sleep. 
-              Land more interviews, negotiate better offers, and get back your free time.
-            </p>
-            <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 hover:text-[#1DA1F2] hover:shadow-md transition-all">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:shadow-md transition-all">
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:shadow-md transition-all">
-                <Github className="w-5 h-5" />
-              </a>
-            </div>
+    <footer className="bg-white border-t border-slate-100 py-12">
+      <div className="max-w-7xl mx-auto px-6 flex flex-col items-center text-center">
+        <Link to="/" className="flex items-center gap-2 group mb-8">
+          <div className="bg-primary-50 p-2 rounded-xl group-hover:bg-primary-100 transition-colors">
+            <Bot className="text-primary-600 w-6 h-6" />
           </div>
+          <span className="text-xl font-bold font-display text-slate-900 tracking-tight">JobHuntin</span>
+        </Link>
 
-          {footerSections.map((section) => (
-            <div key={section.title}>
-              <h3 className="font-bold text-slate-900 mb-6">{section.title}</h3>
-              <ul className="space-y-4">
-                {section.links.map((link) => (
-                  <li key={link.name}>
-                    <Link 
-                      to={link.path} 
-                      className="text-slate-500 hover:text-primary-600 transition-colors text-sm font-medium"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+        <nav className="flex flex-wrap justify-center gap-8 mb-8 text-sm font-medium text-slate-600">
+          <Link to="/pricing" className="hover:text-primary-600 transition-colors">Pricing</Link>
+          <Link to="/login" className="hover:text-primary-600 transition-colors">Sign In</Link>
+          <Link to="/terms" className="hover:text-primary-600 transition-colors">Terms</Link>
+          <Link to="/privacy" className="hover:text-primary-600 transition-colors">Privacy</Link>
+          <a href="mailto:support@jobhuntin.com" className="hover:text-primary-600 transition-colors">Contact</a>
+        </nav>
 
-        <div className="pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col gap-4 items-center">
           <p className="text-slate-400 text-sm">
             &copy; {new Date().getFullYear()} JobHuntin AI Inc. All rights reserved.
           </p>
-          <p className="text-slate-400 text-sm flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> in Denver, CO
+          <p className="text-slate-400 text-xs flex items-center gap-1">
+            Made with <Heart className="w-3 h-3 text-red-500 fill-current" /> in Denver, CO
           </p>
         </div>
       </div>
