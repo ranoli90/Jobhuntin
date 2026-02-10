@@ -128,7 +128,7 @@ export function Hero({ onGetStarted }: HeroProps) {
           </div>
         </FloatingCard>
 
-        <FloatingCard delay={0.4} x={"calc(100vw - 300px)"} y={200} rotate={3} className="hidden lg:block">
+        <FloatingCard delay={0.4} x={0} y={200} rotate={3} className="hidden lg:block right-4">
           <div className="w-44 h-28 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 p-3 shadow-2xl">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-5 h-5 rounded bg-gradient-to-br from-amber-400 to-orange-500" />
