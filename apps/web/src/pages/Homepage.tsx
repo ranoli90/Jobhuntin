@@ -325,7 +325,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen lg:min-h-[85vh] pt-20 sm:pt-24 md:pt-28 lg:pt-0 pb-12 sm:pb-16 lg:pb-20 flex items-start lg:items-center justify-center overflow-hidden bg-slate-50">
+    <section className="relative min-h-screen lg:min-h-[85vh] pt-16 sm:pt-20 md:pt-24 lg:pt-0 pb-12 sm:pb-16 lg:pb-20 flex items-start lg:items-center justify-center overflow-hidden bg-slate-50">
       {/* Premium Background Layers */}
       <div className="absolute inset-0 bg-grid-premium opacity-[0.4] pointer-events-none" />
 
@@ -417,7 +417,7 @@ const Hero = () => {
                     type="email"
                     placeholder="you@example.com"
                     className={cn(
-                      "w-full px-4 py-3 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 transition-all text-slate-900",
+                      "w-full px-3 py-2 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 transition-all text-slate-900 text-sm",
                       emailError ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-primary-500/20"
                     )}
                     value={email}
@@ -431,16 +431,16 @@ const Hero = () => {
                   type="submit"
                   disabled={isSubmitting}
                   variant="secondary"
-                  size="lg"
-                  className="w-full sm:w-auto px-8 py-3 rounded-lg shadow-lg hover:shadow-primary-500/25 whitespace-nowrap"
+                  size="sm"
+                  className="w-full sm:w-auto px-6 py-2 rounded-lg shadow-lg hover:shadow-primary-500/25 whitespace-nowrap text-sm"
                 >
                   {isSubmitting ? (
                     <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                      <Sparkles className="w-5 h-5" />
+                      <Sparkles className="w-4 h-4" />
                     </motion.div>
                   ) : (
                     <>
-                      Start free — before they hire someone else <ArrowRight className="w-4 h-4 ml-2" />
+                      Start free <ArrowRight className="w-4 h-4 ml-1" />
                     </>
                   )}
                 </Button>

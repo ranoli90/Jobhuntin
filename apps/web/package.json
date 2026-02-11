@@ -40,8 +40,9 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/canvas-confetti": "^1.6.8",
-    "@types/node": "^20.11.0",
+    "@types/node": "^20.19.33",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@types/react-syntax-highlighter": "^15.5.11",
