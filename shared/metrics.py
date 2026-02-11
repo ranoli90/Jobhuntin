@@ -61,6 +61,26 @@ def incr(metric: str, value: int = 1, tags: Optional[Dict[str, Any]] = None) -> 
     logger.info(f"METRIC: {metric}={value}{tag_str}")
 
 
+def observe(metric: str, value: float, tags: Optional[Dict[str, Any]] = None) -> None:
+    """Observe a metric value (histogram/timer)."""
+    # Simple logging-based metrics for now
+    # In production, this would send to a metrics service
+    tag_str = ""
+    if tags:
+        tag_str = " " + " ".join(f"{k}={v}" for k, v in tags.items())
+
+    logger.info(f"METRIC: {metric}={value}{tag_str}")
+
+
+def dump() -> Dict[str, Any]:
+    """Dump all metrics data."""
+    return {
+        "circuit_breakers": get_all_circuit_breaker_statuses(),
+        "rate_limiters": {key: {"max_calls": limiter.max_calls, "window_seconds": limiter.window_seconds, "current_calls": len(limiter.calls)} 
+                         for key, limiter in _rate_limiters.items()}
+    }
+
+
 # Circuit breaker for external service calls
 _circuit_breakers: Dict[str, Dict[str, Any]] = {}
 
