@@ -1,180 +1,92 @@
 """
-Database Migration System
-
-Provides versioned database migrations with rollback capability.
-Migrations are stored as SQL files in migrations/ directory.
+Database migration utilities.
 """
+from __future__ import annotations
 
-import asyncio
-import logging
 import pathlib
-from typing import List, Tuple
+import re
 
-logger = logging.getLogger(__name__)
+import asyncpg
 
+from shared.logging_config import get_logger
+from shared.repo_root import find_repo_root
 
-class Migration:
-    """Represents a single database migration."""
+logger = get_logger("sorce.migrations")
 
-    def __init__(self, version: str, name: str, up_sql: str, down_sql: str = ""):
-        self.version = version
-        self.name = name
-        self.up_sql = up_sql
-        self.down_sql = down_sql
+async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> None:
+    """Run auth shim + schema.sql + all numbered migrations."""
 
-    @property
-    def filename(self) -> str:
-        return f"{self.version}_{self.name}.sql"
+    # Supabase-only patterns to skip on plain Postgres
+    _skip = re.compile(
+        r"(ALTER\s+PUBLICATION|supabase_realtime|auth\.uid\(\)|auth\.role\(\))",
+        re.IGNORECASE,
+    )
 
-
-async def run_migrations(conn, base_path: pathlib.Path) -> None:
-    """
-    Run all pending migrations.
-
-    Args:
-        conn: Database connection
-        base_path: Base path of the project
-    """
-    # Create migrations table if it doesn't exist
-    await conn.execute("""
-        CREATE TABLE IF NOT EXISTS schema_migrations (
-            version VARCHAR(255) PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    """)
-
-    # Get applied migrations
-    applied_versions = await conn.fetchval("""
-        SELECT array_agg(version) FROM schema_migrations;
-    """) or []
-
-    # Find migration files
-    migrations_dir = base_path / "migrations"
-    if not migrations_dir.exists():
-        logger.info("No migrations directory found, skipping migrations")
-        return
-
-    migrations = _load_migrations(migrations_dir)
-
-    # Filter pending migrations
-    pending_migrations = [
-        m for m in migrations
-        if m.version not in applied_versions
-    ]
-
-    if not pending_migrations:
-        logger.info("No pending migrations")
-        return
-
-    logger.info(f"Applying {len(pending_migrations)} migrations...")
-
-    # Apply migrations in order
-    for migration in sorted(pending_migrations, key=lambda m: m.version):
-        logger.info(f"Applying migration {migration.version}: {migration.name}")
-
-        try:
-            # Execute migration
-            await conn.execute(migration.up_sql)
-
-            # Record migration
-            await conn.execute("""
-                INSERT INTO schema_migrations (version, name)
-                VALUES ($1, $2)
-            """, migration.version, migration.name)
-
-            logger.info(f"Successfully applied migration {migration.version}")
-
-        except Exception as e:
-            logger.error(f"Failed to apply migration {migration.version}: {e}")
-            # Rollback transaction
-            raise
-
-
-async def rollback_migration(conn, steps: int = 1) -> int:
-    """
-    Rollback the last N migrations.
-
-    Args:
-        conn: Database connection
-        steps: Number of migrations to rollback
-
-    Returns:
-        Number of migrations rolled back
-    """
-    # Get last applied migrations
-    rows = await conn.fetch("""
-        SELECT version, name FROM schema_migrations
-        ORDER BY applied_at DESC
-        LIMIT $1
-    """, steps)
-
-    if not rows:
-        logger.info("No migrations to rollback")
-        return 0
-
-    rolled_back = 0
-
-    for row in rows:
-        version = row["version"]
-        name = row["name"]
-
-        logger.info(f"Rolling back migration {version}: {name}")
-
-        try:
-            # Find and execute down migration
-            # This would need to be implemented to load down SQL from files
-            # For now, we'll just remove from migrations table
-            await conn.execute("""
-                DELETE FROM schema_migrations WHERE version = $1
-            """, version)
-
-            rolled_back += 1
-            logger.info(f"Successfully rolled back migration {version}")
-
-        except Exception as e:
-            logger.error(f"Failed to rollback migration {version}: {e}")
-            break
-
-    return rolled_back
-
-
-def _load_migrations(migrations_dir: pathlib.Path) -> List[Migration]:
-    """
-    Load migration files from directory.
-
-    Migration files should be named like: 001_initial_schema.sql
-    Each file should contain -- +migrate Up and -- +migrate Down sections
-    """
-    migrations = []
-
-    for file_path in sorted(migrations_dir.glob("*.sql")):
-        if not file_path.is_file():
-            continue
-
-        try:
-            content = file_path.read_text(encoding="utf-8")
-
-            # Parse migration file
-            # Simple format: -- +migrate Up\n<up sql>\n-- +migrate Down\n<down sql>
-            parts = content.split("-- +migrate Down")
-            if len(parts) == 2:
-                up_sql = parts[0].replace("-- +migrate Up\n", "").strip()
-                down_sql = parts[1].strip()
+    async def _exec_stmts(sql_text: str, label: str) -> tuple[int, int]:
+        """Split SQL on semicolons, execute each statement, return (ok, skip)."""
+        ok = skip = 0
+        # Crude split — handles $$ blocks by joining them back
+        raw_parts = sql_text.split(";")
+        stmts: list[str] = []
+        buf = ""
+        for part in raw_parts:
+            buf += part + ";"
+            if buf.count("$$") % 2 == 0:
+                stmts.append(buf.strip())
+                buf = ""
             else:
-                # No down migration
-                up_sql = content.replace("-- +migrate Up\n", "").strip()
-                down_sql = ""
+                pass
+        if buf.strip():
+            stmts.append(buf.strip())
+        for stmt in stmts:
+            stmt = stmt.strip().rstrip(";").strip()
+            if not stmt or stmt.startswith("--"):
+                continue
+            if _skip.search(stmt):
+                skip += 1
+                continue
+            try:
+                await conn.execute(stmt)
+                ok += 1
+            except Exception as e:
+                msg = str(e)
+                if "already exists" in msg or "duplicate" in msg.lower():
+                    ok += 1
+                else:
+                    logger.warning("  [%s] stmt failed: %s", label, msg[:150])
+        return ok, skip
 
-            # Extract version and name from filename
-            # Format: 001_initial_schema.sql
-            filename = file_path.stem  # Remove .sql extension
-            version, name = filename.split("_", 1)
+    # 1. Auth compatibility shim
+    await conn.execute("CREATE SCHEMA IF NOT EXISTS auth")
+    await conn.execute("""
+        CREATE TABLE IF NOT EXISTS auth.users (
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            email text, encrypted_password text,
+            email_confirmed_at timestamptz,
+            created_at timestamptz NOT NULL DEFAULT now(),
+            updated_at timestamptz NOT NULL DEFAULT now(),
+            raw_user_meta_data jsonb DEFAULT '{}'::jsonb
+        )
+    """)
+    logger.info("  auth shim created")
 
-            migrations.append(Migration(version, name, up_sql, down_sql))
+    repo_root = find_repo_root(base_path)
+    supabase_dir = repo_root / "supabase"
+    if not supabase_dir.exists():
+        supabase_dir = repo_root / "infra" / "supabase"
 
-        except Exception as e:
-            logger.warning(f"Failed to load migration {file_path}: {e}")
-            continue
+    # 2. Base schema
+    schema_file = supabase_dir / "schema.sql"
+    if schema_file.exists():
+        ok, skip = await _exec_stmts(schema_file.read_text(encoding="utf-8"), "schema")
+        logger.info("  schema.sql: %d applied, %d skipped", ok, skip)
 
-    return migrations
+    # 3. Numbered migrations
+    mig_dir = supabase_dir / "migrations"
+    if mig_dir.exists():
+        for mf in sorted(mig_dir.glob("[0-9]*.sql")):
+            sql = mf.read_text(encoding="utf-8").strip()
+            if not sql:
+                continue
+            ok, skip = await _exec_stmts(sql, mf.name)
+            logger.info("  %s: %d applied, %d skipped", mf.name, ok, skip)

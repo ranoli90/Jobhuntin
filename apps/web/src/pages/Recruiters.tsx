@@ -156,18 +156,18 @@ export default function Recruiters() {
                   <div className="min-w-[300px] sm:min-w-[500px]">
                     <p className="mb-2"><span className="text-emerald-400">➜</span> <span className="text-blue-400">~</span> curl -X POST https://api.jobhuntin.io/webhook \</p>
                     <p className="mb-2 pl-4">-H "Authorization: Bearer sk_live_..." \</p>
-                    <p className="mb-4 pl-4">-d '{\"criteria\": [\"react\", \"node\", \"5+ years\"]}'</p>
+                    <p className="mb-4 pl-4">-d {'{\"criteria\": [\"react\", \"node\", \"5+ years\"]}'}</p>
 
                     <p className="mb-2 text-gray-500"># Response stream initiating...</p>
-                    <p className="mb-2 text-emerald-400">{</p>
+                    <p className="mb-2 text-emerald-400">{'{'}</p>
                     <p className="mb-1 pl-4">"id": "cand_892301",</p>
                     <p className="mb-1 pl-4">"match_score": 0.98,</p>
                     <p className="mb-1 pl-4">"github_activity": "high",</p>
-                    <p className="mb-1 pl-4">"screening": {</p>
+                    <p className="mb-1 pl-4">"screening": {'{'}</p>
                     <p className="mb-1 pl-8">"q1_scale": "Architected k8s cluster for...",</p>
                     <p className="mb-1 pl-8">"q2_salary": "160000"</p>
-                    <p className="mb-1 pl-4">}</p>
-                    <p className="text-emerald-400">}</p>
+                    <p className="mb-1 pl-4">{'}'}</p>
+                    <p className="text-emerald-400">{'}'}</p>
                     {!shouldReduceMotion && (
                       <motion.div
                         animate={{ opacity: [0, 1, 0] }}
