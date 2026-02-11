@@ -28,8 +28,10 @@ from backend.llm.contracts import (
     build_location_suggestion_prompt,
     build_job_match_prompt,
 )
-from backend.domain.repositories import CoverLetterRepo
+from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo
 import asyncpg
+import hashlib
+import json
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -307,19 +309,34 @@ async def suggest_locations(request: LocationSuggestionRequest, user_id: str = D
 
 
 @router.post("/match-job", response_model=JobMatchScore_V1)
-async def match_job(request: JobMatchRequest, user_id: str = Depends(_get_user_id)) -> JobMatchScore_V1:
+async def match_job(
+    request: JobMatchRequest, 
+    user_id: str = Depends(_get_user_id),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> JobMatchScore_V1:
     """
     Get AI-generated match score between candidate and a single job.
     
     Returns a 0-100 score with detailed breakdowns for skill match,
     experience match, location compatibility, and any red flags.
     """
-    settings = get_settings()
-    client = LLMClient(settings)
-    
     # Sanitize inputs to prevent prompt injection
     sanitized_profile = sanitize_dict_input(request.profile)
     sanitized_job = sanitize_dict_input(request.job)
+
+    # Check cache
+    job_id = sanitized_job.get("id")
+    profile_hash = hashlib.sha256(json.dumps(sanitized_profile, sort_keys=True).encode()).hexdigest()
+    
+    if job_id:
+        async with db.acquire() as conn:
+            cached = await JobMatchCacheRepo.get(conn, str(job_id), profile_hash)
+            if cached:
+                logger.info("Job match cache hit", extra={"job_id": job_id})
+                return JobMatchScore_V1(**cached)
+
+    settings = get_settings()
+    client = LLMClient(settings)
     
     try:
         prompt = build_job_match_prompt(sanitized_profile, sanitized_job)
@@ -331,6 +348,12 @@ async def match_job(request: JobMatchRequest, user_id: str = Depends(_get_user_i
             "Job match scored",
             extra={"score": result.score, "summary": result.summary[:50]}
         )
+        
+        # Cache result
+        if job_id:
+            async with db.acquire() as conn:
+                await JobMatchCacheRepo.put(conn, str(job_id), profile_hash, result.model_dump(mode="json"))
+
         return result
     except Exception as exc:
         logger.error("Job match scoring failed: %s", exc)
@@ -338,7 +361,11 @@ async def match_job(request: JobMatchRequest, user_id: str = Depends(_get_user_i
 
 
 @router.post("/match-jobs-batch", response_model=BatchJobMatchResponse)
-async def match_jobs_batch(request: BatchJobMatchRequest, user_id: str = Depends(_get_user_id)) -> BatchJobMatchResponse:
+async def match_jobs_batch(
+    request: BatchJobMatchRequest, 
+    user_id: str = Depends(_get_user_id),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> BatchJobMatchResponse:
     """
     Score multiple jobs against a candidate profile in batch.
     
@@ -358,11 +385,22 @@ async def match_jobs_batch(request: BatchJobMatchRequest, user_id: str = Depends
     # Sanitize inputs to prevent prompt injection
     sanitized_profile = sanitize_dict_input(request.profile)
     sanitized_jobs = [sanitize_dict_input(job) for job in request.jobs]
+    profile_hash = hashlib.sha256(json.dumps(sanitized_profile, sort_keys=True).encode()).hexdigest()
     
     matches: list[JobMatchScore_V1] = []
     errors: list[str] = []
     
     for i, job in enumerate(sanitized_jobs):
+        job_id = job.get("id")
+        
+        # Check cache first
+        if job_id:
+            async with db.acquire() as conn:
+                cached = await JobMatchCacheRepo.get(conn, str(job_id), profile_hash)
+                if cached:
+                    matches.append(JobMatchScore_V1(**cached))
+                    continue
+
         try:
             prompt = build_job_match_prompt(sanitized_profile, job)
             result = await client.call(
@@ -370,10 +408,16 @@ async def match_jobs_batch(request: BatchJobMatchRequest, user_id: str = Depends
                 response_format=JobMatchScore_V1,
             )
             matches.append(result)
+            
+            # Cache result
+            if job_id:
+                async with db.acquire() as conn:
+                    await JobMatchCacheRepo.put(conn, str(job_id), profile_hash, result.model_dump(mode="json"))
+
         except Exception as exc:
-            job_id = job.get("id", f"job_{i}")
-            errors.append(f"{job_id}: {exc}")
-            logger.warning("Batch job match failed for %s: %s", job_id, exc)
+            job_label = job_id or f"job_{i}"
+            errors.append(f"{job_label}: {exc}")
+            logger.warning("Batch job match failed for %s: %s", job_label, exc)
     
     logger.info(
         "Batch job matching complete",

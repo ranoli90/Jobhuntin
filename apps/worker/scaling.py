@@ -64,30 +64,49 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
 
 
 class WorkerScaler:
-    """Manages N concurrent worker instances sharing a pool."""
+    """Manages N concurrent worker instances sharing a pool and browser."""
 
     def __init__(self, instance_count: int = 1):
         self.instance_count = instance_count
         self.primary_pool: asyncpg.Pool | None = None
         self.read_pool: asyncpg.Pool | None = None
         self.enterprise_pool: asyncpg.Pool | None = None
+        self.playwright = None
+        self.browser = None
         self._shutdown = asyncio.Event()
         self._tasks: list[asyncio.Task] = []
 
     async def start(self) -> None:
-        """Initialize pools and launch worker instances."""
+        """Initialize pools, browser, and launch worker instances."""
         logger.info("Starting %d worker instances...", self.instance_count)
 
         self.primary_pool = await create_primary_pool()
         self.read_pool = await create_read_replica_pool()
         self.enterprise_pool = await create_enterprise_pool()
+        
+        # Initialize Playwright and Browser (shared across workers)
+        from playwright.async_api import async_playwright
+        self.playwright = await async_playwright().start()
+        s = get_settings()
+        self.browser = await self.playwright.chromium.launch(headless=s.playwright_headless)
+        
+        logger.info("Playwright browser launched (headless=%s)", s.playwright_headless)
 
-        # Import here to avoid circular deps
-        from worker.agent import run_once
+        async def context_factory():
+             return await self.browser.new_context(
+                viewport={"width": 1280, "height": 900},
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                ),
+            )
+
+        from worker.agent import FormAgent
 
         for i in range(self.instance_count):
             task = asyncio.create_task(
-                self._worker_loop(i, run_once),
+                self._worker_loop(i, FormAgent, context_factory),
                 name=f"worker-{i}",
             )
             self._tasks.append(task)
@@ -101,15 +120,22 @@ class WorkerScaler:
             "yes" if self.enterprise_pool else "no",
         )
 
-    async def _worker_loop(self, instance_id: int, run_once_fn: Any) -> None:
+    async def _worker_loop(self, instance_id: int, agent_cls: Any, context_factory: Any) -> None:
         """Single worker loop — claims and processes tasks."""
         s = get_settings()
+        
+        # Instantiate the agent for this worker
+        # We share the primary pool. 
+        # Ideally, we might want dedicated pools per worker if we were strictly following the original design,
+        # but sharing an asyncpg pool is thread/task-safe and efficient.
+        agent = agent_cls(self.primary_pool, context_factory)
+        
         while not self._shutdown.is_set():
             try:
-                pool = self.primary_pool
-                if pool is None:
+                if self.primary_pool is None:
                     break
-                processed = await run_once_fn(pool)
+                    
+                processed = await agent.run_once()
                 if not processed:
                     # No task available — back off
                     await asyncio.sleep(s.poll_interval_seconds)
@@ -120,20 +146,36 @@ class WorkerScaler:
                 await asyncio.sleep(5)
 
     async def shutdown(self) -> None:
-        """Gracefully shutdown all workers and pools."""
+        """Gracefully shutdown all workers, browser, and pools."""
+        if self._shutdown.is_set() and not self._tasks:
+             # Already shut down
+             return
+             
         logger.info("Shutting down %d workers...", self.instance_count)
         self._shutdown.set()
 
         for task in self._tasks:
             task.cancel()
         await asyncio.gather(*self._tasks, return_exceptions=True)
+        self._tasks.clear()
+        
+        # Close Playwright resources
+        if self.browser:
+            await self.browser.close()
+            self.browser = None
+        if self.playwright:
+            await self.playwright.stop()
+            self.playwright = None
 
         if self.primary_pool:
             await self.primary_pool.close()
+            self.primary_pool = None
         if self.read_pool:
             await self.read_pool.close()
+            self.read_pool = None
         if self.enterprise_pool:
             await self.enterprise_pool.close()
+            self.enterprise_pool = None
 
         logger.info("All workers shut down.")
 

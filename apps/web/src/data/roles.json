@@ -7,7 +7,126 @@
       "tax",
       "finance",
       "cpa"
-    ]
+    ],
+    "slug": "accountant",
+    "category": "Finance",
+    "avgSalary": 78000,
+    "demandLevel": "Steady",
+    "remotePercentage": 40,
+    "skills": [
+      "QuickBooks",
+      "Excel",
+      "GAAP",
+      "Tax Preparation",
+      "Financial Reporting",
+      "SAP"
+    ],
+    "seoTitle": "Accountant Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Accountant career guide 2026. Average salary $78K, top skills, companies hiring, and how to land your dream Accountant job faster.",
+    "h1": "Accountant Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Accountant Salary Ranges by Experience Level",
+      "Essential Accountant Skills Employers Want in 2026",
+      "Accountant vs Related Finance Roles: Which Pays More?",
+      "How to Become an Accountant: Complete Career Path",
+      "Accountant Certifications That Boost Your Salary",
+      "Remote Accountant Jobs: Companies & Opportunities",
+      "Accountant Career Growth: From Staff to Partner",
+      "Accountant Interview Questions & How to Answer Them",
+      "Best Accountant Tools & Technologies to Learn",
+      "Accountant Job Search: Common Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Accountant Salary Guide 2026: What You Should Be Earning",
+        "content": "The Accountant role remains one of the most stable and in-demand positions in finance, with average salaries reaching $78,000 nationally. Entry-level Accountants start at $52,000, while senior CPAs and controllers can command salaries exceeding $120,000. The demand for skilled Accountants continues to grow as regulatory complexity increases, creating excellent opportunities for qualified candidates.",
+        "keywords": [
+          "Accountant salary",
+          "Accountant career path",
+          "Accountant jobs"
+        ],
+        "entities": [
+          "Accountant",
+          "CPA",
+          "Finance Careers",
+          "Tax Season"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Accountant",
+      "Accountant jobs",
+      "Accountant career",
+      "Accountant salary",
+      "Accountant skills",
+      "CPA jobs",
+      "accounting positions",
+      "Accountant resume"
+    ],
+    "semanticKeywords": [
+      "financial reporting",
+      "auditing",
+      "tax preparation",
+      "bookkeeping",
+      "GAAP compliance",
+      "corporate finance"
+    ],
+    "entityMentions": [
+      "Deloitte",
+      "PwC",
+      "EY",
+      "KPMG",
+      "CPA",
+      "Big Four",
+      "IRS",
+      "GAAP"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Accountant",
+        "description": "Professional Accountant role with competitive salary and growth opportunities",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 52000,
+          "percentile25": 65000,
+          "median": 78000,
+          "percentile75": 95000,
+          "percentile90": 120000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Accountant",
+        "predicate": "requiresSkill",
+        "object": "GAAP"
+      },
+      {
+        "subject": "Accountant",
+        "predicate": "requiresSkill",
+        "object": "Tax Preparation"
+      },
+      {
+        "subject": "Accountant",
+        "predicate": "hasSalaryRange",
+        "object": "$52K‑$120K"
+      },
+      {
+        "subject": "Deloitte",
+        "predicate": "hiresFor",
+        "object": "Accountant"
+      },
+      {
+        "subject": "PwC",
+        "predicate": "hiresFor",
+        "object": "Accountant"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "id": "ai-developer",
@@ -16,8 +135,116 @@
       "llm",
       "neural networks",
       "nlp",
-      "artificial intelligence"
-    ]
+      "artificial intelligence",
+      "pytorch"
+    ],
+    "slug": "ai-developer",
+    "category": "Technology",
+    "avgSalary": 145000,
+    "demandLevel": "Very High",
+    "remotePercentage": 80,
+    "skills": [
+      "Python",
+      "PyTorch",
+      "TensorFlow",
+      "LangChain",
+      "OpenAI API",
+      "Hugging Face"
+    ],
+    "seoTitle": "AI Developer Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete AI Developer career guide 2026. Average salary $145K, top skills, companies hiring, and how to land your dream AI job faster.",
+    "h1": "AI Developer Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "AI Developer Salary Ranges by Experience Level",
+      "Essential AI/ML Skills Employers Want in 2026",
+      "AI Developer vs Machine Learning Engineer: What's the Difference?",
+      "How to Become an AI Developer: Complete Career Path",
+      "AI Certifications That Boost Your Salary",
+      "Remote AI Developer Jobs: Companies & Opportunities",
+      "AI Career Growth: From Junior to Lead Researcher",
+      "AI Developer Interview Questions & How to Answer Them",
+      "Best AI Tools & Frameworks to Learn",
+      "AI Job Search: Common Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "AI Developer Salary Guide 2026: What You Should Be Earning",
+        "content": "The AI Developer role is currently the hottest position in tech, with average salaries reaching $145,000 nationally. Entry-level AI Engineers start at $105,000, while senior researchers and lead developers can command salaries exceeding $220,000. The revolution in Generative AI has created unprecedented demand for builders who understand LLMs and agents.",
+        "keywords": [
+          "AI Developer salary",
+          "AI Engineer career path",
+          "AI jobs"
+        ],
+        "entities": [
+          "AI Developer",
+          "Machine Learning",
+          "Generative AI",
+          "LLMs"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "AI Developer",
+      "AI jobs",
+      "Artificial Intelligence career",
+      "AI salary",
+      "Machine Learning Engineer",
+      "LLM Developer",
+      "AI Engineer",
+      "AI resume"
+    ],
+    "semanticKeywords": [
+      "large language models",
+      "deep learning",
+      "nlp",
+      "computer vision",
+      "generative ai",
+      "model fine-tuning"
+    ],
+    "entityMentions": [
+      "OpenAI",
+      "Anthropic",
+      "Google DeepMind",
+      "Meta AI",
+      "Hugging Face",
+      "NVIDIA"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "AI Developer",
+        "description": "Professional AI Developer role with competitive salary and growth opportunities",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 105000,
+          "percentile25": 125000,
+          "median": 145000,
+          "percentile75": 180000,
+          "percentile90": 220000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "AI Developer",
+        "predicate": "requiresSkill",
+        "object": "Python"
+      },
+      {
+        "subject": "AI Developer",
+        "predicate": "requiresSkill",
+        "object": "PyTorch"
+      },
+      {
+        "subject": "OpenAI",
+        "predicate": "hiresFor",
+        "object": "AI Developer"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "slug": "cloud-architect",
@@ -198,8 +425,106 @@
     "keywords": [
       "account management",
       "client relations",
-      "retention"
-    ]
+      "retention",
+      "onboarding"
+    ],
+    "slug": "customer-success",
+    "category": "Sales",
+    "avgSalary": 85000,
+    "demandLevel": "High",
+    "remotePercentage": 60,
+    "skills": [
+      "CRM",
+      "Salesforce",
+      "Communication",
+      "Problem Solving",
+      "Churn Reduction",
+      "Zendesk"
+    ],
+    "seoTitle": "Customer Success Manager Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Customer Success career guide 2026. Average salary $85K, top skills, companies hiring, and how to land your dream CSM job faster.",
+    "h1": "Customer Success Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Customer Success Salary Ranges by Experience Level",
+      "Essential CSM Skills Employers Want in 2026",
+      "Customer Success vs Account Management: The Difference",
+      "How to Become a Customer Success Manager",
+      "CSM Certifications That Boost Your Salary",
+      "Remote Customer Success Jobs: Companies & Opportunities",
+      "CS Career Growth: From CSM to VP of Success",
+      "CSM Interview Questions & How to Answer Them",
+      "Best Customer Success Tools to Learn",
+      "CSM Job Search: Common Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Customer Success Salary Guide 2026",
+        "content": "Customer Success Managers (CSMs) are vital for SaaS growth, with average salaries reaching $85,000 globally. Entry-level CSMs start around $60,000, while Directors of Customer Success can earn over $160,000. As companies pivot to retention-first strategies, this role is seeing explosive growth.",
+        "keywords": [
+          "CSM salary",
+          "Customer Success career",
+          "Account Manager jobs"
+        ],
+        "entities": [
+          "Customer Success",
+          "SaaS",
+          "Churn",
+          "Retention"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Customer Success Manager",
+      "CSM jobs",
+      "Client Success",
+      "Account Manager",
+      "Customer Success Specialist",
+      "SaaS jobs"
+    ],
+    "semanticKeywords": [
+      "churn rate",
+      "net revenue retention",
+      "customer onboarding",
+      "quarterly business review",
+      "upselling"
+    ],
+    "entityMentions": [
+      "Salesforce",
+      "HubSpot",
+      "Gainsight",
+      "Zendesk",
+      "Intercom"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Customer Success Manager",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 60000,
+          "percentile25": 70000,
+          "median": 85000,
+          "percentile75": 110000,
+          "percentile90": 160000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Customer Success Manager",
+        "predicate": "requiresSkill",
+        "object": "Communication"
+      },
+      {
+        "subject": "Customer Success Manager",
+        "predicate": "manages",
+        "object": "Churn"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "id": "data-scientist",
@@ -316,8 +641,106 @@
     "keywords": [
       "talent acquisition",
       "recruiting",
-      "human resources"
-    ]
+      "human resources",
+      "people ops"
+    ],
+    "slug": "hr-manager",
+    "category": "Operations",
+    "avgSalary": 92000,
+    "demandLevel": "Steady",
+    "remotePercentage": 40,
+    "skills": [
+      "Recruiting",
+      "Employee Relations",
+      "HRIS",
+      "Compensation",
+      "Labor Law",
+      "Culture Building"
+    ],
+    "seoTitle": "HR Manager Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete HR Manager career guide 2026. Average salary $92K, top skills, companies hiring, and how to land your dream HR job faster.",
+    "h1": "HR Manager Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "HR Manager Salary Ranges by Experience Level",
+      "Essential HR Skills Employers Want in 2026",
+      "HR Manager vs People Ops: What's the Difference?",
+      "How to Become an HR Manager",
+      "HR Certifications (SHRM/PHR) That Boost Your Salary",
+      "Remote HR Jobs: Opportunities in Tech",
+      "HR Career Growth: From Generalist to VP of People",
+      "HR Manager Interview Questions & Answers",
+      "Best HRIS Tools & Technologies to Learn",
+      "HR Job Search: Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "HR Manager Salary Guide 2026",
+        "content": "HR Managers play a critical strategic role, with average salaries reaching $92,000. Entry-level HR Generalists start around $60,000, while VPs of People can command $180,000+. The focus has shifted from administration to strategic culture building and talent acquisition.",
+        "keywords": [
+          "HR Manager salary",
+          "Human Resources career",
+          "HR jobs"
+        ],
+        "entities": [
+          "Human Resources",
+          "SHRM",
+          "People Ops",
+          "Recruiting"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "HR Manager",
+      "Human Resources jobs",
+      "People Operations",
+      "Recruiter",
+      "Talent Acquisition",
+      "HR Generalist"
+    ],
+    "semanticKeywords": [
+      "talent management",
+      "employee engagement",
+      "benefits administration",
+      "diversity and inclusion",
+      "performance management"
+    ],
+    "entityMentions": [
+      "SHRM",
+      "Workday",
+      "BambooHR",
+      "Greenhouse",
+      "Lever"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "HR Manager",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 60000,
+          "percentile25": 75000,
+          "median": 92000,
+          "percentile75": 120000,
+          "percentile90": 180000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "HR Manager",
+        "predicate": "requiresSkill",
+        "object": "Employee Relations"
+      },
+      {
+        "subject": "HR Manager",
+        "predicate": "usesTool",
+        "object": "Workday"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "id": "legal-counsel",
@@ -325,8 +748,106 @@
     "keywords": [
       "attorney",
       "corporate law",
-      "compliance"
-    ]
+      "compliance",
+      "contract negotiation"
+    ],
+    "slug": "legal-counsel",
+    "category": "Legal",
+    "avgSalary": 140000,
+    "demandLevel": "Steady",
+    "remotePercentage": 50,
+    "skills": [
+      "Corporate Law",
+      "Contract Negotiation",
+      "Compliance",
+      "Risk Management",
+      "Legal Research",
+      "Mergers & Acquisitions"
+    ],
+    "seoTitle": "Legal Counsel Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Legal Counsel career guide 2026. Average salary $140K, top skills, companies hiring, and how to land your dream Legal job faster.",
+    "h1": "Legal Counsel Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Legal Counsel Salary Ranges by Experience Level",
+      "Essential Legal Skills Employers Want in 2026",
+      "In-House Counsel vs Law Firm: Pros and Cons",
+      "How to Become Legal Counsel: Complete Career Path",
+      "Legal Certifications (Bar Admission) That Boost Your Salary",
+      "Remote Legal Jobs: Companies & Opportunities",
+      "Legal Career Growth: From Associate to General Counsel",
+      "Legal Counsel Interview Questions & How to Answer Them",
+      "Best Legal Tech Tools to Learn",
+      "Legal Job Search: Common Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Legal Counsel Salary Guide 2026",
+        "content": "Legal Counsel roles are among the highest-paid corporate positions, with average salaries reaching $140,000. Entry-level Corporate Counsel start around $110,000, while General Counsel can command $250,000+. The trend towards in-house legal teams has created more stability and better work-life balance compared to traditional law firms.",
+        "keywords": [
+          "Legal Counsel salary",
+          "Corporate Lawyer career",
+          "In-house Counsel jobs"
+        ],
+        "entities": [
+          "Legal Counsel",
+          "General Counsel",
+          "Bar Association",
+          "Corporate Law"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Legal Counsel",
+      "Corporate Lawyer",
+      "General Counsel",
+      "In-house Counsel",
+      "Legal Compliance",
+      "Contract Attorney"
+    ],
+    "semanticKeywords": [
+      "litigation management",
+      "intellectual property",
+      "regulatory affairs",
+      "employment law",
+      "data privacy"
+    ],
+    "entityMentions": [
+      "American Bar Association",
+      "Ironclad",
+      "Clio",
+      "LexisNexis",
+      "DocuSign"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Legal Counsel",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 95000,
+          "percentile25": 115000,
+          "median": 140000,
+          "percentile75": 175000,
+          "percentile90": 250000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Legal Counsel",
+        "predicate": "requiresSkill",
+        "object": "Contract Negotiation"
+      },
+      {
+        "subject": "Legal Counsel",
+        "predicate": "practices",
+        "object": "Corporate Law"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "id": "marketing-manager",
@@ -335,8 +856,106 @@
       "digital marketing",
       "seo",
       "content strategy",
-      "growth marketing"
-    ]
+      "growth marketing",
+      "brand management"
+    ],
+    "slug": "marketing-manager",
+    "category": "Marketing",
+    "avgSalary": 105000,
+    "demandLevel": "High",
+    "remotePercentage": 70,
+    "skills": [
+      "SEO/SEM",
+      "Content Strategy",
+      "Google Analytics",
+      "Social Media",
+      "Email Marketing",
+      "Copywriting"
+    ],
+    "seoTitle": "Marketing Manager Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Marketing Manager career guide 2026. Average salary $105K, top skills, companies hiring, and how to land your dream Marketing job faster.",
+    "h1": "Marketing Manager Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Marketing Manager Salary Ranges by Experience Level",
+      "Essential Marketing Skills Employers Want in 2026",
+      "Growth Marketing vs Brand Management: The Difference",
+      "How to Become a Marketing Manager",
+      "Marketing Certifications (Google/HubSpot) That Boost Your Salary",
+      "Remote Marketing Jobs: Companies & Opportunities",
+      "Marketing Career Growth: From Specialist to CMO",
+      "Marketing Interview Questions & How to Answer Them",
+      "Best MarTech Tools to Learn",
+      "Marketing Job Search: Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Marketing Manager Salary Guide 2026",
+        "content": "Marketing Managers are essential for revenue growth, with average salaries reaching $105,000. Entry-level Coordinators start around $60,000, while CMOs can earn over $200,000. Digital skills like SEO, data analytics, and automation are driving salary potential higher.",
+        "keywords": [
+          "Marketing Manager salary",
+          "Digital Marketing career",
+          "Marketing jobs"
+        ],
+        "entities": [
+          "Marketing Manager",
+          "CMO",
+          "Digital Marketing",
+          "SEO"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Marketing Manager",
+      "Digital Marketing Manager",
+      "Growth Marketer",
+      "Content Manager",
+      "Brand Manager",
+      "Marketing Director"
+    ],
+    "semanticKeywords": [
+      "lead generation",
+      "conversion rate optimization",
+      "brand awareness",
+      "customer acquisition cost",
+      "marketing automation"
+    ],
+    "entityMentions": [
+      "Google",
+      "HubSpot",
+      "Meta",
+      "LinkedIn",
+      "Mailchimp"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Marketing Manager",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 60000,
+          "percentile25": 80000,
+          "median": 105000,
+          "percentile75": 135000,
+          "percentile90": 180000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Marketing Manager",
+        "predicate": "requiresSkill",
+        "object": "SEO"
+      },
+      {
+        "subject": "Marketing Manager",
+        "predicate": "usesTool",
+        "object": "Google Analytics"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "id": "product-manager",
@@ -453,8 +1072,107 @@
     "keywords": [
       "operations",
       "pmp",
-      "workflow automation"
-    ]
+      "workflow automation",
+      "agile",
+      "scrum"
+    ],
+    "slug": "project-manager",
+    "category": "Operations",
+    "avgSalary": 110000,
+    "demandLevel": "High",
+    "remotePercentage": 65,
+    "skills": [
+      "Project Management",
+      "Agile",
+      "Scrum",
+      "Jira",
+      "Risk Management",
+      "Stakeholder Management"
+    ],
+    "seoTitle": "Project Manager Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Project Manager career guide 2026. Average salary $110K, top skills, companies hiring, and how to land your dream PM job faster.",
+    "h1": "Project Manager Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Project Manager Salary Ranges by Experience Level",
+      "Essential PM Skills Employers Want in 2026 for Project Managers",
+      "Project Manager vs Product Manager: What's the Difference?",
+      "How to Become a Project Manager",
+      "PMP Certification: Does It Boost Your Salary?",
+      "Remote Project Manager Jobs: Companies & Opportunities",
+      "PM Career Growth: From Junior to Program Director",
+      "Project Manager Interview Questions & Answers",
+      "Best Project Management Tools (Jira/Asana) to Learn",
+      "PM Job Search: Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Project Manager Salary Guide 2026",
+        "content": "Project Managers are the backbone of execution, with average salaries reaching $110,000. Entry-level Coordinators start around $70,000, while Program Directors can command $170,000+. Certification like PMP significantly impacts earning potential.",
+        "keywords": [
+          "Project Manager salary",
+          "PMP career",
+          "Project Management jobs"
+        ],
+        "entities": [
+          "Project Manager",
+          "PMP",
+          "Agile",
+          "Scrum"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Project Manager",
+      "Program Manager",
+      "Technical Project Manager",
+      "Scrum Master",
+      "Project Coordinator",
+      "PMP"
+    ],
+    "semanticKeywords": [
+      "resource allocation",
+      "sprint planning",
+      "delivery management",
+      "change management",
+      "waterfall methodology"
+    ],
+    "entityMentions": [
+      "PMI",
+      "Atlassian",
+      "Asana",
+      "Monday.com",
+      "Microsoft"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Project Manager",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 70000,
+          "percentile25": 90000,
+          "median": 110000,
+          "percentile75": 140000,
+          "percentile90": 170000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Project Manager",
+        "predicate": "requiresSkill",
+        "object": "Agile"
+      },
+      {
+        "subject": "Project Manager",
+        "predicate": "usesTool",
+        "object": "Jira"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "id": "resume-expert",
@@ -462,8 +1180,105 @@
     "keywords": [
       "resume writing",
       "cv tailoring",
-      "ats optimization"
-    ]
+      "ats optimization",
+      "career coaching"
+    ],
+    "slug": "resume-expert",
+    "category": "Services",
+    "avgSalary": 65000,
+    "demandLevel": "High",
+    "remotePercentage": 100,
+    "skills": [
+      "Copywriting",
+      "ATS Optimization",
+      "Career Coaching",
+      "LinkedIn Profiling",
+      "Interview Prep",
+      "Personal Branding"
+    ],
+    "seoTitle": "Resume Writer Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Resume Writer career guide 2026. Average salary $65K, top skills, companies hiring, and how to start your own resume writing business.",
+    "h1": "Resume Writer Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Resume Writer Salary Ranges by Experience Level",
+      "Essential Copywriting Skills Employers Want in 2026",
+      "Freelance vs Agency: Which Pays More?",
+      "How to Become a Certified Professional Resume Writer (CPRW)",
+      "Resume Writing Certifications That Boost Your Fees",
+      "Remote Resume Writer Jobs: Companies & Platforms",
+      "Career Growth: From Writer to Career Coach",
+      "Resume Writer Interview Questions & How to Answer Them",
+      "Best Tools for Resume Writers (Canva/Word) to Learn",
+      "Starting a Resume Business: Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Resume Writer Salary Guide 2026",
+        "content": "Resume Writers are in high demand as the job market becomes more competitive. Average earnings are $65,000, with top freelancers earning over $120,000. It's one of the most flexible remote careers available today.",
+        "keywords": [
+          "Resume Writer salary",
+          "CPRW career",
+          "Resume writing jobs"
+        ],
+        "entities": [
+          "Resume Writer",
+          "CPRW",
+          "ATS",
+          "Career Coaching"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Resume Writer",
+      "CV Writer",
+      "Career Coach",
+      "LinkedIn Profile Writer",
+      "Personal Branding Specialist"
+    ],
+    "semanticKeywords": [
+      "applicant tracking systems",
+      "keyword optimization",
+      "cover letter writing",
+      "executive bio",
+      "job search strategy"
+    ],
+    "entityMentions": [
+      "PARWCC",
+      "LinkedIn",
+      "Fiverr",
+      "Upwork",
+      "Canva"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Resume Writer",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 40000,
+          "percentile25": 50000,
+          "median": 65000,
+          "percentile75": 90000,
+          "percentile90": 120000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Resume Writer",
+        "predicate": "requiresSkill",
+        "object": "Copywriting"
+      },
+      {
+        "subject": "Resume Writer",
+        "predicate": "optimizesFor",
+        "object": "ATS"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "id": "sales-representative",
@@ -471,8 +1286,107 @@
     "keywords": [
       "account executive",
       "business development",
-      "sales outreach"
-    ]
+      "sales outreach",
+      "cold calling",
+      "closing"
+    ],
+    "slug": "sales-representative",
+    "category": "Sales",
+    "avgSalary": 95000,
+    "demandLevel": "High",
+    "remotePercentage": 50,
+    "skills": [
+      "Sales Prospecting",
+      "CRM",
+      "Negotiation",
+      "Cold Calling",
+      "Presentation",
+      "Relationship Building"
+    ],
+    "seoTitle": "Sales Representative Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete Sales Representative career guide 2026. Average salary $95K, top skills, companies hiring, and how to land your dream Sales job faster.",
+    "h1": "Sales Representative Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "Sales Representative Salary Ranges (Base + Commission)",
+      "Essential Sales Skills Employers Want in 2026",
+      "SDR vs Account Executive: What's the Difference?",
+      "How to Become a Sales Representative: Complete Career Path",
+      "Sales Certifications That Boost Your Salary",
+      "Remote Sales Jobs: Companies & Opportunities",
+      "Sales Career Growth: From SDR to VP of Sales",
+      "Sales Interview Questions & How to Answer Them",
+      "Best Sales Tools (Salesforce/HubSpot) to Learn",
+      "Sales Job Search: Common Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "Sales Representative Salary Guide 2026",
+        "content": "Sales Representatives have significant earning potential through commissions. Average total compensation (OTE) reaches $95,000. Entry-level SDRs start around $60,000 OTE, while Enterprise Account Executives can earn over $250,000.",
+        "keywords": [
+          "Sales Rep salary",
+          "Account Executive career",
+          "Sales jobs"
+        ],
+        "entities": [
+          "Sales Representative",
+          "SDR",
+          "Account Executive",
+          "OTE"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "Sales Representative",
+      "Account Executive",
+      "SDR",
+      "BDR",
+      "Sales Associate",
+      "Business Development Manager"
+    ],
+    "semanticKeywords": [
+      "lead qualification",
+      "pipeline management",
+      "quota attainment",
+      "objection handling",
+      "consultative selling"
+    ],
+    "entityMentions": [
+      "Salesforce",
+      "HubSpot",
+      "Gong",
+      "Outreach",
+      "ZoomInfo"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "Sales Representative",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 50000,
+          "percentile25": 70000,
+          "median": 95000,
+          "percentile75": 140000,
+          "percentile90": 250000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "Sales Representative",
+        "predicate": "requiresSkill",
+        "object": "Negotiation"
+      },
+      {
+        "subject": "Sales Representative",
+        "predicate": "usesTool",
+        "object": "Salesforce"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   },
   {
     "id": "software-engineer",
@@ -648,7 +1562,105 @@
       "ui design",
       "user experience",
       "figma",
-      "product design"
-    ]
+      "product design",
+      "prototyping"
+    ],
+    "slug": "ux-designer",
+    "category": "Design",
+    "avgSalary": 115000,
+    "demandLevel": "High",
+    "remotePercentage": 85,
+    "skills": [
+      "Figma",
+      "User Research",
+      "Prototyping",
+      "Wireframing",
+      "Interaction Design",
+      "Usability Testing"
+    ],
+    "seoTitle": "UX Designer Career Guide: Salary, Skills & Jobs (2026)",
+    "seoDescription": "Complete UX Designer career guide 2026. Average salary $115K, top skills, companies hiring, and how to land your dream UX job faster.",
+    "h1": "UX Designer Career Path: Skills, Salaries & Job Opportunities (2026)",
+    "h2s": [
+      "UX Designer Salary Ranges by Experience Level",
+      "Essential UX/UI Skills Employers Want in 2026",
+      "UX vs UI Designer: What's the Difference?",
+      "How to Become a UX Designer: Complete Career Path",
+      "UX Certifications (Google/Nielsen Norman) That Boost Your Salary",
+      "Remote UX Jobs: Companies & Opportunities",
+      "UX Career Growth: From Junior to Product Design Manager",
+      "UX Designer Interview Questions & Portfolio Tips",
+      "Best UX Tools (Figma/Sketch) to Learn",
+      "UX Job Search: Portfolio Mistakes to Avoid"
+    ],
+    "contentSections": [
+      {
+        "heading": "UX Designer Salary Guide 2026",
+        "content": "UX Designers are critical to product success, with average salaries reaching $115,000. Entry-level designers start around $75,000, while Senior Product Designers can command $190,000+. A strong portfolio is the single most important factor for salary negotiation.",
+        "keywords": [
+          "UX Designer salary",
+          "Product Designer career",
+          "UX jobs"
+        ],
+        "entities": [
+          "UX Designer",
+          "Product Design",
+          "Figma",
+          "User Research"
+        ]
+      }
+    ],
+    "roleKeywords": [
+      "UX Designer",
+      "Product Designer",
+      "UI Designer",
+      "Interaction Designer",
+      "UX Researcher",
+      "Visual Designer"
+    ],
+    "semanticKeywords": [
+      "user journey mapping",
+      "information architecture",
+      "design systems",
+      "accessibility",
+      "mobile-first design"
+    ],
+    "entityMentions": [
+      "Figma",
+      "Sketch",
+      "Adobe XD",
+      "InVision",
+      "Miro"
+    ],
+    "schema": [
+      {
+        "@context": "https://schema.org",
+        "@type": "Occupation",
+        "name": "UX Designer",
+        "estimatedSalary": {
+          "@type": "MonetaryAmountDistribution",
+          "currency": "USD",
+          "duration": "P1Y",
+          "percentile10": 75000,
+          "percentile25": 90000,
+          "median": 115000,
+          "percentile75": 145000,
+          "percentile90": 190000
+        }
+      }
+    ],
+    "semanticTriples": [
+      {
+        "subject": "UX Designer",
+        "predicate": "requiresSkill",
+        "object": "Figma"
+      },
+      {
+        "subject": "UX Designer",
+        "predicate": "creates",
+        "object": "Prototypes"
+      }
+    ],
+    "lastUpdated": "2026-02-11"
   }
 ]

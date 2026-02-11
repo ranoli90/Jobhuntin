@@ -55,6 +55,23 @@ services:
         value: production
     autoDeploy: true
 
+  # Background Worker (Auto-Apply Agent)
+  - type: worker
+    name: sorce-auto-apply-agent
+    env: python
+    buildCommand: pip install -r requirements.txt && playwright install chromium
+    startCommand: python -m apps.worker.scaling --instances 2
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AGENT_ENABLED
+        value: true
+      - key: ENV
+        value: production
+    autoDeploy: true
+
 # Environment Variables Setup Instructions:
 # 1. Go to your Render dashboard
 # 2. Add these environment variables to each service:

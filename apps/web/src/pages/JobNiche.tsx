@@ -38,7 +38,30 @@ export default function JobNiche() {
 
   // Programmatic City-Specific Stats (Sample logic)
   const isUS = cityInfo?.country === 'USA';
-  const salaryRange = isUS ? "$85k - $210k" : "€60k - €140k";
+
+  const salaryStats = React.useMemo(() => {
+    // Check if role has comprehensive schema data
+    if ((roleInfo as any)?.schema?.[0]?.estimatedSalary) {
+      const est = (roleInfo as any).schema[0].estimatedSalary;
+      const currency = est.currency === 'USD' ? '$' : '€';
+      const format = (val: number) => `${currency}${Math.round(val / 1000)}k`;
+
+      return {
+        entry: `${format(est.percentile10)} - ${format(est.percentile25)}`,
+        mid: `${format(est.percentile25)} - ${format(est.percentile75)}`,
+        senior: `${format(est.percentile75)} - ${format(est.percentile90)}`,
+        range: `${format(est.percentile10)} - ${format(est.percentile90)}`
+      };
+    }
+
+    // Fallback defaults
+    return {
+      entry: isUS ? "$75k - $95k" : "€50k - €70k",
+      mid: isUS ? "$95k - $135k" : "€70k - €100k",
+      senior: isUS ? "$135k - $210k" : "€100k - €150k",
+      range: isUS ? "$85k - $210k" : "€60k - €140k"
+    };
+  }, [roleInfo, isUS]);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
@@ -86,7 +109,7 @@ export default function JobNiche() {
         {/* Market Data Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20">
           {[
-            { label: "Est. Salary", value: salaryRange, icon: DollarSign, color: "text-emerald-500" },
+            { label: "Est. Salary", value: salaryStats.range, icon: DollarSign, color: "text-emerald-500" },
             { label: "Active Openings", value: "240+", icon: Briefcase, color: "text-blue-500" },
             { label: "Market Density", value: "High", icon: TrendingUp, color: "text-primary-500" },
             { label: "Remote Options", value: "45%", icon: Globe, color: "text-purple-500" },
@@ -143,25 +166,25 @@ export default function JobNiche() {
             <div className="grid md:grid-cols-3 gap-8">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3">Entry Level</h3>
-                <div className="text-3xl font-black text-emerald-600 mb-2">$75K - $95K</div>
+                <div className="text-3xl font-black text-emerald-600 mb-2">{salaryStats.entry}</div>
                 <p className="text-sm text-slate-500">0-2 years experience</p>
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3">Mid Level</h3>
-                <div className="text-3xl font-black text-blue-600 mb-2">$95K - $135K</div>
+                <div className="text-3xl font-black text-blue-600 mb-2">{salaryStats.mid}</div>
                 <p className="text-sm text-slate-500">3-5 years experience</p>
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3">Senior Level</h3>
-                <div className="text-3xl font-black text-purple-600 mb-2">$135K - $210K</div>
+                <div className="text-3xl font-black text-purple-600 mb-2">{salaryStats.senior}</div>
                 <p className="text-sm text-slate-500">5+ years experience</p>
               </div>
             </div>
             <div className="mt-8 p-4 bg-slate-50 rounded-2xl">
               <p className="text-sm text-slate-600">
-                <strong>Pro tip:</strong> {cityInfo?.name || formattedCity} offers competitive salaries with 
-                {cityInfo?.costOfLivingIndex ? ` cost of living index of ${cityInfo.costOfLivingIndex}` : ' excellent cost of living'} 
-                and {cityInfo?.remotePercentage || '45'}% remote opportunities.
+                <strong>Pro tip:</strong> {cityInfo?.name || formattedCity} offers competitive salaries with
+                {(cityInfo as any)?.costOfLivingIndex ? ` cost of living index of ${(cityInfo as any).costOfLivingIndex}` : ' excellent cost of living'}
+                and {(cityInfo as any)?.remotePercentage || '45'}% remote opportunities.
               </p>
             </div>
           </div>
@@ -178,7 +201,7 @@ export default function JobNiche() {
                 </div>
                 <h3 className="font-bold text-slate-900 mb-2">{employer}</h3>
                 <p className="text-sm text-slate-500 mb-4">{cityInfo?.industries?.[0] || 'Technology'} Company</p>
-                <Link 
+                <Link
                   to={`/jobs/${role}/${city}?company=${encodeURIComponent(employer)}`}
                   className="text-primary-600 text-sm font-bold hover:text-primary-700 transition-colors"
                 >
@@ -186,10 +209,10 @@ export default function JobNiche() {
                 </Link>
               </div>
             )) || (
-              <div className="col-span-full text-center py-8">
-                <p className="text-slate-500">Major employers data coming soon for {formattedCity}</p>
-              </div>
-            )}
+                <div className="col-span-full text-center py-8">
+                  <p className="text-slate-500">Major employers data coming soon for {formattedCity}</p>
+                </div>
+              )}
           </div>
         </section>
 
@@ -259,9 +282,9 @@ export default function JobNiche() {
               </h3>
               <div className="flex flex-wrap gap-3">
                 {semanticLinks.filter(l => l.entityType === 'role' || l.entityType === 'related-role').map((link, i) => (
-                  <Link 
-                    key={i} 
-                    to={link.url} 
+                  <Link
+                    key={i}
+                    to={link.url}
                     className="bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-600 px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-slate-100 hover:border-primary-100"
                     title={link.anchorText}
                   >
@@ -276,9 +299,9 @@ export default function JobNiche() {
               </h3>
               <div className="flex flex-wrap gap-3">
                 {semanticLinks.filter(l => l.entityType === 'location' || l.entityType === 'nearby-location').map((link, i) => (
-                  <Link 
-                    key={i} 
-                    to={link.url} 
+                  <Link
+                    key={i}
+                    to={link.url}
                     className="bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-600 px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-slate-100 hover:border-primary-100"
                     title={link.anchorText}
                   >
@@ -288,7 +311,7 @@ export default function JobNiche() {
               </div>
             </div>
           </div>
-          
+
           {/* Deep Competitor Links for Authority */}
           <div className="mt-10 pt-10 border-t border-slate-100">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 text-center">
@@ -296,9 +319,9 @@ export default function JobNiche() {
             </h3>
             <div className="flex flex-wrap justify-center gap-4">
               {semanticLinks.filter(l => l.entityType === 'competitor').map((link, i) => (
-                <Link 
-                  key={i} 
-                  to={link.url} 
+                <Link
+                  key={i}
+                  to={link.url}
                   className="text-slate-500 hover:text-primary-600 text-sm font-medium transition-colors flex items-center gap-2"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
@@ -313,7 +336,7 @@ export default function JobNiche() {
         <div className="bg-primary-600 rounded-[3rem] p-12 text-white text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           <h2 className="text-3xl font-bold mb-6 relative z-10 font-display">
-            {seoData.cta.title}
+            {seoData.cta.headline}
           </h2>
           <p className="text-primary-100 mb-10 relative z-10 max-w-lg mx-auto text-lg font-medium">
             {seoData.cta.description}
@@ -333,49 +356,7 @@ export default function JobNiche() {
         </div>
       </main>
 
-      <footer className="bg-white border-t border-slate-200 py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-2">
-              <Link to="/" className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-black">JH</div>
-                <span className="font-black text-xl tracking-tight">JobHuntin</span>
-              </Link>
-              <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-sm">
-                The world's most advanced AI job agent. We don't just search for jobs;
-                we hunt them down and apply for you, giving you an unfair advantage in 
-                {cityInfo?.name || formattedCity} and beyond.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-slate-800">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-500 font-medium">
-                <li><Link to="/pricing" className="hover:text-primary-600">Pricing</Link></li>
-                <li><Link to="/success-stories" className="hover:text-primary-600">Success Stories</Link></li>
-                <li><Link to="/chrome-extension" className="hover:text-primary-600">Chrome Extension</Link></li>
-                <li><Link to="/about" className="hover:text-primary-600">About Us</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-slate-800">Resources</h4>
-              <ul className="space-y-2 text-sm text-slate-500 font-medium">
-                <li><Link to="/guides" className="hover:text-primary-600">Career Guides</Link></li>
-                <li><Link to="/privacy" className="hover:text-primary-600">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-primary-600">Terms of Service</Link></li>
-                <li><Link to="/recruiters" className="hover:text-primary-600">For Recruiters</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 text-xs font-bold uppercase tracking-widest">
-            <span>&copy; {new Date().getFullYear()} JobHuntin AI. All rights reserved.</span>
-            <div className="flex gap-6">
-              <a href="#" className="hover:text-primary-600 transition-colors">Twitter</a>
-              <a href="#" className="hover:text-primary-600 transition-colors">LinkedIn</a>
-              <a href="#" className="hover:text-primary-600 transition-colors">GitHub</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }

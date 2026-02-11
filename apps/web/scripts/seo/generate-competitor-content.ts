@@ -26,16 +26,14 @@ const DEFAULT_KEY = "sk-or-v1-4f26e6d495a0e829e0d9e4f79acbb8d302f87c0e572c8ae55b
 
 // List of free models to try in order
 const FREE_MODELS = [
-  'openrouter/aurora-alpha', // User requested
-  'mistralai/mistral-7b-instruct:free',
+  'nvidia/nemotron-3-nano-30b-a3b:free',       // Primary: High capability (30B)
+  'nvidia/nemotron-nano-12b-v2-vl:free',        // Fallback 1: Balanced (12B)
+  'nvidia/nemotron-nano-9b-v2:free',            // Fallback 2: Fast (9B)
+  'openrouter/aurora-alpha',
   'google/gemini-2.0-flash-lite-preview-02-05:free',
   'meta-llama/llama-3-8b-instruct:free',
-  'microsoft/phi-3-medium-128k-instruct:free',
-  'huggingfaceh4/zephyr-7b-beta:free',
-  'openchat/openchat-7b:free',
-  'deepseek/deepseek-r1:free',
-  'qwen/qwen-vl-plus:free',
-  'gryphe/mythomax-l2-13b:free'
+  'mistralai/mistral-7b-instruct:free',
+  'microsoft/phi-3-medium-128k-instruct:free'
 ];
 
 interface Competitor {
@@ -66,12 +64,12 @@ interface Competitor {
   seoKeywords: string[];
   differentiators: string[];
   verdict: string;
-  ratings: {
-    features: number;
-    value: number;
-    easeOfUse: number;
-    support: number;
-    overall: number;
+  rating_vs_jobhuntin: {
+    speed: number[];
+    quality: number[];
+    automation: number[];
+    stealth: number[];
+    price_value: number[];
   };
 }
 
@@ -114,12 +112,12 @@ async function generateCompetitorData(name: string, url?: string, explicitModel?
       seoKeywords: string[]; // 5-8 high-intent keywords
       differentiators: string[]; // 3 unique selling points
       verdict: string; // 2-3 sentences summarizing who it's for vs JobHuntin
-      ratings: { // 1-5 float ratings
-        features: number;
-        value: number;
-        easeOfUse: number;
-        support: number;
-        overall: number;
+      rating_vs_jobhuntin: { // ratings [competitor_score, jobhuntin_score] (1-10)
+        speed: number[];
+        quality: number[];
+        automation: number[];
+        stealth: number[];
+        price_value: number[];
       };
     }
 

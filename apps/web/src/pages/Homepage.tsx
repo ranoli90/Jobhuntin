@@ -11,7 +11,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
-import { MarketingFooter } from '../components/marketing/MarketingFooter';
+
 import { Button } from '../components/ui/Button';
 
 // --- UTILS ---
@@ -630,7 +630,7 @@ const Onboarding = () => {
 // --- MAIN PAGE ---
 export default function Homepage() {
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden selection:bg-primary-500/20 selection:text-primary-700">
+    <>
       <SEO
         title="JobHuntin — AI That Applies to Jobs While You Sleep"
         description="Upload your resume once. Your AI agent tailors and applies to hundreds of jobs daily. Land 3.4× more interviews with zero effort."
@@ -668,11 +668,8 @@ export default function Homepage() {
         }}
       />
       <ProgressBar />
-      <main>
-        <Hero />
-        <Onboarding />
-      </main>
-      <MarketingFooter />
-    </div>
+      <Hero />
+      <Onboarding />
+    </>
   );
 }

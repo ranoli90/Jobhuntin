@@ -45,28 +45,28 @@ function calculatePriority(location: any, role: any): PriorityMatrix {
   // Base scores
   let searchVolume = 100;
   let competition = 50;
-  
+
   // Boost for major cities
   if (location.population > 1000000) searchVolume *= 3;
   else if (location.population > 500000) searchVolume *= 2;
   else if (location.population > 200000) searchVolume *= 1.5;
-  
+
   // Boost for tech hubs
   if (location.techHub) searchVolume *= 2;
   if (location.startupScene) searchVolume *= 1.5;
   if (location.majorEmployers?.length > 10) searchVolume *= 1.3;
-  
+
   // Boost for high-demand roles
   if (role.category === 'Engineering') searchVolume *= 2;
   if (role.category === 'Data') searchVolume *= 1.8;
   if (role.category === 'Product') searchVolume *= 1.5;
-  
+
   // Lower competition for long-tail combinations
   competition = Math.max(10, 100 - (location.popularity || 50));
-  
+
   // Calculate potential (higher is better)
   const potential = (searchVolume * 100) / (competition + 1);
-  
+
   return {
     location,
     role,
@@ -82,14 +82,14 @@ function calculatePriority(location: any, role: any): PriorityMatrix {
  */
 function generatePriorityMatrix(): PriorityMatrix[] {
   const matrix: PriorityMatrix[] = [];
-  
+
   // Create all combinations
   for (const location of locations) {
     for (const role of roles) {
       matrix.push(calculatePriority(location, role));
     }
   }
-  
+
   // Sort by potential (descending) - this is your ranking strategy
   return matrix.sort((a, b) => b.potential - a.potential);
 }
@@ -100,25 +100,25 @@ function generatePriorityMatrix(): PriorityMatrix[] {
 async function generateContent(city: string, role: string): Promise<boolean> {
   return new Promise((resolve) => {
     const command = `npx tsx scripts/seo/generate-city-content.ts "${city}" "${role}" --aggressive`;
-    
+
     console.log(`🚀 Generating: ${role} jobs in ${city}`);
-    
+
     const process = spawn('cmd', ['/c', command], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'pipe'
     });
-    
+
     let output = '';
     let errorOutput = '';
-    
+
     process.stdout.on('data', (data) => {
       output += data.toString();
     });
-    
+
     process.stderr.on('data', (data) => {
       errorOutput += data.toString();
     });
-    
+
     process.on('close', (code) => {
       if (code === 0) {
         console.log(`✅ Generated: ${role} jobs in ${city}`);
@@ -139,24 +139,23 @@ async function submitToGoogle(urls: string[]): Promise<boolean> {
   return new Promise((resolve) => {
     const urlList = urls.join(' ');
     const command = `npx tsx scripts/seo/submit-to-google-enhanced.ts --priority`;
-    
+
     console.log(`📊 Submitting ${urls.length} URLs to Google...`);
-    
+
     const process = spawn('cmd', ['/c', command], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'pipe',
       env: {
-        ...process.env,
-        GOOGLE_SERVICE_ACCOUNT_KEY: 'C:\\Users\\Administrator\\Downloads\\gen-lang-client-0317166211-2021b89b3147.json'
+        ...process.env
       }
     });
-    
+
     let output = '';
-    
+
     process.stdout.on('data', (data) => {
       output += data.toString();
     });
-    
+
     process.on('close', (code) => {
       if (code === 0) {
         console.log(`✅ Submitted ${urls.length} URLs to Google`);
@@ -175,36 +174,36 @@ async function submitToGoogle(urls: string[]): Promise<boolean> {
 async function runAutomation(): Promise<void> {
   console.log('🤖 AUTOMATED RANKING ENGINE STARTED');
   console.log('📈 Generating priority matrix...');
-  
+
   const priorityMatrix = generatePriorityMatrix();
   const totalCombinations = priorityMatrix.length;
-  
+
   console.log(`📊 Found ${totalCombinations} potential page combinations`);
   console.log(`🏆 Top priority: ${priorityMatrix[0].role.name} in ${priorityMatrix[0].location.name} (Score: ${priorityMatrix[0].potential})`);
-  
+
   let generatedCount = 0;
   let submittedCount = 0;
   const batchSize = 10; // Generate 10 pages at a time
   const submitBatchSize = 50; // Submit 50 URLs to Google at a time
   let urlsToSubmit: string[] = [];
-  
+
   // Main generation loop
   for (let i = 0; i < priorityMatrix.length; i += batchSize) {
     const batch = priorityMatrix.slice(i, i + batchSize);
-    
-    console.log(`\n🔄 Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(priorityMatrix.length/batchSize)}`);
-    
+
+    console.log(`\n🔄 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(priorityMatrix.length / batchSize)}`);
+
     // Generate content for this batch
-    const generationPromises = batch.map(item => 
+    const generationPromises = batch.map(item =>
       generateContent(item.location.name, item.role.name)
     );
-    
+
     const results = await Promise.allSettled(generationPromises);
     const successful = results.filter(r => r.status === 'fulfilled' && r.value).length;
     generatedCount += successful;
-    
+
     console.log(`✅ Generated ${successful}/${batchSize} pages`);
-    
+
     // Add URLs to submission queue
     for (const item of batch) {
       const roleSlug = item.role.id || item.role.slug || item.role.name.toLowerCase().replace(/\s+/g, '-');
@@ -212,24 +211,24 @@ async function runAutomation(): Promise<void> {
       const url = `https://jobhuntin.com/jobs/${roleSlug}-in-${locSlug}`;
       urlsToSubmit.push(url);
     }
-    
+
     // Submit to Google when we have enough URLs
     if (urlsToSubmit.length >= submitBatchSize) {
       await submitToGoogle(urlsToSubmit.slice(0, submitBatchSize));
       submittedCount += submitBatchSize;
       urlsToSubmit = urlsToSubmit.slice(submitBatchSize);
     }
-    
+
     // Rate limiting - don't overwhelm APIs
     await new Promise(resolve => setTimeout(resolve, 30000)); // 30 second delay between batches
   }
-  
+
   // Submit remaining URLs
   if (urlsToSubmit.length > 0) {
     await submitToGoogle(urlsToSubmit);
     submittedCount += urlsToSubmit.length;
   }
-  
+
   console.log('\n🎉 AUTOMATION COMPLETE!');
   console.log(`📄 Generated: ${generatedCount} pages`);
   console.log(`🚀 Submitted to Google: ${submittedCount} URLs`);
@@ -241,17 +240,17 @@ async function runAutomation(): Promise<void> {
  */
 function startContinuousMonitoring(): void {
   console.log('👁️  Starting continuous monitoring...');
-  
+
   // Check for new opportunities every 6 hours
   setInterval(async () => {
     console.log('🔍 Running scheduled content audit...');
-    
+
     // Check for trending roles or cities
     const trendingCombinations = await findTrendingOpportunities();
-    
+
     if (trendingCombinations.length > 0) {
       console.log(`🚀 Found ${trendingCombinations.length} trending opportunities`);
-      
+
       // Generate content for trending opportunities
       for (const combo of trendingCombinations.slice(0, 5)) {
         await generateContent(combo.location, combo.role);
@@ -276,17 +275,21 @@ async function findTrendingOpportunities(): Promise<any[]> {
 async function main(): Promise<void> {
   console.log('🚀 STARTING AUTOMATED RANKING ENGINE');
   console.log('📅 This will run continuously and generate thousands of pages');
-  
-  // Set up Google service account
-  process.env.GOOGLE_SERVICE_ACCOUNT_KEY = 'C:\\Users\\Administrator\\Downloads\\gen-lang-client-0317166211-2021b89b3147.json';
-  process.env.GOOGLE_SEARCH_CONSOLE_SITE = 'https://jobhuntin.com';
-  
+
+  // Ensure required environment variables are set
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+    console.warn('⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set. Submissions will fail.');
+  }
+  if (!process.env.GOOGLE_SEARCH_CONSOLE_SITE) {
+    process.env.GOOGLE_SEARCH_CONSOLE_SITE = 'https://jobhuntin.com';
+  }
+
   // Start continuous monitoring
   startContinuousMonitoring();
-  
+
   // Run initial automation
   await runAutomation();
-  
+
   // Schedule next run (daily)
   console.log('⏰ Scheduling next run in 24 hours...');
   setTimeout(main, 24 * 60 * 60 * 1000);

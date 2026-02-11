@@ -166,20 +166,33 @@ async def start_campaign(
         from backend.domain.priority import compute_priority_score
         priority = compute_priority_score(ctx.plan, is_bulk=True)
 
-        # Create applications for each job in a transaction
+        # Create applications for each job in a transaction (Bulk Insert Optimization)
         async with db_transaction(db) as txn_conn:
-            # Create applications for each job
             blueprint_key = filters.get("blueprint_key", "job-app")
-            for job in job_rows:
-                await txn_conn.execute(
-                    """
-                    INSERT INTO public.applications
-                        (user_id, job_id, tenant_id, blueprint_key, status, priority_score)
-                    VALUES ($1, $2, $3, $4, 'QUEUED', $5)
-                    ON CONFLICT DO NOTHING
-                    """,
-                    ctx.user_id, job["id"], ctx.tenant_id, blueprint_key, priority,
-                )
+            
+            # Optimized: Single query to insert all applications
+            # This avoids N round-trips and ensures atomicity without locking for too long
+            await txn_conn.execute(
+                """
+                INSERT INTO public.applications 
+                    (user_id, job_id, tenant_id, blueprint_key, status, priority_score)
+                SELECT 
+                    $1, id, $3, $4, 'QUEUED', $5
+                FROM public.jobs
+                WHERE (tenant_id = $3 OR tenant_id IS NULL)
+                  AND ($6::text IS NULL OR title ILIKE '%' || $6 || '%')
+                  AND ($7::text IS NULL OR location ILIKE '%' || $7 || '%')
+                LIMIT 500
+                ON CONFLICT DO NOTHING
+                """,
+                ctx.user_id,             # $1
+                None,                    # Placeholder (not used in SELECT)
+                ctx.tenant_id,           # $3
+                blueprint_key,           # $4
+                priority,                # $5
+                title_filter or None,    # $6
+                location_filter or None  # $7
+            )
 
             # Update campaign
             await txn_conn.execute(

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Upload, MapPin, Briefcase, DollarSign, Rocket, ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, User, Zap, Mail, Phone, Shield } from "lucide-react";
+import { Check, Upload, MapPin, Briefcase, DollarSign, Rocket, ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, User, Zap, Mail, Phone, Shield, X } from "lucide-react";
 import { Logo } from '../../components/brand/Logo';
 import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
@@ -229,35 +229,35 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex flex-col relative touch-none">
+    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex flex-col relative">
       {/* Minimal Header */}
-      <header className="px-4 md:px-6 h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50">
+      <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50">
         <Logo to="/app/onboarding" size="sm" />
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
             <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
             <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">AI Calibration Active</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-xs font-bold uppercase hover:bg-slate-100">
+          <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100">
             Restart
           </Button>
         </div>
       </header>
 
-      <main className="flex-1 w-full flex flex-col items-center justify-center p-2 md:p-4 overflow-hidden bg-grid-premium opacity-100 relative">
-        <div className="w-full max-w-xl lg:max-w-2xl h-full max-h-full flex flex-col relative justify-center">
+      <main className="flex-1 w-full flex flex-col items-center justify-center p-1.5 md:p-4 overflow-hidden bg-grid-premium opacity-100 relative min-h-0">
+        <div className="w-full max-w-xl lg:max-w-3xl h-full max-h-full flex flex-col relative justify-center min-h-0">
           {/* Subtle background glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-500/5 rounded-full blur-[100px] pointer-events-none" />
 
           {/* Progress bar - Condensed */}
-          <div className="mb-4 md:mb-6 shrink-0 z-10">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+          <div className="mb-2 md:mb-6 shrink-0 z-10">
+            <div className="flex items-center justify-between mb-1.5 md:mb-3 px-1">
+              <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.15em] md:tracking-[0.2em]">
                 Calibration Progress — {(progress).toFixed(0)}%
               </span>
-              <span className="text-xs font-black text-primary-600 uppercase tracking-[0.2em]">{currentStepData.title}</span>
+              <span className="text-[10px] md:text-xs font-black text-primary-600 uppercase tracking-[0.15em] md:tracking-[0.2em]">{currentStepData.title}</span>
             </div>
-            <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+            <div className="h-1 md:h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
@@ -276,25 +276,25 @@ export default function Onboarding() {
               exit={{ opacity: 0, scale: 0.98, y: -10 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <Card tone="glass" shadow="lift" className="flex flex-col flex-1 p-4 md:p-8 border-slate-200/60 overflow-hidden relative max-h-full">
+              <Card tone="glass" shadow="lift" className="flex flex-col flex-1 p-3 md:p-8 border-slate-200/60 overflow-hidden relative max-h-full min-h-0">
                 {/* Decorative background elements inside card */}
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl pointer-events-none" />
 
                 {/* Profile completeness indicator - Compact for mobile */}
-                <div className="mb-4 md:mb-6 shrink-0 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-xl relative overflow-hidden group">
+                <div className="mb-2 md:mb-6 shrink-0 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-2.5 md:p-4 shadow-xl relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors" />
-                  <div className="flex items-center justify-between mb-2 md:mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-emerald-400" />
+                  <div className="flex items-center justify-between mb-1.5 md:mb-3">
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                      <div className="w-5 h-5 md:w-8 md:h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <Sparkles className="h-2.5 w-2.5 md:h-4 md:w-4 text-emerald-400" />
                       </div>
                       <div>
-                        <span className="block text-[8px] md:text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Intelligence Profile</span>
-                        <span className="text-[10px] md:text-xs font-bold text-white">System Confidence</span>
+                        <span className="block text-[7px] md:text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Intelligence Profile</span>
+                        <span className="text-[9px] md:text-xs font-bold text-white">System Confidence</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-lg md:text-2xl font-black text-white italic">{completeness}%</span>
+                      <span className="text-base md:text-2xl font-black text-white italic">{completeness}%</span>
                     </div>
                   </div>
                   <div className="h-1 md:h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
@@ -305,22 +305,22 @@ export default function Onboarding() {
                       transition={{ type: "spring", stiffness: 40, damping: 12 }}
                     />
                   </div>
-                  <div className="mt-2 md:mt-4 flex flex-wrap gap-1 md:gap-2 hidden sm:flex">
+                  <div className="mt-1.5 md:mt-4 flex-wrap gap-1 md:gap-2 hidden md:flex">
                     {(profile?.resume_url || resumeFile) && (
-                      <Badge className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                      <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
+                        <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                         Experience Mapped
                       </Badge>
                     )}
                     {preferences.location && (
-                      <Badge className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                      <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
+                        <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                         Geospatial Set
                       </Badge>
                     )}
                     {preferences.role_type && (
-                      <Badge className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                      <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
+                        <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                         Role Target Lock
                       </Badge>
                     )}
@@ -331,24 +331,24 @@ export default function Onboarding() {
                 {currentStep === 0 && (
                   <div className="flex flex-col h-full overflow-hidden">
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="text-center py-2 md:py-4">
-                        <div className="mx-auto mb-4 md:mb-6 relative">
+                      <div className="text-center py-1 md:py-4">
+                        <div className="mx-auto mb-3 md:mb-6 relative">
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                            className="absolute inset-0 rounded-[2rem] border-2 border-dashed border-primary-500/20"
+                            className="absolute inset-0 rounded-[2rem] border-2 border-dashed border-primary-500/20 hidden md:block"
                           />
-                          <div className="relative mx-auto flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-[2rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-100">
-                            <Rocket className="h-8 w-8 md:h-10 md:w-10 text-primary-400" />
+                          <div className="relative mx-auto flex h-12 w-12 md:h-20 md:w-20 items-center justify-center rounded-[1.5rem] md:rounded-[2rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-100">
+                            <Rocket className="h-6 w-6 md:h-10 md:w-10 text-primary-400" />
                           </div>
                         </div>
-                        <h1 className="mb-2 md:mb-3 font-display text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                        <h1 className="mb-1 md:mb-3 font-display text-xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
                           Initiate <span className="text-primary-600 italic">Hyper-Hunt.</span>
                         </h1>
-                        <p className="mb-4 md:mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-sm md:text-base">
+                        <p className="mb-3 md:mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-xs md:text-base">
                           We're about to build your digital autonomous twin. Calibration takes 90 seconds.
                         </p>
-                        <div className="grid gap-2 md:gap-3 mb-6 md:mb-8 text-left">
+                        <div className="grid gap-1.5 md:gap-3 mb-3 md:mb-8 text-left">
                           {[
                             { title: "Skill Mapping", desc: "AI-driven resume vectorization", icon: Sparkles },
                             { title: "Radar Tuning", desc: "Location & salary baseline profiling", icon: MapPin },
@@ -359,22 +359,22 @@ export default function Onboarding() {
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: 0.2 + i * 0.1 }}
-                              className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl bg-slate-50 border border-slate-100/50 hover:bg-white hover:shadow-md transition-all group"
+                              className="flex items-center gap-2.5 md:gap-4 p-2 md:p-4 rounded-xl md:rounded-2xl bg-slate-50 border border-slate-100/50 hover:bg-white hover:shadow-md transition-all group"
                             >
-                              <div className="flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg md:rounded-xl bg-primary-100 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
-                                <item.icon className="h-4 w-4 md:h-5 md:w-5" />
+                              <div className="flex h-7 w-7 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg md:rounded-xl bg-primary-100 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
+                                <item.icon className="h-3.5 w-3.5 md:h-5 md:w-5" />
                               </div>
                               <div className="text-left min-w-0">
-                                <p className="text-xs md:text-sm font-black text-slate-900 uppercase tracking-tight truncate">{item.title}</p>
-                                <p className="text-[10px] md:text-xs text-slate-500 font-medium truncate">{item.desc}</p>
+                                <p className="text-[11px] md:text-sm font-black text-slate-900 uppercase tracking-tight truncate">{item.title}</p>
+                                <p className="text-[9px] md:text-xs text-slate-500 font-medium truncate">{item.desc}</p>
                               </div>
                             </motion.div>
                           ))}
                         </div>
                       </div>
                     </div>
-                    <div className="pt-4 shrink-0 mt-auto">
-                      <Button size="lg" onClick={nextStep} className="w-full h-10 md:h-12 rounded-[1.25rem] text-lg md:text-xl font-black shadow-xl md:shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
+                    <div className="pt-2 md:pt-4 shrink-0 mt-auto">
+                      <Button size="lg" onClick={nextStep} className="w-full h-10 md:h-12 rounded-[1.25rem] text-base md:text-xl font-black shadow-xl md:shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
                         BEGIN CALIBRATION
                         <ArrowRight className="ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
                       </Button>
@@ -387,18 +387,18 @@ export default function Onboarding() {
                 {currentStep === 1 && (
                   <div className="flex flex-col h-full overflow-hidden">
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="mb-4 md:mb-8 flex items-center gap-3 md:gap-5 border-b border-slate-100 pb-4 md:pb-6">
-                        <div className="flex h-10 w-12 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] bg-primary-50 border border-primary-100 text-primary-600 shadow-inner">
-                          <Upload className="h-6 w-6 md:h-8 md:w-8" />
+                      <div className="mb-3 md:mb-8 flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6">
+                        <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-primary-50 border border-primary-100 text-primary-600 shadow-inner">
+                          <Upload className="h-4 w-4 md:h-8 md:w-8" />
                         </div>
                         <div className="min-w-0">
-                          <h2 className="font-display text-2xl md:text-3xl font-black text-slate-900 tracking-tight truncate">Experience Input</h2>
-                          <p className="text-xs md:text-sm text-slate-500 font-medium italic truncate">Feed the AI your career history for optimization.</p>
+                          <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Experience Input</h2>
+                          <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Feed the AI your career history for optimization.</p>
                         </div>
                       </div>
 
                       <div
-                        className="mb-4 md:mb-8 relative group"
+                        className="mb-3 md:mb-8 relative group"
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
@@ -413,35 +413,45 @@ export default function Onboarding() {
                         />
                         <label
                           htmlFor="resume-upload"
-                          className={`flex cursor-pointer flex-col items-center gap-2 md:gap-6 rounded-[1.5rem] md:rounded-[2.5rem] border-3 border-dashed p-4 md:p-10 text-center transition-all duration-300 ${isDragging
+                          className={`flex cursor-pointer flex-col items-center gap-2 md:gap-6 rounded-[1.25rem] md:rounded-[2.5rem] border-3 border-dashed p-3 md:p-10 text-center transition-all duration-300 ${isDragging
                             ? "bg-primary-50 border-primary-500 scale-[1.02] shadow-xl"
                             : resumeFile
                               ? "bg-primary-50/50 border-primary-300"
                               : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-primary-300"
                             }`}
                         >
-                          <div className={`flex h-12 w-12 md:h-20 md:w-20 items-center justify-center rounded-[1rem] md:rounded-[2rem] bg-white shadow-xl transition-all ${isUploading ? 'animate-pulse scale-90' : isDragging ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
+                          <div className={`flex h-10 w-10 md:h-20 md:w-20 items-center justify-center rounded-[0.75rem] md:rounded-[2rem] bg-white shadow-xl transition-all ${isUploading ? 'animate-pulse scale-90' : isDragging ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
                             {isUploading ? (
                               <div className="relative">
-                                <Sparkles className="h-6 w-6 md:h-10 md:w-10 text-primary-400 animate-spin-slow" />
+                                <Sparkles className="h-5 w-5 md:h-10 md:w-10 text-primary-400 animate-spin-slow" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="w-3 h-3 md:w-5 md:h-5 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                                  <div className="w-2.5 h-2.5 md:w-5 md:h-5 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
                                 </div>
                               </div>
                             ) : (
-                              <FileText className={`h-6 w-6 md:h-10 md:w-10 ${resumeFile || isDragging ? 'text-primary-600' : 'text-slate-300'}`} />
+                              <FileText className={`h-5 w-5 md:h-10 md:w-10 ${resumeFile || isDragging ? 'text-primary-600' : 'text-slate-300'}`} />
                             )}
                           </div>
-                          <div className="space-y-1 md:space-y-2">
-                            <p className={`text-sm md:text-xl font-black ${resumeFile || isDragging ? 'text-primary-700' : 'text-slate-900'}`}>
+                          <div className="space-y-0.5 md:space-y-2">
+                            <p className={`text-xs md:text-xl font-black ${resumeFile || isDragging ? 'text-primary-700' : 'text-slate-900'}`}>
                               {resumeFile ? resumeFile.name : isDragging ? "Drop to Analyze" : "Tap to Upload Resume"}
                             </p>
-                            <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest leading-tight">PDF, DOCX — AI Optimization Ready</p>
+                            <p className="text-[9px] md:text-xs text-slate-400 font-bold uppercase tracking-widest leading-tight">PDF, DOCX — AI Optimization Ready</p>
                           </div>
                         </label>
+                        {/* Clear file button */}
+                        {resumeFile && !isUploading && (
+                          <button
+                            onClick={(e) => { e.preventDefault(); setResumeFile(null); setResumeError(null); setShowParsingPreview(false); }}
+                            className="absolute top-2 right-2 md:top-3 md:right-3 w-6 h-6 md:w-7 md:h-7 rounded-full bg-slate-200 hover:bg-red-100 flex items-center justify-center transition-colors z-20"
+                            title="Remove file"
+                          >
+                            <X className="h-3 w-3 md:h-4 md:w-4 text-slate-500 hover:text-red-500" />
+                          </button>
+                        )}
                         {isUploading && (
-                          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center justify-center gap-4 z-10">
-                            <div className="w-48 md:w-64 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-100 shadow-inner">
+                          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[1.25rem] md:rounded-[2.5rem] flex flex-col items-center justify-center gap-3 z-10">
+                            <div className="w-40 md:w-64 h-1.5 bg-slate-200 rounded-full overflow-hidden border border-slate-100 shadow-inner">
                               <motion.div
                                 className="h-full bg-primary-500"
                                 initial={{ width: "0%" }}
@@ -449,20 +459,20 @@ export default function Onboarding() {
                                 transition={{ duration: 4, repeat: Infinity }}
                               />
                             </div>
-                            <p className="text-[10px] md:text-xs font-black text-primary-600 uppercase tracking-widest animate-pulse">Scanning Vector Space...</p>
+                            <p className="text-[9px] md:text-xs font-black text-primary-600 uppercase tracking-widest animate-pulse">Scanning Vector Space...</p>
                           </div>
                         )}
                       </div>
 
-                      <div className="mb-4 md:mb-10">
-                        <div className="flex items-center gap-2 mb-2 md:mb-4 px-1">
+                      <div className="mb-3 md:mb-10">
+                        <div className="flex items-center gap-2 mb-1.5 md:mb-4 px-1">
                           <div className="h-[1px] flex-1 bg-slate-100" />
-                          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">or social reference</span>
+                          <span className="text-[9px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest">or social reference</span>
                           <div className="h-[1px] flex-1 bg-slate-100" />
                         </div>
                         <div className="relative">
                           <Input
-                            icon={<User className="h-5 w-5" />}
+                            icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
                             type="url"
                             placeholder="LinkedIn URL (optional)"
                             value={linkedinUrl}
@@ -476,37 +486,40 @@ export default function Onboarding() {
                         <motion.div
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-600 font-bold flex items-center gap-3"
+                          className="mb-3 md:mb-8 rounded-xl md:rounded-2xl border border-red-200 bg-red-50 p-3 md:p-5 text-xs md:text-sm text-red-600 font-bold flex items-center gap-2 md:gap-3"
                         >
-                          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                          {resumeError}
+                          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+                          <span className="flex-1 min-w-0 truncate">{resumeError}</span>
                         </motion.div>
                       )}
                     </div>
 
-                    <div className="flex gap-4 pt-4 shrink-0 mt-auto">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-10 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-xs md:text-base">
-                        <ArrowLeft className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto">
+                      <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
+                        <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
                         PREV
                       </Button>
-                      {resumeFile ? (
+                      {resumeFile && !resumeError ? (
                         <Button
                           onClick={handleResumeUpload}
                           disabled={isUploading}
-                          className="flex-[2] h-10 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-sm md:text-lg group overflow-hidden relative"
+                          className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-xs md:text-lg group overflow-hidden relative"
                         >
                           <span className="relative z-10 flex items-center justify-center">
                             {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "SYNC NEW SOURCE" : "EXTRACT EXPERIENCE"}
-                            <ArrowRight className="ml-2 md:ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
+                            <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
                           </span>
                         </Button>
                       ) : (
                         <Button
-                          variant="outline"
+                          variant={resumeError ? "primary" : "outline"}
                           onClick={nextStep}
-                          className="flex-[2] h-10 md:h-12 rounded-[1.25rem] font-black text-slate-500 hover:border-slate-900 hover:text-slate-900 border-2 border-slate-200 transition-all text-sm md:text-lg truncate"
+                          className={`flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black transition-all text-xs md:text-lg truncate ${resumeError
+                            ? "bg-primary-600 hover:bg-primary-500 shadow-xl shadow-primary-500/30 text-white"
+                            : "text-slate-500 hover:border-slate-900 hover:text-slate-900 border-2 border-slate-200"
+                            }`}
                         >
-                          SKIP TO MANUAL
+                          {resumeError ? "CONTINUE ANYWAY" : "SKIP TO MANUAL"}
                         </Button>
                       )}
                     </div>
@@ -597,18 +610,18 @@ export default function Onboarding() {
                 {currentStep === 2 && (
                   <div className="flex flex-col h-full overflow-hidden">
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="mb-4 md:mb-8 flex items-center gap-3 md:gap-5 border-b border-slate-100 pb-4 md:pb-6">
-                        <div className="flex h-10 w-12 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
-                          <User className="h-6 w-6 md:h-8 md:w-8" />
+                      <div className="mb-3 md:mb-8 flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6">
+                        <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
+                          <User className="h-4 w-4 md:h-8 md:w-8" />
                         </div>
                         <div className="min-w-0">
-                          <h2 className="font-display text-2xl md:text-3xl font-black text-slate-900 tracking-tight truncate">Verify Identity</h2>
-                          <p className="text-xs md:text-sm text-slate-500 font-medium italic truncate">Confirm the details we extracted.</p>
+                          <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Verify Identity</h2>
+                          <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Confirm the details we extracted.</p>
                         </div>
                       </div>
 
-                      <div className="grid gap-4 md:gap-6">
-                        <div className="grid grid-cols-2 gap-3 md:gap-6">
+                      <div className="grid gap-3 md:gap-6">
+                        <div className="grid grid-cols-2 gap-2.5 md:gap-6">
                           <div>
                             <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                               <div className="w-1 h-1 rounded-full bg-emerald-500" />
@@ -679,28 +692,28 @@ export default function Onboarding() {
                       </div>
 
                       {parsedResume && (
-                        <div className="mt-4 md:mt-8 p-3 md:p-5 rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100">
+                        <div className="mt-3 md:mt-8 p-2.5 md:p-5 rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100">
                           <div className="flex items-center gap-2 mb-1 md:mb-2">
                             <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-emerald-600" />
-                            <p className="text-[8px] md:text-[10px] font-black text-emerald-700 uppercase tracking-widest">AI-Extracted From Resume</p>
+                            <p className="text-[7px] md:text-[10px] font-black text-emerald-700 uppercase tracking-widest">AI-Extracted From Resume</p>
                           </div>
-                          <p className="text-xs md:text-sm text-emerald-800 font-medium">We pre-filled these from your resume. Please verify details.</p>
+                          <p className="text-[10px] md:text-sm text-emerald-800 font-medium">We pre-filled these from your resume. Please verify details.</p>
                         </div>
                       )}
                     </div>
 
-                    <div className="flex gap-4 pt-4 shrink-0 mt-auto">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-10 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-xs md:text-base">
-                        <ArrowLeft className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto">
+                      <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
+                        <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
                         PREV
                       </Button>
                       <Button
                         onClick={handleSaveContact}
                         disabled={!contactInfo.first_name || !contactInfo.email || isSavingContact}
-                        className="flex-[2] h-10 md:h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-sm md:text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
+                        className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-xs md:text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
                       >
                         {isSavingContact ? <LoadingSpinner size="sm" /> : "CONFIRM IDENTITY"}
-                        <ArrowRight className="ml-2 md:ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </div>
                   </div>
@@ -710,19 +723,19 @@ export default function Onboarding() {
                 {currentStep === 3 && (
                   <div className="flex flex-col h-full overflow-hidden">
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="flex items-center gap-3 md:gap-5 border-b border-slate-100 pb-4 md:pb-6 mb-4 md:mb-8">
-                        <div className="flex h-10 w-12 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[1rem] md:rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
-                          <MapPin className="h-6 w-6 md:h-8 md:w-8" />
+                      <div className="flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6 mb-3 md:mb-8">
+                        <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
+                          <MapPin className="h-4 w-4 md:h-8 md:w-8" />
                         </div>
                         <div className="min-w-0">
-                          <h2 className="font-display text-2xl md:text-3xl font-black text-slate-900 tracking-tight truncate">Active Parameters</h2>
-                          <p className="text-xs md:text-sm text-slate-500 font-medium italic truncate">Define the geospatial and fiscal bounds.</p>
+                          <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Active Parameters</h2>
+                          <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Define the geospatial and fiscal bounds.</p>
                         </div>
                       </div>
 
                       {/* AI Suggestions Section */}
                       {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
-                        <div className="grid md:grid-cols-2 gap-3 md:gap-6 mb-4 md:mb-8">
+                        <div className="grid md:grid-cols-2 gap-2.5 md:gap-6 mb-3 md:mb-8">
                           {/* Role Suggestions */}
                           <AISuggestionCard
                             title="Suggested Roles"
@@ -756,7 +769,7 @@ export default function Onboarding() {
 
                       {/* Salary Suggestion */}
                       {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
-                        <div className="mb-4 md:mb-8">
+                        <div className="mb-3 md:mb-8">
                           <SalarySuggestionCard
                             minSalary={aiSuggestions.salary.data?.min_salary || 0}
                             maxSalary={aiSuggestions.salary.data?.max_salary || 0}
@@ -773,8 +786,8 @@ export default function Onboarding() {
                         </div>
                       )}
 
-                      <div className="space-y-4 md:space-y-8">
-                        <div className="grid gap-4 md:gap-8">
+                      <div className="space-y-3 md:space-y-8">
+                        <div className="grid gap-3 md:gap-8">
                           <div>
                             <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                               <div className="w-1 h-1 rounded-full bg-primary-500" />
@@ -810,7 +823,7 @@ export default function Onboarding() {
                           </div>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+                        <div className="grid md:grid-cols-2 gap-3 md:gap-8">
                           <div>
                             <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                               <div className="w-1 h-1 rounded-full bg-primary-500" />
@@ -848,7 +861,7 @@ export default function Onboarding() {
                       </div>
 
                       {/* Work Authorization */}
-                      <div className="pt-4 md:pt-6 border-t border-slate-100 mt-4 md:mt-8">
+                      <div className="pt-3 md:pt-6 border-t border-slate-100 mt-3 md:mt-8">
                         <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                           <div className="w-1 h-1 rounded-full bg-emerald-500" />
                           Work Authorization
@@ -871,14 +884,14 @@ export default function Onboarding() {
                       </div>
                     </div>
 
-                    <div className="flex gap-4 pt-4 shrink-0 mt-auto">
-                      <Button variant="ghost" onClick={prevStep} className="flex-1 h-10 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-xs md:text-base">
-                        <ArrowLeft className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto">
+                      <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
+                        <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
                         PREV
                       </Button>
-                      <Button onClick={handleSavePreferences} className="flex-[2] h-10 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-sm md:text-xl group" disabled={isSavingPreferences}>
+                      <Button onClick={handleSavePreferences} className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-xs md:text-xl group" disabled={isSavingPreferences}>
                         {isSavingPreferences ? <LoadingSpinner size="sm" /> : "DEPLOY HUNTER ENGINE"}
-                        <ArrowRight className="ml-2 md:ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </div>
                   </div>
@@ -888,30 +901,30 @@ export default function Onboarding() {
                 {currentStep === 4 && (
                   <div className="flex flex-col h-full overflow-hidden">
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="text-center py-4 md:py-6">
-                        <div className="mx-auto mb-6 md:mb-10 relative">
+                      <div className="text-center py-2 md:py-6">
+                        <div className="mx-auto mb-3 md:mb-10 relative">
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: [1, 1.2, 1] }}
                             transition={{ duration: 0.5, times: [0, 0.5, 1] }}
                             className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl"
                           />
-                          <div className="relative mx-auto flex h-20 w-20 md:h-28 md:w-28 items-center justify-center rounded-[2rem] md:rounded-[3rem] bg-emerald-500 shadow-2xl shadow-emerald-200">
-                            <CheckCircle2 className="h-8 w-10 md:h-12 md:w-16 text-white" />
+                          <div className="relative mx-auto flex h-14 w-14 md:h-28 md:w-28 items-center justify-center rounded-[1.5rem] md:rounded-[3rem] bg-emerald-500 shadow-2xl shadow-emerald-200">
+                            <CheckCircle2 className="h-7 w-7 md:h-12 md:w-16 text-white" />
                           </div>
                         </div>
 
-                        <h1 className="mb-2 md:mb-4 font-display text-3xl md:text-5xl font-black text-slate-900 tracking-tight">
+                        <h1 className="mb-1 md:mb-4 font-display text-2xl md:text-5xl font-black text-slate-900 tracking-tight">
                           System <span className="text-emerald-500 italic">Online.</span>
                         </h1>
-                        <p className="mb-6 md:mb-12 text-slate-500 font-medium max-w-sm mx-auto text-base md:text-lg leading-relaxed">
+                        <p className="mb-4 md:mb-12 text-slate-500 font-medium max-w-sm mx-auto text-sm md:text-lg leading-relaxed">
                           Calibration successful. Your digital twin is initialized.
                         </p>
 
                         {/* Preferences Summary Table */}
-                        <div className="mb-6 md:mb-12 relative">
-                          <div className="absolute -inset-4 bg-gradient-to-b from-slate-900/5 to-transparent rounded-[3rem] -z-10" />
-                          <Card className="bg-slate-950 text-white p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl text-left relative overflow-hidden border-white/5 border-t-white/10">
+                        <div className="mb-4 md:mb-12 relative">
+                          <div className="absolute -inset-4 bg-gradient-to-b from-slate-900/5 to-transparent rounded-[3rem] -z-10 hidden md:block" />
+                          <Card className="bg-slate-950 text-white p-3 md:p-8 rounded-[1.25rem] md:rounded-[2.5rem] shadow-2xl text-left relative overflow-hidden border-white/5 border-t-white/10">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px]" />
                             <div className="relative z-10">
                               <div className="flex items-center gap-3 mb-4 md:mb-8 border-b border-white/5 pb-2 md:pb-4">
@@ -960,11 +973,11 @@ export default function Onboarding() {
                       </div>
                     </div>
 
-                    <div className="pt-4 shrink-0 mt-auto">
-                      <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-12 md:h-16 rounded-[1.5rem] md:rounded-[2rem] text-lg md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
-                        <span className="relative z-10 flex items-center justify-center gap-3 md:gap-4">
+                    <div className="pt-2 md:pt-4 shrink-0 mt-auto">
+                      <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-10 md:h-16 rounded-[1.25rem] md:rounded-[2rem] text-base md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
+                        <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">
                           {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
-                          <Rocket className="h-6 w-6 md:h-8 md:w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
+                          <Rocket className="h-5 w-5 md:h-8 md:w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
                         </span>
                         <motion.div
                           animate={{ x: ['-100%', '200%'] }}
@@ -972,7 +985,7 @@ export default function Onboarding() {
                           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
                         />
                       </Button>
-                      <p className="mt-4 md:mt-8 text-[8px] md:text-[10px] text-slate-400 font-black uppercase tracking-[0.4em] hidden sm:block">Full system authority granted.</p>
+                      <p className="mt-2 md:mt-8 text-[8px] md:text-[10px] text-slate-400 font-black uppercase tracking-[0.4em] hidden md:block">Full system authority granted.</p>
                     </div>
                   </div>
                 )}
@@ -980,18 +993,15 @@ export default function Onboarding() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Helper text */}
-          <p className="mt-8 text-center text-xs text-slate-400 font-medium">
+          {/* Helper text - hidden on mobile */}
+          <p className="mt-3 md:mt-8 text-center text-[10px] md:text-xs text-slate-400 font-medium hidden md:block">
             Step recorded at {new Date().toLocaleTimeString()} • Secured by 256-bit encryption
           </p>
         </div>
       </main>
 
-      {/* Minimal Footer - Mobile hidden/minimal */}
-      <footer className="px-4 py-2 border-t border-slate-200 bg-white/80 backdrop-blur md:hidden text-center z-50 absolute bottom-0 w-full text-[10px] text-slate-300">
-        © 2024 JobHuntin
-      </footer>
-      <footer className="hidden md:block px-6 py-4 lg:py-8 border-t border-slate-200 bg-white shrink-0">
+      {/* Footer - desktop only */}
+      <footer className="hidden md:block px-6 py-4 lg:py-6 border-t border-slate-200 bg-white shrink-0">
         <div className="max-w-2xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-slate-400 font-medium font-bold">© 2024 JobHuntin AI. Intelligence for Career Acceleration.</p>
           <div className="flex gap-6">

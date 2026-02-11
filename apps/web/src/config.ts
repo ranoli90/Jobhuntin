@@ -5,7 +5,6 @@
 
 export const config = {
   // API Configuration
-  // API Configuration
   api: {
     baseUrl: (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, ""),
     timeout: 30000, // 30 seconds

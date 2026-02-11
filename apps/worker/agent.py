@@ -867,22 +867,42 @@ class FormAgent:
                 
                 incr("agent.dlq_insertion", tags={"tenant_id": tenant_id or "none"})
             else:
-                # Just fail for retry (claim logic will picking it up if status resets or we implement strict retry backoff)
-                # Currently claim_next only picks QUEUED or old PROCESSING.
-                # We need to set it back to QUEUED or keep it FAILED?
-                # If we set to FAILED, it won't be picked up again depending on claim_next logic.
-                # claim_next: WHERE (status = 'QUEUED' OR ...)
-                # So we should probably set it back to QUEUED so it retries? 
-                # Or 'PENDING'?
-                # The original code set it to "FAILED". 
-                # If "FAILED" is terminal, then retry logic is broken in original code?
-                # Let's assume standard behavior: update to 'QUEUED' for retry, or system external force.
-                # But typically "FAILED" means manual intervention or retry logic handles it.
-                # NOTE: Original code set "FAILED". I will preserve that but maybe add a note.
-                # Actually, `claim_next` usually picks up 'QUEUED'. 
-                # If we want retry, we should probably set to 'QUEUED' with backoff.
-                # But for now, I'll stick to original behavior + DLQ logic.
-                await update_application_status(conn, app_id, "FAILED", error_message=error_msg)
+                # Exponential backoff: 30s, 60s, 120s, ...
+                backoff_seconds = 30 * (2 ** (attempt - 1))
+                logger.info("Scheduling retry for %s in %ds (attempt %d)", app_id, backoff_seconds, attempt)
+                
+                await conn.execute("""
+                    UPDATE public.applications
+                    SET    status       = 'QUEUED',
+                    last_error   = $2,
+                    available_at = now() + make_interval(secs => $3),
+                    updated_at   = now()
+                    WHERE  id = $1
+                """, app_id, error_msg, float(backoff_seconds))
+
+                await EventRepo.emit(conn, app_id, "RETRY_SCHEDULED", {
+                    "error_message": error_msg,
+                    "attempt_count": attempt,
+                    "backoff_seconds": backoff_seconds,
+                    "available_at": f"now+{backoff_seconds}s"
+                }, tenant_id=tenant_id)
+
+                # Record system evaluation for retry (using RETRY_SCHEDULED status if supported by enum, else generic)
+                # The Enum in models.py has RETRY_SCHEDULED in ApplicationEventType but maybe not ApplicationStatus.
+                # ApplicationStatus only has QUEUED/PROCESSING/REQUIRES_INPUT/APPLIED/SUBMITTED/COMPLETED/FAILED.
+                # So we record it as QUEUED effectively, but let's log the event.
+                await record_system_evaluation(
+                    conn,
+                    application_id=app_id,
+                    status="QUEUED",  # It is back in queue
+                    attempt_count=attempt,
+                    error_message=error_msg,
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                )
+                
+                # Exit early, don't emit "FAILED" event below
+                return
 
             await EventRepo.emit(conn, app_id, "FAILED", {
                 "error_message": error_msg,

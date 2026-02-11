@@ -43,7 +43,7 @@ jobs:
       - name: Submit URLs to Google (if configured)
         if: github.event.inputs.mode == 'submit-urls' || github.event_name == 'schedule'
         env:
-          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY_PATH }}
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
         run: |
           if [ -n "$GOOGLE_SERVICE_ACCOUNT_KEY" ]; then
             npx tsx scripts/seo/submit-to-google.ts

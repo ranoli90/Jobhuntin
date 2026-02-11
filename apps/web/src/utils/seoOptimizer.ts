@@ -35,6 +35,8 @@ export interface SEOOptimization {
   keywords: string[];
   schema: object[];
   contentSections: ContentSection[];
+  faqs: { question: string; answer: string }[];
+  cta: { headline: string; description: string; buttonText: string };
 }
 
 export interface ContentSection {
@@ -57,7 +59,7 @@ export function generateLocationRoleSEO(
   const year = new Date().getFullYear();
   const month = new Date().toLocaleString('default', { month: 'long' });
   const currentDate = new Date().toISOString().split('T')[0]; // For freshness signals
-  
+
   // 1% SEO Technique: Entity-based optimization with semantic relationships
   // Focus on user intent and natural language patterns
   const primaryKeywords = [
@@ -188,9 +190,20 @@ export function generateLocationRoleSEO(
     description: selectedDescription,
     h1: selectedH1,
     h2s: selectedH2s,
-    keywords: uniqueKeywords.slice(0, 15), // Limit to prevent over-optimization
+    keywords: uniqueKeywords.slice(0, 15),
     schema: generateAdvancedSchema(role, location, locationData, roleData, currentDate),
-    contentSections: generateContentSections(role, location, locationData, roleData, uniqueEntities)
+    contentSections: generateContentSections(role, location, locationData, roleData, uniqueEntities),
+    faqs: [
+      { question: `What is the average ${role} salary in ${location}?`, answer: `The average ${role} salary in ${location} ranges from $85K to $210K depending on experience and company size.` },
+      { question: `Which companies hire ${role} in ${location}?`, answer: `Major employers include Fortune 500 companies, startups, and tech firms across ${location}'s diverse economy.` },
+      { question: `Is ${location} a good place for ${role} careers?`, answer: `Yes — ${location} offers a strong job market for ${role} professionals with competitive salaries and career growth opportunities.` },
+      { question: `How can I land a ${role} job in ${location} faster?`, answer: `Use AI-powered tools like JobHuntin to automate your applications and tailor your resume to ${location}-specific opportunities.` },
+    ],
+    cta: {
+      headline: `Start Applying to ${role} Jobs in ${location} in Minutes`,
+      description: `JobHuntin's AI agent discovers, applies, and follows up on ${role} opportunities in ${location} — automatically.`,
+      buttonText: `Hunt ${role} Jobs Now`,
+    },
   };
 }
 
@@ -360,6 +373,85 @@ function generateContentSections(role: string, location: string, locationData: a
 }
 
 /**
+ * Generate SEO content for category hub pages
+ */
+export function generateCategoryHubSEO(
+  categoryName: string,
+  category: any,
+  competitors: any[]
+): SEOOptimization {
+  const year = new Date().getFullYear();
+  const month = new Date().toLocaleString('default', { month: 'long' });
+  const currentDate = new Date().toISOString().split('T')[0];
+
+  const title = `Best ${categoryName} in ${year} — Top ${competitors.length}+ Tools Compared`;
+  const description = `Compare the best ${categoryName.toLowerCase()} tools in ${year}. Expert reviews, pricing, features & alternatives. Updated ${month} ${year}.`;
+  const h1 = category?.h1 || `Best ${categoryName} in ${year}`;
+
+  const h2s = [
+    `Why ${categoryName} Matter in ${year}`,
+    `Our #1 Pick for ${categoryName}`,
+    `All ${categoryName} Compared`,
+    `How We Evaluate ${categoryName}`,
+    `Frequently Asked Questions`,
+  ];
+
+  const keywords = [
+    `best ${categoryName.toLowerCase()}`,
+    `${categoryName.toLowerCase()} comparison`,
+    `${categoryName.toLowerCase()} ${year}`,
+    `top ${categoryName.toLowerCase()} tools`,
+  ];
+
+  const contentSections: ContentSection[] = [
+    {
+      heading: `${categoryName} Market Overview`,
+      content: `The ${categoryName.toLowerCase()} space has evolved rapidly, with ${competitors.length}+ tools available in ${year}. We evaluated each based on automation depth, AI quality, pricing, and user experience to help you choose the right fit.`,
+      keywords: keywords.slice(0, 3),
+      entities: [categoryName, 'AI', 'automation'],
+    },
+    {
+      heading: `What to Look For in ${categoryName}`,
+      content: `Key factors include level of automation, resume tailoring quality, stealth capabilities, job board coverage, pricing transparency, and customer support. The best tools combine AI intelligence with simple setup.`,
+      keywords: [`${categoryName.toLowerCase()} features`, `choosing ${categoryName.toLowerCase()}`],
+      entities: ['features', 'automation', 'pricing'],
+    },
+    {
+      heading: `${categoryName}: Final Verdict`,
+      content: `After extensive testing, JobHuntin leads the category with its fully autonomous AI agent, stealth mode, and competitive pricing. It's the only tool that requires zero manual effort after initial setup.`,
+      keywords: [`best ${categoryName.toLowerCase()} ${year}`],
+      entities: ['JobHuntin', categoryName],
+    },
+  ];
+
+  return {
+    title,
+    description,
+    h1,
+    h2s,
+    keywords,
+    schema: [{
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: title,
+      datePublished: currentDate,
+      dateModified: currentDate,
+      author: { '@type': 'Organization', name: 'JobHuntin' },
+    }],
+    contentSections,
+    faqs: [
+      { question: `What are the best ${categoryName.toLowerCase()}?`, answer: `JobHuntin leads the category with its fully autonomous AI agent. See our full comparison above.` },
+      { question: `Are ${categoryName.toLowerCase()} worth it?`, answer: `Yes — they automate repetitive tasks, saving hours per week on job applications.` },
+    ],
+    cta: {
+      headline: `Try the #1 ${categoryName} Tool Free`,
+      description: `Join thousands of job seekers using JobHuntin's AI agent.`,
+      buttonText: `Get Started Free`,
+    },
+  };
+}
+
+/**
  * Generate semantic internal linking structure
  * Creates natural topic clusters for topical authority
  */
@@ -401,7 +493,7 @@ export function generateSemanticLinking(currentRole: string, currentLocation: st
   // Find related locations (tech hubs, nearby cities, similar markets)
   const techHubs = ['San Francisco', 'New York', 'Austin', 'Seattle', 'Los Angeles', 'Boston', 'Denver', 'Chicago'];
   const currentIndex = techHubs.indexOf(currentLocation);
-  
+
   let relatedLocations: string[] = [];
   if (currentIndex !== -1) {
     // Related tech hubs

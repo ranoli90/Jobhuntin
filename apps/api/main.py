@@ -107,7 +107,7 @@ setup_telemetry("sorce-api", app)
 app.add_middleware(
     CORSMiddleware,
     # Environment-aware origins - localhost only in development
-    allow_origins=list({
+    allow_origins=[o for o in {
         "https://sorce-web.onrender.com",
         "https://sorce-admin.onrender.com",
         _settings.app_base_url.rstrip("/"),
@@ -115,7 +115,7 @@ app.add_middleware(
         "https://app.jobhuntin.com",
         # Include localhost ONLY in non-production environments
         *(["http://localhost:5173", "http://localhost:3000"] if _settings.env.value != "prod" else []),
-    }),
+    } if o],
     allow_credentials=True,
     # Explicit method list instead of wildcard
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -128,6 +128,7 @@ app.add_middleware(
 # Add Request ID middleware for distributed tracing
 setup_request_id_middleware(app)
 
+from shared.middleware import get_client_ip
 from shared.metrics import get_rate_limiter
 
 
@@ -143,7 +144,7 @@ async def rate_limiting_middleware(request: Request, call_next):
         return await call_next(request)
     
     # Get client identifier (IP address)
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = get_client_ip(request)
     
     # Get rate limiter for this client
     limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)  # 100 requests per minute

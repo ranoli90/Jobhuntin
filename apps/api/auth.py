@@ -8,6 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
+import math
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
@@ -149,10 +150,12 @@ async def request_magic_link(
 
     limiter = _get_rate_limiter(settings, body.email)
     if not limiter.allow():
-        logger.warning("Magic link rate limit hit", extra={"email": body.email})
+        retry_after = limiter.next_available_in()
+        logger.warning("Magic link rate limit hit", extra={"email": body.email, "retry_after": retry_after})
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait before requesting another magic link.",
+            headers={"Retry-After": str(int(math.ceil(retry_after)))},
         )
 
     redirect = _build_redirect_url(settings, body.return_to)

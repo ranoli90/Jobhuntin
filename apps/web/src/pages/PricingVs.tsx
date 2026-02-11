@@ -8,7 +8,7 @@ import { ConversionCTA } from '../components/seo/ConversionCTA';
 import { motion } from 'framer-motion';
 import competitorsData from '../data/competitors.json';
 
-const COMPETITORS_MAP = Object.fromEntries(
+const COMPETITORS_MAP: Record<string, typeof competitorsData[0]> = Object.fromEntries(
     competitorsData.map(c => [c.slug, c])
 );
 
@@ -24,11 +24,11 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
         },
         {
             question: `What's the best value between ${competitor.name} and JobHuntin?`,
-            answer: `When comparing total value, JobHuntin provides more features per dollar: autonomous AI operation, per-application resume tailoring, stealth mode, cover letter generation, and job tracking — all included in the Pro plan. ${competitor.name}'s ${competitor.pricing.tiers[competitor.pricing.tiers.length - 1]} still ${competitor.features.stealth_mode ? 'doesn\'t match' : 'lacks key features like stealth mode and full automation that'} JobHuntin includes.`,
+            answer: `When comparing total value, JobHuntin provides more features per dollar: autonomous AI operation, per-application resume tailoring, stealth mode, cover letter generation, and job tracking — all included in the Pro plan. ${competitor.name}'s ${competitor.pricing.tiers?.[competitor.pricing.tiers.length - 1] ?? 'top tier'} still ${competitor.features.stealth_mode ? 'doesn\'t match' : 'lacks key features like stealth mode and full automation that'} JobHuntin includes.`,
         },
         {
             question: `Are there hidden fees with ${competitor.name}?`,
-            answer: `${competitor.name} charges ${competitor.pricing.starts_at} with ${competitor.pricing.tiers.length} pricing tiers. Some features may only be available on higher tiers. JobHuntin's pricing is transparent — the Pro plan includes all features with no hidden fees, per-application charges, or surprise upgrades.`,
+            answer: `${competitor.name} charges ${competitor.pricing.starts_at} with ${competitor.pricing.tiers?.length ?? 0} pricing tiers. Some features may only be available on higher tiers. JobHuntin's pricing is transparent — the Pro plan includes all features with no hidden fees, per-application charges, or surprise upgrades.`,
         },
         {
             question: `Can I try JobHuntin before paying?`,
@@ -148,7 +148,7 @@ export default function PricingVs() {
                             <span className="text-sm text-slate-400 font-medium ml-1">starting</span>
                         </p>
                         <div className="space-y-3 mb-6">
-                            {competitor.pricing.tiers.map((tier, i) => (
+                            {(competitor.pricing.tiers ?? []).map((tier, i) => (
                                 <div key={i} className="flex items-center gap-3 text-sm">
                                     <Minus className="w-4 h-4 text-slate-300" />
                                     <span className="text-slate-600 font-medium">{tier}</span>
@@ -282,11 +282,7 @@ export default function PricingVs() {
                 <ConversionCTA competitorName={competitor.name} variant="compare" />
             </main>
 
-            <footer className="bg-white border-t border-slate-200 py-12 mt-20">
-                <div className="max-w-7xl mx-auto px-6 text-center text-slate-400 text-sm font-medium">
-                    &copy; {new Date().getFullYear()} JobHuntin AI. All rights reserved.
-                </div>
-            </footer>
+
         </div>
     );
 }

@@ -31,7 +31,7 @@ export function generateSemanticLinksForLocationRole(
   locationData: any
 ): SemanticLink[] {
   const links: SemanticLink[] = [];
-  
+
   // High-priority semantic relationships
   links.push({
     url: `/jobs/${role.toLowerCase().replace(/\s+/g, '-')}`,
@@ -41,7 +41,7 @@ export function generateSemanticLinksForLocationRole(
     priority: 'high',
     topicalRelevance: 0.95
   });
-  
+
   links.push({
     url: `/jobs/all/${location.toLowerCase().replace(/\s+/g, '-')}`,
     anchorText: `all tech jobs in ${location}`,
@@ -50,7 +50,7 @@ export function generateSemanticLinksForLocationRole(
     priority: 'high',
     topicalRelevance: 0.95
   });
-  
+
   // Category-based linking
   if (roleData?.category) {
     links.push({
@@ -62,7 +62,7 @@ export function generateSemanticLinksForLocationRole(
       topicalRelevance: 0.90
     });
   }
-  
+
   // Competitor comparison linking
   links.push({
     url: `/vs/indeed-${role.toLowerCase().replace(/\s+/g, '-')}-${location.toLowerCase().replace(/\s+/g, '-')}`,
@@ -72,7 +72,7 @@ export function generateSemanticLinksForLocationRole(
     priority: 'medium',
     topicalRelevance: 0.85
   });
-  
+
   // Related roles linking (semantic clustering)
   const relatedRoles = getRelatedRoles(role);
   relatedRoles.forEach(relatedRole => {
@@ -85,7 +85,7 @@ export function generateSemanticLinksForLocationRole(
       topicalRelevance: 0.80
     });
   });
-  
+
   // Location cluster linking
   const nearbyCities = getNearbyCities(location);
   nearbyCities.forEach(city => {
@@ -98,10 +98,10 @@ export function generateSemanticLinksForLocationRole(
       topicalRelevance: 0.75
     });
   });
-  
+
   // Skill-based linking
   if (roleData?.skills) {
-    roleData.skills.slice(0, 3).forEach(skill => {
+    roleData.skills.slice(0, 3).forEach((skill: string) => {
       links.push({
         url: `/skills/${skill.toLowerCase().replace(/\s+/g, '-')}/${location.toLowerCase().replace(/\s+/g, '-')}`,
         anchorText: `${skill} jobs in ${location}`,
@@ -112,7 +112,7 @@ export function generateSemanticLinksForLocationRole(
       });
     });
   }
-  
+
   return links.sort((a, b) => b.topicalRelevance - a.topicalRelevance);
 }
 
@@ -126,7 +126,7 @@ export function generateEntityRelationships(
   locationData: any
 ): EntityRelationship[] {
   const relationships: EntityRelationship[] = [];
-  
+
   // Primary entity relationships
   relationships.push({
     source: location,
@@ -134,14 +134,14 @@ export function generateEntityRelationships(
     relationship: 'employs',
     strength: 0.95
   });
-  
+
   relationships.push({
     source: role,
     target: location,
     relationship: 'located_in',
     strength: 0.95
   });
-  
+
   // Industry relationships
   if (locationData?.industry) {
     relationships.push({
@@ -150,7 +150,7 @@ export function generateEntityRelationships(
       relationship: 'specializes_in',
       strength: 0.90
     });
-    
+
     relationships.push({
       source: role,
       target: locationData.industry,
@@ -158,17 +158,17 @@ export function generateEntityRelationships(
       strength: 0.85
     });
   }
-  
+
   // Company relationships
   if (locationData?.majorEmployers) {
-    locationData.majorEmployers.forEach(company => {
+    locationData.majorEmployers.forEach((company: string) => {
       relationships.push({
         source: company,
         target: role,
         relationship: 'hires',
         strength: 0.80
       });
-      
+
       relationships.push({
         source: location,
         target: company,
@@ -177,10 +177,10 @@ export function generateEntityRelationships(
       });
     });
   }
-  
+
   // Skill relationships
   if (roleData?.skills) {
-    roleData.skills.forEach(skill => {
+    roleData.skills.forEach((skill: string) => {
       relationships.push({
         source: role,
         target: skill,
@@ -189,7 +189,7 @@ export function generateEntityRelationships(
       });
     });
   }
-  
+
   return relationships;
 }
 
@@ -197,7 +197,7 @@ export function generateEntityRelationships(
  * Get semantically related roles for topical clustering
  */
 function getRelatedRoles(role: string): string[] {
-  const roleClusters = {
+  const roleClusters: Record<string, string[]> = {
     'software-engineer': ['backend-developer', 'frontend-developer', 'full-stack-developer', 'devops-engineer'],
     'data-scientist': ['data-analyst', 'machine-learning-engineer', 'data-engineer', 'business-analyst'],
     'product-manager': ['product-owner', 'program-manager', 'project-manager', 'business-analyst'],
@@ -205,7 +205,7 @@ function getRelatedRoles(role: string): string[] {
     'marketing-manager': ['digital-marketing-manager', 'content-marketing-manager', 'growth-manager', 'brand-manager'],
     'sales-representative': ['account-executive', 'business-development-representative', 'sales-engineer', 'customer-success-manager']
   };
-  
+
   const normalizedRole = role.toLowerCase().replace(/\s+/g, '-');
   return roleClusters[normalizedRole] || ['senior-' + normalizedRole, 'lead-' + normalizedRole, 'principal-' + normalizedRole];
 }
@@ -214,7 +214,7 @@ function getRelatedRoles(role: string): string[] {
  * Get geographically nearby cities for local clustering
  */
 function getNearbyCities(location: string): string[] {
-  const cityClusters = {
+  const cityClusters: Record<string, string[]> = {
     'san-francisco': ['oakland', 'berkeley', 'san-jose', 'palo-alto', 'mountain-view'],
     'new-york': ['brooklyn', 'queens', 'manhattan', 'bronx', 'staten-island'],
     'austin': ['round-rock', 'cedar-park', 'georgetown', 'leander', 'pflugerville'],
@@ -224,7 +224,7 @@ function getNearbyCities(location: string): string[] {
     'boston': ['cambridge', 'somerville', 'brookline', 'newton', 'quincy'],
     'denver': ['boulder', 'aurora', 'lakewood', 'thornton', 'westminster']
   };
-  
+
   const normalizedLocation = location.toLowerCase().replace(/\s+/g, '-');
   return cityClusters[normalizedLocation] || [];
 }
@@ -234,9 +234,9 @@ function getNearbyCities(location: string): string[] {
  */
 export function calculateSemanticSimilarity(entity1: string, entity2: string): number {
   // Simple implementation - in production, use word embeddings or NLP libraries
-  const commonWords = entity1.toLowerCase().split(/\s+/) 
+  const commonWords = entity1.toLowerCase().split(/\s+/)
     .filter(word => entity2.toLowerCase().split(/\s+/).includes(word));
-  
+
   const totalWords = new Set([...entity1.toLowerCase().split(/\s+/), ...entity2.toLowerCase().split(/\s+/)]).size;
   return commonWords.length / totalWords;
 }
@@ -248,13 +248,13 @@ export function generateTopicalClusters(role: string, location: string): string[
   return [
     // Primary cluster: Role-specific content
     [`${role} jobs in ${location}`, `${role} salary ${location}`, `${role} skills ${location}`, `${role} companies ${location}`],
-    
+
     // Secondary cluster: Location-specific content
     [`${location} tech jobs`, `${location} startups`, `${location} cost of living`, `${location} tech scene`],
-    
+
     // Tertiary cluster: Career development
     [`${role} career path`, `${role} certifications`, `${role} interview questions`, `${role} resume tips`],
-    
+
     // Quaternary cluster: Company-specific content
     [`${location} tech companies`, `best companies in ${location}`, `${location} startup jobs`, `${location} remote jobs`]
   ];

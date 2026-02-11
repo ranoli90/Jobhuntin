@@ -117,3 +117,25 @@ def setup_request_id_middleware(app) -> None:
     """Add RequestID middleware to the app."""
     app.add_middleware(RequestIDMiddleware)
     logger.info("Request ID middleware enabled")
+
+# ---------------------------------------------------------------------------
+# IP Extraction Helper
+# ---------------------------------------------------------------------------
+
+def get_client_ip(request: Request) -> str:
+    """
+    Extract real client IP, respecting proxy headers (X-Forwarded-For).
+    
+    Falls back to X-Real-IP, then request.client.host.
+    """
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        # X-Forwarded-For: client, proxy1, proxy2
+        # Leftmost is the original client
+        return forwarded.split(",")[0].strip()
+        
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip.strip()
+        
+    return request.client.host if request.client else "unknown"

@@ -54,7 +54,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               >
                 Refresh Page
               </button>
-              {this.state.error && (
+              {this.state.error && import.meta.env.DEV && (
                 <details className="mt-4 p-3 bg-gray-100 rounded text-sm">
                   <summary className="cursor-pointer font-mono text-gray-700">
                     Error details (dev only)

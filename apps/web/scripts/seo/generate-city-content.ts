@@ -64,13 +64,16 @@ const DEFAULT_KEY = "sk-or-v1-4f26e6d495a0e829e0d9e4f79acbb8d302f87c0e572c8ae55b
 
 // FREE models only - no paid models to avoid costs
 const FREE_MODELS = [
-  'openrouter/aurora-alpha',                    // Fast, free, good quality
-  'google/gemini-2.0-flash-lite-preview-02-05:free', // Google's free tier
-  'meta-llama/llama-3-8b-instruct:free',        // Meta's free model
-  'mistralai/mistral-7b-instruct:free',         // Mistral free tier
-  'microsoft/phi-3-medium-128k-instruct:free',  // Microsoft free model
-  'qwen/qwen-2.5-7b-instruct:free',            // Alibaba's free model
-  '01-ai/yi-6b:free'                            // 01.AI free model
+  'nvidia/nemotron-3-nano-30b-a3b:free',       // Primary: High capability (30B)
+  'nvidia/nemotron-nano-12b-v2-vl:free',        // Fallback 1: Balanced (12B)
+  'nvidia/nemotron-nano-9b-v2:free',            // Fallback 2: Fast (9B)
+  'openrouter/aurora-alpha',
+  'google/gemini-2.0-flash-lite-preview-02-05:free',
+  'meta-llama/llama-3-8b-instruct:free',
+  'mistralai/mistral-7b-instruct:free',
+  'microsoft/phi-3-medium-128k-instruct:free',
+  'qwen/qwen-2.5-7b-instruct:free',
+  '01-ai/yi-6b:free'
 ];
 
 // Backup models for when free models are rate limited
@@ -159,14 +162,14 @@ async function generateAggressiveLocalContent(
   aggressive: boolean = false
 ): Promise<{ location: LocationData; role: RoleData }> {
   const apiKey = process.env.LLM_API_KEY || DEFAULT_KEY;
-  
+
   if (!apiKey) {
     throw new Error('LLM_API_KEY environment variable is missing.');
   }
 
   // Use only free models to avoid costs
   const modelsToTry = aggressive ? [...FREE_MODELS, ...BACKUP_FREE_MODELS] : FREE_MODELS;
-  
+
   // Ultra-aggressive local SEO prompt with semantic triples and entity relationships
   // Designed to avoid Google penalties while maximizing rankings
   const aggressivePrompt = `
@@ -332,7 +335,7 @@ async function generateAggressiveLocalContent(
   for (let i = 0; i < modelsToTry.length; i++) {
     const model = modelsToTry[i];
     console.log(`\n🔄 Attempting with model: ${model} (${i + 1}/${modelsToTry.length})`);
-    
+
     try {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -368,7 +371,7 @@ async function generateAggressiveLocalContent(
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
-      
+
       if (!content) {
         console.log(`⚠️  Model ${model} returned empty content`);
         continue;
@@ -376,7 +379,7 @@ async function generateAggressiveLocalContent(
 
       // Clean JSON response (remove markdown wrapping)
       const cleanContent = content.replace(/```json\n?/g, '').replace(/\n?```/g, '').trim();
-      
+
       let parsedContent;
       try {
         parsedContent = JSON.parse(cleanContent);
@@ -413,7 +416,7 @@ function validateContentQuality(content: any): boolean {
   try {
     const location = content.location;
     const role = content.role;
-    
+
     if (!location || !role) {
       console.log(`❌ Missing location or role data`);
       return false;
@@ -429,7 +432,7 @@ function validateContentQuality(content: any): boolean {
     const totalWords = location.contentSections.reduce((sum: number, section: any) => {
       return sum + (section.wordCount || 0);
     }, 0);
-    
+
     if (totalWords < 1200) { // Slightly lower for flexibility
       console.log(`❌ Insufficient word count: ${totalWords} (minimum 1200)`);
       return false;
@@ -439,7 +442,7 @@ function validateContentQuality(content: any): boolean {
     const avgDensity = location.contentSections.reduce((sum: number, section: any) => {
       return sum + (section.semanticDensity || 0);
     }, 0) / location.contentSections.length;
-    
+
     if (avgDensity > 3.0) {
       console.log(`❌ Semantic density too high: ${avgDensity}% (maximum 3.0%)`);
       return false;
@@ -467,7 +470,7 @@ function validateContentQuality(content: any): boolean {
     console.log(`📊 Word count: ${totalWords}`);
     console.log(`🎯 Semantic density: ${avgDensity.toFixed(1)}%`);
     console.log(`🏆 Quality score: ${location.contentQuality}`);
-    
+
     return true;
   } catch (error) {
     console.log(`❌ Content validation error: ${error.message}`);
@@ -485,10 +488,10 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     const roles = JSON.parse(fs.readFileSync(ROLES_FILE, 'utf-8'));
 
     // Find and update location
-    const locationIndex = locations.findIndex((loc: any) => 
+    const locationIndex = locations.findIndex((loc: any) =>
       loc.name.toLowerCase() === cityName.toLowerCase()
     );
-    
+
     if (locationIndex !== -1) {
       locations[locationIndex] = { ...locations[locationIndex], ...content.location };
       console.log(`✅ Updated location data for ${cityName}`);
@@ -497,10 +500,10 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     }
 
     // Find and update role
-    const roleIndex = roles.findIndex((role: any) => 
+    const roleIndex = roles.findIndex((role: any) =>
       role.name.toLowerCase() === roleName.toLowerCase()
     );
-    
+
     if (roleIndex !== -1) {
       roles[roleIndex] = { ...roles[roleIndex], ...content.role };
       console.log(`✅ Updated role data for ${roleName}`);
@@ -513,7 +516,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     fs.writeFileSync(ROLES_FILE, JSON.stringify(roles, null, 2));
 
     console.log(`💾 Content saved successfully`);
-    
+
   } catch (error) {
     console.error(`❌ Error saving content: ${error.message}`);
     throw error;
@@ -525,7 +528,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
  */
 async function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length < 2) {
     console.error(`
 Usage: npx tsx scripts/seo/generate-city-content.ts <city> <role> [options]
@@ -558,7 +561,7 @@ Examples:
   try {
     // Generate content
     const content = await generateAggressiveLocalContent(cityName, roleName, aggressive);
-    
+
     if (dryRun) {
       console.log(`\n🔍 DRY RUN: Content preview:`);
       console.log(`📊 Location quality: ${content.location.contentQuality}`);

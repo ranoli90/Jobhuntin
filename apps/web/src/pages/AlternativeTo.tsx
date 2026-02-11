@@ -222,11 +222,7 @@ export default function AlternativeTo() {
                 <ConversionCTA competitorName={competitor.name} variant="switch" />
             </main>
 
-            <footer className="bg-white border-t border-slate-200 py-12 mt-20">
-                <div className="max-w-7xl mx-auto px-6 text-center text-slate-400 text-sm font-medium">
-                    &copy; {new Date().getFullYear()} JobHuntin AI. All rights reserved.
-                </div>
-            </footer>
+
         </div>
     );
 }

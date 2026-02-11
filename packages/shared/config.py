@@ -54,13 +54,13 @@ class Settings(BaseSettings):
     supabase_storage_bucket: str = "resumes"
 
     # ── LLM ──────────────────────────────────────────────────────
-    llm_api_base: str = "https://api.openai.com/v1"
+    llm_api_base: str = "https://openrouter.ai/api/v1"
     llm_api_key: str = ""
-    llm_model: str = "gpt-4o-mini"
+    llm_model: str = "nvidia/nemotron-3-nano-30b-a3b:free"
     llm_max_tokens: int = 4096
     llm_rate_limit_per_minute: int = 60  # in-process approximate cap
     llm_retry_count: int = 2
-    llm_timeout_seconds: int = 30
+    llm_timeout_seconds: int = 60  # Increased for free model latency
 
     # ── Playwright / Agent ───────────────────────────────────────
     playwright_browser_type: str = "chromium"

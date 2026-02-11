@@ -332,14 +332,19 @@ async def get_profile(
 ) -> dict[str, Any]:
     """Current user profile for web: id, email, has_completed_onboarding, resume_url, preferences."""
     async with db.acquire() as conn:
+        # Fetch email from Supabase auth table so we don't insert None
+        auth_email = await conn.fetchval(
+            "SELECT email FROM auth.users WHERE id = $1",
+            ctx.user_id,
+        )
         await conn.execute(
             """
             INSERT INTO public.users (id, email, updated_at)
             VALUES ($1, $2, now())
-            ON CONFLICT (id) DO UPDATE SET updated_at = now()
+            ON CONFLICT (id) DO UPDATE SET email = COALESCE(EXCLUDED.email, users.email), updated_at = now()
             """,
             ctx.user_id,
-            None,  # email from auth if needed
+            auth_email,
         )
         user_row = await conn.fetchrow(
             "SELECT id, email, full_name FROM public.users WHERE id = $1",

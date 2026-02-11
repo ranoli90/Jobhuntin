@@ -1,12 +1,7 @@
 import { useAuthContext } from "../context/AuthContext";
-import type { Session, User } from "@supabase/supabase-js";
+import type { AuthState } from "../context/AuthContext";
 
-export interface AuthState {
-  session: Session | null;
-  user: User | null;
-  loading: boolean;
-  signOut: () => Promise<void>;
-}
+export type { AuthState };
 
 export function useAuth(): AuthState {
   return useAuthContext();

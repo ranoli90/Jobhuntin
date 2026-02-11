@@ -57,45 +57,22 @@ export default function Login() {
     }));
   }, []);
 
-  // Handle hash fragment manually for magic link redirect flow
-  useEffect(() => {
-    const handleHash = async () => {
-      const hash = window.location.hash;
-      console.log('[Login] Hash detected');
-      if (hash && hash.includes('access_token')) {
-        try {
-          // Parse the hash fragment to extract the access token
-          const params = new URLSearchParams(hash.substring(1));
-          const accessToken = params.get('access_token');
-          // console.log('[Login] Access token found');
 
-          if (accessToken && !authLoading && session) {
-            console.log('[Login] Session available, navigating...');
-            // If we have a valid session from the hash, navigate to the intended destination
-            const decodedReturnTo = decodeURIComponent(returnTo);
-            const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;
-            navigate(finalDest, { replace: true });
-          }
-        } catch (error) {
-          console.error("[Login] Error handling hash:", error);
-          setFormError("Failed to process authentication. Please try again.");
-        }
-      }
-    };
-    handleHash();
-  }, [authLoading, session, navigate, returnTo]);
-
-
+  // Redirect authenticated users
   useEffect(() => {
     if (!authLoading && session) {
       // If we have a session, navigate to the intended destination
-      // Decode returnTo to ensure we aren't double encoding
       const decodedReturnTo = decodeURIComponent(returnTo);
       // Ensure we don't redirect to login itself
       const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;
+
+      console.log('[Login] Session active, redirecting to:', finalDest);
       navigate(finalDest, { replace: true });
     }
   }, [authLoading, session, navigate, returnTo]);
+
+
+  // Hash handling delegated to AuthContext to prevent race conditions
 
   const emailIsValid = useMemo(() => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());

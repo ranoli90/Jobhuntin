@@ -24,7 +24,7 @@ export function InternalLinkMesh({
     const relatedCompetitors = competitorsData
         .filter(c => {
             if (c.slug === currentSlug) return false;
-            return competitorCategory.some(cat => c.category.includes(cat));
+            return competitorCategory.some(cat => c.category?.includes(cat));
         })
         .slice(0, maxCrossLinks);
 

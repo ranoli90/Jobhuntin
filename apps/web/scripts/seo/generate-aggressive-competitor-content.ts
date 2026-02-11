@@ -25,6 +25,7 @@ const DEFAULT_KEY = "sk-or-v1-4f26e6d495a0e829e0d9e4f79acbb8d302f87c0e572c8ae55b
 
 // Premium models for aggressive SEO content
 const PREMIUM_MODELS = [
+  'nvidia/nemotron-3-nano-30b-a3b:free', // Using robust free model as "premium" substitute per user request
   'anthropic/claude-3-sonnet:beta',
   'openai/gpt-4-turbo-preview',
   'google/gemini-pro',
@@ -33,6 +34,9 @@ const PREMIUM_MODELS = [
 
 // Fallback free models
 const FREE_MODELS = [
+  'nvidia/nemotron-3-nano-30b-a3b:free',
+  'nvidia/nemotron-nano-12b-v2-vl:free',
+  'nvidia/nemotron-nano-9b-v2:free',
   'openrouter/aurora-alpha',
   'google/gemini-2.0-flash-lite-preview-02-05:free',
   'meta-llama/llama-3-8b-instruct:free',
@@ -68,12 +72,12 @@ interface Competitor {
   seoKeywords: string[];
   differentiators: string[];
   verdict: string;
-  ratings: {
-    features: number;
-    value: number;
-    easeOfUse: number;
-    support: number;
-    overall: number;
+  rating_vs_jobhuntin: {
+    speed: number[];
+    quality: number[];
+    automation: number[];
+    stealth: number[];
+    price_value: number[];
   };
   // New aggressive SEO fields
   seoTitle?: string;
@@ -103,13 +107,13 @@ async function generateAggressiveSEOContent(
   aggressive: boolean = false
 ): Promise<Competitor> {
   const apiKey = process.env.LLM_API_KEY || DEFAULT_KEY;
-  
+
   if (!apiKey) {
     throw new Error('LLM_API_KEY environment variable is missing.');
   }
 
   const modelsToTry = aggressive ? [...PREMIUM_MODELS, ...FREE_MODELS] : FREE_MODELS;
-  
+
   // Aggressive SEO prompt for maximum ranking potential
   const aggressivePrompt = `
     You are an expert SEO content strategist. Create the most aggressive, high-ranking competitor analysis for "${competitorName}" that will dominate search results.
@@ -122,7 +126,9 @@ async function generateAggressiveSEOContent(
     4. **ENTITY OPTIMIZATION**: Include 15+ named entities Google recognizes
     5. **CONTENT SECTIONS**: Generate 8 detailed content sections with keyword-rich headings
     6. **SCHEMA MARKUP**: Provide comprehensive JSON-LD schema for Product, Review, FAQPage
+    6. **SCHEMA MARKUP**: Provide comprehensive JSON-LD schema for Product, Review, FAQPage
     7. **COMPETITIVE ADVANTAGES**: Clearly position JobHuntin as the superior choice
+    8. **RATINGS**: Rate vs JobHuntin on Speed, Quality, Automation, Stealth, Price. JobHuntin score should be 9 or 10. Format: [competitor_score, jobhuntin_score]
 
     Required JSON structure:
 
@@ -177,12 +183,12 @@ async function generateAggressiveSEOContent(
         "JobHuntin's game-changing benefit #3"
       ],
       "verdict": "2-3 sentences explaining why users should choose JobHuntin over ${competitorName}",
-      "ratings": {
-        "features": 3.5,
-        "value": 3.0,
-        "easeOfUse": 4.0,
-        "support": 3.5,
-        "overall": 3.5
+      "rating_vs_jobhuntin": {
+        "speed": [6, 10],
+        "quality": [7, 9],
+        "automation": [4, 10],
+        "stealth": [2, 10],
+        "price_value": [8, 9]
       },
       "seoTitle": "${competitorName} vs JobHuntin (2026): #1 Comparison & Why JobHuntin Wins",
       "seoDescription": "Complete ${competitorName} vs JobHuntin comparison (2026). See pricing, features, success rates & why 10,000+ users switched. Updated daily with real user reviews.",
@@ -250,11 +256,11 @@ async function generateAggressiveSEOContent(
   `;
 
   let lastError: Error | null = null;
-  
+
   for (const model of modelsToTry) {
     try {
       console.log(`🤖 Generating aggressive SEO content with ${model}...`);
-      
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -298,7 +304,7 @@ async function generateAggressiveSEOContent(
       let cleanJson = content.replace(/```json\n?|```/g, '').trim();
       const firstBrace = cleanJson.indexOf('{');
       const lastBrace = cleanJson.lastIndexOf('}');
-      
+
       if (firstBrace > -1 && lastBrace > -1) {
         cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
       }
@@ -360,11 +366,11 @@ async function main() {
     // Check for duplicates
     if (competitors.find(c => c.name.toLowerCase() === name.toLowerCase())) {
       console.log(`⚠️  Competitor "${name}" already exists. Updating with aggressive SEO...`);
-      
+
       // Update existing competitor with aggressive SEO
       const existingIndex = competitors.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
       const updatedCompetitor = await generateAggressiveSEOContent(name, url, aggressive);
-      
+
       // Merge with existing data to preserve important fields
       competitors[existingIndex] = {
         ...competitors[existingIndex],
@@ -375,12 +381,12 @@ async function main() {
     } else {
       // Generate new competitor with aggressive SEO
       const newCompetitor = await generateAggressiveSEOContent(name, url, aggressive);
-      
+
       // Check for slug collision
       if (competitors.find(c => c.slug === newCompetitor.slug)) {
         newCompetitor.slug = `${newCompetitor.slug}-${Date.now()}`;
       }
-      
+
       competitors.push(newCompetitor);
     }
 
@@ -389,10 +395,10 @@ async function main() {
 
     // Save updated data
     fs.writeFileSync(COMPETITORS_FILE, JSON.stringify(competitors, null, 2));
-    
+
     console.log(`✅ Successfully updated competitor data with aggressive SEO`);
     console.log(`📊 Total competitors: ${competitors.length}`);
-    
+
     if (aggressive) {
       console.log(`🔥 Aggressive SEO features added:`);
       console.log(`   - Enhanced title tags`);

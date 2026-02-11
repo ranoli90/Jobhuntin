@@ -9,11 +9,11 @@ import competitorsData from '../data/competitors.json';
 import categoriesData from '../data/categories.json';
 import { generateCategoryHubSEO } from '../utils/seoOptimizer';
 
-const CATEGORIES_MAP = Object.fromEntries(
+const CATEGORIES_MAP: Record<string, typeof categoriesData[0]> = Object.fromEntries(
     categoriesData.map(c => [c.slug, c])
 );
 
-const COMPETITORS_MAP = Object.fromEntries(
+const COMPETITORS_MAP: Record<string, typeof competitorsData[0]> = Object.fromEntries(
     competitorsData.map(c => [c.slug, c])
 );
 
@@ -68,7 +68,7 @@ export default function CategoryHub() {
 
     // Generate aggressive SEO data
     const seoData = generateCategoryHubSEO(category.name, category, competitors);
-    
+
     // Merge generated schema with existing schema logic if needed, or just use generated schema
     // The generated schema is more comprehensive, so we'll use that primarily.
 
@@ -117,7 +117,7 @@ export default function CategoryHub() {
                             {seoData.contentSections[0].content}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                            {seoData.contentSections[0].keywords.map(keyword => (
+                            {seoData.contentSections[0].keywords.map((keyword: string) => (
                                 <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
                                     {keyword}
                                 </span>
@@ -188,7 +188,7 @@ export default function CategoryHub() {
                             {seoData.contentSections[1].content}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                            {seoData.contentSections[1].keywords.map(keyword => (
+                            {seoData.contentSections[1].keywords.map((keyword: string) => (
                                 <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
                                     {keyword}
                                 </span>
@@ -202,11 +202,11 @@ export default function CategoryHub() {
                     <h2 className="text-3xl font-black text-slate-900 mb-8">{seoData.h2s[2]}</h2>
                     <div className="space-y-6">
                         {competitors.map((comp, i) => {
-                            const score = Math.round(
+                            const score = comp.rating_vs_jobhuntin ? Math.round(
                                 Object.values(comp.rating_vs_jobhuntin).reduce(
                                     (sum, [them]) => sum + them, 0
                                 ) / Object.keys(comp.rating_vs_jobhuntin).length * 10
-                            ) / 10;
+                            ) / 10 : 0;
 
                             return (
                                 <motion.div
@@ -335,11 +335,7 @@ export default function CategoryHub() {
                 <ConversionCTA variant="default" />
             </main>
 
-            <footer className="bg-white border-t border-slate-200 py-12 mt-20">
-                <div className="max-w-7xl mx-auto px-6 text-center text-slate-400 text-sm font-medium">
-                    &copy; {new Date().getFullYear()} JobHuntin AI. All rights reserved.
-                </div>
-            </footer>
+
         </div>
     );
 }

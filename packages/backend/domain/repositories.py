@@ -69,6 +69,7 @@ WITH next_task AS (
     FROM   public.applications
     WHERE  status = 'QUEUED'
       AND  attempt_count < $1
+      AND  (available_at IS NULL OR available_at <= now())
     ORDER  BY created_at ASC
     LIMIT  1
     FOR UPDATE SKIP LOCKED
@@ -133,6 +134,8 @@ class ApplicationRepo:
                 tenant_id=str(task["tenant_id"]) if task.get("tenant_id") else None,
             )
             return task
+
+
 
     @staticmethod
     async def update_status(
@@ -632,3 +635,50 @@ class CoverLetterRepo:
         )
         return dict(row) if row else None
 
+
+# ---------------------------------------------------------------------------
+# JobMatchCacheRepo
+# ---------------------------------------------------------------------------
+
+class JobMatchCacheRepo:
+    """Read/Write access to the AI job match cache."""
+
+    @staticmethod
+    async def get(
+        conn: asyncpg.Connection,
+        job_id: str,
+        profile_hash: str,
+    ) -> dict | None:
+        """Retrieve cached score if it exists."""
+        row = await conn.fetchrow(
+            """
+            SELECT score_data
+            FROM   public.job_match_cache
+            WHERE  job_id = $1 AND profile_hash = $2
+            """,
+            job_id,
+            profile_hash,
+        )
+        return json.loads(row["score_data"]) if row else None
+
+    @staticmethod
+    async def put(
+        conn: asyncpg.Connection,
+        job_id: str,
+        profile_hash: str,
+        score_data: dict,
+    ) -> None:
+        """Cache a score result (upsert)."""
+        await conn.execute(
+            """
+            INSERT INTO public.job_match_cache (job_id, profile_hash, score_data)
+            VALUES ($1, $2, $3::jsonb)
+            ON CONFLICT (job_id, profile_hash) 
+            DO UPDATE SET 
+                score_data = EXCLUDED.score_data,
+                created_at = now()
+            """,
+            job_id,
+            profile_hash,
+            json.dumps(score_data),
+        )

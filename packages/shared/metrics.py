@@ -150,6 +150,23 @@ class RateLimiter:
             self._timestamps = [t for t in self._timestamps if t > cutoff]
             return len(self._timestamps)
 
+    def next_available_in(self) -> float:
+        """Return seconds until the next request slot opens (0 if available)."""
+        now = time.monotonic()
+        with self._lock:
+            cutoff = now - self.window
+            # Prune first
+            self._timestamps = [t for t in self._timestamps if t > cutoff]
+            
+            if len(self._timestamps) < self.max_calls:
+                return 0.0
+            
+            # If full, the next slot opens when the oldest timestamp expires
+            oldest = self._timestamps[0]
+            # Expiration time is oldest + window
+            # Remaining time is (oldest + window) - now
+            return max(0.0, (oldest + self.window) - now)
+
 
 # ---------------------------------------------------------------------------
 # Rate limiter factory (cached instances)

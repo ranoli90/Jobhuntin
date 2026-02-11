@@ -36,7 +36,11 @@ async function fetchJobs(filters: JobFilters): Promise<JobPosting[]> {
 }
 
 export function useJobs(filters: JobFilters) {
-  const memoFilters = useMemo(() => filters, [filters.location, filters.minSalary, filters.keywords]);
+  const memoFilters = useMemo(() => ({
+    location: filters.location,
+    minSalary: filters.minSalary,
+    keywords: filters.keywords,
+  }), [filters.location, filters.minSalary, filters.keywords]);
 
   const query = useQuery({
     queryKey: ["jobs", memoFilters],
