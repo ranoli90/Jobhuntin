@@ -23,23 +23,23 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
     return [
         {
             question: `Is ${competitor.name} worth it in 2026?`,
-            answer: `${competitor.name} ${competitor.status === 'discontinued' ? 'is no longer available as it was discontinued.' : `offers ${competitor.strengths[0]?.toLowerCase() || 'certain features'}`}. However, for job seekers wanting maximum automation and personalization, JobHuntin provides a more comprehensive solution with autonomous AI operation, per-application resume tailoring, and stealth mode — features ${competitor.name} ${competitor.features.stealth_mode ? 'partially addresses' : 'lacks entirely'}.`,
+            answer: `${competitor.name} ${competitor.status === 'discontinued' ? 'is no longer available.' : `offers ${competitor.strengths[0]?.toLowerCase() || 'some useful features'}`}, but it can't match JobHuntin's autonomous agent, per-application tailoring, and stealth mode.`,
         },
         {
             question: `What do users say about ${competitor.name}?`,
-            answer: `Users appreciate ${competitor.name} for: ${competitor.strengths.slice(0, 2).join(' and ')}. Common complaints include: ${competitor.weaknesses.slice(0, 2).join(' and ')}. Many users ultimately switch to tools like JobHuntin that offer more comprehensive automation.`,
+            answer: `Users like ${competitor.strengths.slice(0, 2).join(' and ')}, but complain about ${competitor.weaknesses.slice(0, 2).join(' and ')}. Most end up switching to JobHuntin for real automation.`,
         },
         {
             question: `How much does ${competitor.name} cost?`,
-            answer: `${competitor.name} ${competitor.pricing.free_tier ? 'offers a free tier and' : ''} starts at ${competitor.pricing.starts_at}. Available plans: ${competitor.pricing.tiers?.join(', ') || 'N/A'}. For comparison, JobHuntin offers a free tier with Pro plans that include unlimited AI-tailored applications and stealth mode.`,
+            answer: `${competitor.name} starts at ${competitor.pricing.starts_at}${competitor.pricing.free_tier ? ' with a free tier' : ''}. JobHuntin starts free and the $19 Pro plan includes unlimited tailored applications and stealth mode.`,
         },
         {
             question: `Is ${competitor.name} safe to use?`,
-            answer: `${competitor.name} is ${competitor.status === 'active' ? 'an active, legitimate platform' : 'no longer operational'}. However, tools that auto-apply without stealth capabilities can be flagged by job boards. JobHuntin's Stealth Mode simulates human-like browsing patterns, ensuring your applications are never flagged as automated.`,
+            answer: `${competitor.name} is ${competitor.status === 'active' ? 'active' : 'no longer operational'}, but any auto-apply without stealth risks flags. JobHuntin uses stealth browsing to keep applications undetectable.`,
         },
         {
             question: `What is better than ${competitor.name}?`,
-            answer: `JobHuntin is the top-rated alternative to ${competitor.name} for 2026. Key advantages: ${competitor.differentiators.join('. ')}. While ${competitor.name} ${competitor.strengths[0]?.toLowerCase() || 'has its merits'}, JobHuntin delivers a fully autonomous hunting experience.`,
+            answer: `JobHuntin. It delivers ${competitor.differentiators.join('. ')} with a fully autonomous agent that handles discovery, tailoring, and submission for you.`,
         },
     ];
 }

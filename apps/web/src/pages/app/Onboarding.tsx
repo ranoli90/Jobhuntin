@@ -1003,7 +1003,7 @@ export default function Onboarding() {
       {/* Footer - desktop only */}
       <footer className="hidden md:block px-6 py-4 lg:py-6 border-t border-slate-200 bg-white shrink-0">
         <div className="max-w-2xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-slate-400 font-medium font-bold">© 2024 JobHuntin AI. Intelligence for Career Acceleration.</p>
+          <p className="text-xs text-slate-400 font-medium font-bold">© {new Date().getFullYear()} JobHuntin AI. Intelligence for Career Acceleration.</p>
           <div className="flex gap-6">
             <a href="/privacy" className="text-xs text-slate-400 hover:text-slate-900 font-bold uppercase transition-colors">Privacy</a>
             <a href="/terms" className="text-xs text-slate-400 hover:text-slate-900 font-bold uppercase transition-colors">Terms</a>

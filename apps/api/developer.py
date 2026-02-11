@@ -110,6 +110,8 @@ async def revoke_api_key(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
+    from shared.validators import validate_uuid
+    validate_uuid(key_id, "key_id")
     try:
         require_role(ctx, "OWNER", "ADMIN")
     except TenantScopeError:
@@ -172,6 +174,8 @@ async def delete_webhook(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
+    from shared.validators import validate_uuid
+    validate_uuid(webhook_id, "webhook_id")
     async with db.acquire() as conn:
         await conn.execute(
             "DELETE FROM public.webhook_endpoints WHERE id = $1 AND tenant_id = $2",

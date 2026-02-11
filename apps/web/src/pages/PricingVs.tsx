@@ -16,23 +16,23 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
     return [
         {
             question: `Is JobHuntin cheaper than ${competitor.name}?`,
-            answer: `JobHuntin offers a free tier to get started, while ${competitor.name} starts at ${competitor.pricing.starts_at}. ${competitor.pricing.free_tier ? `Both offer free tiers, but` : `Unlike ${competitor.name},`} JobHuntin's free plan includes access to the autonomous AI agent. Pro plans deliver significantly more value per dollar with unlimited AI-tailored applications and stealth mode.`,
+            answer: `JobHuntin starts free while ${competitor.name} starts at ${competitor.pricing.starts_at}. The $19 Pro plan includes unlimited tailored applications and stealth mode — more value per dollar.`,
         },
         {
             question: `Does ${competitor.name} have a free plan?`,
-            answer: `${competitor.pricing.free_tier ? `Yes, ${competitor.name} offers a free tier with limited features.` : `No, ${competitor.name} does not have a free plan — it starts at ${competitor.pricing.starts_at}.`} JobHuntin offers a free plan that lets you experience the autonomous AI agent before committing to a paid tier.`,
+            answer: `${competitor.pricing.free_tier ? `Yes, ${competitor.name} offers a free tier with limits.` : `No, ${competitor.name} starts at ${competitor.pricing.starts_at}.`} JobHuntin offers a free plan so you can see real results before upgrading.`,
         },
         {
             question: `What's the best value between ${competitor.name} and JobHuntin?`,
-            answer: `When comparing total value, JobHuntin provides more features per dollar: autonomous AI operation, per-application resume tailoring, stealth mode, cover letter generation, and job tracking — all included in the Pro plan. ${competitor.name}'s ${competitor.pricing.tiers?.[competitor.pricing.tiers.length - 1] ?? 'top tier'} still ${competitor.features.stealth_mode ? 'doesn\'t match' : 'lacks key features like stealth mode and full automation that'} JobHuntin includes.`,
+            answer: `JobHuntin. You get autonomous AI, per-application tailoring, stealth mode, and job tracking in one plan. ${competitor.name}'s top tier still ${competitor.features.stealth_mode ? 'can\'t match that scope' : 'misses stealth mode and full automation'}.`,
         },
         {
             question: `Are there hidden fees with ${competitor.name}?`,
-            answer: `${competitor.name} charges ${competitor.pricing.starts_at} with ${competitor.pricing.tiers?.length ?? 0} pricing tiers. Some features may only be available on higher tiers. JobHuntin's pricing is transparent — the Pro plan includes all features with no hidden fees, per-application charges, or surprise upgrades.`,
+            answer: `${competitor.name} starts at ${competitor.pricing.starts_at} with multiple tiers and gated features. JobHuntin's Pro plan includes everything — no hidden fees or per-application charges.`,
         },
         {
             question: `Can I try JobHuntin before paying?`,
-            answer: `Yes! JobHuntin offers a generous free tier that gives you access to the AI agent so you can see real results before upgrading. No credit card required to start. Most users upgrade to Pro within the first week after seeing the quality and volume of applications.`,
+            answer: `Yes — the free plan lets you run the AI agent with no credit card. Most users upgrade within a week after seeing interview volume.`,
         },
     ];
 }

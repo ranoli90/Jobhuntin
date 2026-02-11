@@ -40,16 +40,66 @@ async def upload_to_supabase_storage(
         resp = await client.post(url, content=data, headers=headers)
         resp.raise_for_status()
 
-    return f"{s.supabase_url}/storage/v1/object/public/{bucket}/{path}"
+    # Return the internal storage path (not a public URL) — use generate_signed_url() for access
+    return f"{bucket}/{path}"
+
+
+async def generate_signed_url(storage_path: str, ttl_seconds: int | None = None) -> str:
+    """
+    Generate a time-limited signed URL for accessing a file in Supabase Storage.
+
+    Args:
+        storage_path: The internal storage path returned by upload_to_supabase_storage
+                      (format: "bucket/path/to/file.pdf").
+        ttl_seconds: Override for URL validity duration. Defaults to config value.
+
+    Returns:
+        A signed URL that expires after ttl_seconds.
+    """
+    s = get_settings()
+    ttl = ttl_seconds or s.resume_signed_url_ttl_seconds
+
+    # Split bucket from path
+    parts = storage_path.split("/", 1)
+    if len(parts) != 2:
+        raise ValueError(f"Invalid storage path format: {storage_path}")
+    bucket, file_path = parts
+
+    url = f"{s.supabase_url}/storage/v1/object/sign/{bucket}/{file_path}"
+    headers = {
+        "Authorization": f"Bearer {s.supabase_service_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {"expiresIn": ttl}
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.post(url, headers=headers, json=payload)
+        resp.raise_for_status()
+
+    data = resp.json()
+    signed_path = data.get("signedURL", "")
+    if not signed_path:
+        raise RuntimeError(f"Supabase signed URL response missing signedURL: {data}")
+
+    return f"{s.supabase_url}/storage/v1{signed_path}"
 
 
 async def download_from_supabase_storage(resume_url: str) -> str:
-    """Download a file from Supabase Storage to a temp path. Returns local file path."""
+    """Download a file from Supabase Storage to a temp path. Returns local file path.
+
+    Accepts either a full URL or an internal storage path (bucket/path).
+    """
     import tempfile
     import os
 
     s = get_settings()
     headers = {"Authorization": f"Bearer {s.supabase_service_key}"}
+
+    # If it's an internal storage path (no scheme), build the authenticated URL
+    if not resume_url.startswith("http"):
+        parts = resume_url.split("/", 1)
+        if len(parts) == 2:
+            resume_url = f"{s.supabase_url}/storage/v1/object/authenticated/{parts[0]}/{parts[1]}"
 
     suffix = ".pdf"
     fd, tmp_path = tempfile.mkstemp(suffix=suffix)

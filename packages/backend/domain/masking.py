@@ -103,6 +103,25 @@ def redact_event_payload(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def strip_pii_for_llm(profile_data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Strip contact PII from profile data before sending to external LLM providers.
+
+    Removes email, phone, full address, and URLs. Keeps name (needed for
+    cover letters), skills, experience titles/companies, and education —
+    these are not sensitive and are required for useful LLM output.
+    """
+    result = _deep_copy_dict(profile_data)
+
+    contact = result.get("contact", {})
+    if isinstance(contact, dict):
+        for key in ("email", "phone", "linkedin_url", "portfolio_url",
+                     "address", "street", "zip_code", "postal_code"):
+            contact.pop(key, None)
+
+    return result
+
+
 def _deep_copy_dict(d: dict[str, Any]) -> dict[str, Any]:
     """Simple deep copy for nested dicts/lists (no external dependency)."""
     result: dict[str, Any] = {}

@@ -1,7 +1,25 @@
+# =========================================================================
+# SECURITY: These patterns prevent accidental secret commits.
+# If you need to add a new secret file, add its pattern here FIRST.
+# Secrets already in git history must be rotated — .gitignore only
+# prevents future commits, it does NOT remove history.
+# =========================================================================
+
 # Environment files (NEVER commit secrets)
 .env
 .env.*
 !.env.example
+
+# Explicit subdirectory .env files (belt-and-suspenders)
+apps/**/.env
+packages/**/.env
+
+# Service account keys (NEVER commit private keys)
+**/service-account.json
+**/service-account*.json
+*.pem
+*.p12
+*.key
 
 # Dependencies
 node_modules/
@@ -59,3 +77,7 @@ scripts/setup/
 # Analysis reports
 *_report.json
 *_report.pdf
+
+# Credential files that may appear during development
+**/credentials.json
+**/client_secret*.json

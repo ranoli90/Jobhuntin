@@ -157,6 +157,8 @@ async def get_application_status(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Get real-time status of an application."""
+    from shared.validators import validate_uuid
+    validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         row = await conn.fetchrow(
             """SELECT a.id, a.status::text, a.blueprint_key, a.created_at, a.updated_at,
@@ -247,6 +249,8 @@ async def staffing_batch_status(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Get status of a staffing batch submission."""
+    from shared.validators import validate_uuid
+    validate_uuid(batch_id, "batch_id")
     async with db.acquire() as conn:
         row = await conn.fetchrow(
             """SELECT * FROM public.staffing_batches
@@ -310,6 +314,8 @@ async def delete_webhook(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     """Delete a webhook endpoint."""
+    from shared.validators import validate_uuid
+    validate_uuid(webhook_id, "webhook_id")
     async with db.acquire() as conn:
         await conn.execute(
             "DELETE FROM public.webhook_endpoints WHERE id = $1 AND tenant_id = $2",

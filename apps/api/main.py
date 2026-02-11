@@ -395,18 +395,47 @@ class DatabasePoolManager:
 
     @staticmethod
     def _get_ssl_config(settings: Any) -> Any:
-        """Get SSL configuration for database connection."""
+        """Get SSL configuration for database connection.
+
+        SECURITY NOTE: Supabase pooler connections use certificates that
+        don't match the pooler hostname. This forces CERT_NONE (encrypted
+        but not verified). When a custom CA cert is available via
+        DB_SSL_CA_CERT_PATH, we use it for proper verification instead.
+
+        For non-Supabase databases with valid certs, standard verification
+        is used automatically.
+        """
         if not settings.database_url:
             return False
 
         if "pooler.supabase.com" not in settings.database_url and "supabase.co" not in settings.database_url:
+            # Non-Supabase: use proper SSL verification if DB URL uses sslmode
+            if "sslmode" in settings.database_url:
+                import ssl as _ssl
+                ssl_ctx = _ssl.create_default_context()
+                ca_path = getattr(settings, "db_ssl_ca_cert_path", "")
+                if ca_path:
+                    ssl_ctx.load_verify_locations(ca_path)
+                return ssl_ctx
             return False
 
         import ssl as _ssl
         ssl_ctx = _ssl.create_default_context()
-        # Supabase uses self-signed certificates; disable verification for encrypted connection
-        ssl_ctx.check_hostname = False
-        ssl_ctx.verify_mode = _ssl.CERT_NONE
+
+        # If a custom CA cert path is provided, use proper verification
+        ca_path = getattr(settings, "db_ssl_ca_cert_path", "")
+        if ca_path:
+            ssl_ctx.load_verify_locations(ca_path)
+            logger.info("DB SSL: using custom CA certificate for verification")
+        else:
+            # Supabase pooler: encrypted but hostname verification disabled
+            # (pooler cert CN doesn't match pooler hostname)
+            ssl_ctx.check_hostname = False
+            ssl_ctx.verify_mode = _ssl.CERT_NONE
+            logger.warning(
+                "DB SSL: CERT_NONE — connection is encrypted but not verified. "
+                "Set DB_SSL_CA_CERT_PATH for proper certificate verification."
+            )
         return ssl_ctx
 
     async def close(self) -> None:
@@ -767,7 +796,20 @@ async def resume_parse(
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
+    from shared.config import get_settings as _get_settings
+    _s = _get_settings()
+    # Pre-check Content-Length header to reject before reading body into memory
+    if file.size and file.size > _s.max_upload_size_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size is {_s.max_upload_size_bytes // 1_048_576} MB",
+        )
     pdf_bytes = await file.read()
+    if len(pdf_bytes) > _s.max_upload_size_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size is {_s.max_upload_size_bytes // 1_048_576} MB",
+        )
 
     resume_url, canonical = await process_resume_upload(
         user_id=user_id,
@@ -886,6 +928,8 @@ async def get_application_detail(
     """
     Application detail endpoint scoped to the requesting user's tenant.
     """
+    from shared.validators import validate_uuid
+    validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         detail = await ApplicationRepo.get_detail(conn, application_id, tenant_id=ctx.tenant_id)
     if detail is None:

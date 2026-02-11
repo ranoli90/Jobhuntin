@@ -4,7 +4,7 @@ Auth endpoints for public web clients (magic links, etc.).
 
 from __future__ import annotations
 
-from collections import defaultdict
+import time
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -31,7 +31,11 @@ except FileNotFoundError:
     MAGIC_LINK_TEMPLATE = """<p>Use this link to sign in: <a href=\"$action_link\">$action_link</a></p>"""
     logger.warning("Magic link template not found at %s; falling back to plain text HTML", _template_path)
 
-_magic_link_limiters: dict[str, RateLimiter] = defaultdict(lambda: RateLimiter(max_calls=5, window_seconds=3600))
+# TTL-evicting cache for per-email rate limiters.
+# Entries are (limiter, last_access_time). Eviction runs on access.
+_magic_link_limiters: dict[str, tuple[RateLimiter, float]] = {}
+_LIMITER_CACHE_MAX_SIZE = 10_000
+_LIMITER_CACHE_TTL = 7200  # 2 hours
 
 
 class MagicLinkRequest(BaseModel):
@@ -106,14 +110,33 @@ def _render_email_html(settings: Settings, action_link: str, return_to: str | No
     return html
 
 
+def _evict_stale_limiters() -> None:
+    """Remove expired entries when cache exceeds max size."""
+    if len(_magic_link_limiters) <= _LIMITER_CACHE_MAX_SIZE:
+        return
+    now = time.monotonic()
+    expired = [k for k, (_, ts) in _magic_link_limiters.items() if now - ts > _LIMITER_CACHE_TTL]
+    for k in expired:
+        _magic_link_limiters.pop(k, None)
+    # If still over limit after TTL eviction, drop oldest entries
+    if len(_magic_link_limiters) > _LIMITER_CACHE_MAX_SIZE:
+        sorted_keys = sorted(_magic_link_limiters, key=lambda k: _magic_link_limiters[k][1])
+        for k in sorted_keys[: len(_magic_link_limiters) - _LIMITER_CACHE_MAX_SIZE]:
+            _magic_link_limiters.pop(k, None)
+
+
 def _get_rate_limiter(settings: Settings, email: str) -> RateLimiter:
-    limiter = _magic_link_limiters.get(email)
-    if limiter is None or limiter.max_calls != settings.magic_link_requests_per_hour:
-        limiter = RateLimiter(
-            max_calls=settings.magic_link_requests_per_hour,
-            window_seconds=float(settings.magic_link_rate_limit_window_seconds),
-        )
-        _magic_link_limiters[email] = limiter
+    _evict_stale_limiters()
+    entry = _magic_link_limiters.get(email)
+    if entry is not None and entry[0].max_calls == settings.magic_link_requests_per_hour:
+        _magic_link_limiters[email] = (entry[0], time.monotonic())
+        return entry[0]
+    limiter = RateLimiter(
+        max_calls=settings.magic_link_requests_per_hour,
+        window_seconds=float(settings.magic_link_rate_limit_window_seconds),
+        name=f"magic_link:{email}",
+    )
+    _magic_link_limiters[email] = (limiter, time.monotonic())
     return limiter
 
 
@@ -149,7 +172,7 @@ async def request_magic_link(
     """Generate a Supabase magic link and email it via Resend."""
 
     limiter = _get_rate_limiter(settings, body.email)
-    if not limiter.allow():
+    if not await limiter.acquire():
         retry_after = limiter.next_available_in()
         logger.warning("Magic link rate limit hit", extra={"email": body.email, "retry_after": retry_after})
         raise HTTPException(

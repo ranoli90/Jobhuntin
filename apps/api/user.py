@@ -179,6 +179,8 @@ async def answer_hold(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Submit a single answer for a hold; applies to first unresolved input and re-queues."""
+    from shared.validators import validate_uuid
+    validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         app_row = await ApplicationRepo.get_by_id_and_user(
             conn, application_id, ctx.user_id, tenant_id=ctx.tenant_id
@@ -225,6 +227,8 @@ async def snooze_application(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Snooze an application for N hours."""
+    from shared.validators import validate_uuid
+    validate_uuid(application_id, "application_id")
     from datetime import datetime, timedelta
 
     until = datetime.now(UTC) + timedelta(hours=body.hours)
@@ -391,6 +395,7 @@ class Preferences(BaseModel):
     role_type: str | None = None
     salary_min: int | None = None
     remote_only: bool | None = None
+    work_authorized: bool | None = None
 
 
 class ProfileUpdate(BaseModel):
@@ -401,6 +406,7 @@ class ProfileUpdate(BaseModel):
     preferences: Preferences | None = None
     avatar_url: str | None = None
     resume_url: str | None = None
+    contact: dict | None = None
 
     @field_validator("avatar_url")
     @classmethod
@@ -470,6 +476,19 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
     if avatar_url:
         contact["avatar_url"] = avatar_url
 
+    # Merge nested contact fields sent from Onboarding / Settings
+    if body.contact is not None:
+        _CONTACT_FIELDS = (
+            "first_name", "last_name", "full_name", "email", "phone",
+            "linkedin_url", "portfolio_url", "location",
+        )
+        for field in _CONTACT_FIELDS:
+            if field in body.contact and body.contact[field] is not None:
+                contact[field] = body.contact[field]
+        # Preserve avatar_url from the existing contact if not in body.contact
+        if "avatar_url" in body.contact and body.contact["avatar_url"]:
+            contact["avatar_url"] = body.contact["avatar_url"]
+
     profile_data["contact"] = contact
 
 
@@ -487,7 +506,19 @@ async def upload_resume(
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
+    settings = get_settings()
+    # Pre-check Content-Length header to reject before reading body into memory
+    if file.size and file.size > settings.max_upload_size_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size is {settings.max_upload_size_bytes // 1_048_576} MB",
+        )
     pdf_bytes = await file.read()
+    if len(pdf_bytes) > settings.max_upload_size_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size is {settings.max_upload_size_bytes // 1_048_576} MB",
+        )
 
     resume_url, canonical = await process_resume_upload(
         user_id=ctx.user_id,
@@ -523,8 +554,19 @@ async def upload_avatar(
     if (file.content_type or "").lower() not in allowed_types:
         raise HTTPException(status_code=400, detail="Avatar must be PNG, JPG, or WEBP")
 
-    data = await file.read()
     settings = get_settings()
+    # Pre-check Content-Length header to reject before reading body into memory
+    if file.size and file.size > settings.max_avatar_size_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Avatar too large. Maximum size is {settings.max_avatar_size_bytes // 1_048_576} MB",
+        )
+    data = await file.read()
+    if len(data) > settings.max_avatar_size_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Avatar too large. Maximum size is {settings.max_avatar_size_bytes // 1_048_576} MB",
+        )
     ext = Path(file.filename or "").suffix.lower()
     fallback_ext = allowed_types[file.content_type.lower()]  # type: ignore[operator]
     suffix = ext if ext in allowed_types.values() else fallback_ext

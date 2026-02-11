@@ -132,7 +132,7 @@ async def referral_stats(
     async with db.acquire() as conn:
         stats = await get_referral_stats(conn, user_id)
     get_settings()
-    share_url = f"https://sorce.app/invite/{stats['referral_code']}"
+    share_url = f"https://jobhuntin.com/invite/{stats['referral_code']}"
     return ReferralStatsResponse(
         referral_code=stats["referral_code"],
         total_referrals=stats["total_referrals"],

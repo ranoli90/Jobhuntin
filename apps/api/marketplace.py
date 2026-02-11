@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext
+from backend.domain.tenant import TenantContext, TenantScopeError, require_system_admin
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
@@ -173,6 +173,8 @@ async def install_blueprint(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Install a marketplace blueprint for the current tenant."""
+    from shared.validators import validate_uuid
+    validate_uuid(blueprint_id, "blueprint_id")
     async with db.acquire() as conn:
         bp = await conn.fetchrow(
             "SELECT * FROM public.marketplace_blueprints WHERE id = $1 AND approval_status = 'approved'",
@@ -215,6 +217,8 @@ async def uninstall_blueprint(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     """Uninstall a blueprint from the current tenant."""
+    from shared.validators import validate_uuid
+    validate_uuid(blueprint_id, "blueprint_id")
     async with db.acquire() as conn:
         await conn.execute(
             "UPDATE public.blueprint_installations SET is_active = false WHERE blueprint_id = $1 AND tenant_id = $2",
@@ -283,6 +287,8 @@ async def review_blueprint(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     """Submit a review for an installed blueprint."""
+    from shared.validators import validate_uuid
+    validate_uuid(blueprint_id, "blueprint_id")
     if body.rating < 1 or body.rating > 5:
         raise HTTPException(status_code=400, detail="Rating must be 1-5")
 
@@ -367,9 +373,13 @@ async def approve_blueprint(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     """Approve a pending blueprint (system admin only)."""
-    if not ctx.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
+    from shared.validators import validate_uuid
+    validate_uuid(blueprint_id, "blueprint_id")
     async with db.acquire() as conn:
+        try:
+            await require_system_admin(conn, ctx.user_id)
+        except TenantScopeError:
+            raise HTTPException(status_code=403, detail="System admin required")
         await conn.execute(
             "UPDATE public.marketplace_blueprints SET approval_status = 'approved', published_at = now() WHERE id = $1",
             blueprint_id,
@@ -384,9 +394,13 @@ async def reject_blueprint(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     """Reject a pending blueprint (system admin only)."""
-    if not ctx.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
+    from shared.validators import validate_uuid
+    validate_uuid(blueprint_id, "blueprint_id")
     async with db.acquire() as conn:
+        try:
+            await require_system_admin(conn, ctx.user_id)
+        except TenantScopeError:
+            raise HTTPException(status_code=403, detail="System admin required")
         await conn.execute(
             "UPDATE public.marketplace_blueprints SET approval_status = 'rejected' WHERE id = $1",
             blueprint_id,

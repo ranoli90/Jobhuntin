@@ -4,28 +4,28 @@
 export const COPY = {
   // Brand basics
   brandName: "JobHuntin",
-  tagline: "Apply to 100 jobs before breakfast",
+  tagline: "Other people applied to your dream job today. Did you?",
   
   // Hero / Landing
   hero: {
-    headline: "Apply to 100 jobs before breakfast",
-    subheadline: "JobHuntin is your AI job-hunting teammate. We find perfect matches, fill out applications, and handle the boring stuff—so you can focus on nailing interviews.",
-    ctaPrimary: "Start applying free",
-    ctaSecondary: "See how it works",
-    trustBadge: "No credit card required • 10 free applications • Cancel anytime",
+    headline: "Other people applied to your dream job today. Did you?",
+    subheadline: "JobHuntin's AI agent fires off 100 tailored applications while you sleep. Wake up to interview requests, not rejection silence.",
+    ctaPrimary: "Start free — before they hire someone else",
+    ctaSecondary: "Watch it work",
+    trustBadge: "No credit card • 10 free apps • 2-minute setup",
   },
   
   // Actions / Buttons
   actions: {
     apply: "JobHuntin this job",
-    skip: "Not for me",
+    skip: "Pass",
     save: "Save for later",
     continue: "Let's go",
     back: "Back",
     submit: "Ship it",
     upload: "Upload",
-    upgrade: "Unlock unlimited",
-    invite: "Invite the team",
+    upgrade: "Go unlimited now",
+    invite: "Add your team",
     export: "Export CSV",
     refresh: "Find more jobs",
   },
@@ -33,78 +33,78 @@ export const COPY = {
   // Empty states
   empty: {
     jobs: {
-      title: "No jobs match your filters",
-      description: "Try broadening your search or check back soon—we add new jobs every hour.",
+      title: "Zero matches? Your competitors aren't waiting.",
+      description: "Widen your filters. New roles drop every hour and the best ones fill fast.",
       action: "Adjust filters",
     },
     applications: {
-      title: "No applications yet",
-      description: "Start swiping on jobs and we'll track everything here. Your first interview is closer than you think.",
-      action: "Browse jobs",
+      title: "Every hour without applications is an interview you'll never get.",
+      description: "People who start today land interviews 3x faster. Let's fix that.",
+      action: "Start applying now",
     },
     holds: {
-      title: "No HOLDs right now",
-      description: "That's a good thing! It means applications are flowing smoothly. We'll ping you if employers ask questions.",
-      action: "Check applications",
+      title: "All clear — you're on fire!",
+      description: "No pending questions means your applications are sailing through. Keep the momentum.",
+      action: "View applications",
     },
     billing: {
       title: "Billing info unavailable",
-      description: "Something went sideways, but your data is safe. Please try again.",
+      description: "Your data is safe. Hit retry and we'll sort it out.",
       action: "Retry",
     },
   },
   
   // Error messages (human, reassuring)
   errors: {
-    generic: "Something went sideways, but your data is safe. Please try again.",
-    network: "Looks like the internet hiccuped. Give it another shot?",
-    upload: "Upload didn't work. Check your file size (max 5MB) and try again.",
-    auth: "Session expired. Let's get you back in—sign in again.",
-    api: "Our servers are a bit busy. Try again in a moment.",
+    generic: "Something went sideways, but your data is safe. Try again.",
+    network: "Internet hiccuped. Give it another shot?",
+    upload: "Upload failed. Check file size (max 5MB) and retry.",
+    auth: "Session expired — sign in to keep your streak going.",
+    api: "Servers are catching their breath. Try again in a moment.",
   },
   
   // Success messages (celebratory, playful)
   success: {
-    applied: "🚀 JobHuntin'd! Application sent.",
-    saved: "✓ Saved to your list",
-    uploaded: "✓ Resume uploaded and parsed",
-    preferences: "✓ Preferences saved—we'll find better matches now",
-    upgraded: "🎉 Welcome to Pro! Unlimited applications unlocked.",
-    invite: "✓ Invite sent",
-    hold: "✓ Response drafted—ready to send",
+    applied: "🚀 Sent! One step closer to your offer letter.",
+    saved: "✓ Saved — don't wait too long, it might fill.",
+    uploaded: "✓ Resume locked and loaded.",
+    preferences: "✓ Preferences saved — better matches incoming.",
+    upgraded: "🎉 Pro unlocked! Unlimited applications, zero limits.",
+    invite: "✓ Invite sent — more teammates, more firepower.",
+    hold: "✓ Response drafted — send it before they move on.",
     firstApplication: {
-      title: "You did it! 🎉",
-      description: "Your first application is off to the races. This is just the beginning.",
+      title: "First one's away! 🎉",
+      description: "Most users land their first interview within 48 hours. You're in the game now.",
     },
   },
   
   // Onboarding
   onboarding: {
     step1: {
-      title: "Welcome to JobHuntin!",
-      description: "We're going to get you set up in just 2 minutes.",
+      title: "Let's get you hired.",
+      description: "Two minutes of setup. Hundreds of applications on autopilot.",
       checklist: [
-        "Upload your resume (or paste your LinkedIn)",
-        "Set your job preferences",
-        "Start applying to perfect matches",
+        "Drop your resume (or paste your LinkedIn)",
+        "Tell us what you want",
+        "We start applying — you start interviewing",
       ],
     },
     step2: {
-      title: "Upload your resume",
-      description: "We'll use this to find perfect matches",
+      title: "Drop your resume",
+      description: "This is what gets you matched. The better the resume, the better the jobs.",
     },
     step3: {
-      title: "Job preferences",
-      description: "Tell us what you're looking for",
+      title: "What's the dream role?",
+      description: "Set it and forget it — we'll do the hunting.",
     },
     step4: {
-      title: "You're ready to job hunt!",
-      description: "We've got your resume and preferences. Let's find you some perfect job matches.",
+      title: "You're live.",
+      description: "Your AI agent is armed and ready. The first applications go out within minutes.",
       nextSteps: [
-        "We'll scan for jobs matching your profile",
-        "You swipe right on jobs you like",
-        "We apply for you with a personalized message",
-        "You get interview requests directly",
+        "Scanning thousands of listings right now",
+        "You approve jobs you love",
+        "We tailor and send every application",
+        "Interview requests land in your inbox",
       ],
     },
   },
@@ -114,11 +114,11 @@ export const COPY = {
     howItWorks: "How JobHuntin applies on your behalf",
     whatWeNeverDo: "What we never do",
     pillars: [
-      { title: "We never spam employers", description: "Every application is thoughtful and tailored. We don't blast generic resumes." },
-      { title: "Your data stays yours", description: "Encrypted storage, no selling to third parties, delete anytime with one click." },
-      { title: "We never modify without approval", description: "Every resume tweak and cover letter is shown to you first. You always approve." },
-      { title: "Your email, your identity", description: "All applications come from your email address. Employers never know we helped." },
-      { title: "No Terms of Service violations", description: "We respect job site rules. We don't scrape illegally or use fake accounts." },
+      { title: "We never spam employers", description: "Every application is tailored. Generic blasts get you blacklisted — we don't do that." },
+      { title: "Your data stays yours", description: "Encrypted, never sold, delete anytime. Period." },
+      { title: "You approve everything", description: "Every resume tweak and cover letter gets your sign-off first." },
+      { title: "Your email, your identity", description: "Employers see you, not us. Completely invisible." },
+      { title: "100% ToS compliant", description: "We play by the rules so your accounts stay safe." },
     ],
   },
   

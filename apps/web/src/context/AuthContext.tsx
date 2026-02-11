@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { resetAuthRedirectGuard } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 
 export interface AuthState {
@@ -71,12 +72,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // user is logged in. The actual session is managed by the
                 // Supabase SDK via its own storage key.
                 if (nextSession) {
-                    localStorage.setItem('sorce-session', JSON.stringify({
+                    resetAuthRedirectGuard();
+                    localStorage.setItem('jobhuntin-session', JSON.stringify({
                         logged_in: true,
                         ts: Date.now(),
                     }));
                 } else {
-                    localStorage.removeItem('sorce-session');
+                    localStorage.removeItem('jobhuntin-session');
                 }
             }
         });

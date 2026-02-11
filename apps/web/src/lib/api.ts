@@ -102,15 +102,33 @@ function retryDelay(attempt: number, resp?: Response): number {
   return delay + Math.random() * 500;
 }
 
+let _redirecting = false;
 function handleApiError(resp: Response, body: string): never {
-  if (resp.status === 401) {
+  if (resp.status === 401 && !_redirecting) {
+    _redirecting = true;
     const returnTo = typeof window !== "undefined" ? encodeURIComponent(window.location.pathname + window.location.search) : "";
-    window.location.href = `/login?returnTo=${returnTo}`;
+    // Dispatch event so React Router can handle redirect without destroying state
+    if (typeof window !== "undefined") {
+      const evt = new CustomEvent("auth:unauthorized", { detail: { returnTo } });
+      window.dispatchEvent(evt);
+    }
+    // Fallback hard redirect after a short delay if event wasn't handled
+    setTimeout(() => {
+      if (_redirecting) {
+        _redirecting = false;
+        window.location.href = `/login?returnTo=${returnTo}`;
+      }
+    }, 200);
   }
   const msg = friendlyMessage(resp.status, body);
   const err = new Error(msg) as Error & { status: number };
   err.status = resp.status;
   throw err;
+}
+
+/** Call after successful re-authentication to allow future 401 redirects. */
+export function resetAuthRedirectGuard() {
+  _redirecting = false;
 }
 
 // ---------------------------------------------------------------------------

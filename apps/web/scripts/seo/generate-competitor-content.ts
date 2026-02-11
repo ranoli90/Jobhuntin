@@ -21,19 +21,14 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.json');
 
-// Default key provided by user (should ideally be in .env)
-const DEFAULT_KEY = "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";
+// API key from environment only — never hardcode secrets
+const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
-// List of free models to try in order
+// STRICT: Only approved NVIDIA free-tier models — no exceptions
 const FREE_MODELS = [
   'nvidia/nemotron-3-nano-30b-a3b:free',       // Primary: High capability (30B)
   'nvidia/nemotron-nano-12b-v2-vl:free',        // Fallback 1: Balanced (12B)
   'nvidia/nemotron-nano-9b-v2:free',            // Fallback 2: Fast (9B)
-  'openrouter/aurora-alpha',
-  'google/gemini-2.0-flash-lite-preview-02-05:free',
-  'meta-llama/llama-3-8b-instruct:free',
-  'mistralai/mistral-7b-instruct:free',
-  'microsoft/phi-3-medium-128k-instruct:free'
 ];
 
 interface Competitor {

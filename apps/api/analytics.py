@@ -137,6 +137,8 @@ async def submit_feedback(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> FeedbackResponse:
     """Record user feedback on an application's agent performance."""
+    from shared.validators import validate_uuid
+    validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         # Verify the application belongs to this user/tenant
         app_row = await conn.fetchrow(
@@ -227,6 +229,8 @@ async def debug_bundle(
     events for the user/session, and experiment assignments.
     PII is redacted via masking.py.
     """
+    from shared.validators import validate_uuid
+    validate_uuid(application_id, "application_id")
     from backend.domain.debug import build_debug_bundle
     async with db.acquire() as conn:
         bundle = await build_debug_bundle(conn, application_id)

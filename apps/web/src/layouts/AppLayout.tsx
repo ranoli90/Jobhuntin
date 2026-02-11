@@ -50,7 +50,7 @@ export default function AppLayout() {
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
       {/* Desktop Sidebar */}
-      <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white md:flex">
+      <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
         <div className="border-b border-slate-200 px-8 py-6">
           <Logo to="/app/dashboard" size="md" />
           <p className="text-[10px] text-slate-400 mt-2 font-black uppercase tracking-[0.2em] ml-1">Intelligence Console</p>
@@ -132,18 +132,18 @@ export default function AppLayout() {
         <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-xl px-6 shrink-0 z-40">
           <div className="flex items-center gap-4">
             <button
-              className="md:hidden p-2.5 -ml-2 text-slate-600 bg-slate-100 rounded-xl active:scale-90 transition-all"
+              className="lg:hidden p-2.5 -ml-2 text-slate-600 bg-slate-100 rounded-xl active:scale-90 transition-all"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
             >
               <Menu className="h-6 w-6" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400 font-black">Environment</p>
                 <p className="text-sm font-black text-slate-900">Production Console</p>
               </div>
-              <div className="md:hidden">
+              <div className="lg:hidden">
                 <Logo iconOnly size="sm" />
               </div>
             </div>

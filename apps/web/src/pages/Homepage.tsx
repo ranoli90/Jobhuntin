@@ -337,23 +337,22 @@ const Hero = () => {
           >
             <Sparkles className="w-4 h-4 text-primary-500" />
             <span className="text-xs sm:text-sm font-semibold text-slate-600">
-              AI Hunts Jobs For You
+              12,847 applications sent this week
             </span>
           </motion.div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black font-display text-slate-900 leading-[0.95] mb-6 sm:mb-8 tracking-tighter">
-            Stop applying.<br />
+            Someone else applied<br />
             <span className="relative inline-block mt-2">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-amber-500 to-red-500 animate-gradient-x">
-                Start landing.
+                to your dream job today.
               </span>
             </span>
           </h1>
 
           <p className="text-lg sm:text-xl lg:text-2xl text-slate-500 mb-8 sm:mb-10 max-w-lg mx-auto lg:mx-0 leading-tight font-medium">
-            You've spent <span className="text-slate-900 font-bold">200+ hours</span> applying to jobs this year.
-            Your AI agent does it in <span className="text-emerald-600 font-bold">20 minutes</span>.
-            Upload once — it applies, tailors, and follows up while you sleep.
+            JobHuntin's AI agent fires off <span className="text-slate-900 font-bold">100 tailored applications</span> while you sleep.
+            Wake up to <span className="text-emerald-600 font-bold">interview requests</span>, not rejection silence.
           </p>
 
           {!sentEmail && (
@@ -402,7 +401,7 @@ const Hero = () => {
                     </motion.div>
                   ) : (
                     <>
-                      Start Hunt <ArrowRight className="w-4 h-4 ml-2" />
+                      Start free — before they hire someone else <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
                 </Button>

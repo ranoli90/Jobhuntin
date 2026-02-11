@@ -120,6 +120,8 @@ async def start_campaign(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Start a draft bulk campaign — queues applications for matching jobs."""
+    from shared.validators import validate_uuid
+    validate_uuid(campaign_id, "campaign_id")
     if ctx.plan not in ("TEAM", "ENTERPRISE"):
         raise HTTPException(status_code=403, detail="Bulk operations require TEAM or ENTERPRISE plan")
     try:
@@ -223,6 +225,8 @@ async def get_campaign(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Get details of a specific bulk campaign."""
+    from shared.validators import validate_uuid
+    validate_uuid(campaign_id, "campaign_id")
     async with db.acquire() as conn:
         row = await conn.fetchrow(
             """

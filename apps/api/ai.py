@@ -28,7 +28,7 @@ from backend.llm.contracts import (
     build_location_suggestion_prompt,
     build_job_match_prompt,
 )
-from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo
+from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
 import asyncpg
 import hashlib
 import json
@@ -36,6 +36,19 @@ from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.ai")
+
+# ---------------------------------------------------------------------------
+# Singleton LLM client — avoids per-request instantiation overhead
+# ---------------------------------------------------------------------------
+_llm_client: LLMClient | None = None
+
+
+def _get_llm_client() -> LLMClient:
+    global _llm_client
+    if _llm_client is None:
+        _llm_client = LLMClient(get_settings())
+    return _llm_client
+
 
 async def _get_pool() -> asyncpg.Pool:
     """Dependency override required"""
@@ -219,11 +232,11 @@ async def suggest_roles(request: RoleSuggestionRequest, user_id: str = Depends(_
     This analyzes the candidate's experience, skills, and career progression
     to suggest the most suitable job titles and experience level.
     """
-    settings = get_settings()
-    client = LLMClient(settings)
+    client = _get_llm_client()
     
     # Sanitize inputs to prevent prompt injection
-    sanitized_profile = sanitize_dict_input(request.profile)
+    from backend.domain.masking import strip_pii_for_llm
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     
     try:
         prompt = build_role_suggestion_prompt(sanitized_profile)
@@ -246,11 +259,11 @@ async def suggest_salary(request: SalarySuggestionRequest, user_id: str = Depend
     This estimates a competitive salary range by analyzing the candidate's
     experience, skill rarity, and location market rates.
     """
-    settings = get_settings()
-    client = LLMClient(settings)
+    client = _get_llm_client()
     
-    # Sanitize inputs to prevent prompt injection
-    sanitized_profile = sanitize_dict_input(request.profile)
+    # Sanitize inputs and strip PII before sending to external LLM
+    from backend.domain.masking import strip_pii_for_llm
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_target_role = sanitize_input(request.target_role)
     sanitized_location = sanitize_input(request.location)
     
@@ -286,12 +299,15 @@ async def suggest_locations(request: LocationSuggestionRequest, user_id: str = D
     This analyzes where the candidate's skills are most in-demand and
     evaluates remote work viability for their role type.
     """
-    settings = get_settings()
-    client = LLMClient(settings)
+    client = _get_llm_client()
+    
+    # Strip PII before sending to external LLM
+    from backend.domain.masking import strip_pii_for_llm
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     
     try:
         prompt = build_location_suggestion_prompt(
-            request.profile,
+            sanitized_profile,
             request.current_location,
         )
         result = await client.call(
@@ -320,8 +336,9 @@ async def match_job(
     Returns a 0-100 score with detailed breakdowns for skill match,
     experience match, location compatibility, and any red flags.
     """
-    # Sanitize inputs to prevent prompt injection
-    sanitized_profile = sanitize_dict_input(request.profile)
+    # Sanitize inputs and strip PII before sending to external LLM
+    from backend.domain.masking import strip_pii_for_llm
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
 
     # Check cache
@@ -335,8 +352,7 @@ async def match_job(
                 logger.info("Job match cache hit", extra={"job_id": job_id})
                 return JobMatchScore_V1(**cached)
 
-    settings = get_settings()
-    client = LLMClient(settings)
+    client = _get_llm_client()
     
     try:
         prompt = build_job_match_prompt(sanitized_profile, sanitized_job)
@@ -379,11 +395,11 @@ async def match_jobs_batch(
             detail="Maximum 20 jobs per batch. Split your request."
         )
     
-    settings = get_settings()
-    client = LLMClient(settings)
+    client = _get_llm_client()
     
-    # Sanitize inputs to prevent prompt injection
-    sanitized_profile = sanitize_dict_input(request.profile)
+    # Sanitize inputs and strip PII before sending to external LLM
+    from backend.domain.masking import strip_pii_for_llm
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_jobs = [sanitize_dict_input(job) for job in request.jobs]
     profile_hash = hashlib.sha256(json.dumps(sanitized_profile, sort_keys=True).encode()).hexdigest()
     
@@ -535,10 +551,49 @@ async def generate_cover_letter_enhanced(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> GeneratedCoverLetter:
     """Generate a personalized cover letter (enhanced endpoint)."""
-    settings = get_settings()
-    client = LLMClient(settings)
+    client = _get_llm_client()
     
     try:
+        # Fetch the user's actual profile for personalized cover letter generation
+        # Strip PII (email, phone, URLs) before building the LLM prompt
+        from backend.domain.masking import strip_pii_for_llm
+        profile_summary = "No profile available"
+        async with db.acquire() as conn:
+            profile_data = await ProfileRepo.get_profile_data(conn, user_id)
+        if profile_data:
+            profile_data = strip_pii_for_llm(profile_data)
+            contact = profile_data.get("contact", {})
+            experience = profile_data.get("experience", [])
+            skills = profile_data.get("skills", [])
+            education = profile_data.get("education", [])
+            summary_parts = []
+            if contact.get("full_name"):
+                summary_parts.append(f"Name: {contact['full_name']}")
+            if experience:
+                exp_strs = []
+                for exp in experience[:3]:
+                    title = exp.get("title", "")
+                    company = exp.get("company", "")
+                    if title and company:
+                        exp_strs.append(f"{title} at {company}")
+                    elif title:
+                        exp_strs.append(title)
+                if exp_strs:
+                    summary_parts.append(f"Experience: {'; '.join(exp_strs)}")
+            if skills:
+                summary_parts.append(f"Skills: {', '.join(skills[:15])}")
+            if education:
+                edu_strs = []
+                for edu in education[:2]:
+                    degree = edu.get("degree", "")
+                    school = edu.get("institution", edu.get("school", ""))
+                    if degree and school:
+                        edu_strs.append(f"{degree} from {school}")
+                if edu_strs:
+                    summary_parts.append(f"Education: {'; '.join(edu_strs)}")
+            if summary_parts:
+                profile_summary = ". ".join(summary_parts)
+
         # Use a simple template for now
         template_content = """[Your Name]
 [Your Address]
@@ -567,7 +622,7 @@ Sincerely,
 {template_content}
 
 Job details: {request.job_id}
-User profile: Software developer with 5+ years experience
+User profile: {profile_summary}
 Tone: {request.tone}
 Length: {request.length}
 
@@ -632,13 +687,17 @@ async def generate_cover_letter(request: CoverLetterRequest, user_id: str = Depe
     """
     Generate a personalized cover letter for a specific job.
     """
-    settings = get_settings()
-    client = LLMClient(settings)
+    client = _get_llm_client()
+    
+    # Sanitize and strip PII before sending to external LLM
+    from backend.domain.masking import strip_pii_for_llm
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
+    sanitized_job = sanitize_dict_input(request.job)
     
     try:
         prompt = build_cover_letter_prompt(
-            request.profile,
-            request.job,
+            sanitized_profile,
+            sanitized_job,
             request.tone
         )
         result = await client.call(

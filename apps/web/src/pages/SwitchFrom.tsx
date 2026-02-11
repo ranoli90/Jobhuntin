@@ -43,23 +43,23 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
     return [
         {
             question: `How do I cancel ${competitor.name}?`,
-            answer: `To cancel ${competitor.name}, log into your account, go to settings or billing, and cancel your subscription. ${competitor.status === 'discontinued' ? 'Note: ' + competitor.name + ' has been discontinued, so your subscription may have already been cancelled.' : 'Once cancelled, you can immediately set up JobHuntin — most users are up and running within 2 minutes.'}`,
+            answer: `Log into ${competitor.name}, go to billing, and cancel. ${competitor.status === 'discontinued' ? `${competitor.name} is already discontinued.` : 'Then set up JobHuntin in under 2 minutes.'}`,
         },
         {
             question: `Is it easy to switch from ${competitor.name} to JobHuntin?`,
-            answer: `Extremely easy. JobHuntin doesn't require any data migration from ${competitor.name}. Simply create your JobHuntin account, upload your resume, set your preferences, and the AI agent starts hunting immediately. The entire setup takes under 5 minutes.`,
+            answer: `Yes — no data migration required. Create your account, upload your resume, set preferences, and the AI agent starts hunting immediately.`,
         },
         {
             question: `Will I lose my application history from ${competitor.name}?`,
-            answer: `Your ${competitor.name} application history stays in their system. JobHuntin starts tracking all new applications from day one with a comprehensive dashboard showing job status, application details, and interview callbacks. Most users find JobHuntin's tracking more detailed and actionable.`,
+            answer: `Your ${competitor.name} history stays in their system. JobHuntin starts tracking all new applications from day one with a cleaner dashboard and better insights.`,
         },
         {
             question: `How quickly can I start applying with JobHuntin after switching?`,
-            answer: `Most users start receiving autonomous applications within 30 minutes of setting up their account. The AI agent immediately begins discovering relevant jobs, tailoring your resume, and submitting applications with stealth mode enabled.`,
+            answer: `Usually within 30 minutes. The agent starts discovering jobs, tailoring your resume, and submitting applications right away.`,
         },
         {
             question: `What if I'm currently in a ${competitor.name} contract?`,
-            answer: `You can set up JobHuntin while still using ${competitor.name} — there's no conflict. Many users run both tools briefly during the transition. Once you see JobHuntin's results (typically within the first week), you can cancel ${competitor.name} and rely fully on JobHuntin's autonomous agent.`,
+            answer: `You can run both tools during the transition. Most users switch fully within a week once they see JobHuntin's results.`,
         },
     ];
 }

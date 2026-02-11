@@ -16,7 +16,7 @@ interface SEOProps {
   includeDate?: boolean;
 }
 
-const DEFAULT_OG_IMAGE = "https://sorce-api.onrender.com/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global";
+const DEFAULT_OG_IMAGE = "https://jobhuntin.com/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global";
 const BASE_URL = "https://jobhuntin.com";
 
 const getDynamicDate = () => {

@@ -2,17 +2,23 @@ import { useEffect, useState } from "react";
 import { apiGet, apiPost } from "../lib/api";
 
 interface BillingStatus {
+  tenant_id: string;
   plan: "FREE" | "PRO" | "TEAM";
-  seats?: number;
-  mrr?: number;
-  success_rate?: number;
-  invoice_history?: { id: string; amount: number; status: string; created_at: string }[];
-  next_payment_at?: string;
+  provider: string | null;
+  provider_customer_id: string | null;
+  subscription_status: string;
+  current_period_end: string | null;
 }
 
 interface BillingUsage {
-  applications_used: number;
-  applications_limit?: number;
+  tenant_id: string;
+  plan: string;
+  monthly_limit: number | null;
+  monthly_used: number;
+  monthly_remaining: number | null;
+  concurrent_limit: number | null;
+  concurrent_used: number;
+  percentage_used: number;
 }
 
 export function useBilling() {
@@ -31,10 +37,7 @@ export function useBilling() {
         ]);
         if (!cancelled) {
           setStatus(statusJson);
-          setUsage({
-            applications_used: usageJson.applications_used ?? usageJson.monthly_used ?? 0,
-            applications_limit: usageJson.applications_limit ?? usageJson.monthly_limit,
-          });
+          setUsage(usageJson);
         }
       } catch (err) {
         if (!cancelled) setError((err as Error).message);

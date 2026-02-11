@@ -91,7 +91,12 @@ class LogContext:
 # ---------------------------------------------------------------------------
 
 class JSONFormatter(logging.Formatter):
-    """Emit one JSON object per log line with correlation context."""
+    """Emit one JSON object per log line with correlation context.
+
+    Automatically sanitizes PII from the ``extra`` dict attached to log records
+    so that callers don't need to remember to call ``sanitize_for_log()``
+    manually.
+    """
 
     def format(self, record: logging.LogRecord) -> str:
         log_entry: dict[str, Any] = {
@@ -102,10 +107,29 @@ class JSONFormatter(logging.Formatter):
         }
         log_entry.update(LogContext.as_dict())
 
+        # Auto-sanitize any extra dict attached via logger.info(..., extra={...})
+        if hasattr(record, "__dict__"):
+            extra = {
+                k: v
+                for k, v in record.__dict__.items()
+                if k not in _LOG_RECORD_BUILTIN_ATTRS and not k.startswith("_")
+            }
+            if extra:
+                log_entry["extra"] = _sanitize_nested(extra)
+
         if record.exc_info and record.exc_info[1]:
             log_entry["exception"] = self.formatException(record.exc_info)
 
         return json.dumps(log_entry, default=str)
+
+
+# Built-in LogRecord attributes that should not appear in ``extra``
+_LOG_RECORD_BUILTIN_ATTRS = frozenset({
+    "name", "msg", "args", "created", "relativeCreated", "exc_info",
+    "exc_text", "stack_info", "lineno", "funcName", "pathname", "filename",
+    "module", "levelno", "levelname", "thread", "threadName", "process",
+    "processName", "msecs", "message", "taskName",
+})
 
 
 # ---------------------------------------------------------------------------
@@ -176,6 +200,15 @@ _PII_KEYS = frozenset({
     "location", "linkedin_url", "portfolio_url", "address",
     "answer",  # hold-question answers may contain PII
 })
+
+
+def _sanitize_nested(data: Any) -> Any:
+    """Recursively sanitize PII keys in dicts. Used by the JSON formatter."""
+    if isinstance(data, dict):
+        return sanitize_for_log(data)
+    if isinstance(data, (list, tuple)):
+        return [_sanitize_nested(item) for item in data]
+    return data
 
 
 def sanitize_for_log(data: dict[str, Any]) -> dict[str, Any]:

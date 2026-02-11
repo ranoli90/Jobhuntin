@@ -89,9 +89,16 @@ def setup_csrf_middleware(app, secret: str) -> None:
     """
     Configure CSRF middleware on the FastAPI app.
     
-    Only enabled if a secret is provided (required in prod).
+    Fail-closed: in staging/prod, refuse to start without a CSRF secret.
+    In local/dev, warn but continue (for development convenience).
     """
     if not secret:
+        s = get_settings()
+        if s.env.value in ("prod", "staging"):
+            raise RuntimeError(
+                "CSRF_SECRET is required in production/staging. "
+                "Set the CSRF_SECRET environment variable."
+            )
         logger.warning(
             "CSRF protection DISABLED - set CSRF_SECRET env var for production"
         )

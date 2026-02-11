@@ -82,7 +82,7 @@ export function useCoverLetter() {
   } = useQuery({
     queryKey: ["cover-letter-templates"],
     queryFn: async () => {
-      return await apiGet<CoverLetterTemplate[]>("cover-letters/templates");
+      return await apiGet<CoverLetterTemplate[]>("ai/cover-letters/templates");
     },
     staleTime: 30 * 60 * 1000, // 30 minutes
   });
@@ -95,7 +95,7 @@ export function useCoverLetter() {
   } = useQuery({
     queryKey: ["cover-letters"],
     queryFn: async () => {
-      return await apiGet<GeneratedCoverLetter[]>("cover-letters");
+      return await apiGet<GeneratedCoverLetter[]>("ai/cover-letters");
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -167,7 +167,7 @@ export function useCoverLetter() {
         },
       };
 
-      const result = await apiPost<GeneratedCoverLetter>("cover-letters/generate", enhancedRequest);
+      const result = await apiPost<GeneratedCoverLetter>("ai/cover-letters/generate", enhancedRequest);
 
       clearInterval(progressInterval);
       setGenerationState({

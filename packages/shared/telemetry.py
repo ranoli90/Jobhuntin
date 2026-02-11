@@ -76,7 +76,11 @@ def setup_telemetry(service_name: str, app=None) -> None:
         except ImportError:
             pass
             
-        logger.info(f"OpenTelemetry initialized for {service_name}")
+        # Also initialize OTLP metrics bridge
+        from shared.metrics import setup_otel_metrics
+        setup_otel_metrics(service_name)
+
+        logger.info(f"OpenTelemetry initialized for {service_name} (tracing + metrics)")
         
     except Exception as e:
         logger.error(f"Failed to initialize OpenTelemetry: {e}")

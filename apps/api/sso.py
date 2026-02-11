@@ -217,20 +217,17 @@ async def saml_acs(
 
 @router.get("/.well-known/openid-configuration")
 async def oidc_discovery() -> dict[str, Any]:
-    """OpenID Connect discovery document."""
-    s = get_settings()
-    base = s.sso_sp_acs_url.rsplit("/", 2)[0]  # https://api.sorce.app/sso
-    return {
-        "issuer": s.sso_sp_entity_id,
-        "authorization_endpoint": f"{base}/authorize",
-        "token_endpoint": f"{base}/token",
-        "userinfo_endpoint": f"{base}/userinfo",
-        "jwks_uri": f"{base}/.well-known/jwks.json",
-        "response_types_supported": ["code"],
-        "subject_types_supported": ["public"],
-        "id_token_signing_alg_values_supported": ["RS256"],
-        "scopes_supported": ["openid", "email", "profile"],
-    }
+    """OpenID Connect discovery document.
+
+    NOTE: OIDC authorize/token/userinfo endpoints are NOT implemented.
+    This discovery endpoint is provided for informational purposes only.
+    Returns 501 status to clearly signal that OIDC is not yet available.
+    Use SAML 2.0 for enterprise SSO instead.
+    """
+    raise HTTPException(
+        status_code=501,
+        detail="OIDC SSO is not yet implemented. Use SAML 2.0 for enterprise SSO.",
+    )
 
 
 # ---------------------------------------------------------------------------

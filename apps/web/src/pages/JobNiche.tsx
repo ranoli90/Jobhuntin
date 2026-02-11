@@ -34,7 +34,7 @@ export default function JobNiche() {
   const formattedCity = cityInfo?.name || city?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || "Remote";
 
   const canonicalUrl = `https://jobhuntin.com/jobs/${role ?? ''}/${city ?? ''}`;
-  const ogImage = `https://sorce-web.onrender.com/api/og?job=${encodeURIComponent(formattedRole)}&company=${encodeURIComponent(formattedCity)}&score=100&location=${encodeURIComponent(formattedCity)}`;
+  const ogImage = `https://jobhuntin.com/api/og?job=${encodeURIComponent(formattedRole)}&company=${encodeURIComponent(formattedCity)}&score=100&location=${encodeURIComponent(formattedCity)}`;
 
   // Programmatic City-Specific Stats (Sample logic)
   const isUS = cityInfo?.country === 'USA';

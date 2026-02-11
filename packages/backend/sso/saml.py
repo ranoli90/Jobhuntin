@@ -2,7 +2,7 @@
 SAML 2.0 Service Provider — handles ACS (Assertion Consumer Service),
 metadata endpoint, and IdP-initiated login for enterprise tenants.
 
-Uses python3-saml (onelogin) for SAML processing.
+Uses signxml for XML digital signature verification.
 """
 
 from __future__ import annotations
@@ -16,8 +16,10 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 import asyncpg
+from cryptography.x509 import load_pem_x509_certificate
+from signxml import XMLVerifier
 
-from shared.config import get_settings
+from shared.config import Environment, get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.sso.saml")
@@ -48,30 +50,85 @@ def generate_sp_metadata() -> str:
 
 
 # ---------------------------------------------------------------------------
-# SAML response parsing (simplified — production should use python3-saml)
+# SAML response parsing with signature verification via signxml
 # ---------------------------------------------------------------------------
 
-def parse_saml_response(saml_response_b64: str) -> dict[str, Any] | None:
+def _load_idp_certificate(cert_pem: str) -> Any:
+    """Load an IdP X.509 certificate from PEM string."""
+    pem = cert_pem.strip()
+    if not pem.startswith("-----BEGIN CERTIFICATE-----"):
+        pem = f"-----BEGIN CERTIFICATE-----\n{pem}\n-----END CERTIFICATE-----"
+    return load_pem_x509_certificate(pem.encode())
+
+
+def _verify_xml_signature(xml_bytes: bytes, certificate_pem: str) -> ET.Element:
+    """
+    Verify the XML digital signature using signxml.
+
+    Returns the verified XML root element.
+    Raises Exception on verification failure.
+    """
+    cert = _load_idp_certificate(certificate_pem)
+    verified_root = XMLVerifier().verify(
+        xml_bytes,
+        x509_cert=cert,
+    ).signed_xml
+    return verified_root
+
+
+def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[str, Any] | None:
     """
     Parse a SAML Response and extract user attributes.
 
-    Returns dict with: email, name_id, attributes, session_index
-    Returns None if parsing fails.
+    Args:
+        saml_response_b64: Base64-encoded SAML response XML.
+        certificate: PEM-encoded IdP X.509 certificate for signature
+                     verification. If empty, behaviour depends on environment:
+                     - prod/staging: reject (fail-closed)
+                     - local: allow with critical warning (dev convenience)
 
-    NOTE: In production, use python3-saml or pysaml2 for full
-    signature verification. This implementation extracts claims
-    for the MVP and logs warnings for unverified signatures.
+    Returns dict with: email, name_id, attributes, session_index
+    Returns None if parsing or verification fails.
     """
+    s = get_settings()
+
     try:
         xml_bytes = base64.b64decode(saml_response_b64)
-        root = ET.fromstring(xml_bytes)
+    except Exception as exc:
+        logger.error("SAML base64 decode failed: %s", exc)
+        return None
 
+    # -- Signature verification ------------------------------------------------
+    if certificate and certificate.strip():
+        try:
+            root = _verify_xml_signature(xml_bytes, certificate)
+            logger.info("SAML signature verified successfully")
+        except Exception as exc:
+            logger.error("SAML signature verification FAILED: %s", exc)
+            return None
+    else:
+        # No certificate provided — fail-closed in prod/staging
+        if s.env in (Environment.PROD, Environment.STAGING):
+            logger.critical(
+                "SAML signature verification REJECTED: no IdP certificate configured. "
+                "This is required in %s. Configure the IdP certificate in SSO settings.",
+                s.env.value,
+            )
+            return None
+        else:
+            logger.warning(
+                "SAML signature verification SKIPPED (no certificate) — "
+                "this is only permitted in local development"
+            )
+            root = ET.fromstring(xml_bytes)
+
+    # -- Claim extraction ------------------------------------------------------
+    try:
         ns = {
             "saml2p": "urn:oasis:names:tc:SAML:2.0:protocol",
             "saml2": "urn:oasis:names:tc:SAML:2.0:assertion",
         }
 
-        # Extract NameID (email)
         name_id_el = root.find(".//saml2:NameID", ns)
         email = name_id_el.text.strip() if name_id_el is not None and name_id_el.text else None
 
@@ -79,7 +136,6 @@ def parse_saml_response(saml_response_b64: str) -> dict[str, Any] | None:
             logger.warning("SAML response missing NameID")
             return None
 
-        # Extract attributes
         attributes: dict[str, str] = {}
         for attr in root.findall(".//saml2:Attribute", ns):
             attr_name = attr.get("Name", "")
@@ -87,11 +143,8 @@ def parse_saml_response(saml_response_b64: str) -> dict[str, Any] | None:
             if value_el is not None and value_el.text:
                 attributes[attr_name] = value_el.text.strip()
 
-        # Extract session index
         authn_stmt = root.find(".//saml2:AuthnStatement", ns)
         session_index = authn_stmt.get("SessionIndex", "") if authn_stmt is not None else ""
-
-        logger.warning("SAML signature verification skipped — use python3-saml in production")
 
         return {
             "email": email,
@@ -102,7 +155,7 @@ def parse_saml_response(saml_response_b64: str) -> dict[str, Any] | None:
             "last_name": attributes.get("lastName", attributes.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname", "")),
         }
     except Exception as exc:
-        logger.error("SAML parse error: %s", exc)
+        logger.error("SAML claim extraction error: %s", exc)
         return None
 
 
@@ -111,8 +164,19 @@ def parse_saml_response(saml_response_b64: str) -> dict[str, Any] | None:
 # ---------------------------------------------------------------------------
 
 def create_sso_session_token(tenant_id: str, email: str, user_id: str) -> str:
-    """Create a signed SSO session token for post-ACS redirect."""
+    """Create a signed SSO session token for post-ACS redirect.
+
+    Raises RuntimeError if sso_session_secret is empty in prod/staging,
+    since an empty secret produces trivially forgeable HMAC signatures.
+    """
     s = get_settings()
+    if not s.sso_session_secret:
+        if s.env.value in ("prod", "staging"):
+            raise RuntimeError(
+                "SSO_SESSION_SECRET is required in production/staging. "
+                "An empty secret produces forgeable SSO tokens."
+            )
+        logger.warning("SSO session secret is empty — tokens are trivially forgeable")
     payload = json.dumps({
         "tenant_id": tenant_id,
         "email": email,

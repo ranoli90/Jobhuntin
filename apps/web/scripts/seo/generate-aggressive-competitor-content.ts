@@ -20,28 +20,20 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.json');
 
-// Enhanced API key with fallback
-const DEFAULT_KEY = "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";
+// API key from environment only — never hardcode secrets
+const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
-// Premium models for aggressive SEO content
+// STRICT: Only approved NVIDIA free-tier models — no exceptions
 const PREMIUM_MODELS = [
-  'nvidia/nemotron-3-nano-30b-a3b:free', // Using robust free model as "premium" substitute per user request
-  'anthropic/claude-3-sonnet:beta',
-  'openai/gpt-4-turbo-preview',
-  'google/gemini-pro',
-  'anthropic/claude-3-haiku:beta'
+  'nvidia/nemotron-3-nano-30b-a3b:free',       // Primary: High capability (30B)
+  'nvidia/nemotron-nano-12b-v2-vl:free',        // Fallback 1: Balanced (12B)
+  'nvidia/nemotron-nano-9b-v2:free',            // Fallback 2: Fast (9B)
 ];
 
-// Fallback free models
 const FREE_MODELS = [
   'nvidia/nemotron-3-nano-30b-a3b:free',
   'nvidia/nemotron-nano-12b-v2-vl:free',
   'nvidia/nemotron-nano-9b-v2:free',
-  'openrouter/aurora-alpha',
-  'google/gemini-2.0-flash-lite-preview-02-05:free',
-  'meta-llama/llama-3-8b-instruct:free',
-  'mistralai/mistral-7b-instruct:free',
-  'microsoft/phi-3-medium-128k-instruct:free'
 ];
 
 interface Competitor {

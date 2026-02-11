@@ -49,8 +49,8 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700 pb-20">
       <SEO
-        title="Pricing | JobHuntin AI - Investment that Pays for Itself"
-        description="Choose the plan that fits your job search. From free starter kits to pro hunter automation. 7-day free trial available."
+        title="Pricing | JobHuntin AI — One Interview Pays for a Lifetime"
+        description="Free to start, $19/mo to go unlimited. One interview from JobHuntin covers the cost forever. See why 10,000+ job seekers switched."
       />
 
       <main className="max-w-7xl mx-auto px-6 py-20">
@@ -72,7 +72,7 @@ export default function Pricing() {
             transition={{ delay: 0.2 }}
             className="text-xl text-gray-600 max-w-2xl mx-auto mb-10"
           >
-            One interview lands a salary that covers this for a lifetime.
+            One interview from JobHuntin covers this cost forever. People who wait lose roles to people who don't.
           </motion.p>
 
           {/* Toggle */}

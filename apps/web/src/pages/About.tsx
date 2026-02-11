@@ -83,8 +83,8 @@ export default function About() {
     return (
         <div className="bg-white overflow-x-hidden">
             <SEO
-                title="About Us | JobHuntin AI - The Team Behind the Engine"
-                description="We built JobHuntin because we were tired of the manual job search grind. Meet the team redefining career automation with AI agents that hunt for you."
+                title="About Us | JobHuntin AI — We Automated the Worst Part of Your Career"
+                description="We got tired of the full-time job that is finding a job. So we built an AI agent that never sleeps, never gets tired, and never sends a generic resume."
                 ogTitle="About Us | JobHuntin AI"
                 canonicalUrl="https://jobhuntin.com/about"
             />
@@ -105,7 +105,7 @@ export default function About() {
                         className="inline-flex items-center gap-2 bg-slate-900/5 backdrop-blur-sm border border-slate-900/10 px-4 py-2 rounded-full text-sm font-bold text-slate-800 mb-8"
                     >
                         <Sparkles className="w-4 h-4 text-primary-600" />
-                        <span>Redefining Job Search for the AI Age</span>
+                        <span>12,000+ job seekers stopped scrolling</span>
                     </motion.div>
 
                     <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-[0.9] tracking-tighter mb-8">
@@ -114,7 +114,7 @@ export default function About() {
                     </h1>
 
                     <p className="text-xl md:text-2xl text-slate-500 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
-                        We built Hubhuntin because we were tired of the "full-time job" that is finding a job.
+                        We built JobHuntin because finding a job shouldn't be a full-time job.
                         So we moved the hard part to an engine that never sleeps.
                     </p>
 
@@ -154,7 +154,7 @@ export default function About() {
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-slate-900">Privacy First</h4>
-                                        <p className="text-sm text-slate-500 font-medium">Your data is yours. We encrypt everything and only share what recruiters need to see.</p>
+                                        <p className="text-sm text-slate-500 font-medium">Encrypted, never sold. Recruiters only see what you approve.</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-4 p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-transform hover:-translate-y-1">
@@ -163,7 +163,7 @@ export default function About() {
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-slate-900">Lightning Precision</h4>
-                                        <p className="text-sm text-slate-500 font-medium">We parse thousands of jobs per minute, matching you in milliseconds.</p>
+                                        <p className="text-sm text-slate-500 font-medium">Thousands of jobs parsed per minute. Your match scores update in milliseconds.</p>
                                     </div>
                                 </div>
                             </div>
@@ -195,7 +195,7 @@ export default function About() {
                     <div className="text-center mb-24 max-w-3xl mx-auto">
                         <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">How the engine works.</h2>
                         <p className="text-lg text-slate-500 font-medium leading-relaxed">
-                            We took the chaotic job search process and turned it into a streamlined assembly line of success.
+                            Four steps. Zero effort from you. Applications that actually get responses.
                         </p>
                     </div>
 
@@ -232,12 +232,11 @@ export default function About() {
             <section className="py-40 px-6 relative overflow-hidden">
                 <div className="max-w-4xl mx-auto text-center relative z-10">
                     <h2 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 leading-tight tracking-tight">
-                        Stop scrolling.<br />
-                        Start getting interviewed.
+                        Every day you wait,<br />
+                        someone else gets hired.
                     </h2>
                     <p className="text-xl text-slate-500 mb-12 font-medium">
-                        We're building the future of employment. A future where your time is spent in interviews,
-                        not on job boards. Join the movement.
+                        Your time should be spent in interviews, not on job boards. The people who start today land roles 3x faster.
                     </p>
                     <Link to="/login">
                         <Button size="lg" className="rounded-2xl px-12 py-8 text-xl font-bold bg-slate-900 text-white hover:bg-black hover:shadow-2xl transition-all group">

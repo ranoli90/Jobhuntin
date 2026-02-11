@@ -4,14 +4,13 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { useBilling } from "../hooks/useBilling";
 import { useApplications } from "../hooks/useApplications";
-import { HowItWorksCard } from "../components/trust/HowItWorksCard";
-import { SafetyPillars } from "../components/trust/SafetyPillars";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { apiPost } from "../lib/api";
+import { apiPost, apiGet } from "../lib/api";
 import { pushToast } from "../lib/toast";
+import { fireSuccessConfetti } from "../lib/confetti";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { useJobs } from "../hooks/useJobs";
 import type { JobFilters } from "../hooks/useJobs";
@@ -84,7 +83,7 @@ export default function Dashboard() {
       iconColor: 'text-amber-500'
     },
     {
-      label: "Monthly Volume",
+      label: "Total Applications",
       value: stats.monthlyApps,
       icon: Zap,
       trend: 0,
@@ -101,7 +100,7 @@ export default function Dashboard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="space-y-8"
+      className="space-y-3 max-w-7xl mx-auto px-4 lg:px-6 pb-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <motion.div
@@ -109,8 +108,8 @@ export default function Dashboard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <p className="text-sm font-medium uppercase tracking-[0.4em] text-slate-500">Dashboard</p>
-          <h1 className="font-display text-4xl font-bold text-slate-900">
+          <p className="text-[10px] font-medium uppercase tracking-[0.4em] text-slate-500">Dashboard</p>
+          <h1 className="font-display text-xl md:text-2xl font-bold text-slate-900">
             Your Command Center
           </h1>
         </motion.div>
@@ -130,7 +129,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric, index) => (
           <motion.div
             key={metric.label}
@@ -184,8 +183,8 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid gap-3 lg:grid-cols-3">
+        <div className="space-y-3 lg:col-span-2">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -297,10 +296,9 @@ export default function Dashboard() {
             </Card>
           </motion.div>
 
-          <HowItWorksCard />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -326,18 +324,18 @@ export default function Dashboard() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Team Seats</span>
-                    <span className="font-medium text-slate-900">{status?.seats ?? 1} Active</span>
+                    <span className="text-slate-500">Status</span>
+                    <span className="font-medium text-emerald-600 capitalize">{status?.subscription_status ?? "active"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Success Rate</span>
-                    <span className="font-medium text-emerald-600">{status?.success_rate ?? 72}%</span>
+                    <span className="font-medium text-emerald-600">{stats.successRate}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Next Billing</span>
                     <div className="flex items-center text-slate-900">
                       <Clock className="h-3.5 w-3.5 mr-1 text-slate-400" />
-                      <span>{status?.next_payment_at ? new Date(status.next_payment_at).toLocaleDateString() : "No upcoming bill"}</span>
+                      <span>{status?.current_period_end ? new Date(status.current_period_end).toLocaleDateString() : "No upcoming bill"}</span>
                     </div>
                   </div>
                 </div>
@@ -352,7 +350,6 @@ export default function Dashboard() {
             </Card>
           </motion.div>
 
-          <SafetyPillars />
         </div>
       </div>
     </motion.div>
@@ -382,12 +379,13 @@ export function JobsView() {
 
     try {
       // Record swipe decision with API
-      await apiPost("jobs/swipe", { job_id: currentJob.id, decision: direction });
+      await apiPost("applications", { job_id: currentJob.id, decision: direction });
 
       setCurrentIndex(prev => prev + 1);
       setSwipeCount(prev => prev + 1);
 
       if (direction === "ACCEPT") {
+        fireSuccessConfetti();
         pushToast({
           title: "Match queued! 🚀",
           description: `AI is now tailoring your resume for ${currentJob.company}.`,
@@ -438,10 +436,10 @@ export function JobsView() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Active Radar</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Radar</h2>
           <p className="text-slate-500 font-medium">Swipe right to let AI apply for you.</p>
         </div>
         <div className="flex gap-2">
@@ -458,7 +456,7 @@ export function JobsView() {
         </div>
       </div>
 
-      <div className="relative h-[550px] w-full max-w-md mx-auto perspective-1000">
+      <div className="relative h-[min(550px,65vh)] w-full max-w-md mx-auto perspective-1000">
         <AnimatePresence>
           {jobs.slice(currentIndex, currentIndex + 2).reverse().map((job, idx) => {
             const isTop = idx === (jobs.slice(currentIndex, currentIndex + 2).length - 1);
@@ -495,9 +493,11 @@ export function JobsView() {
                   shadow="lift"
                 >
                   <div className="bg-slate-900 p-8 text-white relative">
-                    <div className="absolute top-4 right-4 bg-primary-500 text-white text-[10px] font-black px-2 py-1 rounded">
-                      AI MATCH: 94%
-                    </div>
+                    {job.match_score != null && (
+                      <div className="absolute top-4 right-4 bg-primary-500 text-white text-[10px] font-black px-2 py-1 rounded">
+                        AI MATCH: {Math.round(job.match_score)}%
+                      </div>
+                    )}
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
                         <Briefcase className="w-6 h-6 text-primary-400" />
@@ -522,20 +522,18 @@ export function JobsView() {
                       {job.description || "No description provided."}
                     </p>
 
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <CheckCircle className="w-3 h-3 text-emerald-600" />
-                        </div>
-                        <p className="text-sm text-slate-700 font-medium">Matches your skills in React, TypeScript, and Framer Motion.</p>
+                    {job.requirements && job.requirements.length > 0 && (
+                      <div className="space-y-4">
+                        {job.requirements.slice(0, 3).map((req: string, i: number) => (
+                          <div key={i} className="flex items-start gap-3">
+                            <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <CheckCircle className="w-3 h-3 text-emerald-600" />
+                            </div>
+                            <p className="text-sm text-slate-700 font-medium">{req}</p>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <CheckCircle className="w-3 h-3 text-emerald-600" />
-                        </div>
-                        <p className="text-sm text-slate-700 font-medium">High salary overlap with your $140k target.</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-center gap-8">
@@ -711,9 +709,9 @@ export function HoldsView() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-20">
+    <div className="max-w-4xl mx-auto space-y-6 pb-6">
       <div>
-        <h2 className="text-3xl font-black text-slate-900 tracking-tight">HOLD Inbox</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">HOLD Inbox</h2>
         <p className="text-slate-500 font-medium">Your AI agent needs clarification on these {holdApplications.length} threads.</p>
       </div>
 
@@ -783,14 +781,14 @@ export function HoldsView() {
 
 export function TeamView() {
   const navigate = useNavigate();
-  const { status } = useBilling();
-  const isSolo = !status?.seats || status.seats <= 1;
+  const { status, plan } = useBilling();
+  const isSolo = plan !== "TEAM";
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+    <div className="max-w-6xl mx-auto space-y-6 pb-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Workspace</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Workspace</h2>
           <p className="text-slate-500 font-medium">Collaborate and manage shared hunting pipelines.</p>
         </div>
         <Button
@@ -811,9 +809,9 @@ export function TeamView() {
             <div className="divide-y divide-slate-100 italic">
               <div className="px-8 py-6 flex items-center justify-between bg-white">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">JD</div>
+                  <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">{status?.tenant_id?.slice(0, 2).toUpperCase() || 'ME'}</div>
                   <div>
-                    <p className="font-bold text-slate-900">John Doe (You)</p>
+                    <p className="font-bold text-slate-900">You (Owner)</p>
                     <p className="text-xs text-slate-500 font-medium">Workspace Owner</p>
                   </div>
                 </div>
@@ -860,48 +858,30 @@ export function TeamView() {
 
 
 export function BillingView() {
-  const { status, plan } = useBilling();
-  const [billingData, setBillingData] = useState<any>(null);
+  const { status, plan, usage, upgrade, addSeats } = useBilling();
 
-  useEffect(() => {
-    // Fetch actual billing data from API
-    const fetchBillingData = async () => {
-      try {
-        const data = await apiPost('/billing/status', {});
-        setBillingData(data);
-      } catch (error) {
-        console.error('Failed to fetch billing data:', error);
-        // Fallback to mock data if API fails
-        setBillingData({
-          monthlyUsage: 42,
-          monthlyLimit: 100,
-          resetDate: 'March 1st, 2025',
-          invoices: [
-            { id: 'JH-001', date: 'Feb 01, 2025', amount: 29.00 },
-            { id: 'JH-002', date: 'Jan 01, 2025', amount: 29.00 }
-          ]
-        });
-      }
-    };
-
-    fetchBillingData();
-  }, []);
+  const usageUsed = usage?.monthly_used ?? 0;
+  const usageLimit = usage?.monthly_limit ?? 100;
+  const usagePercent = usage?.percentage_used ?? 0;
+  const periodEnd = status?.current_period_end
+    ? new Date(status.current_period_end).toLocaleDateString()
+    : null;
 
   const tiers = [
-    { name: "Free", price: "$0", features: ["5 applications", "Basic tailoring", "Standard support"] },
-    { name: "Pro", price: "$29", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true },
-    { name: "Agency", price: "$199", features: ["10 team seats", "API access", "White-label reports"] },
+    { name: "FREE", price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], action: null },
+    { name: "PRO", price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, action: upgrade },
+    { name: "TEAM", price: "$49", features: ["10 team seats", "API access", "White-label reports"], action: addSeats },
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 pb-20">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+    <div className="max-w-6xl mx-auto space-y-6 pb-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Billing & Quota</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Billing & Quota</h2>
           <p className="text-slate-500 font-medium">Manage your subscription and usage telemetry.</p>
         </div>
         <Badge variant="primary" className="py-2 px-4 rounded-xl font-bold">
-          Account Status: {plan || "Active"}
+          Plan: {plan || "FREE"}
         </Badge>
       </div>
 
@@ -909,39 +889,26 @@ export function BillingView() {
         <div className="lg:col-span-2 space-y-8">
           <Card className="p-8 border-slate-200" shadow="sm">
             <h3 className="text-xl font-black text-slate-900 mb-6 font-display">Current Allocation</h3>
-            <div className="grid md:grid-cols-2 gap-10">
-              <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                  <p className="text-sm font-bold text-slate-500 uppercase">Monthly Volume</p>
-                  <p className="text-sm font-black text-slate-900">{billingData?.monthlyUsage || 42} / {billingData?.monthlyLimit || 100}</p>
-                </div>
-                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${billingData ? (billingData.monthlyUsage / billingData.monthlyLimit) * 100 : 42}%` }}
-                    className="h-full bg-primary-500"
-                  />
-                </div>
-                <p className="text-xs text-slate-400 font-medium">Resets on {billingData?.resetDate || 'March 1st, 2025'}.</p>
+            <div className="space-y-4">
+              <div className="flex justify-between items-end">
+                <p className="text-sm font-bold text-slate-500 uppercase">Monthly Volume</p>
+                <p className="text-sm font-black text-slate-900">{usageUsed} / {usageLimit}</p>
               </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                  <p className="text-sm font-bold text-slate-500 uppercase">Team Seats</p>
-                  <p className="text-sm font-black text-slate-900">{status?.seats || 1} / 1</p>
-                </div>
-                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
-                    className="h-full bg-slate-900"
-                  />
-                </div>
-                <p className="text-xs text-slate-400 font-medium">Upgrade to Agency for 10 seats.</p>
+              <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(usagePercent, 100)}%` }}
+                  className="h-full bg-primary-500"
+                />
+              </div>
+              <div className="flex justify-between text-xs text-slate-400 font-medium">
+                <span>{usage?.monthly_remaining ?? usageLimit - usageUsed} remaining</span>
+                {periodEnd && <span>Resets {periodEnd}</span>}
               </div>
             </div>
           </Card>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid lg:grid-cols-3 gap-6">
             {tiers.map((tier) => (
               <Card
                 key={tier.name}
@@ -962,6 +929,8 @@ export function BillingView() {
                 <Button
                   variant={tier.recommended ? "primary" : "outline"}
                   className="w-full font-bold text-xs uppercase rounded-xl"
+                  disabled={tier.name === plan}
+                  onClick={tier.action ? async () => { try { await tier.action(); } catch (e) { pushToast({ title: "Checkout failed", description: (e as Error).message, tone: "error" }); } } : undefined}
                 >
                   {tier.name === plan ? "Current" : "Upgrade"}
                 </Button>
@@ -973,32 +942,34 @@ export function BillingView() {
         <div className="space-y-6">
           <Card className="bg-slate-900 text-white p-8 border-none overflow-hidden relative" shadow="lift">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary-500/20 rounded-full blur-3xl" />
-            <h3 className="text-xl font-bold mb-4 relative z-10">Payment Method</h3>
-            <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/10 mb-6">
-              <div className="w-10 h-7 bg-white/10 rounded flex items-center justify-center font-bold text-[10px]">VISA</div>
-              <p className="font-mono text-sm tracking-widest text-white/70">**** 4242</p>
-            </div>
-            <Button variant="ghost" className="w-full text-white/50 hover:text-white hover:bg-white/5 text-xs font-bold uppercase transition-colors">
-              Manage Billing Portal <ArrowUpRight className="ml-2 w-3 h-3" />
-            </Button>
-          </Card>
-
-          <Card className="p-8 border-slate-100" shadow="sm">
-            <h3 className="text-lg font-black text-slate-900 mb-4 font-display">Invoices</h3>
-            <div className="space-y-4">
-              {(billingData?.invoices || [
-                { id: 'JH-001', date: 'Feb 01, 2025', amount: 29.00 },
-                { id: 'JH-002', date: 'Jan 01, 2025', amount: 29.00 }
-              ]).map((invoice: any) => (
-                <div key={invoice.id} className="flex items-center justify-between pb-4 border-b border-slate-50 last:border-0 last:pb-0">
-                  <div>
-                    <p className="font-bold text-slate-900 text-sm">Invoice #{invoice.id}</p>
-                    <p className="text-xs text-slate-400 font-medium">{invoice.date}</p>
-                  </div>
-                  <p className="font-black text-slate-900 text-sm">${invoice.amount?.toFixed(2) || '29.00'}</p>
+            <h3 className="text-xl font-bold mb-4 relative z-10">Subscription</h3>
+            <div className="space-y-3 relative z-10">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/60">Status</span>
+                <span className="capitalize font-medium">{status?.subscription_status ?? "active"}</span>
+              </div>
+              {status?.provider && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/60">Provider</span>
+                  <span className="capitalize font-medium">{status.provider}</span>
                 </div>
-              ))}
+              )}
+              {periodEnd && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/60">Renews</span>
+                  <span className="font-medium">{periodEnd}</span>
+                </div>
+              )}
             </div>
+            {plan !== "FREE" && (
+              <Button
+                variant="ghost"
+                className="w-full mt-4 text-white/50 hover:text-white hover:bg-white/5 text-xs font-bold uppercase transition-colors"
+                onClick={async () => { try { await upgrade(); } catch (e) { pushToast({ title: "Billing portal error", description: (e as Error).message, tone: "error" }); } }}
+              >
+                Manage Billing Portal <ArrowUpRight className="ml-2 w-3 h-3" />
+              </Button>
+            )}
           </Card>
         </div>
       </div>

@@ -18,20 +18,38 @@ import asyncpg
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
+from shared.metrics import incr, observe
 
 logger = get_logger("sorce.worker.scaling")
+
+
+def _get_ssl_config() -> Any:
+    """Get SSL configuration for database connections (matches API's DatabasePoolManager)."""
+    s = get_settings()
+    if not s.database_url:
+        return False
+    if "pooler.supabase.com" not in s.database_url and "supabase.co" not in s.database_url:
+        return False
+    import ssl as _ssl
+    ssl_ctx = _ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = _ssl.CERT_NONE
+    return ssl_ctx
 
 
 async def create_primary_pool() -> asyncpg.Pool:
     """Create the primary write DB pool."""
     s = get_settings()
     from shared.db import resolve_dsn_ipv4
-    return await asyncpg.create_pool(
-        resolve_dsn_ipv4(s.database_url),
-        min_size=s.db_pool_min,
-        max_size=s.db_pool_max,
-        command_timeout=60,
-    )
+    ssl = _get_ssl_config()
+    kwargs: dict[str, Any] = {
+        "min_size": s.db_pool_min,
+        "max_size": s.db_pool_max,
+        "command_timeout": 60,
+    }
+    if ssl:
+        kwargs["ssl"] = ssl
+    return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
 
 
 async def create_read_replica_pool() -> asyncpg.Pool | None:
@@ -41,12 +59,15 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
         logger.info("No read replica configured; using primary for reads")
         return None
     from shared.db import resolve_dsn_ipv4
-    return await asyncpg.create_pool(
-        resolve_dsn_ipv4(s.read_replica_url),
-        min_size=2,
-        max_size=s.db_pool_max,
-        command_timeout=60,
-    )
+    ssl = _get_ssl_config()
+    kwargs: dict[str, Any] = {
+        "min_size": 2,
+        "max_size": s.db_pool_max,
+        "command_timeout": 60,
+    }
+    if ssl:
+        kwargs["ssl"] = ssl
+    return await asyncpg.create_pool(resolve_dsn_ipv4(s.read_replica_url), **kwargs)
 
 
 async def create_enterprise_pool() -> asyncpg.Pool | None:
@@ -55,12 +76,156 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
     if not s.enterprise_db_pool_min:
         return None
     from shared.db import resolve_dsn_ipv4
-    return await asyncpg.create_pool(
-        resolve_dsn_ipv4(s.database_url),
-        min_size=s.enterprise_db_pool_min,
-        max_size=s.enterprise_db_pool_max,
-        command_timeout=120,  # longer timeout for enterprise
-    )
+    ssl = _get_ssl_config()
+    kwargs: dict[str, Any] = {
+        "min_size": s.enterprise_db_pool_min,
+        "max_size": s.enterprise_db_pool_max,
+        "command_timeout": 120,
+    }
+    if ssl:
+        kwargs["ssl"] = ssl
+    return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# BrowserPoolManager — supports local Chromium and remote Browserless.io
+# ---------------------------------------------------------------------------
+
+class BrowserPoolManager:
+    """
+    Manages Playwright browser lifecycle with support for:
+    - Local Chromium launch (default)
+    - Remote Browserless.io via CDP (when browserless_url is configured)
+    - Context recycling after N uses to prevent memory leaks
+    - Active context count and usage metrics
+    """
+
+    def __init__(self) -> None:
+        self._playwright: Any = None
+        self._browser: Any = None
+        self._is_remote: bool = False
+        self._context_use_counts: dict[int, int] = {}  # context id -> use count
+        self._active_contexts: int = 0
+        self._total_contexts_created: int = 0
+        self._lock = asyncio.Lock()
+
+    async def start(self) -> None:
+        """Initialize Playwright and connect/launch browser."""
+        from playwright.async_api import async_playwright
+        s = get_settings()
+
+        self._playwright = await async_playwright().start()
+
+        if s.browserless_url:
+            # Remote browser via CDP (Browserless.io or compatible)
+            url = s.browserless_url
+            if s.browserless_token and "token=" not in url:
+                separator = "&" if "?" in url else "?"
+                url = f"{url}{separator}token={s.browserless_token}"
+            self._browser = await self._playwright.chromium.connect_over_cdp(url)
+            self._is_remote = True
+            logger.info("Connected to remote browser via CDP: %s", s.browserless_url.split("?")[0])
+        else:
+            # Local Chromium
+            self._browser = await self._playwright.chromium.launch(headless=s.playwright_headless)
+            self._is_remote = False
+            logger.info("Launched local Chromium (headless=%s)", s.playwright_headless)
+
+    # Realistic Chrome user-agent strings for rotation
+    _USER_AGENTS = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    ]
+
+    # Viewport sizes that look like real desktop monitors
+    _VIEWPORTS = [
+        {"width": 1280, "height": 800},
+        {"width": 1366, "height": 768},
+        {"width": 1440, "height": 900},
+        {"width": 1536, "height": 864},
+        {"width": 1920, "height": 1080},
+        {"width": 1280, "height": 720},
+    ]
+
+    async def create_context(self) -> Any:
+        """Create a new browser context with randomized viewport and user-agent."""
+        import random
+
+        if not self._browser:
+            raise RuntimeError("BrowserPoolManager not started")
+
+        viewport = random.choice(self._VIEWPORTS)
+        ua = random.choice(self._USER_AGENTS)
+
+        ctx = await self._browser.new_context(
+            viewport=viewport,
+            user_agent=ua,
+            locale=random.choice(["en-US", "en-GB", "en-CA"]),
+            timezone_id=random.choice([
+                "America/New_York", "America/Chicago",
+                "America/Los_Angeles", "America/Denver",
+            ]),
+        )
+        async with self._lock:
+            self._active_contexts += 1
+            self._total_contexts_created += 1
+            self._context_use_counts[id(ctx)] = 0
+        incr("browser.context.created")
+        observe("browser.active_contexts", float(self._active_contexts))
+        return ctx
+
+    async def record_context_use(self, ctx: Any) -> bool:
+        """
+        Record a use of the context. Returns True if context should be recycled
+        (exceeded max_uses threshold).
+        """
+        s = get_settings()
+        async with self._lock:
+            ctx_id = id(ctx)
+            self._context_use_counts[ctx_id] = self._context_use_counts.get(ctx_id, 0) + 1
+            uses = self._context_use_counts[ctx_id]
+        return uses >= s.browser_context_max_uses
+
+    async def close_context(self, ctx: Any) -> None:
+        """Close a browser context and update metrics."""
+        try:
+            await ctx.close()
+        except Exception as exc:
+            logger.warning("Error closing browser context: %s", exc)
+        async with self._lock:
+            self._active_contexts = max(0, self._active_contexts - 1)
+            self._context_use_counts.pop(id(ctx), None)
+        incr("browser.context.closed")
+        observe("browser.active_contexts", float(self._active_contexts))
+
+    async def shutdown(self) -> None:
+        """Close the browser and Playwright."""
+        if self._browser:
+            try:
+                await self._browser.close()
+            except Exception as exc:
+                logger.warning("Error closing browser: %s", exc)
+            self._browser = None
+        if self._playwright:
+            try:
+                await self._playwright.stop()
+            except Exception as exc:
+                logger.warning("Error stopping Playwright: %s", exc)
+            self._playwright = None
+        logger.info("BrowserPoolManager shut down")
+
+    def get_stats(self) -> dict[str, Any]:
+        """Return browser pool statistics for health checks."""
+        return {
+            "is_remote": self._is_remote,
+            "active_contexts": self._active_contexts,
+            "total_contexts_created": self._total_contexts_created,
+            "context_use_counts": dict(self._context_use_counts),
+        }
 
 
 class WorkerScaler:
@@ -71,8 +236,7 @@ class WorkerScaler:
         self.primary_pool: asyncpg.Pool | None = None
         self.read_pool: asyncpg.Pool | None = None
         self.enterprise_pool: asyncpg.Pool | None = None
-        self.playwright = None
-        self.browser = None
+        self.browser_pool: BrowserPoolManager | None = None
         self._shutdown = asyncio.Event()
         self._tasks: list[asyncio.Task] = []
 
@@ -84,23 +248,12 @@ class WorkerScaler:
         self.read_pool = await create_read_replica_pool()
         self.enterprise_pool = await create_enterprise_pool()
         
-        # Initialize Playwright and Browser (shared across workers)
-        from playwright.async_api import async_playwright
-        self.playwright = await async_playwright().start()
-        s = get_settings()
-        self.browser = await self.playwright.chromium.launch(headless=s.playwright_headless)
-        
-        logger.info("Playwright browser launched (headless=%s)", s.playwright_headless)
+        # Initialize BrowserPoolManager (supports local and remote browsers)
+        self.browser_pool = BrowserPoolManager()
+        await self.browser_pool.start()
 
         async def context_factory():
-             return await self.browser.new_context(
-                viewport={"width": 1280, "height": 900},
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
-                ),
-            )
+            return await self.browser_pool.create_context()
 
         from worker.agent import FormAgent
 
@@ -112,12 +265,13 @@ class WorkerScaler:
             self._tasks.append(task)
 
         logger.info(
-            "All %d workers started (primary_pool=%d/%d, read_replica=%s, enterprise_pool=%s)",
+            "All %d workers started (primary_pool=%d/%d, read_replica=%s, enterprise_pool=%s, browser=%s)",
             self.instance_count,
             self.primary_pool.get_min_size(),
             self.primary_pool.get_max_size(),
             "yes" if self.read_pool else "no",
             "yes" if self.enterprise_pool else "no",
+            "remote" if self.browser_pool._is_remote else "local",
         )
 
     async def _worker_loop(self, instance_id: int, agent_cls: Any, context_factory: Any) -> None:
@@ -159,13 +313,10 @@ class WorkerScaler:
         await asyncio.gather(*self._tasks, return_exceptions=True)
         self._tasks.clear()
         
-        # Close Playwright resources
-        if self.browser:
-            await self.browser.close()
-            self.browser = None
-        if self.playwright:
-            await self.playwright.stop()
-            self.playwright = None
+        # Close browser pool
+        if self.browser_pool:
+            await self.browser_pool.shutdown()
+            self.browser_pool = None
 
         if self.primary_pool:
             await self.primary_pool.close()
@@ -180,7 +331,7 @@ class WorkerScaler:
         logger.info("All workers shut down.")
 
     def get_pool_stats(self) -> dict[str, Any]:
-        """Return connection pool statistics."""
+        """Return connection pool and browser statistics."""
         stats: dict[str, Any] = {}
         if self.primary_pool:
             stats["primary"] = {
@@ -199,6 +350,8 @@ class WorkerScaler:
                 "size": self.enterprise_pool.get_size(),
                 "free": self.enterprise_pool.get_idle_size(),
             }
+        if self.browser_pool:
+            stats["browser"] = self.browser_pool.get_stats()
         return stats
 
 

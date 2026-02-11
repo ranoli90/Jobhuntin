@@ -6,9 +6,11 @@ Provides:
   - observe(name, value, tags): record a measurement (latency, etc.)
   - RateLimiter: sliding-window per-minute rate limiter
   - dump(): return current metrics snapshot (for /healthz or debugging)
+  - setup_otel_metrics(): optional bridge to export metrics via OTLP
 
-No external dependencies – pure in-process counters.
-For production, these can be forwarded to an OTLP collector or StatsD.
+In-process counters are always maintained. When setup_otel_metrics() is called
+(typically from telemetry.py), counters and observations are also forwarded to
+an OpenTelemetry MeterProvider for export to Prometheus, Datadog, etc.
 """
 
 from __future__ import annotations
@@ -26,12 +28,27 @@ _lock = threading.Lock()
 _counters: dict[str, int] = defaultdict(int)
 _observations: dict[str, list[float]] = defaultdict(list)
 
+# Optional OTLP metric instruments (populated by setup_otel_metrics)
+_otel_counters: dict[str, Any] = {}
+_otel_histograms: dict[str, Any] = {}
+_otel_meter: Any = None
+
 
 def incr(metric_name: str, tags: dict[str, str] | None = None, value: int = 1) -> None:
     """Increment a counter metric."""
     key = _metric_key(metric_name, tags)
     with _lock:
         _counters[key] += value
+    # Forward to OTLP if configured
+    if _otel_meter is not None:
+        otel_counter = _otel_counters.get(metric_name)
+        if otel_counter is None:
+            otel_counter = _otel_meter.create_counter(
+                name=metric_name.replace(".", "_"),
+                description=f"Counter: {metric_name}",
+            )
+            _otel_counters[metric_name] = otel_counter
+        otel_counter.add(value, attributes=tags or {})
 
 
 def observe(metric_name: str, value: float, tags: dict[str, str] | None = None) -> None:
@@ -43,6 +60,16 @@ def observe(metric_name: str, value: float, tags: dict[str, str] | None = None) 
         # Keep bounded: last 1000 observations
         if len(obs) > 1000:
             _observations[key] = obs[-500:]
+    # Forward to OTLP if configured
+    if _otel_meter is not None:
+        otel_hist = _otel_histograms.get(metric_name)
+        if otel_hist is None:
+            otel_hist = _otel_meter.create_histogram(
+                name=metric_name.replace(".", "_"),
+                description=f"Histogram: {metric_name}",
+            )
+            _otel_histograms[metric_name] = otel_hist
+        otel_hist.record(value, attributes=tags or {})
 
 
 def dump() -> dict[str, Any]:
@@ -93,33 +120,58 @@ class RateLimiter:
         self._timestamps: list[float] = []
         self._lock = threading.Lock()
 
+    # Lua script for atomic sliding-window rate limiting.
+    # Removes expired entries, checks count, and adds new entry in one round-trip.
+    # Returns 1 if allowed, 0 if rate limited.
+    _LUA_SLIDING_WINDOW = """
+    local key = KEYS[1]
+    local now = tonumber(ARGV[1])
+    local cutoff = tonumber(ARGV[2])
+    local max_calls = tonumber(ARGV[3])
+    local window_ttl = tonumber(ARGV[4])
+
+    redis.call('ZREMRANGEBYSCORE', key, 0, cutoff)
+    local count = redis.call('ZCARD', key)
+    if count >= max_calls then
+        return 0
+    end
+    redis.call('ZADD', key, now, tostring(now) .. ':' .. tostring(math.random(1000000)))
+    redis.call('EXPIRE', key, window_ttl)
+    return 1
+    """
+
     async def acquire(self) -> bool:
-        """Async check with Redis support (if name provided), else sync fallback."""
+        """Async check with Redis support (if name provided), else sync fallback.
+
+        Uses an atomic Lua script to eliminate the race window between
+        ZCARD and ZADD that existed in the previous pipeline approach.
+        Falls back to in-memory if Redis is unavailable.
+        """
         if not self.name:
             return self.allow()
-            
+
+        from shared.config import get_settings
+        s = get_settings()
+        if not s.redis_url:
+            return self.allow()
+
         from shared.redis_client import get_redis
         try:
             client = await get_redis()
             now = time.time()
             cutoff = now - self.window
             key = f"rate_limit:{self.name}"
-            
-            # Use a pipeline for atomicity
-            async with client.pipeline(transaction=True) as pipe:
-                await pipe.zremrangebyscore(key, 0, cutoff)
-                await pipe.zcard(key)
-                results = await pipe.execute()
-            
-            count = results[1]
-            if count >= self.max_calls:
-                return False
-                
-            # Add current timestamp
-            # We don't need a transaction here strictly, but it's fine
-            await client.zadd(key, {str(now): now})
-            await client.expire(key, self.window + 10)
-            return True
+
+            result = await client.eval(
+                self._LUA_SLIDING_WINDOW,
+                1,       # number of KEYS
+                key,     # KEYS[1]
+                str(now),
+                str(cutoff),
+                str(self.max_calls),
+                str(self.window + 10),
+            )
+            return int(result) == 1
 
         except Exception:
             # Fallback to in-memory if Redis fails
@@ -191,3 +243,42 @@ def get_rate_limiter(
             limiter = RateLimiter(max_calls=max_calls, window_seconds=window_seconds, name=name)
             _rate_limiters[name] = limiter
         return limiter
+
+
+# ---------------------------------------------------------------------------
+# OTLP metrics bridge — call once at startup to enable metric export
+# ---------------------------------------------------------------------------
+
+def setup_otel_metrics(service_name: str = "sorce") -> None:
+    """
+    Initialize an OpenTelemetry MeterProvider so that incr() and observe()
+    forward data to an OTLP collector (or Prometheus exporter).
+
+    Requires OTEL_EXPORTER_OTLP_ENDPOINT to be set. No-ops silently if
+    the OTLP SDK is not installed or the env var is missing.
+    """
+    import os
+
+    global _otel_meter
+
+    endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+    if not endpoint:
+        return
+
+    try:
+        from opentelemetry import metrics as otel_metrics
+        from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+        from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+
+        resource = Resource.create({SERVICE_NAME: service_name})
+        reader = PeriodicExportingMetricReader(
+            OTLPMetricExporter(),
+            export_interval_millis=30_000,  # flush every 30s
+        )
+        provider = MeterProvider(resource=resource, metric_readers=[reader])
+        otel_metrics.set_meter_provider(provider)
+        _otel_meter = provider.get_meter(service_name)
+    except Exception:
+        pass  # Silently degrade — in-process metrics still work

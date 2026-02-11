@@ -61,8 +61,8 @@ export default function SuccessStories() {
   return (
     <div className="font-sans text-slate-900 overflow-x-hidden">
       <SEO 
-        title="Success Stories | JobHuntin AI - Real People, Real Offers"
-        description="See how Sarah, Michael, and others landed their dream jobs in record time using JobHuntin's AI automation. 98% match rates and massive salary bumps."
+        title="Success Stories | JobHuntin AI — They Got Hired. You're Next."
+        description="Real people who stopped scrolling and started interviewing. See how JobHuntin users landed offers in days, not months."
         ogTitle="Success Stories | JobHuntin AI"
         ogImage="https://jobhuntin.com/og/success-stories.png"
         canonicalUrl="https://jobhuntin.com/success-stories"
@@ -206,7 +206,7 @@ export default function SuccessStories() {
               <div className="w-[500px] bg-gradient-to-br from-primary-500 to-primary-600 p-10 rounded-[3rem] flex flex-col justify-center items-center text-center relative overflow-hidden shadow-2xl shadow-primary-500/30">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                 <h3 className="text-4xl font-black mb-6 relative z-10 text-white">YOUR TURN.</h3>
-                <p className="text-white/90 mb-8 relative z-10 text-lg font-medium">Don't let another dream job slip away.</p>
+                <p className="text-white/90 mb-8 relative z-10 text-lg font-medium">Every hour you wait, someone else gets the interview you wanted.</p>
                 <Button asChild className="bg-white text-primary-600 hover:bg-slate-50 hover:scale-105 transition-transform relative z-10 shadow-xl hover:shadow-2xl h-16 px-8 text-xl font-bold rounded-2xl border-none">
                   <Link to="/login">
                     Start Free Trial

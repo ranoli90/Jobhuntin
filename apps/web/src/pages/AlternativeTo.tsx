@@ -17,23 +17,23 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
     return [
         {
             question: `What is the best ${competitor.name} alternative in 2026?`,
-            answer: `JobHuntin is the best ${competitor.name} alternative in 2026. Unlike ${competitor.name}, JobHuntin provides a fully autonomous AI agent that discovers jobs, tailors your resume for each application, generates custom cover letters, and submits applications with human-like stealth browsing — all running in the background without requiring your attention.`,
+            answer: `JobHuntin. It's a fully autonomous AI agent that discovers jobs, tailors your resume per application, and submits with stealth browsing — all in the background while you sleep.`,
         },
         {
             question: `Why are people switching from ${competitor.name}?`,
-            answer: `Users switch from ${competitor.name} because: ${competitor.weaknesses.slice(0, 3).join('. ')}. JobHuntin solves these issues with autonomous operation, per-application resume tailoring, and stealth mode that makes every application look hand-crafted.`,
+            answer: `${competitor.weaknesses.slice(0, 2).join('. ')}. JobHuntin fixes all of that with autonomous operation and per-application resume tailoring.`,
         },
         {
             question: `Is JobHuntin free like ${competitor.name}?`,
-            answer: `${competitor.pricing.free_tier ? `Like ${competitor.name}, JobHuntin offers a free tier to get started.` : `Unlike ${competitor.name} which starts at ${competitor.pricing.starts_at}, JobHuntin offers a free tier.`} Our free plan lets you experience the autonomous AI agent before upgrading to Pro for unlimited applications with full stealth mode and resume tailoring.`,
+            answer: `${competitor.pricing.free_tier ? `Both offer free tiers, but JobHuntin's free plan includes AI resume tailoring.` : `JobHuntin offers a free tier — ${competitor.name} starts at ${competitor.pricing.starts_at}.`} Upgrade to Pro ($19/mo) for unlimited applications with full stealth mode.`,
         },
         {
             question: `How does JobHuntin compare to ${competitor.name} for volume?`,
-            answer: `JobHuntin excels at high-volume, high-quality applications. While ${competitor.features.auto_apply ? `${competitor.name} can auto-apply, it often sends generic applications` : `${competitor.name} doesn't offer auto-apply`}. JobHuntin's AI agent tailors every single application — resume, cover letter, and form responses — while maintaining volume that matches or exceeds any competitor.`,
+            answer: `${competitor.features.auto_apply ? `${competitor.name} auto-applies but sends generic apps.` : `${competitor.name} doesn't even auto-apply.`} JobHuntin tailors every resume, cover letter, and form response — at higher volume than any competitor.`,
         },
         {
             question: `Can I use JobHuntin and ${competitor.name} together?`,
-            answer: `You can, but most users find JobHuntin eliminates the need for ${competitor.name} entirely. JobHuntin's autonomous agent handles the complete pipeline from job discovery to tailored application submission. The stealth mode and resume tailoring features that make JobHuntin unique aren't available in ${competitor.name}.`,
+            answer: `You can, but most users drop ${competitor.name} within a week. JobHuntin handles the entire pipeline from discovery to tailored submission — there's nothing left for another tool to do.`,
         },
     ];
 }

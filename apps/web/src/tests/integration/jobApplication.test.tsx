@@ -12,7 +12,6 @@ import '@testing-library/jest-dom/vitest';
 
 // Mock components and hooks
 import Dashboard from '../../pages/Dashboard';
-import { useOptimisticApplications } from '../../hooks/useOptimisticUpdates';
 import { useApplications } from '../../hooks/useApplications';
 
 // Mock API responses
@@ -161,7 +160,7 @@ describe('Job Application Flow', () => {
       fireEvent.click(acceptButton);
 
       await waitFor(() => {
-        expect(mockApiPost).toHaveBeenCalledWith('jobs/swipe', {
+        expect(mockApiPost).toHaveBeenCalledWith('applications', {
           job_id: 'job-1',
           decision: 'ACCEPT',
         });
@@ -180,7 +179,7 @@ describe('Job Application Flow', () => {
       fireEvent.click(rejectButton);
 
       await waitFor(() => {
-        expect(mockApiPost).toHaveBeenCalledWith('jobs/swipe', {
+        expect(mockApiPost).toHaveBeenCalledWith('applications', {
           job_id: 'job-1',
           decision: 'REJECT',
         });
@@ -388,77 +387,6 @@ describe('Job Application Flow', () => {
   });
 });
 
-describe('Optimistic Updates', () => {
-  it('should update UI optimistically', async () => {
-    const TestComponent = () => {
-      const { actions } = useOptimisticApplications();
-
-      const handleApply = () => {
-        actions.applyToJob('job-1', {
-          cover_letter: 'Test cover letter',
-          resume_version: 'latest',
-        });
-      };
-
-      return (
-        <div>
-          <button onClick={handleApply}>Apply to Job</button>
-          <div data-testid="application-status">
-            Application Status: Applying...
-          </div>
-        </div>
-      );
-    };
-
-    renderWithProviders(<TestComponent />, createTestQueryClient());
-
-    const applyButton = screen.getByText('Apply to Job');
-    fireEvent.click(applyButton);
-
-    // Check optimistic update
-    await waitFor(() => {
-      expect(screen.getByTestId('application-status')).toHaveTextContent(
-        'Application Status: Applying...'
-      );
-    });
-  });
-
-  it('should rollback on error', async () => {
-    mockApiPost.mockRejectedValue(new Error('Application failed'));
-
-    const TestComponent = () => {
-      const { actions } = useOptimisticApplications();
-
-      const handleApply = () => {
-        actions.applyToJob('job-1', {
-          cover_letter: 'Test cover letter',
-          resume_version: 'latest',
-        });
-      };
-
-      return (
-        <div>
-          <button onClick={handleApply}>Apply to Job</button>
-          <div data-testid="application-status">
-            Application Status: Ready
-          </div>
-        </div>
-      );
-    };
-
-    renderWithProviders(<TestComponent />, createTestQueryClient());
-
-    const applyButton = screen.getByText('Apply to Job');
-    fireEvent.click(applyButton);
-
-    // Should rollback after error
-    await waitFor(() => {
-      expect(screen.getByTestId('application-status')).toHaveTextContent(
-        'Application Status: Ready'
-      );
-    }, { timeout: 15000 });
-  });
-});
 
 describe('Security', () => {
   it('should sanitize user inputs', async () => {

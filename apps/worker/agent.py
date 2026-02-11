@@ -113,7 +113,19 @@ class FormField(TypedDict):
 
 async def create_pool() -> asyncpg.Pool:
     s = get_settings()
-    return await asyncpg.create_pool(s.database_url, min_size=s.db_pool_min, max_size=s.db_pool_max)
+    kwargs: dict = {"min_size": s.db_pool_min, "max_size": s.db_pool_max}
+    # Add SSL for Supabase connections (matches API's DatabasePoolManager)
+    if "pooler.supabase.com" in s.database_url or "supabase.co" in s.database_url:
+        import ssl as _ssl
+        ssl_ctx = _ssl.create_default_context()
+        ca_path = getattr(s, "db_ssl_ca_cert_path", "")
+        if ca_path:
+            ssl_ctx.load_verify_locations(ca_path)
+        else:
+            ssl_ctx.check_hostname = False
+            ssl_ctx.verify_mode = _ssl.CERT_NONE
+        kwargs["ssl"] = ssl_ctx
+    return await asyncpg.create_pool(s.database_url, **kwargs)
 
 
 async def claim_task(pool: asyncpg.Pool) -> dict | None:
@@ -362,6 +374,11 @@ def build_mapping_prompt(
     prompt_version: str | None = None,
 ) -> str:
     profile_dict = profile.model_dump() if hasattr(profile, "model_dump") else profile
+    # NOTE: Do NOT strip PII here. The agent's job is to fill forms with the
+    # user's contact info (email, phone, address). The LLM needs the full
+    # profile to produce correct field→value mappings. PII stripping is only
+    # appropriate for advisory AI endpoints (suggestions, matching, cover letters)
+    # where the output doesn't require contact details.
     # If a specific prompt version is requested, use the prompt registry
     if prompt_version:
         template = get_prompt("dom_mapping", prompt_version)
@@ -937,13 +954,29 @@ async def worker_loop() -> None:
         browser = await pw.chromium.launch(headless=s.playwright_headless)
 
         async def context_factory() -> BrowserContext:
+            import random
+            _ua_pool = [
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            ]
+            _vp_pool = [
+                {"width": 1280, "height": 800},
+                {"width": 1366, "height": 768},
+                {"width": 1440, "height": 900},
+                {"width": 1536, "height": 864},
+                {"width": 1920, "height": 1080},
+            ]
             return await browser.new_context(
-                viewport={"width": 1280, "height": 900},
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
-                ),
+                viewport=random.choice(_vp_pool),
+                user_agent=random.choice(_ua_pool),
+                locale=random.choice(["en-US", "en-GB", "en-CA"]),
+                timezone_id=random.choice([
+                    "America/New_York", "America/Chicago",
+                    "America/Los_Angeles", "America/Denver",
+                ]),
             )
 
         agent = FormAgent(pool, context_factory)

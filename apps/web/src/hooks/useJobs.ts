@@ -22,6 +22,7 @@ export interface JobPosting {
   url?: string;
   logo_url?: string;
   requirements?: string[];
+  match_score?: number;
 }
 
 async function fetchJobs(filters: JobFilters): Promise<JobPosting[]> {

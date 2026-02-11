@@ -205,6 +205,9 @@ async def get_tenant_application_detail(
     Full application detail with inputs and events.
     PII is masked by default; ?unmask=true requires OWNER role.
     """
+    from shared.validators import validate_uuid
+    validate_uuid(tenant_id, "tenant_id")
+    validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         try:
             await require_system_admin(conn, user_id)
@@ -221,12 +224,17 @@ async def get_tenant_application_detail(
 
     serialized = detail.to_serializable()
 
-    # Mask PII in inputs if not unmasked
+    # Mask PII using the masking module unless explicitly unmasked
     if not unmask:
+        from backend.domain.masking import redact_profile_for_support, redact_event_payload
+        if "profile_data" in serialized and isinstance(serialized["profile_data"], dict):
+            serialized["profile_data"] = redact_profile_for_support(serialized["profile_data"])
         for inp in serialized.get("inputs", []):
             if inp.get("answer"):
-                # Truncate answers for support view
-                inp["answer"] = inp["answer"][:20] + "..." if len(inp.get("answer", "")) > 20 else inp["answer"]
+                inp["answer"] = "[REDACTED]"
+        for evt in serialized.get("events", []):
+            if isinstance(evt.get("payload"), dict):
+                evt["payload"] = redact_event_payload(evt["payload"])
 
     return ApplicationDetailAdmin(**serialized)
 
@@ -242,6 +250,9 @@ async def replay_application(
     Re-queue a FAILED application for another processing attempt.
     Resets status to QUEUED and records a RETRY_SCHEDULED event.
     """
+    from shared.validators import validate_uuid
+    validate_uuid(tenant_id, "tenant_id")
+    validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         try:
             await require_system_admin(conn, user_id)

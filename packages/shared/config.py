@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     # ── LLM ──────────────────────────────────────────────────────
     llm_api_base: str = "https://openrouter.ai/api/v1"
     llm_api_key: str = ""
-    llm_model: str = "nvidia/nemotron-3-nano-30b-a3b:free"
+    llm_model: str = "anthropic/claude-3.5-sonnet"  # Production default; override with LLM_MODEL env var
     llm_max_tokens: int = 4096
     llm_rate_limit_per_minute: int = 60  # in-process approximate cap
     llm_retry_count: int = 2
@@ -87,6 +87,12 @@ class Settings(BaseSettings):
     # ── Security ─────────────────────────────────────────────────
     csrf_secret: str = ""  # Required in prod - generate with: secrets.token_hex(32)
     request_id_header: str = "X-Request-ID"
+    db_ssl_ca_cert_path: str = ""  # Path to CA cert for DB SSL verification (overrides CERT_NONE)
+
+    # ── Upload limits ─────────────────────────────────────────────
+    max_upload_size_bytes: int = 10_485_760  # 10 MB for PDF resumes
+    max_avatar_size_bytes: int = 5_242_880   # 5 MB for avatar images
+    resume_signed_url_ttl_seconds: int = 3600  # 1 hour
 
     # ── Adzuna Job Board API ─────────────────────────────────────
     adzuna_app_id: str = ""
@@ -131,8 +137,8 @@ class Settings(BaseSettings):
     slack_ops_channel: str = "#ops-alerts"
 
     # ── SSO ────────────────────────────────────────────────────────
-    sso_sp_entity_id: str = "https://api.sorce.app/sso/saml/metadata"
-    sso_sp_acs_url: str = "https://api.sorce.app/sso/saml/acs"
+    sso_sp_entity_id: str = "https://api.jobhuntin.com/sso/saml/metadata"
+    sso_sp_acs_url: str = "https://api.jobhuntin.com/sso/saml/acs"
     sso_session_secret: str = ""  # HMAC secret for SSO session tokens
 
     # ── Sentry / Observability ─────────────────────────────────────
@@ -146,19 +152,26 @@ class Settings(BaseSettings):
     enterprise_db_pool_max: int = 10
     read_replica_url: str = ""  # Supabase read replica connection string
 
+    # ── Browser pool (distributed scaling) ────────────────────────
+    browserless_url: str = ""  # e.g. wss://chrome.browserless.io?token=XXX — empty = local Chromium
+    browserless_token: str = ""
+    browser_pool_size: int = 1  # number of browser instances in the pool
+    browser_context_max_uses: int = 50  # recycle context after N uses to prevent memory leaks
+    browser_context_memory_limit_mb: int = 512
+
     # ── Push Notifications ─────────────────────────────────────────
     expo_push_access_token: str = ""  # Expo push notification access token
 
     # ── Email (Resend) ────────────────────────────────────────────
     resend_api_key: str = ""
-    email_from: str = "JobHuntin <noreply@sorce.app>"
+    email_from: str = "JobHuntin <noreply@jobhuntin.com>"
 
     # ── Referral Program ──────────────────────────────────────────
     referral_reward_apps: int = 5  # bonus apps for both referrer and referee
 
     # ── App Store URLs ────────────────────────────────────────────
-    app_store_url: str = "https://apps.apple.com/app/sorce/idXXXXXXXXXX"
-    play_store_url: str = "https://play.google.com/store/apps/details?id=app.sorce.mobile"
+    app_store_url: str = "https://apps.apple.com/app/jobhuntin/idXXXXXXXXXX"
+    play_store_url: str = "https://play.google.com/store/apps/details?id=com.jobhuntin.mobile"
 
     # ── Agent guardrails ──────────────────────────────────────────
     agent_enabled: bool = True  # set False to emergency-stop the worker
@@ -198,6 +211,21 @@ class Settings(BaseSettings):
                 missing.append("SUPABASE_SERVICE_KEY")
             if not self.app_base_url:
                 missing.append("APP_BASE_URL")
+            if not self.csrf_secret:
+                missing.append("CSRF_SECRET")
+            if not self.sso_session_secret:
+                missing.append("SSO_SESSION_SECRET")
+            if self.stripe_secret_key and not self.stripe_webhook_secret:
+                missing.append("STRIPE_WEBHOOK_SECRET (required when STRIPE_SECRET_KEY is set)")
+            if not self.webhook_signing_secret:
+                missing.append("WEBHOOK_SIGNING_SECRET")
+            # Warn (non-fatal) if using a free-tier LLM model in production
+            if ":free" in self.llm_model:
+                logger.warning(
+                    "LLM model '%s' is a free-tier model with no SLA. "
+                    "Set LLM_MODEL to a production-grade model for reliability.",
+                    self.llm_model,
+                )
             if missing:
                 logger.critical(
                     "FATAL: Missing critical env vars for %s: %s",

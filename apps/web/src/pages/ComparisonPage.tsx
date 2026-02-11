@@ -19,23 +19,23 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
   return [
     {
       question: `Is JobHuntin better than ${competitor.name}?`,
-      answer: `JobHuntin offers fully autonomous AI-powered job applications with resume tailoring for every submission and stealth mode for undetectable browsing. ${competitor.name} ${competitor.features.auto_apply ? 'offers auto-apply but' : 'does not offer auto-apply and'} lacks the level of automation and personalization that JobHuntin provides. ${competitor.verdict}`,
+      answer: `JobHuntin tailors every resume and cover letter per application — ${competitor.name} ${competitor.features.auto_apply ? 'auto-applies but can\'t match that personalization' : 'doesn\'t even auto-apply'}. ${competitor.verdict}`,
     },
     {
       question: `How much does ${competitor.name} cost compared to JobHuntin?`,
-      answer: `${competitor.name} starts at ${competitor.pricing.starts_at} with tiers: ${competitor.pricing.tiers?.join(', ') || 'N/A'}. JobHuntin offers a free tier to get started, with Pro plans that include unlimited AI-tailored applications, stealth mode, and autonomous operation — delivering significantly more value per dollar.`,
+      answer: `${competitor.name} starts at ${competitor.pricing.starts_at}. JobHuntin starts free with 10 apps, then $19/mo for unlimited — one interview pays for a lifetime of the tool.`,
     },
     {
       question: `Can I switch from ${competitor.name} to JobHuntin?`,
-      answer: `Yes! Switching to JobHuntin takes less than 2 minutes. Simply sign up, upload your resume, set your job preferences, and our AI agent takes over. There's no data migration needed — our agent discovers and applies to jobs independently. Many ${competitor.name} users have already switched and report 3x more interview callbacks.`,
+      answer: `Takes under 2 minutes. Upload your resume, set preferences, and the AI agent takes over — no data migration needed. Users who switch report 3x more interview callbacks.`,
     },
     {
       question: `Does ${competitor.name} tailor resumes for each application?`,
-      answer: `${competitor.features.resume_tailoring ? `${competitor.name} offers some resume tailoring capabilities, but` : `No, ${competitor.name} does not tailor resumes per application.`} JobHuntin's AI agent customizes your resume and cover letter for every single job application, matching keywords, skills, and requirements from the job description to maximize your ATS score and interview chances.`,
+      answer: `${competitor.features.resume_tailoring ? `${competitor.name} has basic tailoring, but it's not per-application.` : `No, ${competitor.name} sends the same resume everywhere.`} JobHuntin customizes your resume and cover letter for every single submission to maximize ATS scores.`,
     },
     {
       question: `What makes JobHuntin different from ${competitor.name}?`,
-      answer: `The key differences are: ${competitor.differentiators.join('. ')}. While ${competitor.name} ${competitor.strengths[0]?.toLowerCase() || 'has its strengths'}, JobHuntin delivers a fully autonomous experience where the AI agent handles everything from job discovery to tailored applications — all while running undetectably in the background.`,
+      answer: `Fully autonomous operation, per-application resume tailoring, and stealth mode that makes every submission look hand-crafted. ${competitor.name} ${competitor.strengths[0]?.toLowerCase() || 'has its merits'}, but can't match that level of automation.`,
     },
   ];
 }

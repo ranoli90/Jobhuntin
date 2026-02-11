@@ -59,29 +59,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCATIONS_FILE = path.resolve(__dirname, '../../src/data/locations.json');
 const ROLES_FILE = path.resolve(__dirname, '../../src/data/roles.json');
 
-// Enhanced API key with fallback
-const DEFAULT_KEY = "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";
+// API key from environment only — never hardcode secrets
+const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
-// FREE models only - no paid models to avoid costs
+// STRICT: Only approved NVIDIA free-tier models — no exceptions
 const FREE_MODELS = [
   'nvidia/nemotron-3-nano-30b-a3b:free',       // Primary: High capability (30B)
   'nvidia/nemotron-nano-12b-v2-vl:free',        // Fallback 1: Balanced (12B)
   'nvidia/nemotron-nano-9b-v2:free',            // Fallback 2: Fast (9B)
-  'openrouter/aurora-alpha',
-  'google/gemini-2.0-flash-lite-preview-02-05:free',
-  'meta-llama/llama-3-8b-instruct:free',
-  'mistralai/mistral-7b-instruct:free',
-  'microsoft/phi-3-medium-128k-instruct:free',
-  'qwen/qwen-2.5-7b-instruct:free',
-  '01-ai/yi-6b:free'
 ];
 
-// Backup models for when free models are rate limited
-const BACKUP_FREE_MODELS = [
-  'openrouter/cinematika-7b:free',
-  'undi95/toppy-m-7b:free',
-  'nousresearch/hermes-2-pro-mistral-7b:free'
-];
+// No backup models — only nvidia free-tier models are approved
+const BACKUP_FREE_MODELS: string[] = [];
 
 interface LocationData {
   slug: string;
