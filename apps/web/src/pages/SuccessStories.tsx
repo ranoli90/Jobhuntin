@@ -62,7 +62,7 @@ export default function SuccessStories() {
 
   return (
     <div className="font-sans text-slate-900 overflow-x-hidden">
-      <SEO 
+      <SEO
         title="Success Stories | JobHuntin AI — They Got Hired. You're Next."
         description="Real people who stopped scrolling and started interviewing. See how JobHuntin users landed offers in days, not months."
         ogTitle="Success Stories | JobHuntin AI"
@@ -97,7 +97,7 @@ export default function SuccessStories() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl md:text-8xl font-black font-display mb-8 tracking-tighter leading-tight text-slate-900">
-              THEY <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">WON.</span><br/>
+              THEY <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">WON.</span><br />
               YOU'RE NEXT.
             </h1>
           </motion.div>
@@ -111,38 +111,38 @@ export default function SuccessStories() {
           {stories.map((story, i) => (
             <StoryCard key={i} story={story} index={i} isMobile={true} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} />
           ))}
-          
-           {/* CTA Card Mobile */}
-           <div className="w-full bg-gradient-to-br from-primary-500 to-primary-600 p-8 rounded-3xl text-center relative overflow-hidden shadow-xl">
-             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-             <h3 className="text-3xl font-black mb-4 relative z-10 text-white">YOUR TURN.</h3>
-             <p className="text-white/90 mb-6 relative z-10 font-medium">Every hour you wait, someone else gets the interview you wanted.</p>
-             <Button asChild className="w-full bg-white text-primary-600 hover:bg-slate-50 border-none shadow-lg text-lg font-bold">
-               <Link to="/login">
-                 Start Free Trial
-               </Link>
-             </Button>
-           </div>
+
+          {/* CTA Card Mobile */}
+          <div className="w-full bg-gradient-to-br from-primary-500 to-primary-600 p-8 rounded-3xl text-center relative overflow-hidden shadow-xl">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+            <h3 className="text-3xl font-black mb-4 relative z-10 text-white">YOUR TURN.</h3>
+            <p className="text-white/90 mb-6 relative z-10 font-medium">Every hour you wait, someone else gets the interview you wanted.</p>
+            <Button asChild className="w-full bg-white text-primary-600 hover:bg-slate-50 border-none shadow-lg text-lg font-bold">
+              <Link to="/login">
+                Start Free Trial
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Horizontal Scroll Section - Desktop Only */}
         <div ref={scrollRef} className="hidden lg:block relative" style={{ height: shouldReduceMotion ? 'auto' : '300vh' }}>
           <div className={`sticky ${shouldReduceMotion ? 'relative top-0' : 'top-40'} overflow-hidden`}>
-            <motion.div 
-              style={{ 
+            <motion.div
+              style={{
                 x: shouldReduceMotion ? 0 : x,
                 display: shouldReduceMotion ? 'grid' : 'flex',
                 gridTemplateColumns: shouldReduceMotion ? 'repeat(auto-fit, minmax(500px, 1fr))' : 'none',
                 gap: shouldReduceMotion ? '2rem' : '3rem',
                 padding: shouldReduceMotion ? '0 3rem' : '0 3rem',
                 width: shouldReduceMotion ? '100%' : 'max-content'
-              }} 
+              }}
               className="w-max"
             >
               {stories.map((story, i) => (
                 <StoryCard key={i} story={story} index={i} isMobile={false} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} />
               ))}
-              
+
               {/* CTA Card at the end */}
               <div className="w-[500px] bg-gradient-to-br from-primary-500 to-primary-600 p-10 rounded-[3rem] flex flex-col justify-center items-center text-center relative overflow-hidden shadow-2xl shadow-primary-500/30">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
@@ -163,22 +163,22 @@ export default function SuccessStories() {
 }
 
 // Story Card Component
-const StoryCard = ({ 
-  story, 
-  index, 
-  isMobile, 
-  playingAudio, 
-  setPlayingAudio 
-}: { 
-  story: any; 
-  index: number; 
-  isMobile: boolean; 
-  playingAudio: string | null; 
-  setPlayingAudio: (audio: string | null) => void; 
+const StoryCard = ({
+  story,
+  index,
+  isMobile,
+  playingAudio,
+  setPlayingAudio
+}: {
+  story: any;
+  index: number;
+  isMobile: boolean;
+  playingAudio: string | null;
+  setPlayingAudio: (audio: string | null) => void;
 }) => {
   const shouldReduceMotion = useReducedMotion();
   const isCurrentlyPlaying = playingAudio === story.audio;
-  
+
   const handlePlayAudio = () => {
     if (isCurrentlyPlaying) {
       setPlayingAudio(null);
@@ -186,48 +186,38 @@ const StoryCard = ({
       setPlayingAudio(story.audio);
     }
   };
-  
+
   return (
-    <div 
-      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white ${isMobile ? 'p-8' : 'p-10'} rounded-3xl border border-slate-100 shadow-xl relative flex-shrink-0 group hover:border-primary-200 transition-colors`}
+    <div
+      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white ${isMobile ? 'p-8' : 'p-10'} rounded-3xl border border-slate-100 shadow-xl relative flex-shrink-0 group hover:border-primary-200 transition-colors overflow-hidden`}
     >
       {/* Hired Stamp */}
-      {!shouldReduceMotion && (
-        <motion.div 
-          initial={{ scale: 2, opacity: 0, rotate: -20 }}
-          whileInView={{ scale: 1, opacity: 1, rotate: -12 }}
-          viewport={{ once: true }}
-          className={`absolute ${isMobile ? '-top-4 -right-4 border-2' : '-top-6 -right-6 border-4'} border-emerald-500 text-emerald-600 font-black ${isMobile ? 'text-sm' : 'text-2xl'} px-${isMobile ? '3' : '4'} py-${isMobile ? '1' : '2'} rounded-lg uppercase tracking-widest bg-emerald-50/90 backdrop-blur transform rotate-12 shadow-lg`}
-        >
-          HIRED
-        </motion.div>
-      )}
-      
-      {shouldReduceMotion && (
-        <div className={`absolute ${isMobile ? '-top-4 -right-4 border-2' : '-top-6 -right-6 border-4'} border-emerald-500 text-emerald-600 font-black ${isMobile ? 'text-sm' : 'text-2xl'} px-${isMobile ? '3' : '4'} py-${isMobile ? '1' : '2'} rounded-lg uppercase tracking-widest bg-emerald-50/90 backdrop-blur transform rotate-12 shadow-lg`}>
-          HIRED
-        </div>
-      )}
+      {/* Hired Ribbon */}
+      <div className="absolute top-6 -right-12 bg-emerald-500 text-white py-1 px-12 rotate-45 transform shadow-md text-xs font-black tracking-widest uppercase z-10">
+        HIRED
+      </div>
 
       <div className="flex items-center gap-4 mb-6">
         <div className="relative">
-          <img 
-            src={story.image} 
-            alt={`${story.name} - ${story.role} Success Story`} 
-            className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} rounded-full object-cover border-4 border-white shadow-lg`} 
+          <img
+            src={story.image}
+            alt={`${story.name} - ${story.role} Success Story`}
+            className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} rounded-full object-cover border-4 border-white shadow-lg`}
           />
-          <button
-            onClick={handlePlayAudio}
-            className={`absolute -bottom-2 -right-2 bg-primary-500 rounded-full p-${isMobile ? '1' : '1.5'} cursor-pointer hover:scale-110 transition-transform shadow-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
-            aria-label={isCurrentlyPlaying ? 'Pause audio' : 'Play audio testimonial'}
-            aria-pressed={isCurrentlyPlaying}
-          >
-            {isCurrentlyPlaying ? (
-              <VolumeX className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} text-white`} />
-            ) : (
-              <Volume2 className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} text-white`} />
-            )}
-          </button>
+          <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button
+              onClick={handlePlayAudio}
+              className="bg-white/90 rounded-full p-2 cursor-pointer hover:scale-110 transition-transform shadow-lg backdrop-blur-sm"
+              aria-label={isCurrentlyPlaying ? 'Pause audio' : 'Play audio testimonial'}
+              aria-pressed={isCurrentlyPlaying}
+            >
+              {isCurrentlyPlaying ? (
+                <VolumeX className="w-4 h-4 text-slate-900" />
+              ) : (
+                <Volume2 className="w-4 h-4 text-slate-900" />
+              )}
+            </button>
+          </div>
         </div>
         <div>
           <h3 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'} text-slate-900`}>{story.name}</h3>
@@ -245,7 +235,7 @@ const StoryCard = ({
 
       <div className="flex items-center justify-between border-t border-slate-100 pt-4">
         <div className="flex gap-0.5 text-amber-400">
-          {[1,2,3,4,5].map(s => <Star key={s} className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} fill-current`} />)}
+          {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} fill-current`} />)}
         </div>
         <div className={`font-mono ${isMobile ? 'text-xs' : 'text-sm'} text-emerald-600 bg-emerald-50 px-${isMobile ? '2' : '3'} py-1 rounded-full font-bold`}>
           {story.stat}

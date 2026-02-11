@@ -268,10 +268,11 @@ export default function Login() {
           animate={{ scale: 1, opacity: 1 }}
           className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full shadow-2xl shadow-primary-500/5 text-center border border-white/50 relative z-10"
         >
-          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-green-100">
-            {isMagic ? <MailCheck className="w-10 h-10 text-green-600" /> : <ShieldCheck className="w-10 h-10 text-green-600" />}
+          <div className="w-24 h-24 bg-gradient-to-br from-green-50 to-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-green-100 relative">
+            <div className="absolute inset-0 rounded-full bg-green-500/5 animate-pulse"></div>
+            {isMagic ? <MailCheck className="w-10 h-10 text-green-600 relative z-10" /> : <ShieldCheck className="w-10 h-10 text-green-600 relative z-10" />}
           </div>
-          <h2 className="text-3xl font-bold font-display mb-4 text-slate-900">
+          <h2 className="text-3xl font-bold font-display mb-4 text-slate-900 tracking-tight">
             {isMagic ? "Check your email" : "Confirm your email"}
           </h2>
           <p className="text-slate-500 mb-6 leading-relaxed">
@@ -516,7 +517,7 @@ export default function Login() {
               disabled={isLoading || !canSubmit || !!rateLimitCountdown}
               variant="primary"
               size="lg"
-              className="w-full py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-xl shadow-primary-500/20 uppercase tracking-widest text-xs lg:text-sm font-black"
+              className="w-full py-4 rounded-xl lg:rounded-2xl shadow-xl shadow-primary-500/20 uppercase tracking-widest text-xs lg:text-sm font-black flex items-center justify-center"
             >
               {isLoading ? (
                 <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>

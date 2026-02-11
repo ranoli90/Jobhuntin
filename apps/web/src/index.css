@@ -40,6 +40,7 @@ html {
   overflow-x: hidden;
   /* Critical for preventing horizontal sway */
   width: 100%;
+  min-height: 100svh;
 }
 
 body {
@@ -48,10 +49,12 @@ body {
   color: #0f172a;
   line-height: 1.6;
   width: 100%;
+  min-height: 100svh;
 }
 
 #root {
   width: 100%;
+  min-height: 100svh;
 }
 
 /* Professional selection styling */

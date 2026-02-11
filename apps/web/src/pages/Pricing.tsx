@@ -10,7 +10,7 @@ import { useBilling } from '../hooks/useBilling';
 const FAQItem = ({ question, answer }: { question: string; answer: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
-  
+
   return (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 hover:border-orange-100 transition-colors">
       <button
@@ -19,8 +19,8 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
         aria-expanded={isOpen}
         aria-controls={`faq-answer-${question.replace(/\s+/g, '-')}`}
       >
-        <h3 className="font-bold text-lg flex items-center gap-2">
-          <span className="text-primary-600">Q.</span> {question}
+        <h3 className="font-bold text-lg text-slate-800 leading-snug">
+          <span className="text-primary-600 mr-2">Q.</span>{question}
         </h3>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
@@ -33,9 +33,9 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
       <motion.div
         id={`faq-answer-${question.replace(/\s+/g, '-')}`}
         initial={false}
-        animate={{ 
+        animate={{
           height: isOpen ? "auto" : 0,
-          opacity: isOpen ? 1 : 0 
+          opacity: isOpen ? 1 : 0
         }}
         transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
         className="overflow-hidden"
@@ -132,41 +132,46 @@ export default function Pricing() {
               />
             </button>
             <span className={`text-sm font-bold ${annual ? 'text-slate-900' : 'text-slate-400'}`}>
-              Annual <span className="text-primary-600 text-xs ml-1 bg-primary-100 px-2 py-0.5 rounded-full" aria-label="Save 20% with annual billing">-20%</span>
+              Annual <span className="text-white text-xs ml-1 bg-primary-600 px-2 py-0.5 rounded-full shadow-sm" aria-label="Save 20% with annual billing">-20%</span>
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-          {/* Free Tier - Receipt Style */}
+          {/* Free Tier - Refactored to Standard Card */}
           <motion.div
             whileHover={{ y: shouldReduceMotion ? 0 : -10 }}
-            className="bg-white p-1 rounded-sm shadow-sm rotate-1 relative group max-w-md mx-auto w-full lg:max-w-none min-h-[500px] lg:min-h-0"
+            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative overflow-hidden group max-w-md mx-auto w-full lg:max-w-none min-h-[500px] lg:min-h-0"
           >
-            <div className="bg-white border-x-2 border-t-2 border-b-[6px] border-gray-200 p-8 relative h-full" style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-              {/* Jagged Bottom - Fixed for Safari iOS */}
-              <div className="absolute -bottom-3 left-0 right-0 h-3 bg-white overflow-hidden" style={{ 
-                clipPath: 'polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%)',
-                WebkitClipPath: 'polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%)'
-              }}></div>
+            <div className="h-full flex flex-col">
+              <div>
+                <h3 className="text-2xl font-bold mb-2 text-slate-900">Starter</h3>
+                <div className="text-4xl font-bold mb-6 text-slate-900">$0<span className="text-lg text-slate-500 font-normal">/mo</span></div>
+              </div>
 
-              <h3 className="font-mono text-xl font-bold mb-4 uppercase tracking-widest text-gray-500">Starter</h3>
-              <div className="font-mono text-4xl font-bold mb-6">$0<span className="text-sm text-gray-400">/mo</span></div>
-
-              <div className="space-y-3 font-mono text-sm border-t border-b border-dashed border-gray-300 py-6 mb-6">
-                <div className="flex justify-between"><span>ITEM: 5 APPS</span> <span>$0.00</span></div>
-                <div className="flex justify-between"><span>ITEM: RESUME PARSE</span> <span>$0.00</span></div>
-                <div className="flex justify-between"><span>TAX: EFFORT</span> <span>$0.00</span></div>
-                <div className="flex justify-between font-bold pt-2 border-t border-gray-200 mt-2"><span>TOTAL</span> <span>$0.00</span></div>
+              <div className="space-y-4 mb-8">
+                {[
+                  "5 AI Applications",
+                  "Basic Resume Parsing",
+                  "Job Tracker",
+                  "Email Support"
+                ].map((feature, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="bg-slate-100 p-1 rounded-full">
+                      <CheckCircle className="w-4 h-4 text-slate-400" aria-hidden="true" />
+                    </div>
+                    <span className="text-slate-600 font-medium">{feature}</span>
+                  </div>
+                ))}
               </div>
 
               <div className="mt-auto">
-                <button 
-                  onClick={handleFreeCta} 
-                  className="block w-full py-3 border-2 border-black text-center font-bold font-mono hover:bg-black hover:text-white transition-all uppercase focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-                  aria-label={isLoggedIn ? 'Go to dashboard' : 'Print ticket for free plan'}
+                <button
+                  onClick={handleFreeCta}
+                  className="block w-full py-3 border-2 border-slate-200 text-center font-bold rounded-xl hover:border-slate-900 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                  aria-label={isLoggedIn ? 'Go to dashboard' : 'Start free plan'}
                 >
-                  {isLoggedIn ? 'Go to Dashboard' : 'Print Ticket'}
+                  {isLoggedIn ? 'Go to Dashboard' : 'Start Free'}
                 </button>
               </div>
             </div>
@@ -198,11 +203,10 @@ export default function Pricing() {
                 <button
                   onClick={handleProCta}
                   disabled={isProOrHigher && isLoggedIn}
-                  className={`block w-full py-4 rounded-xl text-center font-bold text-lg shadow-lg transition-all transform focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-[#1a1a1a] ${
-                    isProOrHigher && isLoggedIn
-                      ? 'bg-gray-600 cursor-default shadow-none hover:translate-y-0'
-                      : 'bg-gradient-to-r from-primary-600 to-primary-500 shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1'
-                  }`}
+                  className={`block w-full py-4 rounded-xl text-center font-bold text-lg shadow-lg transition-all transform focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-[#1a1a1a] ${isProOrHigher && isLoggedIn
+                    ? 'bg-gray-600 cursor-default shadow-none hover:translate-y-0'
+                    : 'bg-gradient-to-r from-primary-600 to-primary-500 shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1'
+                    }`}
                   aria-label={getProCtaLabel()}
                 >
                   {getProCtaLabel()}
@@ -249,8 +253,8 @@ export default function Pricing() {
               </div>
 
               <div className="mb-8">
-                <a 
-                  href="mailto:sales@jobhuntin.com" 
+                <a
+                  href="mailto:sales@jobhuntin.com"
                   className="block w-full py-3 border-2 border-slate-200 text-center font-bold rounded-xl hover:border-primary-500 hover:text-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                   aria-label="Contact sales for agency plan"
                 >
@@ -287,4 +291,3 @@ export default function Pricing() {
     </div>
   );
 }
-

@@ -33,7 +33,7 @@ const ProductFlowDemo = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const shouldReduceMotion = useReducedMotion();
-  
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(typeof window !== 'undefined' && window.innerWidth < 360);
@@ -42,7 +42,7 @@ const ProductFlowDemo = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
+
   const steps = [
     { icon: Upload, label: isMobile ? "Resume" : "Resume Uploaded", detail: isMobile ? "1.2s" : "PDF parsed in 1.2s", color: "from-blue-500 to-blue-600" },
     { icon: Search, label: isMobile ? "Scanning" : "AI Scans 12,400 Jobs", detail: isMobile ? "Matching" : "Matching skills & context", color: "from-violet-500 to-violet-600" },
@@ -100,7 +100,7 @@ const ProductFlowDemo = () => {
               },
               transition: { duration: 0.5, ease: "easeOut" }
             };
-            
+
             return (
               <motion.div
                 key={i}
@@ -195,7 +195,7 @@ const Hero = () => {
       delay: Math.random() * 10,
       yMove: (Math.random() - 0.5) * 100,
       xMove: (Math.random() - 0.5) * 50,
-      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : i % 3 === 1 ? 'rgba(74, 144, 226, 0.15)' : 'rgba(250, 249, 246, 0.3)',
+      color: i % 3 === 0 ? 'rgba(255, 107, 53, 0.15)' : 'rgba(74, 144, 226, 0.15)',
       blur: i < 5 ? 'blur(60px)' : 'none'
     }));
   }, []);
@@ -333,7 +333,7 @@ const Hero = () => {
             // Reduce particle count and size on smaller screens
             const shouldShow = index < (typeof window !== 'undefined' && window.innerWidth < 640 ? 8 : 25);
             if (!shouldShow) return null;
-            
+
             return (
               <motion.div
                 key={particle.id}
@@ -391,7 +391,7 @@ const Hero = () => {
 
           <p className="text-base sm:text-lg lg:text-2xl text-slate-500 mb-8 sm:mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium text-balance">
             JobHuntin's AI agent fires off <span className="text-slate-900 font-bold">100 tailored applications</span> while you sleep.
-            Wake up to <span className="text-emerald-600 font-bold">interview requests</span>, not rejection silence.
+            Wake up to <span className="text-emerald-700 font-bold">interview requests</span>, not rejection silence.
           </p>
 
           {!sentEmail && (
@@ -477,6 +477,12 @@ const Hero = () => {
             <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> No credit card</span>
             <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Encrypted data</span>
             <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 2 min setup</span>
+            <span className="flex items-center gap-1.5 border-l border-slate-300 pl-4 ml-1">
+              <span className="sr-only">Featured on Wellfound</span>
+              <svg viewBox="0 0 108 24" className="h-4 w-auto text-slate-400" fill="currentColor">
+                <path d="M12.9 8.6c-.7-1.5-3-2.6-5.8-2.6-4.2 0-7.2 3.1-7.2 7.7s2.9 7.7 7.2 7.7c2.8 0 5-1.1 5.8-2.6h2.8c-1.1 2.8-4.6 4.9-8.6 4.9C3.1 23.7 0 19.8 0 13.7S3.1 3.7 7.1 3.7c4 0 7.5 2.1 8.6 4.9h-2.8zm11.2-4.6h3.2v19.4h-3.2V4zm-1.6 2.6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm28.3 1.9h3.3v15.2h-3.2v-1.4c-1.2 1.2-2.9 1.7-4.4 1.7-4.5 0-7.8-3.4-7.8-8s3.4-8 7.8-8c1.5 0 3.3.5 4.3 1.7V8.5zm-4.3 13c2.7 0 4.7-2.1 4.7-5.5 0-3.3-2-5.5-4.7-5.5-2.8 0-4.8 2.1-4.8 5.5.1 3.4 2.1 5.5 4.8 5.5zm16-5.8c.1 4.6 3.4 5.9 6.2 5.9 1.8 0 3.8-.5 5.5-1.4l.7 2.3c-1.8 1.1-4.3 1.7-6.5 1.7-4.7 0-9.1-2.9-9.1-8.5 0-5.2 3.7-8.3 8.6-8.3 5.3 0 7.9 3.6 7.9 8.3v.1h-13.3zm10.1-2.2c-.1-2.6-1.8-4-4.8-4-2.6 0-4.4 1.5-4.9 4h9.7zM97.1 8.5h3.2v1.5c1-1.3 2.9-1.8 4.6-1.8 1.3 0 2.4.3 3.3.7l-.8 2.8c-.8-.4-1.7-.7-2.6-.7-2.8 0-4.5 2.2-4.5 5v7.7h-3.2V8.5z" />
+              </svg>
+            </span>
           </div>
 
           {sentEmail && (
@@ -616,7 +622,7 @@ const Onboarding = () => {
             </div>
             <h2 className="text-5xl sm:text-6xl font-black font-display text-slate-900 leading-[1.1] mb-12 tracking-tighter">
               One Click. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">Infinite Reach.</span>
+              <span className="text-primary-600">Infinite Reach.</span>
             </h2>
             <div className="space-y-12">
               {[
