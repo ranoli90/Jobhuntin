@@ -213,8 +213,9 @@ class Settings(BaseSettings):
                 missing.append("APP_BASE_URL")
             if not self.csrf_secret:
                 missing.append("CSRF_SECRET")
-            if not self.sso_session_secret:
-                missing.append("SSO_SESSION_SECRET")
+            # SSO_SESSION_SECRET is optional - only required for ENTERPRISE plans with SSO enabled
+            # if not self.sso_session_secret:
+            #     missing.append("SSO_SESSION_SECRET")
             if self.stripe_secret_key and not self.stripe_webhook_secret:
                 missing.append("STRIPE_WEBHOOK_SECRET (required when STRIPE_SECRET_KEY is set)")
             if not self.webhook_signing_secret:
