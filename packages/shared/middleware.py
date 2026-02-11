@@ -139,3 +139,40 @@ def get_client_ip(request: Request) -> str:
         return real_ip.strip()
         
     return request.client.host if request.client else "unknown"
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    Adds security headers to every response.
+    
+    Headers:
+    - X-Content-Type-Options: nosniff
+    - X-Frame-Options: DENY (unless iframe explicitly allowed)
+    - X-XSS-Protection: 1; mode=block
+    - Referrer-Policy: strict-origin-when-cross-origin
+    - Strict-Transport-Security: max-age=31536000; includeSubDomains (if HTTPS/Prod)
+    """
+    
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        response = await call_next(request)
+        
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        
+        # HSTS (Strict-Transport-Security)
+        # We assume SSL is handled by termination proxy (Render/Heroku/AWS), 
+        # so we check X-Forwarded-Proto or just enforce if env is PROD.
+        # Ideally, we should check if request.url.scheme == "https" or settings.env == "prod"
+        s = get_settings()
+        if s.env.value == "prod":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            
+        return response
+
+
+def setup_security_headers(app) -> None:
+    """Add SecurityHeaders middleware to the app."""
+    app.add_middleware(SecurityHeadersMiddleware)
+    logger.info("Security headers middleware enabled")

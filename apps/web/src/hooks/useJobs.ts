@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "../lib/api";
+import { pushToast } from "../lib/toast";
 
 export type JobSwipeDecision = "ACCEPT" | "REJECT";
 
@@ -46,6 +47,16 @@ export function useJobs(filters: JobFilters) {
     queryKey: ["jobs", memoFilters],
     queryFn: () => fetchJobs(memoFilters),
   });
+
+  useEffect(() => {
+    if (query.error) {
+      pushToast({
+        title: "Failed to load jobs",
+        description: (query.error as Error).message || "Please check your connection and try again.",
+        tone: "error",
+      });
+    }
+  }, [query.error]);
 
   return {
     jobs: query.data ?? [],

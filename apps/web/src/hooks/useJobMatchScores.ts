@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { apiPost } from "../lib/api";
+import { pushToast } from "../lib/toast";
 import type { JobPosting } from "./useJobs";
 
 export interface JobMatchScore {
@@ -104,7 +105,13 @@ export function useJobMatchScores() {
                 console.warn("Some jobs failed to score:", response.errors);
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to score jobs");
+            const message = err instanceof Error ? err.message : "Failed to score jobs";
+            setError(message);
+            pushToast({
+                title: "AI Scoring Failed",
+                description: message,
+                tone: "error",
+            });
         } finally {
             setLoading(prev => {
                 const next = new Set(prev);

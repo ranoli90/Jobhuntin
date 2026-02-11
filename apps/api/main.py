@@ -128,9 +128,13 @@ app.add_middleware(
 # Add Request ID middleware for distributed tracing
 setup_request_id_middleware(app)
 
-from shared.middleware import get_client_ip
+from shared.middleware import get_client_ip, setup_security_headers
 from shared.metrics import get_rate_limiter
 
+# ---------------------------------------------------------------------------  
+# Security Headers Middleware
+# ---------------------------------------------------------------------------
+setup_security_headers(app)
 
 # ---------------------------------------------------------------------------  
 # Rate Limiting Middleware
@@ -495,6 +499,29 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
         )
     )
     return JSONResponse(status_code=exc.status_code, content=body.model_dump())
+
+
+# Safety net for unhandled exceptions (500)
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Catch-all for unhandled exceptions to prevent stack trace leaks in production."""
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    
+    # In local dev, we might want to see the error, but standard is to hide it.
+    # FastAPI usually prints to console anyway.
+    
+    if _settings.env == Environment.LOCAL:
+        msg = f"Internal Server Error: {str(exc)}"
+    else:
+        msg = "Internal Server Error"
+        
+    body = ErrorResponse(
+        error=ErrorDetail(
+            code="INTERNAL_ERROR",
+            message=msg,
+        )
+    )
+    return JSONResponse(status_code=500, content=body.model_dump())
 
 
 # ---------------------------------------------------------------------------
