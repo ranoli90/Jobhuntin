@@ -90,7 +90,7 @@ export default function AppLayout() {
       </aside>
 
       {/* Universal Mobile Drawer */}
-      <MobileDrawer isOpen={mobileMenuOpen} onClose={closeMobile}>
+      <MobileDrawer isOpen={mobileMenuOpen} onClose={closeMobile} drawerId="app-mobile-drawer">
         <MobileDrawerHeader onClose={closeMobile}>
           <Logo to="/app/dashboard" size="sm" onClick={closeMobile} />
         </MobileDrawerHeader>
@@ -129,12 +129,14 @@ export default function AppLayout() {
       </MobileDrawer>
 
       <div className="flex flex-1 flex-col h-screen overflow-hidden">
-        <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-xl px-6 shrink-0 z-40">
+        <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-xl px-6 shrink-0 z-50 sticky top-0">
           <div className="flex items-center gap-4">
             <button
               className="lg:hidden p-2.5 -ml-2 text-slate-600 bg-slate-100 rounded-xl active:scale-90 transition-all"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="app-mobile-drawer"
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -163,13 +165,38 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto bg-slate-50/50">
+        <main className="flex-1 overflow-y-auto bg-slate-50/50 pb-20">
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname} className="h-full">
               <Outlet />
             </PageTransition>
           </AnimatePresence>
         </main>
+
+        {/* Mobile bottom navigation for app-like feel */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-xl px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)]">
+          <div className="grid grid-cols-4 gap-2">
+            {NAV_ITEMS.slice(0, 4).map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname.startsWith(item.to);
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={closeMobile}
+                  className={cn(
+                    "flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-bold transition-all",
+                    isActive ? "bg-primary-50 text-primary-700 ring-1 ring-primary-100" : "text-slate-500 hover:text-slate-900"
+                  )}
+                  aria-label={item.label}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="mt-1 leading-none">{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        </nav>
         <ToastShelf />
       </div>
     </div>

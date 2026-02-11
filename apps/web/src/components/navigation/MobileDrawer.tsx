@@ -9,12 +9,13 @@ interface MobileDrawerProps {
   onClose: () => void;
   children: ReactNode;
   side?: "left" | "right";
+  drawerId?: string;
 }
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function MobileDrawer({ isOpen, onClose, children, side = "left" }: MobileDrawerProps) {
+export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerId }: MobileDrawerProps) {
   const [mounted, setMounted] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<Element | null>(null);
@@ -115,6 +116,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left" }: Mobil
     <AnimatePresence mode="wait">
       {isOpen && (
         <div
+          id={drawerId}
           className="fixed inset-0 z-[100] md:hidden"
           role="dialog"
           aria-modal="true"

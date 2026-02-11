@@ -6,7 +6,7 @@ import { ComparisonTable } from '../components/seo/ComparisonTable';
 import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
 import { InternalLinkMesh } from '../components/seo/InternalLinkMesh';
 import { ConversionCTA } from '../components/seo/ConversionCTA';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import competitorsData from '../data/competitors.json';
 
@@ -45,19 +45,27 @@ function RatingBar({ label, them, us }: { label: string; them: number; us: numbe
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm font-medium">
         <span className="text-slate-600 capitalize">{label}</span>
-        <span className="text-slate-400">{them}/10 vs <span className="text-primary-600 font-bold">{us}/10</span></span>
+        <span className="text-slate-400">
+          <span className="sr-only">{competitor.name} rating</span>
+          <span aria-label={`${competitor.name} score ${them} out of 10`}>{them}/10</span>
+          {' vs '}
+          <span className="sr-only">JobHuntin rating</span>
+          <span className="text-primary-600 font-bold" aria-label={`JobHuntin score ${us} out of 10`}>{us}/10</span>
+        </span>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2" role="img" aria-label={`Comparison chart: ${competitor.name} ${them}/10 vs JobHuntin ${us}/10 for ${label}`}>
         <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
           <div
             className="bg-slate-400 h-full rounded-full transition-all duration-700"
             style={{ width: `${them * 10}%` }}
+            aria-hidden="true"
           />
         </div>
         <div className="flex-1 bg-primary-50 rounded-full h-2.5 overflow-hidden">
           <div
             className="bg-primary-500 h-full rounded-full transition-all duration-700"
             style={{ width: `${us * 10}%` }}
+            aria-hidden="true"
           />
         </div>
       </div>
@@ -68,6 +76,7 @@ function RatingBar({ label, them, us }: { label: string; them: number; us: numbe
 export default function ComparisonPage() {
   const { competitorSlug } = useParams<{ competitorSlug: string }>();
   const competitor = competitorSlug ? COMPETITORS_MAP[competitorSlug] : null;
+  const shouldReduceMotion = useReducedMotion();
 
   if (!competitor) {
     return (
@@ -108,29 +117,29 @@ export default function ComparisonPage() {
         }}
       />
 
-      <main className="max-w-5xl mx-auto px-6 py-24">
+      <main className="max-w-5xl mx-auto px-6 py-16 sm:py-24">
         {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-20"
+          className="text-center mb-16 sm:mb-20"
         >
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-blue-100">
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
             Head-to-Head Comparison
           </div>
-          <h1 className="text-4xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display mb-6 leading-tight text-slate-900 text-balance">
             JobHuntin vs{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">
               {competitor.name}
             </span>
           </h1>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+          <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium text-balance">
             {competitor.verdict}
           </p>
           {competitor.status === 'discontinued' && (
             <div className="mt-4 inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-bold border border-red-100">
-              ⚠️ {competitor.name} has been discontinued
+              <span aria-hidden="true">⚠️</span> {competitor.name} has been discontinued
             </div>
           )}
         </motion.div>
@@ -140,10 +149,17 @@ export default function ComparisonPage() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-20"
+          className="mb-16 sm:mb-20"
         >
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Feature Comparison</h2>
-          <ComparisonTable competitor={competitor} />
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6">Feature Comparison</h2>
+          <div className="overflow-x-auto">
+            <div className="min-w-[600px]">
+              <ComparisonTable competitor={competitor} />
+            </div>
+          </div>
+          <p className="text-sm text-slate-500 mt-4 text-center">
+            <span className="inline-block" aria-label="Scroll for full comparison table">→ Scroll for full table →</span>
+          </p>
         </motion.div>
 
         {/* Rating Bars */}
@@ -151,9 +167,9 @@ export default function ComparisonPage() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-20 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm"
+          className="mb-16 sm:mb-20 bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 shadow-sm"
         >
-          <h2 className="text-2xl font-bold text-slate-900 mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6 sm:mb-8">
             Performance Ratings
             <span className="block text-sm font-normal text-slate-400 mt-1">
               <span className="text-slate-500">{competitor.name}</span> vs <span className="text-primary-600">JobHuntin</span>
@@ -172,32 +188,32 @@ export default function ComparisonPage() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-20 grid md:grid-cols-2 gap-8"
+          className="mb-16 sm:mb-20 grid md:grid-cols-2 gap-6 sm:gap-8"
         >
-          <div className="bg-white rounded-3xl border border-red-100 p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-red-600 mb-6 flex items-center gap-2">
-              <Target className="w-5 h-5" />
+          <div className="bg-white rounded-3xl border border-red-100 p-6 sm:p-8 shadow-sm">
+            <h2 className="text-lg sm:text-xl font-bold text-red-600 mb-4 sm:mb-6 flex items-center gap-2">
+              <Target className="w-5 h-5" aria-hidden="true" />
               Where {competitor.name} Falls Short
             </h2>
             <ul className="space-y-3">
               {competitor.weaknesses.map((w, i) => (
                 <li key={i} className="flex items-start gap-3 text-slate-600">
-                  <span className="text-red-400 mt-1 text-lg leading-none">—</span>
+                  <span className="text-red-400 mt-1 text-lg leading-none" aria-hidden="true">—</span>
                   <span className="text-sm font-medium">{w}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-white rounded-3xl border border-emerald-100 p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-emerald-600 mb-6 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
+          <div className="bg-white rounded-3xl border border-emerald-100 p-6 sm:p-8 shadow-sm">
+            <h2 className="text-lg sm:text-xl font-bold text-emerald-600 mb-4 sm:mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" aria-hidden="true" />
               Why JobHuntin Wins
             </h2>
             <ul className="space-y-3">
               {competitor.differentiators.map((d, i) => (
                 <li key={i} className="flex items-start gap-3 text-slate-600">
-                  <span className="text-emerald-500 mt-1 text-lg leading-none">✓</span>
+                  <span className="text-emerald-500 mt-1 text-lg leading-none" aria-hidden="true">✓</span>
                   <span className="text-sm font-medium">{d}</span>
                 </li>
               ))}
@@ -210,13 +226,13 @@ export default function ComparisonPage() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-20"
+          className="mb-16 sm:mb-20"
         >
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Pricing at a Glance</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-slate-100 rounded-3xl p-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6">Pricing at a Glance</h2>
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="bg-slate-100 rounded-3xl p-6 sm:p-8">
               <h3 className="text-lg font-bold text-slate-500 mb-3">{competitor.name}</h3>
-              <p className="text-3xl font-black text-slate-700 mb-2">
+              <p className="text-2xl sm:text-3xl font-black text-slate-700 mb-2">
                 {competitor.pricing.starts_at}
               </p>
               <ul className="text-sm text-slate-500 space-y-1 mt-4">
@@ -225,12 +241,12 @@ export default function ComparisonPage() {
                 ))}
               </ul>
             </div>
-            <div className="bg-primary-50 rounded-3xl p-8 border-2 border-primary-200 relative">
-              <div className="absolute -top-3 right-6 bg-primary-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+            <div className="bg-primary-50 rounded-3xl p-6 sm:p-8 border-2 border-primary-200 relative">
+              <div className="absolute -top-3 right-4 sm:right-6 bg-primary-600 text-white text-xs font-bold px-3 py-1 rounded-full">
                 BETTER VALUE
               </div>
               <h3 className="text-lg font-bold text-primary-600 mb-3">JobHuntin</h3>
-              <p className="text-3xl font-black text-slate-900 mb-2">Free to Start</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Free to Start</p>
               <ul className="text-sm text-slate-600 space-y-1 mt-4">
                 <li>• Free tier — get started instantly</li>
                 <li>• Pro — unlimited AI applications</li>
@@ -238,7 +254,7 @@ export default function ComparisonPage() {
               </ul>
               <Link
                 to="/pricing"
-                className="inline-flex items-center gap-1 text-primary-600 font-bold text-sm mt-4 hover:gap-2 transition-all"
+                className="inline-flex items-center gap-1 text-primary-600 font-bold text-sm mt-4 hover:gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 See full pricing <ArrowRight className="w-4 h-4" />
               </Link>
@@ -247,7 +263,7 @@ export default function ComparisonPage() {
         </motion.div>
 
         {/* Key Features Grid */}
-        <div className="mb-16 grid md:grid-cols-3 gap-8">
+        <div className="mb-12 sm:mb-16 grid md:grid-cols-3 gap-6 sm:gap-8">
           {[
             { icon: Shield, title: "Undetectable", desc: "Stealth Mode simulates human browsing patterns to bypass bot detection on every job board." },
             { icon: Zap, title: "Fully Autonomous", desc: "Set your preferences once. Our AI agent discovers jobs, tailors resumes, and submits applications 24/7." },
@@ -255,14 +271,14 @@ export default function ComparisonPage() {
           ].map((item, i) => (
             <motion.div
               key={i}
-              className="text-center bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all"
+              className="text-center bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: shouldReduceMotion ? 0 : i * 0.1 }}
               viewport={{ once: true }}
             >
-              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-5 text-primary-500 border border-slate-100">
-                <item.icon className="w-7 h-7" />
+              <div className="w-12 sm:w-14 h-12 sm:h-14 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 text-primary-500 border border-slate-100">
+                <item.icon className="w-6 sm:w-7 h-6 sm:h-7" aria-hidden="true" />
               </div>
               <h3 className="font-bold text-lg mb-2 text-slate-900">{item.title}</h3>
               <p className="text-slate-500 text-sm leading-relaxed font-medium">{item.desc}</p>

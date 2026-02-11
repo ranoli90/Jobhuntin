@@ -17,6 +17,9 @@ async def search_and_list_jobs(
     location: str | None = None,
     min_salary: int | None = None,
     keywords: str | None = None,
+    *,
+    limit: int = 25,
+    offset: int = 0,
 ) -> list[dict[str, Any]]:
     """
     Search jobs:
@@ -30,7 +33,7 @@ async def search_and_list_jobs(
         await _fetch_and_sync_adzuna(db_pool, s, location, keywords)
 
     async with db_pool.acquire() as conn:
-        query, params = _build_job_search_query(s, location, min_salary, keywords)
+        query, params = _build_job_search_query(s, location, min_salary, keywords, limit, offset)
         rows = await conn.fetch(query, *params)
 
     return [_map_job_row(r) for r in rows]
@@ -55,6 +58,8 @@ def _build_job_search_query(
     location: str | None,
     min_salary: int | None,
     keywords: str | None,
+    limit: int,
+    offset: int,
 ) -> tuple[str, list[Any]]:
     query = """
         SELECT id, title, company, description, location,
@@ -78,7 +83,8 @@ def _build_job_search_query(
         params.append(f"%{keywords}%")
     if settings.adzuna_job_ttl_days > 0:
         query += f" AND (source != 'adzuna' OR created_at >= now() - interval '{settings.adzuna_job_ttl_days} days')"
-    query += " ORDER BY created_at DESC LIMIT 100"
+    query += " ORDER BY created_at DESC LIMIT $%d OFFSET $%d" % (n + 1, n + 2)
+    params.extend([limit, offset])
     return query, params
 
 

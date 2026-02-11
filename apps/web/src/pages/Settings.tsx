@@ -1,5 +1,6 @@
 import * as React from "react";
 import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2 } from "lucide-react";
+import { useReducedMotion } from "framer-motion";
 import { useProfile } from "../hooks/useProfile";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -8,6 +9,7 @@ import { pushToast } from "../lib/toast";
 
 export default function Settings() {
   const { profile, loading, updateProfile, uploadResume, uploadAvatar } = useProfile();
+  const shouldReduceMotion = useReducedMotion();
   const [preferences, setPreferences] = React.useState({
     location: "",
     role_type: "",
@@ -137,7 +139,7 @@ export default function Settings() {
   const initials = (profile?.contact?.full_name || profile?.email || "JH").slice(0, 2).toUpperCase();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-4 lg:px-0 pb-8">
       <div>
         <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">Settings</p>
         <h1 className="font-display text-4xl">Profile & preferences</h1>
@@ -145,7 +147,7 @@ export default function Settings() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
-          <Card tone="shell" shadow="lift" className="p-6">
+          <Card tone="shell" shadow="lift" className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-brand-ink" />
@@ -241,7 +243,7 @@ export default function Settings() {
           </Card>
         </div>
 
-        <Card tone="shell" shadow="lift" className="p-6">
+        <Card tone="shell" shadow="lift" className="p-6 space-y-4">
           <div className="flex items-center gap-2 mb-6">
             <Briefcase className="h-5 w-5 text-brand-ink" />
             <h2 className="font-display text-xl">Job preferences</h2>
@@ -283,15 +285,36 @@ export default function Settings() {
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
             </div>
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={preferences.remote_only}
-                onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
-                className="h-5 w-5 rounded border-brand-ink/20"
-              />
-              <span className="text-brand-ink">Remote only</span>
-            </label>
+            <div className="space-y-1">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={preferences.remote_only}
+                onClick={() => setPreferences((p) => ({ ...p, remote_only: !p.remote_only }))}
+                className={`flex items-center justify-between w-full rounded-2xl border px-4 py-3 transition-all ${
+                  preferences.remote_only
+                    ? "bg-primary-50 border-primary-200 text-primary-700"
+                    : "bg-white border-brand-ink/10 text-brand-ink"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold">Remote only</span>
+                  <span className="text-xs text-brand-ink/60">Prioritize remote-first roles</span>
+                </div>
+                <span
+                  className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-all ${
+                    preferences.remote_only ? "bg-primary-500" : "bg-slate-200"
+                  }`}
+                >
+                  <span
+                    className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      preferences.remote_only ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </span>
+              </button>
+              <p className="text-xs text-brand-ink/60">We’ll bias search and auto-apply to remote-friendly openings.</p>
+            </div>
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Saving…" : "Save preferences"}
             </Button>

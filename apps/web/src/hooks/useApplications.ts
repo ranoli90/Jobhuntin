@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { apiGet, apiPost } from "../lib/api";
@@ -29,16 +29,26 @@ export function useApplications() {
   });
 
   useEffect(() => {
+    // Debounce invalidations to avoid thrashing on noisy channels or multi-tenant updates
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const channel = supabase
       .channel("applications-feed")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "applications" },
-        () => queryClient.invalidateQueries({ queryKey: ["applications"] }),
+        () => {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["applications"] });
+            debounceRef.current = null;
+          }, 250);
+        },
       )
       .subscribe();
 
     return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
       supabase.removeChannel(channel);
     };
   }, [queryClient]);

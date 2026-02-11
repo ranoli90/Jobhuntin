@@ -120,7 +120,31 @@ async def create_application(
 ) -> dict[str, Any]:
     """Create an application when user swipes ACCEPT; REJECT is a no-op."""
     if body.decision != "ACCEPT":
-        return {"status": "skipped", "decision": body.decision}
+        # Persist rejection to avoid resurfacing the same job in feeds
+        async with db.acquire() as conn:
+            job = await JobRepo.get_by_id(conn, body.job_id)
+            if not job:
+                raise HTTPException(status_code=404, detail="Job not found")
+
+            s = get_settings()
+            blueprint_key = s.default_blueprint_key or "job-app"
+
+            await conn.execute(
+                """
+                INSERT INTO public.applications
+                    (user_id, job_id, tenant_id, blueprint_key, status, priority_score)
+                VALUES ($1, $2, $3, $4, 'FAILED', 0)
+                ON CONFLICT (user_id, job_id) DO UPDATE SET
+                    status = 'FAILED',
+                    updated_at = now()
+                """,
+                ctx.user_id,
+                body.job_id,
+                ctx.tenant_id,
+                blueprint_key,
+            )
+
+        return {"status": "recorded", "decision": body.decision}
 
     async with db.acquire() as conn:
         job = await JobRepo.get_by_id(conn, body.job_id)
@@ -265,19 +289,29 @@ async def list_jobs(
     location: str | None = None,
     min_salary: int | None = None,
     keywords: str | None = None,
+    limit: int = 25,
+    offset: int = 0,
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """List jobs from DB with optional filters. Returns { jobs: [...] } for web."""
+    """List jobs from DB with optional filters. Returns { jobs: [...], next_offset } for web."""
     from backend.domain.job_search import search_and_list_jobs
+
+    # Clamp limit to prevent runaway payloads
+    limit = max(5, min(limit, 100))
+    offset = max(0, offset)
 
     jobs = await search_and_list_jobs(
         db_pool=db,
         location=location,
         min_salary=min_salary,
         keywords=keywords,
+        limit=limit,
+        offset=offset,
     )
-    return {"jobs": jobs}
+
+    next_offset = offset + len(jobs) if len(jobs) == limit else None
+    return {"jobs": jobs, "next_offset": next_offset}
 
 
 # ---------------------------------------------------------------------------

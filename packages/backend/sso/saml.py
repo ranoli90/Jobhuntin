@@ -16,7 +16,6 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 import asyncpg
-from cryptography.x509 import load_pem_x509_certificate
 from signxml import XMLVerifier
 
 from shared.config import Environment, get_settings
@@ -53,12 +52,12 @@ def generate_sp_metadata() -> str:
 # SAML response parsing with signature verification via signxml
 # ---------------------------------------------------------------------------
 
-def _load_idp_certificate(cert_pem: str) -> Any:
-    """Load an IdP X.509 certificate from PEM string."""
+def _load_idp_certificate(cert_pem: str) -> bytes:
+    """Normalize an IdP X.509 certificate PEM bytes payload."""
     pem = cert_pem.strip()
     if not pem.startswith("-----BEGIN CERTIFICATE-----"):
         pem = f"-----BEGIN CERTIFICATE-----\n{pem}\n-----END CERTIFICATE-----"
-    return load_pem_x509_certificate(pem.encode())
+    return pem.encode()
 
 
 def _verify_xml_signature(xml_bytes: bytes, certificate_pem: str) -> ET.Element:
@@ -68,10 +67,10 @@ def _verify_xml_signature(xml_bytes: bytes, certificate_pem: str) -> ET.Element:
     Returns the verified XML root element.
     Raises Exception on verification failure.
     """
-    cert = _load_idp_certificate(certificate_pem)
+    cert_pem = _load_idp_certificate(certificate_pem)
     verified_root = XMLVerifier().verify(
         xml_bytes,
-        x509_cert=cert,
+        x509_cert=cert_pem,
     ).signed_xml
     return verified_root
 

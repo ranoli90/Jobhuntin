@@ -14,13 +14,14 @@ import base64
 import datetime
 import unittest
 from unittest.mock import patch
-from xml.etree import ElementTree as ET
+from lxml import etree as ET
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from signxml import XMLSigner
+from signxml.algorithms import SignatureConstructionMethod
 
 
 # ---------------------------------------------------------------------------
@@ -84,7 +85,7 @@ def _build_saml_response_xml(email: str = "alice@example.com") -> str:
 def _sign_xml(xml_str: str, key_pem: bytes, cert_pem: bytes) -> bytes:
     """Sign XML with enveloped signature using signxml."""
     root = ET.fromstring(xml_str)
-    signer = XMLSigner(method=XMLSigner.SignatureConstructionMethod.enveloped)
+    signer = XMLSigner(method=SignatureConstructionMethod.enveloped)
     signed_root = signer.sign(root, key=key_pem, cert=cert_pem)
     return ET.tostring(signed_root, encoding="utf-8", xml_declaration=True)
 

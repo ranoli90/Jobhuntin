@@ -34,135 +34,145 @@ export default function Privacy() {
           <section>
             <h2>1. Introduction</h2>
             <p>
-              Welcome to JobHuntin ("we," "our," or "us"). We provide an AI-powered job search automation platform (the "Service"). 
-              We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, 
-              or our practices with regards to your personal information, please contact us at <a href="mailto:privacy@jobhuntin.com">privacy@jobhuntin.com</a>.
-            </p>
-            <p>
-              This Privacy Policy applies to all information collected through our website (https://jobhuntin.com), and/or any related services, sales, marketing, or events.
+              This Privacy Policy explains how <strong>JobHuntin AI</strong> ("we") collects, uses, and protects your data while operating the <strong>Sorce</strong> platform. This policy is strictly aligned with our technical architecture to ensure essentially "Zero-Defect" compliance with strict 2026 regulations (CCPA, Colorado AI Act, GDPR).
             </p>
           </section>
 
           <section>
-            <h2>2. Information We Collect</h2>
-            <p>We collect personal information that you voluntarily provide to us when registering at the Service, expressing an interest in obtaining information about us or our products and services, when participating in activities on the Service, or otherwise contacting us.</p>
+            <h2>2. The Data We Collect & Where It Lives</h2>
+            <p>We collect data to power our <strong>Autonomous Job Application Agent</strong>.</p>
             
-            <div className="grid md:grid-cols-2 gap-6 my-8 not-prose">
+            <div className="space-y-6 my-8 not-prose">
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3 mb-3">
                   <Database className="w-5 h-5 text-primary-500" />
-                  <h4 className="font-bold text-slate-900 m-0">Personal Data</h4>
+                  <h4 className="font-bold text-slate-900 m-0">Core Profile Data (<code>public.profiles</code>)</h4>
                 </div>
                 <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
-                  <li>Name and Contact Data (Email, Phone)</li>
-                  <li>Credentials (Passwords, Security hints)</li>
-                  <li>Payment Data (Processed securely by Stripe)</li>
-                  <li>Resume/CV Data & Employment History</li>
+                  <li><strong>Collected:</strong> Full Name, Resume (PDF), Experience, Education, Skills.</li>
+                  <li><strong>Storage:</strong> Securely stored in <strong>Supabase (PostgreSQL)</strong>.</li>
+                  <li><strong>Purpose:</strong> To generate a "Canonical Profile" used for filling job applications.</li>
+                  <li><strong>Retention:</strong> Retained while your account is active.</li>
                 </ul>
               </div>
+
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3 mb-3">
-                  <Globe className="w-5 h-5 text-blue-500" />
-                  <h4 className="font-bold text-slate-900 m-0">Usage Data</h4>
+                  <Bot className="w-5 h-5 text-indigo-500" />
+                  <h4 className="font-bold text-slate-900 m-0">"Smart Pre-Fill" Memory (<code>public.answer_memory</code>)</h4>
                 </div>
                 <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
-                  <li>IP Address & Device Characteristics</li>
-                  <li>Operating System & Browser Type</li>
-                  <li>Clickstream Data & Navigation Paths</li>
-                  <li>Cookies & Tracking Technologies</li>
+                  <li><strong>Collected:</strong> Answers you provide to specific job application questions (e.g., "Do you require sponsorship?", "Years of Python experience").</li>
+                  <li><strong>Function:</strong> We store these <code>(Field, Value)</code> pairs to auto-fill future applications.</li>
+                  <li><strong>Control:</strong> You may clear this memory via the <code>/me/answer-memory</code> endpoint in your dashboard settings.</li>
+                </ul>
+              </div>
+
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-3 mb-3">
+                  <FileText className="w-5 h-5 text-emerald-500" />
+                  <h4 className="font-bold text-slate-900 m-0">Application History (<code>public.applications</code>)</h4>
+                </div>
+                <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                  <li><strong>Collected:</strong> Job descriptions, application status, and timestamps.</li>
+                  <li><strong>Purpose:</strong> To track the Agent's performance and provide an "Audit Log" of where we applied on your behalf.</li>
                 </ul>
               </div>
             </div>
-
-            <h3>Information Automatically Collected</h3>
-            <p>
-              We automatically collect certain information when you visit, use, or navigate the Service. This information does not reveal your specific identity (like your name or contact information) but may include device and usage information, such as your IP address, browser and device characteristics, operating system, language preferences, referring URLs, device name, country, location, information about how and when you use our Service, and other technical information.
-            </p>
           </section>
 
           <section>
-            <h2>3. How We Use Your Information</h2>
-            <p>We use personal information collected via our Service for a variety of business purposes described below. We process your personal information for these purposes in reliance on our legitimate business interests, in order to enter into or perform a contract with you, with your consent, and/or for compliance with our legal obligations.</p>
+            <h2>3. How We Use Artificial Intelligence (AI)</h2>
+            <p>We use "High-Risk" AI systems (Generative AI & LLMs) to analyze your profile and write content.</p>
+            
+            <h3>3.1 Sub-Processors & Vendors</h3>
+            <p>We transmit data to the following third-party AI providers:</p>
             <ul>
-              <li><strong>To facilitate account creation and logon process:</strong> If you choose to link your account with us to a third-party account (such as your Google or LinkedIn account), we use the information you allowed us to collect from those third parties to facilitate account creation and logon processes.</li>
-              <li><strong>To deliver services to the user:</strong> We use your information to provide the AI job application services, including tailoring resumes, generating cover letters, and submitting applications on your behalf.</li>
-              <li><strong>To improve our AI models:</strong> We may use anonymized and aggregated data to train and improve the performance of our matchmaking and content generation algorithms.</li>
-              <li><strong>To send administrative information to you:</strong> We may use your personal information to send you product, service and new feature information and/or information about changes to our terms, conditions, and policies.</li>
-              <li><strong>To protect our Services:</strong> We may use your information as part of our efforts to keep our Service safe and secure (for example, for fraud monitoring and prevention).</li>
+              <li><strong>OpenRouter.ai:</strong> Our primary gateway for LLM inference.</li>
+              <li><strong>Nvidia (Nemotron) & OpenAI:</strong> The underlying models used for reasoning and content generation.</li>
+              <li><strong>Supabase:</strong> Provides vector storage and database hosting.</li>
+            </ul>
+
+            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 my-6 not-prose">
+               <div className="flex items-start gap-3">
+                 <Lock className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                 <div>
+                   <h4 className="font-bold text-blue-900 text-lg mb-2">Privacy-by-Design: PII Stripping</h4>
+                   <p className="text-blue-800 text-sm leading-relaxed">
+                     Before sending your data to any AI provider (e.g., for <code>suggest-roles</code> or <code>generate-cover-letter</code>), our system <strong>automatically strips</strong> the following Personally Identifiable Information (PII) to protect your anonymity:
+                   </p>
+                   <ul className="grid grid-cols-2 gap-2 mt-4 text-sm text-blue-800 font-medium">
+                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Email Address</li>
+                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Phone Number</li>
+                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Physical Address</li>
+                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Social URLs</li>
+                   </ul>
+                   <p className="text-xs text-blue-600 mt-4 italic">
+                     *Codebase Verification: This is enforced by our <code>strip_pii_for_llm</code> middleware function.
+                   </p>
+                 </div>
+               </div>
+            </div>
+          </section>
+
+          <section>
+            <h2>4. Automated Decision-Making Technology (ADMT)</h2>
+            
+            <h3>4.1 Scoring & Ranking (<code>match-job</code>)</h3>
+            <ul>
+              <li><strong>Usage:</strong> We use an algorithm to assign a "Match Score" (0-100) to job postings.</li>
+              <li><strong>Logic:</strong> The score is based on keyword overlap between your <code>public.profiles</code> data and the job description.</li>
+              <li><strong>Your Right:</strong> You have the right to request the specific logic used for any score.</li>
+            </ul>
+
+            <h3>4.2 Auto-Apply (<code>/claim_next</code>)</h3>
+            <ul>
+              <li><strong>Usage:</strong> Our "Worker Agent" autonomously claims jobs from your queue and submits applications.</li>
+              <li><strong>Opt-Out:</strong> You can disable "Auto-Apply" at any time, reverting the system to "Manual Approval Mode."</li>
             </ul>
           </section>
 
           <section>
-            <h2>4. Sharing Your Information</h2>
-            <p>We only share information with your consent, to comply with laws, to provide you with services, to protect your rights, or to fulfill business obligations.</p>
+            <h2>5. Security & Data Integrity</h2>
             <ul>
-              <li><strong>Business Transfers:</strong> We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company.</li>
-              <li><strong>Vendors, Consultants and Other Third-Party Service Providers:</strong> We may share your data with third-party vendors, service providers, contractors, or agents who perform services for us or on our behalf and require access to such information to do that work (e.g., Stripe for payments, OpenAI for content generation, Supabase for database hosting).</li>
-              <li><strong>Legal Requirements:</strong> We may disclose your information where we are legally required to do so in order to comply with applicable law, governmental requests, a judicial proceeding, court order, or legal process.</li>
+              <li><strong>Encryption:</strong> All data in transit is encrypted via TLS. Database connections use SSL.</li>
+              <li><strong>Access Control:</strong> We use Row Level Security (RLS) and distinct Tenant Contexts to ensure your data is never accessible by other users.</li>
+              <li><strong>Audit Logging:</strong> We maintain an immutable <code>application_events</code> log (<code>id</code>, <code>event_type</code>, <code>payload</code>) to record every action the Agent takes.</li>
             </ul>
           </section>
 
           <section>
-            <h2>5. International Transfers</h2>
-            <p>
-              Our servers are located in the United States. If you are accessing our Service from outside, please be aware that your information may be transferred to, stored, and processed by us in our facilities and by those third parties with whom we may share your personal information.
-            </p>
-            <p>
-              If you are a resident in the European Economic Area (EEA) or United Kingdom (UK), then these countries may not necessarily have data protection laws or other similar laws as comprehensive as those in your country. We will however take all necessary measures to protect your personal information in accordance with this privacy policy and applicable law.
-            </p>
-          </section>
-
-          <section>
-            <h2>6. Your Privacy Rights (GDPR & CCPA)</h2>
-            <p>Depending on your location, you may have the following rights regarding your personal data:</p>
+            <h2>6. Your Rights (CCPA/CPRA & GDPR)</h2>
             <div className="space-y-4 mt-6">
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">1</div>
                 <div>
-                  <h4 className="font-bold text-slate-900">Right to Access</h4>
-                  <p className="text-sm text-slate-600 m-0">You have the right to request copies of your personal data.</p>
+                  <h4 className="font-bold text-slate-900">Right to Know</h4>
+                  <p className="text-sm text-slate-600 m-0">You may request a dump of your <code>public.profiles</code> and <code>public.application_inputs</code> data.</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">2</div>
                 <div>
-                  <h4 className="font-bold text-slate-900">Right to Rectification</h4>
-                  <p className="text-sm text-slate-600 m-0">You have the right to request that we correct any information you believe is inaccurate.</p>
+                  <h4 className="font-bold text-slate-900">Right to Delete</h4>
+                  <p className="text-sm text-slate-600 m-0">You may request deletion of your account. We will purge your data from Supabase and our Redis cache.</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">3</div>
                 <div>
-                  <h4 className="font-bold text-slate-900">Right to Erasure ("Right to be Forgotten")</h4>
-                  <p className="text-sm text-slate-600 m-0">You have the right to request that we erase your personal data, under certain conditions.</p>
+                  <h4 className="font-bold text-slate-900">Global Privacy Control (GPC)</h4>
+                  <p className="text-sm text-slate-600 m-0">We respect GPC signals from your browser to automatically limit third-party data sharing.</p>
                 </div>
               </div>
             </div>
-            <p className="mt-6">
-              To exercise any of these rights, please contact us at <a href="mailto:privacy@jobhuntin.com">privacy@jobhuntin.com</a>. We will respond to your request within 30 days.
-            </p>
           </section>
 
           <section>
-            <h2>7. Data Security</h2>
+            <h2>7. Contact</h2>
             <p>
-              We have implemented appropriate technical and organizational security measures designed to protect the security of any personal information we process. 
-              However, despite our safeguards and efforts to secure your information, no electronic transmission over the Internet or information storage technology can be guaranteed to be 100% secure, so we cannot promise or guarantee that hackers, cybercriminals, or other unauthorized third parties will not be able to defeat our security, and improperly collect, access, steal, or modify your information.
+              For privacy requests or "Bias Audit" results, email us at <a href="mailto:privacy@jobhuntin.com">privacy@jobhuntin.com</a>.
             </p>
-          </section>
-
-          <section>
-            <h2>8. Contact Us</h2>
-            <p>
-              If you have questions or comments about this policy, you may email us at <a href="mailto:privacy@jobhuntin.com">privacy@jobhuntin.com</a> or by post to:
-            </p>
-            <address className="not-italic bg-slate-50 p-6 rounded-xl border border-slate-100">
-              <strong>JobHuntin AI Inc.</strong><br />
-              123 Innovation Drive<br />
-              Suite 400<br />
-              Denver, CO 80202<br />
-              United States
-            </address>
           </section>
         </div>
       </main>

@@ -25,6 +25,10 @@ packages/**/.env
 node_modules/
 __pycache__/
 *.pyc
+.pnp.cjs
+.pnp.loader.mjs
+.yarn/
+.turbo/
 .venv/
 venv/
 .pytest_cache/
@@ -32,22 +36,41 @@ venv/
 .ruff_cache/
 *.egg-info/
 pip-wheel-metadata/
+.parcel-cache/
+
+# Expo / React Native artifacts
+mobile/.expo/
+mobile/.expo-shared/
+*.expo/
 
 # Build outputs
 dist/
 build/
+.expo/
+.expo-shared/
 *.tsbuildinfo
 .next/
 .vercel/
 .output/
 playwright-report/
 test-results/
+coverage/
+.coverage
+coverage.xml
+htmlcov/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+.fleet/
+
+# Databases / local state
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
 
 # OS
 .DS_Store
@@ -60,9 +83,6 @@ npm-debug.log*
 # Test coverage
 coverage/
 .nyc_output/
-
-# Expo
-mobile/.expo/
 
 # Supabase local
 supabase/.temp/
@@ -81,3 +101,10 @@ scripts/setup/
 # Credential files that may appear during development
 **/credentials.json
 **/client_secret*.json
+**/*.pfx
+
+# Misc temporary files
+*.tmp
+*.temp
+*.bak
+*.orig

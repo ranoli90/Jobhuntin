@@ -1,57 +1,71 @@
-# Contributing to Sorce
+# Contributing to Sorce / JobHuntin
 
-We welcome contributions to the Sorce/JobHuntin platform! Please follow these guidelines to ensure a smooth collaboration process.
+This repo powers live job application automation, Nemotron SEO generation, and customer-facing UI. Every change must uphold two guardrails:
+
+1. **Zero-Defect Standard** – No regressions in automation accuracy, Supabase data integrity, or SEO throughput. Ship with exhaustive tests, telemetry, and roll-back plans.
+2. **No-Scroll UI Standard** – Any user-facing surface (web, mobile, extension) must keep critical CTAs above the fold. Avoid shipping components that require manual scrolling to reach the primary action unless UX explicitly approves.
 
 ## Code of Conduct
 
-*   Be respectful and inclusive.
-*   Focus on constructive feedback.
-*   Report any issues to the project maintainers.
+- Default to respectful, asynchronous-friendly communication.
+- Document decisions in PRs/Issues so on-call staff can reconstruct context.
+- Escalate incidents immediately in the on-call channel.
 
-## Development Workflow
+## Workflow
 
-1.  **Branching:**
-    *   `main`: Production-ready code.
-    *   `dev`: Integration branch for ongoing development.
-    *   Feature branches: `feature/your-feature-name` (created from `dev`).
-    *   Fix branches: `fix/issue-description` (created from `dev` or `main` for hotfixes).
+1. **Branching**
+   - `main` – deployment-ready.
+   - `dev` – staging/integration.
+   - Feature: `feat/<scope>`; Hotfix: `fix/<scope>` (branch from `main` if urgent).
 
-2.  **Commits:**
-    *   Use clear and descriptive commit messages.
-    *   Follow the format: `type(scope): description`.
-        *   Examples: `feat(api): add new user endpoint`, `fix(web): correct pricing toggle`.
+2. **Commits**
+   - Conventional format: `type(scope): detail`.
+   - Squash merge PRs unless release notes require granular history.
 
-3.  **Pull Requests:**
-    *   Push your branch to the repository.
-    *   Open a Pull Request (PR) against `dev`.
-    *   Provide a clear description of the changes and the problem solved.
-    *   Ensure all tests pass before requesting review.
+3. **Pull Requests**
+   - Target `dev` (or `main` for hotfixes).
+   - Include: problem statement, before/after screenshots or logs, test evidence, rollout plan.
+   - Tag reviewers for every affected area (API, worker, web, SEO, infra).
 
-## Coding Standards
+## Quality Gates
 
-### Python (Backend)
-*   We use **Ruff** for linting and formatting.
-*   Follow PEP 8 guidelines.
-*   Type hints are required (checked by **Mypy**).
-*   Run checks before committing:
-    ```bash
-    ruff check .
-    mypy .
-    ```
+| Area | Required Checks |
+| --- | --- |
+| Python | `ruff check .`, `pytest`, `mypy` (where configured) |
+| Frontend | `npm run lint`, component/unit tests (Vitest/Jest), Storybook updates if UI changes |
+| Worker | Run `python -m apps.worker.agent --dry-run` or integration tests covering blueprints touched |
+| SEO Scripts | `npm run seo:engine -- --dry-run`, confirm Nemotron model remains `nvidia/nemotron-4-340b-instruct` |
 
-### TypeScript/React (Frontend)
-*   Use functional components and hooks.
-*   Ensure strict type safety with TypeScript.
-*   Follow the existing file structure in `web/src`.
+Telemetry hooks (metrics, logs) must be updated when adding new workflows so the Zero-Defect dashboard reflects reality.
 
-## Testing
+## UX Expectations (No-Scroll UI)
 
-*   **Backend:** Write unit tests using `pytest` for new logic.
-*   **Frontend:** Ensure components render correctly and critical flows are tested.
+- Keep top-of-fold content actionable on common breakpoints (1280×800, 1440×900). Use the existing layout primitives (`HeroStack`, `CTADeck` in `apps/web`) to guarantee visual consistency.
+- Document any exception in the PR description and capture follow-up tasks for responsive tweaks.
 
-## Reporting Issues
+## Secrets & Config
 
-*   Check existing issues before creating a new one.
-*   Provide reproduction steps and environment details.
+- Never hardcode Supabase, Render, or Google keys. Use `.env` (never committed) + `shared.config`.
+- Update `.gitignore` if new secret files are introduced.
+- For LLM changes: update `shared/config.py`, document cost impact, and tag finance/SEO owners.
 
-Thank you for contributing!
+## Testing Matrix
+
+- **Backend / Domain** – `pytest tests/test_domain.py tests/test_agent_integration.py`
+- **Worker** – `pytest tests/test_agent_integration.py` + manual `python -m apps.worker.agent --dry-run`
+- **Web/App** – `npm run test`, `npm run lint`, Percy/Playwright visual tests when components change.
+- **Mobile** – `npm run test --workspaces -- mobile`
+
+## Issue Reporting
+
+- Use templates in the tracker.
+- Provide reproduction steps, logs, and mention whether Nemotron SEO, Supabase, or Playwright worker fleets are impacted.
+
+## Release Checklist
+
+1. Verify `render.yaml` + Supabase migrations are up to date.
+2. Confirm SEO scripts run successfully via `npm run seo:monitor`.
+3. Ensure worker scaling scripts (`python -m apps.worker.scaling`) start cleanly.
+4. Tag release in Git and update `docs/reports` if this is a major feature.
+
+Thank you for helping us keep JobHuntin operational-grade.

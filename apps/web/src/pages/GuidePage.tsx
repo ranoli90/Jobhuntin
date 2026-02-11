@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bot, ArrowLeft, BookOpen, Clock, Calendar, Share2, ChevronRight, Zap, Shield, Target } from 'lucide-react';
+import { Bot, ArrowLeft, BookOpen, Clock, Calendar, Share2, ChevronRight, Zap, Shield, Target, Menu, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { config } from '../config';
 
 const GUIDE_CONTENT: Record<string, any> = {
@@ -71,6 +71,24 @@ const GUIDE_CONTENT: Record<string, any> = {
 export default function GuidePage() {
   const { guideSlug } = useParams<{ guideSlug: string }>();
   const guide = guideSlug ? GUIDE_CONTENT[guideSlug] : null;
+  const [navOpen, setNavOpen] = useState(false);
+  const [headings, setHeadings] = useState<Array<{id: string, text: string, level: number}>>([]);
+  const shouldReduceMotion = useReducedMotion();
+
+  // Extract headings for navigation
+  useEffect(() => {
+    if (guide) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = guide.content;
+      const headingElements = tempDiv.querySelectorAll('h3, h4');
+      const extractedHeadings = Array.from(headingElements).map((heading, index) => ({
+        id: `heading-${index}`,
+        text: heading.textContent || '',
+        level: parseInt(heading.tagName.charAt(1))
+      }));
+      setHeadings(extractedHeadings);
+    }
+  }, [guide]);
 
   if (!guide) {
     return (
@@ -103,23 +121,84 @@ export default function GuidePage() {
       />
 
 
-      <main className="max-w-4xl mx-auto px-6 py-20">
+      <main className="max-w-4xl mx-auto px-6 py-16 sm:py-20">
+        {/* Sticky Navigation for Desktop */}
+        {!shouldReduceMotion && headings.length > 0 && (
+          <div className="hidden lg:block fixed top-24 left-8 w-64 z-40">
+            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
+              <h4 className="text-sm font-bold text-slate-900 mb-3">Table of Contents</h4>
+              <nav className="space-y-2">
+                {headings.map((heading, index) => (
+                  <a
+                    key={heading.id}
+                    href={`#${heading.id}`}
+                    className={`block text-xs sm:text-sm ${heading.level === 3 ? 'font-semibold' : 'font-normal'} text-slate-600 hover:text-primary-600 transition-colors py-1`}
+                    style={{ paddingLeft: `${(heading.level - 3) * 12}px` }}
+                  >
+                    {heading.text}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Navigation Toggle */}
+        {headings.length > 0 && (
+          <div className="lg:hidden mb-6">
+            <button
+              onClick={() => setNavOpen(!navOpen)}
+              className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-4 hover:border-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 w-full"
+              aria-label={navOpen ? 'Close table of contents' : 'Open table of contents'}
+              aria-expanded={navOpen}
+            >
+              <div className="flex items-center gap-3 text-slate-600">
+                <Menu className="w-4 h-4" />
+                <span className="text-sm font-medium">Table of Contents</span>
+              </div>
+              {navOpen ? <X className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </button>
+            
+            {navOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 bg-white border border-slate-100 rounded-xl p-4 shadow-sm"
+              >
+                <nav className="space-y-2">
+                  {headings.map((heading, index) => (
+                    <a
+                      key={heading.id}
+                      href={`#${heading.id}`}
+                      className={`block text-sm ${heading.level === 3 ? 'font-semibold' : 'font-normal'} text-slate-600 hover:text-primary-600 transition-colors py-1`}
+                      style={{ paddingLeft: `${(heading.level - 3) * 12}px` }}
+                      onClick={() => setNavOpen(false)}
+                    >
+                      {heading.text}
+                    </a>
+                  ))}
+                </nav>
+              </motion.div>
+            )}
+          </div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <div className="flex items-center gap-4 text-sm text-slate-400 font-bold uppercase tracking-widest mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-slate-400 font-bold uppercase tracking-widest mb-6">
             <span className="text-primary-500">{guide.category}</span>
-            <span className="w-1 h-1 bg-slate-300 rounded-full" />
+            <span className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full" />
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" /> {guide.readTime}
             </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-black font-display mb-8 leading-tight text-slate-900">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display mb-6 sm:mb-8 leading-tight text-slate-900 text-balance">
             {guide.title}
           </h1>
-          <div className="flex items-center justify-between border-y border-slate-200 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-y border-slate-200 py-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xs">JH</div>
               <div>
@@ -127,7 +206,10 @@ export default function GuidePage() {
                 <p className="text-xs text-slate-500">Updated Feb 8, 2026</p>
               </div>
             </div>
-            <button className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-900">
+            <button 
+              className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              aria-label="Share this guide"
+            >
               <Share2 className="w-5 h-5" />
             </button>
           </div>
@@ -135,13 +217,13 @@ export default function GuidePage() {
 
         <article
           className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-primary-600 mb-20 prose-strong:text-slate-900"
-          dangerouslySetInnerHTML={{ __html: guide.content }}
+          dangerouslySetInnerHTML={{ __html: guide.content.replace(/<h3>/g, '<h3 id="heading-0">').replace(/<h4>/g, '<h4 id="heading-1">') }}
         />
 
-        <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm mb-20">
-          <h3 className="text-2xl font-bold mb-6 font-display text-slate-900">Related Tools</h3>
+        <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 lg:p-10 border border-slate-100 shadow-sm mb-20">
+          <h3 className="text-xl sm:text-2xl font-bold mb-6 font-display text-slate-900">Related Tools</h3>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Link to="/chrome-extension" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
+            <Link to="/chrome-extension" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
               <div className="w-12 h-12 bg-primary-50 text-primary-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500 group-hover:text-white transition-colors">
                 <Zap className="w-6 h-6" />
               </div>
@@ -150,7 +232,7 @@ export default function GuidePage() {
                 <p className="text-xs text-slate-400">Auto-apply while browsing</p>
               </div>
             </Link>
-            <Link to="/pricing" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
+            <Link to="/pricing" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
               <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                 <Target className="w-6 h-6" />
               </div>
@@ -162,15 +244,15 @@ export default function GuidePage() {
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-[3rem] p-12 text-white text-center relative overflow-hidden shadow-2xl">
+        <div className="bg-slate-900 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-12 text-white text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-          <h2 className="text-3xl font-bold mb-6 relative z-10 font-display">Experience the automation.</h2>
-          <p className="text-slate-400 mb-10 relative z-10 max-w-lg mx-auto text-lg">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 relative z-10 font-display text-balance">Experience the automation.</h2>
+          <p className="text-slate-400 mb-8 sm:mb-10 relative z-10 max-w-lg mx-auto text-base sm:text-lg text-balance">
             Ready to put these strategies into practice? Let our agent handle your next 50 applications.
           </p>
           <Link
             to="/login"
-            className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-primary-500/20"
+            className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg hover:scale-105 transition-transform shadow-xl shadow-primary-500/20 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-slate-900"
           >
             Start Your Run
           </Link>

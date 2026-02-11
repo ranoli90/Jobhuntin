@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft, Download, Linkedin, Briefcase, Plus, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
 import { Logo } from '../components/brand/Logo';
 
 export default function ChromeExtension() {
   const [activeStep, setActiveStep] = useState(0);
+  const shouldReduceMotion = useReducedMotion();
 
-  // Simulation Loop
+  // Simulation Loop - disabled with reduced motion
   useEffect(() => {
+    if (shouldReduceMotion) return;
     const timer = setInterval(() => {
       setActiveStep((prev) => (prev + 1) % 4);
     }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [shouldReduceMotion]);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
@@ -44,7 +46,7 @@ export default function ChromeExtension() {
         }}
       />
       <main className="max-w-7xl mx-auto px-6 py-24">
-        <div className="flex flex-col lg:flex-row items-center gap-20">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
           <div className="flex-1">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -58,7 +60,7 @@ export default function ChromeExtension() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-5xl md:text-7xl font-black font-display text-slate-900 mb-8 leading-tight tracking-tight"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-display text-slate-900 mb-6 sm:mb-8 leading-tight tracking-tight text-balance"
             >
               The "Add to Cart" <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">for your career.</span>
@@ -68,7 +70,7 @@ export default function ChromeExtension() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xl text-slate-500 mb-10 leading-relaxed max-w-lg font-medium"
+              className="text-lg sm:text-xl text-slate-500 mb-8 sm:mb-10 leading-relaxed max-w-lg font-medium text-balance"
             >
               Browse LinkedIn, Indeed, or Glassdoor. See a job you like?
               Click one button. Our AI handles the resume tailoring, cover letter, and submission.
@@ -78,14 +80,14 @@ export default function ChromeExtension() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex flex-wrap gap-4"
+              className="flex flex-col sm:flex-row gap-4 sm:gap-4"
             >
-              <Button variant="primary" size="lg" className="px-8 py-4 h-auto rounded-xl font-bold bg-primary-600 hover:bg-primary-500 transition-colors flex items-center gap-3 shadow-xl shadow-primary-500/20 transform hover:-translate-y-1">
+              <Button variant="primary" size="lg" className="px-6 sm:px-8 py-3 sm:py-4 h-auto rounded-xl font-bold bg-primary-600 hover:bg-primary-500 transition-colors flex items-center justify-center gap-3 shadow-xl shadow-primary-500/20 transform hover:-translate-y-1 w-full sm:w-auto">
                 <Download className="w-5 h-5" />
                 Add to Chrome
                 <span className="text-white/50 font-normal text-sm ml-2 font-mono">v2.4</span>
               </Button>
-              <Button variant="outline" size="lg" className="bg-white border-2 border-slate-200 text-slate-700 px-8 py-4 h-auto rounded-xl font-bold hover:border-primary-500 hover:text-primary-500 transition-colors">
+              <Button variant="outline" size="lg" className="bg-white border-2 border-slate-200 text-slate-700 px-6 sm:px-8 py-3 sm:py-4 h-auto rounded-xl font-bold hover:border-primary-500 hover:text-primary-500 transition-colors w-full sm:w-auto">
                 Watch Demo
               </Button>
             </motion.div>
@@ -98,64 +100,66 @@ export default function ChromeExtension() {
             transition={{ delay: 0.4 }}
             className="flex-1 w-full max-w-2xl relative"
           >
-            {/* Browser Window */}
-            <div className="bg-white rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden relative z-10">
+            {/* Browser Window - Responsive aspect ratio */}
+            <div className="bg-white rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden relative z-10 aspect-[4/3] sm:aspect-none sm:h-[450px]">
               {/* Browser Bar */}
-              <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-4">
+              <div className="bg-slate-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 flex items-center gap-2 sm:gap-4">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-slate-300" />
                   <div className="w-3 h-3 rounded-full bg-slate-300" />
                   <div className="w-3 h-3 rounded-full bg-slate-300" />
                 </div>
-                <div className="bg-white rounded-lg flex-1 px-4 py-1.5 text-[10px] text-slate-400 font-mono flex items-center border border-slate-200">
-                  <span className="text-emerald-500 mr-2">🔒</span> linkedin.com/jobs/view/382910...
+                <div className="bg-white rounded-lg flex-1 px-2 sm:px-4 py-1.5 text-[9px] sm:text-[10px] text-slate-400 font-mono flex items-center border border-slate-200 truncate">
+                  <span className="text-emerald-500 mr-2">🔒</span> 
+                  <span className="hidden sm:inline">linkedin.com/jobs/view/382910...</span>
+                  <span className="sm:hidden">linkedin.com...</span>
                 </div>
               </div>
 
               {/* Web Content */}
-              <div className="p-4 sm:p-8 h-[300px] sm:h-[450px] bg-white relative">
+              <div className="p-3 sm:p-8 h-full bg-white relative">
                 {/* Job Header */}
-                <div className="flex justify-between items-start mb-8">
-                  <div className="flex gap-4">
-                    <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black text-xl">L</div>
+                <div className="flex justify-between items-start mb-4 sm:mb-8">
+                  <div className="flex gap-2 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black text-lg sm:text-xl">L</div>
                     <div>
-                      <div className="h-4 w-48 bg-slate-900 rounded-full mb-3"></div>
-                      <div className="h-3 w-24 bg-slate-200 rounded-full"></div>
+                      <div className="h-3 w-32 sm:w-48 bg-slate-900 rounded-full mb-2 sm:mb-3"></div>
+                      <div className="h-2.5 sm:h-3 w-20 sm:w-24 bg-slate-200 rounded-full"></div>
                     </div>
                   </div>
                   {/* The Magic Button */}
                   <motion.button
                     animate={{
-                      scale: activeStep === 1 ? [1, 0.95, 1] : 1,
+                      scale: shouldReduceMotion ? 1 : (activeStep === 1 ? [1, 0.95, 1] : 1),
                       backgroundColor: activeStep >= 2 ? "#10B981" : "#2563eb"
                     }}
-                    className="bg-primary-600 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-primary-500/20 relative z-50 transition-colors"
+                    className="bg-primary-600 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-xl shadow-primary-500/20 relative z-50 transition-colors text-xs sm:text-sm"
                   >
                     {activeStep >= 2 ? (
-                      <><Check className="w-4 h-4 stroke-[3]" /> Added to Queue</>
+                      <><Check className="w-3 sm:w-4 h-3 sm:h-4 stroke-[3]" /> <span className="hidden sm:inline">Added to Queue</span><span className="sm:hidden">Added</span></>
                     ) : (
-                      <><Plus className="w-4 h-4 stroke-[3]" /> Auto-Apply</>
+                      <><Plus className="w-3 sm:w-4 h-3 sm:h-4 stroke-[3]" /> <span className="hidden sm:inline">Auto-Apply</span><span className="sm:hidden">Apply</span></>
                     )}
                   </motion.button>
                 </div>
 
                 {/* Job Body */}
-                <div className="space-y-4 opacity-10">
-                  <div className="h-3 w-full bg-slate-400 rounded-full"></div>
-                  <div className="h-3 w-full bg-slate-400 rounded-full"></div>
-                  <div className="h-3 w-3/4 bg-slate-400 rounded-full"></div>
-                  <div className="h-3 w-full bg-slate-400 rounded-full"></div>
-                  <div className="h-3 w-5/6 bg-slate-400 rounded-full"></div>
+                <div className="space-y-2 sm:space-y-4 opacity-10">
+                  <div className="h-2.5 sm:h-3 w-full bg-slate-400 rounded-full"></div>
+                  <div className="h-2.5 sm:h-3 w-full bg-slate-400 rounded-full"></div>
+                  <div className="h-2.5 sm:h-3 w-3/4 bg-slate-400 rounded-full"></div>
+                  <div className="h-2.5 sm:h-3 w-full bg-slate-400 rounded-full"></div>
+                  <div className="h-2.5 sm:h-3 w-5/6 bg-slate-400 rounded-full"></div>
                 </div>
 
-                {/* Extension Overlay */}
+                {/* Extension Overlay - Hidden on mobile */}
                 <AnimatePresence>
-                  {activeStep >= 1 && (
+                  {activeStep >= 1 && !shouldReduceMotion && (
                     <motion.div
                       initial={{ x: 300, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       exit={{ x: 300, opacity: 0 }}
-                      className="absolute top-6 right-6 w-72 bg-slate-900 text-white rounded-2xl shadow-2xl p-5 z-40 border border-white/10"
+                      className="hidden sm:block absolute top-6 right-6 w-72 bg-slate-900 text-white rounded-2xl shadow-2xl p-5 z-40 border border-white/10"
                     >
                       <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-3">
                         <div className="bg-primary-500 p-1.5 rounded-lg">
@@ -197,21 +201,23 @@ export default function ChromeExtension() {
                   )}
                 </AnimatePresence>
 
-                {/* Mouse Cursor */}
-                <motion.div
-                  animate={{
-                    x: activeStep === 0 ? 380 : 400,
-                    y: activeStep === 0 ? 50 : 60,
-                    scale: activeStep === 1 ? 0.9 : 1
-                  }}
-                  transition={{ duration: 1 }}
-                  className="absolute top-0 left-0 w-6 h-6 pointer-events-none z-50"
-                  style={{ filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.3))" }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z" fill="black" stroke="white" strokeWidth="2" />
-                  </svg>
-                </motion.div>
+                {/* Mouse Cursor - Hidden on mobile and with reduced motion */}
+                {!shouldReduceMotion && (
+                  <motion.div
+                    animate={{
+                      x: activeStep === 0 ? 280 : 300,
+                      y: activeStep === 0 ? 40 : 50,
+                      scale: activeStep === 1 ? 0.9 : 1
+                    }}
+                    transition={{ duration: 1 }}
+                    className="hidden sm:block absolute top-0 left-0 w-6 h-6 pointer-events-none z-50"
+                    style={{ filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.3))" }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z" fill="black" stroke="white" strokeWidth="2" />
+                    </svg>
+                  </motion.div>
+                )}
               </div>
             </div>
 
@@ -229,22 +235,22 @@ export default function ChromeExtension() {
               <p className="text-slate-500 font-medium">Native integration with the platforms you already use.</p>
             </div>
 
-            <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-20">
+              <div className="flex items-center gap-3 grayscale hover:grayscale-0 transition-all duration-700 cursor-pointer">
                 <Linkedin className="w-8 h-8 text-[#0077b5]" />
-                <span className="text-xl font-bold tracking-tight">LinkedIn</span>
+                <span className="text-lg sm:text-xl font-bold tracking-tight">LinkedIn</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 grayscale hover:grayscale-0 transition-all duration-700 cursor-pointer">
                 <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-black italic">f</div>
-                <span className="text-xl font-bold tracking-tight">FlexJobs</span>
+                <span className="text-lg sm:text-xl font-bold tracking-tight">FlexJobs</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 grayscale hover:grayscale-0 transition-all duration-700 cursor-pointer">
                 <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-white font-black">W</div>
-                <span className="text-xl font-bold tracking-tight">Wellfound</span>
+                <span className="text-lg sm:text-xl font-bold tracking-tight">Wellfound</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 grayscale hover:grayscale-0 transition-all duration-700 cursor-pointer">
                 <div className="w-8 h-8 bg-[#212121] rounded-full flex items-center justify-center text-white font-black text-[10px]">IND</div>
-                <span className="text-xl font-bold tracking-tight">Indeed</span>
+                <span className="text-lg sm:text-xl font-bold tracking-tight">Indeed</span>
               </div>
             </div>
 

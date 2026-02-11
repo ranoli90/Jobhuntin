@@ -12,13 +12,14 @@ import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { AISuggestionCard, SalarySuggestionCard } from "../../components/ui/AISuggestionCard";
 import { pushToast } from "../../lib/toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding } = useOnboarding();
   const { profile, loading, uploadResume, savePreferences, completeOnboarding, updateProfile } = useProfile();
   const aiSuggestions = useAISuggestions();
+  const shouldReduceMotion = useReducedMotion();
 
   const [resumeFile, setResumeFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
@@ -114,7 +115,13 @@ export default function Onboarding() {
     } catch (err) {
       const message = (err as Error).message;
       setResumeError(message);
-      pushToast({ title: "Upload failed", description: message, tone: "error" });
+      pushToast({
+        title: "Upload stalled",
+        description: message.includes("size") || message.includes("type")
+          ? "Use PDF/DOC under 5MB, or try our sample resume to continue."
+          : "Check your connection and retry. PDF/DOC under 5MB works best.",
+        tone: "error"
+      });
     } finally {
       setIsUploading(false);
     }
@@ -259,10 +266,10 @@ export default function Onboarding() {
             </div>
             <div className="h-1 md:h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
               <motion.div
-                initial={{ width: 0 }}
+                initial={shouldReduceMotion ? { width: `${progress}%` } : { width: 0 }}
                 animate={{ width: `${progress}%` }}
                 className="h-full bg-primary-600 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
-                transition={{ type: "spring", stiffness: 50, damping: 15 }}
+                transition={shouldReduceMotion ? undefined : { type: "spring", stiffness: 50, damping: 15 }}
               />
             </div>
           </div>
@@ -271,10 +278,10 @@ export default function Onboarding() {
             <motion.div
               key={currentStep}
               className="flex-1 min-h-0 flex flex-col"
-              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.98, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: -10 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.98, y: -10 }}
+              transition={shouldReduceMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
             >
               <Card tone="glass" shadow="lift" className="flex flex-col flex-1 p-3 md:p-8 border-slate-200/60 overflow-hidden relative max-h-full min-h-0">
                 {/* Decorative background elements inside card */}
@@ -334,8 +341,8 @@ export default function Onboarding() {
                       <div className="text-center py-1 md:py-4">
                         <div className="mx-auto mb-3 md:mb-6 relative">
                           <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                            animate={shouldReduceMotion ? undefined : { rotate: 360 }}
+                            transition={shouldReduceMotion ? undefined : { duration: 20, repeat: Infinity, ease: "linear" }}
                             className="absolute inset-0 rounded-[2rem] border-2 border-dashed border-primary-500/20 hidden md:block"
                           />
                           <div className="relative mx-auto flex h-12 w-12 md:h-20 md:w-20 items-center justify-center rounded-[1.5rem] md:rounded-[2rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-100">
@@ -356,9 +363,9 @@ export default function Onboarding() {
                           ].map((item, i) => (
                             <motion.div
                               key={i}
-                              initial={{ opacity: 0, x: -20 }}
+                              initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.2 + i * 0.1 }}
+                              transition={shouldReduceMotion ? undefined : { delay: 0.2 + i * 0.1 }}
                               className="flex items-center gap-2.5 md:gap-4 p-2 md:p-4 rounded-xl md:rounded-2xl bg-slate-50 border border-slate-100/50 hover:bg-white hover:shadow-md transition-all group"
                             >
                               <div className="flex h-7 w-7 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg md:rounded-xl bg-primary-100 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
@@ -373,7 +380,7 @@ export default function Onboarding() {
                         </div>
                       </div>
                     </div>
-                    <div className="pt-2 md:pt-4 shrink-0 mt-auto">
+                    <div className="sticky bottom-0 pt-2 md:pt-4 shrink-0 mt-auto bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
                       <Button size="lg" onClick={nextStep} className="w-full h-10 md:h-12 rounded-[1.25rem] text-base md:text-xl font-black shadow-xl md:shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
                         BEGIN CALIBRATION
                         <ArrowRight className="ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
@@ -454,9 +461,9 @@ export default function Onboarding() {
                             <div className="w-40 md:w-64 h-1.5 bg-slate-200 rounded-full overflow-hidden border border-slate-100 shadow-inner">
                               <motion.div
                                 className="h-full bg-primary-500"
-                                initial={{ width: "0%" }}
+                                initial={shouldReduceMotion ? { width: "100%" } : { width: "0%" }}
                                 animate={{ width: "100%" }}
-                                transition={{ duration: 4, repeat: Infinity }}
+                                transition={shouldReduceMotion ? undefined : { duration: 4, repeat: Infinity }}
                               />
                             </div>
                             <p className="text-[9px] md:text-xs font-black text-primary-600 uppercase tracking-widest animate-pulse">Scanning Vector Space...</p>
@@ -494,7 +501,7 @@ export default function Onboarding() {
                       )}
                     </div>
 
-                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto">
+                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
                       <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
                         <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
                         PREV
@@ -702,7 +709,7 @@ export default function Onboarding() {
                       )}
                     </div>
 
-                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto">
+                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
                       <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
                         <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
                         PREV
@@ -884,7 +891,7 @@ export default function Onboarding() {
                       </div>
                     </div>
 
-                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto">
+                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
                       <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
                         <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
                         PREV
@@ -973,7 +980,7 @@ export default function Onboarding() {
                       </div>
                     </div>
 
-                    <div className="pt-2 md:pt-4 shrink-0 mt-auto">
+                    <div className="pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
                       <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-10 md:h-16 rounded-[1.25rem] md:rounded-[2rem] text-base md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
                         <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">
                           {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}

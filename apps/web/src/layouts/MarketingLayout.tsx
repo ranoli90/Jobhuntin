@@ -10,7 +10,7 @@ export default function MarketingLayout() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700 flex flex-col">
       <MarketingNavbar />
-      <main className="flex-1">
+      <main className="flex-1 pt-20 md:pt-24">
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname} className="h-full">
             <Outlet />

@@ -72,15 +72,22 @@ export function MarketingNavbar() {
         {/* Mobile Menu Toggle */}
         <button
           className="md:hidden p-3 -mr-2 text-slate-600 hover:text-slate-900 bg-slate-100/50 hover:bg-slate-100 rounded-xl transition-all active:scale-90"
-          onClick={() => setIsMobileMenuOpen(true)}
-          aria-label="Open menu"
+          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-marketing-drawer"
         >
           <Menu className="w-6 h-6" />
         </button>
       </div>
 
       {/* Universal Mobile Drawer */}
-      <MobileDrawer isOpen={isMobileMenuOpen} onClose={closeMenu} side="right">
+      <MobileDrawer
+        isOpen={isMobileMenuOpen}
+        onClose={closeMenu}
+        side="right"
+        drawerId="marketing-mobile-drawer"
+      >
         <MobileDrawerHeader onClose={closeMenu}>
           <Logo to="/" onClick={closeMenu} size="sm" />
         </MobileDrawerHeader>

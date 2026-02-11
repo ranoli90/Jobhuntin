@@ -5,6 +5,7 @@ import { Badge } from "../ui/Badge";
 import { AIMatchBadge } from "../ui/AIMatchBadge";
 import type { JobPosting } from "../../hooks/useJobs";
 import { cn } from "../../lib/utils";
+import { formatCurrency } from "../../lib/format";
 
 export interface JobCardProps {
   job: JobPosting;
@@ -62,7 +63,7 @@ export function JobCard({
           <MapPin className="h-4 w-4" /> {job.location ?? "Remote"}
         </div>
         <div className="flex items-center gap-3 text-brand-ink/70">
-          <DollarSign className="h-4 w-4" /> {job.salary_min ? `$${job.salary_min.toLocaleString()}+` : "Salary shared on match"}
+          <DollarSign className="h-4 w-4" /> {job.salary_min ? `${formatCurrency(job.salary_min)}+` : "Salary shared on match"}
         </div>
         <p className="text-brand-ink/80 line-clamp-3">{job.description}</p>
       </div>

@@ -1,4 +1,4 @@
-import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, TrendingUp, CheckCircle, Clock, Zap, Quote, Send, Users } from "lucide-react";
+import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, TrendingUp, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -6,7 +6,7 @@ import { useBilling } from "../hooks/useBilling";
 import { useApplications } from "../hooks/useApplications";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { apiPost, apiGet } from "../lib/api";
 import { pushToast } from "../lib/toast";
@@ -14,6 +14,9 @@ import { fireSuccessConfetti } from "../lib/confetti";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { useJobs } from "../hooks/useJobs";
 import type { JobFilters } from "../hooks/useJobs";
+import { formatCurrency, formatDate } from "../lib/format";
+import { t, isRTL } from "../lib/i18n";
+import { useSessionMilestone } from "../hooks/useCelebrations";
 
 const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -47,6 +50,10 @@ export default function Dashboard() {
   const { status } = useBilling();
   const { applications, holdApplications, byStatus, stats, isLoading } = useApplications();
   const [isHovered, setIsHovered] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+
+  const locale = typeof navigator !== "undefined" ? navigator.language : undefined;
+  const rtl = isRTL(locale);
 
   const metrics = [
     {
@@ -97,10 +104,10 @@ export default function Dashboard() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-3 max-w-7xl mx-auto px-4 lg:px-6 pb-4"
+      transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
+      className="space-y-3 max-w-7xl mx-auto px-4 lg:px-6 pb-8"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <motion.div
@@ -129,58 +136,60 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric, index) => (
-          <motion.div
-            key={metric.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 * index }}
-            className="h-full"
-          >
-            <Card
-              className="h-full border-slate-200 bg-white/50 hover:bg-white transition-all duration-300 group"
-              shadow="sm"
-              tone="glass"
+      <div className="-mx-1 overflow-x-auto pb-1 lg:mx-0">
+        <div className="flex gap-2 md:grid md:grid-cols-2 xl:grid-cols-4 min-w-full px-1">
+          {metrics.map((metric, index) => (
+            <motion.div
+              key={metric.label}
+              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={shouldReduceMotion ? undefined : { delay: 0.05 * index, duration: 0.4 }}
+              className="h-full min-w-[240px] md:min-w-0"
             >
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                    <metric.icon className={`h-4 w-4 ${metric.iconColor}`} />
-                    <span>{metric.label}</span>
+              <Card
+                className="h-full border-slate-200 bg-white/60 hover:bg-white transition-all duration-300 group"
+                shadow="sm"
+                tone="glass"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <metric.icon className={`h-4 w-4 ${metric.iconColor}`} />
+                      <span>{metric.label}</span>
+                    </div>
+                    <p className="text-2xl font-bold text-slate-900">
+                      {isLoading ? (
+                        <span className="inline-block h-8 w-16 bg-slate-100 rounded animate-pulse"></span>
+                      ) : typeof metric.value === 'string' ? (
+                        metric.value
+                      ) : (
+                        <AnimatedNumber value={metric.value} />
+                      )}
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {isLoading ? (
-                      <span className="inline-block h-8 w-16 bg-slate-100 rounded animate-pulse"></span>
-                    ) : typeof metric.value === 'string' ? (
-                      metric.value
-                    ) : (
-                      <AnimatedNumber value={metric.value} />
-                    )}
-                  </p>
+                  {metric.trend !== 0 && (
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${metric.bg} ${metric.text}`}>
+                      {metric.delta === 'up' ? (
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                      ) : (
+                        <ArrowUpRight className="h-3 w-3 mr-1 transform rotate-180" />
+                      )}
+                      {metric.trend}%
+                    </div>
+                  )}
                 </div>
-                {metric.trend !== 0 && (
-                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${metric.bg} ${metric.text}`}>
-                    {metric.delta === 'up' ? (
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                    ) : (
-                      <ArrowUpRight className="h-3 w-3 mr-1 transform rotate-180" />
-                    )}
-                    {metric.trend}%
-                  </div>
-                )}
-              </div>
-              <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                <motion.div
-                  className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, 30 + index * 10)}%` }}
-                  transition={{ delay: 0.3 + index * 0.1, duration: 0.8, type: 'spring' }}
-                />
-              </div>
-            </Card>
-          </motion.div>
-        ))}
+                <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
+                    initial={shouldReduceMotion ? { width: `${Math.min(100, 30 + index * 10)}%` } : { width: 0 }}
+                    animate={{ width: `${Math.min(100, 30 + index * 10)}%` }}
+                    transition={shouldReduceMotion ? undefined : { delay: 0.2 + index * 0.08, duration: 0.6, type: 'spring' }}
+                  />
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-3">
@@ -335,7 +344,7 @@ export default function Dashboard() {
                     <span className="text-slate-500">Next Billing</span>
                     <div className="flex items-center text-slate-900">
                       <Clock className="h-3.5 w-3.5 mr-1 text-slate-400" />
-                      <span>{status?.current_period_end ? new Date(status.current_period_end).toLocaleDateString() : "No upcoming bill"}</span>
+                      <span>{status?.current_period_end ? formatDate(status.current_period_end, locale) : "No upcoming bill"}</span>
                     </div>
                   </div>
                 </div>
@@ -358,11 +367,16 @@ export default function Dashboard() {
 
 export function JobsView() {
   const [filters, setFilters] = useState<JobFilters>({ location: "" });
-  const { jobs, isLoading } = useJobs(filters);
+  const { jobs, isLoading, isFetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useJobs(filters);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
+  const streakToasted = useRef<Set<number>>(new Set());
+  const alertedMatches = useRef<Set<string>>(new Set());
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const swipeTimeoutRef = useRef<any>(null);
+  const shouldReduceMotion = useReducedMotion();
+  const [statusMessage, setStatusMessage] = useState("");
+  const { celebrate: celebrateSession } = useSessionMilestone();
 
   useEffect(() => {
     return () => {
@@ -370,12 +384,51 @@ export function JobsView() {
     };
   }, []);
 
+  // Micro-celebrations for streaks
+  useEffect(() => {
+    const milestones = [1, 10, 25, 50];
+    milestones.forEach((m) => {
+      if (swipeCount >= m && !streakToasted.current.has(m)) {
+        streakToasted.current.add(m);
+        pushToast({
+          title: m === 1 ? "First swipe logged" : `🔥 ${m} swipes` ,
+          description: m === 1 ? "Matchmaker engaged—keep going for tailored leads." : "Momentum unlocked. Radar will adapt to your preferences.",
+          tone: "success",
+        });
+      }
+    });
+  }, [swipeCount]);
+
   const currentJob = jobs[currentIndex];
+
+  // Session milestone celebration
+  useEffect(() => {
+    celebrateSession(jobs.length);
+  }, [jobs.length, celebrateSession]);
+
+  useEffect(() => {
+    if (currentJob?.id && currentJob.match_score && currentJob.match_score >= 80 && !alertedMatches.current.has(currentJob.id)) {
+      alertedMatches.current.add(currentJob.id);
+      pushToast({
+        title: t("dashboard.matchAlert", locale),
+        description: `${currentJob.title} @ ${currentJob.company}`,
+        tone: "success",
+      });
+    }
+  }, [currentJob, locale]);
+
+  // Prefetch next page when near end
+  useEffect(() => {
+    if (hasNextPage && currentIndex >= jobs.length - 3 && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [currentIndex, fetchNextPage, hasNextPage, isFetchingNextPage, jobs.length]);
 
   const handleSwipe = async (direction: "ACCEPT" | "REJECT") => {
     if (!currentJob) return;
 
     setSwipeDirection(direction === "ACCEPT" ? "right" : "left");
+    setStatusMessage(`${direction === "ACCEPT" ? "Accepting" : "Rejecting"} ${currentJob.title} at ${currentJob.company}`);
 
     try {
       // Record swipe decision with API
@@ -391,6 +444,9 @@ export function JobsView() {
           description: `AI is now tailoring your resume for ${currentJob.company}.`,
           tone: "success"
         });
+        setStatusMessage(`Accepted ${currentJob.title} at ${currentJob.company}`);
+      } else {
+        setStatusMessage(`Rejected ${currentJob.title} at ${currentJob.company}`);
       }
     } catch (error) {
       // Revert UI state on API failure
@@ -400,20 +456,34 @@ export function JobsView() {
         description: "Please try again.",
         tone: "error"
       });
+      setStatusMessage("Failed to record decision, please try again.");
     } finally {
       // Clear swipe direction after animation
       if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
       swipeTimeoutRef.current = setTimeout(() => {
         setSwipeDirection(null);
         swipeTimeoutRef.current = null;
-      }, 500);
+      }, shouldReduceMotion ? 0 : 500);
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner label="Calibrating your job radar..." />
+        <div className="space-y-4 w-full max-w-md">
+          {[1,2,3].map((i) => (
+            <div key={i} className="animate-pulse rounded-3xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm">
+              <div className="h-4 w-24 bg-slate-200 rounded" />
+              <div className="h-6 w-3/4 bg-slate-200 rounded" />
+              <div className="h-4 w-1/2 bg-slate-200 rounded" />
+              <div className="h-20 w-full bg-slate-100 rounded-xl" />
+              <div className="flex gap-2">
+                <div className="h-10 w-24 bg-slate-200 rounded-full" />
+                <div className="h-10 w-20 bg-slate-100 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -424,28 +494,40 @@ export function JobsView() {
         <div className="h-20 w-20 rounded-full bg-lagoon-100 flex items-center justify-center mb-6">
           <CheckCircle className="h-10 w-10 text-lagoon-600" />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 mb-4">Radar Sweep Complete</h2>
+        <h2 className="text-3xl font-black text-slate-900 mb-4">{t("dashboard.sweepComplete", locale)}</h2>
         <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
-          You've reviewed all matches for your current filters. Try broadening your location or decreasing salary requirements to find more opportunities.
+          {t("dashboard.noMatches", locale)}
         </p>
-        <Button variant="outline" onClick={() => setCurrentIndex(0)}>
-          Review Swipes
-        </Button>
+        <div className="flex flex-col gap-3 w-full max-w-sm">
+          <Button variant="outline" onClick={() => setCurrentIndex(0)}>
+            {t("dashboard.reviewSwipes", locale)}
+          </Button>
+          {hasNextPage && (
+            <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+              {isFetchingNextPage ? t("dashboard.loadingMore", locale) : t("dashboard.loadMore", locale)}
+            </Button>
+          )}
+          {!hasNextPage && (
+            <Button variant="ghost" onClick={() => setFilters({ location: "", keywords: "" })}>
+              {t("dashboard.resetFilters", locale)}
+            </Button>
+          )}
+        </div>
       </Card>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-6" dir={rtl ? "rtl" : undefined}>
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Radar</h2>
-          <p className="text-slate-500 font-medium">Swipe right to let AI apply for you.</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t("dashboard.activeRadar", locale)}</h2>
+          <p className="text-slate-500 font-medium">{t("dashboard.swipeRight", locale)}</p>
         </div>
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Filter location..."
+            placeholder={t("dashboard.filterPlaceholder", locale)}
             className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none bg-white font-medium"
             value={filters.location}
             onChange={(e) => setFilters(f => ({ ...f, location: e.target.value }))}
@@ -456,7 +538,12 @@ export function JobsView() {
         </div>
       </div>
 
-      <div className="relative h-[min(550px,65vh)] w-full max-w-md mx-auto perspective-1000">
+      <div
+        className="relative h-[clamp(420px,60vh,640px)] w-full max-w-md mx-auto perspective-1000"
+        role="region"
+        aria-label="Job swipe deck"
+      >
+        <div className="sr-only" aria-live="polite">{statusMessage}</div>
         <AnimatePresence>
           {jobs.slice(currentIndex, currentIndex + 2).reverse().map((job, idx) => {
             const isTop = idx === (jobs.slice(currentIndex, currentIndex + 2).length - 1);
@@ -468,20 +555,20 @@ export function JobsView() {
                   position: 'absolute',
                   width: '100%',
                 }}
-                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                initial={shouldReduceMotion ? undefined : { scale: 0.95, opacity: 0, y: 20 }}
                 animate={{
                   scale: isTop ? 1 : 0.95,
                   opacity: 1,
                   y: isTop ? 0 : 20,
                   rotate: isTop ? 0 : (idx % 2 === 0 ? 1 : -1)
                 }}
-                exit={{
+                exit={shouldReduceMotion ? undefined : {
                   x: swipeDirection === 'left' ? -1000 : 1000,
                   opacity: 0,
                   rotate: swipeDirection === 'left' ? -20 : 20,
                   transition: { duration: 0.5 }
                 }}
-                drag={isTop ? "x" : false}
+                drag={isTop && !shouldReduceMotion ? "x" : false}
                 dragConstraints={{ left: 0, right: 0 }}
                 onDragEnd={(_, info) => {
                   if (info.offset.x > 100) handleSwipe("ACCEPT");
@@ -494,8 +581,8 @@ export function JobsView() {
                 >
                   <div className="bg-slate-900 p-8 text-white relative">
                     {job.match_score != null && (
-                      <div className="absolute top-4 right-4 bg-primary-500 text-white text-[10px] font-black px-2 py-1 rounded">
-                        AI MATCH: {Math.round(job.match_score)}%
+                      <div className="absolute top-4 right-4 bg-primary-500 text-white text-[10px] font-black px-2 py-1 rounded flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> AI MATCH: {Math.round(job.match_score)}%
                       </div>
                     )}
                     <div className="flex items-center gap-4 mb-4">
@@ -511,7 +598,7 @@ export function JobsView() {
                     <div className="flex gap-2">
                       <Badge className="bg-white/10 text-white border-transparent">Full-time</Badge>
                       <Badge className="bg-primary-500/20 text-primary-400 border-transparent">
-                        {job.salary_min ? `$${(job.salary_min / 1000).toFixed(0)}k+` : "Premium"}
+                        <DollarSign className="h-4 w-4" /> {job.salary_min ? `${formatCurrency(job.salary_min, locale)}+` : "Salary shared on match"}
                       </Badge>
                     </div>
                   </div>
@@ -538,14 +625,20 @@ export function JobsView() {
 
                   <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-center gap-8">
                     <button
+                      type="button"
                       onClick={() => handleSwipe("REJECT")}
-                      className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-90"
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSwipe("REJECT"); } }}
+                      aria-label="Reject job"
+                      className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-200"
                     >
                       <Zap className="w-6 h-6 transform rotate-180" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleSwipe("ACCEPT")}
-                      className="w-16 h-16 rounded-full bg-primary-600 flex items-center justify-center text-white hover:bg-primary-500 transition-all shadow-xl shadow-primary-500/30 active:scale-90 ring-4 ring-primary-500/10"
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSwipe("ACCEPT"); } }}
+                      aria-label="Accept job"
+                      className="w-16 h-16 rounded-full bg-primary-600 flex items-center justify-center text-white hover:bg-primary-500 transition-all shadow-xl shadow-primary-500/30 active:scale-90 ring-4 ring-primary-500/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600"
                     >
                       <Rocket className="w-8 h-8" />
                     </button>
@@ -564,6 +657,20 @@ export function JobsView() {
           Swipe LEFT <Zap className="inline w-3 h-3 mx-1 rotate-180" /> to discard match and move to next signal.
         </p>
       </div>
+
+      {hasNextPage && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="flex items-center gap-2"
+          >
+            {isFetchingNextPage && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isFetchingNextPage ? t("dashboard.loadingMore", locale) : t("dashboard.loadMore", locale)}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -588,17 +695,17 @@ export function ApplicationsView() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+    <div className="space-y-6 max-w-6xl mx-auto pb-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Active Transmissions</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Active Transmissions</h2>
           <p className="text-slate-500 font-medium">Monitoring {applications.length} automated application threads.</p>
         </div>
-        <div className="relative w-full md:w-64">
+        <div className="relative w-full md:w-72">
           <input
             type="text"
             placeholder="Search company or title..."
-            className="w-full px-10 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none bg-white font-medium"
+            className="w-full px-10 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none bg-white font-medium shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -606,7 +713,51 @@ export function ApplicationsView() {
         </div>
       </div>
 
-      <Card className="p-0 overflow-hidden border-slate-200" shadow="sm">
+      {/* Mobile Card List */}
+      <div className="grid gap-3 md:hidden">
+        {filteredApps.length === 0 ? (
+          <Card className="p-6 text-center" shadow="sm">
+            <p className="text-slate-500 font-medium">No active transmissions found matching your search.</p>
+          </Card>
+        ) : (
+          filteredApps.map((app) => (
+            <Card key={app.id} className="p-4 border-slate-200" shadow="sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                  {app.company.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-slate-900">{app.company}</p>
+                  <p className="text-xs text-slate-500 font-medium truncate">{app.job_title}</p>
+                </div>
+                <Badge
+                  variant={
+                    app.status === 'APPLIED' ? 'success' :
+                      app.status === 'HOLD' ? 'warning' :
+                        app.status === 'FAILED' ? 'error' : 'default'
+                  }
+                  className="rounded-lg px-3 py-1 font-bold text-[10px] tracking-wider uppercase border-none"
+                >
+                  {app.status === 'APPLYING' && <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse mr-2" />}
+                  {app.status}
+                </Badge>
+              </div>
+              <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
+                </div>
+                <Button variant="ghost" size="sm" className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600">
+                  Details <ArrowUpRight className="ml-1 w-3 h-3" />
+                </Button>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <Card className="p-0 overflow-hidden border-slate-200 hidden md:block" shadow="sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -654,7 +805,7 @@ export function ApplicationsView() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
                         <Clock className="w-4 h-4 text-slate-400" />
-                        {app.last_activity ? new Date(app.last_activity).toLocaleDateString() : 'Just now'}
+                        {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -669,6 +820,7 @@ export function ApplicationsView() {
           </table>
         </div>
       </Card>
+
       <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 flex items-center gap-4">
         <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-primary-500 shadow-sm flex-shrink-0">
           <Zap className="h-5 w-5" />
@@ -685,6 +837,7 @@ export function ApplicationsView() {
 export function HoldsView() {
   const { holdApplications, answerHold, snoozeApplication, isLoading } = useApplications();
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const shouldReduceMotion = useReducedMotion();
 
   if (isLoading) {
     return (
@@ -709,21 +862,22 @@ export function HoldsView() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-6 px-4 lg:px-0">
       <div>
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">HOLD Inbox</h2>
         <p className="text-slate-500 font-medium">Your AI agent needs clarification on these {holdApplications.length} threads.</p>
       </div>
 
       <div className="space-y-6">
-        {holdApplications.map((app) => (
+        {holdApplications.map((app, idx) => (
           <motion.div
             key={app.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={shouldReduceMotion ? undefined : { delay: idx * 0.05, duration: 0.25 }}
           >
             <Card className="p-0 overflow-hidden border-slate-200" shadow="lift">
-              <div className="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
+              <div className="bg-slate-50 border-b border-slate-200 p-3 sm:p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs">
                     {app.company.charAt(0)}
@@ -736,8 +890,8 @@ export function HoldsView() {
                 <Badge variant="warning" className="rounded-md font-bold text-[10px]">RESPONSE REQUIRED</Badge>
               </div>
 
-              <div className="p-6 space-y-6">
-                <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100 relative">
+              <div className="p-4 sm:p-6 space-y-6">
+                <div className="bg-amber-50 rounded-2xl p-4 sm:p-6 border border-amber-100 relative">
                   <Quote className="absolute top-4 left-4 w-12 h-12 text-amber-200/50 -z-0" />
                   <p className="text-amber-900 font-medium leading-relaxed relative z-10">
                     "I've encountered a specific question on the portal: <span className="font-black italic">'{app.hold_question}'</span>. How should I proceed?"
@@ -751,7 +905,7 @@ export function HoldsView() {
                     value={answers[app.id] || ""}
                     onChange={(e) => setAnswers(prev => ({ ...prev, [app.id]: e.target.value }))}
                   />
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 sticky bottom-0 bg-white/90 backdrop-blur p-2 rounded-xl border border-slate-100">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -763,7 +917,7 @@ export function HoldsView() {
                     <Button
                       disabled={!answers[app.id]}
                       onClick={() => answerHold(app.id, answers[app.id])}
-                      className="bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl px-8 shadow-lg shadow-primary-500/20"
+                      className="bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl px-6 sm:px-8 shadow-lg shadow-primary-500/20"
                     >
                       Send Instructions <Send className="ml-2 w-4 h-4" />
                     </Button>
@@ -785,8 +939,8 @@ export function TeamView() {
   const isSolo = plan !== "TEAM";
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-6">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="max-w-6xl mx-auto space-y-6 pb-6 px-4 lg:px-0">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">Workspace</h2>
           <p className="text-slate-500 font-medium">Collaborate and manage shared hunting pipelines.</p>
@@ -800,7 +954,7 @@ export function TeamView() {
         </Button>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
         <div className="lg:col-span-2">
           <Card className="p-0 overflow-hidden border-slate-200" shadow="sm">
             <div className="bg-slate-50 border-b border-slate-200 px-8 py-4">
@@ -859,6 +1013,7 @@ export function TeamView() {
 
 export function BillingView() {
   const { status, plan, usage, upgrade, addSeats } = useBilling();
+  const shouldReduceMotion = useReducedMotion();
 
   const usageUsed = usage?.monthly_used ?? 0;
   const usageLimit = usage?.monthly_limit ?? 100;
@@ -874,8 +1029,8 @@ export function BillingView() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-6">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="max-w-6xl mx-auto space-y-6 pb-6 px-4 lg:px-0">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">Billing & Quota</h2>
           <p className="text-slate-500 font-medium">Manage your subscription and usage telemetry.</p>
@@ -885,9 +1040,9 @@ export function BillingView() {
         </Badge>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="p-8 border-slate-200" shadow="sm">
+      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="lg:col-span-2 space-y-6 lg:space-y-8">
+          <Card className="p-6 lg:p-8 border-slate-200" shadow="sm">
             <h3 className="text-xl font-black text-slate-900 mb-6 font-display">Current Allocation</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-end">
@@ -896,7 +1051,7 @@ export function BillingView() {
               </div>
               <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
                 <motion.div
-                  initial={{ width: 0 }}
+                  initial={shouldReduceMotion ? { width: `${Math.min(usagePercent, 100)}%` } : { width: 0 }}
                   animate={{ width: `${Math.min(usagePercent, 100)}%` }}
                   className="h-full bg-primary-500"
                 />
@@ -908,7 +1063,7 @@ export function BillingView() {
             </div>
           </Card>
 
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             {tiers.map((tier) => (
               <Card
                 key={tier.name}

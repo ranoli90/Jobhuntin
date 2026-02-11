@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useSpring, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useSpring, useMotionValue, useMotionTemplate, AnimatePresence, useReducedMotion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
 import {
@@ -31,73 +31,102 @@ const TEASER_JOBS = [
 // Animated Terminal Product Demo (replaces static Bot icon)
 const ProductFlowDemo = () => {
   const [activeStep, setActiveStep] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(typeof window !== 'undefined' && window.innerWidth < 360);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
   const steps = [
-    { icon: Upload, label: "Resume Uploaded", detail: "PDF parsed in 1.2s", color: "from-blue-500 to-blue-600" },
-    { icon: Search, label: "AI Scans 12,400 Jobs", detail: "Matching skills & context", color: "from-violet-500 to-violet-600" },
-    { icon: Send, label: "47 Applications Sent", detail: "Custom-tailored each one", color: "from-emerald-500 to-emerald-600" },
-    { icon: Bell, label: "3 Interview Requests", detail: "Recruiter responded!", color: "from-amber-500 to-amber-600" },
+    { icon: Upload, label: isMobile ? "Resume" : "Resume Uploaded", detail: isMobile ? "1.2s" : "PDF parsed in 1.2s", color: "from-blue-500 to-blue-600" },
+    { icon: Search, label: isMobile ? "Scanning" : "AI Scans 12,400 Jobs", detail: isMobile ? "Matching" : "Matching skills & context", color: "from-violet-500 to-violet-600" },
+    { icon: Send, label: isMobile ? "Applied" : "47 Applications Sent", detail: isMobile ? "Tailored" : "Custom-tailored each one", color: "from-emerald-500 to-emerald-600" },
+    { icon: Bell, label: isMobile ? "Interviews" : "3 Interview Requests", detail: isMobile ? "Response!" : "Recruiter responded!", color: "from-amber-500 to-amber-600" },
   ];
 
   useEffect(() => {
+    if (shouldReduceMotion) return;
     const timer = setInterval(() => setActiveStep(s => (s + 1) % steps.length), 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [shouldReduceMotion]);
+
+  const animationProps = shouldReduceMotion ? {} : {
+    animate: {
+      top: ["0%", "100%", "0%"]
+    },
+    transition: { duration: 6, repeat: Infinity, ease: "linear" }
+  };
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="w-full max-w-md bg-slate-950 rounded-[2rem] p-6 sm:p-8 shadow-2xl border border-white/5 overflow-hidden relative">
-        {/* Scan line */}
-        <motion.div
-          className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-primary-400/60 to-transparent"
-          animate={{ top: ["0%", "100%", "0%"] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-        />
+      <div className={`w-full ${isMobile ? 'max-w-xs' : 'max-w-md'} bg-slate-950 rounded-[2rem] p-4 sm:p-6 lg:p-8 shadow-2xl border border-white/5 overflow-hidden relative`}>
+        {/* Scan line - disabled with reduced motion */}
+        {!shouldReduceMotion && (
+          <motion.div
+            className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-primary-400/60 to-transparent"
+            {...animationProps}
+          />
+        )}
         <div className="absolute inset-0 bg-grid-premium-dark opacity-40 pointer-events-none" />
 
         {/* Terminal header */}
-        <div className="relative z-10 flex items-center gap-2 mb-6 pb-3 border-b border-white/5">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-          <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-          <span className="ml-2 text-[9px] font-mono text-white/30 uppercase tracking-widest">agent v2.1 — live</span>
+        <div className="relative z-10 flex items-center gap-2 mb-4 sm:mb-6 pb-2 sm:pb-3 border-b border-white/5">
+          <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-red-500/80" />
+          <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-amber-500/80" />
+          <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-500/80" />
+          <span className="ml-2 text-[8px] sm:text-[9px] font-mono text-white/30 uppercase tracking-widest">{isMobile ? 'v2.1' : 'agent v2.1 — live'}</span>
         </div>
 
         {/* Steps */}
-        <div className="relative z-10 space-y-3">
+        <div className="relative z-10 space-y-2 sm:space-y-3">
           {steps.map((step, i) => {
             const isActive = i === activeStep;
             const isPast = i < activeStep;
+            const stepAnimationProps = shouldReduceMotion ? {
+              opacity: 1,
+              x: 0,
+              scale: 1
+            } : {
+              animate: {
+                opacity: isActive ? 1 : isPast ? 0.5 : 0.2,
+                x: isActive ? 0 : isPast ? -4 : 4,
+                scale: isActive ? 1 : 0.97,
+              },
+              transition: { duration: 0.5, ease: "easeOut" }
+            };
+            
             return (
               <motion.div
                 key={i}
-                animate={{
-                  opacity: isActive ? 1 : isPast ? 0.5 : 0.2,
-                  x: isActive ? 0 : isPast ? -4 : 4,
-                  scale: isActive ? 1 : 0.97,
-                }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="flex items-center gap-3"
+                {...stepAnimationProps}
+                className="flex items-center gap-2 sm:gap-3"
               >
                 <div className={cn(
-                  "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-500",
+                  `w-7 sm:w-9 h-7 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-500`,
                   isActive ? `bg-gradient-to-br ${step.color} shadow-lg` : "bg-white/5"
                 )}>
-                  <step.icon className={cn("w-4 h-4", isActive ? "text-white" : "text-white/30")} />
+                  <step.icon className={cn("w-3 sm:w-4 h-3 sm:h-4", isActive ? "text-white" : "text-white/30")} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className={cn("text-sm font-bold tracking-tight", isActive ? "text-white" : "text-white/30")}>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <p className={cn(`text-xs sm:text-sm font-bold tracking-tight`, isActive ? "text-white" : "text-white/30")}>
                       {step.label}
                     </p>
-                    {isPast && <CheckCircle className="w-3 h-3 text-emerald-400" />}
+                    {isPast && <CheckCircle className="w-2 sm:w-3 h-2 sm:h-3 text-emerald-400" />}
                   </div>
-                  <p className={cn("text-xs font-mono", isActive ? "text-white/60" : "text-white/15")}>
+                  <p className={cn("text-[10px] sm:text-xs font-mono", isActive ? "text-white/60" : "text-white/15")}>
                     {step.detail}
                   </p>
                 </div>
-                {isActive && (
+                {isActive && !shouldReduceMotion && (
                   <motion.div
-                    className="w-2 h-2 rounded-full bg-emerald-400"
+                    className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-emerald-400"
                     animate={{ opacity: [1, 0.3, 1] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   />
@@ -108,16 +137,16 @@ const ProductFlowDemo = () => {
         </div>
 
         {/* Progress bar */}
-        <div className="relative z-10 mt-6 pt-4 border-t border-white/5">
-          <div className="flex justify-between text-[9px] font-mono text-white/30 mb-1.5 uppercase tracking-widest">
-            <span>Agent Progress</span>
+        <div className="relative z-10 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/5">
+          <div className="flex justify-between text-[8px] sm:text-[9px] font-mono text-white/30 mb-1 sm:mb-1.5 uppercase tracking-widest">
+            <span>{isMobile ? 'Progress' : 'Agent Progress'}</span>
             <span>{((activeStep + 1) / steps.length * 100).toFixed(0)}%</span>
           </div>
-          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1 sm:h-1.5 bg-white/5 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-primary-500 to-emerald-500 rounded-full"
-              animate={{ width: `${((activeStep + 1) / steps.length) * 100}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              animate={{ width: shouldReduceMotion ? "100%" : `${((activeStep + 1) / steps.length) * 100}%` }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.8, ease: "easeOut" }}
             />
           </div>
         </div>
@@ -153,6 +182,7 @@ const Hero = () => {
   const [jobs, setJobs] = useState(TEASER_JOBS);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   // Background Particles Data - Refined for a more artistic look
   const particles = React.useMemo(() => {
@@ -243,9 +273,9 @@ const Hero = () => {
         // Don't crash if animation fails
       }
 
-      // Safe Confetti Trigger
+      // Safe Confetti Trigger - disabled with reduced motion
       try {
-        if (typeof window !== 'undefined' && confetti) {
+        if (typeof window !== 'undefined' && confetti && !shouldReduceMotion) {
           confetti({
             particleCount: 150,
             spread: 70,
@@ -292,44 +322,53 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[85vh] pt-32 pb-12 flex items-center justify-center overflow-hidden bg-slate-50">
+    <section className="relative min-h-[calc(100vh-5rem)] lg:min-h-[85vh] md:min-h-[calc(100vh-6rem)] pt-24 sm:pt-32 pb-16 flex items-start lg:items-center justify-center overflow-hidden bg-slate-50">
       {/* Premium Background Layers */}
       <div className="absolute inset-0 bg-grid-premium opacity-[0.4] pointer-events-none" />
 
-      {/* Large Artistic Gradient Blobs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className="absolute rounded-full"
-            animate={{
-              y: [0, particle.yMove, 0],
-              x: [0, particle.xMove, 0],
-              rotate: [0, 360],
-              scale: [1, 1.1, 1]
-            }}
-            transition={{
-              duration: particle.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: particle.delay
-            }}
-            style={{
-              left: `${particle.left}%`,
-              top: `${particle.top}%`,
-              width: particle.size,
-              height: particle.size,
-              background: particle.color,
-              filter: particle.blur,
-              willChange: "transform"
-            }}
-          />
-        ))}
-      </div>
+      {/* Large Artistic Gradient Blobs - Responsive */}
+      {!shouldReduceMotion && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {particles.map((particle, index) => {
+            // Reduce particle count and size on smaller screens
+            const shouldShow = index < (typeof window !== 'undefined' && window.innerWidth < 640 ? 8 : 25);
+            if (!shouldShow) return null;
+            
+            return (
+              <motion.div
+                key={particle.id}
+                className="absolute rounded-full"
+                animate={{
+                  y: [0, particle.yMove, 0],
+                  x: [0, particle.xMove, 0],
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{
+                  duration: particle.duration,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: particle.delay
+                }}
+                style={{
+                  left: `${particle.left}%`,
+                  top: `${particle.top}%`,
+                  width: typeof window !== 'undefined' && window.innerWidth < 640 ? particle.size * 0.6 : particle.size,
+                  height: typeof window !== 'undefined' && window.innerWidth < 640 ? particle.size * 0.6 : particle.size,
+                  background: particle.color,
+                  filter: particle.blur,
+                  willChange: "transform",
+                  opacity: typeof window !== 'undefined' && window.innerWidth < 640 ? 0.3 : 1
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 gap-y-16 items-start lg:items-center min-h-[640px] lg:min-h-0">
         {/* Left Content */}
-        <div className="text-center lg:text-left pt-10 lg:pt-0">
+        <div className="w-full text-center lg:text-left pt-6 sm:pt-10 lg:pt-0 space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -341,7 +380,7 @@ const Hero = () => {
             </span>
           </motion.div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black font-display text-slate-900 leading-[0.95] mb-6 sm:mb-8 tracking-tighter">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black font-display text-slate-900 leading-tight sm:leading-[1.05] mb-6 sm:mb-8 tracking-tight text-balance mx-auto lg:mx-0 max-w-2xl">
             Someone else applied<br />
             <span className="relative inline-block mt-2">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-amber-500 to-red-500 animate-gradient-x">
@@ -350,28 +389,31 @@ const Hero = () => {
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl lg:text-2xl text-slate-500 mb-8 sm:mb-10 max-w-lg mx-auto lg:mx-0 leading-tight font-medium">
+          <p className="text-base sm:text-lg lg:text-2xl text-slate-500 mb-8 sm:mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium text-balance">
             JobHuntin's AI agent fires off <span className="text-slate-900 font-bold">100 tailored applications</span> while you sleep.
             Wake up to <span className="text-emerald-600 font-bold">interview requests</span>, not rejection silence.
           </p>
 
           {!sentEmail && (
             <div
-              className="group relative max-w-md mx-auto lg:mx-0 p-1 rounded-2xl bg-gradient-to-r from-primary-500 to-amber-500 transition-transform hover:scale-[1.01]"
+              className="group relative max-w-lg mx-auto lg:mx-0 p-1 rounded-2xl bg-gradient-to-r from-primary-500 to-amber-500 transition-transform hover:scale-[1.01]"
               onMouseMove={handleMouseMove}
             >
-              <motion.div
-                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                style={{
-                  background: useMotionTemplate`
-                  radial-gradient(
-                    650px circle at ${mouseX}px ${mouseY}px,
-                    rgba(255, 255, 255, 0.4),
-                    transparent 40%
-                  )
-                `,
-                }}
-              />
+              {/* Mouse glow effect only on non-touch devices */}
+              {typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches && (
+                <motion.div
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{
+                    background: useMotionTemplate`
+                    radial-gradient(
+                      650px circle at ${mouseX}px ${mouseY}px,
+                      rgba(255, 255, 255, 0.4),
+                      transparent 40%
+                    )
+                  `,
+                  }}
+                />
+              )}
               <form onSubmit={onSubmit} className="bg-white rounded-xl p-2 flex flex-col sm:flex-row gap-2 relative z-10">
                 <div className="flex-1">
                   <input
@@ -484,12 +526,12 @@ const Hero = () => {
         </div>
 
         {/* Right Content - Swipe Cards */}
-        <div className="relative h-[400px] sm:h-[500px] flex items-center justify-center perspective-1000 mt-10 lg:mt-0">
+        <div className="relative h-[320px] sm:h-[420px] lg:h-[520px] w-full flex items-center justify-center perspective-1000 mt-4 lg:mt-0">
           <AnimatePresence>
             {jobs.slice(0, 3).map((job, index) => (
               <motion.div
                 key={job.id}
-                className="absolute w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 border border-slate-100 cursor-grab active:cursor-grabbing touch-pan-y"
+                className="absolute w-full max-w-[min(85vw,22rem)] sm:max-w-sm bg-white rounded-2xl shadow-2xl p-5 sm:p-6 border border-slate-100 cursor-grab active:cursor-grabbing touch-pan-y"
                 style={{ zIndex: jobs.length - index }}
                 initial={{ scale: 0.9, y: 50 * index, opacity: 1 - index * 0.3 }}
                 animate={{ scale: 1 - index * 0.05, y: 20 * index, opacity: 1 - index * 0.2 }}

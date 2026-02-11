@@ -1,0 +1,33 @@
+{
+  "dashboard": {
+    "activeRadar": "Active Radar",
+    "swipeRight": "Swipe right to let AI apply for you.",
+    "resetFilters": "Reset filters and rescan",
+    "loadMore": "Load more matches",
+    "loadingMore": "Loading more",
+    "noMatches": "You've reviewed all matches for your current filters. Try broadening your location, lowering salary floors, or clearing keywords to discover more leads.",
+    "reviewSwipes": "Review Swipes",
+    "filterPlaceholder": "Filter location...",
+    "matchAlert": "Match Alert! High-fit role detected.",
+    "sweepComplete": "Radar Sweep Complete"
+  },
+  "holds": {
+    "responseRequired": "RESPONSE REQUIRED",
+    "placeholder": "Type your response here... (e.g. Yes, I have 5 years experience with Kubernetes)",
+    "snooze": "Snooze 24h",
+    "send": "Send Instructions"
+  },
+  "onboarding": {
+    "welcome": "Initiate Hyper-Hunt.",
+    "welcomeDesc": "We're about to build your digital autonomous twin. Calibration takes 90 seconds.",
+    "beginCalibration": "BEGIN CALIBRATION",
+    "resumeTitle": "Experience Input",
+    "resumeDesc": "Feed the AI your career history for optimization.",
+    "uploadLabel": "Tap to Upload Resume",
+    "dragLabel": "Drop to Analyze",
+    "scanning": "Scanning Vector Space...",
+    "confirmIdentity": "CONFIRM IDENTITY",
+    "deployHunter": "DEPLOY HUNTER ENGINE",
+    "launchCenter": "LAUNCH COMMAND CENTER"
+  }
+}

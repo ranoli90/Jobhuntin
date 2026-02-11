@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Quote, Play } from 'lucide-react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { Star, Quote, Play, Volume2, VolumeX } from 'lucide-react';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
 
@@ -9,6 +9,8 @@ export default function SuccessStories() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: scrollRef });
   const x = useTransform(scrollYProgress, [0, 1], ["1%", "-50%"]);
+  const shouldReduceMotion = useReducedMotion();
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
 
   const stories = [
     {
@@ -107,42 +109,14 @@ export default function SuccessStories() {
         {/* Responsive Layout: Stack on Mobile, Scroll on Desktop */}
         <div className="lg:hidden px-6 space-y-12">
           {stories.map((story, i) => (
-            <div 
-              key={i} 
-              className="w-full bg-white p-8 rounded-3xl border border-slate-100 shadow-xl relative"
-            >
-              {/* Hired Stamp */}
-              <div className="absolute -top-4 -right-4 border-2 border-emerald-500 text-emerald-600 font-black text-sm px-3 py-1 rounded-md uppercase tracking-widest bg-emerald-50 transform rotate-12 shadow-sm">
-                HIRED
-              </div>
-
-              <div className="flex items-center gap-4 mb-6">
-                <img src={story.image} alt={story.name} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md" />
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900">{story.name}</h3>
-                  <p className="text-slate-500 text-sm">{story.role}</p>
-                </div>
-              </div>
-
-              <p className="text-lg font-medium leading-relaxed text-slate-700 mb-6 relative z-10">
-                "{story.quote}"
-              </p>
-
-              <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-                <div className="flex gap-0.5 text-amber-400">
-                  {[1,2,3,4,5].map(s => <Star key={s} className="w-3 h-3 fill-current" />)}
-                </div>
-                <div className="font-mono text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full font-bold">
-                  {story.stat}
-                </div>
-              </div>
-            </div>
+            <StoryCard key={i} story={story} index={i} isMobile={true} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} />
           ))}
           
            {/* CTA Card Mobile */}
            <div className="w-full bg-gradient-to-br from-primary-500 to-primary-600 p-8 rounded-3xl text-center relative overflow-hidden shadow-xl">
              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
              <h3 className="text-3xl font-black mb-4 relative z-10 text-white">YOUR TURN.</h3>
+             <p className="text-white/90 mb-6 relative z-10 font-medium">Every hour you wait, someone else gets the interview you wanted.</p>
              <Button asChild className="w-full bg-white text-primary-600 hover:bg-slate-50 border-none shadow-lg text-lg font-bold">
                <Link to="/login">
                  Start Free Trial
@@ -152,54 +126,21 @@ export default function SuccessStories() {
         </div>
 
         {/* Horizontal Scroll Section - Desktop Only */}
-        <div ref={scrollRef} className="hidden lg:block h-[300vh] relative">
-          <div className="sticky top-40 overflow-hidden">
-            <motion.div style={{ x }} className="flex gap-12 pl-12 pr-12 w-max">
+        <div ref={scrollRef} className="hidden lg:block relative" style={{ height: shouldReduceMotion ? 'auto' : '300vh' }}>
+          <div className={`sticky ${shouldReduceMotion ? 'relative top-0' : 'top-40'} overflow-hidden`}>
+            <motion.div 
+              style={{ 
+                x: shouldReduceMotion ? 0 : x,
+                display: shouldReduceMotion ? 'grid' : 'flex',
+                gridTemplateColumns: shouldReduceMotion ? 'repeat(auto-fit, minmax(500px, 1fr))' : 'none',
+                gap: shouldReduceMotion ? '2rem' : '3rem',
+                padding: shouldReduceMotion ? '0 3rem' : '0 3rem',
+                width: shouldReduceMotion ? '100%' : 'max-content'
+              }} 
+              className="w-max"
+            >
               {stories.map((story, i) => (
-                <div 
-                  key={i} 
-                  className="w-[500px] bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50 relative flex-shrink-0 group hover:border-primary-200 transition-colors"
-                >
-                  {/* Dynamic Hired Stamp */}
-                  <motion.div 
-                    initial={{ scale: 2, opacity: 0, rotate: -20 }}
-                    whileInView={{ scale: 1, opacity: 1, rotate: -12 }}
-                    viewport={{ once: true }}
-                    className="absolute -top-6 -right-6 border-4 border-emerald-500 text-emerald-600 font-black text-2xl px-4 py-2 rounded-lg uppercase tracking-widest bg-emerald-50/90 backdrop-blur transform rotate-12 shadow-lg"
-                  >
-                    HIRED
-                  </motion.div>
-
-                  <div className="flex items-center gap-6 mb-8">
-                    <div className="relative">
-                      <img src={story.image} alt={`${story.name} - ${story.role} Success Story`} className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg" />
-                      <div className="absolute -bottom-2 -right-2 bg-primary-500 rounded-full p-1.5 cursor-pointer hover:scale-110 transition-transform shadow-md">
-                        <Play className="w-3 h-3 text-white fill-current" />
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-2xl text-slate-900">{story.name}</h3>
-                      <p className="text-slate-500">{story.role}</p>
-                      <p className="text-primary-600 text-sm font-bold">@{story.company}</p>
-                    </div>
-                  </div>
-
-                  <div className="mb-8 relative">
-                    <Quote className="w-10 h-10 text-slate-100 absolute -top-4 -left-4 -z-10" />
-                    <p className="text-xl font-medium leading-relaxed text-slate-700 relative z-10">
-                      "{story.quote}"
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-slate-100 pt-6">
-                    <div className="flex gap-1 text-amber-400">
-                      {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 fill-current" />)}
-                    </div>
-                    <div className="font-mono text-sm text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full font-bold">
-                      {story.stat}
-                    </div>
-                  </div>
-                </div>
+                <StoryCard key={i} story={story} index={i} isMobile={false} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} />
               ))}
               
               {/* CTA Card at the end */}
@@ -220,3 +161,96 @@ export default function SuccessStories() {
     </div>
   );
 }
+
+// Story Card Component
+const StoryCard = ({ 
+  story, 
+  index, 
+  isMobile, 
+  playingAudio, 
+  setPlayingAudio 
+}: { 
+  story: any; 
+  index: number; 
+  isMobile: boolean; 
+  playingAudio: string | null; 
+  setPlayingAudio: (audio: string | null) => void; 
+}) => {
+  const shouldReduceMotion = useReducedMotion();
+  const isCurrentlyPlaying = playingAudio === story.audio;
+  
+  const handlePlayAudio = () => {
+    if (isCurrentlyPlaying) {
+      setPlayingAudio(null);
+    } else {
+      setPlayingAudio(story.audio);
+    }
+  };
+  
+  return (
+    <div 
+      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white ${isMobile ? 'p-8' : 'p-10'} rounded-3xl border border-slate-100 shadow-xl relative flex-shrink-0 group hover:border-primary-200 transition-colors`}
+    >
+      {/* Hired Stamp */}
+      {!shouldReduceMotion && (
+        <motion.div 
+          initial={{ scale: 2, opacity: 0, rotate: -20 }}
+          whileInView={{ scale: 1, opacity: 1, rotate: -12 }}
+          viewport={{ once: true }}
+          className={`absolute ${isMobile ? '-top-4 -right-4 border-2' : '-top-6 -right-6 border-4'} border-emerald-500 text-emerald-600 font-black ${isMobile ? 'text-sm' : 'text-2xl'} px-${isMobile ? '3' : '4'} py-${isMobile ? '1' : '2'} rounded-lg uppercase tracking-widest bg-emerald-50/90 backdrop-blur transform rotate-12 shadow-lg`}
+        >
+          HIRED
+        </motion.div>
+      )}
+      
+      {shouldReduceMotion && (
+        <div className={`absolute ${isMobile ? '-top-4 -right-4 border-2' : '-top-6 -right-6 border-4'} border-emerald-500 text-emerald-600 font-black ${isMobile ? 'text-sm' : 'text-2xl'} px-${isMobile ? '3' : '4'} py-${isMobile ? '1' : '2'} rounded-lg uppercase tracking-widest bg-emerald-50/90 backdrop-blur transform rotate-12 shadow-lg`}>
+          HIRED
+        </div>
+      )}
+
+      <div className="flex items-center gap-4 mb-6">
+        <div className="relative">
+          <img 
+            src={story.image} 
+            alt={`${story.name} - ${story.role} Success Story`} 
+            className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} rounded-full object-cover border-4 border-white shadow-lg`} 
+          />
+          <button
+            onClick={handlePlayAudio}
+            className={`absolute -bottom-2 -right-2 bg-primary-500 rounded-full p-${isMobile ? '1' : '1.5'} cursor-pointer hover:scale-110 transition-transform shadow-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
+            aria-label={isCurrentlyPlaying ? 'Pause audio' : 'Play audio testimonial'}
+            aria-pressed={isCurrentlyPlaying}
+          >
+            {isCurrentlyPlaying ? (
+              <VolumeX className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} text-white`} />
+            ) : (
+              <Volume2 className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} text-white`} />
+            )}
+          </button>
+        </div>
+        <div>
+          <h3 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'} text-slate-900`}>{story.name}</h3>
+          <p className="text-slate-500">{story.role}</p>
+          {!isMobile && <p className="text-primary-600 text-sm font-bold">@{story.company}</p>}
+        </div>
+      </div>
+
+      <div className={`mb-${isMobile ? '6' : '8'} relative`}>
+        <Quote className={`w-${isMobile ? '8' : '10'} h-${isMobile ? '8' : '10'} text-slate-100 absolute -top-4 -left-4 -z-10`} />
+        <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-medium leading-relaxed text-slate-700 relative z-10`}>
+          "{story.quote}"
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+        <div className="flex gap-0.5 text-amber-400">
+          {[1,2,3,4,5].map(s => <Star key={s} className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} fill-current`} />)}
+        </div>
+        <div className={`font-mono ${isMobile ? 'text-xs' : 'text-sm'} text-emerald-600 bg-emerald-50 px-${isMobile ? '2' : '3'} py-1 rounded-full font-bold`}>
+          {story.stat}
+        </div>
+      </div>
+    </div>
+  );
+};

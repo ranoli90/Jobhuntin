@@ -1,16 +1,57 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bot, ArrowLeft, CheckCircle, Zap, Crown, Receipt, CreditCard } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Bot, ArrowLeft, CheckCircle, Zap, Crown, Receipt, CreditCard, ChevronDown } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { useAuth } from '../hooks/useAuth';
 import { useBilling } from '../hooks/useBilling';
+
+// FAQ Item Component for collapsible behavior
+const FAQItem = ({ question, answer }: { question: string; answer: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  
+  return (
+    <div className="bg-white p-6 rounded-2xl border border-gray-100 hover:border-orange-100 transition-colors">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full text-left flex items-center justify-between gap-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg p-2 -m-2"
+        aria-expanded={isOpen}
+        aria-controls={`faq-answer-${question.replace(/\s+/g, '-')}`}
+      >
+        <h3 className="font-bold text-lg flex items-center gap-2">
+          <span className="text-primary-600">Q.</span> {question}
+        </h3>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+          className="flex-shrink-0"
+        >
+          <ChevronDown className="w-5 h-5 text-gray-400" aria-hidden="true" />
+        </motion.div>
+      </button>
+      <motion.div
+        id={`faq-answer-${question.replace(/\s+/g, '-')}`}
+        initial={false}
+        animate={{ 
+          height: isOpen ? "auto" : 0,
+          opacity: isOpen ? 1 : 0 
+        }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+        className="overflow-hidden"
+      >
+        <p className="text-gray-600 pl-6 pt-2">{answer}</p>
+      </motion.div>
+    </div>
+  );
+};
 
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { plan, loading: billingLoading, upgrade } = useBilling();
+  const shouldReduceMotion = useReducedMotion();
 
   const isLoggedIn = !!user;
   const isProOrHigher = plan === 'PRO' || plan === 'TEAM';
@@ -76,33 +117,38 @@ export default function Pricing() {
           </motion.p>
 
           {/* Toggle */}
-          <div className="flex items-center justify-center gap-4 mb-12">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-12">
             <span className={`text-sm font-bold ${!annual ? 'text-gray-900' : 'text-gray-400'}`}>Monthly</span>
             <button
               onClick={() => setAnnual(!annual)}
-              className="w-16 h-8 bg-gray-200 rounded-full p-1 relative transition-colors duration-300 hover:bg-gray-300"
+              className="w-16 h-8 bg-gray-200 rounded-full p-1 relative transition-colors duration-300 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              aria-label={`Switch to ${annual ? 'monthly' : 'annual'} billing`}
+              aria-live="polite"
             >
               <motion.div
                 className="w-6 h-6 bg-white rounded-full shadow-md"
-                animate={{ x: annual ? 32 : 0 }}
+                animate={{ x: shouldReduceMotion ? (annual ? 32 : 0) : undefined, translateX: shouldReduceMotion ? 0 : (annual ? 32 : 0) }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </button>
             <span className={`text-sm font-bold ${annual ? 'text-slate-900' : 'text-slate-400'}`}>
-              Annual <span className="text-primary-600 text-xs ml-1 bg-primary-100 px-2 py-0.5 rounded-full">-20%</span>
+              Annual <span className="text-primary-600 text-xs ml-1 bg-primary-100 px-2 py-0.5 rounded-full" aria-label="Save 20% with annual billing">-20%</span>
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {/* Free Tier - Receipt Style */}
           <motion.div
-            whileHover={{ y: -10 }}
-            className="bg-white p-1 rounded-sm shadow-sm rotate-1 relative group max-w-md mx-auto w-full lg:max-w-none"
+            whileHover={{ y: shouldReduceMotion ? 0 : -10 }}
+            className="bg-white p-1 rounded-sm shadow-sm rotate-1 relative group max-w-md mx-auto w-full lg:max-w-none min-h-[500px] lg:min-h-0"
           >
-            <div className="bg-white border-x-2 border-t-2 border-b-[6px] border-gray-200 p-8 relative" style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-              {/* Jagged Bottom */}
-              <div className="absolute -bottom-3 left-0 right-0 h-3 bg-white" style={{ clipPath: 'polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%)' }}></div>
+            <div className="bg-white border-x-2 border-t-2 border-b-[6px] border-gray-200 p-8 relative h-full" style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+              {/* Jagged Bottom - Fixed for Safari iOS */}
+              <div className="absolute -bottom-3 left-0 right-0 h-3 bg-white overflow-hidden" style={{ 
+                clipPath: 'polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%)',
+                WebkitClipPath: 'polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%)'
+              }}></div>
 
               <h3 className="font-mono text-xl font-bold mb-4 uppercase tracking-widest text-gray-500">Starter</h3>
               <div className="font-mono text-4xl font-bold mb-6">$0<span className="text-sm text-gray-400">/mo</span></div>
@@ -114,9 +160,15 @@ export default function Pricing() {
                 <div className="flex justify-between font-bold pt-2 border-t border-gray-200 mt-2"><span>TOTAL</span> <span>$0.00</span></div>
               </div>
 
-              <button onClick={handleFreeCta} className="block w-full py-3 border-2 border-black text-center font-bold font-mono hover:bg-black hover:text-white transition-all uppercase">
-                {isLoggedIn ? 'Go to Dashboard' : 'Print Ticket'}
-              </button>
+              <div className="mt-auto">
+                <button 
+                  onClick={handleFreeCta} 
+                  className="block w-full py-3 border-2 border-black text-center font-bold font-mono hover:bg-black hover:text-white transition-all uppercase focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+                  aria-label={isLoggedIn ? 'Go to dashboard' : 'Print ticket for free plan'}
+                >
+                  {isLoggedIn ? 'Go to Dashboard' : 'Print Ticket'}
+                </button>
+              </div>
             </div>
           </motion.div>
 
@@ -124,16 +176,16 @@ export default function Pricing() {
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            whileHover={{ scale: 1.05 }}
-            className="relative z-10"
+            whileHover={{ scale: shouldReduceMotion ? 1 : 1.05 }}
+            className="relative z-10 max-w-md mx-auto w-full lg:max-w-none"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-blue-400 rounded-3xl blur-xl opacity-30 animate-pulse"></div>
-            <div className="bg-[#1a1a1a] text-white rounded-3xl p-8 border border-gray-800 shadow-2xl relative overflow-hidden">
+            <div className="bg-[#1a1a1a] text-white rounded-3xl p-8 border border-gray-800 shadow-2xl relative overflow-hidden h-full">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
 
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-2xl font-bold">Pro Hunter</h3>
-                <Crown className="text-primary-500 w-6 h-6" />
+                <Crown className="text-primary-500 w-6 h-6" aria-hidden="true" />
               </div>
 
               <div className="text-5xl font-bold mb-2">
@@ -142,18 +194,22 @@ export default function Pricing() {
               </div>
               <p className="text-gray-400 text-sm mb-8">Billed {annual ? 'annually' : 'monthly'}</p>
 
-              <button
-                onClick={handleProCta}
-                disabled={isProOrHigher && isLoggedIn}
-                className={`block w-full py-4 rounded-xl text-center font-bold text-lg shadow-lg transition-all transform hover:-translate-y-1 ${isProOrHigher && isLoggedIn
-                    ? 'bg-gray-600 cursor-default shadow-none hover:translate-y-0'
-                    : 'bg-gradient-to-r from-primary-600 to-primary-500 shadow-primary-500/30 hover:shadow-primary-500/50'
+              <div className="mb-8">
+                <button
+                  onClick={handleProCta}
+                  disabled={isProOrHigher && isLoggedIn}
+                  className={`block w-full py-4 rounded-xl text-center font-bold text-lg shadow-lg transition-all transform focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-[#1a1a1a] ${
+                    isProOrHigher && isLoggedIn
+                      ? 'bg-gray-600 cursor-default shadow-none hover:translate-y-0'
+                      : 'bg-gradient-to-r from-primary-600 to-primary-500 shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1'
                   }`}
-              >
-                {getProCtaLabel()}
-              </button>
+                  aria-label={getProCtaLabel()}
+                >
+                  {getProCtaLabel()}
+                </button>
+              </div>
 
-              <div className="mt-8 space-y-4">
+              <div className="space-y-4">
                 {[
                   "Unlimited AI Applications",
                   "Custom Cover Letters",
@@ -163,7 +219,7 @@ export default function Pricing() {
                 ].map((feature, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="bg-white/10 p-1 rounded-full">
-                      <CheckCircle className="w-4 h-4 text-primary-500" />
+                      <CheckCircle className="w-4 h-4 text-primary-500" aria-hidden="true" />
                     </div>
                     <span className="text-gray-200 font-medium">{feature}</span>
                   </div>
@@ -174,30 +230,42 @@ export default function Pricing() {
 
           {/* Agency - Corporate Card */}
           <motion.div
-            whileHover={{ y: -10 }}
-            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative overflow-hidden group max-w-md mx-auto w-full lg:max-w-none"
+            whileHover={{ y: shouldReduceMotion ? 0 : -10 }}
+            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative overflow-hidden group max-w-md mx-auto w-full lg:max-w-none min-h-[500px] lg:min-h-0"
           >
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-blue-400"></div>
-            <h3 className="text-2xl font-bold mb-2 text-slate-900">Agency</h3>
-            <div className="text-4xl font-bold mb-6 text-slate-900">$199<span className="text-lg text-slate-500 font-normal">/mo</span></div>
-
-            <div className="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-100">
-              <div className="flex items-center gap-3 mb-2">
-                <CreditCard className="w-5 h-5 text-gray-400" />
-                <span className="font-mono text-sm text-gray-500">**** 4242</span>
+            <div className="h-full flex flex-col">
+              <div>
+                <h3 className="text-2xl font-bold mb-2 text-slate-900">Agency</h3>
+                <div className="text-4xl font-bold mb-6 text-slate-900">$199<span className="text-lg text-slate-500 font-normal">/mo</span></div>
               </div>
-              <p className="text-xs text-gray-400">Corporate billing available</p>
+
+              <div className="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-100">
+                <div className="flex items-center gap-3 mb-2">
+                  <CreditCard className="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  <span className="font-mono text-sm text-gray-500">**** 4242</span>
+                </div>
+                <p className="text-xs text-gray-400">Corporate billing available</p>
+              </div>
+
+              <div className="mb-8">
+                <a 
+                  href="mailto:sales@jobhuntin.com" 
+                  className="block w-full py-3 border-2 border-slate-200 text-center font-bold rounded-xl hover:border-primary-500 hover:text-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  aria-label="Contact sales for agency plan"
+                >
+                  Contact Sales
+                </a>
+              </div>
+
+              <div className="mt-auto">
+                <ul className="space-y-4 opacity-80">
+                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" aria-hidden="true" /> 3 Team Seats</li>
+                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" aria-hidden="true" /> White-label Reports</li>
+                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" aria-hidden="true" /> API Access</li>
+                </ul>
+              </div>
             </div>
-
-            <a href="mailto:sales@jobhuntin.com" className="block w-full py-3 border-2 border-slate-200 text-center font-bold rounded-xl hover:border-primary-500 hover:text-primary-600 transition-colors">
-              Contact Sales
-            </a>
-
-            <ul className="mt-8 space-y-4 opacity-80">
-              <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" /> 3 Team Seats</li>
-              <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" /> White-label Reports</li>
-              <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" /> API Access</li>
-            </ul>
           </motion.div>
         </div>
 
@@ -211,12 +279,7 @@ export default function Pricing() {
               { q: "Is my data safe?", a: "We use bank-level encryption. Your resume is only shared with employers you apply to." },
               { q: "What if I get hired?", a: "Then we did our job! Cancel your sub and pop the champagne. 🍾" }
             ].map((item, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 hover:border-orange-100 transition-colors">
-                <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
-                  <span className="text-primary-600">Q.</span> {item.q}
-                </h3>
-                <p className="text-gray-600 pl-6">{item.a}</p>
-              </div>
+              <FAQItem key={i} question={item.q} answer={item.a} />
             ))}
           </div>
         </div>

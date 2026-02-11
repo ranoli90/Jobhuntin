@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiGet } from "../lib/api";
 import { pushToast } from "../lib/toast";
 
@@ -25,16 +25,23 @@ export interface JobPosting {
   match_score?: number;
 }
 
-async function fetchJobs(filters: JobFilters): Promise<JobPosting[]> {
+interface JobsResponse {
+  jobs?: JobPosting[];
+  next_offset?: number | null;
+}
+
+async function fetchJobs(filters: JobFilters, offset = 0, limit = 25): Promise<JobsResponse> {
   const params = new URLSearchParams();
   if (filters.location) params.set("location", filters.location);
   if (filters.minSalary) params.set("min_salary", String(filters.minSalary));
   if (filters.keywords) params.set("keywords", filters.keywords);
+  params.set("limit", String(limit));
+  params.set("offset", String(offset));
   const query = params.toString();
   const path = query ? `jobs?${query}` : "jobs";
-  const json = await apiGet<{ jobs?: JobPosting[] } | JobPosting[]>(path);
-  if (Array.isArray(json)) return json;
-  return json.jobs ?? [];
+  const json = await apiGet<JobsResponse | JobPosting[]>(path);
+  if (Array.isArray(json)) return { jobs: json, next_offset: null };
+  return { jobs: json.jobs ?? [], next_offset: json.next_offset ?? null };
 }
 
 export function useJobs(filters: JobFilters) {
@@ -44,9 +51,11 @@ export function useJobs(filters: JobFilters) {
     keywords: filters.keywords,
   }), [filters.location, filters.minSalary, filters.keywords]);
 
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey: ["jobs", memoFilters],
-    queryFn: () => fetchJobs(memoFilters),
+    queryFn: ({ pageParam = 0 }) => fetchJobs(memoFilters, pageParam as number),
+    getNextPageParam: (lastPage) => lastPage.next_offset ?? undefined,
+    initialPageParam: 0,
   });
 
   useEffect(() => {
@@ -60,9 +69,12 @@ export function useJobs(filters: JobFilters) {
   }, [query.error]);
 
   return {
-    jobs: query.data ?? [],
+    jobs: (query.data?.pages.flatMap((p) => p.jobs ?? []) ?? []),
     isLoading: query.isLoading,
     isFetching: query.isFetching,
+    isFetchingNextPage: query.isFetchingNextPage,
+    hasNextPage: query.hasNextPage,
+    fetchNextPage: query.fetchNextPage,
     refetch: query.refetch,
   };
 }
