@@ -156,7 +156,7 @@ export default function Recruiters() {
                   <div className="min-w-[300px] sm:min-w-[500px]">
                     <p className="mb-2"><span className="text-emerald-400">➜</span> <span className="text-blue-400">~</span> curl -X POST https://api.jobhuntin.io/webhook \</p>
                     <p className="mb-2 pl-4">-H "Authorization: Bearer sk_live_..." \</p>
-                    <p className="mb-4 pl-4">-d '{"criteria": ["react", "node", "5+ years"]}'</p>
+                    <p className="mb-4 pl-4">-d '{\"criteria\": [\"react\", \"node\", \"5+ years\"]}'</p>
 
                     <p className="mb-2 text-gray-500"># Response stream initiating...</p>
                     <p className="mb-2 text-emerald-400">{</p>
