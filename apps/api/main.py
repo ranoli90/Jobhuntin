@@ -297,7 +297,23 @@ class DatabasePoolManager:
                 logger.info("Database pool created (env=%s)", s.env.value)
                 break
             except asyncpg.PostgresError as exc:
-                logger.warning("DB pool attempt %d/3 failed: %s", attempt, exc)
+                # Provide more helpful error messages for common issues
+                error_msg = str(exc)
+                if "Tenant or user not found" in error_msg or "password authentication failed" in error_msg:
+                    logger.warning(
+                        "DB pool attempt %d/3 failed: %s. "
+                        "This usually means DATABASE_URL credentials are incorrect. "
+                        "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Supabase project.",
+                        attempt, exc
+                    )
+                elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
+                    logger.warning(
+                        "DB pool attempt %d/3 failed: %s. "
+                        "Check that the database host is accessible and the port is correct.",
+                        attempt, exc
+                    )
+                else:
+                    logger.warning("DB pool attempt %d/3 failed: %s", attempt, exc)
                 if attempt < 3:
                     import asyncio
                     await asyncio.sleep(3 * attempt)
@@ -305,7 +321,11 @@ class DatabasePoolManager:
                 logger.error("Unexpected error creating DB pool: %s", exc)
                 raise
         else:
-            logger.error("Could not create DB pool after 3 attempts")
+            logger.error(
+                "Could not create DB pool after 3 attempts. "
+                "The application will start in degraded mode without database connectivity. "
+                "To fix this, verify your DATABASE_URL environment variable in Render dashboard."
+            )
             # Do not raise RuntimeError, allow app to start in degraded mode
             # raise RuntimeError("Failed to initialize database pool")
 

@@ -49,7 +49,34 @@ async def create_primary_pool() -> asyncpg.Pool:
     }
     if ssl:
         kwargs["ssl"] = ssl
-    return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
+    
+    for attempt in range(1, 4):
+        try:
+            return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
+        except asyncpg.PostgresError as exc:
+            error_msg = str(exc)
+            if "Tenant or user not found" in error_msg or "password authentication failed" in error_msg:
+                logger.warning(
+                    "Primary DB pool attempt %d/3 failed: %s. "
+                    "This usually means DATABASE_URL credentials are incorrect. "
+                    "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Supabase project.",
+                    attempt, exc
+                )
+            elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
+                logger.warning(
+                    "Primary DB pool attempt %d/3 failed: %s. "
+                    "Check that the database host is accessible and the port is correct.",
+                    attempt, exc
+                )
+            else:
+                logger.warning("Primary DB pool attempt %d/3 failed: %s", attempt, exc)
+            if attempt < 3:
+                await asyncio.sleep(3 * attempt)
+        except Exception as exc:
+            logger.error("Unexpected error creating primary DB pool: %s", exc)
+            raise
+    
+    raise RuntimeError("Could not create primary DB pool after 3 attempts")
 
 
 async def create_read_replica_pool() -> asyncpg.Pool | None:
@@ -67,7 +94,35 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
     }
     if ssl:
         kwargs["ssl"] = ssl
-    return await asyncpg.create_pool(resolve_dsn_ipv4(s.read_replica_url), **kwargs)
+    
+    for attempt in range(1, 4):
+        try:
+            return await asyncpg.create_pool(resolve_dsn_ipv4(s.read_replica_url), **kwargs)
+        except asyncpg.PostgresError as exc:
+            error_msg = str(exc)
+            if "Tenant or user not found" in error_msg or "password authentication failed" in error_msg:
+                logger.warning(
+                    "Read replica DB pool attempt %d/3 failed: %s. "
+                    "This usually means READ_REPLICA_URL credentials are incorrect. "
+                    "Check that the read replica credentials match your Supabase project.",
+                    attempt, exc
+                )
+            elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
+                logger.warning(
+                    "Read replica DB pool attempt %d/3 failed: %s. "
+                    "Check that the read replica host is accessible and the port is correct.",
+                    attempt, exc
+                )
+            else:
+                logger.warning("Read replica DB pool attempt %d/3 failed: %s", attempt, exc)
+            if attempt < 3:
+                await asyncio.sleep(3 * attempt)
+        except Exception as exc:
+            logger.error("Unexpected error creating read replica DB pool: %s", exc)
+            raise
+    
+    logger.warning("Could not create read replica DB pool after 3 attempts; using primary for reads")
+    return None
 
 
 async def create_enterprise_pool() -> asyncpg.Pool | None:
@@ -84,7 +139,35 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
     }
     if ssl:
         kwargs["ssl"] = ssl
-    return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
+    
+    for attempt in range(1, 4):
+        try:
+            return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
+        except asyncpg.PostgresError as exc:
+            error_msg = str(exc)
+            if "Tenant or user not found" in error_msg or "password authentication failed" in error_msg:
+                logger.warning(
+                    "Enterprise DB pool attempt %d/3 failed: %s. "
+                    "This usually means DATABASE_URL credentials are incorrect. "
+                    "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Supabase project.",
+                    attempt, exc
+                )
+            elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
+                logger.warning(
+                    "Enterprise DB pool attempt %d/3 failed: %s. "
+                    "Check that the database host is accessible and the port is correct.",
+                    attempt, exc
+                )
+            else:
+                logger.warning("Enterprise DB pool attempt %d/3 failed: %s", attempt, exc)
+            if attempt < 3:
+                await asyncio.sleep(3 * attempt)
+        except Exception as exc:
+            logger.error("Unexpected error creating enterprise DB pool: %s", exc)
+            raise
+    
+    logger.warning("Could not create enterprise DB pool after 3 attempts; using primary pool")
+    return None
 
 
 # ---------------------------------------------------------------------------
