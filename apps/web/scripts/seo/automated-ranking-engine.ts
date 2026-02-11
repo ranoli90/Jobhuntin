@@ -19,8 +19,16 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
 import { setInterval } from 'timers';
+import { loadProgress, saveProgress, logSubmission, getQuotaState } from './supabase-checkpoint.js';
+
+const BASE_URL = process.env.GOOGLE_SEARCH_CONSOLE_SITE || 'https://jobhuntin.com';
+const DAILY_SUBMISSION_LIMIT = 200;
+const BATCH_GENERATION_SIZE = 10;
+const SUBMIT_BATCH_SIZE = 50;
+const BATCH_DELAY_MS = 30000; // 30 seconds between batches
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+let runInProgress = false;
 
 // Load your data sources
 const locations = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../src/data/locations.json'), 'utf-8'));
@@ -35,6 +43,21 @@ interface PriorityMatrix {
   searchVolume: number;
   competition: number;
   potential: number;
+}
+
+
+async function withRetry<T>(fn: () => Promise<T>, retries = 3, baseDelayMs = 2000): Promise<T | null> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error);
+      if (attempt === retries) break;
+      const delay = baseDelayMs * Math.pow(2, attempt - 1);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  return null;
 }
 
 /**
@@ -103,7 +126,7 @@ async function generateContent(city: string, role: string): Promise<boolean> {
 
     console.log(`🚀 Generating: ${role} jobs in ${city}`);
 
-    const process = spawn('cmd', ['/c', command], {
+    const process = spawn('npx', ['tsx', command], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'pipe'
     });
@@ -121,11 +144,11 @@ async function generateContent(city: string, role: string): Promise<boolean> {
 
     process.on('close', (code) => {
       if (code === 0) {
-        console.log(`✅ Generated: ${role} jobs in ${city}`);
+        console.log(`✅ Content generated for ${role} in ${city}`);
         resolve(true);
       } else {
-        console.error(`❌ Failed: ${role} jobs in ${city}`);
-        console.error(`Error: ${errorOutput}`);
+        console.error(`❌ Content generation failed for ${role} in ${city} (code ${code})`);
+        console.error(errorOutput || output);
         resolve(false);
       }
     });
@@ -135,14 +158,25 @@ async function generateContent(city: string, role: string): Promise<boolean> {
 /**
  * Submit URLs to Google Indexing API
  */
-async function submitToGoogle(urls: string[]): Promise<boolean> {
+async function submitToGoogle(urls: string[], allowSubmission: boolean): Promise<boolean> {
+  if (!allowSubmission) {
+    console.warn('⚠️ Skipping Google submission because GOOGLE_SERVICE_ACCOUNT_KEY is missing.');
+    return false;
+  }
+
   return new Promise((resolve) => {
-    const urlList = urls.join(' ');
-    const command = `npx tsx scripts/seo/submit-to-google-enhanced.ts --priority`;
+    const tmpDir = path.resolve(__dirname, '../../logs');
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir, { recursive: true });
+    }
+    const tmpFile = path.join(tmpDir, `urls-${Date.now()}.txt`);
+    fs.writeFileSync(tmpFile, urls.join('\n'));
+
+    const command = `npx tsx scripts/seo/submit-to-google-enhanced.ts --priority --urls-file "${tmpFile}"`;
 
     console.log(`📊 Submitting ${urls.length} URLs to Google...`);
 
-    const process = spawn('cmd', ['/c', command], {
+    const process = spawn('npx', ['tsx', command], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'pipe',
       env: {
@@ -157,13 +191,16 @@ async function submitToGoogle(urls: string[]): Promise<boolean> {
     });
 
     process.on('close', (code) => {
-      if (code === 0) {
+      const success = code === 0;
+      if (success) {
         console.log(`✅ Submitted ${urls.length} URLs to Google`);
-        resolve(true);
       } else {
         console.error(`❌ Google submission failed`);
-        resolve(false);
+        console.error(output);
       }
+      // Log to Supabase
+      logSubmission(tmpFile, urls.length, success, success ? undefined : output).catch(() => {});
+      resolve(success);
     });
   });
 }
@@ -177,57 +214,91 @@ async function runAutomation(): Promise<void> {
 
   const priorityMatrix = generatePriorityMatrix();
   const totalCombinations = priorityMatrix.length;
+  let startIndex = await loadProgress();
+  if (startIndex >= totalCombinations) {
+    startIndex = 0;
+  }
+
+  // Load quota state from Supabase
+  const { used: dailyQuotaUsed, reset: dailyQuotaReset } = await getQuotaState();
+  let remainingDailyQuota = Math.max(0, DAILY_SUBMISSION_LIMIT - dailyQuotaUsed);
 
   console.log(`📊 Found ${totalCombinations} potential page combinations`);
   console.log(`🏆 Top priority: ${priorityMatrix[0].role.name} in ${priorityMatrix[0].location.name} (Score: ${priorityMatrix[0].potential})`);
+  console.log(`📦 Daily quota remaining: ${remainingDailyQuota}/${DAILY_SUBMISSION_LIMIT}`);
 
   let generatedCount = 0;
   let submittedCount = 0;
-  const batchSize = 10; // Generate 10 pages at a time
-  const submitBatchSize = 50; // Submit 50 URLs to Google at a time
   let urlsToSubmit: string[] = [];
 
   // Main generation loop
-  for (let i = 0; i < priorityMatrix.length; i += batchSize) {
-    const batch = priorityMatrix.slice(i, i + batchSize);
+  for (let i = startIndex; i < priorityMatrix.length; i += BATCH_GENERATION_SIZE) {
+    const batch = priorityMatrix.slice(i, i + BATCH_GENERATION_SIZE);
 
-    console.log(`\n🔄 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(priorityMatrix.length / batchSize)}`);
+    console.log(`\n🔄 Processing batch ${Math.floor(i / BATCH_GENERATION_SIZE) + 1}/${Math.ceil(priorityMatrix.length / BATCH_GENERATION_SIZE)}`);
 
     // Generate content for this batch
-    const generationPromises = batch.map(item =>
-      generateContent(item.location.name, item.role.name)
+    const results = await Promise.allSettled(
+      batch.map(item => withRetry(() => generateContent(item.location.name, item.role.name), 2, 2000))
     );
-
-    const results = await Promise.allSettled(generationPromises);
     const successful = results.filter(r => r.status === 'fulfilled' && r.value).length;
     generatedCount += successful;
 
-    console.log(`✅ Generated ${successful}/${batchSize} pages`);
+    console.log(`✅ Generated ${successful}/${BATCH_GENERATION_SIZE} pages`);
 
     // Add URLs to submission queue
     for (const item of batch) {
       const roleSlug = item.role.id || item.role.slug || item.role.name.toLowerCase().replace(/\s+/g, '-');
       const locSlug = item.location.id || item.location.slug || item.location.name.toLowerCase().replace(/\s+/g, '-');
-      const url = `https://jobhuntin.com/jobs/${roleSlug}-in-${locSlug}`;
+      const url = `${BASE_URL}/jobs/${roleSlug}-in-${locSlug}`;
       urlsToSubmit.push(url);
     }
 
     // Submit to Google when we have enough URLs
-    if (urlsToSubmit.length >= submitBatchSize) {
-      await submitToGoogle(urlsToSubmit.slice(0, submitBatchSize));
-      submittedCount += submitBatchSize;
-      urlsToSubmit = urlsToSubmit.slice(submitBatchSize);
+    while (urlsToSubmit.length > 0 && remainingDailyQuota > 0 && urlsToSubmit.length >= SUBMIT_BATCH_SIZE) {
+      const take = Math.min(SUBMIT_BATCH_SIZE, remainingDailyQuota);
+      const chunk = urlsToSubmit.slice(0, take);
+      const ok = await withRetry(() => submitToGoogle(chunk, Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_KEY)), 2, 3000);
+      if (ok) {
+        submittedCount += chunk.length;
+        remainingDailyQuota -= chunk.length;
+        urlsToSubmit = urlsToSubmit.slice(take);
+      } else {
+        console.warn('⚠️ Submission chunk failed or skipped; preserving URLs for next run.');
+        break;
+      }
+      if (remainingDailyQuota <= 0) {
+        console.log(`🚦 Reached daily submission quota (${DAILY_SUBMISSION_LIMIT}). Remaining URLs will be sent next run.`);
+        break;
+      }
     }
 
     // Rate limiting - don't overwhelm APIs
-    await new Promise(resolve => setTimeout(resolve, 30000)); // 30 second delay between batches
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
+
+    if (remainingDailyQuota <= 0) {
+      break;
+    }
   }
 
   // Submit remaining URLs
-  if (urlsToSubmit.length > 0) {
-    await submitToGoogle(urlsToSubmit);
-    submittedCount += urlsToSubmit.length;
+  if (urlsToSubmit.length > 0 && remainingDailyQuota > 0) {
+    const take = Math.min(urlsToSubmit.length, remainingDailyQuota);
+    const chunk = urlsToSubmit.slice(0, take);
+    const ok = await withRetry(() => submitToGoogle(chunk, Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_KEY)), 2, 3000);
+    if (ok) {
+      submittedCount += chunk.length;
+      remainingDailyQuota -= chunk.length;
+      urlsToSubmit = urlsToSubmit.slice(take);
+    } else {
+      console.warn('⚠️ Final submission chunk failed or skipped; preserving URLs for next run.');
+    }
   }
+
+  // Save progress and quota state to Supabase
+  const nextIndex = (remainingDailyQuota <= 0 || urlsToSubmit.length > 0) ? startIndex : priorityMatrix.length;
+  const quotaUsedToday = DAILY_SUBMISSION_LIMIT - remainingDailyQuota;
+  await saveProgress(nextIndex, quotaUsedToday, dailyQuotaReset);
 
   console.log('\n🎉 AUTOMATION COMPLETE!');
   console.log(`📄 Generated: ${generatedCount} pages`);
@@ -273,6 +344,11 @@ async function findTrendingOpportunities(): Promise<any[]> {
  * Main entry point
  */
 async function main(): Promise<void> {
+  if (runInProgress) {
+    console.log('⚠️ Previous run still in progress. Skipping new run to avoid overlap.');
+    return;
+  }
+  runInProgress = true;
   console.log('🚀 STARTING AUTOMATED RANKING ENGINE');
   console.log('📅 This will run continuously and generate thousands of pages');
 
@@ -287,12 +363,15 @@ async function main(): Promise<void> {
   // Start continuous monitoring
   startContinuousMonitoring();
 
-  // Run initial automation
-  await runAutomation();
-
-  // Schedule next run (daily)
-  console.log('⏰ Scheduling next run in 24 hours...');
-  setTimeout(main, 24 * 60 * 60 * 1000);
+  try {
+    // Run initial automation
+    await runAutomation();
+  } finally {
+    runInProgress = false;
+    // Schedule next run (daily) after completion to avoid overlap
+    console.log('⏰ Scheduling next run in 24 hours...');
+    setTimeout(() => { void main(); }, 24 * 60 * 60 * 1000);
+  }
 }
 
 // Error handling

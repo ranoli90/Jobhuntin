@@ -1,0 +1,63 @@
+{
+  "name": "jobhuntin-e2e",
+  "version": "1.0.0",
+  "description": "Advanced E2E test suite for JobHuntin with crawling, accessibility, performance, and multi-browser support",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:ui": "playwright test --ui",
+    "test:trace": "playwright test --trace on",
+    "test:shard": "playwright test --shard=1/2",
+    "test:install": "playwright install",
+    "test:codegen": "playwright codegen https://jobhuntin.com",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project=mobile-chrome --project=mobile-safari",
+    "discover": "playwright test src/tests/discovery.spec.ts --reporter=list",
+    "baseline": "playwright test src/tests/visual.spec.ts --update-snapshots",
+    "baseline:update": "playwright test src/tests/visual.spec.ts --update-snapshots",
+    "baseline:diff": "playwright test src/tests/visual.spec.ts --update-snapshots=false",
+    "baseline:clean": "rimraf baselines",
+    "report": "playwright show-report",
+    "report:html": "npx playwright show-report",
+    "lint:all": "eslint . --ext .ts,.js",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf test-results playwright-report .playwright",
+    "postinstall": "playwright install"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.8.0",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^20.19.33",
+    "axe-core": "^4.8.2",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.3",
+    "dotenv": "^16.4.5",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
+    "lodash": "^4.17.21",
+    "playwright": "^1.58.2",
+    "typescript": "^5.2.2",
+    "url-parse": "^1.5.10"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/lodash": "^4.14.202",
+    "@types/url-parse": "^1.4.11",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "eslint": "^8.56.0",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

@@ -79,6 +79,7 @@ try {
     const priorityOnly = args.includes('--priority');
     const checkStatus = args.includes('--status');
     const slugFilter = args.includes('--slug') ? args[args.indexOf('--slug') + 1] : null;
+    const urlsFile = args.includes('--urls-file') ? args[args.indexOf('--urls-file') + 1] : null;
 
     // Enhanced URL prioritization for maximum SEO impact
     interface UrlPriority {
@@ -270,25 +271,49 @@ try {
         return filtered;
     }
 
-    // Generate and filter URLs
-    const allUrls = generateAllUrls();
-    const filteredUrls = filterUrls(allUrls);
-    
-    console.log(`📊 Total URLs found: ${allUrls.length}`);
-    console.log(`📊 Filtered URLs: ${filteredUrls.length}`);
-    console.log(`📊 Priority breakdown:`);
-    console.log(`   High: ${filteredUrls.filter(u => u.priority === 'High').length}`);
-    console.log(`   Medium: ${filteredUrls.filter(u => u.priority === 'Medium').length}`);
-    console.log(`   Low: ${filteredUrls.filter(u => u.priority === 'Low').length}`);
-    
-    if (filteredUrls.length === 0) {
-        console.log(`⚠️  No URLs to submit after filtering`);
-        process.exit(0);
+    // Generate URLs
+    let urlsToSubmit: UrlPriority[] = [];
+    if (urlsFile) {
+        const filePath = path.resolve(process.cwd(), urlsFile);
+        if (!fs.existsSync(filePath)) {
+            console.error(`❌ URLs file not found: ${filePath}`);
+            process.exit(1);
+        }
+        const fileUrls = fs.readFileSync(filePath, 'utf8')
+            .split(/\r?\n/)
+            .map(u => u.trim())
+            .filter(Boolean);
+        urlsToSubmit = fileUrls.map(u => ({
+            url: u,
+            priority: 'High',
+            type: 'Local',
+            keywords: [],
+            estimatedTraffic: 100,
+            contentQuality: 80,
+            lastModified: new Date().toISOString()
+        }));
+        console.log(`📥 Loaded ${urlsToSubmit.length} URLs from file: ${filePath}`);
+    } else {
+        const allUrls = generateAllUrls();
+        const filteredUrls = filterUrls(allUrls);
+        
+        console.log(`📊 Total URLs found: ${allUrls.length}`);
+        console.log(`📊 Filtered URLs: ${filteredUrls.length}`);
+        console.log(`📊 Priority breakdown:`);
+        console.log(`   High: ${filteredUrls.filter(u => u.priority === 'High').length}`);
+        console.log(`   Medium: ${filteredUrls.filter(u => u.priority === 'Medium').length}`);
+        console.log(`   Low: ${filteredUrls.filter(u => u.priority === 'Low').length}`);
+        
+        if (filteredUrls.length === 0) {
+            console.log(`⚠️  No URLs to submit after filtering`);
+            process.exit(0);
+        }
+        urlsToSubmit = filteredUrls;
     }
 
     // Google API limits: 200 URLs per day maximum
     const dailyLimit = 200;
-    const urlsToSubmit = filteredUrls.slice(0, dailyLimit);
+    urlsToSubmit = urlsToSubmit.slice(0, dailyLimit);
     
     console.log(`📈 Estimated daily traffic potential: ${urlsToSubmit.reduce((sum, u) => sum + u.estimatedTraffic, 0)} visits`);
     console.log(`🏆 Top 5 URLs by priority:`);
