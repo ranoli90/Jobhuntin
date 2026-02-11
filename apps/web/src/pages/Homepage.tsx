@@ -36,7 +36,7 @@ const ProductFlowDemo = () => {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(typeof window !== 'undefined' && window.innerWidth < 360);
+      setIsMobile(typeof window !== 'undefined' && window.innerWidth < 640);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -65,7 +65,7 @@ const ProductFlowDemo = () => {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className={`w-full ${isMobile ? 'max-w-xs' : 'max-w-md'} bg-slate-950 rounded-[2rem] p-4 sm:p-6 lg:p-8 shadow-2xl border border-white/5 overflow-hidden relative`}>
+      <div className={`w-full ${isMobile ? 'max-w-[90vw]' : 'max-w-md'} bg-slate-950 rounded-[2rem] p-4 sm:p-6 lg:p-8 shadow-2xl border border-white/5 overflow-hidden relative`}>
         {/* Scan line - disabled with reduced motion */}
         {!shouldReduceMotion && (
           <motion.div
@@ -184,9 +184,12 @@ const Hero = () => {
   const [sentEmail, setSentEmail] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
-  // Background Particles Data - Refined for a more artistic look
+  // Background Particles Data - Responsive design
   const particles = React.useMemo(() => {
-    return [...Array(25)].map((_, i) => ({
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const particleCount = isMobile ? 8 : 25;
+    
+    return [...Array(particleCount)].map((_, i) => ({
       id: i,
       left: Math.random() * 100,
       top: Math.random() * 100,
@@ -322,51 +325,45 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[calc(100vh-5rem)] lg:min-h-[85vh] md:min-h-[calc(100vh-6rem)] pt-24 sm:pt-32 pb-16 flex items-start lg:items-center justify-center overflow-hidden bg-slate-50">
+    <section className="relative min-h-screen lg:min-h-[85vh] pt-20 sm:pt-24 md:pt-28 lg:pt-0 pb-12 sm:pb-16 lg:pb-20 flex items-start lg:items-center justify-center overflow-hidden bg-slate-50">
       {/* Premium Background Layers */}
       <div className="absolute inset-0 bg-grid-premium opacity-[0.4] pointer-events-none" />
 
       {/* Large Artistic Gradient Blobs - Responsive */}
       {!shouldReduceMotion && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {particles.map((particle, index) => {
-            // Reduce particle count and size on smaller screens
-            const shouldShow = index < (typeof window !== 'undefined' && window.innerWidth < 640 ? 8 : 25);
-            if (!shouldShow) return null;
-
-            return (
-              <motion.div
-                key={particle.id}
-                className="absolute rounded-full"
-                animate={{
-                  y: [0, particle.yMove, 0],
-                  x: [0, particle.xMove, 0],
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{
-                  duration: particle.duration,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: particle.delay
-                }}
-                style={{
-                  left: `${particle.left}%`,
-                  top: `${particle.top}%`,
-                  width: typeof window !== 'undefined' && window.innerWidth < 640 ? particle.size * 0.6 : particle.size,
-                  height: typeof window !== 'undefined' && window.innerWidth < 640 ? particle.size * 0.6 : particle.size,
-                  background: particle.color,
-                  filter: particle.blur,
-                  willChange: "transform",
-                  opacity: typeof window !== 'undefined' && window.innerWidth < 640 ? 0.3 : 1
-                }}
-              />
-            );
-          })}
+          {particles.map((particle, index) => (
+            <motion.div
+              key={particle.id}
+              className="absolute rounded-full"
+              animate={{
+                y: [0, particle.yMove, 0],
+                x: [0, particle.xMove, 0],
+                rotate: [0, 360],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{
+                duration: particle.duration,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: particle.delay
+              }}
+              style={{
+                left: `${particle.left}%`,
+                top: `${particle.top}%`,
+                width: typeof window !== 'undefined' && window.innerWidth < 640 ? particle.size * 0.6 : particle.size,
+                height: typeof window !== 'undefined' && window.innerWidth < 640 ? particle.size * 0.6 : particle.size,
+                background: particle.color,
+                filter: particle.blur,
+                willChange: "transform",
+                opacity: typeof window !== 'undefined' && window.innerWidth < 640 ? 0.3 : 1
+              }}
+            />
+          ))}
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 gap-y-16 items-start lg:items-center min-h-[640px] lg:min-h-0">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 gap-y-16 items-start lg:items-center min-h-[640px] lg:min-h-0">
         {/* Left Content */}
         <div className="w-full text-center lg:text-left pt-6 sm:pt-10 lg:pt-0 space-y-6">
           <motion.div
