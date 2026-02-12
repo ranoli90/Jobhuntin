@@ -69,20 +69,24 @@ function calculatePriority(location: any, role: any): PriorityMatrix {
   let searchVolume = 100;
   let competition = 50;
 
-  // Boost for major cities
-  if (location.population > 1000000) searchVolume *= 3;
-  else if (location.population > 500000) searchVolume *= 2;
-  else if (location.population > 200000) searchVolume *= 1.5;
+  // Boost for major cities - volume is key for "average" jobs
+  if (location.population > 1000000) searchVolume *= 4;
+  else if (location.population > 500000) searchVolume *= 3;
+  else if (location.population > 200000) searchVolume *= 2;
 
-  // Boost for tech hubs
-  if (location.techHub) searchVolume *= 2;
-  if (location.startupScene) searchVolume *= 1.5;
-  if (location.majorEmployers?.length > 10) searchVolume *= 1.3;
+  // Boost for high-traffic "average" categories
+  const highTrafficCategories = ['Retail', 'Logistics', 'Hospitality', 'Customer Service', 'Construction', 'Operations', 'Finance'];
+  if (highTrafficCategories.includes(role.category)) {
+    searchVolume *= 2.5;
+  }
 
-  // Boost for high-demand roles
-  if (role.category === 'Engineering') searchVolume *= 2;
-  if (role.category === 'Data') searchVolume *= 1.8;
-  if (role.category === 'Product') searchVolume *= 1.5;
+  // Penalize niche tech roles for this traffic flood strategy
+  if (role.category === 'Engineering' || role.category === 'Data') {
+    searchVolume *= 0.5;
+  }
+
+  // Boost specifically for roles with lower salary (broader audience)
+  if (role.avgSalary < 60000) searchVolume *= 1.5;
 
   // Lower competition for long-tail combinations
   competition = Math.max(10, 100 - (location.popularity || 50));
@@ -199,7 +203,7 @@ async function submitToGoogle(urls: string[], allowSubmission: boolean): Promise
         console.error(output);
       }
       // Log to Supabase
-      logSubmission(tmpFile, urls.length, success, success ? undefined : output).catch(() => {});
+      logSubmission(tmpFile, urls.length, success, success ? undefined : output).catch(() => { });
       resolve(success);
     });
   });

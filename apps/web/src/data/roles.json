@@ -1662,5 +1662,137 @@
       }
     ],
     "lastUpdated": "2026-02-11"
+  },
+  {
+    "id": "retail-associate",
+    "name": "Retail Associate",
+    "category": "Retail",
+    "avgSalary": 34000,
+    "demandLevel": "Very High",
+    "slug": "retail-associate",
+    "skills": [
+      "Customer Service",
+      "POS Systems",
+      "Inventory Management",
+      "Sales"
+    ],
+    "seoTitle": "Retail Associate Jobs: Salary, Skills & Career Path (2026)",
+    "seoDescription": "Find high-paying Retail Associate jobs near you. Average salary $34K, top skills needed, and how to advance to management.",
+    "roleKeywords": [
+      "Retail Associate",
+      "Sales Associate",
+      "Store Clerk",
+      "Retail jobs"
+    ]
+  },
+  {
+    "id": "delivery-driver",
+    "name": "Delivery Driver",
+    "category": "Logistics",
+    "avgSalary": 42000,
+    "demandLevel": "Very High",
+    "slug": "delivery-driver",
+    "skills": [
+      "Driving",
+      "Time Management",
+      "Customer Service",
+      "Navigation"
+    ],
+    "seoTitle": "Delivery Driver Jobs: Salary, Skills & Openings (2026)",
+    "seoDescription": "Apply for top Delivery Driver jobs. Average salary $42K, flexible hours, and immediate openings in your city.",
+    "roleKeywords": [
+      "Delivery Driver",
+      "Courier",
+      "Box Truck Driver",
+      "Gig economy jobs"
+    ]
+  },
+  {
+    "id": "warehouse-worker",
+    "name": "Warehouse Worker",
+    "category": "Logistics",
+    "avgSalary": 38000,
+    "demandLevel": "Very High",
+    "slug": "warehouse-worker",
+    "skills": [
+      "Heavy Lifting",
+      "Order Picking",
+      "Forklift Operation",
+      "Safety"
+    ],
+    "seoTitle": "Warehouse Worker Jobs: Salary, Requirements & Career Guide (2026)",
+    "seoDescription": "Top Warehouse Worker jobs available now. Average salary $38K, no experience required for many roles.",
+    "roleKeywords": [
+      "Warehouse Worker",
+      "Order Picker",
+      "Material Handler",
+      "Logistics jobs"
+    ]
+  },
+  {
+    "id": "customer-service-rep",
+    "name": "Customer Service Rep",
+    "category": "Customer Service",
+    "avgSalary": 40000,
+    "demandLevel": "High",
+    "slug": "customer-service-rep",
+    "skills": [
+      "Communication",
+      "Problem Solving",
+      "CRM",
+      "Typing"
+    ],
+    "seoTitle": "Customer Service Representative Career Guide (2026)",
+    "seoDescription": "Find remote and local Customer Service jobs. Average salary $40K with great benefits and growth path.",
+    "roleKeywords": [
+      "Customer Service",
+      "Support Agent",
+      "Call Center",
+      "Client Relations"
+    ]
+  },
+  {
+    "id": "administrative-assistant",
+    "name": "Administrative Assistant",
+    "category": "Operations",
+    "avgSalary": 45000,
+    "demandLevel": "Steady",
+    "slug": "administrative-assistant",
+    "skills": [
+      "Scheduling",
+      "Microsoft Office",
+      "Bookkeeping",
+      "Communication"
+    ],
+    "seoTitle": "Administrative Assistant Jobs & Career Guide (2026)",
+    "seoDescription": "Top Administrative Assistant jobs available. Average salary $45K, essential skills, and how to land a role.",
+    "roleKeywords": [
+      "Admin Assistant",
+      "Office Manager",
+      "Executive Assistant",
+      "Secretary jobs"
+    ]
+  },
+  {
+    "id": "construction-worker",
+    "name": "Construction Worker",
+    "category": "Construction",
+    "avgSalary": 48000,
+    "demandLevel": "High",
+    "slug": "construction-worker",
+    "skills": [
+      "Power Tools",
+      "Physical Stamina",
+      "Blueprints",
+      "Safety Compliance"
+    ],
+    "seoTitle": "Construction Worker Jobs: Salary, Training & Openings (2026)",
+    "seoDescription": "Join the construction industry. Average salary $48K, immediate openings for skilled and entry-level laborers.",
+    "roleKeywords": [
+      "Construction Worker",
+      "Laborer",
+      "General Contractor",
+      "Trade jobs"
+    ]
   }
 ]
