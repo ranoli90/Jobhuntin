@@ -81,6 +81,7 @@ class Settings(BaseSettings):
 
     # ── Security ─────────────────────────────────────────────────
     csrf_secret: str = ""  # Required in prod - generate with: secrets.token_hex(32)
+    jwt_secret: str = ""  # Required for JWT token validation (Supabase JWT secret)
     request_id_header: str = "X-Request-ID"
     db_ssl_ca_cert_path: str = (
         ""  # Path to CA cert for DB SSL verification (overrides CERT_NONE)
@@ -228,6 +229,8 @@ class Settings(BaseSettings):
                 missing.append("APP_BASE_URL")
             if not self.csrf_secret:
                 missing.append("CSRF_SECRET")
+            if not self.jwt_secret:
+                missing.append("JWT_SECRET (required for Supabase JWT validation)")
             # SSO_SESSION_SECRET is optional - only required for ENTERPRISE plans with SSO enabled
             # if not self.sso_session_secret:
             #     missing.append("SSO_SESSION_SECRET")
