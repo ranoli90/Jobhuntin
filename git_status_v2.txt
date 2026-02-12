@@ -1,0 +1,122 @@
+﻿interactive rebase in progress; onto a18a270
+Last command done (1 command done):
+   pick 1447786 # feat: complete supabase removal and jwt auth refactor
+No commands remaining.
+You are currently rebasing branch 'main' on 'a18a270'.
+  (all conflicts fixed: run "git rebase --continue")
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   .env.example
+	new file:   DATABASE_FIX_INSTRUCTIONS.md
+	new file:   MIGRATION_GUIDE.md
+	modified:   README.md
+	new file:   SUPABASE_FIX_README.md
+	new file:   add_database_url.py
+	modified:   apps/api/auth.py
+	modified:   apps/api/billing.py
+	modified:   apps/api/main.py
+	modified:   apps/api/sso.py
+	modified:   apps/api/user.py
+	modified:   apps/extension/package.json
+	modified:   apps/extension/src/App.tsx
+	modified:   apps/extension/src/background/index.ts
+	modified:   apps/extension/src/content/auth.ts
+	modified:   apps/extension/src/lib/supabase.ts
+	modified:   apps/web/package.json
+	modified:   apps/web/scripts/seo/supabase-checkpoint.ts
+	modified:   apps/web/src/context/AuthContext.tsx
+	modified:   apps/web/src/hooks/useApplications.ts
+	modified:   apps/web/src/hooks/useAuth.ts
+	modified:   apps/web/src/lib/api.ts
+	modified:   apps/web/src/lib/supabase.ts
+	modified:   apps/web/src/pages/Login.tsx
+	modified:   apps/web/src/services/magicLinkService.ts
+	modified:   apps/worker/agent.py
+	modified:   apps/worker/scaling.py
+	modified:   backend/domain/debug_schema.py
+	modified:   backend/domain/email_digest.py
+	modified:   backend/domain/resume.py
+	modified:   backend/domain/teams.py
+	new file:   check_existing_db.py
+	new file:   check_seo_service.py
+	new file:   complete_migration.py
+	new file:   create_db_correct_endpoint.py
+	new file:   create_db_with_owner.py
+	new file:   create_render_database.py
+	new file:   create_render_db_urllib.py
+	new file:   db_tables.txt
+	new file:   debug_schema.sql
+	new file:   docs/DATABASE_VERIFICATION_CHECKLIST.md
+	new file:   docs/RENDER_IP_WHITELIST_GUIDE.md
+	new file:   find_all_databases.py
+	new file:   fix_database_url.py
+	new file:   get_render_owner.py
+	new file:   jobhuntin-e2e-tests/reports/discovered-urls.json
+	new file:   jobhuntin-e2e-tests/reports/html/data/026760941773864ecde1ce2b869b85d7a98ae858.webm
+	new file:   jobhuntin-e2e-tests/reports/html/data/120fbc89da78e6de9a9f8a312e68fb204270496c.webm
+	new file:   jobhuntin-e2e-tests/reports/html/data/22ba9c969263024d1c4746a126461b8093b16448.webm
+	new file:   jobhuntin-e2e-tests/reports/html/data/4fcfdce6f7adcc9d3b991e6a7f42f8d2a897f08f.md
+	new file:   jobhuntin-e2e-tests/reports/html/data/516266f14a588b38036ed115f63477f353215c01.zip
+	new file:   jobhuntin-e2e-tests/reports/html/data/51776bde53aec0107de8c2f38fbd16190615b2e5.png
+	new file:   jobhuntin-e2e-tests/reports/html/data/5bf72c86aabc937256f3932f0ff0154ada2f6412.png
+	new file:   jobhuntin-e2e-tests/reports/html/data/5f7c6c0b678a415b9960e88589fab92976acb911.webm
+	new file:   jobhuntin-e2e-tests/reports/html/data/60404dd4eb24cd896347ebe5801a70338f7c9ead.md
+	new file:   jobhuntin-e2e-tests/reports/html/data/6b576187c84f2bc5477cfb562a218989a397d97c.md
+	new file:   jobhuntin-e2e-tests/reports/html/data/798f01858cc4eee0adc43924cf8027448e9c7378.png
+	new file:   jobhuntin-e2e-tests/reports/html/data/7b3fa0b0979b7386953f4e80e59bcf5399344e50.md
+	new file:   jobhuntin-e2e-tests/reports/html/data/80f7db1ed8508895056b81b5f87743ef5cfe6370.png
+	new file:   jobhuntin-e2e-tests/reports/html/data/921f09c86f0465834f5f1020fb643bcf9b863869.zip
+	new file:   jobhuntin-e2e-tests/reports/html/data/94ac6220e5df512088500518e4ec20cd9d143ade.png
+	new file:   jobhuntin-e2e-tests/reports/html/data/bb428fd8ef91592423ee8bdf5169f32db4739b6b.webm
+	new file:   jobhuntin-e2e-tests/reports/html/data/bdbd52ea7ab90b055b7ebf92ae5a9b4ab9d3398f.webm
+	new file:   jobhuntin-e2e-tests/reports/html/data/c43f153726fc95552301c2d828b997248256e817.zip
+	new file:   jobhuntin-e2e-tests/reports/html/data/cec0aa52de91ac4783ea668868510de70a6b2313.zip
+	modified:   jobhuntin-e2e-tests/reports/html/index.html
+	new file:   jobhuntin-e2e-tests/reports/html/trace/assets/codeMirrorModule-a5XoALAZ.js
+	new file:   jobhuntin-e2e-tests/reports/html/trace/assets/defaultSettingsView-CJSZINFr.js
+	new file:   jobhuntin-e2e-tests/reports/html/trace/codeMirrorModule.DYBRYzYX.css
+	new file:   jobhuntin-e2e-tests/reports/html/trace/codicon.DCmgc-ay.ttf
+	new file:   jobhuntin-e2e-tests/reports/html/trace/defaultSettingsView.7ch9cixO.css
+	new file:   jobhuntin-e2e-tests/reports/html/trace/index.BDwrLSGN.js
+	new file:   jobhuntin-e2e-tests/reports/html/trace/index.BVu7tZDe.css
+	new file:   jobhuntin-e2e-tests/reports/html/trace/index.html
+	new file:   jobhuntin-e2e-tests/reports/html/trace/manifest.webmanifest
+	new file:   jobhuntin-e2e-tests/reports/html/trace/playwright-logo.svg
+	new file:   jobhuntin-e2e-tests/reports/html/trace/snapshot.html
+	new file:   jobhuntin-e2e-tests/reports/html/trace/sw.bundle.js
+	new file:   jobhuntin-e2e-tests/reports/html/trace/uiMode.Btcz36p_.css
+	new file:   jobhuntin-e2e-tests/reports/html/trace/uiMode.CQJ9SCIQ.js
+	new file:   jobhuntin-e2e-tests/reports/html/trace/uiMode.html
+	new file:   jobhuntin-e2e-tests/reports/html/trace/xtermModule.DYP7pi_n.css
+	modified:   jobhuntin-e2e-tests/reports/results.json
+	modified:   jobhuntin-e2e-tests/src/utils/crawler.ts
+	new file:   list_db_tables.py
+	new file:   migrate_to_render.py
+	new file:   migration_output.txt
+	modified:   packages/backend/domain/resume.py
+	modified:   packages/shared/config.py
+	new file:   packages/shared/storage.py
+	modified:   render.yaml
+	new file:   render_audit_results.json
+	modified:   render_full.json
+	new file:   run_migration.py
+	new file:   scripts/init_render_db.py
+	new file:   scripts/migrate_to_render.py
+	new file:   scripts/temp.env
+	new file:   scripts/test_db_connection.py
+	new file:   setup_database_fix.py
+	new file:   test_db_connection.py
+	modified:   tests/test_agent_integration.py
+	new file:   try_paid_database.py
+	new file:   update_config_for_render.py
+	new file:   update_render_service.py
+	new file:   verification_log.txt
+	new file:   verify_backend_features.py
+	new file:   verify_render_config.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	git_status.txt
+	git_status_v2.txt
+
