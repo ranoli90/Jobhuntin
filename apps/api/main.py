@@ -39,7 +39,11 @@ from backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
 )
-from backend.domain.debug_schema import debug_alter_stmts, debug_auth_shim, debug_critical_tables
+from backend.domain.debug_schema import (
+    debug_alter_stmts,
+    debug_auth_shim,
+    debug_critical_tables,
+)
 from backend.domain.models import (
     CanonicalProfile,
     ErrorDetail,
@@ -79,6 +83,7 @@ logger = get_logger("sorce.api")
 
 from contextlib import asynccontextmanager
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -99,6 +104,7 @@ async def lifespan(app: FastAPI):
     await close_redis()
     await _pool_manager.close()
 
+
 app = FastAPI(title="Sorce API", version="0.4.0", lifespan=lifespan)
 
 # OpenTelemetry instrumentation
@@ -107,15 +113,23 @@ setup_telemetry("sorce-api", app)
 app.add_middleware(
     CORSMiddleware,
     # Environment-aware origins - localhost only in development
-    allow_origins=[o for o in {
-        "https://sorce-web.onrender.com",
-        "https://sorce-admin.onrender.com",
-        _settings.app_base_url.rstrip("/"),
-        "https://jobhuntin.com",
-        "https://app.jobhuntin.com",
-        # Include localhost ONLY in non-production environments
-        *(["http://localhost:5173", "http://localhost:3000"] if _settings.env.value != "prod" else []),
-    } if o],
+    allow_origins=[
+        o
+        for o in {
+            "https://sorce-web.onrender.com",
+            "https://sorce-admin.onrender.com",
+            _settings.app_base_url.rstrip("/"),
+            "https://jobhuntin.com",
+            "https://app.jobhuntin.com",
+            # Include localhost ONLY in non-production environments
+            *(
+                ["http://localhost:5173", "http://localhost:3000"]
+                if _settings.env.value != "prod"
+                else []
+            ),
+        }
+        if o
+    ],
     allow_credentials=True,
     # Explicit method list instead of wildcard
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -131,40 +145,95 @@ setup_request_id_middleware(app)
 from shared.middleware import get_client_ip, setup_security_headers
 from shared.metrics import get_rate_limiter
 
-# ---------------------------------------------------------------------------  
+# ---------------------------------------------------------------------------
 # Security Headers Middleware
 # ---------------------------------------------------------------------------
 setup_security_headers(app)
 
-# ---------------------------------------------------------------------------  
-# Rate Limiting Middleware
 # ---------------------------------------------------------------------------
+# Rate Limiting Middleware (Tenant-aware)
+# ---------------------------------------------------------------------------
+
+from shared.tenant_rate_limit import get_tenant_rate_limiter, TenantTier
+
 
 @app.middleware("http")
 async def rate_limiting_middleware(request: Request, call_next):
-    """Rate limiting middleware for API endpoints."""
-    # Skip rate limiting for health checks and static files
-    if request.url.path in ["/health", "/healthz"] or request.url.path.startswith("/static"):
+    """Tenant-aware rate limiting middleware for API endpoints."""
+    if request.url.path in ["/health", "/healthz"] or request.url.path.startswith(
+        "/static"
+    ):
         return await call_next(request)
-    
-    # Get client identifier (IP address)
+
     client_ip = get_client_ip(request)
-    
-    # Get rate limiter for this client
-    limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)  # 100 requests per minute
-    
-    if not await limiter.acquire():
-        raise HTTPException(
-            status_code=429, 
-            detail="Rate limit exceeded. Please try again later."
+
+    auth_header = request.headers.get("Authorization", "")
+    tenant_id = None
+    tenant_tier = TenantTier.FREE
+
+    if auth_header.startswith("Bearer "):
+        try:
+            token = auth_header.replace("Bearer ", "")
+            import jwt as pyjwt
+
+            if _settings.jwt_secret:
+                payload = pyjwt.decode(
+                    token,
+                    _settings.jwt_secret,
+                    algorithms=["HS256"],
+                    audience="authenticated",
+                )
+                user_id = payload.get("sub")
+                if user_id:
+                    try:
+                        async with _pool_manager.pool.acquire() as conn:
+                            row = await conn.fetchrow(
+                                """SELECT p.tenant_id, t.plan 
+                                   FROM public.profiles p 
+                                   LEFT JOIN public.tenants t ON t.id = p.tenant_id 
+                                   WHERE p.user_id = $1""",
+                                user_id,
+                            )
+                            if row:
+                                tenant_id = row["tenant_id"]
+                                if row["plan"]:
+                                    tenant_tier = TenantTier(row["plan"].upper())
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    if tenant_id:
+        limiter = get_tenant_rate_limiter()
+        allowed, metadata = await limiter.acquire(
+            tenant_id=tenant_id,
+            tier=tenant_tier,
+            endpoint=request.url.path,
         )
-    
+        if not allowed:
+            incr(
+                "api.rate_limit_exceeded",
+                tags={"tenant_id": str(tenant_id), "endpoint": request.url.path},
+            )
+            raise HTTPException(
+                status_code=429,
+                detail=f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. Try again in {metadata.get('reset_in', 60)} seconds.",
+            )
+    else:
+        limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)
+        if not await limiter.acquire():
+            incr("api.rate_limit_exceeded", tags={"client_ip": client_ip})
+            raise HTTPException(
+                status_code=429, detail="Rate limit exceeded. Please try again later."
+            )
+
     return await call_next(request)
 
 
 # ---------------------------------------------------------------------------
 # Mount sub-routers (billing, admin, export – added in Parts 2-4)
 # ---------------------------------------------------------------------------
+
 
 def _mount_sub_routers() -> None:
     """Deferred import to avoid circular deps; called after deps are defined.
@@ -173,83 +242,106 @@ def _mount_sub_routers() -> None:
     route-definition time are correctly replaced at request time.
     """
     import api.billing as billing_mod
+
     app.dependency_overrides[billing_mod._get_pool] = get_pool
     app.dependency_overrides[billing_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(billing_mod.router)
 
     import api.admin as admin_mod
+
     app.dependency_overrides[admin_mod._get_pool] = get_pool
     app.dependency_overrides[admin_mod._get_tenant_ctx] = get_tenant_context
     app.dependency_overrides[admin_mod._get_admin_user_id] = get_current_user_id
     app.include_router(admin_mod.router)
 
     import api.auth as auth_mod
+
     app.dependency_overrides[auth_mod._get_pool] = get_pool
     app.include_router(auth_mod.router)
 
     import api.export as export_mod
+
     app.dependency_overrides[export_mod._get_pool] = get_pool
     app.dependency_overrides[export_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(export_mod.router)
 
     import api.analytics as analytics_mod
+
     app.dependency_overrides[analytics_mod._get_pool] = get_pool
     app.dependency_overrides[analytics_mod._get_tenant_ctx] = get_tenant_context
     app.dependency_overrides[analytics_mod._get_admin_user_id] = get_current_user_id
     app.include_router(analytics_mod.router)
 
     import api.growth as growth_mod
+
     app.dependency_overrides[growth_mod._get_pool] = get_pool
     app.dependency_overrides[growth_mod._get_user_id] = get_current_user_id
     app.dependency_overrides[growth_mod._get_admin_user_id] = get_current_user_id
     app.include_router(growth_mod.router)
 
     import api.sso as sso_mod
+
     app.dependency_overrides[sso_mod._get_pool] = get_pool
     app.dependency_overrides[sso_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(sso_mod.router)
 
     import api.bulk as bulk_mod
+
     app.dependency_overrides[bulk_mod._get_pool] = get_pool
     app.dependency_overrides[bulk_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(bulk_mod.router)
 
     import api.marketplace as marketplace_mod
+
     app.dependency_overrides[marketplace_mod._get_pool] = get_pool
     app.dependency_overrides[marketplace_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(marketplace_mod.router)
 
     import api_v2.router as api_v2_mod
+
     app.dependency_overrides[api_v2_mod._get_pool] = get_pool
     app.include_router(api_v2_mod.router)
 
     import partners.university.router as uni_mod
     from partners.university.router import router as uni_router
+
     app.dependency_overrides[uni_mod._get_pool] = get_pool
     app.dependency_overrides[uni_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(uni_router)
 
     import api.developer as dev_mod
+
     app.dependency_overrides[dev_mod._get_pool] = get_pool
     app.dependency_overrides[dev_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(dev_mod.router)
 
     import api.user as user_mod
+
     app.dependency_overrides[user_mod._get_pool] = get_pool
     app.dependency_overrides[user_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(user_mod.router)
 
     import api.og as og_mod
+
     app.include_router(og_mod.router)
 
     # AI Suggestions for smart onboarding
     import api.ai as ai_mod
+
     app.dependency_overrides[ai_mod._get_pool] = get_pool
     app.dependency_overrides[ai_mod._get_user_id] = get_current_user_id
     app.include_router(ai_mod.router)
 
+    import api.dashboard as dashboard_mod
+
+    app.dependency_overrides[dashboard_mod._get_pool] = get_pool
+    app.dependency_overrides[dashboard_mod._get_admin_user_id] = get_current_user_id
+    app.include_router(dashboard_mod.router)
+
+
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
+
 
 # ---------------------------------------------------------------------------
 # Database pool lifecycle
@@ -278,19 +370,25 @@ class DatabasePoolManager:
         """Initialize the database pool on startup."""
         s = get_settings()
         from backend.blueprints.registry import load_default_blueprints
-        enabled = [slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()]
+
+        enabled = [
+            slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()
+        ]
         load_default_blueprints(enabled_slugs=enabled or None)
 
         ssl_arg = self._get_ssl_config(s)
 
         # Resolve the DB hostname to IPv4 to avoid [Errno 101] on Render (no IPv6).
         from shared.db import resolve_dsn_ipv4
+
         db_dsn = resolve_dsn_ipv4(s.database_url)
 
         for attempt in range(1, 4):
             try:
                 self._pool = await asyncpg.create_pool(
-                    db_dsn, min_size=s.db_pool_min, max_size=s.db_pool_max,
+                    db_dsn,
+                    min_size=s.db_pool_min,
+                    max_size=s.db_pool_max,
                     ssl=ssl_arg,
                     statement_cache_size=0,
                 )
@@ -299,23 +397,32 @@ class DatabasePoolManager:
             except asyncpg.PostgresError as exc:
                 # Provide more helpful error messages for common issues
                 error_msg = str(exc)
-                if "Tenant or user not found" in error_msg or "password authentication failed" in error_msg:
+                if (
+                    "Tenant or user not found" in error_msg
+                    or "password authentication failed" in error_msg
+                ):
                     logger.warning(
                         "DB pool attempt %d/3 failed: %s. "
                         "This usually means DATABASE_URL credentials are incorrect. "
                         "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Supabase project.",
-                        attempt, exc
+                        attempt,
+                        exc,
                     )
-                elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
+                elif (
+                    "connection refused" in error_msg.lower()
+                    or "could not connect" in error_msg.lower()
+                ):
                     logger.warning(
                         "DB pool attempt %d/3 failed: %s. "
                         "Check that the database host is accessible and the port is correct.",
-                        attempt, exc
+                        attempt,
+                        exc,
                     )
                 else:
                     logger.warning("DB pool attempt %d/3 failed: %s", attempt, exc)
                 if attempt < 3:
                     import asyncio
+
                     await asyncio.sleep(3 * attempt)
             except Exception as exc:
                 logger.error("Unexpected error creating DB pool: %s", exc)
@@ -334,16 +441,21 @@ class DatabasePoolManager:
         # Initialize read replica if configured
         if s.read_replica_url and s.read_replica_url != s.database_url:
             read_dsn = resolve_dsn_ipv4(s.read_replica_url)
-            
+
             try:
                 self._read_pool = await asyncpg.create_pool(
-                    read_dsn, min_size=s.db_pool_min, max_size=s.db_pool_max,
+                    read_dsn,
+                    min_size=s.db_pool_min,
+                    max_size=s.db_pool_max,
                     ssl=ssl_arg,
                     statement_cache_size=0,
                 )
                 logger.info("Read replica pool initialized")
             except Exception as exc:
-                logger.warning("Failed to initialize read replica (falling back to primary): %s", exc)
+                logger.warning(
+                    "Failed to initialize read replica (falling back to primary): %s",
+                    exc,
+                )
 
     async def _run_migrations(self) -> None:
         """Run auto-migrations if needed."""
@@ -359,8 +471,10 @@ class DatabasePoolManager:
                 if not has_tenants:
                     logger.info("Running auto-migration (tenants table missing)...")
                     import pathlib
+
                     base = pathlib.Path(__file__).resolve().parent.parent
                     from backend.domain.migrations import run_migrations
+
                     await run_migrations(conn, base)
         except asyncpg.PostgresError as exc:
             logger.warning("Auto-migration check failed (DB error): %s", exc)
@@ -392,6 +506,7 @@ _pool_manager = DatabasePoolManager()
 # Standard error envelope handler
 # ---------------------------------------------------------------------------
 
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """Return all HTTP errors in the standard ErrorResponse envelope."""
@@ -409,15 +524,15 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions to prevent stack trace leaks in production."""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    
+
     # In local dev, we might want to see the error, but standard is to hide it.
     # FastAPI usually prints to console anyway.
-    
+
     if _settings.env == Environment.LOCAL:
         msg = f"Internal Server Error: {str(exc)}"
     else:
         msg = "Internal Server Error"
-        
+
     body = ErrorResponse(
         error=ErrorDetail(
             code="INTERNAL_ERROR",
@@ -427,11 +542,10 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     return JSONResponse(status_code=500, content=body.model_dump())
 
 
-
-
 # ---------------------------------------------------------------------------
 # Auth dependency – extract user_id from Supabase JWT
 # ---------------------------------------------------------------------------
+
 
 async def get_current_user_id(authorization: str = Header(...)) -> str:
     """
@@ -470,6 +584,7 @@ async def get_read_pool() -> asyncpg.Pool:
 # Tenant context dependency
 # ---------------------------------------------------------------------------
 
+
 async def get_tenant_context(
     user_id: str = Depends(get_current_user_id),
     db: asyncpg.Pool = Depends(get_pool),
@@ -484,6 +599,7 @@ async def get_tenant_context(
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
+
 
 class ResumeParseResponse(BaseModel):
     user_id: str
@@ -528,6 +644,7 @@ class ApplicationDetailResponse(BaseModel):
 # M5: Answer Memory (Smart Pre-Fill) + User Dashboard
 # ---------------------------------------------------------------------------
 
+
 class SaveAnswerRequest(BaseModel):
     field_label: str
     field_type: str = "text"
@@ -564,7 +681,10 @@ async def save_answer_memory(
                ON CONFLICT (user_id, field_label)
                DO UPDATE SET answer_value = $4, use_count = answer_memory.use_count + 1,
                              last_used_at = now()""",
-            user_id, body.field_label, body.field_type, body.answer_value,
+            user_id,
+            body.field_label,
+            body.field_type,
+            body.answer_value,
         )
     return {"status": "saved"}
 
@@ -598,7 +718,17 @@ async def user_dashboard(
         )
 
     return {
-        **(dict(counts) if counts else {"active_count": 0, "hold_count": 0, "completed_today": 0, "completed_week": 0, "total_all_time": 0}),
+        **(
+            dict(counts)
+            if counts
+            else {
+                "active_count": 0,
+                "hold_count": 0,
+                "completed_today": 0,
+                "completed_week": 0,
+                "total_all_time": 0,
+            }
+        ),
         "recent": [dict(r) for r in recent],
     }
 
@@ -608,6 +738,7 @@ async def user_dashboard(
 # ---------------------------------------------------------------------------
 
 # -- 1. Resume Parse ---------------------------------------------------
+
 
 @app.post("/webhook/resume_parse", response_model=ResumeParseResponse)
 async def resume_parse(
@@ -622,6 +753,7 @@ async def resume_parse(
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
     from shared.config import get_settings as _get_settings
+
     _s = _get_settings()
     # Pre-check Content-Length header to reject before reading body into memory
     if file.size and file.size > _s.max_upload_size_bytes:
@@ -652,6 +784,7 @@ async def resume_parse(
 
 # -- 2. Resume Task (answer hold questions) ----------------------------
 
+
 @app.post("/agent/resume_task", response_model=ResumeTaskResponse)
 async def resume_task(
     body: ResumeTaskRequest,
@@ -669,7 +802,9 @@ async def resume_task(
             conn, body.application_id, ctx.user_id, tenant_id=ctx.tenant_id
         )
     if app_row is None:
-        raise HTTPException(status_code=404, detail="Application not found or not owned by user")
+        raise HTTPException(
+            status_code=404, detail="Application not found or not owned by user"
+        )
 
     if app_row["status"] not in ("REQUIRES_INPUT",):
         raise HTTPException(
@@ -686,28 +821,44 @@ async def resume_task(
 
         # Emit USER_ANSWERED event per answer
         for a in body.answers:
-            await EventRepo.emit(conn, body.application_id, "USER_ANSWERED", {
-                "input_id": a.input_id,
-                "answer": a.answer,
-            }, tenant_id=ctx.tenant_id)
+            await EventRepo.emit(
+                conn,
+                body.application_id,
+                "USER_ANSWERED",
+                {
+                    "input_id": a.input_id,
+                    "answer": a.answer,
+                },
+                tenant_id=ctx.tenant_id,
+            )
 
         # Re-queue so the worker picks it up
-        updated = await ApplicationRepo.update_status(conn, body.application_id, "QUEUED")
+        updated = await ApplicationRepo.update_status(
+            conn, body.application_id, "QUEUED"
+        )
         if updated is None:
             raise HTTPException(status_code=404, detail="Application not found")
 
         # Emit RETRY_SCHEDULED
-        await EventRepo.emit(conn, body.application_id, "RETRY_SCHEDULED", {
-            "answered_count": len(body.answers),
-        }, tenant_id=ctx.tenant_id)
+        await EventRepo.emit(
+            conn,
+            body.application_id,
+            "RETRY_SCHEDULED",
+            {
+                "answered_count": len(body.answers),
+            },
+            tenant_id=ctx.tenant_id,
+        )
 
         # Fetch remaining unresolved inputs for the response
         remaining = await InputRepo.get_unresolved(conn, body.application_id)
 
     # Server-side analytics: status changed
     await emit_analytics_event(
-        db, APPLICATION_STATUS_CHANGED,
-        tenant_id=ctx.tenant_id, user_id=ctx.user_id,
+        db,
+        APPLICATION_STATUS_CHANGED,
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
         properties={
             "application_id": body.application_id,
             "from_status": "REQUIRES_INPUT",
@@ -730,7 +881,9 @@ async def resume_task(
                 field_type=r["field_type"],
                 answer=r["answer"],
                 resolved=r["resolved"],
-                meta=json.loads(r["meta"]) if isinstance(r["meta"], str) else r.get("meta"),
+                meta=json.loads(r["meta"])
+                if isinstance(r["meta"], str)
+                else r.get("meta"),
             )
             for r in remaining
         ],
@@ -744,6 +897,7 @@ async def _nudge_worker(application_id: str) -> None:
 
 # -- 3. Debug endpoint -------------------------------------------------
 
+
 @app.get("/applications/{application_id}", response_model=ApplicationDetailResponse)
 async def get_application_detail(
     application_id: str = Path(...),
@@ -754,9 +908,12 @@ async def get_application_detail(
     Application detail endpoint scoped to the requesting user's tenant.
     """
     from shared.validators import validate_uuid
+
     validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
-        detail = await ApplicationRepo.get_detail(conn, application_id, tenant_id=ctx.tenant_id)
+        detail = await ApplicationRepo.get_detail(
+            conn, application_id, tenant_id=ctx.tenant_id
+        )
     if detail is None:
         raise HTTPException(status_code=404, detail="Application not found")
 
@@ -767,6 +924,7 @@ async def get_application_detail(
 # ---------------------------------------------------------------------------
 # Health checks
 # ---------------------------------------------------------------------------
+
 
 @app.get("/health")
 async def health() -> dict[str, str]:
@@ -779,7 +937,7 @@ async def healthz(
 ) -> dict[str, Any]:
     """Deep health check: pings DB and returns env + metrics summary."""
     from shared.circuit_breaker import get_all_circuit_breaker_statuses
-    
+
     s = get_settings()
     db_ok = False
     try:

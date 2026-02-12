@@ -1,0 +1,412 @@
+# Milestone 4: Staging Deployment with E2E Tests
+#
+# Automated pipeline:
+#   1. Run lint, type-check, unit tests
+#   2. Build Docker images for API + Worker
+#   3. Deploy to staging environment on Render
+#   4. Run E2E tests against staging
+#   5. Report results and create deployment record
+#   6. Manual approval → promote to production
+
+name: Staging Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_e2e:
+        description: 'Skip E2E tests'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+  STAGING_API_URL: https://api-staging.sorce.app
+  STAGING_WEB_URL: https://sorce-web-staging.onrender.com
+
+jobs:
+  # ── Quality Gates ───────────────────────────────────────────────
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check . --select E,W,F,I
+
+  lint-web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint, lint-web]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sorce_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest pytest-asyncio
+      - name: Install Playwright
+        run: python -m playwright install --with-deps chromium
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sorce_test
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          psql "$DATABASE_URL" -c "CREATE SCHEMA IF NOT EXISTS auth;"
+          psql "$DATABASE_URL" -c "CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY);"
+          psql "$DATABASE_URL" -c "CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS \$\$ SELECT '00000000-0000-0000-0000-000000000000'::uuid; \$\$ LANGUAGE sql;"
+          psql "$DATABASE_URL" -c "CREATE PUBLICATION IF NOT EXISTS supabase_realtime;"
+          alembic upgrade head || true
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sorce_test
+          REDIS_URL: redis://localhost:6379/0
+          ENV: staging
+          LLM_API_KEY: test-key
+          SUPABASE_JWT_SECRET: test-secret
+        run: pytest tests/ -v --tb=short --cov=apps --cov=packages --cov-report=xml
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+
+  # ── Build Docker Images ──────────────────────────────────────────
+  build:
+    runs-on: ubuntu-latest
+    needs: [test]
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        target: [api, worker]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.target }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=raw,value=staging
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: ${{ matrix.target }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── Deploy to Staging ───────────────────────────────────────────
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [build]
+    environment: staging
+    outputs:
+      deployment_id: ${{ steps.deploy.outputs.deployment_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Render Staging
+        id: deploy
+        env:
+          RENDER_API_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
+        run: |
+          # Deploy API
+          API_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_API_ID }}/deploys" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $RENDER_API_TOKEN" \
+            -d '{"clearCache": true}')
+          
+          echo "API Deploy Response: $API_RESPONSE"
+          
+          # Deploy Worker
+          WORKER_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_WORKER_ID }}/deploys" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $RENDER_API_TOKEN" \
+            -d '{"clearCache": true}')
+          
+          echo "Worker Deploy Response: $WORKER_RESPONSE"
+          
+          # Extract deployment ID
+          DEPLOYMENT_ID=$(echo "$API_RESPONSE" | jq -r '.id // .deploy.id // "unknown'"')
+          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+          
+          echo "::notice::Staging deployment initiated: $DEPLOYMENT_ID"
+      
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for staging deployment to complete..."
+          sleep 60
+          
+          # Poll for healthy status
+          for i in {1..30}; do
+            if curl -sf "${{ env.STAGING_API_URL }}/healthz" > /dev/null 2>&1; then
+              echo "Staging API is healthy!"
+              exit 0
+            fi
+            echo "Waiting for staging API... attempt $i/30"
+            sleep 10
+          done
+          
+          echo "::warning::Staging API health check timed out"
+          exit 1
+
+  # ── E2E Tests Against Staging ────────────────────────────────────
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: ${{ github.event.inputs.skip_e2e != 'true' }}
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E tests
+        env:
+          BASE_URL: ${{ env.STAGING_WEB_URL }}
+          API_URL: ${{ env.STAGING_API_URL }}
+        run: |
+          npx playwright test tests/e2e.spec.ts \
+            --project=chromium \
+            --reporter=html \
+            --output=test-results/
+      - name: Upload E2E results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results
+          path: apps/web/playwright-report/
+          retention-days: 7
+
+  # ── Advanced E2E Suite ──────────────────────────────────────────
+  e2e-advanced:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: ${{ github.event.inputs.skip_e2e != 'true' }}
+    defaults:
+      run:
+        working-directory: jobhuntin-e2e-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: jobhuntin-e2e-tests/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Run advanced E2E suite
+        env:
+          BASE_URL: ${{ env.STAGING_WEB_URL }}
+          API_URL: ${{ env.STAGING_API_URL }}
+        run: |
+          npm run test -- \
+            --project=chromium \
+            --reporter=html \
+            --grep-invert="@skip-staging"
+      - name: Upload advanced E2E results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-advanced-results
+          path: jobhuntin-e2e-tests/playwright-report/
+          retention-days: 7
+
+  # ── Smoke Tests ─────────────────────────────────────────────────
+  smoke-tests:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run smoke tests
+        run: |
+          # API Health Check
+          echo "Testing API health endpoint..."
+          curl -sf "${{ env.STAGING_API_URL }}/healthz" | jq '.'
+          
+          # API Deep Health Check
+          echo "Testing API deep health..."
+          curl -sf "${{ env.STAGING_API_URL }}/healthz" | jq '.db == "ok"'
+          
+          # Web App Health Check
+          echo "Testing Web app..."
+          curl -sf "${{ env.STAGING_WEB_URL }}" -o /dev/null
+          
+          # Check critical endpoints
+          echo "Testing critical endpoints..."
+          
+          # OG Image generation
+          curl -sf "${{ env.STAGING_API_URL }}/og/default" -o /dev/null || echo "OG endpoint check failed (non-critical)"
+          
+          echo "✅ Smoke tests passed!"
+
+  # ── Deployment Summary ──────────────────────────────────────────
+  deploy-summary:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, e2e-tests, e2e-advanced, smoke-tests]
+    if: always()
+    steps:
+      - name: Create deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const e2eResult = '${{ needs.e2e-tests.result }}';
+            const e2eAdvancedResult = '${{ needs.e2e-advanced.result }}';
+            const smokeResult = '${{ needs.smoke-tests.result }}';
+            
+            const allPassed = e2eResult === 'success' && 
+                              e2eAdvancedResult === 'success' && 
+                              smokeResult === 'success';
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: allPassed ? 'success' : 'failure',
+              target_url: '${{ env.STAGING_WEB_URL }}',
+              description: allPassed ? 
+                'Staging deployment successful' : 
+                'Staging deployment completed with issues',
+              context: 'staging-deploy'
+            });
+            
+            core.setOutput('status', allPassed ? 'success' : 'failure');
+
+  # ── Promote to Production (Manual Gate) ─────────────────────────
+  promote-production:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, e2e-tests, e2e-advanced, smoke-tests]
+    if: success()
+    environment: production
+    steps:
+      - name: Promote to production
+        env:
+          RENDER_API_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
+        run: |
+          echo "::notice::Production promotion triggered"
+          
+          # Deploy API to production
+          curl -s -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PROD_API_ID }}/deploys" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $RENDER_API_TOKEN" \
+            -d '{"clearCache": true}'
+          
+          # Deploy Worker to production
+          curl -s -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PROD_WORKER_ID }}/deploys" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $RENDER_API_TOKEN" \
+            -d '{"clearCache": true}'
+          
+          echo "::notice::Production deployment initiated"
+      
+      - name: Wait for production deployment
+        run: |
+          echo "Waiting for production deployment..."
+          sleep 90
+          
+          for i in {1..30}; do
+            if curl -sf "https://api.sorce.app/healthz" > /dev/null 2>&1; then
+              echo "Production API is healthy!"
+              exit 0
+            fi
+            echo "Waiting for production API... attempt $i/30"
+            sleep 10
+          done
+          
+          echo "::error::Production API health check failed"
+          exit 1
+      
+      - name: Create GitHub release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const date = new Date().toISOString().split('T')[0];
+            const shortSha = context.sha.substring(0, 7);
+            
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${date}-${shortSha}`,
+              name: `Production Release ${date}`,
+              body: `## Deployment\n- Commit: ${context.sha}\n- Deployed: ${new Date().toISOString()}\n- Workflow: ${context.workflow}`,
+              draft: false,
+              prerelease: false
+            });

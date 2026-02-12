@@ -196,3 +196,109 @@ export async function healthCheck(): Promise<HealthResponse> {
   const resp = await fetch(`${API_BASE_URL}/healthz`);
   return handleResponse<HealthResponse>(resp);
 }
+
+// ---------------------------------------------------------------------------
+// AI Endpoints
+// ---------------------------------------------------------------------------
+
+export interface SemanticMatchResponse {
+  job_id: string;
+  score: number;
+  semantic_similarity: number;
+  skill_match_ratio: number;
+  experience_alignment: number;
+  matched_skills: string[];
+  missing_skills: string[];
+  reasoning: string;
+  confidence: "low" | "medium" | "high";
+  passed_dealbreakers: boolean;
+  dealbreaker_reasons: string[];
+}
+
+export interface BatchSemanticMatchResult {
+  job_id: string;
+  score: number;
+  explanation: {
+    score: number;
+    semantic_similarity: number;
+    skill_match_ratio: number;
+    experience_alignment: number;
+    location_compatible: boolean;
+    salary_in_range: boolean;
+    matched_skills: string[];
+    missing_skills: string[];
+    reasoning: string;
+    confidence: "low" | "medium" | "high";
+  };
+  passed_dealbreakers: boolean;
+  dealbreaker_reasons: string[];
+}
+
+export interface BatchSemanticMatchResponse {
+  results: BatchSemanticMatchResult[];
+}
+
+export interface TailorResumeResponse {
+  original_summary: string;
+  tailored_summary: string;
+  highlighted_skills: string[];
+  emphasized_experiences: Record<string, unknown>[];
+  added_keywords: string[];
+  ats_optimization_score: number;
+  tailoring_confidence: string;
+}
+
+export interface ATSScoreResponse {
+  overall_score: number;
+  metrics: Record<string, number>;
+  recommendations: string[];
+}
+
+export async function semanticMatch(token: string, jobId: string): Promise<SemanticMatchResponse> {
+  const resp = await fetch(`${API_BASE_URL}/ai/semantic-match`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ job_id: jobId }),
+  });
+  return handleResponse<SemanticMatchResponse>(resp);
+}
+
+export async function batchSemanticMatch(
+  token: string,
+  profile: Record<string, unknown>,
+  jobs: Record<string, unknown>[],
+  dealbreakers?: Record<string, unknown>
+): Promise<BatchSemanticMatchResponse> {
+  const resp = await fetch(`${API_BASE_URL}/ai/semantic-match/batch`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ profile, jobs, dealbreakers }),
+  });
+  return handleResponse<BatchSemanticMatchResponse>(resp);
+}
+
+export async function tailorResume(
+  token: string,
+  profile: Record<string, unknown>,
+  job: Record<string, unknown>
+): Promise<TailorResumeResponse> {
+  const resp = await fetch(`${API_BASE_URL}/ai/tailor-resume`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ profile, job }),
+  });
+  return handleResponse<TailorResumeResponse>(resp);
+}
+
+export async function atsScore(
+  token: string,
+  resumeText: string,
+  jobDescription: string
+): Promise<ATSScoreResponse> {
+  const resp = await fetch(`${API_BASE_URL}/ai/ats-score`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ resume_text: resumeText, job_description: jobDescription }),
+  });
+  return handleResponse<ATSScoreResponse>(resp);
+}

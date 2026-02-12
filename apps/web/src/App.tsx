@@ -35,6 +35,16 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const About = React.lazy(() => import("./pages/About"));
 const Locations = React.lazy(() => import("./pages/Locations"));
 
+// AI Feature Pages
+const MatchesPage = React.lazy(() => import("./pages/app/matches"));
+const AITailorPage = React.lazy(() => import("./pages/app/ai-tailor"));
+const ATSScorePage = React.lazy(() => import("./pages/app/ats-score"));
+
+// Admin Pages
+const AdminUsagePage = React.lazy(() => import("./pages/admin/usage"));
+const AdminMatchesPage = React.lazy(() => import("./pages/admin/matches"));
+const AdminAlertsPage = React.lazy(() => import("./pages/admin/alerts"));
+
 // Dashboard sub-component wrappers for lazy loading
 const JobsViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.JobsView })));
 const ApplicationsViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.ApplicationsView })));
@@ -132,8 +142,19 @@ export default function App() {
               <Route path="applications" element={<React.Suspense fallback={<PageLoader />}><ApplicationsViewWrapper /></React.Suspense>} />
               <Route path="holds" element={<React.Suspense fallback={<PageLoader />}><HoldsViewWrapper /></React.Suspense>} />
               <Route path="team" element={<React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense>} />
-              <Route path="billing" element={<React.Suspense fallback={<PageLoader />}><BillingViewWrapper /></React.Suspense>} />
+<Route path="billing" element={<React.Suspense fallback={<PageLoader />}><BillingViewWrapper /></React.Suspense>} />
               <Route path="settings" element={<Settings />} />
+              
+              {/* AI Feature Routes */}
+              <Route path="matches" element={<React.Suspense fallback={<PageLoader />}><MatchesPage /></React.Suspense>} />
+              <Route path="tailor" element={<React.Suspense fallback={<PageLoader />}><AITailorPage /></React.Suspense>} />
+              <Route path="ats-score" element={<React.Suspense fallback={<PageLoader />}><ATSScorePage /></React.Suspense>} />
+              
+              {/* Admin Routes */}
+              <Route path="admin/usage" element={<React.Suspense fallback={<PageLoader />}><AdminUsagePage /></React.Suspense>} />
+              <Route path="admin/matches" element={<React.Suspense fallback={<PageLoader />}><AdminMatchesPage /></React.Suspense>} />
+              <Route path="admin/alerts" element={<React.Suspense fallback={<PageLoader />}><AdminAlertsPage /></React.Suspense>} />
+              
               <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
             </Route>
           </Route>

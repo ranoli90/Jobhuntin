@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, Zap, Shield, ArrowLeft, ArrowRight, HelpCircle } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, Zap, Shield, ArrowLeft, ArrowRight, HelpCircle, Building2, Ban, Globe, Users, AlertTriangle } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
@@ -12,15 +12,25 @@ interface PreferencesStepProps {
         location: string;
         role_type: string;
         salary_min: string;
+        salary_max?: string;
         remote_only: boolean;
+        onsite_only?: boolean;
         work_authorized: boolean;
+        visa_sponsorship?: boolean;
+        excluded_companies?: string[];
+        excluded_keywords?: string[];
     };
     setPreferences: React.Dispatch<React.SetStateAction<{
         location: string;
         role_type: string;
         salary_min: string;
+        salary_max?: string;
         remote_only: boolean;
+        onsite_only?: boolean;
         work_authorized: boolean;
+        visa_sponsorship?: boolean;
+        excluded_companies?: string[];
+        excluded_keywords?: string[];
     }>>;
     isSavingPreferences: boolean;
     aiSuggestions: any;
@@ -197,9 +207,125 @@ export function PreferencesStep({
                                     onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
                                     className="h-5 w-5 md:h-6 md:w-6 rounded-lg border-slate-300 text-primary-600 focus:ring-primary-500"
                                 />
-                            </label>
+                    </label>
+                </div>
+
+                {/* Dealbreaker Filters */}
+                <div className="pt-3 md:pt-6 border-t border-slate-100 mt-3 md:mt-8">
+                    <div className="flex items-center gap-2 mb-3 md:mb-4">
+                        <div className="w-1 h-1 rounded-full bg-red-500" />
+                        <label className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            {plainLanguage ? "Dealbreakers" : "Hard Filters"}
+                        </label>
+                        <HelpCircle className="w-3 h-3 text-slate-300 cursor-help" />
+                    </div>
+
+                    <div className="space-y-3">
+                        {/* Visa Sponsorship Toggle */}
+                        <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.visa_sponsorship ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-100'}`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${preferences.visa_sponsorship ? 'bg-blue-600 text-white' : 'bg-white text-slate-300'}`}>
+                                <Globe className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-xs font-bold text-slate-900">{plainLanguage ? "Need Visa Sponsorship?" : "Visa Sponsorship Required"}</p>
+                                <p className="text-[10px] text-slate-500">{plainLanguage ? "I need a company to sponsor my work visa" : "Filter for visa-sponsoring employers"}</p>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={preferences.visa_sponsorship || false}
+                                onChange={(e) => setPreferences((p) => ({ ...p, visa_sponsorship: e.target.checked }))}
+                                className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                        </label>
+
+                        {/* On-site Only Toggle */}
+                        <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.onsite_only ? 'bg-purple-50 border-purple-200' : 'bg-slate-50 border-slate-100'}`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${preferences.onsite_only ? 'bg-purple-600 text-white' : 'bg-white text-slate-300'}`}>
+                                <Building2 className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-xs font-bold text-slate-900">{plainLanguage ? "On-site Only" : "In-Office Required"}</p>
+                                <p className="text-[10px] text-slate-500">{plainLanguage ? "I want to work at the office" : "Filter for on-site positions"}</p>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={preferences.onsite_only || false}
+                                onChange={(e) => setPreferences((p) => ({ ...p, onsite_only: e.target.checked }))}
+                                className="h-5 w-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                            />
+                        </label>
+
+                        {/* Max Salary */}
+                        <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
+                                    <DollarSign className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-900">{plainLanguage ? "Maximum Salary" : "Salary Ceiling"}</p>
+                                    <p className="text-[10px] text-slate-500">{plainLanguage ? "Hide jobs above this amount" : "Upper salary bound filter"}</p>
+                                </div>
+                            </div>
+                            <Input
+                                type="number"
+                                placeholder="e.g., 300000"
+                                value={preferences.salary_max || ""}
+                                onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value }))}
+                                onClear={() => setPreferences((p) => ({ ...p, salary_max: "" }))}
+                                className="bg-white"
+                            />
+                        </div>
+
+                        {/* Excluded Companies */}
+                        <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
+                                    <Ban className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-900">{plainLanguage ? "Exclude Companies" : "Company Blocklist"}</p>
+                                    <p className="text-[10px] text-slate-500">{plainLanguage ? "Companies you don't want to apply to" : "Comma-separated company names"}</p>
+                                </div>
+                            </div>
+                            <Input
+                                type="text"
+                                placeholder="e.g., BadCorp, ToxicInc"
+                                value={(preferences.excluded_companies || []).join(", ")}
+                                onChange={(e) => setPreferences((p) => ({
+                                    ...p,
+                                    excluded_companies: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                }))}
+                                onClear={() => setPreferences((p) => ({ ...p, excluded_companies: [] }))}
+                                className="bg-white"
+                            />
+                        </div>
+
+                        {/* Excluded Keywords */}
+                        <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
+                                    <AlertTriangle className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-900">{plainLanguage ? "Exclude Keywords" : "Keyword Blocklist"}</p>
+                                    <p className="text-[10px] text-slate-500">{plainLanguage ? "Jobs with these words won't be shown" : "Comma-separated keywords to avoid"}</p>
+                                </div>
+                            </div>
+                            <Input
+                                type="text"
+                                placeholder="e.g., senior, lead, manager"
+                                value={(preferences.excluded_keywords || []).join(", ")}
+                                onChange={(e) => setPreferences((p) => ({
+                                    ...p,
+                                    excluded_keywords: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                }))}
+                                onClear={() => setPreferences((p) => ({ ...p, excluded_keywords: [] }))}
+                                className="bg-white"
+                            />
                         </div>
                     </div>
+                </div>
+            </div>
                 </div>
 
                 {/* Work Authorization */}

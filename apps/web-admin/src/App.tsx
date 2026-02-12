@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "./lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import DashboardPage from "./pages/DashboardPage";
+import Dashboard from "./pages/Dashboard";
 import MembersPage from "./pages/MembersPage";
 import UsagePage from "./pages/UsagePage";
 import InvitesPage from "./pages/InvitesPage";
@@ -21,6 +22,7 @@ interface NavLink { to: string; label: string; icon: string; section?: string }
 
 const NAV_LINKS: NavLink[] = [
   { to: "/", label: "Dashboard", icon: "📊" },
+  { to: "/monitoring", label: "Monitoring", icon: "📡", section: "Operations" },
   { to: "/members", label: "Members", icon: "👥" },
   { to: "/usage", label: "Usage & Billing", icon: "📈" },
   { to: "/invites", label: "Invites", icon: "✉️" },
@@ -98,6 +100,7 @@ export default function App() {
       <main className="flex-1 p-6 overflow-auto">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/monitoring" element={<Dashboard />} />
           <Route path="/members" element={<MembersPage />} />
           <Route path="/usage" element={<UsagePage />} />
           <Route path="/invites" element={<InvitesPage />} />

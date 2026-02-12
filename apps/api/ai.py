@@ -10,33 +10,37 @@ These endpoints provide AI-powered suggestions for:
 
 from __future__ import annotations
 
-from datetime import datetime
-import time
-from typing import Any
-
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
-
-from backend.llm import LLMClient
-from backend.llm.contracts import (
-    RoleSuggestionResponse_V1,
-    SalarySuggestionResponse_V1,
-    LocationSuggestionResponse_V1,
-    JobMatchScore_V1,
-    build_role_suggestion_prompt,
-    build_salary_suggestion_prompt,
-    build_location_suggestion_prompt,
-    build_location_suggestion_prompt,
-    build_job_match_prompt,
-    OnboardingQuestionsResponse_V1,
-    build_onboarding_questions_prompt,
-)
-from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
-import asyncpg
 import hashlib
 import json
+from datetime import datetime
+
+import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from shared.config import get_settings
 from shared.logging_config import get_logger
+
+from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
+from backend.llm import LLMClient
+from backend.llm.contracts import (
+    JobMatchScore_V1,
+    LocationSuggestionResponse_V1,
+    OnboardingQuestionsResponse_V1,
+    RoleSuggestionResponse_V1,
+    SalarySuggestionResponse_V1,
+    build_job_match_prompt,
+    build_location_suggestion_prompt,
+    build_onboarding_questions_prompt,
+    build_role_suggestion_prompt,
+    build_salary_suggestion_prompt,
+)
+from shared.ai_validation import (
+    validate_and_sanitize_ai_input,
+    sanitize_for_ai,
+    sanitize_dict_for_ai,
+    get_ai_rate_limiter,
+    ValidationResult,
+)
 
 logger = get_logger("sorce.api.ai")
 
@@ -57,9 +61,11 @@ async def _get_pool() -> asyncpg.Pool:
     """Dependency override required"""
     raise NotImplementedError
 
+
 async def _get_user_id() -> str:
     """Dependency override required"""
     raise NotImplementedError
+
 
 router = APIRouter(prefix="/ai", tags=["AI Suggestions"])
 
@@ -68,61 +74,59 @@ router = APIRouter(prefix="/ai", tags=["AI Suggestions"])
 # Input Sanitization for Prompt Injection Protection
 # ---------------------------------------------------------------------------
 
+
 def sanitize_input(text: str) -> str:
     """
     Sanitize user input to prevent prompt injection attacks.
-    
+
     Removes or escapes potentially dangerous patterns that could manipulate LLM behavior.
     """
     if not isinstance(text, str):
         return str(text)
-    
+
     # Remove or escape common prompt injection patterns
     dangerous_patterns = [
         # System prompt overrides
-        r'\n(system|assistant|human|user):',
-        r'\n### ',
-        r'\n## ',
-        r'\n# ',
-        
+        r"\n(system|assistant|human|user):",
+        r"\n### ",
+        r"\n## ",
+        r"\n# ",
         # Instruction overrides
-        r'ignore (previous|prior|all) instructions',
-        r'forget (previous|prior|all) instructions',
-        r'do not follow',
-        r'disregard',
-        
+        r"ignore (previous|prior|all) instructions",
+        r"forget (previous|prior|all) instructions",
+        r"do not follow",
+        r"disregard",
         # Role changes
-        r'you are (not|a)',
-        r'act as',
-        r'pretend to be',
-        
+        r"you are (not|a)",
+        r"act as",
+        r"pretend to be",
         # Output format changes
-        r'output (as|in) json',
-        r'respond (as|in|with) json',
-        r'format.*json',
-        
+        r"output (as|in) json",
+        r"respond (as|in|with) json",
+        r"format.*json",
         # Dangerous commands
-        r'execute',
-        r'run',
-        r'system',
-        r'command',
+        r"execute",
+        r"run",
+        r"system",
+        r"command",
     ]
-    
+
     sanitized = text
-    
+
     # Remove dangerous patterns (case insensitive)
     import re
+
     for pattern in dangerous_patterns:
-        sanitized = re.sub(pattern, '', sanitized, flags=re.IGNORECASE)
-    
+        sanitized = re.sub(pattern, "", sanitized, flags=re.IGNORECASE)
+
     # Limit length to prevent extremely long inputs
     max_length = 10000
     if len(sanitized) > max_length:
         sanitized = sanitized[:max_length] + "..."
-    
+
     # Escape remaining newlines that could break prompt structure
-    sanitized = sanitized.replace('\n\n', '\n').replace('\n\n', '\n')
-    
+    sanitized = sanitized.replace("\n\n", "\n").replace("\n\n", "\n")
+
     return sanitized.strip()
 
 
@@ -130,7 +134,7 @@ def sanitize_dict_input(data: dict) -> dict:
     """Recursively sanitize all string values in a dictionary."""
     if not isinstance(data, dict):
         return data
-    
+
     sanitized = {}
     for key, value in data.items():
         if isinstance(value, str):
@@ -144,7 +148,7 @@ def sanitize_dict_input(data: dict) -> dict:
             ]
         else:
             sanitized[key] = value
-    
+
     return sanitized
 
 
@@ -155,13 +159,16 @@ def sanitize_dict_input(data: dict) -> dict:
 # Request/Response Models
 # ---------------------------------------------------------------------------
 
+
 class RoleSuggestionRequest(BaseModel):
     """Request body for role suggestions."""
+
     profile: dict = Field(..., description="Parsed resume profile data")
 
 
 class SalarySuggestionRequest(BaseModel):
     """Request body for salary suggestions."""
+
     profile: dict = Field(..., description="Parsed resume profile data")
     target_role: str = Field(..., description="Target job role")
     location: str = Field(default="Remote", description="Preferred work location")
@@ -169,24 +176,28 @@ class SalarySuggestionRequest(BaseModel):
 
 class LocationSuggestionRequest(BaseModel):
     """Request body for location suggestions."""
+
     profile: dict = Field(..., description="Parsed resume profile data")
     current_location: str = Field(default="", description="Current location if any")
 
 
 class JobMatchRequest(BaseModel):
     """Request body for job match scoring."""
+
     profile: dict = Field(..., description="Parsed resume profile data")
     job: dict = Field(..., description="Job posting data")
 
 
 class BatchJobMatchRequest(BaseModel):
     """Request body for batch job match scoring."""
+
     profile: dict = Field(..., description="Parsed resume profile data")
     jobs: list[dict] = Field(..., description="List of job postings to score")
 
 
 class BatchJobMatchResponse(BaseModel):
     """Response for batch job match scoring."""
+
     matches: list[JobMatchScore_V1] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
 
@@ -225,27 +236,42 @@ class CoverLetterGenerationRequest(BaseModel):
 
 class OnboardingQuestionsRequest(BaseModel):
     """Request body for onboarding calibration questions."""
-    profile: dict = Field(..., description="Parsed resume profile data")
 
+    profile: dict = Field(..., description="Parsed resume profile data")
 
 
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.post("/onboarding-questions", response_model=OnboardingQuestionsResponse_V1)
 async def generate_onboarding_questions(
-    request: OnboardingQuestionsRequest,
-    user_id: str = Depends(_get_user_id)
+    request: OnboardingQuestionsRequest, user_id: str = Depends(_get_user_id)
 ) -> OnboardingQuestionsResponse_V1:
     """
     Generate strategic calibration questions based on the candidate's profile.
     """
+    validation_result = validate_and_sanitize_ai_input(
+        profile=request.profile,
+        user_id=user_id,
+        tier="FREE",
+    )
+    if not validation_result.is_valid:
+        raise HTTPException(status_code=400, detail=validation_result.error_message)
+
+    if validation_result.warnings:
+        logger.info(
+            "Onboarding questions validation warnings: %s", validation_result.warnings
+        )
+
     client = _get_llm_client()
-    
-    # Sanitize inputs
     from backend.domain.masking import strip_pii_for_llm
-    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
+
+    sanitized_data = validation_result.sanitized_input
+    sanitized_profile = strip_pii_for_llm(
+        sanitized_data.get("profile", request.profile)
+    )
 
     try:
         prompt = build_onboarding_questions_prompt(sanitized_profile)
@@ -261,26 +287,40 @@ async def generate_onboarding_questions(
 
 
 @router.post("/suggest-roles", response_model=RoleSuggestionResponse_V1)
-async def suggest_roles(request: RoleSuggestionRequest, user_id: str = Depends(_get_user_id)) -> RoleSuggestionResponse_V1:
+async def suggest_roles(
+    request: RoleSuggestionRequest, user_id: str = Depends(_get_user_id)
+) -> RoleSuggestionResponse_V1:
     """
     Get AI-suggested job roles based on parsed resume profile.
-    
+
     This analyzes the candidate's experience, skills, and career progression
     to suggest the most suitable job titles and experience level.
     """
+    validation_result = validate_and_sanitize_ai_input(
+        profile=request.profile,
+        user_id=user_id,
+        tier="FREE",
+    )
+    if not validation_result.is_valid:
+        raise HTTPException(status_code=400, detail=validation_result.error_message)
+
     client = _get_llm_client()
-    
-    # Sanitize inputs to prevent prompt injection
     from backend.domain.masking import strip_pii_for_llm
-    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
-    
+
+    sanitized_data = validation_result.sanitized_input
+    sanitized_profile = strip_pii_for_llm(
+        sanitized_data.get("profile", request.profile)
+    )
+
     try:
         prompt = build_role_suggestion_prompt(sanitized_profile)
         result = await client.call(
             prompt=prompt,
             response_format=RoleSuggestionResponse_V1,
         )
-        logger.info("Role suggestion generated", extra={"confidence": result.confidence})
+        logger.info(
+            "Role suggestion generated", extra={"confidence": result.confidence}
+        )
         return result
     except Exception as exc:
         logger.error("Role suggestion failed: %s", exc)
@@ -288,21 +328,24 @@ async def suggest_roles(request: RoleSuggestionRequest, user_id: str = Depends(_
 
 
 @router.post("/suggest-salary", response_model=SalarySuggestionResponse_V1)
-async def suggest_salary(request: SalarySuggestionRequest, user_id: str = Depends(_get_user_id)) -> SalarySuggestionResponse_V1:
+async def suggest_salary(
+    request: SalarySuggestionRequest, user_id: str = Depends(_get_user_id)
+) -> SalarySuggestionResponse_V1:
     """
     Get AI-suggested salary range based on role, location, and skills.
-    
+
     This estimates a competitive salary range by analyzing the candidate's
     experience, skill rarity, and location market rates.
     """
     client = _get_llm_client()
-    
+
     # Sanitize inputs and strip PII before sending to external LLM
     from backend.domain.masking import strip_pii_for_llm
+
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_target_role = sanitize_input(request.target_role)
     sanitized_location = sanitize_input(request.location)
-    
+
     try:
         prompt = build_salary_suggestion_prompt(
             sanitized_profile,
@@ -319,7 +362,7 @@ async def suggest_salary(request: SalarySuggestionRequest, user_id: str = Depend
                 "min": result.min_salary,
                 "max": result.max_salary,
                 "confidence": result.confidence,
-            }
+            },
         )
         return result
     except Exception as exc:
@@ -328,19 +371,22 @@ async def suggest_salary(request: SalarySuggestionRequest, user_id: str = Depend
 
 
 @router.post("/suggest-locations", response_model=LocationSuggestionResponse_V1)
-async def suggest_locations(request: LocationSuggestionRequest, user_id: str = Depends(_get_user_id)) -> LocationSuggestionResponse_V1:
+async def suggest_locations(
+    request: LocationSuggestionRequest, user_id: str = Depends(_get_user_id)
+) -> LocationSuggestionResponse_V1:
     """
     Get AI-suggested work locations based on skills and job market.
-    
+
     This analyzes where the candidate's skills are most in-demand and
     evaluates remote work viability for their role type.
     """
     client = _get_llm_client()
-    
+
     # Strip PII before sending to external LLM
     from backend.domain.masking import strip_pii_for_llm
+
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
-    
+
     try:
         prompt = build_location_suggestion_prompt(
             sanitized_profile,
@@ -352,7 +398,7 @@ async def suggest_locations(request: LocationSuggestionRequest, user_id: str = D
         )
         logger.info(
             "Location suggestion generated",
-            extra={"remote_score": result.remote_friendly_score}
+            extra={"remote_score": result.remote_friendly_score},
         )
         return result
     except Exception as exc:
@@ -362,25 +408,28 @@ async def suggest_locations(request: LocationSuggestionRequest, user_id: str = D
 
 @router.post("/match-job", response_model=JobMatchScore_V1)
 async def match_job(
-    request: JobMatchRequest, 
+    request: JobMatchRequest,
     user_id: str = Depends(_get_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> JobMatchScore_V1:
     """
     Get AI-generated match score between candidate and a single job.
-    
+
     Returns a 0-100 score with detailed breakdowns for skill match,
     experience match, location compatibility, and any red flags.
     """
     # Sanitize inputs and strip PII before sending to external LLM
     from backend.domain.masking import strip_pii_for_llm
+
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
 
     # Check cache
     job_id = sanitized_job.get("id")
-    profile_hash = hashlib.sha256(json.dumps(sanitized_profile, sort_keys=True).encode()).hexdigest()
-    
+    profile_hash = hashlib.sha256(
+        json.dumps(sanitized_profile, sort_keys=True).encode()
+    ).hexdigest()
+
     if job_id:
         async with db.acquire() as conn:
             cached = await JobMatchCacheRepo.get(conn, str(job_id), profile_hash)
@@ -389,7 +438,7 @@ async def match_job(
                 return JobMatchScore_V1(**cached)
 
     client = _get_llm_client()
-    
+
     try:
         prompt = build_job_match_prompt(sanitized_profile, sanitized_job)
         result = await client.call(
@@ -398,13 +447,15 @@ async def match_job(
         )
         logger.info(
             "Job match scored",
-            extra={"score": result.score, "summary": result.summary[:50]}
+            extra={"score": result.score, "summary": result.summary[:50]},
         )
-        
+
         # Cache result
         if job_id:
             async with db.acquire() as conn:
-                await JobMatchCacheRepo.put(conn, str(job_id), profile_hash, result.model_dump(mode="json"))
+                await JobMatchCacheRepo.put(
+                    conn, str(job_id), profile_hash, result.model_dump(mode="json")
+                )
 
         return result
     except Exception as exc:
@@ -414,37 +465,39 @@ async def match_job(
 
 @router.post("/match-jobs-batch", response_model=BatchJobMatchResponse)
 async def match_jobs_batch(
-    request: BatchJobMatchRequest, 
+    request: BatchJobMatchRequest,
     user_id: str = Depends(_get_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> BatchJobMatchResponse:
     """
     Score multiple jobs against a candidate profile in batch.
-    
+
     This is more efficient than calling match-job repeatedly.
     Jobs are processed sequentially to avoid rate limits.
     Maximum 20 jobs per batch.
     """
     if len(request.jobs) > 20:
         raise HTTPException(
-            status_code=400,
-            detail="Maximum 20 jobs per batch. Split your request."
+            status_code=400, detail="Maximum 20 jobs per batch. Split your request."
         )
-    
+
     client = _get_llm_client()
-    
+
     # Sanitize inputs and strip PII before sending to external LLM
     from backend.domain.masking import strip_pii_for_llm
+
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_jobs = [sanitize_dict_input(job) for job in request.jobs]
-    profile_hash = hashlib.sha256(json.dumps(sanitized_profile, sort_keys=True).encode()).hexdigest()
-    
+    profile_hash = hashlib.sha256(
+        json.dumps(sanitized_profile, sort_keys=True).encode()
+    ).hexdigest()
+
     matches: list[JobMatchScore_V1] = []
     errors: list[str] = []
-    
+
     for i, job in enumerate(sanitized_jobs):
         job_id = job.get("id")
-        
+
         # Check cache first
         if job_id:
             async with db.acquire() as conn:
@@ -460,31 +513,278 @@ async def match_jobs_batch(
                 response_format=JobMatchScore_V1,
             )
             matches.append(result)
-            
+
             # Cache result
             if job_id:
                 async with db.acquire() as conn:
-                    await JobMatchCacheRepo.put(conn, str(job_id), profile_hash, result.model_dump(mode="json"))
+                    await JobMatchCacheRepo.put(
+                        conn, str(job_id), profile_hash, result.model_dump(mode="json")
+                    )
 
         except Exception as exc:
             job_label = job_id or f"job_{i}"
             errors.append(f"{job_label}: {exc}")
             logger.warning("Batch job match failed for %s: %s", job_label, exc)
-    
+
     logger.info(
         "Batch job matching complete",
-        extra={"matched": len(matches), "errors": len(errors)}
+        extra={"matched": len(matches), "errors": len(errors)},
     )
-    
+
     return BatchJobMatchResponse(matches=matches, errors=errors)
+
+
+# ---------------------------------------------------------------------------
+# Semantic Matching with Vector Embeddings
+# ---------------------------------------------------------------------------
+
+
+class SemanticMatchRequest(BaseModel):
+    """Request for semantic job matching."""
+
+    profile: dict[str, Any] = Field(..., description="Candidate profile")
+    job: dict[str, Any] = Field(..., description="Job to match against")
+    min_salary: int | None = Field(
+        default=None, description="Minimum salary requirement"
+    )
+    max_salary: int | None = Field(
+        default=None, description="Maximum salary expectation"
+    )
+    preferred_locations: list[str] = Field(
+        default_factory=list, description="Preferred work locations"
+    )
+    remote_only: bool = Field(default=False, description="Only match remote jobs")
+
+
+class SemanticMatchResponse(BaseModel):
+    """Response with semantic match score and explanation."""
+
+    job_id: str
+    score: float = Field(ge=0.0, le=1.0, description="Overall match score 0-1")
+    semantic_similarity: float = Field(
+        ge=0.0, le=1.0, description="Vector embedding similarity"
+    )
+    skill_match_ratio: float = Field(
+        ge=0.0, le=1.0, description="Ratio of matched skills"
+    )
+    experience_alignment: float = Field(
+        ge=0.0, le=1.0, description="Experience level alignment"
+    )
+    matched_skills: list[str] = Field(
+        default_factory=list, description="Skills found in both profile and job"
+    )
+    missing_skills: list[str] = Field(
+        default_factory=list, description="Skills required by job but not in profile"
+    )
+    reasoning: str = Field(..., description="Human-readable explanation")
+    confidence: str = Field(..., description="Confidence level: low, medium, high")
+    passed_dealbreakers: bool = Field(
+        default=True, description="Whether job passes all dealbreakers"
+    )
+    dealbreaker_reasons: list[str] = Field(
+        default_factory=list, description="Reasons for failing dealbreakers"
+    )
+
+
+@router.post("/semantic-match", response_model=SemanticMatchResponse)
+async def semantic_match_job(
+    request: SemanticMatchRequest,
+    user_id: str = Depends(_get_user_id),
+) -> SemanticMatchResponse:
+    """
+    Compute semantic match score using vector embeddings.
+
+    This is the "Precision Matcher" implementation that:
+    - Uses text embeddings for semantic similarity
+    - Applies skill matching heuristics
+    - Checks dealbreaker constraints (salary, location)
+    - Returns explainable reasoning for each match
+
+    This endpoint provides higher accuracy than keyword-based
+    matching and matches the capabilities of ApplyPass/JobRight.
+    """
+    from backend.domain.semantic_matching import (
+        Dealbreakers,
+        get_matching_service,
+    )
+    from backend.domain.masking import strip_pii_for_llm
+
+    # Strip PII from profile before processing
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
+    sanitized_job = sanitize_dict_input(request.job)
+
+    # Build dealbreakers from request
+    dealbreakers = Dealbreakers(
+        min_salary=request.min_salary,
+        max_salary=request.max_salary,
+        locations=request.preferred_locations,
+        remote_only=request.remote_only,
+    )
+
+    # Get matching service
+    service = get_matching_service()
+
+    try:
+        result = await service.compute_match_score(
+            profile=sanitized_profile,
+            job=sanitized_job,
+            dealbreakers=dealbreakers,
+        )
+
+        logger.info(
+            "Semantic match computed",
+            extra={
+                "job_id": result.job_id,
+                "score": result.score,
+                "passed": result.passed_dealbreakers,
+            },
+        )
+
+        return SemanticMatchResponse(
+            job_id=result.job_id,
+            score=result.score,
+            semantic_similarity=result.explanation.semantic_similarity,
+            skill_match_ratio=result.explanation.skill_match_ratio,
+            experience_alignment=result.explanation.experience_alignment,
+            matched_skills=result.explanation.matched_skills,
+            missing_skills=result.explanation.missing_skills,
+            reasoning=result.explanation.reasoning,
+            confidence=result.explanation.confidence,
+            passed_dealbreakers=result.passed_dealbreakers,
+            dealbreaker_reasons=result.dealbreaker_reasons,
+        )
+    except Exception as exc:
+        logger.error("Semantic matching failed: %s", exc)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Semantic matching failed: {exc}",
+        )
+
+
+class BatchSemanticMatchRequest(BaseModel):
+    """Request for batch semantic matching."""
+
+    profile: dict[str, Any] = Field(..., description="Candidate profile")
+    jobs: list[dict[str, Any]] = Field(
+        ..., max_length=20, description="Jobs to match (max 20)"
+    )
+    dealbreakers: dict[str, Any] = Field(
+        default_factory=dict, description="Dealbreaker preferences"
+    )
+
+
+class BatchSemanticMatchResult(BaseModel):
+    """Result for a single job in batch matching."""
+
+    job_id: str
+    score: float = Field(ge=0.0, le=1.0)
+    explanation: dict[str, Any]
+    passed_dealbreakers: bool = True
+    dealbreaker_reasons: list[str] = Field(default_factory=list)
+
+
+class BatchSemanticMatchResponse(BaseModel):
+    """Response for batch semantic matching."""
+
+    results: list[BatchSemanticMatchResult]
+
+
+@router.post("/semantic-match/batch", response_model=BatchSemanticMatchResponse)
+async def semantic_match_batch(
+    request: BatchSemanticMatchRequest,
+    user_id: str = Depends(_get_user_id),
+) -> BatchSemanticMatchResponse:
+    """
+    Batch semantic matching for multiple jobs.
+
+    Processes up to 20 jobs in a single request for efficiency.
+    Returns match scores with explanations for each job.
+    """
+    from backend.domain.semantic_matching import (
+        Dealbreakers,
+        get_matching_service,
+    )
+    from backend.domain.masking import strip_pii_for_llm
+
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
+
+    dealbreaker_prefs = request.dealbreakers or {}
+    dealbreakers = Dealbreakers(
+        min_salary=dealbreaker_prefs.get("min_salary"),
+        max_salary=dealbreaker_prefs.get("max_salary"),
+        locations=dealbreaker_prefs.get("locations", []),
+        remote_only=dealbreaker_prefs.get("remote_only", False),
+        onsite_only=dealbreaker_prefs.get("onsite_only", False),
+        visa_sponsorship_required=dealbreaker_prefs.get(
+            "visa_sponsorship_required", False
+        ),
+        excluded_companies=dealbreaker_prefs.get("excluded_companies", []),
+        excluded_keywords=dealbreaker_prefs.get("excluded_keywords", []),
+    )
+
+    service = get_matching_service()
+    results: list[BatchSemanticMatchResult] = []
+
+    for job in request.jobs[:20]:
+        sanitized_job = sanitize_dict_input(job)
+        try:
+            result = await service.compute_match_score(
+                profile=sanitized_profile,
+                job=sanitized_job,
+                dealbreakers=dealbreakers,
+            )
+            results.append(
+                BatchSemanticMatchResult(
+                    job_id=result.job_id,
+                    score=result.score,
+                    explanation={
+                        "score": result.explanation.score,
+                        "semantic_similarity": result.explanation.semantic_similarity,
+                        "skill_match_ratio": result.explanation.skill_match_ratio,
+                        "experience_alignment": result.explanation.experience_alignment,
+                        "location_compatible": result.explanation.location_compatible,
+                        "salary_in_range": result.explanation.salary_in_range,
+                        "matched_skills": result.explanation.matched_skills,
+                        "missing_skills": result.explanation.missing_skills,
+                        "reasoning": result.explanation.reasoning,
+                        "confidence": result.explanation.confidence,
+                    },
+                    passed_dealbreakers=result.passed_dealbreakers,
+                    dealbreaker_reasons=result.dealbreaker_reasons,
+                )
+            )
+        except Exception as exc:
+            logger.warning("Failed to match job %s: %s", job.get("id", "unknown"), exc)
+            results.append(
+                BatchSemanticMatchResult(
+                    job_id=str(job.get("id", "")),
+                    score=0.0,
+                    explanation={
+                        "reasoning": f"Matching failed: {exc}",
+                        "confidence": "low",
+                    },
+                    passed_dealbreakers=False,
+                    dealbreaker_reasons=[f"Matching error: {exc}"],
+                )
+            )
+
+    logger.info(
+        "Batch semantic match completed",
+        extra={"user_id": user_id, "jobs_matched": len(results)},
+    )
+
+    return BatchSemanticMatchResponse(results=results)
 
 
 # ---------------------------------------------------------------------------
 # Cover Letter Templates and Storage
 # ---------------------------------------------------------------------------
 
+
 @router.get("/cover-letters/templates", response_model=list[CoverLetterTemplate])
-async def list_cover_letter_templates(user_id: str = Depends(_get_user_id)) -> list[CoverLetterTemplate]:
+async def list_cover_letter_templates(
+    user_id: str = Depends(_get_user_id),
+) -> list[CoverLetterTemplate]:
     """Get available cover letter templates."""
     # For now, return hardcoded templates
     # In production, this would fetch from database
@@ -518,8 +818,14 @@ I am writing to express my interest in the [Job Title] position at [Company Name
 
 Sincerely,
 [Your Name]""",
-            variables=["hiring_manager_name", "company_name", "job_title", "your_field", "key_skills"],
-            is_default=True
+            variables=[
+                "hiring_manager_name",
+                "company_name",
+                "job_title",
+                "your_field",
+                "key_skills",
+            ],
+            is_default=True,
         ),
         CoverLetterTemplate(
             id="creative_modern",
@@ -549,11 +855,21 @@ Let's connect and explore how my [key strength] can drive [company goal/outcome]
 
 Best regards,
 [Your Name]""",
-            variables=["hook", "job_title", "company_name", "years_experience", "your_field", "relevant_topic", "key_strength", "company_goal"],
-            is_default=False
-        )
+            variables=[
+                "hook",
+                "job_title",
+                "company_name",
+                "years_experience",
+                "your_field",
+                "relevant_topic",
+                "key_strength",
+                "company_goal",
+            ],
+            is_default=False,
+        ),
     ]
     return templates
+
 
 @router.get("/cover-letters", response_model=list[GeneratedCoverLetter])
 async def list_generated_cover_letters(
@@ -563,7 +879,7 @@ async def list_generated_cover_letters(
     """Get user's generated cover letters."""
     async with db.acquire() as conn:
         rows = await CoverLetterRepo.list_by_user(conn, user_id)
-    
+
     return [
         GeneratedCoverLetter(
             id=str(r["id"]),
@@ -574,11 +890,14 @@ async def list_generated_cover_letters(
             word_count=len(r["content"].split()),
             quality_score=r["quality_score"] or 0.0,
             suggestions=json.loads(r["suggestions"]) if r["suggestions"] else [],
-            generated_at=r["created_at"].isoformat() if r["created_at"] else datetime.now().isoformat(),
-            is_bookmarked=r.get("is_bookmarked", False)
+            generated_at=r["created_at"].isoformat()
+            if r["created_at"]
+            else datetime.now().isoformat(),
+            is_bookmarked=r.get("is_bookmarked", False),
         )
         for r in rows
     ]
+
 
 @router.post("/cover-letters/generate", response_model=GeneratedCoverLetter)
 async def generate_cover_letter_enhanced(
@@ -588,11 +907,12 @@ async def generate_cover_letter_enhanced(
 ) -> GeneratedCoverLetter:
     """Generate a personalized cover letter (enhanced endpoint)."""
     client = _get_llm_client()
-    
+
     try:
         # Fetch the user's actual profile for personalized cover letter generation
         # Strip PII (email, phone, URLs) before building the LLM prompt
         from backend.domain.masking import strip_pii_for_llm
+
         profile_summary = "No profile available"
         async with db.acquire() as conn:
             profile_data = await ProfileRepo.get_profile_data(conn, user_id)
@@ -662,7 +982,7 @@ User profile: {profile_summary}
 Tone: {request.tone}
 Length: {request.length}
 
-Focus areas: {', '.join(request.focus_areas) if request.focus_areas else 'technical skills, experience, fit'}
+Focus areas: {", ".join(request.focus_areas) if request.focus_areas else "technical skills, experience, fit"}
 
 Make it specific to the job and company. Keep it professional and concise."""
 
@@ -670,7 +990,7 @@ Make it specific to the job and company. Keep it professional and concise."""
             prompt=prompt,
             response_format=CoverLetterResponse_V1,
         )
-        
+
         # Create enhanced response
         # Save to DB
         async with db.acquire() as conn:
@@ -682,7 +1002,10 @@ Make it specific to the job and company. Keep it professional and concise."""
                 template_id=request.template_id,
                 tone=request.tone,
                 quality_score=0.85,
-                suggestions=["Consider adding more specific metrics", "Tailor the closing paragraph"],
+                suggestions=[
+                    "Consider adding more specific metrics",
+                    "Tailor the closing paragraph",
+                ],
             )
 
         return GeneratedCoverLetter(
@@ -693,9 +1016,11 @@ Make it specific to the job and company. Keep it professional and concise."""
             tone=saved["tone"],
             word_count=len(saved["content"].split()),
             quality_score=saved["quality_score"],
-            suggestions=json.loads(saved["suggestions"]) if saved["suggestions"] else [],
+            suggestions=json.loads(saved["suggestions"])
+            if saved["suggestions"]
+            else [],
             generated_at=saved["created_at"].isoformat(),
-            is_bookmarked=saved["is_bookmarked"]
+            is_bookmarked=saved["is_bookmarked"],
         )
     except Exception as exc:
         logger.error("Enhanced cover letter generation failed: %s", exc)
@@ -706,11 +1031,15 @@ Make it specific to the job and company. Keep it professional and concise."""
 # Cover Letter Generation
 # ---------------------------------------------------------------------------
 
+
 class CoverLetterRequest(BaseModel):
     """Request body for cover letter generation."""
+
     profile: dict = Field(..., description="Parsed resume profile data")
     job: dict = Field(..., description="Job posting data")
-    tone: str = Field(default="professional", description="Tone: professional, enthusiastic, creative")
+    tone: str = Field(
+        default="professional", description="Tone: professional, enthusiastic, creative"
+    )
 
 
 from backend.llm.contracts import (
@@ -718,23 +1047,25 @@ from backend.llm.contracts import (
     build_cover_letter_prompt,
 )
 
+
 @router.post("/generate-cover-letter", response_model=CoverLetterResponse_V1)
-async def generate_cover_letter(request: CoverLetterRequest, user_id: str = Depends(_get_user_id)) -> CoverLetterResponse_V1:
+async def generate_cover_letter(
+    request: CoverLetterRequest, user_id: str = Depends(_get_user_id)
+) -> CoverLetterResponse_V1:
     """
     Generate a personalized cover letter for a specific job.
     """
     client = _get_llm_client()
-    
+
     # Sanitize and strip PII before sending to external LLM
     from backend.domain.masking import strip_pii_for_llm
+
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
-    
+
     try:
         prompt = build_cover_letter_prompt(
-            sanitized_profile,
-            sanitized_job,
-            request.tone
+            sanitized_profile, sanitized_job, request.tone
         )
         result = await client.call(
             prompt=prompt,
@@ -746,3 +1077,119 @@ async def generate_cover_letter(request: CoverLetterRequest, user_id: str = Depe
         logger.error("Cover letter generation failed: %s", exc)
         raise HTTPException(status_code=500, detail=f"AI generation failed: {exc}")
 
+
+class TailorResumeRequest(BaseModel):
+    """Request body for resume tailoring."""
+
+    profile: dict = Field(..., description="Parsed resume profile data")
+    job: dict = Field(..., description="Job posting data")
+    match_explanation: dict | None = Field(
+        default=None, description="Optional semantic match explanation"
+    )
+
+
+class TailorResumeResponse(BaseModel):
+    """Response for resume tailoring."""
+
+    original_summary: str
+    tailored_summary: str
+    highlighted_skills: list[str]
+    emphasized_experiences: list[dict]
+    added_keywords: list[str]
+    ats_optimization_score: float
+    tailoring_confidence: str
+
+
+@router.post("/tailor-resume", response_model=TailorResumeResponse)
+async def tailor_resume(
+    request: TailorResumeRequest, user_id: str = Depends(_get_user_id)
+) -> TailorResumeResponse:
+    """
+    Dynamically tailor a resume for a specific job application.
+
+    This endpoint:
+    1. Analyzes job requirements
+    2. Prioritizes relevant skills and experience
+    3. Generates a tailored summary
+    4. Computes ATS optimization score
+    """
+    from backend.domain.resume_tailoring import get_tailoring_service
+    from backend.domain.masking import strip_pii_for_llm
+
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
+    sanitized_job = sanitize_dict_input(request.job)
+
+    try:
+        service = get_tailoring_service()
+        result = await service.tailor_resume(
+            profile=sanitized_profile,
+            job=sanitized_job,
+            match_explanation=request.match_explanation,
+        )
+        logger.info("Resume tailored for job: %s", sanitized_job.get("id", "unknown"))
+        return TailorResumeResponse(
+            original_summary=result.original_summary,
+            tailored_summary=result.tailored_summary,
+            highlighted_skills=result.highlighted_skills,
+            emphasized_experiences=result.emphasized_experiences,
+            added_keywords=result.added_keywords,
+            ats_optimization_score=result.ats_optimization_score,
+            tailoring_confidence=result.tailoring_confidence,
+        )
+    except Exception as exc:
+        logger.error("Resume tailoring failed: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Resume tailoring failed: {exc}")
+
+
+class ATSScoreRequest(BaseModel):
+    """Request body for ATS scoring."""
+
+    resume_text: str = Field(..., description="Plain text resume content")
+    job_description: str = Field(..., description="Job posting description")
+
+
+class ATSScoreResponse(BaseModel):
+    """Response for ATS scoring."""
+
+    overall_score: float
+    metrics: dict[str, float]
+    recommendations: list[str]
+
+
+@router.post("/ats-score", response_model=ATSScoreResponse)
+async def compute_ats_score(
+    request: ATSScoreRequest, user_id: str = Depends(_get_user_id)
+) -> ATSScoreResponse:
+    """
+    Compute comprehensive ATS score for a resume against a job description.
+
+    Implements 23 scoring metrics for ATS optimization analysis.
+    """
+    from backend.domain.resume_tailoring import ATSScorer
+
+    try:
+        scores = await ATSScorer.score_resume(
+            resume_text=request.resume_text,
+            job_description=request.job_description,
+        )
+        overall = ATSScorer.compute_overall_score(scores)
+
+        recommendations = []
+        if scores.get("keyword_match", 1.0) < 0.5:
+            recommendations.append("Add more keywords from the job description")
+        if scores.get("skills_relevance", 1.0) < 0.5:
+            recommendations.append("Highlight relevant technical skills")
+        if scores.get("experience_alignment", 1.0) < 0.5:
+            recommendations.append("Emphasize relevant work experience")
+        if scores.get("quantifiable_achievements", 1.0) < 0.5:
+            recommendations.append("Add quantifiable achievements with metrics")
+
+        logger.info("ATS score computed: %.2f", overall)
+        return ATSScoreResponse(
+            overall_score=overall,
+            metrics=scores,
+            recommendations=recommendations,
+        )
+    except Exception as exc:
+        logger.error("ATS scoring failed: %s", exc)
+        raise HTTPException(status_code=500, detail=f"ATS scoring failed: {exc}")
