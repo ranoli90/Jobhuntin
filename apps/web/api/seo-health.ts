@@ -1,4 +1,4 @@
-import { getHealth } from './scripts/seo/supabase-checkpoint.js';
+import { getHealth } from '../scripts/seo/supabase-checkpoint.js';
 
 export default async function handler(req: Request) {
   try {
