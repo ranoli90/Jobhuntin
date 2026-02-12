@@ -102,6 +102,7 @@ def _metric_key(name: str, tags: dict[str, str] | None) -> str:
 # Sliding-window rate limiter (in-process, approximate)
 # ---------------------------------------------------------------------------
 
+
 class RateLimiter:
     """
     Sliding-window rate limiter with Redis backend support (async) and in-memory fallback.
@@ -112,7 +113,9 @@ class RateLimiter:
             # back off
     """
 
-    def __init__(self, max_calls: int, window_seconds: float = 60.0, name: str | None = None):
+    def __init__(
+        self, max_calls: int, window_seconds: float = 60.0, name: str | None = None
+    ):
         self.name = name
         self.max_calls = max_calls
         self.window = int(window_seconds)
@@ -151,11 +154,13 @@ class RateLimiter:
             return self.allow()
 
         from shared.config import get_settings
+
         s = get_settings()
         if not s.redis_url:
             return self.allow()
 
         from shared.redis_client import get_redis
+
         try:
             client = await get_redis()
             now = time.time()
@@ -164,8 +169,8 @@ class RateLimiter:
 
             result = await client.eval(
                 self._LUA_SLIDING_WINDOW,
-                1,       # number of KEYS
-                key,     # KEYS[1]
+                1,  # number of KEYS
+                key,  # KEYS[1]
                 str(now),
                 str(cutoff),
                 str(self.max_calls),
@@ -194,7 +199,7 @@ class RateLimiter:
             return True
 
     def current_count(self) -> int:
-        # Note: accurate only for in-memory or one node. 
+        # Note: accurate only for in-memory or one node.
         # For Redis, one should query Redis, but we keep this simple.
         now = time.monotonic()
         with self._lock:
@@ -209,10 +214,10 @@ class RateLimiter:
             cutoff = now - self.window
             # Prune first
             self._timestamps = [t for t in self._timestamps if t > cutoff]
-            
+
             if len(self._timestamps) < self.max_calls:
                 return 0.0
-            
+
             # If full, the next slot opens when the oldest timestamp expires
             oldest = self._timestamps[0]
             # Expiration time is oldest + window
@@ -240,14 +245,51 @@ def get_rate_limiter(
     with _rate_limiter_lock:
         limiter = _rate_limiters.get(name)
         if limiter is None:
-            limiter = RateLimiter(max_calls=max_calls, window_seconds=window_seconds, name=name)
+            limiter = RateLimiter(
+                max_calls=max_calls, window_seconds=window_seconds, name=name
+            )
             _rate_limiters[name] = limiter
         return limiter
+
+
+def setup_otel_metrics(service_name: str = "sorce") -> None:
+    """
+    Initialize OpenTelemetry metrics bridge.
+
+    This is called from telemetry.py to connect the in-process metrics
+    to an OpenTelemetry MeterProvider for export.
+    """
+    global _otel_meter
+
+    try:
+        from opentelemetry import metrics
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+        from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
+            OTLPMetricExporter,
+        )
+        from opentelemetry.sdk.resources import Resource
+
+        resource = Resource.create({"service.name": service_name})
+
+        reader = PeriodicExportingMetricReader(
+            OTLPMetricExporter(),
+            export_interval_millis=60000,
+        )
+
+        provider = MeterProvider(resource=resource, readers=[reader])
+        metrics.set_meter_provider(provider)
+
+        _otel_meter = metrics.get_meter(service_name)
+
+    except ImportError:
+        pass
 
 
 # ---------------------------------------------------------------------------
 # OTLP metrics bridge — call once at startup to enable metric export
 # ---------------------------------------------------------------------------
+
 
 def setup_otel_metrics(service_name: str = "sorce") -> None:
     """
@@ -267,7 +309,9 @@ def setup_otel_metrics(service_name: str = "sorce") -> None:
 
     try:
         from opentelemetry import metrics as otel_metrics
-        from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+        from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
+            OTLPMetricExporter,
+        )
         from opentelemetry.sdk.metrics import MeterProvider
         from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
         from opentelemetry.sdk.resources import Resource, SERVICE_NAME

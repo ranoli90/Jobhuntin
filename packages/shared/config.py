@@ -81,12 +81,25 @@ class Settings(BaseSettings):
     # ── Security ─────────────────────────────────────────────────
     csrf_secret: str = ""  # Required in prod - generate with: secrets.token_hex(32)
     request_id_header: str = "X-Request-ID"
-    db_ssl_ca_cert_path: str = ""  # Path to CA cert for DB SSL verification (overrides CERT_NONE)
+    db_ssl_ca_cert_path: str = (
+        ""  # Path to CA cert for DB SSL verification (overrides CERT_NONE)
+    )
 
     # ── Upload limits ─────────────────────────────────────────────
     max_upload_size_bytes: int = 15_728_640  # 10 MB for PDF resumes
-    max_avatar_size_bytes: int = 5_242_880   # 5 MB for avatar images
+    max_avatar_size_bytes: int = 5_242_880  # 5 MB for avatar images
     resume_signed_url_ttl_seconds: int = 3600  # 1 hour
+
+    # ── Storage (S3/R2/Render Disk) ───────────────────────────────
+    storage_type: str = "local"  # local, s3, render_disk
+    s3_endpoint_url: str = ""  # e.g., https://s3.amazonaws.com or R2 endpoint
+    s3_access_key: str = ""
+    s3_secret_key: str = ""
+    s3_region: str = "auto"
+    s3_bucket: str = "resumes"
+    s3_public_url: str = ""  # Public URL base for serving files
+    render_disk_path: str = "/opt/render/project/data/storage"
+    local_storage_path: str = "./storage"
 
     # ── Adzuna Job Board API ─────────────────────────────────────
     adzuna_app_id: str = ""
@@ -103,13 +116,17 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = "dev-placeholder-webhook-secret"
     stripe_pro_price_id: str = ""  # Stripe Price ID for PRO plan ($29/month)
     stripe_team_base_price_id: str = ""  # Stripe Price ID for TEAM base ($199/month)
-    stripe_team_seat_price_id: str = ""  # Stripe Price ID for TEAM per-seat ($49/seat/month)
+    stripe_team_seat_price_id: str = (
+        ""  # Stripe Price ID for TEAM per-seat ($49/seat/month)
+    )
     stripe_free_trial_days: int = 0  # 0 = no trial; set 7 for 7-day trial
     team_included_seats: int = 3  # seats included in TEAM base price
     stripe_enterprise_price_id: str = ""  # Stripe Price for ENTERPRISE ($999+/month)
     stripe_pro_annual_price_id: str = ""  # PRO annual ($278/yr = 20% off)
     stripe_team_annual_price_id: str = ""  # TEAM annual ($1,910/yr = 20% off)
-    stripe_enterprise_annual_price_id: str = ""  # ENTERPRISE annual ($9,590/yr = 20% off)
+    stripe_enterprise_annual_price_id: str = (
+        ""  # ENTERPRISE annual ($9,590/yr = 20% off)
+    )
     annual_discount_pct: int = 20  # percent discount for annual billing
 
     # Webhook signing (set real secrets in prod/staging)
@@ -149,10 +166,14 @@ class Settings(BaseSettings):
     read_replica_url: str = ""  # Supabase read replica connection string
 
     # ── Browser pool (distributed scaling) ────────────────────────
-    browserless_url: str = ""  # e.g. wss://chrome.browserless.io?token=XXX — empty = local Chromium
+    browserless_url: str = (
+        ""  # e.g. wss://chrome.browserless.io?token=XXX — empty = local Chromium
+    )
     browserless_token: str = ""
     browser_pool_size: int = 1  # number of browser instances in the pool
-    browser_context_max_uses: int = 50  # recycle context after N uses to prevent memory leaks
+    browser_context_max_uses: int = (
+        50  # recycle context after N uses to prevent memory leaks
+    )
     browser_context_memory_limit_mb: int = 512
 
     # ── Push Notifications ─────────────────────────────────────────
@@ -167,7 +188,9 @@ class Settings(BaseSettings):
 
     # ── App Store URLs ────────────────────────────────────────────
     app_store_url: str = "https://apps.apple.com/app/jobhuntin/idXXXXXXXXXX"
-    play_store_url: str = "https://play.google.com/store/apps/details?id=com.jobhuntin.mobile"
+    play_store_url: str = (
+        "https://play.google.com/store/apps/details?id=com.jobhuntin.mobile"
+    )
 
     # ── Agent guardrails ──────────────────────────────────────────
     agent_enabled: bool = True  # set False to emergency-stop the worker
@@ -208,7 +231,9 @@ class Settings(BaseSettings):
             # if not self.sso_session_secret:
             #     missing.append("SSO_SESSION_SECRET")
             if self.stripe_secret_key and not self.stripe_webhook_secret:
-                missing.append("STRIPE_WEBHOOK_SECRET (required when STRIPE_SECRET_KEY is set)")
+                missing.append(
+                    "STRIPE_WEBHOOK_SECRET (required when STRIPE_SECRET_KEY is set)"
+                )
             if not self.webhook_signing_secret:
                 missing.append("WEBHOOK_SIGNING_SECRET")
             # Warn (non-fatal) if using a free-tier LLM model in production
@@ -222,7 +247,7 @@ class Settings(BaseSettings):
                 logger.critical(
                     "FATAL: Missing critical env vars for %s: %s",
                     self.env.value,
-                    ", ".join(missing)
+                    ", ".join(missing),
                 )
                 sys.exit(1)
 
@@ -261,6 +286,7 @@ class Settings(BaseSettings):
 # Singleton access
 # ---------------------------------------------------------------------------
 
+
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """Load, validate, and return the global Settings singleton."""
@@ -273,6 +299,7 @@ def get_settings() -> Settings:
 # ---------------------------------------------------------------------------
 # FastAPI dependency
 # ---------------------------------------------------------------------------
+
 
 def settings_dependency() -> Settings:
     """FastAPI Depends() compatible function."""

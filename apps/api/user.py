@@ -19,7 +19,15 @@ from pathlib import Path
 from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, Path as FastAPIPath
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+    Path as FastAPIPath,
+)
 from pydantic import BaseModel, field_validator
 
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
@@ -31,7 +39,8 @@ from backend.domain.repositories import (
     ProfileRepo,
     db_transaction,
 )
-from backend.domain.resume import process_resume_upload, upload_to_supabase_storage
+from backend.domain.resume import process_resume_upload
+from shared.storage import get_storage_service
 from backend.domain.tenant import TenantContext
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -49,7 +58,9 @@ _upload_limiters: dict[str, RateLimiter] = {}
 def _get_profile_limiter(user_id: str) -> RateLimiter:
     limiter = _profile_limiters.get(user_id)
     if limiter is None:
-        limiter = RateLimiter(max_calls=30, window_seconds=300.0, name=f"profile:{user_id}")
+        limiter = RateLimiter(
+            max_calls=30, window_seconds=300.0, name=f"profile:{user_id}"
+        )
         _profile_limiters[user_id] = limiter
     return limiter
 
@@ -57,7 +68,9 @@ def _get_profile_limiter(user_id: str) -> RateLimiter:
 def _get_upload_limiter(user_id: str) -> RateLimiter:
     limiter = _upload_limiters.get(user_id)
     if limiter is None:
-        limiter = RateLimiter(max_calls=10, window_seconds=600.0, name=f"upload:{user_id}")
+        limiter = RateLimiter(
+            max_calls=10, window_seconds=600.0, name=f"upload:{user_id}"
+        )
         _upload_limiters[user_id] = limiter
     return limiter
 
@@ -84,6 +97,7 @@ def _status_to_web(status: str) -> str:
 # ---------------------------------------------------------------------------
 # GET /applications
 # ---------------------------------------------------------------------------
+
 
 @router.get("/applications")
 async def list_applications(
@@ -113,20 +127,27 @@ async def list_applications(
 
     out: list[dict[str, Any]] = []
     for r in rows:
-        out.append({
-            "id": str(r["id"]),
-            "job_title": r["job_title"],
-            "company": r["company"],
-            "status": _status_to_web(r["status"]),
-            "last_activity": r["updated_at"].isoformat() if r["updated_at"] else None,
-            "hold_question": r["hold_question"] if r["status"] == "REQUIRES_INPUT" else None,
-        })
+        out.append(
+            {
+                "id": str(r["id"]),
+                "job_title": r["job_title"],
+                "company": r["company"],
+                "status": _status_to_web(r["status"]),
+                "last_activity": r["updated_at"].isoformat()
+                if r["updated_at"]
+                else None,
+                "hold_question": r["hold_question"]
+                if r["status"] == "REQUIRES_INPUT"
+                else None,
+            }
+        )
     return out
 
 
 # ---------------------------------------------------------------------------
 # POST /applications (swipe: create application)
 # ---------------------------------------------------------------------------
+
 
 class CreateApplicationBody(BaseModel):
     job_id: str
@@ -181,6 +202,7 @@ async def create_application(
         blueprint_key = s.default_blueprint_key or "job-app"
 
         from backend.domain.priority import compute_priority_score
+
         priority = compute_priority_score(ctx.plan)
 
         app_id = await conn.fetchval(
@@ -212,6 +234,7 @@ async def create_application(
 # POST /applications/{application_id}/answer
 # ---------------------------------------------------------------------------
 
+
 class AnswerHoldBody(BaseModel):
     answer: str
 
@@ -225,6 +248,7 @@ async def answer_hold(
 ) -> dict[str, Any]:
     """Submit a single answer for a hold; applies to first unresolved input and re-queues."""
     from shared.validators import validate_uuid
+
     validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         app_row = await ApplicationRepo.get_by_id_and_user(
@@ -241,7 +265,9 @@ async def answer_hold(
     async with db.acquire() as conn:
         unresolved = await InputRepo.get_unresolved(conn, application_id)
     if not unresolved:
-        raise HTTPException(status_code=409, detail="No pending questions for this application")
+        raise HTTPException(
+            status_code=409, detail="No pending questions for this application"
+        )
 
     # Use first unresolved input; single answer applies to it
     first_id = str(unresolved[0]["id"])
@@ -249,16 +275,33 @@ async def answer_hold(
 
     async with db_transaction(db) as conn:
         await InputRepo.update_answers(conn, answers)
-        await EventRepo.emit(conn, application_id, "USER_ANSWERED", {"input_id": first_id, "answer": body.answer}, tenant_id=ctx.tenant_id)
+        await EventRepo.emit(
+            conn,
+            application_id,
+            "USER_ANSWERED",
+            {"input_id": first_id, "answer": body.answer},
+            tenant_id=ctx.tenant_id,
+        )
         await ApplicationRepo.update_status(conn, application_id, "QUEUED")
-        await EventRepo.emit(conn, application_id, "RETRY_SCHEDULED", {"answered_count": 1}, tenant_id=ctx.tenant_id)
+        await EventRepo.emit(
+            conn,
+            application_id,
+            "RETRY_SCHEDULED",
+            {"answered_count": 1},
+            tenant_id=ctx.tenant_id,
+        )
 
-    return {"status": "saved", "application_id": application_id, "message": "Answer saved; application re-queued."}
+    return {
+        "status": "saved",
+        "application_id": application_id,
+        "message": "Answer saved; application re-queued.",
+    }
 
 
 # ---------------------------------------------------------------------------
 # POST /applications/{id}/snooze
 # ---------------------------------------------------------------------------
+
 
 class SnoozeBody(BaseModel):
     hours: int = 24
@@ -273,6 +316,7 @@ async def snooze_application(
 ) -> dict[str, Any]:
     """Snooze an application for N hours."""
     from shared.validators import validate_uuid
+
     validate_uuid(application_id, "application_id")
     from datetime import datetime, timedelta
 
@@ -304,6 +348,7 @@ async def snooze_application(
 # ---------------------------------------------------------------------------
 # GET /jobs
 # ---------------------------------------------------------------------------
+
 
 @router.get("/jobs")
 async def list_jobs(
@@ -339,6 +384,7 @@ async def list_jobs(
 # GET /applications/export
 # ---------------------------------------------------------------------------
 
+
 @router.get("/applications/export")
 async def export_applications(
     ctx: TenantContext = Depends(_get_tenant_ctx),
@@ -366,23 +412,28 @@ async def export_applications(
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["ID", "Job Title", "Company", "Location", "Status", "Last Activity"])
+    writer.writerow(
+        ["ID", "Job Title", "Company", "Location", "Status", "Last Activity"]
+    )
     for r in rows:
-        writer.writerow([
-            str(r["id"]),
-            r["job_title"],
-            r["company"],
-            r["location"],
-            _status_to_web(r["status"]),
-            r["updated_at"].isoformat() if r["updated_at"] else "",
-        ])
+        writer.writerow(
+            [
+                str(r["id"]),
+                r["job_title"],
+                r["company"],
+                r["location"],
+                _status_to_web(r["status"]),
+                r["updated_at"].isoformat() if r["updated_at"] else "",
+            ]
+        )
 
     output.seek(0)
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=applications.csv"}
+        headers={"Content-Disposition": "attachment; filename=applications.csv"},
     )
+
 
 @router.get("/profile")
 async def get_profile(
@@ -432,6 +483,7 @@ async def get_profile(
 # PATCH /profile
 # ---------------------------------------------------------------------------
 
+
 class Preferences(BaseModel):
     location: str | None = None
     role_type: str | None = None
@@ -469,26 +521,29 @@ async def update_profile(
     limiter = _get_profile_limiter(ctx.user_id)
     if not await limiter.acquire():
         from shared.metrics import incr
+
         incr("profile.update.rate_limited", {"user_id": ctx.user_id})
-        raise HTTPException(status_code=429, detail="Too many profile updates. Please retry later.")
+        raise HTTPException(
+            status_code=429, detail="Too many profile updates. Please retry later."
+        )
     async with db.acquire() as conn:
         existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
         profile_data = dict(existing or {})
-        
+
         # Check if we are completing onboarding
         was_onboarding = profile_data.get("has_completed_onboarding", False)
-        
+
         _merge_profile_update(profile_data, body)
-        
+
         now_onboarding = profile_data.get("has_completed_onboarding", False)
-        
+
         if not was_onboarding and now_onboarding:
             background_tasks.add_task(
                 _hydrate_job_matches,
                 db_pool=db,
                 user_id=ctx.user_id,
                 tenant_id=ctx.tenant_id,
-                preferences=profile_data.get("preferences", {})
+                preferences=profile_data.get("preferences", {}),
             )
 
         existing_row = await conn.fetchrow(
@@ -498,8 +553,12 @@ async def update_profile(
         current_resume = existing_row["resume_url"] if existing_row else None
 
         await ProfileRepo.upsert(
-            conn, ctx.user_id, profile_data,
-            resume_url=body.resume_url if body.resume_url is not None else current_resume,
+            conn,
+            ctx.user_id,
+            profile_data,
+            resume_url=body.resume_url
+            if body.resume_url is not None
+            else current_resume,
             tenant_id=ctx.tenant_id,
         )
         row = await conn.fetchrow(
@@ -510,7 +569,13 @@ async def update_profile(
 
     return {
         "id": ctx.user_id,
-        "email": user_row["email"] if (user_row := await conn.fetchrow("SELECT email FROM public.users WHERE id = $1", ctx.user_id)) else "",
+        "email": user_row["email"]
+        if (
+            user_row := await conn.fetchrow(
+                "SELECT email FROM public.users WHERE id = $1", ctx.user_id
+            )
+        )
+        else "",
         "has_completed_onboarding": profile_data.get("has_completed_onboarding", False),
         "resume_url": final_resume,
         "preferences": profile_data.get("preferences") or {},
@@ -534,15 +599,23 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
     if body.preferences is not None:
         profile_data["preferences"] = body.preferences.model_dump(exclude_unset=True)
 
-    avatar_url = body.avatar_url if body.avatar_url is not None else contact.get("avatar_url")
+    avatar_url = (
+        body.avatar_url if body.avatar_url is not None else contact.get("avatar_url")
+    )
     if avatar_url:
         contact["avatar_url"] = avatar_url
 
     # Merge nested contact fields sent from Onboarding / Settings
     if body.contact is not None:
         _CONTACT_FIELDS = (
-            "first_name", "last_name", "full_name", "email", "phone",
-            "linkedin_url", "portfolio_url", "location",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "phone",
+            "linkedin_url",
+            "portfolio_url",
+            "location",
         )
         for field in _CONTACT_FIELDS:
             if field in body.contact and body.contact[field] is not None:
@@ -555,23 +628,20 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
 
 
 async def _hydrate_job_matches(
-    db_pool: asyncpg.Pool,
-    user_id: str,
-    tenant_id: str,
-    preferences: dict
+    db_pool: asyncpg.Pool, user_id: str, tenant_id: str, preferences: dict
 ) -> None:
     """Background task to pre-fetch and cache job matches after onboarding."""
     try:
         from backend.domain.job_search import search_and_list_jobs
-        
+
         # Extract basic filters from preferences
         location = preferences.get("location")
         role = preferences.get("role_type")
         salary_str = preferences.get("salary_min")
         salary = int(salary_str) if salary_str and str(salary_str).isdigit() else None
-        
-        logger.info(u"Hydrating job matches for user %s", user_id)
-        
+
+        logger.info("Hydrating job matches for user %s", user_id)
+
         # Fetch top 20 jobs to populate specific caches
         await search_and_list_jobs(
             db_pool=db_pool,
@@ -579,15 +649,16 @@ async def _hydrate_job_matches(
             keywords=role,
             min_salary=salary,
             limit=20,
-            offset=0
+            offset=0,
         )
     except Exception as e:
-        logger.error(u"Failed to hydrate job matches: %s", e)
+        logger.error("Failed to hydrate job matches: %s", e)
 
 
 # ---------------------------------------------------------------------------
 # POST /profile/resume
 # ---------------------------------------------------------------------------
+
 
 @router.post("/profile/resume")
 async def upload_resume(
@@ -598,7 +669,9 @@ async def upload_resume(
     """Upload PDF resume: extract text, parse via LLM, upsert profile, store file. Returns parsed data."""
     limiter = _get_upload_limiter(ctx.user_id)
     if not await limiter.acquire():
-        raise HTTPException(status_code=429, detail="Too many uploads. Please retry later.")
+        raise HTTPException(
+            status_code=429, detail="Too many uploads. Please retry later."
+        )
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
@@ -629,6 +702,7 @@ async def upload_resume(
 
     # Telemetry: successful upload
     from shared.metrics import incr
+
     incr("profile.resume.uploaded", {"user_id": ctx.user_id})
 
     parsed = canonical.model_dump()
@@ -651,7 +725,9 @@ async def upload_avatar(
     """Upload an avatar image to storage and persist URL to profile."""
     limiter = _get_upload_limiter(ctx.user_id)
     if not await limiter.acquire():
-        raise HTTPException(status_code=429, detail="Too many uploads. Please retry later.")
+        raise HTTPException(
+            status_code=429, detail="Too many uploads. Please retry later."
+        )
     allowed_types = {
         "image/png": ".png",
         "image/jpeg": ".jpg",
@@ -679,7 +755,8 @@ async def upload_avatar(
     suffix = ext if ext in allowed_types.values() else fallback_ext
     storage_path = f"avatars/{ctx.user_id}/{uuid.uuid4()}{suffix}"
 
-    avatar_url = await upload_to_supabase_storage(
+    storage = get_storage_service()
+    avatar_url = await storage.upload_file(
         "avatars", storage_path, data, content_type=file.content_type or "image/png"
     )
 

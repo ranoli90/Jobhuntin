@@ -31,8 +31,12 @@ from backend.domain.models import (
     CanonicalProfile,
     normalize_profile,
 )
-from backend.domain.resume import download_from_supabase_storage
-from backend.domain.notifications import notify_application_submitted, notify_hold_questions
+from backend.domain.resume import download_resume_from_storage
+from shared.storage import get_storage_service
+from backend.domain.notifications import (
+    notify_application_submitted,
+    notify_hold_questions,
+)
 from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -75,12 +79,12 @@ PAGE_TIMEOUT_MS: int = _settings.page_timeout_ms
 # Rate limiters (in-process guardrails)
 # ---------------------------------------------------------------------------
 _llm_limiter = RateLimiter(
-    name="agent_llm",
-    max_calls=_settings.llm_rate_limit_per_minute, window_seconds=60.0
+    name="agent_llm", max_calls=_settings.llm_rate_limit_per_minute, window_seconds=60.0
 )
 _processing_limiter = RateLimiter(
     name="agent_processing",
-    max_calls=_settings.max_applications_per_minute, window_seconds=60.0
+    max_calls=_settings.max_applications_per_minute,
+    window_seconds=60.0,
 )
 
 
@@ -91,6 +95,7 @@ _processing_limiter = RateLimiter(
 # Local TypedDict aliases for Playwright JS interop (kept for JS evaluate)
 # ---------------------------------------------------------------------------
 
+
 class FormFieldOption(TypedDict):
     value: str
     text: str
@@ -99,7 +104,7 @@ class FormFieldOption(TypedDict):
 class FormField(TypedDict):
     selector: str
     label: str
-    type: str         # text | email | tel | select | textarea | checkbox | radio | file | …
+    type: str  # text | email | tel | select | textarea | checkbox | radio | file | …
     required: bool
     step_index: int
     options: list[FormFieldOption] | None
@@ -111,16 +116,18 @@ class FormField(TypedDict):
 # Database helpers
 # ---------------------------------------------------------------------------
 
+
 async def create_db_pool():
     """Create database connection pool"""
     settings = get_settings()
     import ssl
+
     return await asyncpg.create_pool(
         settings.database_url,
         min_size=settings.db_pool_min,
         max_size=settings.db_pool_max,
         statement_cache_size=0,
-        ssl=ssl.create_default_context()
+        ssl=ssl.create_default_context(),
     )
 
 
@@ -128,7 +135,8 @@ async def claim_task(pool: asyncpg.Pool) -> dict | None:
     """Atomically claim the next task, ordered by priority_score DESC (ENTERPRISE > TEAM > PRO > FREE)."""
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT * FROM public.claim_next_prioritized($1)", MAX_ATTEMPTS,
+            "SELECT * FROM public.claim_next_prioritized($1)",
+            MAX_ATTEMPTS,
         )
         return dict(row) if row else None
 
@@ -247,7 +255,9 @@ EXTRACT_FORM_FIELDS_JS = """
 """
 
 
-async def extract_form_fields_single_step(page: Page, step_index: int) -> list[FormField]:
+async def extract_form_fields_single_step(
+    page: Page, step_index: int
+) -> list[FormField]:
     """Extract all visible form fields on the current step."""
     raw: list[dict] = await page.evaluate(EXTRACT_FORM_FIELDS_JS)
     fields: list[FormField] = []
@@ -260,14 +270,16 @@ async def extract_form_fields_single_step(page: Page, step_index: int) -> list[F
                 continue
             seen_radio_names.add(name)
 
-        fields.append(FormField(
-            selector=f["selector"],
-            label=f["label"],
-            type=f["type"],
-            required=f["required"],
-            step_index=step_index,
-            options=f.get("options"),
-        ))
+        fields.append(
+            FormField(
+                selector=f["selector"],
+                label=f["label"],
+                type=f["type"],
+                required=f["required"],
+                step_index=step_index,
+                options=f.get("options"),
+            )
+        )
     return fields
 
 
@@ -326,8 +338,6 @@ async def extract_all_form_fields(page: Page) -> list[FormField]:
 # ---------------------------------------------------------------------------
 
 
-
-
 MAP_PROMPT_TEMPLATE = """You are a job-application autofill assistant. Your goal is to fill a web form using the user's profile data.
 
 ## Canonical User Profile
@@ -379,6 +389,7 @@ def build_mapping_prompt(
     if prompt_version:
         template = get_prompt("dom_mapping", prompt_version)
         import json as _json
+
         return template.format(
             profile_json=_json.dumps(profile_dict, indent=2),
             answered_json=_json.dumps(answered_inputs or [], indent=2),
@@ -412,6 +423,7 @@ async def map_fields_via_llm(
 # Playwright: form filling (handles all input types)
 # ---------------------------------------------------------------------------
 
+
 async def fill_form_from_mapping(
     page: Page,
     field_values: dict[str, str],
@@ -442,7 +454,9 @@ async def fill_form_from_mapping(
                     await el.set_input_files(resume_path)
                     logger.info("Uploaded resume to file input %s", selector)
                 else:
-                    logger.warning("File upload for %s – no resume available, skipping", selector)
+                    logger.warning(
+                        "File upload for %s – no resume available, skipping", selector
+                    )
                 continue  # skip the generic log below
             else:
                 await el.fill(value)
@@ -492,7 +506,9 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
         btn = page.locator(sel).first
         if await btn.count() > 0:
             try:
-                async with page.expect_navigation(wait_until="networkidle", timeout=30_000):
+                async with page.expect_navigation(
+                    wait_until="networkidle", timeout=30_000
+                ):
                     await btn.click()
             except Exception:
                 # Some forms don't navigate; accept the click as success
@@ -505,6 +521,7 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
 # ---------------------------------------------------------------------------
 # FormAgent – blueprint-parameterized core engine
 # ---------------------------------------------------------------------------
+
 
 class FormAgent:
     """
@@ -530,31 +547,35 @@ class FormAgent:
 
     async def run_forever(self) -> None:
         """Infinite polling loop with event-driven wake-up."""
-        logger.info("Agent started – event-driven + polling every %ds", self.poll_interval)
-        
+        logger.info(
+            "Agent started – event-driven + polling every %ds", self.poll_interval
+        )
+
         # Start the listener task in background
         asyncio.create_task(self._listen_loop())
-        
+
         while True:
-            # Clear event before running to ensure we don't miss notifications 
+            # Clear event before running to ensure we don't miss notifications
             # that happen *during* processing (though handling that safely is tricky,
-            # clearing here implies we demand a new notification for the next run 
+            # clearing here implies we demand a new notification for the next run
             # unless we find more work immediately).
-            # Actually, standard pattern: check work. If work found, repeat. 
+            # Actually, standard pattern: check work. If work found, repeat.
             # If no work, wait for event.
-            
+
             processed = await self.run_once()
-            
+
             if processed:
                 # If we processed something, there might be more. Check immediately.
                 # But yield to other tasks slightly to avoid starvation if massive backlog.
                 await asyncio.sleep(0.01)
                 continue
-            
+
             # No work found. Wait for notification or timeout.
             self.wake_event.clear()
             try:
-                await asyncio.wait_for(self.wake_event.wait(), timeout=self.poll_interval)
+                await asyncio.wait_for(
+                    self.wake_event.wait(), timeout=self.poll_interval
+                )
                 # logger.debug("Woke up by event")
             except asyncio.TimeoutError:
                 # logger.debug("Woke up by timeout")
@@ -568,11 +589,13 @@ class FormAgent:
                 # Use a dedicated connection for listening
                 conn = await asyncpg.connect(settings.database_url)
                 try:
-                    await conn.add_listener("job_queue", lambda *args: self.wake_event.set())
+                    await conn.add_listener(
+                        "job_queue", lambda *args: self.wake_event.set()
+                    )
                     logger.info("Listening for 'job_queue' notifications...")
                     # Keep connection open indefinitely
                     while not conn.is_closed():
-                        await asyncio.sleep(60) # Keep-alive check or just sleep
+                        await asyncio.sleep(60)  # Keep-alive check or just sleep
                         # Optional: check connection health
                         if conn.is_closed():
                             break
@@ -592,8 +615,10 @@ class FormAgent:
 
         # Guardrail: processing rate limit
         if not await _processing_limiter.acquire():
-            logger.warning("Processing rate limit reached (%d/min), backing off",
-                           _settings.max_applications_per_minute)
+            logger.warning(
+                "Processing rate limit reached (%d/min), backing off",
+                _settings.max_applications_per_minute,
+            )
             incr("agent.rate_limited", {"limiter": "processing"})
             return False
 
@@ -610,8 +635,16 @@ class FormAgent:
             job_id=str(task["job_id"]),
             tenant_id=tenant_id,
         )
-        incr("agent.tasks_claimed", tags={"tenant_id": tenant_id or "none", "blueprint": blueprint_key})
-        logger.info("Claimed task %s (attempt %d, blueprint=%s)", app_id, task["attempt_count"], blueprint_key)
+        incr(
+            "agent.tasks_claimed",
+            tags={"tenant_id": tenant_id or "none", "blueprint": blueprint_key},
+        )
+        logger.info(
+            "Claimed task %s (attempt %d, blueprint=%s)",
+            app_id,
+            task["attempt_count"],
+            blueprint_key,
+        )
 
         context: BrowserContext = await self._context_factory()
         page = await context.new_page()
@@ -642,7 +675,12 @@ class FormAgent:
 
             # Hold Logic
             if mapping["unresolved_required_fields"]:
-                await self._enter_hold(ctx["app_id"], mapping["unresolved_required_fields"], form_fields, tenant_id=ctx["tenant_id"])
+                await self._enter_hold(
+                    ctx["app_id"],
+                    mapping["unresolved_required_fields"],
+                    form_fields,
+                    tenant_id=ctx["tenant_id"],
+                )
                 return
 
             # Fill & Submit
@@ -654,6 +692,7 @@ class FormAgent:
         finally:
             # Clean up downloaded resume temp file
             import os
+
             resume_path = ctx.get("resume_path")
             if resume_path and os.path.exists(resume_path):
                 try:
@@ -680,10 +719,13 @@ class FormAgent:
         resume_url = raw_profile.get("resume_url")
         if resume_url:
             try:
-                resume_path = await download_from_supabase_storage(resume_url)
+                storage = get_storage_service()
+                resume_path = await download_resume_from_storage(resume_url, storage)
                 logger.info("Resume downloaded for user %s: %s", user_id, resume_path)
             except Exception as exc:
-                logger.warning("Failed to download resume for user %s: %s", user_id, exc)
+                logger.warning(
+                    "Failed to download resume for user %s: %s", user_id, exc
+                )
 
         return {
             "app_id": app_id,
@@ -701,26 +743,40 @@ class FormAgent:
 
     async def _emit_started(self, ctx: dict) -> None:
         async with self.pool.acquire() as conn:
-            await EventRepo.emit(conn, ctx["app_id"], "STARTED_PROCESSING", {
-                "application_url": ctx["application_url"],
-                "attempt": ctx["attempt"],
-                "blueprint": ctx["blueprint_key"],
-            }, tenant_id=ctx["tenant_id"])
+            await EventRepo.emit(
+                conn,
+                ctx["app_id"],
+                "STARTED_PROCESSING",
+                {
+                    "application_url": ctx["application_url"],
+                    "attempt": ctx["attempt"],
+                    "blueprint": ctx["blueprint_key"],
+                },
+                tenant_id=ctx["tenant_id"],
+            )
 
     async def _navigate_to_app(self, page: Page, ctx: dict) -> None:
         """Navigate to the application URL."""
         try:
-            await page.goto(ctx["application_url"], wait_until="networkidle", timeout=PAGE_TIMEOUT_MS)
+            await page.goto(
+                ctx["application_url"],
+                wait_until="networkidle",
+                timeout=PAGE_TIMEOUT_MS,
+            )
         except Exception as exc:
-            raise RuntimeError(f"Page load timeout for {ctx['application_url']}: {exc}") from exc
+            raise RuntimeError(
+                f"Page load timeout for {ctx['application_url']}: {exc}"
+            ) from exc
 
     async def _extract_fields(self, page: Page) -> list[FormField]:
         form_fields = await extract_all_form_fields(page)
         if not form_fields:
             raise RuntimeError("No form fields detected on the page")
-        logger.info("Extracted %d fields across %d step(s)",
-                     len(form_fields),
-                     max((f["step_index"] for f in form_fields), default=0) + 1)
+        logger.info(
+            "Extracted %d fields across %d step(s)",
+            len(form_fields),
+            max((f["step_index"] for f in form_fields), default=0) + 1,
+        )
         return form_fields
 
     async def _map_fields(self, form_fields: list[FormField], ctx: dict) -> dict:
@@ -734,7 +790,9 @@ class FormAgent:
             logger.info("Using prompt version override: %s", prompt_version)
         elif ctx["tenant_id"]:
             async with self.pool.acquire() as conn:
-                variant = await get_variant_for_tenant(conn, "dom_mapping_prompt", ctx["tenant_id"])
+                variant = await get_variant_for_tenant(
+                    conn, "dom_mapping_prompt", ctx["tenant_id"]
+                )
             if variant:
                 prompt_version = variant
                 logger.info("Experiment assigned prompt version: %s", prompt_version)
@@ -744,31 +802,49 @@ class FormAgent:
             raise RuntimeError("LLM rate limit exceeded; will retry on next poll")
 
         t0 = time.monotonic()
-        mapping = await map_fields_via_llm(ctx["profile"], form_fields, answered_inputs, prompt_version)
+        mapping = await map_fields_via_llm(
+            ctx["profile"], form_fields, answered_inputs, prompt_version
+        )
         llm_duration = time.monotonic() - t0
         observe("agent.llm_latency_seconds", llm_duration)
-        logger.info("LLM mapping completed in %.2fs (prompt=%s)", llm_duration, prompt_version or "default")
+        logger.info(
+            "LLM mapping completed in %.2fs (prompt=%s)",
+            llm_duration,
+            prompt_version or "default",
+        )
         return mapping
 
-    async def _fill_form(self, page: Page, mapping: dict, form_fields: list[FormField], ctx: dict) -> None:
+    async def _fill_form(
+        self, page: Page, mapping: dict, form_fields: list[FormField], ctx: dict
+    ) -> None:
         # Re-navigate if needed (for multi-step consistency)
-        await page.goto(ctx["application_url"], wait_until="networkidle", timeout=PAGE_TIMEOUT_MS)
+        await page.goto(
+            ctx["application_url"], wait_until="networkidle", timeout=PAGE_TIMEOUT_MS
+        )
 
         max_step = max((f["step_index"] for f in form_fields), default=0)
         for step in range(max_step + 1):
             step_values = {
-                sel: val for sel, val in mapping["field_values"].items()
-                if any(f["selector"] == sel and f["step_index"] == step for f in form_fields)
+                sel: val
+                for sel, val in mapping["field_values"].items()
+                if any(
+                    f["selector"] == sel and f["step_index"] == step
+                    for f in form_fields
+                )
             }
             step_fields = [f for f in form_fields if f["step_index"] == step]
 
             if step_values:
-                await fill_form_from_mapping(page, step_values, step_fields, resume_path=ctx.get("resume_path"))
+                await fill_form_from_mapping(
+                    page, step_values, step_fields, resume_path=ctx.get("resume_path")
+                )
 
             if step < max_step:
                 advanced = await click_next_button(page)
                 if not advanced:
-                    logger.warning("Could not advance from step %d to %d", step, step + 1)
+                    logger.warning(
+                        "Could not advance from step %d to %d", step, step + 1
+                    )
                     break
 
     async def _submit_application(self, page: Page, ctx: dict) -> None:
@@ -779,7 +855,9 @@ class FormAgent:
 
     async def _handle_success(self, task: dict, ctx: dict) -> None:
         async with self.pool.acquire() as conn:
-            final_status = await ctx["blueprint"].on_task_completed(conn, task, ctx["tenant_id"])
+            final_status = await ctx["blueprint"].on_task_completed(
+                conn, task, ctx["tenant_id"]
+            )
 
             # Record evaluation
             answered = await InputRepo.get_answered(conn, ctx["app_id"])
@@ -795,7 +873,13 @@ class FormAgent:
                 had_hold=had_hold,
             )
 
-        incr("agent.tasks_completed", tags={"tenant_id": ctx["tenant_id"] or "none", "blueprint": ctx["blueprint_key"]})
+        incr(
+            "agent.tasks_completed",
+            tags={
+                "tenant_id": ctx["tenant_id"] or "none",
+                "blueprint": ctx["blueprint_key"],
+            },
+        )
         logger.info("Task %s completed with status %s", ctx["app_id"], final_status)
 
         try:
@@ -809,7 +893,9 @@ class FormAgent:
                     tenant_id=ctx["tenant_id"],
                 )
         except Exception as push_exc:
-            logger.warning("Push notification failed for %s: %s", ctx["app_id"], push_exc)
+            logger.warning(
+                "Push notification failed for %s: %s", ctx["app_id"], push_exc
+            )
 
     # -- hold logic --------------------------------------------------------
 
@@ -820,27 +906,40 @@ class FormAgent:
         form_fields: list[FormField],
         tenant_id: str | None = None,
     ) -> None:
-        logger.info("Application %s → REQUIRES_INPUT (%d unresolved)",
-                     app_id, len(unresolved))
+        logger.info(
+            "Application %s → REQUIRES_INPUT (%d unresolved)", app_id, len(unresolved)
+        )
         async with db_transaction(self.pool) as conn:
-            await InputRepo.insert_unresolved(conn, app_id, unresolved, form_fields, tenant_id=tenant_id)
+            await InputRepo.insert_unresolved(
+                conn, app_id, unresolved, form_fields, tenant_id=tenant_id
+            )
             await update_application_status(conn, app_id, "REQUIRES_INPUT")
-            await EventRepo.emit(conn, app_id, "REQUIRES_INPUT_RAISED", {
-                "unresolved_fields": [u["selector"] for u in unresolved],
-                "count": len(unresolved),
-            }, tenant_id=tenant_id)
-        incr("agent.applications_requires_input", tags={"tenant_id": tenant_id or "none"})
+            await EventRepo.emit(
+                conn,
+                app_id,
+                "REQUIRES_INPUT_RAISED",
+                {
+                    "unresolved_fields": [u["selector"] for u in unresolved],
+                    "count": len(unresolved),
+                },
+                tenant_id=tenant_id,
+            )
+        incr(
+            "agent.applications_requires_input", tags={"tenant_id": tenant_id or "none"}
+        )
 
         # Push notification: hold questions need answers
         try:
             # Fetch user_id from the application
             async with self.pool.acquire() as notify_conn:
                 app_row = await notify_conn.fetchrow(
-                    "SELECT user_id, job_id FROM public.applications WHERE id = $1", app_id,
+                    "SELECT user_id, job_id FROM public.applications WHERE id = $1",
+                    app_id,
                 )
                 if app_row:
                     job_row = await notify_conn.fetchrow(
-                        "SELECT company FROM public.jobs WHERE id = $1", str(app_row["job_id"]),
+                        "SELECT company FROM public.jobs WHERE id = $1",
+                        str(app_row["job_id"]),
                     )
                     await notify_hold_questions(
                         notify_conn,
@@ -868,37 +967,65 @@ class FormAgent:
         async with db_transaction(self.pool) as conn:
             # Check if we reached max attempts
             if attempt >= MAX_ATTEMPTS:
-                logger.error("Application %s reached max attempts. Moving to DLQ.", app_id)
-                await update_application_status(conn, app_id, "FAILED", error_message=error_msg)
-                
+                logger.error(
+                    "Application %s reached max attempts. Moving to DLQ.", app_id
+                )
+                await update_application_status(
+                    conn, app_id, "FAILED", error_message=error_msg
+                )
+
                 # Insert into DLQ
-                await conn.execute("""
+                await conn.execute(
+                    """
                     INSERT INTO public.job_dead_letter_queue 
                     (application_id, tenant_id, failure_reason, attempt_count, last_error, payload)
                     VALUES ($1, $2, $3, $4, $5, $6)
-                """, app_id, tenant_id, "MAX_ATTEMPTS_REACHED", attempt, error_msg, json.dumps(task, default=str))
-                
+                """,
+                    app_id,
+                    tenant_id,
+                    "MAX_ATTEMPTS_REACHED",
+                    attempt,
+                    error_msg,
+                    json.dumps(task, default=str),
+                )
+
                 incr("agent.dlq_insertion", tags={"tenant_id": tenant_id or "none"})
             else:
                 # Exponential backoff: 30s, 60s, 120s, ...
                 backoff_seconds = 30 * (2 ** (attempt - 1))
-                logger.info("Scheduling retry for %s in %ds (attempt %d)", app_id, backoff_seconds, attempt)
-                
-                await conn.execute("""
+                logger.info(
+                    "Scheduling retry for %s in %ds (attempt %d)",
+                    app_id,
+                    backoff_seconds,
+                    attempt,
+                )
+
+                await conn.execute(
+                    """
                     UPDATE public.applications
                     SET    status       = 'QUEUED',
                     last_error   = $2,
                     available_at = now() + make_interval(secs => $3),
                     updated_at   = now()
                     WHERE  id = $1
-                """, app_id, error_msg, float(backoff_seconds))
+                """,
+                    app_id,
+                    error_msg,
+                    float(backoff_seconds),
+                )
 
-                await EventRepo.emit(conn, app_id, "RETRY_SCHEDULED", {
-                    "error_message": error_msg,
-                    "attempt_count": attempt,
-                    "backoff_seconds": backoff_seconds,
-                    "available_at": f"now+{backoff_seconds}s"
-                }, tenant_id=tenant_id)
+                await EventRepo.emit(
+                    conn,
+                    app_id,
+                    "RETRY_SCHEDULED",
+                    {
+                        "error_message": error_msg,
+                        "attempt_count": attempt,
+                        "backoff_seconds": backoff_seconds,
+                        "available_at": f"now+{backoff_seconds}s",
+                    },
+                    tenant_id=tenant_id,
+                )
 
                 # Record system evaluation for retry (using RETRY_SCHEDULED status if supported by enum, else generic)
                 # The Enum in models.py has RETRY_SCHEDULED in ApplicationEventType but maybe not ApplicationStatus.
@@ -913,14 +1040,20 @@ class FormAgent:
                     tenant_id=tenant_id,
                     user_id=user_id,
                 )
-                
+
                 # Exit early, don't emit "FAILED" event below
                 return
 
-            await EventRepo.emit(conn, app_id, "FAILED", {
-                "error_message": error_msg,
-                "attempt_count": attempt,
-            }, tenant_id=tenant_id)
+            await EventRepo.emit(
+                conn,
+                app_id,
+                "FAILED",
+                {
+                    "error_message": error_msg,
+                    "attempt_count": attempt,
+                },
+                tenant_id=tenant_id,
+            )
 
             # Record system evaluation for failure
             await record_system_evaluation(
@@ -939,6 +1072,7 @@ class FormAgent:
 # Main entry point
 # ---------------------------------------------------------------------------
 
+
 async def worker_loop() -> None:
     setup_telemetry("sorce-worker")
     s = get_settings()
@@ -951,6 +1085,7 @@ async def worker_loop() -> None:
 
         async def context_factory() -> BrowserContext:
             import random
+
             _ua_pool = [
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
@@ -969,15 +1104,23 @@ async def worker_loop() -> None:
                 viewport=random.choice(_vp_pool),
                 user_agent=random.choice(_ua_pool),
                 locale=random.choice(["en-US", "en-GB", "en-CA"]),
-                timezone_id=random.choice([
-                    "America/New_York", "America/Chicago",
-                    "America/Los_Angeles", "America/Denver",
-                ]),
+                timezone_id=random.choice(
+                    [
+                        "America/New_York",
+                        "America/Chicago",
+                        "America/Los_Angeles",
+                        "America/Denver",
+                    ]
+                ),
             )
 
         agent = FormAgent(pool, context_factory)
-        logger.info("Worker heartbeat: env=%s, poll=%ds, max_attempts=%d",
-                     s.env.value, s.poll_interval_seconds, s.max_attempts)
+        logger.info(
+            "Worker heartbeat: env=%s, poll=%ds, max_attempts=%d",
+            s.env.value,
+            s.poll_interval_seconds,
+            s.max_attempts,
+        )
         await agent.run_forever()
 
 
