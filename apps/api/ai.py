@@ -1201,6 +1201,116 @@ async def compute_ats_score(
 
 
 # ---------------------------------------------------------------------------
+# Match Weights Configuration
+# ---------------------------------------------------------------------------
+
+
+class MatchWeightsRequest(BaseModel):
+    """Request to configure match scoring weights."""
+
+    semantic_similarity: float = Field(default=0.5, ge=0.0, le=1.0)
+    skill_match: float = Field(default=0.3, ge=0.0, le=1.0)
+    experience_alignment: float = Field(default=0.2, ge=0.0, le=1.0)
+
+
+class MatchWeightsResponse(BaseModel):
+    """Response with current match weights."""
+
+    semantic_similarity: float
+    skill_match: float
+    experience_alignment: float
+    normalized: bool
+
+
+# Global match weights storage (per-tenant in production)
+_match_weights_cache: dict[str, MatchWeightsRequest] = {}
+
+
+@router.get("/match-weights", response_model=MatchWeightsResponse)
+async def get_match_weights(
+    tenant_id: str | None = Depends(_get_tenant_id),
+) -> MatchWeightsResponse:
+    """
+    Get the current match scoring weights.
+
+    Weights control how different factors contribute to the overall match score:
+    - semantic_similarity: Weight for vector embedding similarity (default 0.5)
+    - skill_match: Weight for skill keyword matching (default 0.3)
+    - experience_alignment: Weight for experience level alignment (default 0.2)
+    """
+    from backend.domain.semantic_matching import MatchWeights
+
+    key = tenant_id or "default"
+    if key in _match_weights_cache:
+        weights = _match_weights_cache[key]
+        return MatchWeightsResponse(
+            semantic_similarity=weights.semantic_similarity,
+            skill_match=weights.skill_match,
+            experience_alignment=weights.experience_alignment,
+            normalized=False,
+        )
+
+    # Return defaults
+    defaults = MatchWeights.default()
+    return MatchWeightsResponse(
+        semantic_similarity=defaults.semantic_similarity,
+        skill_match=defaults.skill_match,
+        experience_alignment=defaults.experience_alignment,
+        normalized=True,
+    )
+
+
+@router.post("/match-weights", response_model=MatchWeightsResponse)
+async def set_match_weights(
+    request: MatchWeightsRequest,
+    tenant_id: str | None = Depends(_get_tenant_id),
+    user_id: str = Depends(_get_user_id),
+) -> MatchWeightsResponse:
+    """
+    Configure match scoring weights.
+
+    Weights are automatically normalized to sum to 1.0.
+    Requires admin privileges in production.
+    """
+    from backend.domain.semantic_matching import MatchWeights, get_matching_service
+
+    # Normalize weights
+    weights = MatchWeights(
+        semantic_similarity=request.semantic_similarity,
+        skill_match=request.skill_match,
+        experience_alignment=request.experience_alignment,
+    ).normalize()
+
+    # Store in cache (would persist to DB in production)
+    key = tenant_id or "default"
+    _match_weights_cache[key] = MatchWeightsRequest(
+        semantic_similarity=weights.semantic_similarity,
+        skill_match=weights.skill_match,
+        experience_alignment=weights.experience_alignment,
+    )
+
+    # Update service instance
+    service = get_matching_service()
+    service.weights = weights
+
+    logger.info(
+        "Match weights updated",
+        extra={
+            "tenant_id": tenant_id,
+            "user_id": user_id,
+            "weights": weights.model_dump(),
+        },
+    )
+
+    return MatchWeightsResponse(
+        semantic_similarity=weights.semantic_similarity,
+        skill_match=weights.skill_match,
+        experience_alignment=weights.experience_alignment,
+        normalized=True,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Match Feedback Endpoints
 # ---------------------------------------------------------------------------
 

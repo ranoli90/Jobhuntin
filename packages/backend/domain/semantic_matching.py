@@ -35,6 +35,31 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.matching")
 
 
+class MatchWeights(BaseModel):
+    """Configurable weights for match scoring components."""
+
+    semantic_similarity: float = Field(default=0.5, ge=0.0, le=1.0)
+    skill_match: float = Field(default=0.3, ge=0.0, le=1.0)
+    experience_alignment: float = Field(default=0.2, ge=0.0, le=1.0)
+
+    def normalize(self) -> "MatchWeights":
+        """Normalize weights to sum to 1.0."""
+        total = self.semantic_similarity + self.skill_match + self.experience_alignment
+        if total == 0:
+            return MatchWeights(
+                semantic_similarity=0.5, skill_match=0.3, experience_alignment=0.2
+            )
+        return MatchWeights(
+            semantic_similarity=self.semantic_similarity / total,
+            skill_match=self.skill_match / total,
+            experience_alignment=self.experience_alignment / total,
+        )
+
+    @classmethod
+    def default(cls) -> "MatchWeights":
+        return cls(semantic_similarity=0.5, skill_match=0.3, experience_alignment=0.2)
+
+
 class Dealbreakers(BaseModel):
     """User's non-negotiable job preferences."""
 
@@ -82,8 +107,13 @@ class SemanticMatchingService:
     filters and generates explainable scores.
     """
 
-    def __init__(self, embedding_client: EmbeddingClient | None = None):
+    def __init__(
+        self,
+        embedding_client: EmbeddingClient | None = None,
+        weights: MatchWeights | None = None,
+    ):
         self._embedding_client = embedding_client
+        self._weights = weights or MatchWeights.default()
 
     @property
     def embeddings(self) -> EmbeddingClient:
@@ -91,11 +121,20 @@ class SemanticMatchingService:
             self._embedding_client = get_embedding_client()
         return self._embedding_client
 
+    @property
+    def weights(self) -> MatchWeights:
+        return self._weights
+
+    @weights.setter
+    def weights(self, value: MatchWeights) -> None:
+        self._weights = value.normalize()
+
     async def compute_match_score(
         self,
         profile: dict[str, Any],
         job: dict[str, Any],
         dealbreakers: Dealbreakers | None = None,
+        weights: MatchWeights | None = None,
     ) -> SemanticMatchResult:
         """
         Compute semantic match score between profile and job.
@@ -111,11 +150,13 @@ class SemanticMatchingService:
             profile: CanonicalProfile as dict
             job: Job dict with title, description, etc.
             dealbreakers: Optional user preferences
+            weights: Optional custom weights (overrides instance weights)
 
         Returns:
             SemanticMatchResult with score and explanation
         """
         dealbreakers = dealbreakers or Dealbreakers()
+        effective_weights = (weights or self._weights).normalize()
 
         # Generate embeddings
         profile_text = profile_to_searchable_text(profile)
@@ -194,8 +235,12 @@ class SemanticMatchingService:
         years_exp = profile.get("years_experience", 0) or 0
         exp_alignment = self._compute_experience_alignment(years_exp, job_text)
 
-        # Compute final score (weighted combination)
-        score = semantic_sim * 0.5 + skill_match_ratio * 0.3 + exp_alignment * 0.2
+        # Compute final score using configurable weights
+        score = (
+            semantic_sim * effective_weights.semantic_similarity
+            + skill_match_ratio * effective_weights.skill_match
+            + exp_alignment * effective_weights.experience_alignment
+        )
 
         # Check dealbreakers
         passed, reasons = self._check_dealbreakers(job, dealbreakers)
