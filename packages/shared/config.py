@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     # ── LLM ──────────────────────────────────────────────────────
     llm_api_base: str = "https://openrouter.ai/api/v1"
     llm_api_key: str = ""
-    llm_model: str = "anthropic/claude-3.5-sonnet"  # Production default; override with LLM_MODEL env var
+    llm_model: str = "google/gemma-2-9b-it:free"  # Free NVIDIA model default
     llm_max_tokens: int = 4096
     llm_rate_limit_per_minute: int = 60  # in-process approximate cap
     llm_retry_count: int = 2

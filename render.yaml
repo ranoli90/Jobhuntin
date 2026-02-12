@@ -19,6 +19,12 @@ services:
         value: 10000
       - key: NODE_VERSION
         value: 20  # Fix for npm ci segfault (exit status 139)
+      - key: LLM_API_KEY
+        sync: false  # OpenRouter API Key for free NVIDIA models
+      - key: LLM_API_BASE
+        value: https://openrouter.ai/api/v1
+      - key: LLM_MODEL
+        value: google/gemma-2-9b-it:free
     healthCheckPath: /api/seo-health
     autoDeploy: true
     
@@ -31,6 +37,12 @@ services:
     envVars:
       - key: DATABASE_URL
         value: postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g
+      - key: LLM_API_KEY
+        sync: false  # OpenRouter API Key for free NVIDIA models
+      - key: LLM_API_BASE
+        value: https://openrouter.ai/api/v1
+      - key: LLM_MODEL
+        value: google/gemma-2-9b-it:free
       - key: ENV
         value: production
     healthCheckPath: /healthz
@@ -51,6 +63,12 @@ services:
         value: production
       - key: NODE_VERSION
         value: 20  # Fix for npm ci segfault (exit status 139)
+      - key: LLM_API_KEY
+        sync: false  # OpenRouter API Key for free NVIDIA models
+      - key: LLM_API_BASE
+        value: https://openrouter.ai/api/v1
+      - key: LLM_MODEL
+        value: google/gemma-2-9b-it:free
     autoDeploy: true
 
   # Background Worker (Auto-Apply Agent)
@@ -62,8 +80,12 @@ services:
     envVars:
       - key: DATABASE_URL
         value: postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g
-      - key: OPENAI_API_KEY
-        sync: false
+      - key: LLM_API_KEY
+        sync: false  # OpenRouter API Key for free NVIDIA models
+      - key: LLM_API_BASE
+        value: https://openrouter.ai/api/v1
+      - key: LLM_MODEL
+        value: google/gemma-2-9b-it:free
       - key: AGENT_ENABLED
         value: true
       - key: ENV
