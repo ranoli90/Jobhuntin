@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     llm_max_tokens: int = 4096
     llm_rate_limit_per_minute: int = 60  # in-process approximate cap
     llm_retry_count: int = 2
-    llm_timeout_seconds: int = 60  # Increased for free model latency
+    llm_timeout_seconds: int = 30  # Reduced from 60s to prevent hanging requests
 
     # ── Playwright / Agent ───────────────────────────────────────
     playwright_browser_type: str = "chromium"
