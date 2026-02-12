@@ -27,7 +27,37 @@
   --jobhuntin-mango: 245 158 11;
   --jobhuntin-ink: 15 23 42;
   --jobhuntin-shell: 248 250 252;
+
+  /* Fluid Typography - Dynamic Type Safeguards */
+  --fs-sm: clamp(0.8rem, 0.17vw + 0.76rem, 0.89rem);
+  --fs-base: clamp(1rem, 0.34vw + 0.91rem, 1.19rem);
+  --fs-md: clamp(1.25rem, 0.61vw + 1.1rem, 1.58rem);
+  --fs-lg: clamp(1.56rem, 1vw + 1.31rem, 2.11rem);
+  --fs-xl: clamp(1.95rem, 1.56vw + 1.56rem, 2.81rem);
 }
+
+/* High Contrast Mode Overrides */
+@media (prefers-contrast: more) {
+  :root {
+    --foreground: 0 0% 0%;
+    /* Pure Black */
+    --primary: 221.2 83.2% 40%;
+    /* Darker Blue */
+    --muted-foreground: 215.4 16.3% 30%;
+    /* Darker Gray */
+  }
+
+  /* Enforce borders for better definition */
+  .card,
+  .button,
+  input,
+  select,
+  textarea {
+    border-width: 2px !important;
+    border-color: #000 !important;
+  }
+}
+
 
 * {
   box-sizing: border-box;

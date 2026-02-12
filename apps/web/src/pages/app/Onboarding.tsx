@@ -1,31 +1,64 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Upload, MapPin, Briefcase, DollarSign, Rocket, ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, User, Zap, Mail, Phone, Shield, X } from "lucide-react";
+import { CheckCircle2, Sparkles } from "lucide-react";
 import { Logo } from "../../components/brand/Logo";
 import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
 import { useAISuggestions } from "../../hooks/useAISuggestions";
 import { Button } from "../../components/ui/Button";
-import { Input } from "../../components/ui/Input";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
-import { AISuggestionCard, SalarySuggestionCard } from "../../components/ui/AISuggestionCard";
 import { pushToast } from "../../lib/toast";
 import { api } from "../../lib/api";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { Skeleton, OnboardingSkeleton } from "../../components/ui/Skeleton";
+import { checkEmailTypo } from "../../lib/emailUtils";
+
+// Step Components
+import { WelcomeStep } from "./onboarding/steps/WelcomeStep";
+import { ResumeStep } from "./onboarding/steps/ResumeStep";
+import { ConfirmContactStep } from "./onboarding/steps/ConfirmContactStep";
+import { PreferencesStep } from "./onboarding/steps/PreferencesStep";
+import { CalibrationStep } from "./onboarding/steps/CalibrationStep";
+import { ReadyStep } from "./onboarding/steps/ReadyStep";
+
+// Types
+import { ParsedResume } from "../../types/onboarding";
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding, formData, updateFormData } = useOnboarding();
   const { profile, loading, uploadResume, savePreferences, completeOnboarding, updateProfile } = useProfile();
   const aiSuggestions = useAISuggestions();
-  const shouldReduceMotion = useReducedMotion();
+  const [isLowPowerMode, setIsLowPowerMode] = React.useState(false);
+
+  React.useEffect(() => {
+    // Check for save-data preference
+    if ('connection' in navigator && (navigator as any).connection.saveData) {
+      setIsLowPowerMode(true);
+    }
+
+    // Check battery status if available
+    if ('getBattery' in navigator) {
+      (navigator as any).getBattery().then((battery: any) => {
+        setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
+
+        battery.addEventListener('levelchange', () => {
+          setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
+        });
+        battery.addEventListener('chargingchange', () => {
+          setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
+        });
+      });
+    }
+  }, []);
+
+  const shouldReduceMotion = useReducedMotion() || isLowPowerMode;
 
   const [resumeFile, setResumeFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [resumeError, setResumeError] = React.useState<string | null>(null);
-  const [isDragging, setIsDragging] = React.useState(false);
   const [preferences, setPreferences] = React.useState({
     location: "",
     role_type: "",
@@ -45,11 +78,12 @@ export default function Onboarding() {
   const [isSavingContact, setIsSavingContact] = React.useState(false);
 
   const [linkedinUrl, setLinkedinUrl] = React.useState("");
-  const [parsedResume, setParsedResume] = React.useState<{ title?: string; skills?: string[]; years?: number; summary?: string; headline?: string } | null>(null);
+  const [parsedResume, setParsedResume] = React.useState<ParsedResume | null>(null);
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = React.useState(false);
   const [isCompleting, setIsCompleting] = React.useState(false);
   const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown> | null>(null);
+  const [emailTypoSuggestion, setEmailTypoSuggestion] = React.useState<string | null>(null);
 
   const [isFetchingQuestions, setIsFetchingQuestions] = React.useState(false);
   const [isSavingCalibration, setIsSavingCalibration] = React.useState(false);
@@ -84,17 +118,28 @@ export default function Onboarding() {
     }
   }, [currentStep, parsedProfile, profile, calibrationQuestions, isFetchingQuestions, updateFormData]);
 
+  const triggerHaptic = (type: 'success' | 'warning' | 'light' = 'light') => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      if (type === 'success') navigator.vibrate([10, 30, 10]);
+      else if (type === 'warning') navigator.vibrate([30, 10, 30]);
+      else navigator.vibrate(10);
+    }
+  };
+
   const handleSaveCalibration = async () => {
+    triggerHaptic('light');
     setIsSavingCalibration(true);
     try {
       // Save each answer to memory
       const promises = Object.entries(calibrationAnswers).map(([qId, answer]) => {
         // Find question text
         const question = calibrationQuestions.find((q: any) => q.id === qId);
+        const trimmedAnswer = typeof answer === 'string' ? answer.trim() : String(answer);
+
         return api.post("/me/answer-memory", {
           field_label: question?.text || qId,
           field_type: question?.type || "text",
-          answer_value: String(answer)
+          answer_value: trimmedAnswer
         });
       });
 
@@ -134,11 +179,99 @@ export default function Onboarding() {
     }
   }, [profile?.contact, profile?.email]);
 
+  // Sync internal states to useOnboarding's formData for refresh persistence
+  React.useEffect(() => {
+    updateFormData({ contactInfo, preferences });
+  }, [contactInfo, preferences, updateFormData]);
+
+  // Remember Me - Welcome Back
+  React.useEffect(() => {
+    // If we have a profile but haven't completed onboarding, welcome them back
+    if (profile && !profile.has_completed_onboarding && currentStep > 0) {
+      // Only show if we haven't shown it this session
+      const hasWelcomed = sessionStorage.getItem("has_welcomed_back");
+      if (!hasWelcomed) {
+        pushToast({
+          title: "Welcome back!",
+          description: `Picking up where you left off at step ${currentStep + 1}.`,
+          tone: "info"
+        });
+        sessionStorage.setItem("has_welcomed_back", "true");
+      }
+    }
+  }, [profile, currentStep]);
+
+  // Handle email typo check
+  React.useEffect(() => {
+    if (contactInfo.email) {
+      const suggestion = checkEmailTypo(contactInfo.email);
+      setEmailTypoSuggestion(suggestion);
+    } else {
+      setEmailTypoSuggestion(null);
+    }
+  }, [contactInfo.email]);
+
+  // Keyboard Shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if inside an input/textarea to avoid conflict
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+        // Allow Ctrl+Enter even in inputs to submit
+        if (!(e.ctrlKey && e.key === 'Enter')) return;
+      }
+
+      if (e.ctrlKey && e.key === 'Enter') {
+        // Specific completion logic or generic next
+        if (currentStep === 5 && !isCompleting) {
+          handleComplete();
+        } else if (!isLastStep) {
+          // Basic validation check before blindly advancing?
+          // The steps usuall have disabled buttons if invalid.
+          // For now, let's just try calling nextStep, but generally the button state controls flow.
+          // However, nextStep() in hook doesn't check validation. 
+          // We might need to check specific step validation here or just trust the user/hook.
+          // Ideally we trigger the button click.
+          const nextBtn = document.querySelector('button[aria-label="Confirm identity and proceed"], button[aria-label="Save preferences and deploy hunter engine"], button[aria-label="Save answers and continue"], button[aria-label="Finalize setup and launch command center"]');
+          if (nextBtn && !(nextBtn as HTMLButtonElement).disabled) {
+            (nextBtn as HTMLElement).click();
+          } else {
+            // Fallback for simple steps
+            nextStep();
+          }
+        }
+      } else if (e.key === 'Escape') {
+        // Maybe unrelated, but handy
+      } else if (e.altKey && e.key === 'ArrowLeft') {
+        if (!isFirstStep) prevStep();
+      } else if (e.altKey && e.key === 'ArrowRight') {
+        // Same logic as Ctrl+Enter for next
+        const nextBtn = document.querySelector('button[aria-label*="proceed"], button[aria-label*="deploy"], button[aria-label*="continue"]');
+        if (nextBtn && !(nextBtn as HTMLButtonElement).disabled) {
+          (nextBtn as HTMLElement).click();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep, isLastStep, isFirstStep, isCompleting, nextStep, prevStep]);
+
   React.useEffect(() => {
     if (profile?.has_completed_onboarding) {
       resetOnboarding();
       navigate("/app/jobs");
     }
+
+    // Asset Pre-loading
+    const preloadImages = [
+      "/logo.png",
+      // Add other critical assets here
+    ];
+    preloadImages.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+
   }, [profile, navigate, resetOnboarding]);
 
   const handleResumeUpload = async () => {
@@ -194,53 +327,41 @@ export default function Onboarding() {
 
   const handleSaveContact = async () => {
     try {
+      setIsSavingContact(true);
       const errors: Record<string, string> = {};
-      if (!contactInfo.first_name?.trim()) errors.first_name = "First name is required";
-      if (!contactInfo.last_name?.trim()) errors.last_name = "Last name is required";
-      const emailToUse = contactInfo.email || profile?.email;
-      if (!emailToUse?.trim()) errors.email = "Email is required";
-      setFormErrors(errors);
-      if (Object.keys(errors).length) {
-        throw new Error("Please fill required fields.");
+      if (!contactInfo.first_name?.trim()) errors.first_name = "Required";
+      if (!contactInfo.last_name?.trim()) errors.last_name = "Required";
+
+      const emailRes = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!contactInfo.email?.trim()) {
+        errors.email = "Required";
+      } else if (!emailRes.test(contactInfo.email.trim())) {
+        errors.email = "Invalid format";
       }
 
-      setIsSavingContact(true);
+      setFormErrors(errors);
+      if (Object.keys(errors).length > 0) return;
+
+      const trimmedContact = {
+        ...contactInfo,
+        first_name: contactInfo.first_name.trim(),
+        last_name: contactInfo.last_name.trim(),
+        email: contactInfo.email.trim(),
+        phone: contactInfo.phone?.trim(),
+      };
+
       await updateProfile({
-        contact: {
-          ...profile?.contact,
-          first_name: contactInfo.first_name,
-          last_name: contactInfo.last_name,
-          full_name: `${contactInfo.first_name} ${contactInfo.last_name}`.trim(),
-          email: contactInfo.email,
-          phone: contactInfo.phone,
-          linkedin_url: linkedinUrl || profile?.contact?.linkedin_url || undefined,
-        },
+        contact: trimmedContact,
+        full_name: `${trimmedContact.first_name} ${trimmedContact.last_name}`
       });
       nextStep();
     } catch (err) {
-      pushToast({ title: "Failed to save contact info", description: "Please try again.", tone: "error" });
+      pushToast({ title: "Failed to save contact info.", tone: "error" });
     } finally {
       setIsSavingContact(false);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setResumeFile(e.dataTransfer.files[0]);
-    }
-  };
 
   const calculateCompleteness = () => {
     let score = 0;
@@ -257,35 +378,38 @@ export default function Onboarding() {
 
   const handleSavePreferences = async () => {
     try {
-      const errors: Record<string, string> = {};
-      if (!preferences.location?.trim()) errors.location = "Location is required";
-      if (!preferences.role_type?.trim()) errors.role_type = "Role type is required";
-      setFormErrors(errors);
-      if (Object.keys(errors).length) {
-        throw new Error("Please fill required fields.");
-      }
-
       setIsSavingPreferences(true);
+      const errors: Record<string, string> = {};
+      if (!preferences.location?.trim()) errors.location = "Required";
+      if (!preferences.role_type?.trim()) errors.role_type = "Required";
+
+      setFormErrors(errors);
+      if (Object.keys(errors).length > 0) return;
+
+      const trimmedPrefs = {
+        ...preferences,
+        location: preferences.location.trim(),
+        role_type: preferences.role_type.trim(),
+        salary_min: preferences.salary_min.trim(),
+      };
+
       await savePreferences({
-        location: preferences.location || undefined,
-        role_type: preferences.role_type || undefined,
-        salary_min: preferences.salary_min ? Number(preferences.salary_min) : undefined,
-        remote_only: preferences.remote_only,
-        work_authorized: preferences.work_authorized,
-      });
+        ...trimmedPrefs,
+        salary_min: parseInt(trimmedPrefs.salary_min) || 0
+      } as any);
 
       // Update contact info separately if LinkedIn URL is provided
       if (linkedinUrl) {
         await updateProfile({
           contact: {
             linkedin_url: linkedinUrl,
-            location: preferences.location || undefined,
+            location: trimmedPrefs.location,
           }
         });
       }
       nextStep();
     } catch (err) {
-      pushToast({ title: "Something went sideways", description: "Your data is safe. Please try again.", tone: "error" });
+      pushToast({ title: "Failed to save preferences.", tone: "error" });
     } finally {
       setIsSavingPreferences(false);
     }
@@ -307,8 +431,15 @@ export default function Onboarding() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <LoadingSpinner label="Loading your profile..." />
+      <div className="h-[100dvh] w-full bg-slate-50 flex flex-col relative overflow-hidden">
+        <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center bg-white/80 border-b border-slate-200 z-50">
+          <Skeleton className="h-6 w-24" />
+        </header>
+        <main className="flex-1 w-full flex flex-col items-center justify-center p-1.5 md:p-4 bg-grid-premium">
+          <div className="w-full max-w-xl lg:max-w-3xl h-full flex flex-col justify-center">
+            <OnboardingSkeleton />
+          </div>
+        </main>
       </div>
     );
   }
@@ -412,747 +543,88 @@ export default function Onboarding() {
                   </div>
                 </div>
 
-                {/* Step 1: Welcome - Scrollable Content */}
                 {currentStep === 0 && (
-                  <div className="flex flex-col h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="text-center py-1 md:py-4">
-                        <div className="mx-auto mb-3 md:mb-6 relative">
-                          <motion.div
-                            animate={shouldReduceMotion ? undefined : { rotate: 360 }}
-                            transition={shouldReduceMotion ? undefined : { duration: 20, repeat: Infinity, ease: "linear" }}
-                            className="absolute inset-0 rounded-[2rem] border-2 border-dashed border-primary-500/20 hidden md:block"
-                          />
-                          <div className="relative mx-auto flex h-12 w-12 md:h-20 md:w-20 items-center justify-center rounded-[1.5rem] md:rounded-[2rem] bg-slate-900 shadow-2xl shadow-primary-500/20 scale-100">
-                            <Rocket className="h-6 w-6 md:h-10 md:w-10 text-primary-400" />
-                          </div>
-                        </div>
-                        <h1 className="mb-1 md:mb-3 font-display text-xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                          Initiate <span className="text-primary-600 italic">Hyper-Hunt.</span>
-                        </h1>
-                        <p className="mb-3 md:mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-xs md:text-base">
-                          We're about to build your digital autonomous twin. Calibration takes 90 seconds.
-                        </p>
-                        <div className="grid gap-1.5 md:gap-3 mb-3 md:mb-8 text-left">
-                          {[
-                            { title: "Skill Mapping", desc: "AI-driven resume vectorization", icon: Sparkles },
-                            { title: "Radar Tuning", desc: "Location & salary baseline profiling", icon: MapPin },
-                            { title: "Autonomous Launch", desc: "1-Click application engine activation", icon: Rocket },
-                          ].map((item, i) => (
-                            <motion.div
-                              key={i}
-                              initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={shouldReduceMotion ? undefined : { delay: 0.2 + i * 0.1 }}
-                              className="flex items-center gap-2.5 md:gap-4 p-2 md:p-4 rounded-xl md:rounded-2xl bg-slate-50 border border-slate-100/50 hover:bg-white hover:shadow-md transition-all group"
-                            >
-                              <div className="flex h-7 w-7 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg md:rounded-xl bg-primary-100 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
-                                <item.icon className="h-3.5 w-3.5 md:h-5 md:w-5" />
-                              </div>
-                              <div className="text-left min-w-0">
-                                <p className="text-[11px] md:text-sm font-black text-slate-900 uppercase tracking-tight truncate">{item.title}</p>
-                                <p className="text-[9px] md:text-xs text-slate-500 font-medium truncate">{item.desc}</p>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="sticky bottom-0 pt-2 md:pt-4 shrink-0 mt-auto bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                      <Button size="lg" onClick={nextStep} className="w-full h-10 md:h-12 rounded-[1.25rem] text-base md:text-xl font-black shadow-xl md:shadow-2xl shadow-primary-500/30 bg-primary-600 hover:bg-primary-500 hover:scale-[1.02] transition-all group">
-                        BEGIN CALIBRATION
-                        <ArrowRight className="ml-3 h-5 w-5 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </div>
-                  </div>
+                  <WelcomeStep
+                    onNext={nextStep}
+                    shouldReduceMotion={!!shouldReduceMotion}
+                  />
                 )}
 
-                {/* Step 2: Resume Upload */}
-                {/* Step 2: Resume Upload */}
                 {currentStep === 1 && (
-                  <div className="flex flex-col h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="mb-3 md:mb-8 flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6">
-                        <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-primary-50 border border-primary-100 text-primary-600 shadow-inner">
-                          <Upload className="h-4 w-4 md:h-8 md:w-8" />
-                        </div>
-                        <div className="min-w-0">
-                          <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Experience Input</h2>
-                          <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Feed the AI your career history for optimization.</p>
-                        </div>
-                      </div>
-
-                      <div
-                        className="mb-3 md:mb-8 relative group"
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                      >
-                        <input
-                          type="file"
-                          accept=".pdf,.doc,.docx"
-                          onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                          className="hidden"
-                          id="resume-upload"
-                          disabled={isUploading}
-                        />
-                        <label
-                          htmlFor="resume-upload"
-                          className={`flex cursor-pointer flex-col items-center gap-2 md:gap-6 rounded-[1.25rem] md:rounded-[2.5rem] border-3 border-dashed p-3 md:p-10 text-center transition-all duration-300 ${isDragging
-                            ? "bg-primary-50 border-primary-500 scale-[1.02] shadow-xl"
-                            : resumeFile
-                              ? "bg-primary-50/50 border-primary-300"
-                              : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-primary-300"
-                            }`}
-                        >
-                          <div className={`flex h-10 w-10 md:h-20 md:w-20 items-center justify-center rounded-[0.75rem] md:rounded-[2rem] bg-white shadow-xl transition-all ${isUploading ? 'animate-pulse scale-90' : isDragging ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
-                            {isUploading ? (
-                              <div className="relative">
-                                <Sparkles className="h-5 w-5 md:h-10 md:w-10 text-primary-400 animate-spin-slow" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="w-2.5 h-2.5 md:w-5 md:h-5 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-                                </div>
-                              </div>
-                            ) : (
-                              <FileText className={`h-5 w-5 md:h-10 md:w-10 ${resumeFile || isDragging ? 'text-primary-600' : 'text-slate-300'}`} />
-                            )}
-                          </div>
-                          <div className="space-y-0.5 md:space-y-2">
-                            <p className={`text-xs md:text-xl font-black ${resumeFile || isDragging ? 'text-primary-700' : 'text-slate-900'}`}>
-                              {resumeFile ? resumeFile.name : isDragging ? "Drop to Analyze" : "Tap to Upload Resume"}
-                            </p>
-                            <p className="text-[9px] md:text-xs text-slate-400 font-bold uppercase tracking-widest leading-tight">PDF, DOCX — AI Optimization Ready</p>
-                          </div>
-                        </label>
-                        {/* Clear file button */}
-                        {resumeFile && !isUploading && (
-                          <button
-                            onClick={(e) => { e.preventDefault(); setResumeFile(null); setResumeError(null); setShowParsingPreview(false); }}
-                            className="absolute top-2 right-2 md:top-3 md:right-3 w-6 h-6 md:w-7 md:h-7 rounded-full bg-slate-200 hover:bg-red-100 flex items-center justify-center transition-colors z-20"
-                            title="Remove file"
-                          >
-                            <X className="h-3 w-3 md:h-4 md:w-4 text-slate-500 hover:text-red-500" />
-                          </button>
-                        )}
-                        {isUploading && (
-                          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[1.25rem] md:rounded-[2.5rem] flex flex-col items-center justify-center gap-3 z-10">
-                            <div className="w-40 md:w-64 h-1.5 bg-slate-200 rounded-full overflow-hidden border border-slate-100 shadow-inner">
-                              <motion.div
-                                className="h-full bg-primary-500"
-                                initial={shouldReduceMotion ? { width: "100%" } : { width: "0%" }}
-                                animate={{ width: "100%" }}
-                                transition={shouldReduceMotion ? undefined : { duration: 4, repeat: Infinity }}
-                              />
-                            </div>
-                            <p className="text-[9px] md:text-xs font-black text-primary-600 uppercase tracking-widest animate-pulse">Scanning Vector Space...</p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mb-3 md:mb-10">
-                        <div className="flex items-center gap-2 mb-1.5 md:mb-4 px-1">
-                          <div className="h-[1px] flex-1 bg-slate-100" />
-                          <span className="text-[9px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest">or social reference</span>
-                          <div className="h-[1px] flex-1 bg-slate-100" />
-                        </div>
-                        <div className="relative">
-                          <Input
-                            icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
-                            type="url"
-                            placeholder="LinkedIn URL (optional)"
-                            value={linkedinUrl}
-                            onChange={(e) => setLinkedinUrl(e.target.value)}
-                            className="bg-white shadow-sm text-sm"
-                          />
-                        </div>
-                      </div>
-
-                      {resumeError && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="mb-3 md:mb-8 rounded-xl md:rounded-2xl border border-red-200 bg-red-50 p-3 md:p-5 text-xs md:text-sm text-red-600 font-bold flex items-center gap-2 md:gap-3"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-                          <span className="flex-1 min-w-0 truncate">{resumeError}</span>
-                        </motion.div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                      <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
-                        <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
-                        PREV
-                      </Button>
-                      {resumeFile && !resumeError ? (
-                        <Button
-                          onClick={handleResumeUpload}
-                          disabled={isUploading}
-                          className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-xs md:text-lg group overflow-hidden relative"
-                        >
-                          <span className="relative z-10 flex items-center justify-center">
-                            {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "SYNC NEW SOURCE" : "EXTRACT EXPERIENCE"}
-                            <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
-                          </span>
-                        </Button>
-                      ) : (
-                        <Button
-                          variant={resumeError ? "primary" : "outline"}
-                          onClick={nextStep}
-                          className={`flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black transition-all text-xs md:text-lg truncate ${resumeError
-                            ? "bg-primary-600 hover:bg-primary-500 shadow-xl shadow-primary-500/30 text-white"
-                            : "text-slate-500 hover:border-slate-900 hover:text-slate-900 border-2 border-slate-200"
-                            }`}
-                        >
-                          {resumeError ? "CONTINUE ANYWAY" : "SKIP TO MANUAL"}
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Resume Parsing Preview */}
-                    <AnimatePresence>
-                      {showParsingPreview && parsedResume && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0, y: 20 }}
-                          animate={{ opacity: 1, height: 'auto', y: 0 }}
-                          exit={{ opacity: 0, height: 0, y: 20 }}
-                          className="overflow-hidden"
-                        >
-                          <Card className="mt-10 p-8 rounded-[2.5rem] border-primary-100 bg-primary-50/40 relative shadow-xl">
-                            <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">
-                              98% Accuracy
-                            </div>
-                            <div className="flex items-center gap-3 mb-8">
-                              <div className="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-lg shadow-primary-500/20">
-                                <Sparkles className="h-6 w-6" />
-                              </div>
-                              <h3 className="font-black text-slate-900 text-xl tracking-tight">System Extraction Result:</h3>
-                            </div>
-                            <div className="grid gap-6">
-                              <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/80 border border-white shadow-sm">
-                                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary-500 shadow-inner">
-                                  <User className="h-5 w-5" />
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Inferred Professional Title</p>
-                                  <p className="font-black text-slate-900 text-lg">{parsedResume.title}</p>
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/80 border border-white shadow-sm">
-                                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary-500 shadow-inner">
-                                    <Briefcase className="h-5 w-5" />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Depth</p>
-                                    <p className="font-black text-slate-900 text-lg">{parsedResume.years} Years</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/80 border border-white shadow-sm">
-                                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary-500 shadow-inner">
-                                    <Sparkles className="h-5 w-5" />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Core Stack</p>
-                                    <p className="font-black text-slate-900 text-lg">{parsedResume.skills?.length || 0} Skills</p>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="p-4 rounded-2xl bg-white/80 border border-white shadow-sm">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Extracted Competencies</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {parsedResume.skills?.map((skill, i) => (
-                                    <motion.div
-                                      initial={{ opacity: 0, scale: 0.8 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      transition={{ delay: i * 0.05 }}
-                                      key={skill}
-                                    >
-                                      <Badge variant="outline" className="text-[10px] font-black bg-white border-slate-100 text-slate-700 px-3 py-1 uppercase tracking-wider">{skill}</Badge>
-                                    </motion.div>
-                                  ))}
-                                  {(!parsedResume.skills || parsedResume.skills.length === 0) && (
-                                    <span className="text-xs text-slate-400 font-medium">Automatic extraction pending manual review...</span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              variant="primary"
-                              className="w-full mt-10 h-12 rounded-[1.25rem] font-black text-lg bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-500/20"
-                              onClick={handleConfirmParsing}
-                            >
-                              LOCK IN & PROCEED
-                            </Button>
-                          </Card>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <ResumeStep
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onUpload={handleResumeUpload}
+                    resumeFile={resumeFile}
+                    setResumeFile={setResumeFile}
+                    isUploading={isUploading}
+                    resumeError={resumeError}
+                    setResumeError={setResumeError}
+                    linkedinUrl={linkedinUrl}
+                    setLinkedinUrl={setLinkedinUrl}
+                    showParsingPreview={showParsingPreview}
+                    setShowParsingPreview={setShowParsingPreview}
+                    parsedResume={parsedResume}
+                    onConfirmParsing={handleConfirmParsing}
+                    shouldReduceMotion={!!shouldReduceMotion}
+                  />
                 )}
 
-                {/* Step 3: Confirm Contact */}
                 {currentStep === 2 && (
-                  <div className="flex flex-col h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="mb-3 md:mb-8 flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6">
-                        <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
-                          <User className="h-4 w-4 md:h-8 md:w-8" />
-                        </div>
-                        <div className="min-w-0">
-                          <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Verify Identity</h2>
-                          <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Confirm the details we extracted.</p>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-3 md:gap-6">
-                        <div className="grid grid-cols-2 gap-2.5 md:gap-6">
-                          <div>
-                            <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                              <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                              First Name <span className="text-red-400">*</span>
-                            </label>
-                            <div className="relative">
-                              <Input
-                                icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
-                                type="text"
-                                placeholder="John"
-                                value={contactInfo.first_name}
-                                onChange={(e) => setContactInfo(c => ({ ...c, first_name: e.target.value }))}
-                                className="bg-white shadow-sm text-sm"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                              <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                              Last Name <span className="text-red-400">*</span>
-                            </label>
-                            <div className="relative">
-                              <Input
-                                icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
-                                type="text"
-                                placeholder="Doe"
-                                value={contactInfo.last_name}
-                                onChange={(e) => setContactInfo(c => ({ ...c, last_name: e.target.value }))}
-                                className="bg-white shadow-sm text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                            Email Address <span className="text-red-400">*</span>
-                          </label>
-                          <div className="relative">
-                            <Input
-                              icon={<Mail className="h-4 w-4 md:h-5 md:w-5" />}
-                              type="email"
-                              placeholder="john@example.com"
-                              value={contactInfo.email}
-                              onChange={(e) => setContactInfo(c => ({ ...c, email: e.target.value }))}
-                              className="bg-white shadow-sm text-sm"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="mb-2 md:mb-3 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                            Phone Number
-                          </label>
-                          <div className="relative">
-                            <Input
-                              icon={<Phone className="h-4 w-4 md:h-5 md:w-5" />}
-                              type="tel"
-                              placeholder="+1 (555) 123-4567"
-                              value={contactInfo.phone}
-                              onChange={(e) => setContactInfo(c => ({ ...c, phone: e.target.value }))}
-                              className="bg-white shadow-sm text-sm"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {parsedResume && (
-                        <div className="mt-3 md:mt-8 p-2.5 md:p-5 rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100">
-                          <div className="flex items-center gap-2 mb-1 md:mb-2">
-                            <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-emerald-600" />
-                            <p className="text-[7px] md:text-[10px] font-black text-emerald-700 uppercase tracking-widest">AI-Extracted From Resume</p>
-                          </div>
-                          <p className="text-[10px] md:text-sm text-emerald-800 font-medium">We pre-filled these from your resume. Please verify details.</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                      <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
-                        <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
-                        PREV
-                      </Button>
-                      <Button
-                        onClick={handleSaveContact}
-                        disabled={!contactInfo.first_name || !contactInfo.email || isSavingContact}
-                        className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-xs md:text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
-                      >
-                        {isSavingContact ? <LoadingSpinner size="sm" /> : "CONFIRM IDENTITY"}
-                        <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </div>
-                  </div>
+                  <ConfirmContactStep
+                    onNext={handleSaveContact}
+                    onPrev={prevStep}
+                    contactInfo={contactInfo}
+                    setContactInfo={setContactInfo}
+                    isSavingContact={isSavingContact}
+                    parsedResume={parsedResume}
+                    formErrors={formErrors}
+                    emailTypoSuggestion={emailTypoSuggestion}
+                    onApplyEmailSuggestion={(suggestion) => {
+                      setContactInfo(prev => ({
+                        ...prev,
+                        email: `${prev.email.split('@')[0]}@${suggestion}`
+                      }));
+                      setEmailTypoSuggestion(null);
+                    }}
+                  />
                 )}
 
-                {/* Step 4: Preferences */}
                 {currentStep === 3 && (
-                  <div className="flex flex-col h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6 mb-3 md:mb-8">
-                        <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
-                          <MapPin className="h-4 w-4 md:h-8 md:w-8" />
-                        </div>
-                        <div className="min-w-0">
-                          <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Active Parameters</h2>
-                          <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Define the geospatial and fiscal bounds.</p>
-                        </div>
-                      </div>
-
-                      {/* AI Suggestions Section */}
-                      {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
-                        <div className="grid md:grid-cols-2 gap-2.5 md:gap-6 mb-3 md:mb-8">
-                          {/* Role Suggestions */}
-                          <AISuggestionCard
-                            title="Suggested Roles"
-                            subtitle="Based on your experience"
-                            suggestions={aiSuggestions.roles.data?.suggested_roles || []}
-                            confidence={aiSuggestions.roles.data?.confidence}
-                            reasoning={aiSuggestions.roles.data?.reasoning}
-                            loading={aiSuggestions.roles.loading}
-                            error={aiSuggestions.roles.error}
-                            onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
-                            onReject={() => { }}
-                          />
-
-                          {/* Location Suggestions */}
-                          <AISuggestionCard
-                            title="Recommended Locations"
-                            subtitle={aiSuggestions.locations.data?.remote_friendly_score
-                              ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote`
-                              : "Based on your skills"
-                            }
-                            suggestions={aiSuggestions.locations.data?.suggested_locations || []}
-                            confidence={aiSuggestions.locations.data?.remote_friendly_score}
-                            reasoning={aiSuggestions.locations.data?.reasoning}
-                            loading={aiSuggestions.locations.loading}
-                            error={aiSuggestions.locations.error}
-                            onAccept={(location) => setPreferences(p => ({ ...p, location }))}
-                            onReject={() => { }}
-                          />
-                        </div>
-                      )}
-
-                      {/* Salary Suggestion */}
-                      {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
-                        <div className="mb-3 md:mb-8">
-                          <SalarySuggestionCard
-                            minSalary={aiSuggestions.salary.data?.min_salary || 0}
-                            maxSalary={aiSuggestions.salary.data?.max_salary || 0}
-                            marketMedian={aiSuggestions.salary.data?.market_median || 0}
-                            currency={aiSuggestions.salary.data?.currency}
-                            confidence={aiSuggestions.salary.data?.confidence}
-                            factors={aiSuggestions.salary.data?.factors}
-                            reasoning={aiSuggestions.salary.data?.reasoning}
-                            loading={aiSuggestions.salary.loading}
-                            error={aiSuggestions.salary.error}
-                            onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
-                            onReject={() => { }}
-                          />
-                        </div>
-                      )}
-
-                      <div className="space-y-3 md:space-y-8">
-                        <div className="grid gap-3 md:gap-8">
-                          <div>
-                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                              <div className="w-1 h-1 rounded-full bg-primary-500" />
-                              Primary Operation Hub
-                            </label>
-                            <div className="relative">
-                              <Input
-                                icon={<MapPin className="h-4 w-4 md:h-5 md:w-5" />}
-                                type="text"
-                                placeholder="e.g., Remote, Austin TX, London"
-                                value={preferences.location}
-                                onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
-                                className="bg-white shadow-sm text-sm"
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                              <div className="w-1 h-1 rounded-full bg-primary-500" />
-                              Target Role Classification
-                            </label>
-                            <div className="relative">
-                              <Input
-                                icon={<Briefcase className="h-4 w-4 md:h-5 md:w-5" />}
-                                type="text"
-                                placeholder="e.g., Staff AI Engineer"
-                                value={preferences.role_type}
-                                onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
-                                className="bg-white shadow-sm text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-3 md:gap-8">
-                          <div>
-                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                              <div className="w-1 h-1 rounded-full bg-primary-500" />
-                              Min Multiplier (Salary)
-                            </label>
-                            <div className="relative">
-                              <Input
-                                icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5" />}
-                                type="number"
-                                placeholder="150000"
-                                value={preferences.salary_min}
-                                onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
-                                className="bg-white shadow-sm text-sm"
-                              />
-                            </div>
-                          </div>
-                          <div className="flex flex-col justify-end">
-                            <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-5 rounded-2xl cursor-pointer border-2 transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
-                              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.remote_only ? 'bg-primary-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
-                                <Zap className="h-4 w-4 md:h-5 md:w-5" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Geo-Agnostic Only</p>
-                                <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">100% Remote Filter</p>
-                              </div>
-                              <input
-                                type="checkbox"
-                                checked={preferences.remote_only}
-                                onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
-                                className="h-5 w-5 md:h-6 md:w-6 rounded-lg border-slate-300 text-primary-600 focus:ring-primary-500"
-                              />
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Work Authorization */}
-                      <div className="pt-3 md:pt-6 border-t border-slate-100 mt-3 md:mt-8">
-                        <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                          <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                          Work Authorization
-                        </label>
-                        <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-5 rounded-2xl cursor-pointer border-2 transition-all ${preferences.work_authorized ? 'bg-emerald-50 border-emerald-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
-                          <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.work_authorized ? 'bg-emerald-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
-                            <Shield className="h-4 w-4 md:h-5 md:w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Authorized to Work</p>
-                            <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">No visa sponsorship needed</p>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={preferences.work_authorized}
-                            onChange={(e) => setPreferences((p) => ({ ...p, work_authorized: e.target.checked }))}
-                            className="h-5 w-5 md:h-6 md:w-6 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                      <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
-                        <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
-                        PREV
-                      </Button>
-                      <Button onClick={handleSavePreferences} className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-xs md:text-xl group" disabled={isSavingPreferences}>
-                        {isSavingPreferences ? <LoadingSpinner size="sm" /> : "DEPLOY HUNTER ENGINE"}
-                        <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </div>
-                  </div>
+                  <PreferencesStep
+                    onNext={handleSavePreferences}
+                    onPrev={prevStep}
+                    preferences={preferences}
+                    setPreferences={setPreferences}
+                    isSavingPreferences={isSavingPreferences}
+                    aiSuggestions={aiSuggestions}
+                    formErrors={formErrors}
+                  />
                 )}
 
-                {/* Step 4: Calibration */}
                 {currentStep === 4 && (
-                  <div className="flex flex-col h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6 mb-3 md:mb-8">
-                        <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-indigo-50 border border-indigo-100 text-indigo-600 shadow-inner">
-                          <Rocket className="h-4 w-4 md:h-8 md:w-8" />
-                        </div>
-                        <div className="min-w-0">
-                          <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Final Calibration</h2>
-                          <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Fine-tuning AI parameters for launch.</p>
-                        </div>
-                      </div>
-
-                      {isFetchingQuestions ? (
-                        <div className="flex flex-col items-center justify-center h-48 space-y-4">
-                          <LoadingSpinner size="lg" />
-                          <p className="text-slate-500 font-medium">Generating strategic questions...</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-6">
-                          {(calibrationQuestions as any[]).map((q: any) => (
-                            <div key={q.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
-                              <label className="block text-sm md:text-base font-bold text-slate-900 mb-3">{q.text}</label>
-                              {q.type === 'yes_no' && (
-                                <div className="flex gap-4">
-                                  {['Yes', 'No'].map(opt => (
-                                    <label key={opt} className={`flex-1 p-3 rounded-xl border-2 cursor-pointer transition-all ${calibrationAnswers[q.id] === opt ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-slate-100 hover:border-slate-200'}`}>
-                                      <input type="radio" name={q.id} value={opt} checked={calibrationAnswers[q.id] === opt} onChange={(e) => updateFormData({ calibrationAnswers: { ...calibrationAnswers, [q.id]: e.target.value } })} className="hidden" />
-                                      <span className="block text-center font-bold">{opt}</span>
-                                    </label>
-                                  ))}
-                                </div>
-                              )}
-                              {q.type === 'select' && (
-                                <div className="relative">
-                                  <select
-                                    value={calibrationAnswers[q.id] || ""}
-                                    onChange={(e) => updateFormData({ calibrationAnswers: { ...calibrationAnswers, [q.id]: e.target.value } })}
-                                    className="w-full h-12 rounded-xl border-slate-200 pl-4 pr-10 text-sm font-medium focus:ring-primary-500"
-                                  >
-                                    <option value="">Select an option...</option>
-                                    {(q.options || []).map((opt: string) => (
-                                      <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                  </select>
-                                </div>
-                              )}
-                              {q.type === 'text' && (
-                                <Input
-                                  value={calibrationAnswers[q.id] || ""}
-                                  onChange={(e) => updateFormData({ calibrationAnswers: { ...calibrationAnswers, [q.id]: e.target.value } })}
-                                  placeholder="Your answer..."
-                                  className="h-12"
-                                />
-                              )}
-                            </div>
-                          ))}
-                          {calibrationQuestions.length === 0 && (
-                            <div className="text-center text-slate-500 py-10">
-                              <p>No calibration needed. You're good to go!</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                      <Button variant="ghost" onClick={prevStep} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4">
-                        <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
-                        PREV
-                      </Button>
-                      <Button onClick={handleSaveCalibration} className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-xs md:text-xl group" disabled={isSavingCalibration || isFetchingQuestions}>
-                        {isSavingCalibration ? <LoadingSpinner size="sm" /> : "COMPLETE CALIBRATION"}
-                        <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </div>
-                  </div>
+                  <CalibrationStep
+                    onNext={handleSaveCalibration}
+                    onPrev={prevStep}
+                    calibrationQuestions={calibrationQuestions}
+                    calibrationAnswers={calibrationAnswers}
+                    updateFormData={updateFormData}
+                    isFetchingQuestions={isFetchingQuestions}
+                    isSavingCalibration={isSavingCalibration}
+                  />
                 )}
 
-                {/* Step 5: Review & Ready! */}
                 {currentStep === 5 && (
-                  <div className="flex flex-col h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                      <div className="text-center py-2 md:py-6">
-                        <div className="mx-auto mb-3 md:mb-10 relative">
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ duration: 0.5, times: [0, 0.5, 1] }}
-                            className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl"
-                          />
-                          <div className="relative mx-auto flex h-14 w-14 md:h-28 md:w-28 items-center justify-center rounded-[1.5rem] md:rounded-[3rem] bg-emerald-500 shadow-2xl shadow-emerald-200">
-                            <CheckCircle2 className="h-7 w-7 md:h-12 md:w-16 text-white" />
-                          </div>
-                        </div>
-
-                        <h1 className="mb-1 md:mb-4 font-display text-2xl md:text-5xl font-black text-slate-900 tracking-tight">
-                          System <span className="text-emerald-500 italic">Online.</span>
-                        </h1>
-                        <p className="mb-4 md:mb-12 text-slate-500 font-medium max-w-sm mx-auto text-sm md:text-lg leading-relaxed">
-                          Calibration successful. Your digital twin is initialized.
-                        </p>
-
-                        {/* Preferences Summary Table */}
-                        <div className="mb-4 md:mb-12 relative">
-                          <div className="absolute -inset-4 bg-gradient-to-b from-slate-900/5 to-transparent rounded-[3rem] -z-10 hidden md:block" />
-                          <Card className="bg-slate-950 text-white p-3 md:p-8 rounded-[1.25rem] md:rounded-[2.5rem] shadow-2xl text-left relative overflow-hidden border-white/5 border-t-white/10">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px]" />
-                            <div className="relative z-10">
-                              <div className="flex items-center gap-3 mb-4 md:mb-8 border-b border-white/5 pb-2 md:pb-4">
-                                <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-primary-400">
-                                  <Rocket className="h-3 w-3 md:h-4 md:w-4" />
-                                </div>
-                                <h3 className="font-black text-white/50 text-[8px] md:text-[10px] uppercase tracking-[0.3em]">Operational Directives</h3>
-                              </div>
-                              <div className="space-y-4 md:space-y-6">
-                                <div className="flex items-start justify-between group">
-                                  <div>
-                                    <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">CONFIRMED IDENTITY</p>
-                                    <p className="font-black text-sm md:text-lg text-white group-hover:text-emerald-400 transition-colors uppercase">{contactInfo.first_name} {contactInfo.last_name}</p>
-                                    <p className="text-[10px] md:text-xs text-white/40 font-medium mt-0.5 max-w-[150px] truncate">{contactInfo.email}</p>
-                                  </div>
-                                  <User className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-emerald-500 transition-colors" />
-                                </div>
-                                <div className="flex items-start justify-between group">
-                                  <div>
-                                    <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">AOI GEOLOCATION</p>
-                                    <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.location || "Global Priority"}</p>
-                                  </div>
-                                  <MapPin className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
-                                </div>
-                                <div className="flex items-start justify-between group">
-                                  <div>
-                                    <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">TARGET CLASSIFICATION</p>
-                                    <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.role_type || "Senior Impact Role"}</p>
-                                  </div>
-                                  <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
-                                </div>
-                              </div>
-                              <div className="mt-6 md:mt-10 pt-4 md:pt-8 border-t border-white/5 grid grid-cols-2 gap-3 md:gap-6">
-                                <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 group">
-                                  <p className="text-[8px] md:text-[9px] uppercase font-black text-emerald-500/70 mb-1 tracking-widest">Match Strength</p>
-                                  <p className="text-xl md:text-2xl font-black text-emerald-400 italic">{completeness}%</p>
-                                </div>
-                                <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-primary-500/10 border border-primary-500/20 group">
-                                  <p className="text-[8px] md:text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Data Points</p>
-                                  <p className="text-xl md:text-2xl font-black text-primary-400 italic">{[contactInfo.first_name, contactInfo.email, preferences.location, preferences.role_type, preferences.salary_min, (profile?.resume_url || resumeFile)].filter(Boolean).length}/6</p>
-                                </div>
-                              </div>
-                            </div>
-                          </Card>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                      <Button size="lg" variant="primary" onClick={handleComplete} className="w-full h-10 md:h-16 rounded-[1.25rem] md:rounded-[2rem] text-base md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting}>
-                        <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">
-                          {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
-                          <Rocket className="h-5 w-5 md:h-8 md:w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
-                        </span>
-                        <motion.div
-                          animate={{ x: ['-100%', '200%'] }}
-                          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
-                        />
-                      </Button>
-                      <p className="mt-2 md:mt-8 text-[8px] md:text-[10px] text-slate-400 font-black uppercase tracking-[0.4em] hidden md:block">Full system authority granted.</p>
-                    </div>
-                  </div>
+                  <ReadyStep
+                    onNext={handleComplete}
+                    isCompleting={isCompleting}
+                    contactInfo={contactInfo}
+                    preferences={preferences}
+                    completeness={completeness}
+                    profile={profile}
+                    resumeFile={resumeFile}
+                    shouldReduceMotion={!!shouldReduceMotion}
+                  />
                 )}
               </Card>
             </motion.div>

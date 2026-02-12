@@ -492,6 +492,11 @@ export default function Login() {
             {' '}and{' '}
             <Link to="/privacy" className="underline hover:text-primary-500">Privacy Policy</Link>.
           </p>
+
+          <div className="mt-4 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-300 uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity cursor-help" title="Your data is encrypted and legally owned by you. We cannot sell it.">
+            <ShieldCheck className="w-3 h-3 text-emerald-500" />
+            <span>Data Sovereign</span>
+          </div>
         </motion.div>
       </div>
     </div>

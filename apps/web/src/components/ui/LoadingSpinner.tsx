@@ -17,8 +17,15 @@ export interface LoadingSpinnerProps {
 export function LoadingSpinner({ label = "Loading", className, size = "lg" }: LoadingSpinnerProps) {
   const spinnerSize = sizeMap[size] ?? sizeMap.lg;
   return (
-    <div className={cn("flex flex-col items-center gap-3 text-brand-ink/70", className)}>
-      <div className={cn("animate-spin rounded-full border-brand-sunrise/40 border-t-brand-sunrise", spinnerSize)} />
+    <div
+      className={cn("flex flex-col items-center gap-3 text-brand-ink/70", className)}
+      role="status"
+      aria-live="polite"
+    >
+      <div
+        className={cn("animate-spin rounded-full border-brand-sunrise/40 border-t-brand-sunrise", spinnerSize)}
+        aria-hidden="true"
+      />
       <p className="text-sm font-medium uppercase tracking-[0.3em]">{label}</p>
     </div>
   );

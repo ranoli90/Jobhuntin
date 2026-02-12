@@ -510,7 +510,7 @@ async def update_profile(
 
     return {
         "id": ctx.user_id,
-        "email": "",
+        "email": user_row["email"] if (user_row := await conn.fetchrow("SELECT email FROM public.users WHERE id = $1", ctx.user_id)) else "",
         "has_completed_onboarding": profile_data.get("has_completed_onboarding", False),
         "resume_url": final_resume,
         "preferences": profile_data.get("preferences") or {},

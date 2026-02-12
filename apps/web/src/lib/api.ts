@@ -177,6 +177,11 @@ export async function apiFetch(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+    // If user provided a signal, listen to it
+    if (options.signal) {
+      options.signal.addEventListener("abort", () => controller.abort());
+    }
+
     try {
       const resp = await fetch(url, {
         ...rest,

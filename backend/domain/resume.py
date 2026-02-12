@@ -133,10 +133,21 @@ async def download_from_supabase_storage(resume_url: str) -> str:
 
 
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:
+    """Extract text from PDF bytes. Handles corruption and invalid file formats."""
     text_parts: list[str] = []
-    with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
-        for page in doc:
-            text_parts.append(page.get_text())
+    try:
+        with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+            if doc.page_count == 0:
+                raise HTTPException(status_code=422, detail="The PDF file appears to be empty.")
+            for page in doc:
+                text_parts.append(page.get_text())
+    except fitz.FileDataError:
+        logger.error("Failed to open PDF: Invalid or corrupted file")
+        raise HTTPException(status_code=422, detail="Invalid PDF format or corrupted file. Please ensure you're uploading a valid PDF.")
+    except Exception as e:
+        logger.error(f"Unexpected error during PDF extraction: {e}")
+        raise HTTPException(status_code=422, detail="Failed to process PDF. Please try a different version of your resume.")
+        
     return "\n".join(text_parts)
 
 

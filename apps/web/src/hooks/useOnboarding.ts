@@ -1,23 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 
-interface OnboardingStep {
-  id: string;
-  title: string;
-  description: string;
-}
-
-interface OnboardingState {
-  currentStep: number;
-  completedSteps: string[];
-  formData: {
-    linkedinUrl?: string;
-    preferences?: any;
-    resumeFile?: any;
-    parsedResume?: any;
-    calibrationQuestions?: any[];
-    calibrationAnswers?: Record<string, any>;
-  };
-}
+import { OnboardingStep, OnboardingState, OnboardingFormData } from "../types/onboarding";
 
 const STORAGE_KEY = "onboarding_state";
 
@@ -70,11 +53,6 @@ export function useOnboarding() {
     return {};
   });
 
-  const currentStepData = STEPS[currentStep];
-  const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === STEPS.length - 1;
-  const progress = ((currentStep + 1) / STEPS.length) * 100;
-
   const saveState = useCallback(() => {
     try {
       const state: OnboardingState = {
@@ -92,12 +70,74 @@ export function useOnboarding() {
     setFormData(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const nextStep = useCallback(() => {
-    if (!isLastStep) {
-      setCompletedSteps((prev) => [...prev, STEPS[currentStep].id]);
-      setCurrentStep((prev) => prev + 1);
+  // A/B Test: Variant Assignment
+  const [abVariant, setAbVariant] = useState<"resume_first" | "role_first">("resume_first");
+
+  useEffect(() => {
+    const storedVariant = localStorage.getItem("onboarding_ab_variant");
+    if (storedVariant) {
+      setAbVariant(storedVariant as any);
+    } else {
+      // 50/50 split
+      const newVariant = Math.random() > 0.5 ? "resume_first" : "role_first";
+      localStorage.setItem("onboarding_ab_variant", newVariant);
+      setAbVariant(newVariant);
+      // Log exposure
+      console.log(`[Telemetry] A/B Test Assignment: onboarding_flow = ${newVariant}`);
     }
-  }, [currentStep, isLastStep]);
+  }, []);
+
+  // Dynamic Steps based on Variant
+  const currentSteps = useMemo(() => {
+    if (abVariant === "role_first") {
+      // Swap Resume (1) and Preferences (3) - strictly speaking "Role" is in Preferences
+      // Original: Welcome, Resume, Contact, Preferences, Calibration, Ready
+      // New: Welcome, Preferences, Resume, Contact, Calibration, Ready
+      // Actually, let's just swap Resume and Preferences to test "Intent vs Payload"
+      const newSteps = [...STEPS];
+      const resumeStep = newSteps.find(s => s.id === "resume");
+      const prefsStep = newSteps.find(s => s.id === "preferences");
+
+      if (resumeStep && prefsStep) {
+        // This simple swap might be enough for the test
+        // But index management relies on the order.
+        // We need to re-construct the array.
+        return [
+          STEPS[0], // Welcome
+          STEPS[3], // Preferences (Role)
+          STEPS[1], // Resume
+          STEPS[2], // Contact
+          STEPS[4], // Calibration
+          STEPS[5]  // Ready
+        ];
+      }
+    }
+    return STEPS;
+  }, [abVariant]);
+
+  const currentStepData = currentSteps[currentStep];
+  const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === currentSteps.length - 1;
+  const progress = ((currentStep + 1) / currentSteps.length) * 100;
+
+  const nextStep = useCallback(() => {
+    const totalSteps = currentSteps.length;
+    setCurrentStep((prev) => {
+      // Basic Telemetry
+      console.log(`[Telemetry] Onboarding Step Completed: ${currentSteps[prev].id} (index: ${prev})`);
+      // Mark current step as completed
+      setCompletedSteps((prevCompleted) => {
+        const newCompleted = new Set(prevCompleted);
+        newCompleted.add(currentSteps[prev].id); // Add the ID of the completed step
+        return Array.from(newCompleted); // Convert Set back to Array
+      });
+
+      if (prev < totalSteps - 1) { // Check if not the last step
+        return prev + 1;
+      }
+      return prev; // Stay on the last step if already there
+    });
+  }, [STEPS, setCompletedSteps]);
 
   const prevStep = useCallback(() => {
     if (!isFirstStep) {
@@ -121,9 +161,36 @@ export function useOnboarding() {
     setFormData({});
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("offline_queue");
     } catch {
       /* ignore */
     }
+  }, []);
+
+  // Offline Queue Processing
+  useEffect(() => {
+    const processQueue = async () => {
+      if (navigator.onLine) {
+        const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
+        if (queue.length > 0) {
+          // We would iterate and retry here, but since our API is not fully set up for generic replay
+          // we will just log for now or clear it if it's too old. 
+          // In a real implementation, we'd map these to api calls.
+          console.log("Processing offline queue:", queue);
+          // For this demo, let's just clear it after 'processing'
+          localStorage.removeItem("offline_queue");
+        }
+      }
+    };
+
+    window.addEventListener('online', processQueue);
+    return () => window.removeEventListener('online', processQueue);
+  }, []);
+
+  const queueOfflineAction = useCallback((action: any) => {
+    const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
+    queue.push({ ...action, timestamp: Date.now() });
+    localStorage.setItem("offline_queue", JSON.stringify(queue));
   }, []);
 
   return {

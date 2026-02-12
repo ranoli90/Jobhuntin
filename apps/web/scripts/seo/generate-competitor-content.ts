@@ -26,9 +26,7 @@ const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
 // STRICT: Only approved NVIDIA free-tier models — no exceptions
 const FREE_MODELS = [
-  'nvidia/nemotron-3-nano-30b-a3b:free',       // Primary: High capability (30B)
-  'nvidia/nemotron-nano-12b-v2-vl:free',        // Fallback 1: Balanced (12B)
-  'nvidia/nemotron-nano-9b-v2:free',            // Fallback 2: Fast (9B)
+  'openrouter/free',       // User requested free router
 ];
 
 interface Competitor {

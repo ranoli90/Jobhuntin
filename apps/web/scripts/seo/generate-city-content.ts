@@ -64,12 +64,10 @@ import { getCityJobStats, formatStatsForPrompt } from './data-provider.js';
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
 // Use free models to avoid costs, with fallback to Google free tier
+// Use free models to avoid costs, with fallback to Google free tier
 const FREE_MODELS = [
-  'nvidia/nemotron-3-nano-30b-a3b:free',       // Primary: High capability (30B)
-  'nvidia/nemotron-nano-12b-v2-vl:free',        // Fallback 1: Balanced (12B)
-  'nvidia/nemotron-nano-9b-v2:free',            // Fallback 2: Fast (9B)
-  'google/gemma-2-9b-it:free',                  // Fallback 3: Google free tier
-  'meta-llama/llama-3.2-11b-vision-instruct:free', // Good reasoning
+  'openrouter/free',       // User requested free router
+  'google/gemini-2.0-flash-lite-preview-02-05:free', // Fallback
 ];
 
 // Content Archetypes to prevent "cookie-cutter" footprint

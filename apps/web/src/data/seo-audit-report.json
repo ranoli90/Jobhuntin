@@ -1,0 +1,32 @@
+[
+  {
+    "url": "https://jobhuntin.com/",
+    "seoScore": 0,
+    "isSpam": false,
+    "spamReason": "Analysis failed",
+    "improvements": [
+      "Retry analysis"
+    ],
+    "timestamp": "2026-02-12T15:45:05.602Z"
+  },
+  {
+    "url": "https://jobhuntin.com/pricing",
+    "seoScore": 0,
+    "isSpam": false,
+    "spamReason": "Analysis failed",
+    "improvements": [
+      "Retry analysis"
+    ],
+    "timestamp": "2026-02-12T15:45:05.739Z"
+  },
+  {
+    "url": "https://jobhuntin.com/success-stories",
+    "seoScore": 0,
+    "isSpam": false,
+    "spamReason": "Analysis failed",
+    "improvements": [
+      "Retry analysis"
+    ],
+    "timestamp": "2026-02-12T15:45:05.643Z"
+  }
+]
