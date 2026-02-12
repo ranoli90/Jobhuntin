@@ -114,11 +114,13 @@ class FormField(TypedDict):
 async def create_db_pool():
     """Create database connection pool"""
     settings = get_settings()
+    import ssl
     return await asyncpg.create_pool(
         settings.database_url,
         min_size=settings.db_pool_min,
         max_size=settings.db_pool_max,
-        statement_cache_size=0
+        statement_cache_size=0,
+        ssl=ssl.create_default_context()
     )
 
 
