@@ -237,7 +237,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 6.2 Matching Algorithm
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 136 | Static weights | Make matching weights configurable | MEDIUM |
+| 136 | Static weights | Make matching weights configurable | ✅ FIXED |
 | 137 | No ML-based scoring | Train custom model on user feedback | LOW |
 | 138 | No feedback loop | Add thumbs up/down on match results | ✅ FIXED |
 | 139 | No cold start handling | Improve new user matching | MEDIUM |

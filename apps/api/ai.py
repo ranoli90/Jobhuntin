@@ -1522,3 +1522,20 @@ async def get_llm_health():
     except Exception as exc:
         logger.error("Failed to get LLM health: %s", exc)
         raise HTTPException(status_code=500, detail=f"Failed to get health: {exc}")
+
+
+@router.get("/llm/semantic-cache/stats")
+async def get_semantic_cache_stats():
+    """
+    Get semantic cache statistics.
+
+    Returns cache size, hit counts, and configuration.
+    """
+    from backend.domain.semantic_cache import get_semantic_cache
+
+    try:
+        cache = get_semantic_cache()
+        return cache.stats()
+    except Exception as exc:
+        logger.error("Failed to get semantic cache stats: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {exc}")
