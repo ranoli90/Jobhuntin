@@ -14,22 +14,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'SYNC_SESSION') {
-    // Store under generic key for backward compat
-    const storageUpdate: Record<string, unknown> = { session: message.session };
-
-    // Also store under the Supabase storage key so supabase.auth.getSession()
-    // in the popup picks up the synced session from the web app.
-    // The Supabase JS client stores sessions as `sb-<project-ref>-auth-token`.
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''; // Available at build time
-    try {
-      const url = new URL(supabaseUrl || '');
-      const projectRef = url.hostname.split('.')[0];
-      if (projectRef) {
-        storageUpdate[`sb-${projectRef}-auth-token`] = JSON.stringify(message.session);
-      }
-    } catch {
-      // URL parsing failed — fall back to generic key only
-    }
+    const storageUpdate: Record<string, unknown> = {
+      auth_token: message.token,
+      session_active: true,
+      last_sync: Date.now()
+    };
 
     chrome.storage.local.set(storageUpdate, () => {
       sendResponse({ success: true });
@@ -47,9 +36,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function getAuthToken(): Promise<string | null> {
-  const data = await chrome.storage.local.get(['session']);
-  const session = data.session as { access_token?: string } | undefined;
-  return session?.access_token || null;
+  const data = await chrome.storage.local.get(['auth_token']);
+  return (data.auth_token as string) || null;
 }
 
 async function handleJobDetected(jobData: any, sender: chrome.runtime.MessageSender) {

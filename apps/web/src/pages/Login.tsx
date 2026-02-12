@@ -2,18 +2,17 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
 import { pushToast } from '../lib/toast';
-import { magicLinkService } from '../services/magicLinkService';
 import {
   ArrowRight, Mail, Lock, Sparkles, AlertCircle,
-  Chrome, Linkedin, CheckCircle, ArrowLeft,
+  Linkedin, CheckCircle, ArrowLeft,
   ShieldCheck, MailCheck, Bot
 } from 'lucide-react';
 import { Logo } from '../components/brand/Logo';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { cn } from '../lib/utils';
+import { magicLinkService } from '../services/magicLinkService';
 
 type AuthMode = "magic" | "password" | "register";
 
@@ -26,7 +25,7 @@ const AUTH_MODE_OPTIONS: { key: AuthMode; label: string; description: string }[]
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { session, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const returnTo = searchParams.get("returnTo") || "/app/dashboard";
 
   const [email, setEmail] = useState("");
@@ -60,8 +59,8 @@ export default function Login() {
 
   // Redirect authenticated users
   useEffect(() => {
-    if (!authLoading && session) {
-      // If we have a session, navigate to the intended destination
+    if (!authLoading && user) {
+      // If we have a user session, navigate to the intended destination
       const decodedReturnTo = decodeURIComponent(returnTo);
       // Ensure we don't redirect to login itself
       const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;
@@ -69,10 +68,8 @@ export default function Login() {
       console.log('[Login] Session active, redirecting to:', finalDest);
       navigate(finalDest, { replace: true });
     }
-  }, [authLoading, session, navigate, returnTo]);
+  }, [authLoading, user, navigate, returnTo]);
 
-
-  // Hash handling delegated to AuthContext to prevent race conditions
 
   const emailIsValid = useMemo(() => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -134,25 +131,13 @@ export default function Login() {
   }, [rateLimitReset]);
 
   const handleSocialLogin = async (provider: "google" | "linkedin_oidc") => {
-    setSocialProviderLoading(provider === "linkedin_oidc" ? "linkedin" : "google");
-    setFormError(null);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/login?returnTo=${encodeURIComponent(safeReturnTo)}`,
-        },
-      });
-      if (error) throw error;
-      pushToast({ title: "Redirecting...", tone: "info" });
-    } catch (err: any) {
-      setFormError(err.message || "Social sign-in failed");
-    } finally {
-      setSocialProviderLoading(null);
-    }
+    // Disabled for now as backend only supports Enterprise SAML SSO or Magic Link
+    pushToast({ title: "Coming Soon", description: "Social login will be available shortly. Please use Magic Link for now.", tone: "info" });
+    return;
   };
 
-  const sendMagicLink = async (targetEmail: string, destination: string) => {
+  const requestMagicLink = async (targetEmail: string, destination: string) => {
+    // Use the service directly to send link
     const result = await magicLinkService.sendMagicLink(targetEmail, destination);
     if (!result.success) {
       if (result.retryAfter) {
@@ -176,47 +161,12 @@ export default function Login() {
 
     try {
       if (mode === "magic") {
-        const normalized = await sendMagicLink(email, safeReturnTo);
+        const normalized = await requestMagicLink(email, safeReturnTo);
         setSuccessState({ type: "magic", email: normalized });
         pushToast({ title: "Check your email! 📧", tone: "success" });
-      } else if (mode === "password") {
-        if (!password.length) {
-          throw new Error("Password is required");
-        }
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        if (error) throw error;
-        pushToast({ title: "Welcome back!", tone: "success" });
-        navigate(safeReturnTo, { replace: true });
       } else {
-        if (!passwordIsStrong) {
-          throw new Error("Password must meet all strength requirements.");
-        }
-        if (!passwordsMatch) {
-          throw new Error("Passwords do not match");
-        }
-        const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/login?returnTo=${encodeURIComponent(safeReturnTo)}`,
-            data: {
-              onboarding_intent: safeReturnTo,
-            },
-          },
-        });
-        if (error) throw error;
-        if (data.session) {
-          pushToast({ title: "Account created", tone: "success" });
-          navigate(safeReturnTo, { replace: true });
-        } else {
-          setSuccessState({ type: "register", email: email.trim() });
-          pushToast({ title: "Verify your email", description: "Confirm the link we sent to finish setup.", tone: "info" });
-        }
-        setPassword("");
-        setConfirmPassword("");
+        // Password and Register are temporarily disabled or redirect to magic link
+        throw new Error("Please use Magic Link to sign in or register.");
       }
     } catch (err: any) {
       const message = err.message || "Sign-in failed";
@@ -296,7 +246,7 @@ export default function Login() {
                 onClick={async () => {
                   try {
                     setResendLoading(true);
-                    await sendMagicLink(successState.email, safeReturnTo);
+                    await requestMagicLink(successState.email, safeReturnTo);
                     pushToast({ title: "Magic link resent", tone: "success" });
                   } catch (err: any) {
                     setFormError(err?.message || "Unable to resend");

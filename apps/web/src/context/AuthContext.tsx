@@ -1,129 +1,124 @@
-import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabase";
-import { resetAuthRedirectGuard } from "../lib/api";
-import { useNavigate } from "react-router-dom";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { apiGet, clearAuthToken, getAuthToken, setAuthToken } from "../lib/api";
 
-export interface AuthState {
-    session: Session | null;
-    user: User | null;
-    loading: boolean;
-    signOut: () => Promise<void>;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export interface User {
+    id: string;
+    email: string;
+    has_completed_onboarding: boolean;
+    resume_url?: string;
+    preferences?: Record<string, any>;
+    contact?: Record<string, any>;
+    headline?: string;
+    bio?: string;
 }
 
-const AuthContext = createContext<AuthState | undefined>(undefined);
+interface AuthContextType {
+    user: User | null;
+    loading: boolean;
+    signInWithMagicLink: (email: string, returnTo?: string) => Promise<{ error: Error | null }>;
+    signOut: () => Promise<void>;
+    updateUser: (updates: Partial<User>) => void; // Optimistic update
+    refreshUser: () => Promise<void>;
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [session, setSession] = useState<Session | null>(null);
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    loading: true,
+    signInWithMagicLink: async () => ({ error: null }),
+    signOut: async () => { },
+    updateUser: () => { },
+    refreshUser: async () => { },
+});
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const loadingRef = useRef(true);
 
-    // Create a navigate function that is safe to use outside of Router context if needed,
-    // but AuthProvider is inside BrowserRouter in main.tsx, so this is fine.
-    const navigate = useNavigate();
+    // Helper to fetch user profile
+    const fetchUser = useCallback(async () => {
+        try {
+            const profile = await apiGet<User>("/profile");
+            setUser(profile);
 
-    const signOut = useCallback(async () => {
-        await supabase.auth.signOut();
-        setSession(null);
-        navigate("/login");
-    }, [navigate]);
+            // Sync extension session state
+            localStorage.setItem('jobhuntin-session', JSON.stringify({
+                logged_in: true,
+                ts: Date.now(),
+            }));
+        } catch (error) {
+            console.error("Failed to fetch user profile:", error);
+            // If 401, apiGet handles redirect, but we should clear state
+            clearAuthToken();
+            setUser(null);
+            localStorage.removeItem('jobhuntin-session');
+        }
+    }, []);
 
+    // Initialize auth
     useEffect(() => {
-        let mounted = true;
-        loadingRef.current = loading;
+        const initAuth = async () => {
+            // 1. Check for token in URL (Magic Link flow)
+            const params = new URLSearchParams(window.location.search);
+            const tokenFromUrl = params.get("token");
 
-        const initializeAuth = async () => {
-            try {
-                const hash = window.location.hash;
-                if (hash && (hash.includes('access_token') || hash.includes('type=magiclink'))) {
-                    console.log("Detected magic link hash, waiting for session...");
-                    // Still call getSession() — Supabase will process the hash fragment
-                    // and exchange it for a session. Without this, loading stays true
-                    // until onAuthStateChange fires or the 4s timeout hits.
-                    const { data } = await supabase.auth.getSession();
-                    if (mounted) {
-                        setSession(data.session ?? null);
-                        setLoading(false);
-                    }
-                } else {
-                    const { data } = await supabase.auth.getSession();
-                    if (mounted) {
-                        setSession(data.session ?? null);
-                        setLoading(false);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to get session:", error);
-                if (mounted) setLoading(false);
-            }
-        };
-
-        initializeAuth();
-
-        const { data: subscription } = supabase.auth.onAuthStateChange((event, nextSession) => {
-            console.log("Auth state changed:", event);
-            if (mounted) {
-                setSession(nextSession);
-                setLoading(false);
-
-                // Save a minimal auth signal for extension sync.
-                // SECURITY: Do NOT store tokens in localStorage — only a
-                // lightweight flag so the extension content script knows the
-                // user is logged in. The actual session is managed by the
-                // Supabase SDK via its own storage key.
-                if (nextSession) {
-                    resetAuthRedirectGuard();
-                    localStorage.setItem('jobhuntin-session', JSON.stringify({
-                        logged_in: true,
-                        ts: Date.now(),
-                    }));
+            if (tokenFromUrl) {
+                setAuthToken(tokenFromUrl);
+                // Clean URL
+                const newUrl = window.location.pathname + window.location.hash;
+                window.history.replaceState({}, document.title, newUrl);
+                await fetchUser();
+            } else {
+                // 2. Check local storage
+                const token = getAuthToken();
+                if (token) {
+                    await fetchUser();
                 } else {
                     localStorage.removeItem('jobhuntin-session');
                 }
             }
-        });
-
-        const timeout = setTimeout(() => {
-            if (mounted && loadingRef.current) {
-                console.log("Auth loading timeout reached, forcing completion");
-                supabase.auth.getSession().then(({ data }) => {
-                    if (mounted) {
-                        setSession(data.session);
-                        setLoading(false);
-                    }
-                });
-            }
-        }, 4000);
-
-        return () => {
-            mounted = false;
-            clearTimeout(timeout);
-            subscription?.subscription?.unsubscribe();
+            setLoading(false);
         };
-    }, []); // Logic moved from useAuth
 
-    useEffect(() => {
-        loadingRef.current = loading;
-    }, [loading]);
+        initAuth();
+    }, [fetchUser]);
 
-    const value = {
-        session,
-        user: session?.user ?? null,
-        loading,
-        signOut,
+    const signInWithMagicLink = async (email: string, returnTo = "/app/onboarding") => {
+        try {
+            const { magicLinkService } = await import("../services/magicLinkService");
+            const res = await magicLinkService.sendMagicLink(email, returnTo);
+            if (!res.success) {
+                return { error: new Error(res.error || "Failed to send magic link") };
+            }
+            return { error: null };
+        } catch (err: any) {
+            return { error: err };
+        }
+    };
+
+    const signOut = async () => {
+        clearAuthToken();
+        setUser(null);
+        localStorage.removeItem('jobhuntin-session');
+        window.location.href = "/login";
+    };
+
+    const updateUser = (updates: Partial<User>) => {
+        if (user) {
+            setUser({ ...user, ...updates });
+        }
+    };
+
+    const refreshUser = async () => {
+        await fetchUser();
     };
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={{ user, loading, signInWithMagicLink, signOut, updateUser, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );
-}
+};
 
-export function useAuthContext() {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error("useAuthContext must be used within an AuthProvider");
-    }
-    return context;
-}
+export const useAuthContext = () => useContext(AuthContext);

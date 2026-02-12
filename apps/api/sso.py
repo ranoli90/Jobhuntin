@@ -29,41 +29,7 @@ from backend.sso.saml import (
 )
 
 
-async def _create_supabase_user(email: str, tenant_id: str) -> str:
-    """Create a user in Supabase via Admin API."""
-    s = get_settings()
-    if not s.supabase_url or not s.supabase_service_key:
-        raise HTTPException(status_code=500, detail="Supabase credentials not configured")
 
-    payload = {
-        "email": email,
-        "email_confirm": True,  # Auto-confirm email for SSO users
-        "user_metadata": {
-            "tenant_id": tenant_id,
-            "sso_provisioned": True,
-        },
-    }
-    headers = {
-        "apikey": s.supabase_service_key,
-        "Authorization": f"Bearer {s.supabase_service_key}",
-        "Content-Type": "application/json",
-    }
-    url = f"{s.supabase_url.rstrip('/')}/auth/v1/admin/users"
-    
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.post(url, headers=headers, json=payload)
-    
-    if resp.status_code >= 400:
-        logger.error("Supabase create user failed: %s - %s", resp.status_code, resp.text[:200])
-        raise HTTPException(status_code=502, detail="Failed to create SSO user")
-    
-    data = resp.json()
-    user_id = data.get("id")
-    if not user_id:
-        logger.error("Supabase create user response missing id: %s", data)
-        raise HTTPException(status_code=502, detail="Failed to create SSO user")
-    
-    return str(user_id)
 
 logger = get_logger("sorce.api.sso")
 
@@ -167,16 +133,26 @@ async def saml_acs(
         email = claims["email"]
 
         # Find or create user in Supabase auth
+        # Find or create user in public.users
         user_row = await conn.fetchrow(
-            "SELECT id FROM auth.users WHERE email = $1", email,
+            "SELECT id FROM public.users WHERE email = $1", email,
         )
 
         if user_row:
             user_id = str(user_row["id"])
         else:
-            # Auto-provision user for SSO enterprise tenants
-            user_id = await _create_supabase_user(email, tenant_id)
-            logger.info("SSO: auto-provisioned user %s for tenant %s", email, tenant_id)
+            # Create user directly in public.users
+            import uuid
+            user_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO public.users (id, email, full_name, created_at, updated_at) VALUES ($1, $2, '', now(), now())",
+                user_id, email
+            )
+            await conn.execute(
+                "INSERT INTO public.profiles (user_id, resume_url, profile_data, tenant_id) VALUES ($1, '', '{}', $2)",
+                user_id, tenant_id
+            )
+            logger.info("SSO: Created local user %s for tenant %s", email, tenant_id)
 
         # Ensure user is member of tenant
         await conn.execute(

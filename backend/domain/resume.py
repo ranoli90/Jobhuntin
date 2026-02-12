@@ -30,6 +30,13 @@ async def upload_to_supabase_storage(
     content_type: str = "application/pdf",
 ) -> str:
     s = get_settings()
+    
+    if not s.supabase_url or not "supabase" in s.supabase_url: # basic check
+       # Fallback: Validation/Storage disabled
+       if not s.supabase_url or not s.supabase_service_key:
+           logger.warning("Supabase storage not configured; skipping upload for %s", path)
+           return f"local-skipped/{bucket}/{path}"
+
     url = f"{s.supabase_url}/storage/v1/object/{bucket}/{path}"
     headers = {
         "Authorization": f"Bearer {s.supabase_service_key}",
@@ -57,6 +64,10 @@ async def generate_signed_url(storage_path: str, ttl_seconds: int | None = None)
         A signed URL that expires after ttl_seconds.
     """
     s = get_settings()
+    
+    if "local-skipped" in storage_path:
+        return "" # No URL available
+
     ttl = ttl_seconds or s.resume_signed_url_ttl_seconds
 
     # Split bucket from path

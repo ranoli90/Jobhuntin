@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     env: Environment = Environment.LOCAL
 
     # ── Database ─────────────────────────────────────────────────
-    database_url: str = "postgresql://postgres:postgres@localhost:5432/postgres"
+    database_url: str = "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin"
     db_pool_min: int = 2
     db_pool_max: int = 10
 
@@ -46,12 +46,6 @@ class Settings(BaseSettings):
 
     # ── Redis ────────────────────────────────────────────────────
     redis_url: str | None = None
-
-    # ── Supabase ─────────────────────────────────────────────────
-    supabase_url: str = ""
-    supabase_service_key: str = ""
-    supabase_jwt_secret: str = ""
-    supabase_storage_bucket: str = "resumes"
 
     # ── LLM ──────────────────────────────────────────────────────
     llm_api_base: str = "https://openrouter.ai/api/v1"
@@ -203,12 +197,7 @@ class Settings(BaseSettings):
                 missing.append("DATABASE_URL (must not be localhost)")
             if not self.llm_api_key:
                 missing.append("LLM_API_KEY")
-            if not self.supabase_jwt_secret:
-                missing.append("SUPABASE_JWT_SECRET")
-            if not self.supabase_url:
-                missing.append("SUPABASE_URL")
-            if not self.supabase_service_key:
-                missing.append("SUPABASE_SERVICE_KEY")
+
             if not self.app_base_url:
                 missing.append("APP_BASE_URL")
             if not self.csrf_secret:

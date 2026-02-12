@@ -24,7 +24,7 @@ export type CrawlerOptions = {
 
 const DEFAULT_OPTIONS: Required<Omit<CrawlerOptions, 'includePatterns' | 'excludePatterns' | 'blocklistPaths' | 'maxPages'>> = {
   baseUrl: 'https://jobhuntin.com',
-  maxDepth: 3,
+  maxDepth: 2,
   concurrency: 3,
   respectRobotsTxt: false,
   waitForSelectors: [],
@@ -32,8 +32,15 @@ const DEFAULT_OPTIONS: Required<Omit<CrawlerOptions, 'includePatterns' | 'exclud
 };
 
 const DEFAULT_INCLUDE = [/^https:\/\/jobhuntin\.com(\/.*)?$/];
-const DEFAULT_EXCLUDE = [/login/, /auth/, /\.(pdf|jpg|jpeg|png|gif|svg|webp)$/i, /mailto:/, /tel:/];
-const DEFAULT_BLOCKLIST = [/\blogout\b/, /\/api\//, /\/app\//];
+const DEFAULT_EXCLUDE = [
+  /login/,
+  /auth/,
+  /\.(pdf|jpg|jpeg|png|gif|svg|webp)$/i,
+  /mailto:/,
+  /tel:/,
+  /\/jobs\//,
+];
+const DEFAULT_BLOCKLIST = [/\blogout\b/, /\/api\//, /\/app\//, /\/jobs\//];
 
 function isInternal(url: string, base: string) {
   try {

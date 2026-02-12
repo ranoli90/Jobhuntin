@@ -184,6 +184,7 @@ def _mount_sub_routers() -> None:
     app.include_router(admin_mod.router)
 
     import api.auth as auth_mod
+    app.dependency_overrides[auth_mod._get_pool] = get_pool
     app.include_router(auth_mod.router)
 
     import api.export as export_mod
@@ -285,7 +286,6 @@ class DatabasePoolManager:
         # Resolve the DB hostname to IPv4 to avoid [Errno 101] on Render (no IPv6).
         from shared.db import resolve_dsn_ipv4
         db_dsn = resolve_dsn_ipv4(s.database_url)
-        db_dsn = self._fix_pooler_dsn(db_dsn, s)
 
         for attempt in range(1, 4):
             try:
@@ -334,8 +334,6 @@ class DatabasePoolManager:
         # Initialize read replica if configured
         if s.read_replica_url and s.read_replica_url != s.database_url:
             read_dsn = resolve_dsn_ipv4(s.read_replica_url)
-            # Read replicas might not need pooler fix if direct, but safer to apply if it matches
-            read_dsn = self._fix_pooler_dsn(read_dsn, s)
             
             try:
                 self._read_pool = await asyncpg.create_pool(
@@ -369,94 +367,14 @@ class DatabasePoolManager:
         except Exception as exc:
             logger.warning("Auto-migration check failed: %s", exc)
 
-    def _fix_pooler_dsn(self, dsn: str, settings: Any) -> str:
-        """Fix Supabase pooler DSN by ensuring username includes project ref."""
-        try:
-            from urllib.parse import quote, urlparse, urlunparse
-
-            parsed = urlparse(dsn)
-            if not parsed.hostname or "pooler.supabase.com" not in parsed.hostname:
-                return dsn
-
-            if parsed.username and "." in parsed.username:
-                return dsn
-
-            if not settings.supabase_url:
-                return dsn
-
-            ref_parsed = urlparse(settings.supabase_url)
-            if not ref_parsed.hostname:
-                return dsn
-
-            parts = ref_parsed.hostname.split(".")
-            if len(parts) < 2:
-                return dsn
-
-            project_ref = parts[0]
-            new_username = f"{parsed.username}.{project_ref}"
-
-            encoded_user = quote(new_username)
-            encoded_pass = quote(parsed.password) if parsed.password else ""
-
-            netloc = f"{encoded_user}"
-            if encoded_pass:
-                netloc += f":{encoded_pass}"
-            netloc += f"@{parsed.hostname}"
-            if parsed.port:
-                netloc += f":{parsed.port}"
-
-            fixed_dsn = urlunparse(parsed._replace(netloc=netloc))
-            logger.info("Fixed Supabase pooler username: %s -> %s", parsed.username, new_username)
-            return fixed_dsn
-
-        except Exception as exc:
-            logger.warning("Failed to fix Supabase pooler DSN: %s", exc)
-            return dsn
-
     @staticmethod
     def _get_ssl_config(settings: Any) -> Any:
-        """Get SSL configuration for database connection.
-
-        SECURITY NOTE: Supabase pooler connections use certificates that
-        don't match the pooler hostname. This forces CERT_NONE (encrypted
-        but not verified). When a custom CA cert is available via
-        DB_SSL_CA_CERT_PATH, we use it for proper verification instead.
-
-        For non-Supabase databases with valid certs, standard verification
-        is used automatically.
-        """
+        """Get SSL config for database connection"""
         if not settings.database_url:
             return False
-
-        if "pooler.supabase.com" not in settings.database_url and "supabase.co" not in settings.database_url:
-            # Non-Supabase: use proper SSL verification if DB URL uses sslmode
-            if "sslmode" in settings.database_url:
-                import ssl as _ssl
-                ssl_ctx = _ssl.create_default_context()
-                ca_path = getattr(settings, "db_ssl_ca_cert_path", "")
-                if ca_path:
-                    ssl_ctx.load_verify_locations(ca_path)
-                return ssl_ctx
-            return False
-
-        import ssl as _ssl
-        ssl_ctx = _ssl.create_default_context()
-
-        # If a custom CA cert path is provided, use proper verification
-        ca_path = getattr(settings, "db_ssl_ca_cert_path", "")
-        if ca_path:
-            ssl_ctx.load_verify_locations(ca_path)
-            logger.info("DB SSL: using custom CA certificate for verification")
-        else:
-            # Supabase pooler: encrypted but hostname verification disabled
-            # (pooler cert CN doesn't match pooler hostname)
-            ssl_ctx.check_hostname = False
-            ssl_ctx.verify_mode = _ssl.CERT_NONE
-            logger.warning(
-                "DB SSL: CERT_NONE — connection is encrypted but not verified. "
-                "Set DB_SSL_CA_CERT_PATH for proper certificate verification."
-            )
-        return ssl_ctx
+            
+        # Render databases use SSL by default - no special configuration needed
+        return None
 
     async def close(self) -> None:
         """Close the database pool on shutdown."""
@@ -471,68 +389,6 @@ class DatabasePoolManager:
 # Global pool manager instance
 _pool_manager = DatabasePoolManager()
 
-
-
-
-
-def get_pool() -> asyncpg.Pool:
-    return _pool_manager.pool
-
-
-def get_read_pool() -> asyncpg.Pool:
-    """Dependency for read-only database operations."""
-    return _pool_manager.read_pool
-
-
-@app.post("/debug/run-migration")
-async def debug_run_migration(db: asyncpg.Pool = Depends(get_pool)) -> dict[str, Any]:
-    """Manually trigger migration with verbose output."""
-    if _settings.env != Environment.LOCAL:
-        raise HTTPException(status_code=403, detail="Debug endpoints disabled in non-local environments")
-    
-    log_lines: list[str] = []
-    async with db.acquire() as conn:
-        # 1. Auth shim
-        await debug_auth_shim(conn, log_lines)
-
-        # 2. Critical Tables
-        await debug_critical_tables(conn, log_lines)
-
-        # 3. Alter Statements
-        await debug_alter_stmts(conn, log_lines)
-
-        tables = await conn.fetch(
-            "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY 1"
-        )
-        return {
-            "status": "done",
-            "public_tables": [r["tablename"] for r in tables],
-            "log": log_lines,
-        }
-
-
-@app.get("/debug/db-tables")
-async def debug_db_tables(db: asyncpg.Pool = Depends(get_pool)) -> dict[str, Any]:
-    """Check which tables exist in the DB and test tenant provisioning."""
-    if _settings.env != Environment.LOCAL:
-        raise HTTPException(status_code=403, detail="Debug endpoints disabled in non-local environments")
-    
-    async with db.acquire() as conn:
-        tables = await conn.fetch(
-            "SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('public','auth') ORDER BY 1,2"
-        )
-        table_list = [f"{r['schemaname']}.{r['tablename']}" for r in tables]
-        # Check migration status
-        has_tenants = "public.tenants" in table_list
-        has_members = "public.tenant_members" in table_list
-        has_users = "public.users" in table_list
-        return {
-            "tables": table_list,
-            "table_count": len(table_list),
-            "has_tenants": has_tenants,
-            "has_members": has_members,
-            "has_users": has_users,
-        }
 
 # ---------------------------------------------------------------------------
 # Standard error envelope handler
@@ -573,58 +429,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     return JSONResponse(status_code=500, content=body.model_dump())
 
 
-# ---------------------------------------------------------------------------
-# JWKS cache for ES256 token verification
-# ---------------------------------------------------------------------------
-_jwks_cache: dict[str, Any] = {}  # kid -> PyJWT key object
-_jwks_last_fetch: float = 0
-_jwks_fetch_interval: int = 300  # 5 minutes
-
-async def _get_jwk(supabase_url: str, kid: str) -> Any:
-    """Fetch the ES256 public key from Supabase JWKS, with in-memory cache."""
-    global _jwks_last_fetch
-    import time
-    
-    # Return cached key if present
-    if kid in _jwks_cache:
-        return _jwks_cache[kid]
-        
-    # Rate limit fetched: only fetch if cache is stale or key missing
-    now = time.time()
-    if now - _jwks_fetch_interval < _jwks_last_fetch:
-        # If we fetched recently and key is still not found, it's invalid
-        raise ValueError(f"Key {kid} not found (JWKS recently refreshed)")
-        
-    import httpx
-    jwks_url = f"{supabase_url}/auth/v1/.well-known/jwks.json"
-    
-    try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(jwks_url, timeout=10)
-            resp.raise_for_status()
-            jwks = resp.json()
-            _jwks_last_fetch = now
-    except Exception as e:
-        logger.error(f"Failed to fetch JWKS: {e}")
-        # If fetch fails, we can't do anything but re-raise or fail
-        raise ValueError(f"Failed to fetch authentication keys: {e}")
-
-    from jwt.algorithms import ECAlgorithm
-
-    # Update cache with all keys found
-    for key_data in jwks.get("keys", []):
-        k_id = key_data.get("kid")
-        if k_id:
-            try:
-                pub_key = ECAlgorithm.from_jwk(key_data)
-                _jwks_cache[k_id] = pub_key
-            except Exception as e:
-                logger.warning(f"Failed to parse JWK {k_id}: {e}")
-
-    if kid in _jwks_cache:
-        return _jwks_cache[kid]
-        
-    raise ValueError(f"Key {kid} not found in JWKS")
 
 
 # ---------------------------------------------------------------------------
@@ -633,26 +437,19 @@ async def _get_jwk(supabase_url: str, kid: str) -> Any:
 
 async def get_current_user_id(authorization: str = Header(...)) -> str:
     """
-    Decode a Supabase JWT (HS256) and return the `sub` claim as user_id.
+    Decode a JWT and return the `sub` claim as user_id.
     """
     import jwt as pyjwt
 
     s = get_settings()
-    if not s.supabase_jwt_secret:
+    if not s.jwt_secret:
         raise HTTPException(status_code=500, detail="JWT secret not configured")
 
     token = authorization.replace("Bearer ", "")
     try:
-        header = pyjwt.get_unverified_header(token)
-        alg = header.get("alg", "HS256")
-        kid = header.get("kid")
-        if alg == "ES256" and kid and s.supabase_url:
-            key = await _get_jwk(s.supabase_url, kid)
-            payload = pyjwt.decode(token, key, algorithms=["ES256"], audience="authenticated")
-        else:
-            payload = pyjwt.decode(
-                token, s.supabase_jwt_secret, algorithms=["HS256"], audience="authenticated"
-            )
+        payload = pyjwt.decode(
+            token, s.jwt_secret, algorithms=["HS256"], audience="authenticated"
+        )
         user_id: str = payload["sub"]
         return user_id
     except pyjwt.PyJWTError as exc:

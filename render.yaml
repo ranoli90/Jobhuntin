@@ -28,13 +28,7 @@ services:
     startCommand: python -m apps.api.main
     envVars:
       - key: DATABASE_URL
-        sync: false  # Set in Render dashboard
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_ANON_KEY
-        sync: false
-      - key: SUPABASE_JWT_SECRET
-        sync: false
+        value: postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin
       - key: ENV
         value: production
     healthCheckPath: /healthz
@@ -82,9 +76,6 @@ services:
 #
 # For API Service:
 # - DATABASE_URL: Your PostgreSQL connection string
-# - SUPABASE_URL: Your Supabase project URL
-# - SUPABASE_ANON_KEY: Your Supabase anon key
-# - SUPABASE_JWT_SECRET: Your Supabase JWT secret
 #
 # For SEO Worker:
 # - GOOGLE_SERVICE_ACCOUNT_KEY: Same as web service

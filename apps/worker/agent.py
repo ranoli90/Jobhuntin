@@ -111,21 +111,15 @@ class FormField(TypedDict):
 # Database helpers
 # ---------------------------------------------------------------------------
 
-async def create_pool() -> asyncpg.Pool:
-    s = get_settings()
-    kwargs: dict = {"min_size": s.db_pool_min, "max_size": s.db_pool_max}
-    # Add SSL for Supabase connections (matches API's DatabasePoolManager)
-    if "pooler.supabase.com" in s.database_url or "supabase.co" in s.database_url:
-        import ssl as _ssl
-        ssl_ctx = _ssl.create_default_context()
-        ca_path = getattr(s, "db_ssl_ca_cert_path", "")
-        if ca_path:
-            ssl_ctx.load_verify_locations(ca_path)
-        else:
-            ssl_ctx.check_hostname = False
-            ssl_ctx.verify_mode = _ssl.CERT_NONE
-        kwargs["ssl"] = ssl_ctx
-    return await asyncpg.create_pool(s.database_url, **kwargs)
+async def create_db_pool():
+    """Create database connection pool"""
+    settings = get_settings()
+    return await asyncpg.create_pool(
+        settings.database_url,
+        min_size=settings.db_pool_min,
+        max_size=settings.db_pool_max,
+        statement_cache_size=0
+    )
 
 
 async def claim_task(pool: asyncpg.Pool) -> dict | None:
@@ -948,7 +942,7 @@ async def worker_loop() -> None:
     s = get_settings()
     enabled = [slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()]
     load_default_blueprints(enabled_slugs=enabled or None)
-    pool = await create_pool()
+    pool = await create_db_pool()
 
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=s.playwright_headless)

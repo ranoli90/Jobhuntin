@@ -412,10 +412,10 @@ async def test_validate_critical_passes_with_all_secrets():
 
     settings = Settings(
         env="prod",
-        database_url="postgresql://user:pass@db.supabase.co:5432/postgres",
+        database_url="postgresql://user:pass@db.example.com:5432/postgres",
         llm_api_key="test-key",
         supabase_jwt_secret="test-jwt-secret",
-        supabase_url="https://test.supabase.co",
+        supabase_url="https://test.example.com",
         supabase_service_key="test-service-key",
         app_base_url="https://app.example.com",
         csrf_secret="a" * 64,

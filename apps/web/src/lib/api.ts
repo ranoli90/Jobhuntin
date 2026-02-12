@@ -8,7 +8,8 @@
  *  - User-friendly error messages mapped from HTTP status codes
  */
 
-import { supabase } from "./supabase";
+// Token storage key
+const AUTH_TOKEN_KEY = "auth_token";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -22,15 +23,26 @@ export function getApiBase(): string {
   return API_BASE;
 }
 
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+export function setAuthToken(token: string) {
+  localStorage.setItem(AUTH_TOKEN_KEY, token);
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+}
+
 export async function getAuthHeaders(): Promise<HeadersInit> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const token = getAuthToken();
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
-  if (session?.access_token) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${session.access_token}`;
+  if (token) {
+    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
   return headers;
 }

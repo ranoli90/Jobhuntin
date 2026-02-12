@@ -213,8 +213,8 @@ async def run_weekly_digest(pool: asyncpg.Pool) -> dict[str, int]:
         # Get all users with activity in last 7 days
         users = await conn.fetch(
             """
-            SELECT DISTINCT u.id, u.email, u.raw_user_meta_data->>'full_name' AS name
-            FROM auth.users u
+            SELECT DISTINCT u.id, u.email, u.full_name AS name
+            FROM public.users u
             JOIN public.applications a ON a.user_id = u.id
             WHERE a.created_at >= now() - interval '7 days'
             """

@@ -156,7 +156,7 @@ async def create_checkout_session(
     stripe = get_stripe_client()
 
     async with db.acquire() as conn:
-        email_row = await conn.fetchrow("SELECT email FROM auth.users WHERE id = $1", ctx.user_id)
+        email_row = await conn.fetchrow("SELECT email FROM public.users WHERE id = $1", ctx.user_id)
         email = email_row["email"] if email_row else None
 
         customer_id = await ensure_stripe_customer(conn, ctx.tenant_id, email)
@@ -194,7 +194,7 @@ async def create_team_checkout_session(
     stripe = get_stripe_client()
 
     async with db.acquire() as conn:
-        email_row = await conn.fetchrow("SELECT email FROM auth.users WHERE id = $1", ctx.user_id)
+        email_row = await conn.fetchrow("SELECT email FROM public.users WHERE id = $1", ctx.user_id)
         email = email_row["email"] if email_row else None
         customer_id = await ensure_stripe_customer(conn, ctx.tenant_id, email)
 

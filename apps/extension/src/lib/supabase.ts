@@ -1,30 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
+// Supabase client is no longer used for authentication.
+// This file is kept as a dummy to avoid breaking imports during migration.
+// Extension now uses JWT tokens synced from the web app.
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Missing Supabase URL or Anon Key")
-}
-
-const storageAdapter = {
-    getItem: async (key: string) => {
-        const result = await chrome.storage.local.get(key)
-        return (result[key] as string) || null
-    },
-    setItem: async (key: string, value: string) => {
-        await chrome.storage.local.set({ [key]: value })
-    },
-    removeItem: async (key: string) => {
-        await chrome.storage.local.remove(key)
-    },
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = {
     auth: {
-        storage: storageAdapter,
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false, // Extensions don't receive URL redirects
-    },
-})
+        getSession: async () => ({ data: { session: null }, error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
+        signOut: async () => { },
+        setSession: async () => ({ data: { session: null }, error: null }),
+    }
+} as any;

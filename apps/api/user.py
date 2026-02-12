@@ -370,20 +370,7 @@ async def get_profile(
 ) -> dict[str, Any]:
     """Current user profile for web: id, email, has_completed_onboarding, resume_url, preferences."""
     async with db.acquire() as conn:
-        # Fetch email from Supabase auth table so we don't insert None
-        auth_email = await conn.fetchval(
-            "SELECT email FROM auth.users WHERE id = $1",
-            ctx.user_id,
-        )
-        await conn.execute(
-            """
-            INSERT INTO public.users (id, email, updated_at)
-            VALUES ($1, $2, now())
-            ON CONFLICT (id) DO UPDATE SET email = COALESCE(EXCLUDED.email, users.email), updated_at = now()
-            """,
-            ctx.user_id,
-            auth_email,
-        )
+        # Fetch user profile from public.users
         user_row = await conn.fetchrow(
             "SELECT id, email, full_name FROM public.users WHERE id = $1",
             ctx.user_id,
@@ -535,6 +522,7 @@ async def upload_resume(
     file: UploadFile = File(...),
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
+    storage: NewStorageService = Depends(get_new_storage_service)
 ) -> dict[str, Any]:
     """Upload PDF resume: extract text, parse via LLM, upsert profile, store file. Returns parsed data."""
     if file.content_type not in ("application/pdf", "application/octet-stream"):
@@ -559,6 +547,7 @@ async def upload_resume(
         tenant_id=ctx.tenant_id,
         pdf_bytes=pdf_bytes,
         db_pool=db,
+        storage=storage
     )
 
     parsed = canonical.model_dump()
@@ -577,8 +566,9 @@ async def upload_avatar(
     file: UploadFile = File(...),
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
+    storage: StorageService = Depends(get_storage_service)
 ) -> dict[str, Any]:
-    """Upload an avatar image to Supabase storage and persist URL to profile."""
+    """Upload an avatar image to storage and persist URL to profile."""
     allowed_types = {
         "image/png": ".png",
         "image/jpeg": ".jpg",
@@ -606,11 +596,8 @@ async def upload_avatar(
     suffix = ext if ext in allowed_types.values() else fallback_ext
     storage_path = f"avatars/{ctx.user_id}/{uuid.uuid4()}{suffix}"
 
-    avatar_url = await upload_to_supabase_storage(
-        settings.supabase_storage_bucket,
-        storage_path,
-        data,
-        content_type=file.content_type or "image/png",
+    avatar_url = await storage.upload_file(
+        "avatars", storage_path, data, content_type=file.content_type or "image/png"
     )
 
     async with db.acquire() as conn:

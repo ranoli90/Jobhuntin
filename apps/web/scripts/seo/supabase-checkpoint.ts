@@ -1,77 +1,87 @@
 /**
- * Durable checkpointing and health for SEO engine using Supabase
+ * Durable checkpointing and health for SEO engine using Render PostgreSQL
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { Pool } from 'pg';
+import { PoolClient } from 'pg';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-if (!supabaseUrl || !supabaseServiceKey) throw new Error('Missing Supabase env vars');
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false }
+// Initialize database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin'
 });
 
 const SERVICE_ID = 'jobhuntin-seo-engine';
 
 export async function loadProgress(): Promise<number> {
+  let client: PoolClient | null = null;
   try {
-    const { data, error } = await supabase
-      .from('seo_engine_progress')
-      .select('last_index')
-      .eq('service_id', SERVICE_ID)
-      .single();
-    if (error && error.code !== 'PGRST116') throw error;
-    return data?.last_index ?? 0;
+    client = await pool.connect();
+    const result = await client.query(
+      'SELECT last_index FROM seo_engine_progress WHERE service_id = $1', 
+      [SERVICE_ID]
+    );
+    return result.rows[0]?.last_index || 0;
   } catch (e) {
-    console.warn('⚠️ Could not load progress from Supabase, starting from 0.', e);
+    console.warn('⚠️ Could not load progress from database, starting from 0.', e);
     return 0;
+  } finally {
+    if (client) client.release();
   }
 }
 
-export async function saveProgress(index: number, dailyQuotaUsed: number, dailyQuotaReset: Date) {
+export async function saveProgress(
+  index: number, 
+  dailyQuotaUsed: number, 
+  dailyQuotaReset: Date
+) {
+  let client: PoolClient | null = null;
   try {
-    const { error } = await supabase
-      .from('seo_engine_progress')
-      .upsert({
-        service_id: SERVICE_ID,
-        last_index: index,
-        daily_quota_used: dailyQuotaUsed,
-        daily_quota_reset: dailyQuotaReset.toISOString(),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'service_id' });
-    if (error) throw error;
-    console.log('💾 Progress saved to Supabase');
+    client = await pool.connect();
+    await client.query(
+      `INSERT INTO seo_engine_progress 
+       (service_id, last_index, daily_quota_used, daily_quota_reset, updated_at)
+       VALUES ($1, $2, $3, $4, NOW())
+       ON CONFLICT (service_id) DO UPDATE SET
+         last_index = EXCLUDED.last_index,
+         daily_quota_used = EXCLUDED.daily_quota_used,
+         daily_quota_reset = EXCLUDED.daily_quota_reset,
+         updated_at = NOW()`,
+      [SERVICE_ID, index, dailyQuotaUsed, dailyQuotaReset.toISOString()]
+    );
+    console.log('💾 Progress saved to database');
   } catch (e) {
-    console.warn('⚠️ Could not save progress to Supabase.', e);
+    console.warn('⚠️ Could not save progress to database.', e);
+  } finally {
+    if (client) client.release();
   }
 }
 
 export async function logSubmission(batchUrlFile: string, urlsSubmitted: number, success: boolean, errorMessage?: string) {
+  let client: PoolClient | null = null;
   try {
-    const { error } = await supabase
-      .from('seo_submission_log')
-      .insert({
-        service_id: SERVICE_ID,
-        batch_url_file: batchUrlFile,
-        urls_submitted: urlsSubmitted,
-        success,
-        error_message: errorMessage
-      });
-    if (error) throw error;
+    client = await pool.connect();
+    await client.query(
+      `INSERT INTO seo_submission_log 
+       (service_id, batch_url_file, urls_submitted, success, error_message)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [SERVICE_ID, batchUrlFile, urlsSubmitted, success, errorMessage]
+    );
   } catch (e) {
-    console.warn('⚠️ Could not log submission to Supabase.', e);
+    console.warn('⚠️ Could not log submission to database.', e);
+  } finally {
+    if (client) client.release();
   }
 }
 
 export async function getQuotaState(): Promise<{ used: number; reset: Date }> {
+  let client: PoolClient | null = null;
   try {
-    const { data, error } = await supabase
-      .from('seo_engine_progress')
-      .select('daily_quota_used, daily_quota_reset')
-      .eq('service_id', SERVICE_ID)
-      .single();
-    if (error && error.code !== 'PGRST116') throw error;
+    client = await pool.connect();
+    const result = await client.query(
+      'SELECT daily_quota_used, daily_quota_reset FROM seo_engine_progress WHERE service_id = $1', 
+      [SERVICE_ID]
+    );
+    const data = result.rows[0];
     if (data) {
       const reset = new Date(data.daily_quota_reset);
       // If reset time passed, reset quota
@@ -83,41 +93,44 @@ export async function getQuotaState(): Promise<{ used: number; reset: Date }> {
     }
     return { used: 0, reset: new Date(Date.now() + 24 * 60 * 60 * 1000) };
   } catch (e) {
-    console.warn('⚠️ Could not fetch quota state from Supabase, assuming fresh quota.', e);
+    console.warn('⚠️ Could not fetch quota state from database, assuming fresh quota.', e);
     return { used: 0, reset: new Date(Date.now() + 24 * 60 * 60 * 1000) };
+  } finally {
+    if (client) client.release();
   }
 }
 
 export async function getHealth() {
+  let client: PoolClient | null = null;
   try {
-    const { data, error } = await supabase
-      .from('seo_engine_progress')
-      .select('last_index, daily_quota_used, daily_quota_reset, updated_at')
-      .eq('service_id', SERVICE_ID)
-      .single();
-    if (error && error.code !== 'PGRST116') throw error;
-    const recentLogs = await supabase
-      .from('seo_submission_log')
-      .select('urls_submitted, success, created_at')
-      .eq('service_id', SERVICE_ID)
-      .order('created_at', { ascending: false })
-      .limit(5);
+    client = await pool.connect();
+    const result = await client.query(
+      'SELECT last_index, daily_quota_used, daily_quota_reset, updated_at FROM seo_engine_progress WHERE service_id = $1', 
+      [SERVICE_ID]
+    );
+    const data = result.rows[0];
+    const recentLogs = await client.query(
+      `SELECT urls_submitted, success, created_at 
+       FROM seo_submission_log 
+       WHERE service_id = $1 
+       ORDER BY created_at DESC 
+       LIMIT 5`,
+      [SERVICE_ID]
+    );
     return {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       progress: data,
-      recentSubmissions: recentLogs.data || [],
-      environment: {
-        GOOGLE_SERVICE_ACCOUNT_KEY: !!process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
-        GOOGLE_SEARCH_CONSOLE_SITE: process.env.GOOGLE_SEARCH_CONSOLE_SITE,
-        SUPABASE_URL: process.env.SUPABASE_URL
-      }
+      recentSubmissions: recentLogs.rows
     };
   } catch (e) {
+    console.warn('⚠️ Could not check database health:', e);
     return {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
-      error: e instanceof Error ? e.message : String(e)
+      error: e.message
     };
+  } finally {
+    if (client) client.release();
   }
 }

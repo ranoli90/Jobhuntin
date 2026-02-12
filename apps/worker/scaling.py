@@ -24,21 +24,19 @@ logger = get_logger("sorce.worker.scaling")
 
 
 def _get_ssl_config() -> Any:
-    """Get SSL configuration for database connections (matches API's DatabasePoolManager)."""
+    """Get SSL configuration for database connections."""
     s = get_settings()
     if not s.database_url:
         return False
-    if "pooler.supabase.com" not in s.database_url and "supabase.co" not in s.database_url:
-        return False
-    import ssl as _ssl
-    ssl_ctx = _ssl.create_default_context()
-    ssl_ctx.check_hostname = False
-    ssl_ctx.verify_mode = _ssl.CERT_NONE
-    return ssl_ctx
+    if "sslmode" in s.database_url:
+        import ssl as _ssl
+        ssl_ctx = _ssl.create_default_context()
+        return ssl_ctx
+    return False
 
 
-async def create_primary_pool() -> asyncpg.Pool:
-    """Create the primary write DB pool."""
+async def get_db_pool() -> asyncpg.Pool:
+    """Get database connection pool with robust retries and Render-compatible settings."""
     s = get_settings()
     from shared.db import resolve_dsn_ipv4
     ssl = _get_ssl_config()
@@ -46,26 +44,27 @@ async def create_primary_pool() -> asyncpg.Pool:
         "min_size": s.db_pool_min,
         "max_size": s.db_pool_max,
         "command_timeout": 60,
+        "statement_cache_size": 0,  # Critical for PGBouncer/Render
     }
     if ssl:
         kwargs["ssl"] = ssl
     
     for attempt in range(1, 4):
         try:
-            return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
+            dsn = resolve_dsn_ipv4(s.database_url)
+            return await asyncpg.create_pool(dsn, **kwargs)
         except asyncpg.PostgresError as exc:
             error_msg = str(exc)
-            if "Tenant or user not found" in error_msg or "password authentication failed" in error_msg:
+            if "password authentication failed" in error_msg.lower():
                 logger.warning(
                     "Primary DB pool attempt %d/3 failed: %s. "
-                    "This usually means DATABASE_URL credentials are incorrect. "
-                    "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Supabase project.",
+                    "Check your DATABASE_URL credentials.",
                     attempt, exc
                 )
             elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
                 logger.warning(
                     "Primary DB pool attempt %d/3 failed: %s. "
-                    "Check that the database host is accessible and the port is correct.",
+                    "Check that the database host is accessible.",
                     attempt, exc
                 )
             else:
@@ -327,7 +326,7 @@ class WorkerScaler:
         """Initialize pools, browser, and launch worker instances."""
         logger.info("Starting %d worker instances...", self.instance_count)
 
-        self.primary_pool = await create_primary_pool()
+        self.primary_pool = await get_db_pool()
         self.read_pool = await create_read_replica_pool()
         self.enterprise_pool = await create_enterprise_pool()
         

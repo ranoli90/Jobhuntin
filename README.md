@@ -74,7 +74,12 @@
 ├─ mobile/            Expo/React Native client.
 ├─ tests/             Pytest suite (agent integration, domain invariants, failure drills).
 └─ templates/, templates/emails, etc. for quick blueprint scaffolding.
-```
+
+## Pending Verification
+
+- Database connection to Render PostgreSQL needs verification when network restrictions are lifted
+- All code has been updated to use Render database configuration
+- Schema initialization will complete once connection is established
 
 ## Script & Tooling Inventory
 

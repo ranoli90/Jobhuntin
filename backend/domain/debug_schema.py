@@ -27,7 +27,7 @@ async def debug_critical_tables(conn: asyncpg.Connection, log_lines: list[str]) 
     critical_stmts = [
         "CREATE TYPE public.application_status AS ENUM ('QUEUED','PROCESSING','REQUIRES_INPUT','APPLIED','FAILED')",
         """CREATE TABLE IF NOT EXISTS public.users (
-            id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
             full_name text, email text, avatar_url text,
             created_at timestamptz NOT NULL DEFAULT now(),
             updated_at timestamptz NOT NULL DEFAULT now()

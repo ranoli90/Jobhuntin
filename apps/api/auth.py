@@ -67,35 +67,51 @@ def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
     return redirect
 
 
-async def _generate_magic_link(settings: Settings, email: str, redirect_to: str) -> str:
-    if not settings.supabase_url or not settings.supabase_service_key:
-        raise HTTPException(status_code=500, detail="Supabase credentials not configured")
 
+def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+async def _generate_magic_link(settings: Settings, email: str, redirect_to: str, db: Any) -> str:
+    """Generate a magic link with a signed JWT."""
+    import jwt
+    from datetime import datetime, timedelta, timezone
+    import uuid
+
+    # Find or create user
+    async with db.acquire() as conn:
+        user_id = await conn.fetchval("SELECT id FROM public.users WHERE email = $1", email)
+        if not user_id:
+            user_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO public.users (id, email, created_at, updated_at) VALUES ($1, $2, now(), now())",
+                user_id, email
+            )
+            # Create empty profile
+            await conn.execute(
+                "INSERT INTO public.profiles (user_id, resume_url, profile_data) VALUES ($1, '', '{}')",
+                user_id
+            )
+
+    # Generate token
     payload = {
-        "type": "magiclink",
+        "sub": str(user_id),
         "email": email,
-        "options": {
-            "redirect_to": redirect_to,
-            "expires_in": settings.magic_link_token_ttl_seconds,
-        },
+        "aud": "authenticated",
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1)
     }
-    headers = {
-        "apikey": settings.supabase_service_key,
-        "Authorization": f"Bearer {settings.supabase_service_key}",
-        "Content-Type": "application/json",
-    }
-    url = f"{settings.supabase_url.rstrip('/')}/auth/v1/admin/generate_link"
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.post(url, headers=headers, json=payload)
-    if resp.status_code >= 400:
-        logger.error("Supabase generate_link failed: %s - %s", resp.status_code, resp.text[:200])
-        raise HTTPException(status_code=502, detail="Failed to generate magic link")
-    data: dict[str, Any] = resp.json()
-    action_link = data.get("action_link") or data.get("email_action_link")
-    if not action_link:
-        logger.error("Supabase generate_link response missing action_link: %s", data)
-        raise HTTPException(status_code=502, detail="Magic link unavailable")
-    return action_link
+    
+    if not settings.jwt_secret:
+         # Fallback for dev if not set, though main.py requires it.
+         logger.warning("JWT_SECRET not set, using insecure default for magic link")
+         secret = "insecure-change-me" 
+    else:
+         secret = settings.jwt_secret
+
+    token = jwt.encode(payload, secret, algorithm="HS256")
+    
+    # Append token to redirect URL
+    separator = "&" if "?" in redirect_to else "?"
+    return f"{redirect_to}{separator}token={token}"
 
 
 def _render_email_html(settings: Settings, action_link: str, return_to: str | None) -> str:
@@ -168,8 +184,9 @@ async def _send_magic_link_email(settings: Settings, email: str, action_link: st
 async def request_magic_link(
     body: MagicLinkRequest,
     settings: Settings = Depends(settings_dependency),
+    db: Any = Depends(_get_pool),
 ) -> MagicLinkResponse:
-    """Generate a Supabase magic link and email it via Resend."""
+    """Generate a magic link and email it via Resend."""
 
     limiter = _get_rate_limiter(settings, body.email)
     if not await limiter.acquire():
@@ -182,6 +199,6 @@ async def request_magic_link(
         )
 
     redirect = _build_redirect_url(settings, body.return_to)
-    action_link = await _generate_magic_link(settings, body.email, redirect)
+    action_link = await _generate_magic_link(settings, body.email, redirect, db)
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
     return MagicLinkResponse()

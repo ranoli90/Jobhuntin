@@ -199,7 +199,7 @@ async def list_members(
             tm.user_id,
             tm.role,
             u.email,
-            u.raw_user_meta_data->>'full_name' AS name,
+            u.full_name AS name,
             (SELECT COUNT(*)::int FROM public.applications a
              WHERE a.user_id = tm.user_id
                AND a.created_at >= date_trunc('month', now())
@@ -208,7 +208,7 @@ async def list_members(
              WHERE a.user_id = tm.user_id
             ) AS apps_total
         FROM public.tenant_members tm
-        JOIN auth.users u ON u.id = tm.user_id
+        JOIN public.users u ON u.id = tm.user_id
         WHERE tm.tenant_id = $1
         ORDER BY tm.role DESC, u.email
         """,

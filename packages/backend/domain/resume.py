@@ -18,6 +18,7 @@ from backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
 from backend.llm.contracts import ResumeParseResponse_V1, build_resume_parse_prompt
 from shared.config import get_settings
+from shared.storage import StorageService
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
@@ -145,6 +146,7 @@ async def process_resume_upload(
     tenant_id: str,
     pdf_bytes: bytes,
     db_pool,
+    storage: StorageService
 ) -> tuple[str, CanonicalProfile]:
     """
     Orchestrates the full resume upload flow:
@@ -154,12 +156,11 @@ async def process_resume_upload(
     4. Normalize
     5. DB Upsert
     """
-    s = get_settings()
     storage_path = f"{user_id}/{uuid.uuid4()}.pdf"
 
     # 1. Upload
-    resume_url = await upload_to_supabase_storage(
-        s.supabase_storage_bucket, storage_path, pdf_bytes
+    resume_url = await storage.upload_file(
+        "resumes", storage_path, pdf_bytes, "application/pdf"
     )
 
     # 2. Extract

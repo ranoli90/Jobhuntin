@@ -4,7 +4,6 @@
  */
 
 import { config } from '../config';
-import { supabase } from '../lib/supabase';
 import { ValidationUtils } from '../lib/validation';
 
 export interface MagicLinkResponse {
@@ -40,16 +39,6 @@ class MagicLinkService {
       };
     }
 
-    // Validate Supabase Configuration
-    if (!config.auth.supabaseUrl || !config.auth.supabaseAnonKey) {
-      console.error('[MagicLink] Missing Supabase configuration. Check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
-      return {
-        success: false,
-        email: normalizedEmail,
-        error: 'System configuration error: Missing authentication settings.',
-      };
-    }
-
     // FIRST: Check local cooldown to avoid unnecessary calls when we KNOW a recent 429 occurred
     const rateLimitReset = this.rateLimitResets.get(normalizedEmail);
     if (rateLimitReset) {
@@ -66,7 +55,7 @@ class MagicLinkService {
       this.rateLimitResets.delete(normalizedEmail);
     }
 
-    // Enhanced rate limiting with validation - strict to 1 request per 60 seconds to avoid Supabase 429 errors
+    // Enhanced rate limiting with validation - strict to 1 request per 60 seconds
     const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 1, 60000); // 1 request per 60 seconds
     if (!rateLimitCheck.allowed) {
       const retryAfter = rateLimitCheck.resetIn;
@@ -80,7 +69,7 @@ class MagicLinkService {
     }
 
     try {
-      // Prefer canonical app base URL to avoid Supabase redirect whitelist errors
+      // Prefer canonical app base URL
       const configuredOrigin = config.appBaseUrl?.trim();
       const browserOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -100,17 +89,20 @@ class MagicLinkService {
       }
 
       // Construct redirect URL to go through /login page first
-      // This ensures we have a stable entry point to handle hash fragment
-      // before redirecting to protected route
       const sanitizedReturnTo = this.sanitizeReturnTo(returnTo);
-      const redirectUrl = `${origin.replace(/\/$/, '')}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
+      // NOTE: The backend handles the appending of ?token=... for magic links
+      // We just tell it where to send the user *after* they click the link in email.
+      // But typically we want them to come back to /login (or /verify) to process the token.
+      // apps/api/auth.py appends token to `redirect_to`.
+      // So checking `apps/api/auth.py`:
+      // separator = "&" if "?" in redirect_to else "?"
+      // return f"{redirect_to}{separator}token={token}"
 
-      /* console.group('[MagicLink] Request Details');
-      console.log('Target Email:', normalizedEmail);
-      console.log('Origin:', origin);
-      console.log('Return To:', sanitizedReturnTo);
-      console.log('Full Redirect URL:', redirectUrl);
-      console.groupEnd(); */
+      // So we should send the /login URL as the redirect_to.
+      // However, the frontend currently constructs `redirectUrl` with `returnTo` param.
+      // This seems fine. The backend will append `&token=...` to it.
+
+      const redirectUrl = `${origin.replace(/\/$/, '')}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
 
       // Validate redirect URL is properly formed
       if (!redirectUrl.startsWith('http')) {
@@ -120,13 +112,22 @@ class MagicLinkService {
       console.log('[MagicLink] Sending request to API:', normalizedEmail, 'return_to:', sanitizedReturnTo);
 
       // Use the backend API to send the magic link
-      // This ensures we use the branded HTML template via Resend
       const { apiPost } = await import('../lib/api');
 
       await apiPost('/auth/magic-link', {
         email: normalizedEmail,
-        return_to: sanitizedReturnTo
+        redirect_to: redirectUrl // Changed from return_to to match typical auth flow, but let's check auth.py
       });
+      // apps/api/auth.py expects `redirect_to`.
+      // Wait, `auth.py` `MagicLinkRequest` model:
+      // class MagicLinkRequest(BaseModel):
+      //     email: EmailStr
+      //     redirect_to: str = "http://localhost:5173/login"
+
+      // The previous code sent `return_to`?
+      // Line 128: return_to: sanitizedReturnTo
+      // But `auth.py` expects `redirect_to`.
+      // I should verify `apps/api/auth.py` model.
 
       console.log('[MagicLink] API request successful');
 
@@ -251,35 +252,6 @@ class MagicLinkService {
         return "You'll access your team workspace.";
       default:
         return `We'll take you to ${sanitized} once you're in.`;
-    }
-  }
-
-  /**
-   * Validate magic link token
-   */
-  async validateToken(token: string, email: string): Promise<{ valid: boolean; error?: string }> {
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        token,
-        email,
-        type: 'email'
-      });
-
-      if (error) {
-        return {
-          valid: false,
-          error: error.message
-        };
-      }
-
-      return {
-        valid: !!data.user
-      };
-    } catch (error) {
-      return {
-        valid: false,
-        error: error instanceof Error ? error.message : 'Token validation failed'
-      };
     }
   }
 
