@@ -17,6 +17,8 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: NODE_VERSION
+        value: 20  # Fix for npm ci segfault (exit status 139)
     healthCheckPath: /api/seo-health
     autoDeploy: true
     
@@ -47,6 +49,8 @@ services:
         value: https://jobhuntin.com
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: 20  # Fix for npm ci segfault (exit status 139)
     autoDeploy: true
 
   # Background Worker (Auto-Apply Agent)
