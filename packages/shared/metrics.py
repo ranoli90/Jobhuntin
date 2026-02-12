@@ -254,45 +254,6 @@ def get_rate_limiter(
 
 def setup_otel_metrics(service_name: str = "sorce") -> None:
     """
-    Initialize OpenTelemetry metrics bridge.
-
-    This is called from telemetry.py to connect the in-process metrics
-    to an OpenTelemetry MeterProvider for export.
-    """
-    global _otel_meter
-
-    try:
-        from opentelemetry import metrics
-        from opentelemetry.sdk.metrics import MeterProvider
-        from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-        from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
-            OTLPMetricExporter,
-        )
-        from opentelemetry.sdk.resources import Resource
-
-        resource = Resource.create({"service.name": service_name})
-
-        reader = PeriodicExportingMetricReader(
-            OTLPMetricExporter(),
-            export_interval_millis=60000,
-        )
-
-        provider = MeterProvider(resource=resource, readers=[reader])
-        metrics.set_meter_provider(provider)
-
-        _otel_meter = metrics.get_meter(service_name)
-
-    except ImportError:
-        pass
-
-
-# ---------------------------------------------------------------------------
-# OTLP metrics bridge — call once at startup to enable metric export
-# ---------------------------------------------------------------------------
-
-
-def setup_otel_metrics(service_name: str = "sorce") -> None:
-    """
     Initialize an OpenTelemetry MeterProvider so that incr() and observe()
     forward data to an OTLP collector (or Prometheus exporter).
 

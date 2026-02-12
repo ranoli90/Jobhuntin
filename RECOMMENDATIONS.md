@@ -239,7 +239,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 |---|-------|---------------|----------|
 | 136 | Static weights | Make matching weights configurable | MEDIUM |
 | 137 | No ML-based scoring | Train custom model on user feedback | LOW |
-| 138 | No feedback loop | Add thumbs up/down on match results | HIGH |
+| 138 | No feedback loop | Add thumbs up/down on match results | ✅ FIXED |
 | 139 | No cold start handling | Improve new user matching | MEDIUM |
 | 140 | No explanation quality | Improve match explanation detail | MEDIUM |
 | 141 | No skill normalization | Normalize skills across job postings | MEDIUM |
