@@ -61,6 +61,9 @@ export function useProfile() {
       setProfile(data);
       setError(null);
       return data;
+    } finally {
+      clearTimeout(timeoutId);
+    }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setError(message);
@@ -99,9 +102,32 @@ export function useProfile() {
   };
 
   const uploadResume = async (file: File): Promise<UploadResumeResponse> => {
-    const formData = new FormData();
-    formData.append("file", file); // Backend expects "file" from UploadFile = File(...)
-    const data = await apiPostFormData<UploadResumeResponse>("profile/resume", formData);
+    if (!file) {
+      throw new Error("Please select a file to upload.");
+    }
+
+    const maxBytes = 15_728_640; // 15 MB to match backend
+    const isPdf = (file.type || "").toLowerCase() === "application/pdf";
+
+    if (file.size === 0) {
+      throw new Error("File appears empty or corrupted.");
+    }
+    if (file.size > maxBytes) {
+      throw new Error("File too large. Maximum size is 15 MB.");
+    }
+    if (!isPdf) {
+      throw new Error("Only PDF files are accepted.");
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file); // Backend expects "file" from UploadFile = File(...)
+      const data = await apiPostFormData<UploadResumeResponse>("profile/resume", formData, {
+        signal: controller.signal
+      });
     setProfile((prev) => {
       // If prev is null, we can't fully reconstruct it without ID/email, 
       // but we can start building it if the backend returned enough info.
@@ -123,6 +149,9 @@ export function useProfile() {
       await refreshProfile();
     }
     return data;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   };
 
   const uploadAvatar = async (file: File) => {

@@ -27,7 +27,8 @@ class MagicLinkService {
     email: string,
     returnTo: string = '/app/onboarding'
   ): Promise<{ success: boolean; email: string; error?: string; retryAfter?: number }> {
-    const normalizedEmail = ValidationUtils.sanitizeInput(email.trim().toLowerCase(), 254);
+    // RFC max email length is 320 chars (254 + local part variations). Allow full range.
+    const normalizedEmail = ValidationUtils.sanitizeInput(email.trim().toLowerCase(), 320);
 
     // Enhanced email validation
     const emailValidation = ValidationUtils.validate.email(normalizedEmail);
@@ -55,15 +56,15 @@ class MagicLinkService {
       this.rateLimitResets.delete(normalizedEmail);
     }
 
-    // Enhanced rate limiting with validation - strict to 1 request per 60 seconds
-    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 1, 60000); // 1 request per 60 seconds
+    // Adaptive rate limiting: up to 3 requests per 5 minutes per email
+    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 3, 300000);
     if (!rateLimitCheck.allowed) {
       const retryAfter = rateLimitCheck.resetIn;
       this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
       return {
         success: false,
         email: normalizedEmail,
-        error: `Too many magic link requests. Please wait ${retryAfter} seconds.`,
+        error: `Too many magic link requests. Please wait ${retryAfter} seconds before retrying.`,
         retryAfter: retryAfter,
       };
     }
@@ -178,7 +179,7 @@ class MagicLinkService {
    * Get rate limit countdown for an email
    */
   getRateLimitCountdown(email: string): number | null {
-    const normalizedEmail = ValidationUtils.sanitizeInput(email.toLowerCase(), 254);
+    const normalizedEmail = ValidationUtils.sanitizeInput(email.toLowerCase(), 320);
     const reset = this.rateLimitResets.get(normalizedEmail);
     if (!reset || reset <= Date.now()) {
       return null;
@@ -194,25 +195,29 @@ class MagicLinkService {
       return '/app/onboarding';
     }
 
+    // Trim and cap length to avoid abuse
     const trimmed = ValidationUtils.sanitizeInput(url.trim(), 2048);
 
-    // Must start with /
-    if (!trimmed.startsWith('/')) {
+    // Reject dangerous schemes/hosts
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith('http:') || lower.startsWith('https:') || lower.startsWith('javascript:') || lower.startsWith('data:')) {
       return '/app/onboarding';
     }
 
-    // Prevent // (protocol-relative URLs)
-    if (trimmed.startsWith('//')) {
+    // Must be an absolute path (no host) and not protocol-relative
+    if (!trimmed.startsWith('/') || trimmed.startsWith('//')) {
       return '/app/onboarding';
     }
 
-    // Prevent javascript: and data: protocols
-    if (trimmed.toLowerCase().startsWith('javascript:') || trimmed.toLowerCase().startsWith('data:')) {
+    // Strip query/hash to avoid open redirects; we only trust path component
+    const pathOnly = trimmed.split('?')[0].split('#')[0];
+
+    // Check for path traversal attempts
+    if (pathOnly.includes('../') || pathOnly.includes('..\\')) {
       return '/app/onboarding';
     }
 
-    // Enhanced whitelist with security considerations
-    const allowedPaths = [
+    const allowedPaths = new Set([
       '/app/onboarding',
       '/app/dashboard',
       '/app/jobs',
@@ -221,18 +226,12 @@ class MagicLinkService {
       '/app/billing',
       '/app/settings',
       '/app/team',
-    ];
+    ]);
 
-    // Check for path traversal attempts
-    if (trimmed.includes('../') || trimmed.includes('..\\')) {
-      return '/app/onboarding';
+    if (allowedPaths.has(pathOnly)) {
+      return pathOnly;
     }
 
-    if (allowedPaths.includes(trimmed)) {
-      return trimmed;
-    }
-
-    // Default to onboarding
     return '/app/onboarding';
   }
 

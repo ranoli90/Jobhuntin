@@ -48,14 +48,38 @@ class MagicLinkResponse(BaseModel):
 
 
 def _sanitize_return_to(value: str | None) -> str | None:
+    """Whitelist-only sanitizer for return_to paths to prevent open redirects."""
     if not value:
         return None
-    value = value.strip()
-    if not value.startswith("/"):
+
+    trimmed = value.strip()
+
+    # Reject absolute URLs / dangerous schemes / protocol-relative
+    lower = trimmed.lower()
+    if lower.startswith("http:") or lower.startswith("https:") or lower.startswith("javascript:") or lower.startswith("data:"):
         return None
-    if value.startswith("//"):
+    if not trimmed.startswith("/") or trimmed.startswith("//"):
         return None
-    return value
+
+    # Strip query/hash; only trust path
+    path_only = trimmed.split("?")[0].split("#")[0]
+
+    # Block traversal
+    if "../" in path_only or "..\\" in path_only:
+        return None
+
+    allowed = {
+        "/app/onboarding",
+        "/app/dashboard",
+        "/app/jobs",
+        "/app/applications",
+        "/app/holds",
+        "/app/billing",
+        "/app/settings",
+        "/app/team",
+    }
+
+    return path_only if path_only in allowed else None
 
 
 def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
@@ -79,13 +103,13 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
 
     # Find or create user
     async with db.acquire() as conn:
-        user_id = await conn.fetchval("SELECT id FROM public.users WHERE email = $1", email)
-        if not user_id:
-            user_id = str(uuid.uuid4())
-            await conn.execute(
-                "INSERT INTO public.users (id, email, created_at, updated_at) VALUES ($1, $2, now(), now())",
-                user_id, email
-            )
+        # Use UPSERT to avoid race condition
+            user_id = await conn.fetchval("""
+                INSERT INTO public.users (id, email, created_at, updated_at)
+                VALUES ($1, $2, now(), now())
+                ON CONFLICT (email) DO UPDATE SET updated_at = now()
+                RETURNING id
+            """, str(uuid.uuid4()), email)
             # Create empty profile
             await conn.execute(
                 "INSERT INTO public.profiles (user_id, resume_url, profile_data) VALUES ($1, '', '{}')",
@@ -192,13 +216,15 @@ async def request_magic_link(
     if not await limiter.acquire():
         retry_after = limiter.next_available_in()
         logger.warning("Magic link rate limit hit", extra={"email": body.email, "retry_after": retry_after})
+        incr("auth.magic_link.rate_limited", {"email_domain": body.email.split('@')[-1]})
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait before requesting another magic link.",
-            headers={"Retry-After": str(int(math.ceil(retry_after)))},
+            headers={"Retry-After": str(int(math.ceil(retry_after)))}
         )
 
     redirect = _build_redirect_url(settings, body.return_to)
     action_link = await _generate_magic_link(settings, body.email, redirect, db)
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
+    incr("auth.magic_link.sent", {"email_domain": body.email.split('@')[-1]})
     return MagicLinkResponse()

@@ -17,6 +17,7 @@ from starlette.responses import Response
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
+from shared.metrics import incr
 
 logger = get_logger("sorce.middleware")
 
@@ -158,6 +159,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     - X-XSS-Protection: 1; mode=block
     - Referrer-Policy: strict-origin-when-cross-origin
     - Strict-Transport-Security: max-age=31536000; includeSubDomains (if HTTPS/Prod)
+    - Content-Security-Policy: default-src 'self'; frame-ancestors 'none'; object-src 'none'
     """
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
@@ -167,6 +169,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # Basic CSP; can be expanded with nonces if needed for inline scripts
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; frame-ancestors 'none'; object-src 'none'"
+        )
         
         # HSTS (Strict-Transport-Security)
         # We assume SSL is handled by termination proxy (Render/Heroku/AWS), 

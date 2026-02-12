@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     db_ssl_ca_cert_path: str = ""  # Path to CA cert for DB SSL verification (overrides CERT_NONE)
 
     # ── Upload limits ─────────────────────────────────────────────
-    max_upload_size_bytes: int = 10_485_760  # 10 MB for PDF resumes
+    max_upload_size_bytes: int = 15_728_640  # 10 MB for PDF resumes
     max_avatar_size_bytes: int = 5_242_880   # 5 MB for avatar images
     resume_signed_url_ttl_seconds: int = 3600  # 1 hour
 
@@ -100,7 +100,7 @@ class Settings(BaseSettings):
 
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
+    stripe_webhook_secret: str = "dev-placeholder-webhook-secret"
     stripe_pro_price_id: str = ""  # Stripe Price ID for PRO plan ($29/month)
     stripe_team_base_price_id: str = ""  # Stripe Price ID for TEAM base ($199/month)
     stripe_team_seat_price_id: str = ""  # Stripe Price ID for TEAM per-seat ($49/seat/month)
@@ -112,6 +112,9 @@ class Settings(BaseSettings):
     stripe_enterprise_annual_price_id: str = ""  # ENTERPRISE annual ($9,590/yr = 20% off)
     annual_discount_pct: int = 20  # percent discount for annual billing
 
+    # Webhook signing (set real secrets in prod/staging)
+    webhook_signing_secret: str = "dev-placeholder-webhook-signing"
+
     # ── Stripe Connect (Marketplace) ──────────────────────────────
     stripe_connect_client_id: str = ""
     marketplace_platform_fee_pct: int = 30  # platform takes 30%
@@ -119,7 +122,6 @@ class Settings(BaseSettings):
     # ── API v2 Platform ───────────────────────────────────────────
     api_v2_metered_price_id: str = ""  # Stripe metered price ($0.10/submission)
     api_v2_pro_price_id: str = ""  # API PRO tier ($99/mo)
-    webhook_signing_secret: str = ""  # HMAC secret for webhook payloads
     staffing_price_per_submit_cents: int = 200  # $2 per successful submission
     staffing_base_monthly_cents: int = 200000  # $2k/month base
 

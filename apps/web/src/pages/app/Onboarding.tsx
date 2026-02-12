@@ -1,7 +1,22 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Upload, MapPin, Briefcase, DollarSign, Rocket, ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, User, Zap, Mail, Phone, Shield, X } from "lucide-react";
-import { Logo } from '../../components/brand/Logo';
+import { Logo }
+
+/* Safari CSS compatibility fix */
+@supports (-webkit-backdrop-filter: none) {
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Firefox compatibility fix */
+@supports (not (-webkit-backdrop-filter: none)) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(20px);
+  }
+} from '../../components/brand/Logo';
 import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
 import { useAISuggestions } from "../../hooks/useAISuggestions";
@@ -32,6 +47,8 @@ export default function Onboarding() {
     remote_only: false,
     work_authorized: true,
   });
+
+  const [formErrors, setFormErrors] = React.useState<Record<string, string>>({});
 
   const [contactInfo, setContactInfo] = React.useState({
     first_name: "",
@@ -134,6 +151,16 @@ export default function Onboarding() {
 
   const handleSaveContact = async () => {
     try {
+      const errors: Record<string, string> = {};
+      if (!contactInfo.first_name?.trim()) errors.first_name = "First name is required";
+      if (!contactInfo.last_name?.trim()) errors.last_name = "Last name is required";
+      const emailToUse = contactInfo.email || profile?.email;
+      if (!emailToUse?.trim()) errors.email = "Email is required";
+      setFormErrors(errors);
+      if (Object.keys(errors).length) {
+        throw new Error("Please fill required fields.");
+      }
+
       setIsSavingContact(true);
       await updateProfile({
         contact: {
@@ -187,6 +214,14 @@ export default function Onboarding() {
 
   const handleSavePreferences = async () => {
     try {
+      const errors: Record<string, string> = {};
+      if (!preferences.location?.trim()) errors.location = "Location is required";
+      if (!preferences.role_type?.trim()) errors.role_type = "Role type is required";
+      setFormErrors(errors);
+      if (Object.keys(errors).length) {
+        throw new Error("Please fill required fields.");
+      }
+
       setIsSavingPreferences(true);
       await savePreferences({
         location: preferences.location || undefined,

@@ -35,10 +35,31 @@ from backend.domain.resume import process_resume_upload, upload_to_supabase_stor
 from backend.domain.tenant import TenantContext
 from shared.config import get_settings
 from shared.logging_config import get_logger
+from shared.metrics import RateLimiter
 
 logger = get_logger("sorce.user")
 
 router = APIRouter(tags=["user"])
+
+# Per-user rate limiters to prevent abuse on profile writes/uploads
+_profile_limiters: dict[str, RateLimiter] = {}
+_upload_limiters: dict[str, RateLimiter] = {}
+
+
+def _get_profile_limiter(user_id: str) -> RateLimiter:
+    limiter = _profile_limiters.get(user_id)
+    if limiter is None:
+        limiter = RateLimiter(max_calls=30, window_seconds=300.0, name=f"profile:{user_id}")
+        _profile_limiters[user_id] = limiter
+    return limiter
+
+
+def _get_upload_limiter(user_id: str) -> RateLimiter:
+    limiter = _upload_limiters.get(user_id)
+    if limiter is None:
+        limiter = RateLimiter(max_calls=10, window_seconds=600.0, name=f"upload:{user_id}")
+        _upload_limiters[user_id] = limiter
+    return limiter
 
 
 def _get_pool():
@@ -444,6 +465,11 @@ async def update_profile(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Update profile: onboarding flag and preferences stored in profile_data."""
+    limiter = _get_profile_limiter(ctx.user_id)
+    if not await limiter.acquire():
+        from shared.metrics import incr
+        incr("profile.update.rate_limited", {"user_id": ctx.user_id})
+        raise HTTPException(status_code=429, detail="Too many profile updates. Please retry later.")
     async with db.acquire() as conn:
         existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
         profile_data = dict(existing or {})
@@ -524,8 +550,15 @@ async def upload_resume(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Upload PDF resume: extract text, parse via LLM, upsert profile, store file. Returns parsed data."""
+    limiter = _get_upload_limiter(ctx.user_id)
+    if not await limiter.acquire():
+        raise HTTPException(status_code=429, detail="Too many uploads. Please retry later.")
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+
+    # Simple corruption guard: reject empty files
+    if file.size == 0:
+        raise HTTPException(status_code=400, detail="File is empty or corrupted")
 
     settings = get_settings()
     # Pre-check Content-Length header to reject before reading body into memory
@@ -548,6 +581,10 @@ async def upload_resume(
         db_pool=db,
     )
 
+    # Telemetry: successful upload
+    from shared.metrics import incr
+    incr("profile.resume.uploaded", {"user_id": ctx.user_id})
+
     parsed = canonical.model_dump()
     contact = parsed.get("contact") or {}
     prefs = parsed.get("preferences") or {}
@@ -566,6 +603,9 @@ async def upload_avatar(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Upload an avatar image to storage and persist URL to profile."""
+    limiter = _get_upload_limiter(ctx.user_id)
+    if not await limiter.acquire():
+        raise HTTPException(status_code=429, detail="Too many uploads. Please retry later.")
     allowed_types = {
         "image/png": ".png",
         "image/jpeg": ".jpg",
