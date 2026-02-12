@@ -28,11 +28,9 @@ def _get_ssl_config() -> Any:
     s = get_settings()
     if not s.database_url:
         return False
-    if "sslmode" in s.database_url:
-        import ssl as _ssl
-        ssl_ctx = _ssl.create_default_context()
-        return ssl_ctx
-    return False
+    # Render and many cloud databases require SSL/TLS connections by default
+    import ssl as _ssl
+    return _ssl.create_default_context()
 
 
 async def get_db_pool() -> asyncpg.Pool:

@@ -373,8 +373,9 @@ class DatabasePoolManager:
         if not settings.database_url:
             return False
             
-        # Render databases use SSL by default - no special configuration needed
-        return None
+        # Render and many cloud databases require SSL/TLS connections
+        import ssl
+        return ssl.create_default_context()
 
     async def close(self) -> None:
         """Close the database pool on shutdown."""
