@@ -5,9 +5,12 @@
 import { Pool } from 'pg';
 import { PoolClient } from 'pg';
 
-// Initialize database connection
+// Initialize database connection with SSL for Render
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/jobhuntin'
+  connectionString: process.env.DATABASE_URL || 'postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g',
+  ssl: {
+    rejectUnauthorized: false // Render PostgreSQL requires SSL
+  }
 });
 
 const SERVICE_ID = 'jobhuntin-seo-engine';

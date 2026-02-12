@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     env: Environment = Environment.LOCAL
 
     # ── Database ─────────────────────────────────────────────────
-    database_url: str = "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin"
+    database_url: str = "postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g"
     db_pool_min: int = 2
     db_pool_max: int = 10
 

@@ -28,7 +28,7 @@ services:
     startCommand: python -m apps.api.main
     envVars:
       - key: DATABASE_URL
-        value: postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin
+        value: postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g
       - key: ENV
         value: production
     healthCheckPath: /healthz
@@ -57,7 +57,7 @@ services:
     startCommand: python -m apps.worker.scaling --instances 2
     envVars:
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g
       - key: OPENAI_API_KEY
         sync: false
       - key: AGENT_ENABLED

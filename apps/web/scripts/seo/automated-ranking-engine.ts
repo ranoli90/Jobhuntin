@@ -19,7 +19,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
 import { setInterval } from 'timers';
-import { loadProgress, saveProgress, logSubmission, getQuotaState } from './supabase-checkpoint.js';
+import { loadProgress, saveProgress, logSubmission, getQuotaState } from './supabase-checkpoint.ts';
 
 const BASE_URL = process.env.GOOGLE_SEARCH_CONSOLE_SITE || 'https://jobhuntin.com';
 const DAILY_SUBMISSION_LIMIT = 200;
@@ -361,6 +361,12 @@ async function main(): Promise<void> {
   if (!process.env.GOOGLE_SEARCH_CONSOLE_SITE) {
     process.env.GOOGLE_SEARCH_CONSOLE_SITE = 'https://jobhuntin.com';
   }
+  if (!process.env.DATABASE_URL) {
+    console.warn('⚠️ DATABASE_URL not set. Progress tracking will fail.');
+  }
+  if (!process.env.LLM_API_KEY) {
+    console.warn('⚠️ LLM_API_KEY not set. Content generation will fail.');
+  }
 
   // Start continuous monitoring
   startContinuousMonitoring();
@@ -368,25 +374,34 @@ async function main(): Promise<void> {
   try {
     // Run initial automation
     await runAutomation();
+  } catch (error) {
+    console.error('❌ Automation failed:', error);
+    // Still schedule next run even if current run fails
   } finally {
     runInProgress = false;
     // Schedule next run (daily) after completion to avoid overlap
-    console.log('⏰ Scheduling next run in 24 hours...');
+    const nextRunTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    console.log(`⏰ Scheduling next run in 24 hours (${nextRunTime})...`);
     setTimeout(() => { void main(); }, 24 * 60 * 60 * 1000);
   }
 }
 
-// Error handling
+// Error handling with enhanced logging
 process.on('unhandledRejection', (error) => {
-  console.error('❌ Unhandled rejection:', error);
+  const timestamp = new Date().toISOString();
+  console.error(`❌ Unhandled rejection at ${timestamp}:`, error);
   // Continue running - don't let errors stop the automation
 });
 
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught exception:', error);
+  const timestamp = new Date().toISOString();
+  console.error(`❌ Uncaught exception at ${timestamp}:`, error);
   // Continue running - don't let errors stop the automation
 });
 
-// Start the engine
+// Start the engine with startup logging
 console.log('🤖 AUTOMATED RANKING ENGINE INITIALIZING...');
-main().catch(console.error);
+main().catch(error => {
+  console.error('❌ Failed to start SEO engine:', error);
+  process.exit(1);
+});

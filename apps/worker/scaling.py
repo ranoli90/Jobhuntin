@@ -25,14 +25,9 @@ logger = get_logger("sorce.worker.scaling")
 
 def _get_ssl_config() -> Any:
     """Get SSL configuration for database connections."""
-    s = get_settings()
-    if not s.database_url:
-        return False
-    if "sslmode" in s.database_url:
-        import ssl as _ssl
-        ssl_ctx = _ssl.create_default_context()
-        return ssl_ctx
-    return False
+    # Render databases use SSL by default; our DSN resolver enforces sslmode=require
+    # No special SSL context needed; asyncpg handles it when sslmode is in DSN
+    return None
 
 
 async def get_db_pool() -> asyncpg.Pool:
@@ -90,6 +85,7 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
         "min_size": 2,
         "max_size": s.db_pool_max,
         "command_timeout": 60,
+        "statement_cache_size": 0,  # Critical for PGBouncer/Render
     }
     if ssl:
         kwargs["ssl"] = ssl
@@ -135,6 +131,7 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
         "min_size": s.enterprise_db_pool_min,
         "max_size": s.enterprise_db_pool_max,
         "command_timeout": 120,
+        "statement_cache_size": 0,  # Critical for PGBouncer/Render
     }
     if ssl:
         kwargs["ssl"] = ssl
