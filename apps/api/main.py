@@ -370,16 +370,9 @@ class DatabasePoolManager:
     @staticmethod
     def _get_ssl_config(settings: Any) -> Any:
         """Get SSL config for database connection"""
-        if not settings.database_url:
-            return False
-            
-        # Render and many cloud databases require SSL/TLS connections
-        # Use relaxed SSL mode to handle hostname/certificate mismatches
-        import ssl
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        return ctx
+        # Render databases use SSL by default; our DSN resolver enforces sslmode=require
+        # No special SSL context needed; asyncpg handles it when sslmode is in DSN
+        return None
 
     async def close(self) -> None:
         """Close the database pool on shutdown."""
