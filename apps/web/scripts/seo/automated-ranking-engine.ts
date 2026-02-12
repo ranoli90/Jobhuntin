@@ -126,11 +126,10 @@ function generatePriorityMatrix(): PriorityMatrix[] {
  */
 async function generateContent(city: string, role: string): Promise<boolean> {
   return new Promise((resolve) => {
-    const command = `npx tsx scripts/seo/generate-city-content.ts "${city}" "${role}" --aggressive`;
-
     console.log(`🚀 Generating: ${role} jobs in ${city}`);
 
-    const process = spawn('npx', ['tsx', command], {
+    // Pass arguments as an array to spawn correctly
+    const childProcess = spawn('npx', ['tsx', 'scripts/seo/generate-city-content.ts', city, role, '--aggressive'], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'pipe'
     });
@@ -138,15 +137,15 @@ async function generateContent(city: string, role: string): Promise<boolean> {
     let output = '';
     let errorOutput = '';
 
-    process.stdout.on('data', (data) => {
+    childProcess.stdout.on('data', (data: Buffer) => {
       output += data.toString();
     });
 
-    process.stderr.on('data', (data) => {
+    childProcess.stderr.on('data', (data: Buffer) => {
       errorOutput += data.toString();
     });
 
-    process.on('close', (code) => {
+    childProcess.on('close', (code: number) => {
       if (code === 0) {
         console.log(`✅ Content generated for ${role} in ${city}`);
         resolve(true);
@@ -176,11 +175,10 @@ async function submitToGoogle(urls: string[], allowSubmission: boolean): Promise
     const tmpFile = path.join(tmpDir, `urls-${Date.now()}.txt`);
     fs.writeFileSync(tmpFile, urls.join('\n'));
 
-    const command = `npx tsx scripts/seo/submit-to-google-enhanced.ts --priority --urls-file "${tmpFile}"`;
-
     console.log(`📊 Submitting ${urls.length} URLs to Google...`);
 
-    const process = spawn('npx', ['tsx', command], {
+    // Pass arguments as an array to spawn correctly
+    const childProcess = spawn('npx', ['tsx', 'scripts/seo/submit-to-google-enhanced.ts', '--priority', '--urls-file', tmpFile], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'pipe',
       env: {
@@ -190,11 +188,11 @@ async function submitToGoogle(urls: string[], allowSubmission: boolean): Promise
 
     let output = '';
 
-    process.stdout.on('data', (data) => {
+    childProcess.stdout.on('data', (data: Buffer) => {
       output += data.toString();
     });
 
-    process.on('close', (code) => {
+    childProcess.on('close', (code: number | null) => {
       const success = code === 0;
       if (success) {
         console.log(`✅ Submitted ${urls.length} URLs to Google`);
