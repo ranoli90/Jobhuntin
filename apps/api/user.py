@@ -522,7 +522,6 @@ async def upload_resume(
     file: UploadFile = File(...),
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
-    storage: NewStorageService = Depends(get_new_storage_service)
 ) -> dict[str, Any]:
     """Upload PDF resume: extract text, parse via LLM, upsert profile, store file. Returns parsed data."""
     if file.content_type not in ("application/pdf", "application/octet-stream"):
@@ -547,7 +546,6 @@ async def upload_resume(
         tenant_id=ctx.tenant_id,
         pdf_bytes=pdf_bytes,
         db_pool=db,
-        storage=storage
     )
 
     parsed = canonical.model_dump()
@@ -566,7 +564,6 @@ async def upload_avatar(
     file: UploadFile = File(...),
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
-    storage: StorageService = Depends(get_storage_service)
 ) -> dict[str, Any]:
     """Upload an avatar image to storage and persist URL to profile."""
     allowed_types = {
@@ -596,7 +593,7 @@ async def upload_avatar(
     suffix = ext if ext in allowed_types.values() else fallback_ext
     storage_path = f"avatars/{ctx.user_id}/{uuid.uuid4()}{suffix}"
 
-    avatar_url = await storage.upload_file(
+    avatar_url = await upload_to_supabase_storage(
         "avatars", storage_path, data, content_type=file.content_type or "image/png"
     )
 
