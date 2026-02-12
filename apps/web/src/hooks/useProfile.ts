@@ -61,9 +61,6 @@ export function useProfile() {
       setProfile(data);
       setError(null);
       return data;
-    } finally {
-      clearTimeout(timeoutId);
-    }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setError(message);
@@ -121,34 +118,34 @@ export function useProfile() {
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-    
+
     try {
       const formData = new FormData();
       formData.append("file", file); // Backend expects "file" from UploadFile = File(...)
       const data = await apiPostFormData<UploadResumeResponse>("profile/resume", formData, {
         signal: controller.signal
       });
-    setProfile((prev) => {
-      // If prev is null, we can't fully reconstruct it without ID/email, 
-      // but we can start building it if the backend returned enough info.
-      // However, usually uploadResume is called when we are already authenticated.
-      // We'll rely on refreshProfile if prev is null.
-      if (!prev) return prev;
-      return {
-        ...prev,
-        resume_url: data.resume_url,
-        preferences: data.preferences ?? prev.preferences,
-        contact: {
-          ...prev.contact,
-          ...(data.contact ?? {}),
-        },
-      };
-    });
-    // If we didn't have a profile before, refresh to get the full object
-    if (!profile) {
-      await refreshProfile();
-    }
-    return data;
+      setProfile((prev) => {
+        // If prev is null, we can't fully reconstruct it without ID/email, 
+        // but we can start building it if the backend returned enough info.
+        // However, usually uploadResume is called when we are already authenticated.
+        // We'll rely on refreshProfile if prev is null.
+        if (!prev) return prev;
+        return {
+          ...prev,
+          resume_url: data.resume_url,
+          preferences: data.preferences ?? prev.preferences,
+          contact: {
+            ...prev.contact,
+            ...(data.contact ?? {}),
+          },
+        };
+      });
+      // If we didn't have a profile before, refresh to get the full object
+      if (!profile) {
+        await refreshProfile();
+      }
+      return data;
     } finally {
       clearTimeout(timeoutId);
     }

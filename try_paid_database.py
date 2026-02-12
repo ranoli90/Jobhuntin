@@ -49,7 +49,7 @@ def try_paid_database():
                 time.sleep(30)
                 print(f"Checking status... (attempt {i+1}/20)")
                 
-                status_response = requests.get(f"https://api.render.com/v1/postgres/{db_id}", headers=headers)
+                status_response = requests.get(f"https://api.render.com/v1/postgres/{db_id}", headers=headers, timeout=10)
                 if status_response.status_code == 200:
                     status_info = status_response.json()
                     service_status = status_info.get('status')

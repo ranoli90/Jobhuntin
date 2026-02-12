@@ -14,6 +14,8 @@ interface OnboardingState {
     preferences?: any;
     resumeFile?: any;
     parsedResume?: any;
+    calibrationQuestions?: any[];
+    calibrationAnswers?: Record<string, any>;
   };
 }
 
@@ -24,6 +26,7 @@ const STEPS: OnboardingStep[] = [
   { id: "resume", title: "Upload your resume", description: "We'll use this to find perfect matches" },
   { id: "confirm-contact", title: "Confirm your details", description: "Verify the info we extracted" },
   { id: "preferences", title: "Job preferences", description: "Tell us what you're looking for" },
+  { id: "calibration", title: "Calibrate AI", description: "Help us fine-tune your matches" },
   { id: "ready", title: "You're ready!", description: "Time to start job hunting" },
 ];
 

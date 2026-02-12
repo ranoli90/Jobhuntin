@@ -44,8 +44,9 @@ jobs:
         if: github.event.inputs.mode == 'submit-urls' || github.event_name == 'schedule'
         env:
           GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          REFRESH_MODE: ${{ github.event.inputs.mode }}
         run: |
-          if [ -n "$GOOGLE_SERVICE_ACCOUNT_KEY" ]; then
+          if [ -n "$GOOGLE_SERVICE_ACCOUNT_KEY" ] && [ "$REFRESH_MODE" = "submit-urls" ]; then
             npx tsx scripts/seo/submit-to-google.ts
           else
             echo "⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not configured, skipping URL submission"

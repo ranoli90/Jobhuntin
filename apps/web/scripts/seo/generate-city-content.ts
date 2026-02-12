@@ -58,6 +58,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCATIONS_FILE = path.resolve(__dirname, '../../src/data/locations.json');
 const ROLES_FILE = path.resolve(__dirname, '../../src/data/roles.json');
+import { getCityJobStats, formatStatsForPrompt } from './data-provider.js';
 
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
@@ -68,7 +69,44 @@ const FREE_MODELS = [
   'nvidia/nemotron-nano-12b-v2-vl:free',        // Fallback 1: Balanced (12B)
   'nvidia/nemotron-nano-9b-v2:free',            // Fallback 2: Fast (9B)
   'google/gemma-2-9b-it:free',                  // Fallback 3: Google free tier
-  'meta-llama/llama-3.1-8b-instruct:free',      // Fallback 4: Meta free tier
+  'meta-llama/llama-3.2-11b-vision-instruct:free', // Good reasoning
+];
+
+// Content Archetypes to prevent "cookie-cutter" footprint
+const ARCHETYPES = [
+  {
+    id: 'analyst',
+    name: 'The Market Analyst',
+    instruction: `
+      STYLE: Data-driven, objective, professional. 
+      FOCUS: Salary trends, growth percentages, economic outlook.
+      STRUCTURE: Use bullet points for stats, comparative analysis.
+      TONE: "According to recent data...", "The market indicators suggest..."
+      REQUIRED SECTIONS: "Economic Outlook", "Salary Trajectory", "Industry Verification"
+    `
+  },
+  {
+    id: 'insider',
+    name: 'The Local Insider',
+    instruction: `
+      STYLE: Conversational, knowledgeable, specific.
+      FOCUS: Neighborhoods (` + '${cityName}' + ` districts), commute, lifestyle, local tech culture.
+      STRUCTURE: Narrative flow, local references (coffee shops, coworking spaces).
+      TONE: "If you're living in...", "The local scene is..."
+      REQUIRED SECTIONS: "Best Neighborhoods for Tech", "Commute & Living", "Local Culture"
+    `
+  },
+  {
+    id: 'coach',
+    name: 'The Career Coach',
+    instruction: `
+      STYLE: Action-oriented, advisory, empowering.
+      FOCUS: Interview tips, skill requirements, career pathing in this city.
+      STRUCTURE: "How to" guides, checklists, actionable advice.
+      TONE: "You should focus on...", "To land a job here..."
+      REQUIRED SECTIONS: "Interviewing in ` + '${cityName}' + `", "Skill Stack for 2026", "Networking Tips"
+    `
+  }
 ];
 
 // Additional backup free models for redundancy
@@ -161,13 +199,34 @@ async function generateAggressiveLocalContent(
     throw new Error('LLM_API_KEY environment variable is missing.');
   }
 
+  // Fetch real market data
+  console.log(`📊 Fetching real job market data for ${roleName} in ${cityName}...`);
+  const marketStats = await getCityJobStats(cityName, roleName);
+  const injectedContext = formatStatsForPrompt(marketStats, cityName, roleName);
+
+  if (marketStats) {
+    console.log(`✅ Found ${marketStats.totalJobs} active jobs. Injecting context.`);
+  } else {
+    console.log(`⚠️ No specific job data found. Proceeding with general knowledge.`);
+  }
+
+  // Randomly select an archetype ("The Chameleon Engine")
+  const archetype = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
+  console.log(`🦎 Chameleon Engine: Selected Archetype -> ${archetype.name}`);
+
   // Use free models with fallback to backup models for aggressive mode
   const modelsToTry = aggressive ? [...FREE_MODELS, ...BACKUP_FREE_MODELS] : FREE_MODELS;
 
   // Ultra-aggressive local SEO prompt with semantic triples and entity relationships
   // Designed to avoid Google penalties while maximizing rankings
   const aggressivePrompt = `
-    You are a top-tier SEO strategist who understands Google's algorithms deeply. Create comprehensive, valuable content for "${roleName} jobs in ${cityName}" that will rank #1 in Google while providing genuine value to users.
+    You are a top-tier SEO strategist acting as "${archetype.name}". 
+    Create comprehensive, valuable content for "${roleName} jobs in ${cityName}" that will rank #1 in Google.
+
+    ${injectedContext}
+
+    ARCHETYPE INSTRUCTIONS (${archetype.name}):
+    ${archetype.instruction.replace('${cityName}', cityName)}
 
     CRITICAL REQUIREMENTS (Google Employee Perspective):
     ✅ Follow E-E-A-T principles (Experience, Expertise, Authoritativeness, Trustworthiness)
@@ -329,7 +388,7 @@ async function generateAggressiveLocalContent(
   for (let i = 0; i < modelsToTry.length; i++) {
     const model = modelsToTry[i];
     console.log(`\n🔄 Attempting with model: ${model} (${i + 1}/${modelsToTry.length})`);
-    
+
     // Add delay between models to avoid rate limiting
     if (i > 0) {
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -365,7 +424,7 @@ async function generateAggressiveLocalContent(
       if (!response.ok) {
         const errorText = await response.text();
         console.log(`⚠️  Model ${model} failed: ${response.status} - ${errorText}`);
-        
+
         // Log detailed error for debugging
         try {
           const errorData = JSON.parse(errorText);
@@ -373,7 +432,7 @@ async function generateAggressiveLocalContent(
         } catch {
           // Not JSON, use raw text
         }
-        
+
         continue; // Try next model
       }
 
@@ -385,15 +444,23 @@ async function generateAggressiveLocalContent(
         continue;
       }
 
-      // Clean JSON response (remove markdown wrapping)
-      const cleanContent = content.replace(/```json\n?/g, '').replace(/\n?```/g, '').trim();
+      // Improved JSON extraction
+      let jsonString = content.replace(/```json\n?/g, '').replace(/\n?```/g, '').trim();
+
+      // Find the first '{' and last '}' to handle preamble/postamble text
+      const firstBrace = jsonString.indexOf('{');
+      const lastBrace = jsonString.lastIndexOf('}');
+
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+      }
 
       let parsedContent;
       try {
-        parsedContent = JSON.parse(cleanContent);
-      } catch (parseError) {
+        parsedContent = JSON.parse(jsonString);
+      } catch (parseError: any) {
         console.log(`⚠️  Model ${model} returned invalid JSON: ${parseError.message}`);
-        console.log(`   Raw content preview: ${cleanContent.substring(0, 200)}...`);
+        console.log(`   Raw content preview: ${content.substring(0, 200)}...`);
         continue;
       }
 
@@ -409,16 +476,16 @@ async function generateAggressiveLocalContent(
         continue;
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.log(`⚠️  Model ${model} error: ${error.message}`);
-      
+
       // Log additional error context for debugging
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         console.log(`   Network error - check internet connection`);
       } else if (error.message.includes('timeout')) {
         console.log(`   Request timeout - model may be overloaded`);
       }
-      
+
       continue; // Try next model
     }
   }
@@ -445,13 +512,15 @@ function validateContentQuality(content: any): boolean {
       return false;
     }
 
-    // Check word count (minimum 1500 words)
+
+
+    // Check word count (minimum 1000 words - relaxed for free models)
     const totalWords = location.contentSections.reduce((sum: number, section: any) => {
       return sum + (section.wordCount || 0);
     }, 0);
 
-    if (totalWords < 1200) { // Slightly lower for flexibility
-      console.log(`❌ Insufficient word count: ${totalWords} (minimum 1200)`);
+    if (totalWords < 1000) {
+      console.log(`❌ Insufficient word count: ${totalWords} (minimum 1000)`);
       return false;
     }
 
@@ -490,7 +559,7 @@ function validateContentQuality(content: any): boolean {
     console.log(`🧠 Entity count: ${location.entityMentions?.length || 0}`);
 
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.log(`❌ Content validation error: ${error.message}`);
     return false;
   }
@@ -507,7 +576,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     if (!fs.existsSync(backupDir)) {
       fs.mkdirSync(backupDir, { recursive: true });
     }
-    
+
     // Backup existing files
     try {
       if (fs.existsSync(LOCATIONS_FILE)) {
@@ -516,10 +585,10 @@ async function saveContent(cityName: string, roleName: string, content: { locati
       if (fs.existsSync(ROLES_FILE)) {
         fs.copyFileSync(ROLES_FILE, path.join(backupDir, `roles-${timestamp}.json`));
       }
-    } catch (backupError) {
+    } catch (backupError: any) {
       console.log(`⚠️  Could not create backup: ${backupError.message}`);
     }
-    
+
     // Load existing data
     const locations = JSON.parse(fs.readFileSync(LOCATIONS_FILE, 'utf-8'));
     const roles = JSON.parse(fs.readFileSync(ROLES_FILE, 'utf-8'));
@@ -556,17 +625,17 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     try {
       fs.writeFileSync(LOCATIONS_FILE, JSON.stringify(locations, null, 2));
       fs.writeFileSync(ROLES_FILE, JSON.stringify(roles, null, 2));
-      
+
       // Validate saved files
       const savedLocations = JSON.parse(fs.readFileSync(LOCATIONS_FILE, 'utf-8'));
       const savedRoles = JSON.parse(fs.readFileSync(ROLES_FILE, 'utf-8'));
-      
+
       if (savedLocations.length !== locations.length || savedRoles.length !== roles.length) {
         console.log(`⚠️  File validation warning - data may not have been saved correctly`);
       } else {
         console.log(`✅ Files validated successfully`);
       }
-    } catch (saveError) {
+    } catch (saveError: any) {
       console.error(`❌ Error saving files: ${saveError.message}`);
       throw saveError;
     }
@@ -574,7 +643,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     console.log(`💾 Content saved successfully`);
     console.log(`📊 Updated ${locations.length} locations and ${roles.length} roles`);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error(`❌ Error saving content: ${error.message}`);
     throw error;
   }
@@ -644,7 +713,7 @@ Examples:
       console.log(`📈 Ready for Google submission`);
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error(`❌ Error: ${error.message}`);
     console.error(`🔧 Troubleshooting tips:`);
     console.error(`   - Check your LLM_API_KEY environment variable`);
@@ -655,8 +724,13 @@ Examples:
   }
 }
 
-// Run if called directly with enhanced error handling
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run if called directly
+// Simplified check for Windows compatibility
+const isMainModule = import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1].endsWith('generate-city-content.ts');
+
+if (isMainModule) {
+  console.log("🚀 Script execution started");
   main().catch(error => {
     console.error('❌ Unhandled error in main:', error);
     process.exit(1);

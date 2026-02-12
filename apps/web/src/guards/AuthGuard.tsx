@@ -4,7 +4,7 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 
 export default function AuthGuard() {
   const location = useLocation();
-  const { session, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -14,7 +14,7 @@ export default function AuthGuard() {
     );
   }
 
-  if (!session) {
+  if (!user) {
     return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
 

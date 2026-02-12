@@ -270,7 +270,7 @@ export async function apiDelete<T = unknown>(path: string): Promise<T> {
 }
 
 /** POST FormData (e.g. file upload). On 401 redirects to login. */
-export async function apiPostFormData<T = unknown>(path: string, body: FormData): Promise<T> {
+export async function apiPostFormData<T = unknown>(path: string, body: FormData, options: ApiRequestOptions = {}): Promise<T> {
   const authHeaders = await getAuthHeaders();
   const h = { ...(authHeaders as Record<string, string>) };
   delete h["Content-Type"];
@@ -278,11 +278,21 @@ export async function apiPostFormData<T = unknown>(path: string, body: FormData)
 
   let lastResp: Response | undefined;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const startController = new AbortController();
+    // If user provided a signal, we need to respect it. 
+    // However, for simplicity here we just use the one created for timeout if no user signal.
+    // Ideally we merge signals but standard fetch doesn't support multiple signals easily.
+    // For now, we'll just ignore the internal timeout if user provided a signal (or handle it simplistically).
+
+    // Actually, `apiFetch` handles this with `timeout` option. 
+    // Let's verify if we can simply use `options.signal` if present.
+
     const resp = await fetch(url, {
       method: "POST",
       credentials: "include",
       headers: h,
       body,
+      signal: options.signal,
     });
 
     if (resp.ok) {
@@ -304,3 +314,12 @@ export async function apiPostFormData<T = unknown>(path: string, body: FormData)
   const text = await lastResp!.text();
   handleApiError(lastResp!, text);
 }
+
+/** Unified API object for legacy/convenience usage. */
+export const api = {
+  get: apiGet,
+  post: apiPost,
+  patch: apiPatch,
+  delete: apiDelete,
+  postFormData: apiPostFormData,
+};

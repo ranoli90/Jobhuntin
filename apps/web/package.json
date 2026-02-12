@@ -17,7 +17,8 @@
     "seo:engine": "npx tsx scripts/seo/automated-ranking-engine.ts",
     "seo:verify": "npx tsx scripts/seo/verify-google-indexing.ts",
     "seo:backend": "npx tsx scripts/seo/backend-integration.ts",
-    "seo:monitor": "npx tsx scripts/seo/seo-monitoring-dashboard.ts"
+    "seo:monitor": "npx tsx scripts/seo/seo-monitoring-dashboard.ts",
+    "seo:news": "npx tsx scripts/seo/news-monitor.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
@@ -36,23 +37,29 @@
     "react-hook-form": "^7.71.1",
     "react-router-dom": "^6.22.0",
     "react-syntax-highlighter": "^15.5.0",
+    "rss-parser": "^3.13.0",
     "tailwind-merge": "^2.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/canvas-confetti": "^1.6.8",
     "@types/node": "^20.19.33",
     "@types/pg": "^8.16.0",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@types/react-syntax-highlighter": "^15.5.11",
+    "@types/testing-library__jest-dom": "^5.14.9",
+    "@types/testing-library__react": "^10.0.1",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
     "tsx": "^4.7.0",
     "typescript": "^5.2.2",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "vitest": "^4.0.18"
   }
 }

@@ -66,8 +66,8 @@ async function prerender() {
             // Inject a marker to verify prerendering
             const finalHtml = content.replace(
                 '<head>',
-                '<head><meta name="prerendered" content="true">'
-            ); // Basic injection
+                '<head><meta name="prerendered" content="true"><meta name="prerender-time" content="' + new Date().toISOString() + '">'
+            ); // Timestamped injection for verification
 
             fs.writeFileSync(filePath, finalHtml);
             successCount++;

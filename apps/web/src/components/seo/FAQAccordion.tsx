@@ -67,7 +67,9 @@ export function FAQAccordion({ items, competitorName }: FAQAccordionProps) {
             {/* Inject FAQPage schema */}
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')
+                }}
             />
         </section>
     );

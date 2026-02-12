@@ -33,6 +33,7 @@ const Onboarding = React.lazy(() => import("./pages/app/Onboarding"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const About = React.lazy(() => import("./pages/About"));
+const Locations = React.lazy(() => import("./pages/Locations"));
 
 // Dashboard sub-component wrappers for lazy loading
 const JobsViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.JobsView })));
@@ -115,6 +116,7 @@ export default function App() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/about" element={<About />} />
+            <Route path="/locations" element={<Locations />} />
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
           </Route>

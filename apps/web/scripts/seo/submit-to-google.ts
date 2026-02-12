@@ -92,7 +92,16 @@ function getAllUrls(): string[] {
         }
     }
 
-    return urls;
+    // SAFETY FILTER: Google Indexing API is ONLY for JobPosting and BroadcastEvent
+    // We strictly filter out non-job URLs to prevent API suspension
+    const jobPostingUrls = urls.filter(u => u.includes('/jobs/'));
+
+    if (urls.length !== jobPostingUrls.length) {
+        console.warn(`⚠️  Filtered out ${urls.length - jobPostingUrls.length} non-job URLs from Indexing API submission (Safety Protocol).`);
+        console.warn(`   Only /jobs/... URLs are valid for this API.`);
+    }
+
+    return jobPostingUrls;
 }
 
 // Google Indexing API submission
@@ -187,9 +196,10 @@ async function submitUrl(url: string, accessToken: string, type: 'URL_UPDATED' |
 
 async function submitBatch(urls: string[], accessToken: string): Promise<void> {
     const BATCH_SIZE = 10; // Google rate limit: ~200/day, ~600/minute for batch
-    const DELAY_MS = 1000; // 1 second between batches
+    const DELAY_MS = 2000; // Increased to 2 seconds for safety
 
-    console.log(`\n📤 Submitting ${urls.length} URLs to Google Indexing API...\n`);
+    console.log(`\n📤 Submitting ${urls.length} URLs to Google Indexing API...`);
+    console.log(`⚠️  Safety Protocol Active: JobPostings ONLY. Slow-rolling submission.`);
 
     let success = 0;
     let errors = 0;

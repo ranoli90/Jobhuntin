@@ -12,7 +12,7 @@ const dictionaries: Dict = {
     "dashboard.filterPlaceholder": "Filter location...",
     "dashboard.matchAlert": "Match Alert! High-fit role detected.",
     "dashboard.sweepComplete": "Radar Sweep Complete",
-    "dashboard.resetFilters": "Reset filters and rescan",
+
     "holds.responseRequired": "RESPONSE REQUIRED",
   },
   fr: {
@@ -26,7 +26,7 @@ const dictionaries: Dict = {
     "dashboard.filterPlaceholder": "Filtrer par localisation...",
     "dashboard.matchAlert": "Alerte match ! Offre très adaptée détectée.",
     "dashboard.sweepComplete": "Balayage terminé",
-    "dashboard.resetFilters": "Réinitialiser les filtres et relancer",
+
     "holds.responseRequired": "RÉPONSE REQUISE",
   },
 };

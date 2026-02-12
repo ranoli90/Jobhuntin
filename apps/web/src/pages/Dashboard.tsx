@@ -15,7 +15,7 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { useJobs } from "../hooks/useJobs";
 import type { JobFilters } from "../hooks/useJobs";
 import { formatCurrency, formatDate } from "../lib/format";
-import { t, isRTL } from "../lib/i18n";
+import { t, isRTL, getLocale } from "../lib/i18n";
 import { useSessionMilestone } from "../hooks/useCelebrations";
 
 const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; duration?: number }) => {
@@ -377,21 +377,17 @@ export function JobsView() {
   const shouldReduceMotion = useReducedMotion();
   const [statusMessage, setStatusMessage] = useState("");
   const { celebrate: celebrateSession } = useSessionMilestone();
+  const locale = getLocale();
+  const rtl = isRTL(locale);
 
-  useEffect(() => {
-    return () => {
-      if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
-    };
-  }, []);
 
-  // Micro-celebrations for streaks
   useEffect(() => {
     const milestones = [1, 10, 25, 50];
     milestones.forEach((m) => {
       if (swipeCount >= m && !streakToasted.current.has(m)) {
         streakToasted.current.add(m);
         pushToast({
-          title: m === 1 ? "First swipe logged" : `🔥 ${m} swipes` ,
+          title: m === 1 ? "First swipe logged" : `🔥 ${m} swipes`,
           description: m === 1 ? "Matchmaker engaged—keep going for tailored leads." : "Momentum unlocked. Radar will adapt to your preferences.",
           tone: "success",
         });
@@ -471,7 +467,7 @@ export function JobsView() {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="space-y-4 w-full max-w-md">
-          {[1,2,3].map((i) => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="animate-pulse rounded-3xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm">
               <div className="h-4 w-24 bg-slate-200 rounded" />
               <div className="h-6 w-3/4 bg-slate-200 rounded" />
@@ -680,6 +676,8 @@ export function JobsView() {
 export function ApplicationsView() {
   const { applications, isLoading } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
+  const locale = getLocale();
+  const rtl = isRTL(locale);
 
   const filteredApps = applications.filter(app =>
     app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||

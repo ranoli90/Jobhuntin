@@ -16,7 +16,7 @@ def update_render_service():
     payload = {"value": NEW_DB_URL}
     
     print(f"Updating {target_key}...")
-    resp_update = requests.put(url_update, headers=HEADERS, json=payload)
+    resp_update = requests.put(url_update, headers=HEADERS, json=payload, timeout=30)
     
     if resp_update.status_code == 200:
         print(f"✅ Successfully updated {target_key}")
@@ -29,7 +29,7 @@ def update_render_service():
     
     # Let's list and delete Supabase vars
     url_vars = f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars?limit=50"
-    resp = requests.get(url_vars, headers=HEADERS)
+    resp = requests.get(url_vars, headers=HEADERS, timeout=10)
     if resp.status_code == 200:
         current_vars = resp.json()
         for item in current_vars:
@@ -37,7 +37,7 @@ def update_render_service():
             if "SUPABASE" in key:
                 print(f"Found legacy var: {key}. Deleting...")
                 url_del = f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars/{key}"
-                requests.delete(url_del, headers=HEADERS)
+                requests.delete(url_del, headers=HEADERS, timeout=10)
                 print(f"Deleted {key}")
 
     return True

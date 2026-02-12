@@ -474,3 +474,62 @@ def build_cover_letter_prompt(
         tone=tone,
     )
 
+
+# ===================================================================
+# Contract 8: Onboarding Calibration Questions
+# ===================================================================
+
+class OnboardingQuestion(BaseModel):
+    id: str = Field(..., description="Unique identifier for the question (e.g., 'relocation')")
+    text: str = Field(..., description="The user-facing question text")
+    type: str = Field(..., description="Question type: 'yes_no', 'text', 'select'")
+    options: list[str] = Field(default_factory=list, description="Options for select/radio types")
+
+
+class OnboardingQuestionsResponse_V1(BaseModel):
+    """AI-generated onboarding calibration questions."""
+    questions: list[OnboardingQuestion] = Field(..., description="List of 3-5 strategic questions")
+
+
+ONBOARDING_QUESTIONS_PROMPT_V1 = """You are a career strategist AI. The user has just uploaded their resume, but some key information for job matching might be missing.
+
+## Candidate Profile
+{profile_json}
+
+## Instructions
+Generate 3-5 high-value "calibration" questions to ask the candidate. These should focus on logistics, preferences, or deal-breakers that are rarely on resumes but critical for job matching (e.g., visa sponsorship, clearance, relocation, remote preference if not obvious).
+
+Do NOT ask for information already present in the profile (e.g., if they listed their email or phone, don't ask for it).
+Focus on:
+1. Visa sponsorship needed?
+2. Security clearance (if relevant to their field)?
+3. Relocation willingness?
+4. Commute preference?
+5. Start date availability?
+
+Return ONLY a JSON object:
+{{
+    "questions": [
+        {{
+            "id": "visa_sponsorship",
+            "text": "Do you require visa sponsorship now or in the future?",
+            "type": "yes_no",
+            "options": []
+        }},
+        {{
+            "id": "clearance",
+            "text": "Do you hold an active security clearance?",
+            "type": "select",
+            "options": ["None", "Secret", "Top Secret", "TS/SCI"]
+        }}
+    ]
+}}
+"""
+
+
+def build_onboarding_questions_prompt(profile_dict: dict) -> str:
+    """Build prompt for AI onboarding calibration questions."""
+    return ONBOARDING_QUESTIONS_PROMPT_V1.format(
+        profile_json=json.dumps(profile_dict, indent=2)
+    )
+

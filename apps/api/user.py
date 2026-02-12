@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Path as FastAPIPath
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, Path as FastAPIPath
 from pydantic import BaseModel, field_validator
 
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
@@ -461,6 +461,7 @@ class ProfileUpdate(BaseModel):
 @router.patch("/profile")
 async def update_profile(
     body: ProfileUpdate,
+    background_tasks: BackgroundTasks,
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
@@ -474,7 +475,21 @@ async def update_profile(
         existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
         profile_data = dict(existing or {})
         
+        # Check if we are completing onboarding
+        was_onboarding = profile_data.get("has_completed_onboarding", False)
+        
         _merge_profile_update(profile_data, body)
+        
+        now_onboarding = profile_data.get("has_completed_onboarding", False)
+        
+        if not was_onboarding and now_onboarding:
+            background_tasks.add_task(
+                _hydrate_job_matches,
+                db_pool=db,
+                user_id=ctx.user_id,
+                tenant_id=ctx.tenant_id,
+                preferences=profile_data.get("preferences", {})
+            )
 
         existing_row = await conn.fetchrow(
             "SELECT resume_url FROM public.profiles WHERE user_id = $1",
@@ -537,6 +552,37 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
             contact["avatar_url"] = body.contact["avatar_url"]
 
     profile_data["contact"] = contact
+
+
+async def _hydrate_job_matches(
+    db_pool: asyncpg.Pool,
+    user_id: str,
+    tenant_id: str,
+    preferences: dict
+) -> None:
+    """Background task to pre-fetch and cache job matches after onboarding."""
+    try:
+        from backend.domain.job_search import search_and_list_jobs
+        
+        # Extract basic filters from preferences
+        location = preferences.get("location")
+        role = preferences.get("role_type")
+        salary_str = preferences.get("salary_min")
+        salary = int(salary_str) if salary_str and str(salary_str).isdigit() else None
+        
+        logger.info(u"Hydrating job matches for user %s", user_id)
+        
+        # Fetch top 20 jobs to populate specific caches
+        await search_and_list_jobs(
+            db_pool=db_pool,
+            location=location,
+            keywords=role,
+            min_salary=salary,
+            limit=20,
+            offset=0
+        )
+    except Exception as e:
+        logger.error(u"Failed to hydrate job matches: %s", e)
 
 
 # ---------------------------------------------------------------------------

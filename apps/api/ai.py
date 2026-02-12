@@ -26,7 +26,10 @@ from backend.llm.contracts import (
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
     build_location_suggestion_prompt,
+    build_location_suggestion_prompt,
     build_job_match_prompt,
+    OnboardingQuestionsResponse_V1,
+    build_onboarding_questions_prompt,
 )
 from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
 import asyncpg
@@ -220,9 +223,42 @@ class CoverLetterGenerationRequest(BaseModel):
     custom_instructions: str = ""
 
 
+class OnboardingQuestionsRequest(BaseModel):
+    """Request body for onboarding calibration questions."""
+    profile: dict = Field(..., description="Parsed resume profile data")
+
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+@router.post("/onboarding-questions", response_model=OnboardingQuestionsResponse_V1)
+async def generate_onboarding_questions(
+    request: OnboardingQuestionsRequest,
+    user_id: str = Depends(_get_user_id)
+) -> OnboardingQuestionsResponse_V1:
+    """
+    Generate strategic calibration questions based on the candidate's profile.
+    """
+    client = _get_llm_client()
+    
+    # Sanitize inputs
+    from backend.domain.masking import strip_pii_for_llm
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
+
+    try:
+        prompt = build_onboarding_questions_prompt(sanitized_profile)
+        result = await client.call(
+            prompt=prompt,
+            response_format=OnboardingQuestionsResponse_V1,
+        )
+        logger.info("Onboarding questions generated")
+        return result
+    except Exception as exc:
+        logger.error("Onboarding question generation failed: %s", exc)
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {exc}")
+
 
 @router.post("/suggest-roles", response_model=RoleSuggestionResponse_V1)
 async def suggest_roles(request: RoleSuggestionRequest, user_id: str = Depends(_get_user_id)) -> RoleSuggestionResponse_V1:

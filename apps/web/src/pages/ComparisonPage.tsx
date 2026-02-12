@@ -40,20 +40,20 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
   ];
 }
 
-function RatingBar({ label, them, us }: { label: string; them: number; us: number }) {
+function RatingBar({ label, them, us, competitorName }: { label: string; them: number; us: number; competitorName: string }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm font-medium">
         <span className="text-slate-600 capitalize">{label}</span>
         <span className="text-slate-400">
-          <span className="sr-only">{competitor.name} rating</span>
-          <span aria-label={`${competitor.name} score ${them} out of 10`}>{them}/10</span>
+          <span className="sr-only">{competitorName} rating</span>
+          <span aria-label={`${competitorName} score ${them} out of 10`}>{them}/10</span>
           {' vs '}
           <span className="sr-only">JobHuntin rating</span>
           <span className="text-primary-600 font-bold" aria-label={`JobHuntin score ${us} out of 10`}>{us}/10</span>
         </span>
       </div>
-      <div className="flex gap-2" role="img" aria-label={`Comparison chart: ${competitor.name} ${them}/10 vs JobHuntin ${us}/10 for ${label}`}>
+      <div className="flex gap-2" role="img" aria-label={`Comparison chart: ${competitorName} ${them}/10 vs JobHuntin ${us}/10 for ${label}`}>
         <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
           <div
             className="bg-slate-400 h-full rounded-full transition-all duration-700"
@@ -178,7 +178,7 @@ export default function ComparisonPage() {
           <div className="space-y-6">
             {Object.entries(competitor.rating_vs_jobhuntin || {}).map(([key, ratings]) => {
               const [them, us] = Array.isArray(ratings) ? ratings : [0, 0];
-              return <RatingBar key={key} label={key.replace('_', ' ')} them={them} us={us} />;
+              return <RatingBar key={key} label={key.replace('_', ' ')} them={them} us={us} competitorName={competitor.name} />;
             })}
           </div>
         </motion.div>

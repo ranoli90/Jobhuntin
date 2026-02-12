@@ -82,7 +82,10 @@ def _build_job_search_query(
         query += f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
         params.append(f"%{keywords}%")
     if settings.adzuna_job_ttl_days > 0:
-        query += f" AND (source != 'adzuna' OR created_at >= now() - interval '{settings.adzuna_job_ttl_days} days')"
+        n += 1
+        # Use parameterized query for the interval days to prevent SQL injection
+        query += f" AND (source != 'adzuna' OR created_at >= now() - make_interval(days := ${n}))"
+        params.append(settings.adzuna_job_ttl_days)
     query += " ORDER BY created_at DESC LIMIT $%d OFFSET $%d" % (n + 1, n + 2)
     params.extend([limit, offset])
     return query, params
