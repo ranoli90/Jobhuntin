@@ -474,3 +474,60 @@ def build_cover_letter_prompt(
         tone=tone,
     )
 
+
+# ===================================================================
+# Contract 8: Onboarding Questions
+# ===================================================================
+
+class OnboardingQuestionsResponse_V1(BaseModel):
+    """AI-generated onboarding calibration questions."""
+    questions: list[str] = Field(
+        default_factory=list,
+        description="Strategic questions to calibrate job matching"
+    )
+    focus_areas: list[str] = Field(
+        default_factory=list,
+        description="Key areas to focus on based on profile analysis"
+    )
+    suggested_preferences: dict = Field(
+        default_factory=dict,
+        description="Suggested job preferences based on profile"
+    )
+
+
+ONBOARDING_QUESTIONS_PROMPT_V1 = """You are a career advisor AI. Generate strategic calibration questions for this candidate.
+
+## Candidate Profile
+{profile_json}
+
+## Instructions
+Analyze the profile and generate:
+1. 3-5 strategic questions to better understand their job preferences
+2. Key focus areas for their job search
+3. Suggested job preferences (remote preference, salary expectations, company size, etc.)
+
+Return ONLY a JSON object (no markdown fences):
+{{
+    "questions": [
+        "Are you open to relocation, or do you prefer remote-only opportunities?",
+        "What's your target salary range?",
+        "Do you prefer startup or established company environments?"
+    ],
+    "focus_areas": ["remote-first companies", "senior engineering roles", "tech startups"],
+    "suggested_preferences": {{
+        "remote_preference": "remote-first",
+        "company_stage": "series-b-or-later",
+        "min_salary": 150000
+    }}
+}}
+
+Focus on questions that will improve job matching accuracy.
+"""
+
+
+def build_onboarding_questions_prompt(profile_dict: dict) -> str:
+    """Build prompt for AI onboarding questions."""
+    return ONBOARDING_QUESTIONS_PROMPT_V1.format(
+        profile_json=json.dumps(profile_dict, indent=2)
+    )
+
