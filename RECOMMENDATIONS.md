@@ -68,9 +68,9 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 2.4 Monitoring & Observability
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 31 | No alerting channels configured | Set up Slack webhook or email for alerts | HIGH |
+| 31 | No alerting channels configured | Set up Slack webhook or email for alerts | ✅ FIXED |
 | 32 | No distributed tracing | Add OpenTelemetry/Jaeger for request tracing | HIGH |
-| 33 | No error tracking | Configure Sentry DSN for production | HIGH |
+| 33 | No error tracking | Configure Sentry DSN for production | ✅ FIXED |
 | 34 | No uptime monitoring | Add Pingdom/UptimeRobot for external monitoring | HIGH |
 | 35 | Log aggregation | Set up Logtail, Datadog, or similar for log analysis | HIGH |
 

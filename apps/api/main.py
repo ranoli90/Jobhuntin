@@ -81,6 +81,21 @@ setup_logging(
 
 logger = get_logger("sorce.api")
 
+if _settings.sentry_dsn:
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.fastapi import FastApiIntegration
+
+        sentry_sdk.init(
+            dsn=_settings.sentry_dsn,
+            environment=_settings.sentry_environment or _settings.env.value,
+            traces_sample_rate=_settings.sentry_traces_sample_rate,
+            integrations=[FastApiIntegration()],
+        )
+        logger.info(f"Sentry initialized for {_settings.env.value}")
+    except ImportError:
+        logger.warning("sentry-sdk not installed - error tracking disabled")
+
 from contextlib import asynccontextmanager
 
 
