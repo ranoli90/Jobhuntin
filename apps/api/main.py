@@ -458,6 +458,16 @@ async def get_current_user_id(authorization: str = Header(...)) -> str:
         raise HTTPException(status_code=401, detail=f"Token error: {exc}")
 
 
+async def get_pool() -> asyncpg.Pool:
+    """Dependency for getting the primary database pool."""
+    return _pool_manager.pool
+
+
+async def get_read_pool() -> asyncpg.Pool:
+    """Dependency for getting a read-replica pool if available."""
+    return _pool_manager.read_pool
+
+
 # ---------------------------------------------------------------------------
 # Tenant context dependency
 # ---------------------------------------------------------------------------
