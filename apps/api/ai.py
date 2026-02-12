@@ -67,6 +67,11 @@ async def _get_user_id() -> str:
     raise NotImplementedError
 
 
+async def _get_tenant_id() -> str | None:
+    """Dependency override required"""
+    raise NotImplementedError
+
+
 router = APIRouter(prefix="/ai", tags=["AI Suggestions"])
 
 
@@ -1193,3 +1198,162 @@ async def compute_ats_score(
     except Exception as exc:
         logger.error("ATS scoring failed: %s", exc)
         raise HTTPException(status_code=500, detail=f"ATS scoring failed: {exc}")
+
+
+# ---------------------------------------------------------------------------
+# Match Feedback Endpoints
+# ---------------------------------------------------------------------------
+
+
+class MatchFeedbackRequest(BaseModel):
+    """Request to submit match feedback."""
+
+    job_id: str
+    rating: int = Field(..., ge=-1, le=1, description="1 = thumbs up, -1 = thumbs down")
+    match_score: float = Field(..., ge=0.0, le=1.0)
+    semantic_similarity: float | None = None
+    skill_match_ratio: float | None = None
+    feedback_text: str | None = None
+    feedback_tags: list[str] = Field(default_factory=list)
+
+
+class MatchFeedbackResponseAPI(BaseModel):
+    """API response after submitting feedback."""
+
+    id: str
+    job_id: str
+    rating: int
+    created_at: datetime
+
+
+class MatchFeedbackSummaryResponse(BaseModel):
+    """Response with feedback summary stats."""
+
+    total_feedback: int
+    total_thumbs_up: int
+    total_thumbs_down: int
+    unique_users: int
+    unique_jobs: int
+    avg_match_score: float | None
+    satisfaction_rate: float | None
+
+
+@router.post("/match-feedback", response_model=MatchFeedbackResponseAPI)
+async def submit_match_feedback(
+    request: MatchFeedbackRequest,
+    user_id: str = Depends(_get_user_id),
+    tenant_id: str | None = Depends(_get_tenant_id),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> MatchFeedbackResponseAPI:
+    """
+    Submit feedback on a job match result.
+
+    Users can rate matches with thumbs up (1) or thumbs down (-1).
+    This feedback is used to improve future match recommendations.
+
+    Optional feedback tags:
+    - good_skills_match, bad_skills_match
+    - good_location, bad_location
+    - salary_too_low, salary_good
+    - interesting_role, not_interested
+    - remote_friendly, not_remote
+    - visa_sponsored, no_visa
+    """
+    from backend.domain.match_feedback import (
+        MatchFeedbackCreate,
+        MatchFeedbackRepo,
+        validate_feedback_tags,
+    )
+
+    validated_tags = validate_feedback_tags(request.feedback_tags)
+
+    feedback = MatchFeedbackCreate(
+        job_id=request.job_id,
+        rating=request.rating,
+        match_score=request.match_score,
+        semantic_similarity=request.semantic_similarity,
+        skill_match_ratio=request.skill_match_ratio,
+        feedback_text=request.feedback_text,
+        feedback_tags=validated_tags,
+        match_type="semantic",
+    )
+
+    try:
+        async with db.acquire() as conn:
+            result = await MatchFeedbackRepo.submit(
+                conn=conn,
+                user_id=user_id,
+                tenant_id=tenant_id,
+                feedback=feedback,
+            )
+
+        logger.info(
+            "Match feedback submitted",
+            extra={
+                "job_id": request.job_id,
+                "rating": request.rating,
+                "user_id": user_id,
+            },
+        )
+
+        return MatchFeedbackResponseAPI(
+            id=result.id,
+            job_id=result.job_id,
+            rating=result.rating,
+            created_at=result.created_at,
+        )
+    except Exception as exc:
+        logger.error("Failed to submit match feedback: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Failed to submit feedback: {exc}")
+
+
+@router.get("/match-feedback/summary", response_model=MatchFeedbackSummaryResponse)
+async def get_match_feedback_summary(
+    days: int = 30,
+    tenant_id: str | None = Depends(_get_tenant_id),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> MatchFeedbackSummaryResponse:
+    """
+    Get aggregate feedback summary for analytics.
+
+    Returns overall satisfaction metrics for the specified time period.
+    """
+    from backend.domain.match_feedback import MatchFeedbackRepo
+
+    try:
+        async with db.acquire() as conn:
+            summary = await MatchFeedbackRepo.get_feedback_summary(
+                conn=conn,
+                tenant_id=tenant_id,
+                days=days,
+            )
+
+        return MatchFeedbackSummaryResponse(**summary)
+    except Exception as exc:
+        logger.error("Failed to get feedback summary: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Failed to get summary: {exc}")
+
+
+@router.get("/match-feedback/job/{job_id}/stats")
+async def get_job_feedback_stats(
+    job_id: str,
+    db: asyncpg.Pool = Depends(_get_pool),
+):
+    """
+    Get aggregate feedback statistics for a specific job.
+
+    Useful for understanding how users perceive match quality for a job.
+    """
+    from backend.domain.match_feedback import MatchFeedbackRepo
+
+    try:
+        async with db.acquire() as conn:
+            stats = await MatchFeedbackRepo.get_job_stats(conn=conn, job_id=job_id)
+
+        if not stats:
+            return {"message": "No feedback for this job", "job_id": job_id}
+
+        return stats.model_dump()
+    except Exception as exc:
+        logger.error("Failed to get job feedback stats: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {exc}")
