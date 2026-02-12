@@ -7,7 +7,7 @@ import { PoolClient } from 'pg';
 
 // Initialize database connection
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin'
+  connectionString: process.env.DATABASE_URL || 'postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/jobhuntin'
 });
 
 const SERVICE_ID = 'jobhuntin-seo-engine';
@@ -17,7 +17,7 @@ export async function loadProgress(): Promise<number> {
   try {
     client = await pool.connect();
     const result = await client.query(
-      'SELECT last_index FROM seo_engine_progress WHERE service_id = $1', 
+      'SELECT last_index FROM seo_engine_progress WHERE service_id = $1',
       [SERVICE_ID]
     );
     return result.rows[0]?.last_index || 0;
@@ -30,8 +30,8 @@ export async function loadProgress(): Promise<number> {
 }
 
 export async function saveProgress(
-  index: number, 
-  dailyQuotaUsed: number, 
+  index: number,
+  dailyQuotaUsed: number,
   dailyQuotaReset: Date
 ) {
   let client: PoolClient | null = null;
@@ -78,7 +78,7 @@ export async function getQuotaState(): Promise<{ used: number; reset: Date }> {
   try {
     client = await pool.connect();
     const result = await client.query(
-      'SELECT daily_quota_used, daily_quota_reset FROM seo_engine_progress WHERE service_id = $1', 
+      'SELECT daily_quota_used, daily_quota_reset FROM seo_engine_progress WHERE service_id = $1',
       [SERVICE_ID]
     );
     const data = result.rows[0];
@@ -105,7 +105,7 @@ export async function getHealth() {
   try {
     client = await pool.connect();
     const result = await client.query(
-      'SELECT last_index, daily_quota_used, daily_quota_reset, updated_at FROM seo_engine_progress WHERE service_id = $1', 
+      'SELECT last_index, daily_quota_used, daily_quota_reset, updated_at FROM seo_engine_progress WHERE service_id = $1',
       [SERVICE_ID]
     );
     const data = result.rows[0];
@@ -123,7 +123,7 @@ export async function getHealth() {
       progress: data,
       recentSubmissions: recentLogs.rows
     };
-  } catch (e) {
+  } catch (e: any) {
     console.warn('⚠️ Could not check database health:', e);
     return {
       status: 'unhealthy',
