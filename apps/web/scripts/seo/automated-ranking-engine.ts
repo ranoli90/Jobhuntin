@@ -136,6 +136,13 @@ async function generateContent(city: string, role: string): Promise<boolean> {
 
     let output = '';
     let errorOutput = '';
+    const start = Date.now();
+    const timeoutMs = 8 * 60 * 1000; // kill if >8 minutes
+
+    const timeout = setTimeout(() => {
+      console.warn(`⏱️ Generation timeout for ${role} in ${city}. Killing process...`);
+      childProcess.kill('SIGKILL');
+    }, timeoutMs);
 
     childProcess.stdout.on('data', (data: Buffer) => {
       output += data.toString();
@@ -146,11 +153,13 @@ async function generateContent(city: string, role: string): Promise<boolean> {
     });
 
     childProcess.on('close', (code: number) => {
+      clearTimeout(timeout);
+      const duration = ((Date.now() - start) / 1000).toFixed(1);
       if (code === 0) {
-        console.log(`✅ Content generated for ${role} in ${city}`);
+        console.log(`✅ Content generated for ${role} in ${city} in ${duration}s`);
         resolve(true);
       } else {
-        console.error(`❌ Content generation failed for ${role} in ${city} (code ${code})`);
+        console.error(`❌ Content generation failed for ${role} in ${city} (code ${code}) after ${duration}s`);
         console.error(errorOutput || output);
         resolve(false);
       }
@@ -188,16 +197,25 @@ async function submitToGoogle(urls: string[], allowSubmission: boolean): Promise
 
     let output = '';
 
+    const start = Date.now();
+    const timeoutMs = 5 * 60 * 1000; // 5 minutes
+    const timeout = setTimeout(() => {
+      console.warn(`⏱️ Google submission timeout for batch of ${urls.length}. Killing process...`);
+      childProcess.kill('SIGKILL');
+    }, timeoutMs);
+
     childProcess.stdout.on('data', (data: Buffer) => {
       output += data.toString();
     });
 
     childProcess.on('close', (code: number | null) => {
+      clearTimeout(timeout);
+      const duration = ((Date.now() - start) / 1000).toFixed(1);
       const success = code === 0;
       if (success) {
-        console.log(`✅ Submitted ${urls.length} URLs to Google`);
+        console.log(`✅ Submitted ${urls.length} URLs to Google in ${duration}s`);
       } else {
-        console.error(`❌ Google submission failed`);
+        console.error(`❌ Google submission failed after ${duration}s`);
         console.error(output);
       }
       // Log to Supabase
