@@ -29,6 +29,7 @@ from shared.config import Settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
+from backend.domain.llm_monitoring import get_llm_monitor
 
 logger = get_logger("sorce.llm")
 
@@ -165,6 +166,16 @@ class LLMClient:
                 observe("llm.latency_seconds", duration, {"model": model})
                 incr("llm.calls.success", {"model": model})
 
+                # Record success in model monitor
+                prompt_tokens = len(str(messages)) // 4  # Rough estimate
+                completion_tokens = len(str(raw_json)) // 4
+                get_llm_monitor().record_success(
+                    model=model,
+                    latency_seconds=duration,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                )
+
                 if response_format is not None:
                     return self._validate(raw_json, response_format)
                 return raw_json
@@ -178,6 +189,10 @@ class LLMClient:
                 observe("llm.latency_seconds", duration, {"model": model})
                 incr("llm.calls.error", {"model": model, "attempt": str(attempt)})
                 last_error = exc
+
+                # Record failure in model monitor
+                error_type = type(exc).__name__
+                get_llm_monitor().record_failure(model, error_type)
 
                 if (
                     isinstance(exc, httpx.HTTPStatusError)
@@ -196,11 +211,13 @@ class LLMClient:
 
             except LLMValidationError:
                 # Schema validation failures are not retryable
+                get_llm_monitor().record_failure(model, "validation_error")
                 raise
 
             except Exception as exc:
                 incr("llm.calls.error", {"model": model, "attempt": str(attempt)})
                 last_error = exc
+                get_llm_monitor().record_failure(model, type(exc).__name__)
                 logger.warning(
                     "LLM call attempt %d/%d unexpected error for model %s: %s",
                     attempt,

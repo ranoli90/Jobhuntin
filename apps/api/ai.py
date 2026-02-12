@@ -1357,3 +1357,58 @@ async def get_job_feedback_stats(
     except Exception as exc:
         logger.error("Failed to get job feedback stats: %s", exc)
         raise HTTPException(status_code=500, detail=f"Failed to get stats: {exc}")
+
+
+# ---------------------------------------------------------------------------
+# LLM Model Monitoring Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/llm/metrics")
+async def get_llm_metrics():
+    """
+    Get LLM model performance metrics.
+
+    Returns latency percentiles, error rates, token usage, and cost estimates
+    for all monitored models.
+    """
+    from backend.domain.llm_monitoring import get_llm_monitor
+
+    try:
+        monitor = get_llm_monitor()
+        return monitor.get_all_metrics()
+    except Exception as exc:
+        logger.error("Failed to get LLM metrics: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {exc}")
+
+
+@router.get("/llm/metrics/{model}")
+async def get_llm_model_metrics(model: str):
+    """
+    Get performance metrics for a specific LLM model.
+    """
+    from backend.domain.llm_monitoring import get_llm_monitor
+
+    try:
+        monitor = get_llm_monitor()
+        return monitor.get_model_metrics(model)
+    except Exception as exc:
+        logger.error("Failed to get model metrics: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {exc}")
+
+
+@router.get("/llm/health")
+async def get_llm_health():
+    """
+    Get health status of all LLM models.
+
+    Identifies models with low success rates or recent failures.
+    """
+    from backend.domain.llm_monitoring import get_llm_monitor
+
+    try:
+        monitor = get_llm_monitor()
+        return monitor.get_health_status()
+    except Exception as exc:
+        logger.error("Failed to get LLM health: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Failed to get health: {exc}")
