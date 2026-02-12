@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     llm_api_base: str = "https://openrouter.ai/api/v1"
     llm_api_key: str = ""
     llm_model: str = "openrouter/free"  # User requested free router
+    llm_fallback_models: str = ""  # Comma-separated fallback models (e.g., "openai/gpt-3.5-turbo,anthropic/claude-3-haiku")
     llm_max_tokens: int = 4096
     llm_rate_limit_per_minute: int = 60  # in-process approximate cap
     llm_retry_count: int = 2

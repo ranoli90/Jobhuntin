@@ -1,5 +1,5 @@
 """
-Centralized LLM client with retry, timeout, and response validation.
+Centralized LLM client with retry, timeout, fallback models, and response validation.
 
 Usage:
     from backend.llm import LLMClient
@@ -11,6 +11,9 @@ Usage:
         prompt="...",
         response_format=ResumeParseResponse_V1,
     )
+
+    # Automatic fallback to secondary models if primary fails:
+    # Set LLM_FALLBACK_MODELS=openai/gpt-3.5-turbo,anthropic/claude-3-haiku
 """
 
 from __future__ import annotations
@@ -33,12 +36,14 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class LLMError(Exception):
-    """Raised when an LLM call fails after all retries."""
+    """Raised when an LLM call fails after all retries and fallbacks."""
+
     pass
 
 
 class LLMValidationError(LLMError):
     """Raised when the LLM response doesn't match the expected schema."""
+
     pass
 
 
@@ -47,6 +52,7 @@ class LLMClient:
     Typed LLM client that:
       - Calls the OpenAI-compatible chat completions API
       - Retries on transient errors (5xx, timeouts, connection errors)
+      - Falls back to secondary models if primary fails completely
       - Validates the JSON response against a Pydantic model T
       - Tracks latency and error metrics
     """
@@ -59,6 +65,10 @@ class LLMClient:
         self.retry_count = settings.llm_retry_count
         self.timeout = settings.llm_timeout_seconds
         self._circuit_breaker = get_circuit_breaker("llm")
+
+        # Parse fallback models from comma-separated string
+        fallback_str = getattr(settings, "llm_fallback_models", "") or ""
+        self.fallback_models = [m.strip() for m in fallback_str.split(",") if m.strip()]
 
     async def call(
         self,
@@ -74,12 +84,67 @@ class LLMClient:
         If response_format is provided, the JSON response is parsed into
         that Pydantic model. Otherwise returns a raw dict.
 
-        Raises LLMError on persistent failures, LLMValidationError on
+        If the primary model fails after all retries, fallback models are tried
+        in order until one succeeds or all fail.
+
+        Raises LLMError on persistent failures across all models, LLMValidationError on
         schema mismatch.
         """
-        model = model or self.default_model
+        primary_model = model or self.default_model
         max_tokens = max_tokens or self.max_tokens
 
+        # Build list of models to try: primary first, then fallbacks
+        models_to_try = [primary_model] + self.fallback_models
+        all_errors: list[tuple[str, Exception]] = []
+
+        for current_model in models_to_try:
+            try:
+                result = await self._call_with_retry(
+                    prompt=prompt,
+                    model=current_model,
+                    response_format=response_format,
+                    max_tokens=max_tokens,
+                )
+
+                # Log if we used a fallback
+                if current_model != primary_model:
+                    logger.info(
+                        "LLM call succeeded with fallback model",
+                        extra={
+                            "primary_model": primary_model,
+                            "fallback_model": current_model,
+                        },
+                    )
+                    incr("llm.fallback.success", {"model": current_model})
+
+                return result
+
+            except (LLMError, LLMValidationError) as exc:
+                all_errors.append((current_model, exc))
+                logger.warning(
+                    "LLM model %s failed: %s, trying next model",
+                    current_model,
+                    exc,
+                )
+                incr("llm.fallback.failure", {"model": current_model})
+
+                # Don't try fallbacks for validation errors (they'd likely fail the same way)
+                if isinstance(exc, LLMValidationError):
+                    raise
+
+        # All models failed
+        error_summary = "; ".join(f"{m}: {e}" for m, e in all_errors)
+        raise LLMError(f"All LLM models failed. Errors: {error_summary}")
+
+    async def _call_with_retry(
+        self,
+        *,
+        prompt: str,
+        model: str,
+        response_format: type[T] | None,
+        max_tokens: int,
+    ) -> T | dict:
+        """Execute LLM call with retries for a single model."""
         messages = [{"role": "user", "content": prompt}]
         payload = {
             "model": model,
@@ -90,7 +155,9 @@ class LLMClient:
 
         last_error: Exception | None = None
 
-        for attempt in range(1, self.retry_count + 2):  # retry_count retries + 1 initial
+        for attempt in range(
+            1, self.retry_count + 2
+        ):  # retry_count retries + 1 initial
             t0 = time.monotonic()
             try:
                 raw_json = await self._request(payload)
@@ -102,19 +169,29 @@ class LLMClient:
                     return self._validate(raw_json, response_format)
                 return raw_json
 
-            except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException) as exc:
+            except (
+                httpx.HTTPStatusError,
+                httpx.ConnectError,
+                httpx.TimeoutException,
+            ) as exc:
                 duration = time.monotonic() - t0
                 observe("llm.latency_seconds", duration, {"model": model})
                 incr("llm.calls.error", {"model": model, "attempt": str(attempt)})
                 last_error = exc
 
-                if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code < 500:
+                if (
+                    isinstance(exc, httpx.HTTPStatusError)
+                    and exc.response.status_code < 500
+                ):
                     # Client errors (4xx) are not retryable
                     break
 
                 logger.warning(
-                    "LLM call attempt %d/%d failed: %s",
-                    attempt, self.retry_count + 1, exc,
+                    "LLM call attempt %d/%d failed for model %s: %s",
+                    attempt,
+                    self.retry_count + 1,
+                    model,
+                    exc,
                 )
 
             except LLMValidationError:
@@ -125,11 +202,16 @@ class LLMClient:
                 incr("llm.calls.error", {"model": model, "attempt": str(attempt)})
                 last_error = exc
                 logger.warning(
-                    "LLM call attempt %d/%d unexpected error: %s",
-                    attempt, self.retry_count + 1, exc,
+                    "LLM call attempt %d/%d unexpected error for model %s: %s",
+                    attempt,
+                    self.retry_count + 1,
+                    model,
+                    exc,
                 )
 
-        raise LLMError(f"LLM call failed after {self.retry_count + 1} attempts: {last_error}") from last_error
+        raise LLMError(
+            f"LLM call to {model} failed after {self.retry_count + 1} attempts: {last_error}"
+        ) from last_error
 
     async def _request(self, payload: dict) -> dict:
         """Make the HTTP request with circuit breaker protection."""
@@ -185,7 +267,9 @@ class LLMClient:
         try:
             return json.loads(content)
         except json.JSONDecodeError as exc:
-            raise LLMError(f"LLM returned invalid JSON: {exc}\nContent: {content[:500]}") from exc
+            raise LLMError(
+                f"LLM returned invalid JSON: {exc}\nContent: {content[:500]}"
+            ) from exc
 
     @staticmethod
     def _validate(raw: dict, model_cls: type[T]) -> T:
