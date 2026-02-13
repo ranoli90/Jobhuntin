@@ -40,7 +40,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 2.1 Performance
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 15 | No pgvector extension | Embeddings stored as JSON - slow similarity search. Use external vector DB (Pinecone, Weaviate) or wait for Render pgvector | HIGH |
+| 15 | No pgvector extension | Embeddings stored as JSON - slow similarity search. Use external vector DB (Pinecone, Weaviate) or wait for Render pgvector | ✅ FIXED |
 | 16 | No query result caching | Add Redis caching for frequent queries (user profiles, job listings) | ✅ FIXED |
 | 17 | Large batch operations | Optimize batch match for >20 jobs (streaming/chunking) | ✅ FIXED |
 | 18 | Database connection pooling | Tune db_pool_min/max based on load testing | HIGH |
@@ -335,6 +335,45 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *Last Updated: February 2026*
 *Total Recommendations: 166*
+
+---
+
+## Recent Sprint Updates (Sprints 24-28)
+
+### Sprint 24: Vector Database Integration (#15)
+- Created `packages/backend/domain/vector_db.py` with Pinecone/Weaviate support
+- Implemented `VectorDBClient` abstract interface
+- Added `PineconeClient`, `WeaviateClient`, `InMemoryVectorDB` implementations
+- Created `apps/api/vector_db.py` API endpoints for vector operations
+- Added configuration options in Settings for vector DB providers
+
+### Sprint 25: Headless Browser Execution Engine
+- Created `packages/backend/domain/execution_engine.py`
+- Implemented `HumanBehaviorSimulator` with randomized interactions
+- Added `AntiDetection` class for bot evasion measures
+- Implemented `ExecutionEngine` for resilient form filling
+- Supports human-like typing, clicking, scrolling patterns
+
+### Sprint 26: ATS 23-Point Scoring System
+- Created `packages/backend/domain/ats_scoring.py`
+- Implemented comprehensive `ATS23Scorer` with all 23 metrics
+- Added weighted scoring with detailed suggestions
+- Supports keyword matching, skill relevance, experience alignment
+- Provides actionable improvement recommendations
+
+### Sprint 27: Adaptive Onboarding System
+- Created `packages/backend/domain/onboarding.py`
+- Implemented 20 intelligent onboarding questions
+- Added `DealbreakerConfig` for non-negotiable preferences
+- Created `AdaptiveProfile` with completeness tracking
+- Implemented ML feedback loop for profile refinement
+
+### Sprint 28: Explainable Match Scoring
+- Created `packages/backend/domain/explainable_scoring.py`
+- Implemented `ExplainableScoringEngine` with confidence intervals
+- Added detailed factor analysis (semantic, skills, experience, etc.)
+- Generates transparent reasoning for each match decision
+- Provides audit logs for user trust

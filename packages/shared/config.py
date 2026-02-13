@@ -202,6 +202,14 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_json: bool = False  # local: human-readable; staging/prod: JSON
 
+    # ── Vector Database (Pinecone/Weaviate) ──────────────────────
+    vector_db_provider: str = "memory"  # memory, pinecone, weaviate
+    pinecone_api_key: str = ""
+    pinecone_environment: str = "us-east-1-aws"
+    pinecone_index_name: str = "jobhuntin"
+    weaviate_url: str = ""
+    weaviate_api_key: str = ""
+
     model_config = {
         "env_prefix": "",
         "env_file": ".env",
