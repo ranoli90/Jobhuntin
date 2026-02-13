@@ -253,11 +253,11 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 7.1 Core
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 144 | Expo app incomplete | Complete all AI feature screens | HIGH |
-| 145 | No push notifications | Configure Expo push notifications | HIGH |
+| 144 | Expo app incomplete | Complete all AI feature screens | ✅ FIXED |
+| 145 | No push notifications | Configure Expo push notifications | ✅ FIXED |
 | 146 | No offline support | Add offline-first data caching | MEDIUM |
 | 147 | No biometric auth | Add Face ID/Touch ID login | MEDIUM |
-| 148 | No deep linking | Implement universal links | HIGH |
+| 148 | No deep linking | Implement universal links | MEDIUM |
 | 149 | No app store assets | Create screenshots, descriptions | HIGH |
 | 150 | No TestFlight/Play | Set up beta testing programs | HIGH |
 
