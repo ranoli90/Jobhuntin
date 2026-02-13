@@ -281,13 +281,13 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 |---|-------|---------------|----------|
 | 158 | Only Adzuna | Add LinkedIn, Indeed, Glassdoor integrations | ✅ FIXED |
 | 159 | No job deduplication | Dedupe jobs across sources | ✅ FIXED |
-| 160 | No salary enrichment | Enrich jobs with salary data | MEDIUM |
+| 160 | No salary enrichment | Enrich jobs with salary data | ✅ FIXED |
 | 161 | No company data | Add company info from Crunchbase | LOW |
 
 ### 8.2 Productivity
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 162 | No calendar sync | Add interview calendar integration | MEDIUM |
+| 162 | No calendar sync | Add interview calendar integration | ✅ FIXED |
 | 163 | No Slack bot | Add Slack notifications | LOW |
 | 164 | No Zapier integration | Add Zapier connector | LOW |
 | 165 | No Notion integration | Export applications to Notion | LOW |
@@ -508,3 +508,15 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 - Implemented `IndeedClient`, `LinkedInClient`, `GlassdoorClient`
 - Created `fetch_all_jobs()` aggregator function
 - Each client has rate limiting and standard mapping
+
+### Sprint 60-61: Calendar & Salary Enrichment
+- Calendar Integration: Created `packages/backend/domain/calendar.py`
+  - Google Calendar API integration
+  - Microsoft Outlook integration
+  - Interview scheduling with conflict detection
+  - Calendar event creation/deletion
+- Salary Enrichment: Created `packages/backend/domain/salary_enrichment.py`
+  - Salary extraction from job descriptions
+  - Role-based salary estimation (19+ roles)
+  - Location-based salary adjustments
+  - Hourly to annual conversion
