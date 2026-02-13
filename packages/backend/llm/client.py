@@ -78,7 +78,7 @@ class LLMClient:
         model: str | None = None,
         response_format: type[T] | None = None,
         max_tokens: int | None = None,
-    ) -> T | dict:
+    ) -> T:
         """
         Send a prompt to the LLM and return a validated response.
 
@@ -144,7 +144,7 @@ class LLMClient:
         model: str,
         response_format: type[T] | None,
         max_tokens: int,
-    ) -> T | dict:
+    ) -> T:
         """Execute LLM call with retries for a single model."""
         messages = [{"role": "user", "content": prompt}]
         payload = {
@@ -177,8 +177,9 @@ class LLMClient:
                 )
 
                 if response_format is not None:
-                    return self._validate(raw_json, response_format)
-                return raw_json
+                    validated: T = self._validate(raw_json, response_format)
+                    return validated
+                return raw_json  # type: ignore[return-value]
 
             except (
                 httpx.HTTPStatusError,

@@ -178,24 +178,13 @@ jobs:
     steps:
       - name: Deploy API to staging
         run: |
-          curl -X POST "https://api.render.com/v1/services/srv-XXXXXX/deploys" \
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_API_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": true}'
-          # Replace srv-XXXXXX with actual Render API service ID
-      - name: Deploy Worker to staging
-        run: |
-          curl -X POST "https://api.render.com/v1/services/srv-YYYYYY/deploys" \
-            -H "Accept: application/json" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": true}'
-          # Replace srv-YYYYYY with actual Render Worker service ID
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}"
       - name: Smoke test staging
         run: |
-          # Basic health check against staging API
-          curl -sf https://api-staging.sorce.app/healthz || exit 1
+          curl -sf https://jobhuntin-api-staging.onrender.com/healthz || exit 1
 
   # ── Promote to production (manual gate) ──────────────────────
   deploy-prod:
@@ -206,20 +195,16 @@ jobs:
     steps:
       - name: Deploy API to prod
         run: |
-          curl -X POST "https://api.render.com/v1/services/srv-AAAAAA/deploys" \
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_API_SERVICE_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": true}'
-          # Replace srv-AAAAAA with actual Render API service ID
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}"
       - name: Deploy Worker to prod
         run: |
-          curl -X POST "https://api.render.com/v1/services/srv-BBBBBB/deploys" \
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_WORKER_SERVICE_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": true}'
-          # Replace srv-BBBBBB with actual Render Worker service ID
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}"
       - name: Smoke test prod
         run: |
-          curl -sf https://api.sorce.app/healthz || exit 1
+          curl -sf https://sorce-api.onrender.com/healthz || exit 1
