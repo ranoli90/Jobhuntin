@@ -171,7 +171,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 95 | No MFA | Add TOTP/WebAuthn for admin accounts | LOW |
 | 96 | No password policy | Add password strength requirements | LOW |
 | 97 | No bot detection | Add reCAPTCHA/hCaptcha on forms | ✅ FIXED |
-| 98 | No request signing | Add HMAC signing for webhooks | LOW |
+| 98 | No request signing | Add HMAC signing for webhooks | ✅ FIXED |
 | 99 | No vulnerability scanning | Add Snyk/Dependabot for dependencies | ✅ FIXED |
 | 100 | No penetration testing | Schedule annual security audit | LOW |
 
@@ -483,3 +483,10 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - CSV export for applications
   - JSON/NDJSON streaming export
   - GDPR data export endpoint
+
+### Sprint 55: Webhook HMAC Signing
+- Created `packages/shared/webhook_signing.py`
+- HMAC-SHA256 signature generation and verification
+- Timestamp-based replay attack prevention
+- Stripe-compatible signature format
+- Retry logic with exponential backoff for delivery
