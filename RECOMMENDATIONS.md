@@ -83,8 +83,8 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 |---|-------|---------------|----------|
 | 36 | Resume storage | Implement S3/R2 storage for uploaded resumes | ✅ FIXED |
 | 37 | Email notifications | Configure Resend API for email notifications | ✅ FIXED |
-| 38 | Push notifications | Configure Expo push notifications for mobile | MEDIUM |
-| 39 | A/B testing not implemented | Add experiment framework for match algorithm testing | MEDIUM |
+| 38 | Push notifications | Configure Expo push notifications for mobile | ✅ FIXED |
+| 39 | A/B testing not implemented | Add experiment framework for match algorithm testing | ✅ FIXED |
 | 40 | Feature flags incomplete | Complete feature flag UI in admin dashboard | MEDIUM |
 | 41 | Dealbreaker UI | Add dealbreaker configuration in user preferences | MEDIUM |
 | 42 | Job alerts | Implement daily/weekly job alert emails | ✅ FIXED |
@@ -124,8 +124,8 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 |---|-------|---------------|----------|
 | 65 | No event tracking | Add segment/mixpanel for user analytics | ✅ FIXED |
 | 66 | No funnel analysis | Track conversion funnels (signup → apply) | ✅ FIXED |
-| 67 | No cohort analysis | Track user retention by cohort | MEDIUM |
-| 68 | No revenue tracking | Add revenue analytics dashboard | MEDIUM |
+| 67 | No cohort analysis | Track user retention by cohort | ✅ FIXED |
+| 68 | No revenue tracking | Add revenue analytics dashboard | ✅ FIXED |
 | 69 | No usage quotas | Implement tier-based usage limits | MEDIUM |
 | 70 | Data retention policy | Implement log/data archiving policies | MEDIUM |
 
@@ -404,3 +404,19 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 - Added `BackgroundJobQueue` with handler registration
 - Implements exponential backoff for failed jobs
 - Includes job deduplication and cleanup utilities
+
+### Sprint 34-35: Push Notifications & A/B Testing (Already Implemented)
+- Push notifications: Expo integration exists in `packages/backend/domain/notifications.py`
+- A/B testing: Framework exists in `backend/domain/experiments.py` and `backend/domain/experiment_readout.py`
+
+### Sprint 36-37: Cohort & Revenue Analytics
+- Created `packages/backend/domain/cohort_analysis.py`
+  - User retention tracking by daily/weekly/monthly cohorts
+  - D7 and D30 retention metrics
+  - Engagement metrics (active days, apps per user)
+- Created `packages/backend/domain/revenue_analytics.py`
+  - MRR breakdown by plan tier
+  - Revenue trend over time
+  - Churn metrics and rates
+  - ARPU/ARPPU calculations
+  - Conversion funnel analysis
