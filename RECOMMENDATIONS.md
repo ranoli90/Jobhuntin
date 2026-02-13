@@ -127,7 +127,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 67 | No cohort analysis | Track user retention by cohort | ✅ FIXED |
 | 68 | No revenue tracking | Add revenue analytics dashboard | ✅ FIXED |
 | 69 | No usage quotas | Implement tier-based usage limits | ✅ FIXED |
-| 70 | Data retention policy | Implement log/data archiving policies | MEDIUM |
+| 70 | Data retention policy | Implement log/data archiving policies | ✅ FIXED |
 
 ---
 
@@ -425,3 +425,12 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 - API documentation: OpenAPI/Swagger enabled via FastAPI docs_url/redoc_url
 - Usage quotas: Tier-based limits exist in `packages/backend/domain/quotas.py` and `packages/backend/domain/plans.py`
 - Prompt versioning: Registry exists in `packages/backend/llm/prompt_registry.py` with version tracking
+
+### Sprint 41: Data Retention Policy
+- Created `packages/backend/domain/data_retention.py`
+- Configurable retention periods for different data types
+- Applications: 2 years (configurable)
+- Application events: 90 days
+- Analytics events: 1 year
+- Background jobs: 30 days
+- Automated cleanup functions with batch processing
