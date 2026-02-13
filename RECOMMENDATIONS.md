@@ -42,7 +42,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 |---|-------|---------------|----------|
 | 15 | No pgvector extension | Embeddings stored as JSON - slow similarity search. Use external vector DB (Pinecone, Weaviate) or wait for Render pgvector | HIGH |
 | 16 | No query result caching | Add Redis caching for frequent queries (user profiles, job listings) | ✅ FIXED |
-| 17 | Large batch operations | Optimize batch match for >20 jobs (streaming/chunking) | HIGH |
+| 17 | Large batch operations | Optimize batch match for >20 jobs (streaming/chunking) | ✅ FIXED |
 | 18 | Database connection pooling | Tune db_pool_min/max based on load testing | HIGH |
 | 19 | LLM timeout too long | 60s timeout may cause hanging requests - consider 30s with retry | ✅ FIXED |
 | 20 | No CDN for static assets | Configure Render CDN or Cloudflare for JS/CSS/images | HIGH |
@@ -61,7 +61,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 |---|-------|---------------|----------|
 | 26 | 7 skipped tests | Add integration test setup with test database | HIGH |
 | 27 | No load testing | Add k6 or Locust load tests for API endpoints | ✅ FIXED |
-| 28 | E2E tests need CI | Configure Playwright in GitHub Actions | HIGH |
+| 28 | E2E tests need CI | Configure Playwright in GitHub Actions | ✅ FIXED |
 | 29 | No mutation testing | Add mutmut for code quality validation | HIGH |
 | 30 | Test coverage gaps | Add tests for billing/webhook handlers | HIGH |
 
@@ -196,11 +196,11 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 5.1 Immediate
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 111 | No infrastructure as code | Add Terraform/Pulumi for infrastructure | HIGH |
+| 111 | No infrastructure as code | Add Terraform/Pulumi for infrastructure | ✅ FIXED |
 | 112 | Manual deployments | Set up GitOps with ArgoCD/Flux | MEDIUM |
 | 113 | No staging environment | Deploy staging environment on Render | ✅ FIXED |
-| 114 | No backup strategy | Configure PostgreSQL backups | CRITICAL |
-| 115 | No disaster recovery | Document DR procedures | HIGH |
+| 114 | No backup strategy | Configure PostgreSQL backups | ✅ FIXED |
+| 115 | No disaster recovery | Document DR procedures | ✅ FIXED |
 | 116 | No runbooks | Create incident response runbooks | ✅ FIXED |
 | 117 | No on-call rotation | Set up PagerDuty/Opsgenie | MEDIUM |
 | 118 | No cost monitoring | Add cost alerts for cloud spend | MEDIUM |
@@ -280,7 +280,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
 | 158 | Only Adzuna | Add LinkedIn, Indeed, Glassdoor integrations | MEDIUM |
-| 159 | No job deduplication | Dedupe jobs across sources | HIGH |
+| 159 | No job deduplication | Dedupe jobs across sources | ✅ FIXED |
 | 160 | No salary enrichment | Enrich jobs with salary data | MEDIUM |
 | 161 | No company data | Add company info from Crunchbase | LOW |
 
