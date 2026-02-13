@@ -116,7 +116,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 60 | Webhook retry logic | Add exponential backoff for webhook delivery | ✅ FIXED |
 | 61 | Background job queue | Add Celery/BullMQ for long-running tasks | ✅ FIXED |
 | 62 | File upload limits | Add configurable per-tenant upload limits | ✅ FIXED |
-| 63 | API documentation | Generate OpenAPI/Swagger docs | MEDIUM |
+| 63 | API documentation | Generate OpenAPI/Swagger docs | ✅ FIXED |
 | 64 | GraphQL alternative | Consider GraphQL for complex queries | MEDIUM |
 
 ### 3.4 Data & Analytics
@@ -126,7 +126,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 66 | No funnel analysis | Track conversion funnels (signup → apply) | ✅ FIXED |
 | 67 | No cohort analysis | Track user retention by cohort | ✅ FIXED |
 | 68 | No revenue tracking | Add revenue analytics dashboard | ✅ FIXED |
-| 69 | No usage quotas | Implement tier-based usage limits | MEDIUM |
+| 69 | No usage quotas | Implement tier-based usage limits | ✅ FIXED |
 | 70 | Data retention policy | Implement log/data archiving policies | MEDIUM |
 
 ---
@@ -225,7 +225,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 |---|-------|---------------|----------|
 | 126 | Free-tier LLM | Upgrade from free model to production-grade for reliability | HIGH |
 | 127 | No model fallback | Add fallback models when primary fails | ✅ FIXED |
-| 128 | No prompt versioning | Add prompt version tracking/rollback | MEDIUM |
+| 128 | No prompt versioning | Add prompt version tracking/rollback | ✅ FIXED |
 | 129 | No A/B prompt testing | Add framework for prompt experiments | MEDIUM |
 | 130 | No embedding caching | Cache embeddings to reduce API calls | ✅ FIXED |
 | 131 | No semantic caching | Cache LLM responses for similar queries | ✅ FIXED |
@@ -420,3 +420,8 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - Churn metrics and rates
   - ARPU/ARPPU calculations
   - Conversion funnel analysis
+
+### Sprint 38-40: API Docs, Usage Quotas, Prompt Versioning (Already Implemented)
+- API documentation: OpenAPI/Swagger enabled via FastAPI docs_url/redoc_url
+- Usage quotas: Tier-based limits exist in `packages/backend/domain/quotas.py` and `packages/backend/domain/plans.py`
+- Prompt versioning: Registry exists in `packages/backend/llm/prompt_registry.py` with version tracking

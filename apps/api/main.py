@@ -120,7 +120,35 @@ async def lifespan(app: FastAPI):
     await _pool_manager.close()
 
 
-app = FastAPI(title="Sorce API", version="0.4.0", lifespan=lifespan)
+app = FastAPI(
+    title="Sorce API",
+    version="0.4.0",
+    lifespan=lifespan,
+    description="""
+AI-powered job application automation platform API.
+
+## Authentication
+All endpoints require Bearer token authentication via the Authorization header.
+
+## Rate Limits
+- FREE tier: 60 requests/minute
+- PRO tier: 200 requests/minute  
+- TEAM tier: 500 requests/minute
+- ENTERPRISE tier: Unlimited
+
+## Response Codes
+- 200: Success
+- 400: Bad Request (validation error)
+- 401: Unauthorized
+- 403: Forbidden (tenant limit exceeded)
+- 404: Not Found
+- 429: Too Many Requests (rate limited)
+- 500: Internal Server Error
+""",
+    docs_url="/docs" if _settings.env != "prod" else None,
+    redoc_url="/redoc" if _settings.env != "prod" else None,
+    openapi_url="/openapi.json" if _settings.env != "prod" else None,
+)
 
 # OpenTelemetry instrumentation
 setup_telemetry("sorce-api", app)
