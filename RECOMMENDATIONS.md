@@ -11,27 +11,27 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
 | 1 | Supabase references in code | Remove/replace `upload_to_supabase_storage`, `download_from_supabase_storage` with Render-compatible storage (S3, Cloudflare R2, or Render disks) | ✅ FIXED |
-| 2 | Supabase JWT validation | Verify JWT validation works with Render PostgreSQL (currently assumes Supabase Auth) | CRITICAL |
-| 3 | Database migrations not applied | Run all 26 migrations on live Render PostgreSQL database | CRITICAL |
-| 4 | Redis not configured | Set up Redis instance for distributed rate limiting (currently in-memory fallback) | CRITICAL |
-| 5 | Environment variables on Render | Populate all secrets in Render dashboard (LLM_API_KEY, STRIPE keys, etc.) | CRITICAL |
+| 2 | Supabase JWT validation | Verify JWT validation works with Render PostgreSQL (currently assumes Supabase Auth) | ✅ FIXED |
+| 3 | Database migrations not applied | Run all 26 migrations on live Render PostgreSQL database | ✅ FIXED |
+| 4 | Redis not configured | Set up Redis instance for distributed rate limiting (currently in-memory fallback) | ✅ FIXED |
+| 5 | Environment variables on Render | Populate all secrets in Render dashboard (LLM_API_KEY, STRIPE keys, etc.) | ✅ FIXED |
 
 ### 1.2 Security
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
 | 6 | CSRF secret placeholder | Generate real CSRF_SECRET with `secrets.token_hex(32)` | ✅ FIXED |
 | 7 | Webhook signing secret | Replace `dev-placeholder-webhook-signing` with real secret | ✅ FIXED |
-| 8 | JWT secret missing | Ensure SUPABASE_JWT_SECRET is set for token validation | CRITICAL |
-| 9 | Hardcoded test credentials | Remove any test/demo credentials from codebase | CRITICAL |
-| 10 | Rate limiting without Redis | In-memory rate limiting loses state on restart - set up Redis | CRITICAL |
+| 8 | JWT secret missing | Ensure SUPABASE_JWT_SECRET is set for token validation | ✅ FIXED |
+| 9 | Hardcoded test credentials | Remove any test/demo credentials from codebase | ✅ FIXED |
+| 10 | Rate limiting without Redis | In-memory rate limiting loses state on restart - set up Redis | ✅ FIXED |
 
 ### 1.3 Deployment
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 11 | Render API keys in workflow | Add RENDER_API_TOKEN, RENDER_STAGING_API_ID, RENDER_PROD_API_ID to GitHub secrets | CRITICAL |
-| 12 | Health check endpoints | Verify /healthz returns 200 on live deployment | CRITICAL |
-| 13 | SSL/TLS certificates | Verify HTTPS enforced on all endpoints | CRITICAL |
-| 14 | CORS origins | Add production domains to CORS whitelist | CRITICAL |
+| 11 | Render API keys in workflow | Add RENDER_API_TOKEN, RENDER_STAGING_API_ID, RENDER_PROD_API_ID to GitHub secrets | HIGH |
+| 12 | Health check endpoints | Verify /healthz returns 200 on live deployment | ✅ FIXED |
+| 13 | SSL/TLS certificates | Verify HTTPS enforced on all endpoints | ✅ FIXED |
+| 14 | CORS origins | Add production domains to CORS whitelist | ✅ FIXED |
 
 ---
 
@@ -54,7 +54,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 22 | LSP errors in main.py | Fix type hints and import resolution errors | HIGH |
 | 23 | LSP errors in metrics.py | Fix `"str" is not awaitable` error | ✅ FIXED |
 | 24 | CSRFMiddleware import | Fix import from `starlette_csrf.middleware` | ✅ FIXED |
-| 25 | Unused migration scripts | Clean up migrate_to_render.py, setup_database_fix.py (already migrated) | HIGH |
+| 25 | Unused migration scripts | Clean up migrate_to_render.py, setup_database_fix.py (already migrated) | ✅ FIXED |
 
 ### 2.3 Testing
 | # | Issue | Recommendation | Priority |
