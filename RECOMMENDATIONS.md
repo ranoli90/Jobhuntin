@@ -81,13 +81,13 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 3.1 Features
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 36 | Resume storage | Implement S3/R2 storage for uploaded resumes | MEDIUM |
-| 37 | Email notifications | Configure Resend API for email notifications | MEDIUM |
+| 36 | Resume storage | Implement S3/R2 storage for uploaded resumes | ✅ FIXED |
+| 37 | Email notifications | Configure Resend API for email notifications | ✅ FIXED |
 | 38 | Push notifications | Configure Expo push notifications for mobile | MEDIUM |
 | 39 | A/B testing not implemented | Add experiment framework for match algorithm testing | MEDIUM |
 | 40 | Feature flags incomplete | Complete feature flag UI in admin dashboard | MEDIUM |
 | 41 | Dealbreaker UI | Add dealbreaker configuration in user preferences | MEDIUM |
-| 42 | Job alerts | Implement daily/weekly job alert emails | MEDIUM |
+| 42 | Job alerts | Implement daily/weekly job alert emails | ✅ FIXED |
 | 43 | Social sharing | Add OG images for match results sharing | MEDIUM |
 | 44 | Export functionality | Add CSV/PDF export for usage analytics | MEDIUM |
 | 45 | Mobile deep linking | Implement universal links for job applications | MEDIUM |
@@ -114,7 +114,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 58 | No API rate limit headers | Add X-RateLimit-Remaining headers | ✅ FIXED |
 | 59 | No pagination standard | Standardize cursor-based pagination | ✅ FIXED |
 | 60 | Webhook retry logic | Add exponential backoff for webhook delivery | ✅ FIXED |
-| 61 | Background job queue | Add Celery/BullMQ for long-running tasks | MEDIUM |
+| 61 | Background job queue | Add Celery/BullMQ for long-running tasks | ✅ FIXED |
 | 62 | File upload limits | Add configurable per-tenant upload limits | ✅ FIXED |
 | 63 | API documentation | Generate OpenAPI/Swagger docs | MEDIUM |
 | 64 | GraphQL alternative | Consider GraphQL for complex queries | MEDIUM |
@@ -377,3 +377,30 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 - Added detailed factor analysis (semantic, skills, experience, etc.)
 - Generates transparent reasoning for each match decision
 - Provides audit logs for user trust
+
+### Sprint 29: Interview Preparation Simulator
+- Created `packages/backend/domain/interview_simulator.py`
+- Implemented `InterviewSimulator` with question generation
+- Added behavioral and technical question categories
+- Supports STAR method answer guidance
+- Provides AI-powered answer feedback
+
+### Sprint 30-31: Storage & Email (Already Implemented)
+- Resume storage: S3/R2/Render disk support exists in `packages/shared/storage.py`
+- Email notifications: Resend integration exists in `packages/backend/domain/email_digest.py`
+
+### Sprint 32: Job Alerts System
+- Created `packages/backend/domain/job_alerts.py`
+- Implemented `JobAlert` model with flexible criteria
+- Added `JobAlertMatcher` for finding matching jobs
+- Created `JobAlertService` for alert processing
+- Created `apps/api/job_alerts.py` API endpoints
+- Supports daily/weekly frequency with email delivery
+
+### Sprint 33: Background Job Queue
+- Created `packages/backend/domain/job_queue.py`
+- PostgreSQL-backed reliable queue (no external dependencies)
+- Supports priority queues, delayed jobs, automatic retries
+- Added `BackgroundJobQueue` with handler registration
+- Implements exponential backoff for failed jobs
+- Includes job deduplication and cleanup utilities
