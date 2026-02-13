@@ -26,9 +26,10 @@ class JobListing:
     description: str
     url: str
     source: str
-    posted_at: datetime | None
+    posted_at: datetime | None = None
     normalized_title: str = ""
     normalized_company: str = ""
+    normalized_location: str = ""
     fingerprint: str = ""
 
 
