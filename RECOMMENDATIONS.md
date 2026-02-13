@@ -170,16 +170,16 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 94 | No IP allowlisting | Add IP allowlist for enterprise tenants | LOW |
 | 95 | No MFA | Add TOTP/WebAuthn for admin accounts | LOW |
 | 96 | No password policy | Add password strength requirements | LOW |
-| 97 | No bot detection | Add reCAPTCHA/hCaptcha on forms | LOW |
+| 97 | No bot detection | Add reCAPTCHA/hCaptcha on forms | ✅ FIXED |
 | 98 | No request signing | Add HMAC signing for webhooks | LOW |
-| 99 | No vulnerability scanning | Add Snyk/Dependabot for dependencies | LOW |
+| 99 | No vulnerability scanning | Add Snyk/Dependabot for dependencies | ✅ FIXED |
 | 100 | No penetration testing | Schedule annual security audit | LOW |
 
 ### 4.4 Compliance & Legal
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 101 | GDPR data export | Add automated GDPR export feature | LOW |
-| 102 | GDPR data deletion | Add right-to-be-forgotten workflow | LOW |
+| 101 | GDPR data export | Add automated GDPR export feature | ✅ FIXED |
+| 102 | GDPR data deletion | Add right-to-be-forgotten workflow | ✅ FIXED |
 | 103 | Cookie consent | Add cookie consent banner (non-essential) | LOW |
 | 104 | Privacy policy review | Legal review of privacy policy | LOW |
 | 105 | Terms of service | Legal review of terms | LOW |
@@ -447,3 +447,13 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - Weekly Python dependency updates
   - Weekly npm updates for web apps
   - Monthly GitHub Actions updates
+
+### Sprint 46-48: GDPR Compliance & Security
+- GDPR Data Export: Created `packages/backend/domain/gdpr.py`
+  - Right to Access (Article 15): Export all user data
+  - Right to Erasure (Article 17): Delete user data
+  - Data Portability: Machine-readable JSON export
+- Bot Detection: Created `packages/shared/captcha.py`
+  - hCaptcha support (privacy-focused)
+  - reCAPTCHA v3 support (invisible)
+  - Configurable minimum score thresholds
