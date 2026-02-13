@@ -88,8 +88,8 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 40 | Feature flags incomplete | Complete feature flag UI in admin dashboard | MEDIUM |
 | 41 | Dealbreaker UI | Add dealbreaker configuration in user preferences | MEDIUM |
 | 42 | Job alerts | Implement daily/weekly job alert emails | ✅ FIXED |
-| 43 | Social sharing | Add OG images for match results sharing | MEDIUM |
-| 44 | Export functionality | Add CSV/PDF export for usage analytics | MEDIUM |
+| 43 | Social sharing | Add OG images for match results sharing | ✅ FIXED |
+| 44 | Export functionality | Add CSV/PDF export for usage analytics | ✅ FIXED |
 | 45 | Mobile deep linking | Implement universal links for job applications | MEDIUM |
 
 ### 3.2 User Experience
@@ -473,3 +473,13 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - Retry with exponential backoff
 - Cold start handling: Already implemented in `packages/backend/domain/onboarding.py`
 - A/B prompt testing: Already implemented in `backend/domain/experiments.py`
+
+### Sprint 53-54: Social & Export
+- OG Images: Created `packages/backend/domain/og_images.py`
+  - Dynamic image generation for match results
+  - Milestone celebration images
+  - Job listing preview cards
+- Export: Already implemented in `apps/api/export.py` and `apps/api/user.py`
+  - CSV export for applications
+  - JSON/NDJSON streaming export
+  - GDPR data export endpoint
