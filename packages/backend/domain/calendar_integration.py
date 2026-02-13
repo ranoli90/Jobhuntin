@@ -1,0 +1,451 @@
+"""
+Calendar integration service for interview scheduling.
+
+Provides:
+- Google Calendar integration
+- Outlook/Microsoft Calendar integration
+- iCal export
+- Interview scheduling and reminders
+"""
+
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Optional
+import logging
+import uuid
+
+logger = logging.getLogger(__name__)
+
+
+class CalendarProvider(str, Enum):
+    """Supported calendar providers."""
+    GOOGLE = "google"
+    OUTLOOK = "outlook"
+    APPLE = "apple"
+    ICAL = "ical"
+
+
+@dataclass
+class InterviewEvent:
+    """An interview event to be added to calendar."""
+    title: str
+    start_time: datetime
+    end_time: datetime
+    location: str
+    description: str
+    attendees: list[str] = field(default_factory=list)
+    timezone: str = "UTC"
+    conference_url: Optional[str] = None
+    reminder_minutes: list[int] = field(default_factory=lambda: [15, 60])
+    
+    def to_ical(self) -> str:
+        """Generate iCal format string."""
+        dt_start = self.start_time.strftime("%Y%m%dT%H%M%SZ")
+        dt_end = self.end_time.strftime("%Y%m%dT%H%M%SZ")
+        dt_stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        uid = str(uuid.uuid4())
+        
+        lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Sorce//Interview Scheduler//EN",
+            "BEGIN:VEVENT",
+            f"UID:{uid}@sorce.ai",
+            f"DTSTAMP:{dt_stamp}",
+            f"DTSTART:{dt_start}",
+            f"DTEND:{dt_end}",
+            f"SUMMARY:{self.title}",
+            f"LOCATION:{self.location}",
+            f"DESCRIPTION:{self.description}",
+        ]
+        
+        if self.conference_url:
+            lines.append(f"URL:{self.conference_url}")
+        
+        for reminder in self.reminder_minutes:
+            lines.extend([
+                "BEGIN:VALARM",
+                "ACTION:DISPLAY",
+                f"DESCRIPTION:Reminder: {self.title}",
+                f"TRIGGER:-PT{reminder}M",
+                "END:VALARM",
+            ])
+        
+        lines.extend([
+            "END:VEVENT",
+            "END:VCALENDAR",
+        ])
+        
+        return "\r\n".join(lines)
+
+
+@dataclass
+class CalendarAuth:
+    """Calendar authentication credentials."""
+    provider: CalendarProvider
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    tenant_id: Optional[str] = None  # For Microsoft
+
+
+class CalendarService:
+    """
+    Calendar integration service.
+    
+    Supports:
+    - Google Calendar API
+    - Microsoft Graph API (Outlook)
+    - iCal export
+    """
+    
+    def __init__(self, auth: Optional[CalendarAuth] = None):
+        self.auth = auth
+    
+    async def create_event(
+        self,
+        event: InterviewEvent,
+        provider: Optional[CalendarProvider] = None,
+    ) -> str:
+        """
+        Create a calendar event.
+        
+        Args:
+            event: Interview event details
+            provider: Calendar provider (uses auth provider if not specified)
+            
+        Returns:
+            Event ID or iCal content
+        """
+        provider = provider or (self.auth.provider if self.auth else CalendarProvider.ICAL)
+        
+        if provider == CalendarProvider.GOOGLE:
+            return await self._create_google_event(event)
+        elif provider == CalendarProvider.OUTLOOK:
+            return await self._create_outlook_event(event)
+        else:
+            return event.to_ical()
+    
+    async def _create_google_event(self, event: InterviewEvent) -> str:
+        """Create event in Google Calendar."""
+        if not self.auth or not self.auth.access_token:
+            raise ValueError("Google Calendar requires authentication")
+        
+        import httpx
+        
+        event_body = {
+            "summary": event.title,
+            "location": event.location,
+            "description": event.description,
+            "start": {
+                "dateTime": event.start_time.isoformat(),
+                "timeZone": event.timezone,
+            },
+            "end": {
+                "dateTime": event.end_time.isoformat(),
+                "timeZone": event.timezone,
+            },
+            "attendees": [{"email": email} for email in event.attendees],
+            "reminders": {
+                "useDefault": False,
+                "overrides": [
+                    {"method": "popup", "minutes": minutes}
+                    for minutes in event.reminder_minutes
+                ],
+            },
+        }
+        
+        if event.conference_url:
+            event_body["conferenceData"] = {
+                "createRequest": {
+                    "requestId": str(uuid.uuid4()),
+                    "conferenceSolutionKey": {"type": "hangoutsMeet"},
+                },
+            }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+                json=event_body,
+                headers={
+                    "Authorization": f"Bearer {self.auth.access_token}",
+                    "Content-Type": "application/json",
+                },
+                params={"conferenceDataVersion": "1"} if event.conference_url else {},
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("id", "")
+            else:
+                logger.error(f"Google Calendar API error: {response.text}")
+                raise Exception(f"Failed to create Google Calendar event: {response.status_code}")
+    
+    async def _create_outlook_event(self, event: InterviewEvent) -> str:
+        """Create event in Microsoft Outlook."""
+        if not self.auth or not self.auth.access_token:
+            raise ValueError("Outlook requires authentication")
+        
+        import httpx
+        
+        event_body = {
+            "subject": event.title,
+            "body": {
+                "contentType": "HTML",
+                "content": event.description,
+            },
+            "start": {
+                "dateTime": event.start_time.isoformat(),
+                "timeZone": event.timezone,
+            },
+            "end": {
+                "dateTime": event.end_time.isoformat(),
+                "timeZone": event.timezone,
+            },
+            "location": {
+                "displayName": event.location,
+            },
+            "attendees": [
+                {
+                    "emailAddress": {"address": email},
+                    "type": "required",
+                }
+                for email in event.attendees
+            ],
+            "isOnlineMeeting": bool(event.conference_url),
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {self.auth.access_token}",
+            "Content-Type": "application/json",
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://graph.microsoft.com/v1.0/me/events",
+                json=event_body,
+                headers=headers,
+            )
+            
+            if response.status_code == 201:
+                data = response.json()
+                return data.get("id", "")
+            else:
+                logger.error(f"Microsoft Graph API error: {response.text}")
+                raise Exception(f"Failed to create Outlook event: {response.status_code}")
+    
+    async def get_free_busy(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        provider: Optional[CalendarProvider] = None,
+    ) -> list[dict]:
+        """
+        Get free/busy times from calendar.
+        
+        Returns list of busy periods with start and end times.
+        """
+        provider = provider or (self.auth.provider if self.auth else None)
+        
+        if provider == CalendarProvider.GOOGLE:
+            return await self._get_google_free_busy(start_time, end_time)
+        elif provider == CalendarProvider.OUTLOOK:
+            return await self._get_outlook_free_busy(start_time, end_time)
+        
+        return []
+    
+    async def _get_google_free_busy(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+    ) -> list[dict]:
+        """Get free/busy from Google Calendar."""
+        if not self.auth or not self.auth.access_token:
+            return []
+        
+        import httpx
+        
+        body = {
+            "timeMin": start_time.isoformat() + "Z",
+            "timeMax": end_time.isoformat() + "Z",
+            "items": [{"id": "primary"}],
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://www.googleapis.com/calendar/v3/freeBusy",
+                json=body,
+                headers={
+                    "Authorization": f"Bearer {self.auth.access_token}",
+                    "Content-Type": "application/json",
+                },
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                busy = []
+                for calendar in data.get("calendars", {}).values():
+                    for period in calendar.get("busy", []):
+                        busy.append({
+                            "start": datetime.fromisoformat(period["start"].replace("Z", "+00:00")),
+                            "end": datetime.fromisoformat(period["end"].replace("Z", "+00:00")),
+                        })
+                return busy
+        
+        return []
+    
+    async def _get_outlook_free_busy(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+    ) -> list[dict]:
+        """Get free/busy from Outlook."""
+        if not self.auth or not self.auth.access_token:
+            return []
+        
+        import httpx
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://graph.microsoft.com/v1.0/me/calendar/getSchedule",
+                json={
+                    "schedules": ["/me"],
+                    "startTime": {
+                        "dateTime": start_time.isoformat(),
+                        "timeZone": "UTC",
+                    },
+                    "endTime": {
+                        "dateTime": end_time.isoformat(),
+                        "timeZone": "UTC",
+                    },
+                    "availabilityViewInterval": 30,
+                },
+                headers={
+                    "Authorization": f"Bearer {self.auth.access_token}",
+                    "Content-Type": "application/json",
+                    "Prefer": 'outlook.timezone="UTC"',
+                },
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                busy = []
+                for schedule in data.get("value", []):
+                    for item in schedule.get("scheduleItems", []):
+                        busy.append({
+                            "start": datetime.fromisoformat(item["start"]["dateTime"].replace("Z", "+00:00")),
+                            "end": datetime.fromisoformat(item["end"]["dateTime"].replace("Z", "+00:00")),
+                        })
+                return busy
+        
+        return []
+    
+    def generate_ical_download(self, event: InterviewEvent) -> tuple[str, str]:
+        """
+        Generate iCal content for download.
+        
+        Returns:
+            Tuple of (content, filename)
+        """
+        content = event.to_ical()
+        filename = f"interview_{event.start_time.strftime('%Y%m%d')}.ics"
+        return content, filename
+
+
+async def create_interview_event(
+    title: str,
+    start_time: datetime,
+    duration_minutes: int = 60,
+    location: str = "",
+    description: str = "",
+    conference_url: Optional[str] = None,
+    attendees: Optional[list[str]] = None,
+    provider: CalendarProvider = CalendarProvider.ICAL,
+    auth: Optional[CalendarAuth] = None,
+) -> str:
+    """
+    Convenience function to create an interview event.
+    
+    Args:
+        title: Interview title
+        start_time: Interview start time
+        duration_minutes: Interview duration
+        location: Interview location
+        description: Interview description
+        conference_url: Video conference URL
+        attendees: List of attendee emails
+        provider: Calendar provider
+        auth: Calendar authentication
+        
+    Returns:
+        Event ID or iCal content
+    """
+    event = InterviewEvent(
+        title=title,
+        start_time=start_time,
+        end_time=start_time + timedelta(minutes=duration_minutes),
+        location=location,
+        description=description,
+        conference_url=conference_url,
+        attendees=attendees or [],
+    )
+    
+    service = CalendarService(auth)
+    return await service.create_event(event, provider)
+
+
+def get_google_oauth_url(
+    client_id: str,
+    redirect_uri: str,
+    state: str = "",
+) -> str:
+    """Generate Google OAuth URL for calendar access."""
+    scopes = [
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/calendar.events",
+    ]
+    
+    params = {
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": " ".join(scopes),
+        "access_type": "offline",
+        "prompt": "consent",
+    }
+    
+    if state:
+        params["state"] = state
+    
+    query = "&".join(f"{k}={v}" for k, v in params.items())
+    return f"https://accounts.google.com/o/oauth2/v2/auth?{query}"
+
+
+def get_microsoft_oauth_url(
+    client_id: str,
+    redirect_uri: str,
+    tenant_id: str = "common",
+    state: str = "",
+) -> str:
+    """Generate Microsoft OAuth URL for calendar access."""
+    scopes = [
+        "offline_access",
+        "Calendars.ReadWrite",
+        "Calendars.Read",
+    ]
+    
+    params = {
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": " ".join(scopes),
+        "response_mode": "query",
+    }
+    
+    if state:
+        params["state"] = state
+    
+    query = "&".join(f"{k}={v}" for k, v in params.items())
+    return f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?{query}"

@@ -444,8 +444,128 @@ class EmbeddingCacheRepo:
         )
 
 
+class VectorMatchRepo:
+    """
+    Repository for vector-based job matching using pgvector or external vector DB.
+    
+    This addresses recommendation #15: Use vector database for efficient
+    similarity search instead of JSON-based storage.
+    """
+
+    def __init__(self, vectordb: "VectorDB | None" = None) -> None:
+        self._vectordb = vectordb
+
+    async def _get_vectordb(self, conn: asyncpg.Connection | None = None) -> "VectorDB":
+        """Get or initialize the vector database."""
+        if self._vectordb is None:
+            from backend.domain.vectordb import get_vectordb
+            self._vectordb = await get_vectordb(conn=conn)
+        return self._vectordb
+
+    async def index_job(
+        self,
+        job_id: str,
+        embedding: list[float],
+        metadata: dict[str, Any] | None = None,
+        conn: asyncpg.Connection | None = None,
+    ) -> None:
+        """Index a job embedding for similarity search."""
+        vectordb = await self._get_vectordb(conn)
+        await vectordb.upsert(
+            id=f"job:{job_id}",
+            embedding=embedding,
+            metadata=metadata or {},
+            namespace="jobs",
+        )
+
+    async def index_profile(
+        self,
+        user_id: str,
+        embedding: list[float],
+        metadata: dict[str, Any] | None = None,
+        conn: asyncpg.Connection | None = None,
+    ) -> None:
+        """Index a profile embedding for similarity search."""
+        vectordb = await self._get_vectordb(conn)
+        await vectordb.upsert(
+            id=f"profile:{user_id}",
+            embedding=embedding,
+            metadata=metadata or {},
+            namespace="profiles",
+        )
+
+    async def find_similar_jobs(
+        self,
+        profile_embedding: list[float],
+        top_k: int = 50,
+        filters: dict[str, Any] | None = None,
+        conn: asyncpg.Connection | None = None,
+    ) -> list[dict[str, Any]]:
+        """Find jobs similar to a profile embedding."""
+        vectordb = await self._get_vectordb(conn)
+        results = await vectordb.search(
+            query_embedding=profile_embedding,
+            top_k=top_k,
+            filters=filters,
+            namespace="jobs",
+        )
+        # Strip "job:" prefix from IDs
+        return [
+            {
+                "job_id": r["id"].replace("job:", "", 1),
+                "score": r["score"],
+                "metadata": r["metadata"],
+            }
+            for r in results
+        ]
+
+    async def find_similar_profiles(
+        self,
+        job_embedding: list[float],
+        top_k: int = 50,
+        filters: dict[str, Any] | None = None,
+        conn: asyncpg.Connection | None = None,
+    ) -> list[dict[str, Any]]:
+        """Find profiles similar to a job embedding."""
+        vectordb = await self._get_vectordb(conn)
+        results = await vectordb.search(
+            query_embedding=job_embedding,
+            top_k=top_k,
+            filters=filters,
+            namespace="profiles",
+        )
+        # Strip "profile:" prefix from IDs
+        return [
+            {
+                "user_id": r["id"].replace("profile:", "", 1),
+                "score": r["score"],
+                "metadata": r["metadata"],
+            }
+            for r in results
+        ]
+
+    async def remove_job(
+        self,
+        job_id: str,
+        conn: asyncpg.Connection | None = None,
+    ) -> None:
+        """Remove a job from the vector index."""
+        vectordb = await self._get_vectordb(conn)
+        await vectordb.delete(id=f"job:{job_id}", namespace="jobs")
+
+    async def remove_profile(
+        self,
+        user_id: str,
+        conn: asyncpg.Connection | None = None,
+    ) -> None:
+        """Remove a profile from the vector index."""
+        vectordb = await self._get_vectordb(conn)
+        await vectordb.delete(id=f"profile:{user_id}", namespace="profiles")
+
+
 # Singleton service
 _matching_service: SemanticMatchingService | None = None
+_vector_match_repo: VectorMatchRepo | None = None
 
 
 def get_matching_service() -> SemanticMatchingService:
@@ -454,3 +574,11 @@ def get_matching_service() -> SemanticMatchingService:
     if _matching_service is None:
         _matching_service = SemanticMatchingService()
     return _matching_service
+
+
+def get_vector_match_repo() -> VectorMatchRepo:
+    """Get or create the singleton vector match repository."""
+    global _vector_match_repo
+    if _vector_match_repo is None:
+        _vector_match_repo = VectorMatchRepo()
+    return _vector_match_repo
