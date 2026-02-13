@@ -279,7 +279,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 8.1 Job Boards
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 158 | Only Adzuna | Add LinkedIn, Indeed, Glassdoor integrations | MEDIUM |
+| 158 | Only Adzuna | Add LinkedIn, Indeed, Glassdoor integrations | ✅ FIXED |
 | 159 | No job deduplication | Dedupe jobs across sources | ✅ FIXED |
 | 160 | No salary enrichment | Enrich jobs with salary data | MEDIUM |
 | 161 | No company data | Add company info from Crunchbase | LOW |
@@ -501,3 +501,10 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - Multi-provider cost aggregation
   - Budget thresholds with alerts
   - Cost anomaly detection
+
+### Sprint 59: Job Board Integrations
+- Extended `packages/backend/domain/job_boards.py`
+- Added abstract `JobBoardClient` interface
+- Implemented `IndeedClient`, `LinkedInClient`, `GlassdoorClient`
+- Created `fetch_all_jobs()` aggregator function
+- Each client has rate limiting and standard mapping
