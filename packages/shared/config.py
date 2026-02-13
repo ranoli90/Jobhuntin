@@ -50,12 +50,23 @@ class Settings(BaseSettings):
     # ── LLM ──────────────────────────────────────────────────────
     llm_api_base: str = "https://openrouter.ai/api/v1"
     llm_api_key: str = ""
-    llm_model: str = "openrouter/free"  # User requested free router
+    llm_model: str = "openrouter/free"  # Default to free tier for development
     llm_fallback_models: str = ""  # Comma-separated fallback models (e.g., "openai/gpt-3.5-turbo,anthropic/claude-3-haiku")
     llm_max_tokens: int = 4096
     llm_rate_limit_per_minute: int = 60  # in-process approximate cap
     llm_retry_count: int = 2
     llm_timeout_seconds: int = 30  # Reduced from 60s to prevent hanging requests
+    
+    # Production LLM configuration (recommendation #126)
+    # Recommended production models (set LLM_MODEL to one of these in production):
+    # - "openai/gpt-4o-mini" - Best value, fast, reliable ($0.15/1M input, $0.60/1M output)
+    # - "openai/gpt-4o" - Best quality for complex tasks ($2.50/1M input, $10/1M output)
+    # - "anthropic/claude-3.5-sonnet" - Excellent for structured outputs ($3/1M input, $15/1M output)
+    # - "anthropic/claude-3-haiku" - Fast and cheap ($0.25/1M input, $1.25/1M output)
+    # - "google/gemini-2.0-flash" - Very fast, good quality ($0.10/1M input, $0.40/1M output)
+    llm_production_model: str = "openai/gpt-4o-mini"  # Recommended production model
+    llm_production_fallbacks: str = "anthropic/claude-3-haiku,google/gemini-2.0-flash"  # Production fallbacks
+    llm_enable_auto_upgrade: bool = True  # Auto-upgrade from free tier in production
 
     # ── Playwright / Agent ───────────────────────────────────────
     playwright_browser_type: str = "chromium"
@@ -241,12 +252,24 @@ class Settings(BaseSettings):
             if not self.webhook_signing_secret:
                 missing.append("WEBHOOK_SIGNING_SECRET")
             # Warn (non-fatal) if using a free-tier LLM model in production
+            # Auto-upgrade to production model if enabled (recommendation #126)
             if ":free" in self.llm_model:
-                logger.warning(
-                    "LLM model '%s' is a free-tier model with no SLA. "
-                    "Set LLM_MODEL to a production-grade model for reliability.",
-                    self.llm_model,
-                )
+                if self.llm_enable_auto_upgrade:
+                    logger.warning(
+                        "LLM model '%s' is a free-tier model. "
+                        "Auto-upgrading to production model '%s' for reliability.",
+                        self.llm_model,
+                        self.llm_production_model,
+                    )
+                    object.__setattr__(self, "llm_model", self.llm_production_model)
+                    if not self.llm_fallback_models and self.llm_production_fallbacks:
+                        object.__setattr__(self, "llm_fallback_models", self.llm_production_fallbacks)
+                else:
+                    logger.warning(
+                        "LLM model '%s' is a free-tier model with no SLA. "
+                        "Set LLM_MODEL to a production-grade model for reliability.",
+                        self.llm_model,
+                    )
             if missing:
                 logger.critical(
                     "FATAL: Missing critical env vars for %s: %s",
