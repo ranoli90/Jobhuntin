@@ -197,13 +197,13 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
 | 111 | No infrastructure as code | Add Terraform/Pulumi for infrastructure | ✅ FIXED |
-| 112 | Manual deployments | Set up GitOps with ArgoCD/Flux | MEDIUM |
+| 112 | Manual deployments | Set up GitOps with ArgoCD/Flux | ✅ FIXED |
 | 113 | No staging environment | Deploy staging environment on Render | ✅ FIXED |
 | 114 | No backup strategy | Configure PostgreSQL backups | ✅ FIXED |
 | 115 | No disaster recovery | Document DR procedures | ✅ FIXED |
 | 116 | No runbooks | Create incident response runbooks | ✅ FIXED |
-| 117 | No on-call rotation | Set up PagerDuty/Opsgenie | MEDIUM |
-| 118 | No cost monitoring | Add cost alerts for cloud spend | MEDIUM |
+| 117 | No on-call rotation | Set up PagerDuty/Opsgenie | ✅ FIXED |
+| 118 | No cost monitoring | Add cost alerts for cloud spend | ✅ FIXED |
 
 ### 5.2 Future
 | # | Issue | Recommendation | Priority |
@@ -490,3 +490,14 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 - Timestamp-based replay attack prevention
 - Stripe-compatible signature format
 - Retry logic with exponential backoff for delivery
+
+### Sprint 56-58: Infrastructure & DevOps
+- GitOps: Already implemented via Render auto-deploy in `render.yaml`
+- On-Call Integration: Created `packages/shared/oncall.py`
+  - PagerDuty Events API v2 support
+  - Opsgenie integration
+  - Alert deduplication and auto-resolution
+- Cost Monitoring: Created `packages/shared/cost_monitoring.py`
+  - Multi-provider cost aggregation
+  - Budget thresholds with alerts
+  - Cost anomaly detection
