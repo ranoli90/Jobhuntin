@@ -379,6 +379,16 @@ export function JobsView() {
   const { celebrate: celebrateSession } = useSessionMilestone();
   const locale = getLocale();
   const rtl = isRTL(locale);
+  
+  // Undo functionality state
+  const [lastSwipe, setLastSwipe] = useState<{
+    jobId: string;
+    direction: "ACCEPT" | "REJECT";
+    previousIndex: number;
+    timestamp: number;
+  } | null>(null);
+  const [isUndoing, setIsUndoing] = useState(false);
+  const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 
   useEffect(() => {
@@ -426,9 +436,26 @@ export function JobsView() {
     setSwipeDirection(direction === "ACCEPT" ? "right" : "left");
     setStatusMessage(`${direction === "ACCEPT" ? "Accepting" : "Rejecting"} ${currentJob.title} at ${currentJob.company}`);
 
+    // Store previous state for undo
+    const previousIndex = currentIndex;
+
     try {
       // Record swipe decision with API
       await apiPost("applications", { job_id: currentJob.id, decision: direction });
+
+      // Store last swipe for undo functionality (5 second window)
+      setLastSwipe({
+        jobId: currentJob.id,
+        direction,
+        previousIndex,
+        timestamp: Date.now(),
+      });
+
+      // Clear undo state after 5 seconds
+      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+      undoTimeoutRef.current = setTimeout(() => {
+        setLastSwipe(null);
+      }, 5000);
 
       setCurrentIndex(prev => prev + 1);
       setSwipeCount(prev => prev + 1);
@@ -437,11 +464,16 @@ export function JobsView() {
         fireSuccessConfetti();
         pushToast({
           title: "Match queued! 🚀",
-          description: `AI is now tailoring your resume for ${currentJob.company}.`,
+          description: `AI is now tailoring your resume for ${currentJob.company}. Undo available for 5s.`,
           tone: "success"
         });
         setStatusMessage(`Accepted ${currentJob.title} at ${currentJob.company}`);
       } else {
+        pushToast({
+          title: "Job passed",
+          description: `Undo available for 5s.`,
+          tone: "neutral"
+        });
         setStatusMessage(`Rejected ${currentJob.title} at ${currentJob.company}`);
       }
     } catch (error) {
@@ -460,6 +492,43 @@ export function JobsView() {
         setSwipeDirection(null);
         swipeTimeoutRef.current = null;
       }, shouldReduceMotion ? 0 : 500);
+    }
+  };
+
+  // Undo last swipe action
+  const handleUndoSwipe = async () => {
+    if (!lastSwipe || isUndoing) return;
+
+    setIsUndoing(true);
+
+    try {
+      // Call API to undo the swipe decision
+      await apiPost(`applications/${lastSwipe.jobId}/undo`, {});
+
+      // Restore previous state
+      setCurrentIndex(lastSwipe.previousIndex);
+      setSwipeCount(prev => Math.max(0, prev - 1));
+      setLastSwipe(null);
+
+      if (undoTimeoutRef.current) {
+        clearTimeout(undoTimeoutRef.current);
+        undoTimeoutRef.current = null;
+      }
+
+      pushToast({
+        title: "Swipe undone",
+        description: "You can now make a new decision on this job.",
+        tone: "success"
+      });
+      setStatusMessage("Swipe undone - make a new decision");
+    } catch (error) {
+      pushToast({
+        title: "Failed to undo",
+        description: "The decision could not be undone.",
+        tone: "error"
+      });
+    } finally {
+      setIsUndoing(false);
     }
   };
 
@@ -620,6 +689,18 @@ export function JobsView() {
                   </div>
 
                   <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-center gap-8">
+                    {/* Undo button - only shown when there's a recent swipe */}
+                    {lastSwipe && (
+                      <button
+                        type="button"
+                        onClick={handleUndoSwipe}
+                        disabled={isUndoing}
+                        aria-label="Undo last swipe"
+                        className="w-12 h-12 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 hover:bg-amber-200 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-amber-200 disabled:opacity-50"
+                      >
+                        {isUndoing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUpRight className="w-5 h-5 rotate-[-135deg]" />}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleSwipe("REJECT")}

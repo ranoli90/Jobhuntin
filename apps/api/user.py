@@ -231,6 +231,61 @@ async def create_application(
 
 
 # ---------------------------------------------------------------------------
+# POST /applications/{job_id}/undo
+# ---------------------------------------------------------------------------
+
+
+@router.post("/applications/{job_id}/undo")
+async def undo_application(
+    job_id: str = FastAPIPath(...),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Undo the last swipe decision for a job within 5 second window."""
+    from shared.validators import validate_uuid
+    
+    # Validate job_id format
+    try:
+        validate_uuid(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+    
+    async with db.acquire() as conn:
+        # Find the application for this user/job
+        app = await conn.fetchrow(
+            """
+            SELECT id, status, created_at
+            FROM public.applications
+            WHERE user_id = $1 AND job_id = $2
+            """,
+            ctx.user_id,
+            job_id,
+        )
+        
+        if not app:
+            raise HTTPException(status_code=404, detail="No application found for this job")
+        
+        # Check if within 5 second undo window
+        from datetime import datetime, timedelta
+        created_at = app["created_at"]
+        if created_at and datetime.utcnow() - created_at > timedelta(seconds=30):
+            # Allow up to 30 seconds on backend for network latency
+            raise HTTPException(status_code=400, detail="Undo window has expired")
+        
+        # Delete the application record
+        await conn.execute(
+            """
+            DELETE FROM public.applications
+            WHERE user_id = $1 AND job_id = $2
+            """,
+            ctx.user_id,
+            job_id,
+        )
+        
+        return {"status": "undone", "job_id": job_id}
+
+
+# ---------------------------------------------------------------------------
 # POST /applications/{application_id}/answer
 # ---------------------------------------------------------------------------
 
