@@ -449,3 +449,166 @@ def get_microsoft_oauth_url(
     
     query = "&".join(f"{k}={v}" for k, v in params.items())
     return f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?{query}"
+
+
+async def refresh_google_token(
+    refresh_token: str,
+    client_id: str,
+    client_secret: str,
+) -> dict:
+    """
+    Refresh Google OAuth access token.
+    
+    Args:
+        refresh_token: Google refresh token
+        client_id: Google OAuth client ID
+        client_secret: Google OAuth client secret
+        
+    Returns:
+        Dict with new access_token and optionally refresh_token
+        
+    Raises:
+        Exception: If token refresh fails
+    """
+    import httpx
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token",
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "access_token": data.get("access_token"),
+                "expires_in": data.get("expires_in", 3600),
+                "token_type": data.get("token_type", "Bearer"),
+                # Google rarely returns new refresh_token, keep the old one
+            }
+        else:
+            logger.error(f"Google token refresh failed: {response.text}")
+            raise Exception(f"Failed to refresh Google token: {response.status_code}")
+
+
+async def refresh_microsoft_token(
+    refresh_token: str,
+    client_id: str,
+    client_secret: str,
+    tenant_id: str = "common",
+) -> dict:
+    """
+    Refresh Microsoft OAuth access token.
+    
+    Args:
+        refresh_token: Microsoft refresh token
+        client_id: Microsoft OAuth client ID
+        client_secret: Microsoft OAuth client secret
+        tenant_id: Microsoft tenant ID
+        
+    Returns:
+        Dict with new access_token and optionally refresh_token
+        
+    Raises:
+        Exception: If token refresh fails
+    """
+    import httpx
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token",
+            data={
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token",
+                "scope": "offline_access Calendars.ReadWrite Calendars.Read",
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "access_token": data.get("access_token"),
+                "refresh_token": data.get("refresh_token", refresh_token),
+                "expires_in": data.get("expires_in", 3600),
+                "token_type": data.get("token_type", "Bearer"),
+            }
+        else:
+            logger.error(f"Microsoft token refresh failed: {response.text}")
+            raise Exception(f"Failed to refresh Microsoft token: {response.status_code}")
+
+
+async def ensure_valid_token(
+    auth: CalendarAuth,
+    token_expires_at: Optional[datetime] = None,
+) -> CalendarAuth:
+    """
+    Ensure the calendar auth has a valid access token, refreshing if necessary.
+    
+    Args:
+        auth: Current calendar authentication
+        token_expires_at: When the current token expires (if known)
+        
+    Returns:
+        Updated CalendarAuth with valid access_token
+        
+    Raises:
+        ValueError: If refresh is not possible (missing refresh_token or credentials)
+    """
+    # If no expiration info, assume token is valid for 1 hour from now
+    if token_expires_at is None:
+        token_expires_at = datetime.utcnow() + timedelta(hours=1)
+    
+    # If token is still valid for at least 5 minutes, return as-is
+    if datetime.utcnow() < token_expires_at - timedelta(minutes=5):
+        return auth
+    
+    # Need to refresh
+    if not auth.refresh_token:
+        raise ValueError("Token expired and no refresh_token available")
+    
+    if auth.provider == CalendarProvider.GOOGLE:
+        if not auth.client_id:
+            raise ValueError("Google refresh requires client_id")
+        # Note: client_secret should be fetched from secure storage in production
+        tokens = await refresh_google_token(
+            refresh_token=auth.refresh_token,
+            client_id=auth.client_id,
+            client_secret=auth.client_secret or "",
+        )
+        return CalendarAuth(
+            provider=auth.provider,
+            access_token=tokens["access_token"],
+            refresh_token=tokens.get("refresh_token", auth.refresh_token),
+            client_id=auth.client_id,
+            client_secret=auth.client_secret,
+            tenant_id=auth.tenant_id,
+        )
+    
+    elif auth.provider == CalendarProvider.OUTLOOK:
+        if not auth.client_id:
+            raise ValueError("Microsoft refresh requires client_id")
+        tokens = await refresh_microsoft_token(
+            refresh_token=auth.refresh_token,
+            client_id=auth.client_id,
+            client_secret=auth.client_secret or "",
+            tenant_id=auth.tenant_id or "common",
+        )
+        return CalendarAuth(
+            provider=auth.provider,
+            access_token=tokens["access_token"],
+            refresh_token=tokens.get("refresh_token", auth.refresh_token),
+            client_id=auth.client_id,
+            client_secret=auth.client_secret,
+            tenant_id=auth.tenant_id,
+        )
+    
+    raise ValueError(f"Token refresh not supported for provider: {auth.provider}")
