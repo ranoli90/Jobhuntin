@@ -213,6 +213,59 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_json: bool = False  # local: human-readable; staging/prod: JSON
 
+    # ── Vector Database (Pinecone/Weaviate) ──────────────────────
+    vector_db_provider: str = "memory"  # memory, pinecone, weaviate
+    pinecone_api_key: str = ""
+    pinecone_environment: str = "us-east-1-aws"
+    pinecone_index_name: str = "jobhuntin"
+    weaviate_url: str = ""
+    weaviate_api_key: str = ""
+
+    # ── Google Drive Integration ───────────────────────────────────
+    google_drive_client_id: str = ""
+    google_drive_client_secret: str = ""
+
+    # ── Notion Integration ─────────────────────────────────────────
+    notion_client_id: str = ""
+    notion_client_secret: str = ""
+
+    # ── Slack Integration ──────────────────────────────────────────
+    slack_client_id: str = ""
+    slack_client_secret: str = ""
+    slack_signing_secret: str = ""
+
+    # ── LinkedIn Job Board ─────────────────────────────────────────
+    linkedin_client_id: str = ""
+    linkedin_client_secret: str = ""
+
+    # ── Indeed Job Board ───────────────────────────────────────────
+    indeed_publisher_id: str = ""
+
+    # ── Glassdoor Job Board ────────────────────────────────────────
+    glassdoor_partner_id: str = ""
+    glassdoor_api_key: str = ""
+
+    # ── Google Calendar Integration ────────────────────────────────
+    google_calendar_client_id: str = ""
+    google_calendar_client_secret: str = ""
+
+    # ── Microsoft/Outlook Calendar Integration ─────────────────────
+    outlook_client_id: str = ""
+    outlook_client_secret: str = ""
+
+    # ── HaveIBeenPwned API (breach checking) ────────────────────────
+    hibp_api_key: str = ""
+
+    # ── Clearbit (company logos) ────────────────────────────────────
+    clearbit_api_key: str = ""
+
+    # ── Feature Flags ───────────────────────────────────────────────
+    enable_interview_simulator: bool = True
+    enable_career_path: bool = True
+    enable_calendar_integration: bool = True
+    enable_mfa: bool = True
+    enable_ccpa_portal: bool = True
+
     model_config = {
         "env_prefix": "",
         "env_file": ".env",

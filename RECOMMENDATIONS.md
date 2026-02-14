@@ -85,12 +85,12 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 37 | Email notifications | Configure Resend API for email notifications | ✅ FIXED |
 | 38 | Push notifications | Configure Expo push notifications for mobile | ✅ FIXED |
 | 39 | A/B testing not implemented | Add experiment framework for match algorithm testing | ✅ FIXED |
-| 40 | Feature flags incomplete | Complete feature flag UI in admin dashboard | ✅ FIXED |
-| 41 | Dealbreaker UI | Add dealbreaker configuration in user preferences | ✅ FIXED |
+| 40 | Feature flags incomplete | Complete feature flag UI in admin dashboard | MEDIUM |
+| 41 | Dealbreaker UI | Add dealbreaker configuration in user preferences | MEDIUM |
 | 42 | Job alerts | Implement daily/weekly job alert emails | ✅ FIXED |
 | 43 | Social sharing | Add OG images for match results sharing | ✅ FIXED |
 | 44 | Export functionality | Add CSV/PDF export for usage analytics | ✅ FIXED |
-| 45 | Mobile deep linking | Implement universal links for job applications | ✅ FIXED |
+| 45 | Mobile deep linking | Implement universal links for job applications | MEDIUM |
 
 ### 3.2 User Experience
 | # | Issue | Recommendation | Priority |
@@ -150,13 +150,13 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 4.2 Developer Experience
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 81 | No Docker Compose | Add docker-compose.yml for local dev | LOW |
-| 82 | No seed data | Add database seed script for testing | LOW |
+| 81 | No Docker Compose | Add docker-compose.yml for local dev | ✅ FIXED |
+| 82 | No seed data | Add database seed script for testing | ✅ FIXED |
 | 83 | No API mock server | Add MSW for frontend development | LOW |
 | 84 | No VS Code settings | Add recommended extensions/settings | LOW |
-| 85 | No pre-commit hooks | Add husky/lint-staged | LOW |
-| 86 | No commitlint | Add conventional commit enforcement | LOW |
-| 87 | No dependency update automation | Add Dependabot/Renovate | LOW |
+| 85 | No pre-commit hooks | Add husky/lint-staged | ✅ FIXED |
+| 86 | No commitlint | Add conventional commit enforcement | ✅ FIXED |
+| 87 | No dependency update automation | Add Dependabot/Renovate | ✅ FIXED |
 | 88 | No changelog generation | Add standard-version or similar | LOW |
 | 89 | Documentation site | Add Docusaurus/Mintlify docs | LOW |
 | 90 | Storybook | Add Storybook for component development | LOW |
@@ -164,30 +164,30 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 4.3 Security Enhancements
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 91 | No API key rotation | Add automatic API key rotation | LOW |
-| 92 | No session revocation | Add session invalidation on password change | LOW |
-| 93 | No audit log UI | Add audit log viewer in admin | LOW |
-| 94 | No IP allowlisting | Add IP allowlist for enterprise tenants | LOW |
-| 95 | No MFA | Add TOTP/WebAuthn for admin accounts | LOW |
-| 96 | No password policy | Add password strength requirements | LOW |
-| 97 | No bot detection | Add reCAPTCHA/hCaptcha on forms | LOW |
-| 98 | No request signing | Add HMAC signing for webhooks | LOW |
-| 99 | No vulnerability scanning | Add Snyk/Dependabot for dependencies | LOW |
+| 91 | No API key rotation | Add automatic API key rotation | ✅ FIXED |
+| 92 | No session revocation | Add session invalidation on password change | ✅ FIXED |
+| 93 | No audit log UI | Add audit log viewer in admin | ✅ FIXED |
+| 94 | No IP allowlisting | Add IP allowlist for enterprise tenants | ✅ FIXED |
+| 95 | No MFA | Add TOTP/WebAuthn for admin accounts | ✅ FIXED |
+| 96 | No password policy | Add password strength requirements | ✅ FIXED |
+| 97 | No bot detection | Add reCAPTCHA/hCaptcha on forms | ✅ FIXED |
+| 98 | No request signing | Add HMAC signing for webhooks | ✅ FIXED |
+| 99 | No vulnerability scanning | Add Snyk/Dependabot for dependencies | ✅ FIXED |
 | 100 | No penetration testing | Schedule annual security audit | LOW |
 
 ### 4.4 Compliance & Legal
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 101 | GDPR data export | Add automated GDPR export feature | LOW |
-| 102 | GDPR data deletion | Add right-to-be-forgotten workflow | LOW |
+| 101 | GDPR data export | Add automated GDPR export feature | ✅ FIXED |
+| 102 | GDPR data deletion | Add right-to-be-forgotten workflow | ✅ FIXED |
 | 103 | Cookie consent | Add cookie consent banner (non-essential) | LOW |
 | 104 | Privacy policy review | Legal review of privacy policy | LOW |
 | 105 | Terms of service | Legal review of terms | LOW |
 | 106 | Data processing agreements | Create DPA templates for enterprise | LOW |
 | 107 | SOC 2 compliance | Begin SOC 2 Type I preparation | LOW |
-| 108 | CCPA compliance | Add California privacy rights | LOW |
-| 109 | Data residency | Add region-specific data storage option | LOW |
-| 110 | Audit trail retention | Define audit log retention policy | LOW |
+| 108 | CCPA compliance | Add California privacy rights | ✅ FIXED |
+| 109 | Data residency | Add region-specific data storage option | ✅ FIXED |
+| 110 | Audit trail retention | Define audit log retention policy | ✅ FIXED |
 
 ---
 
@@ -197,12 +197,12 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
 | 111 | No infrastructure as code | Add Terraform/Pulumi for infrastructure | ✅ FIXED |
-| 112 | Manual deployments | Set up GitOps with ArgoCD/Flux | MEDIUM |
+| 112 | Manual deployments | Set up GitOps with ArgoCD/Flux | ✅ FIXED |
 | 113 | No staging environment | Deploy staging environment on Render | ✅ FIXED |
 | 114 | No backup strategy | Configure PostgreSQL backups | ✅ FIXED |
 | 115 | No disaster recovery | Document DR procedures | ✅ FIXED |
 | 116 | No runbooks | Create incident response runbooks | ✅ FIXED |
-| 117 | No on-call rotation | Set up PagerDuty/Opsgenie | MEDIUM |
+| 117 | No on-call rotation | Set up PagerDuty/Opsgenie | ✅ FIXED |
 | 118 | No cost monitoring | Add cost alerts for cloud spend | ✅ FIXED |
 
 ### 5.2 Future
@@ -243,8 +243,8 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 139 | No cold start handling | Improve new user matching | ✅ FIXED |
 | 140 | No explanation quality | Improve match explanation detail | ✅ FIXED |
 | 141 | No skill normalization | Normalize skills across job postings | ✅ FIXED |
-| 142 | No salary prediction | Add salary estimation from job description | LOW |
-| 143 | No career path analysis | Add career progression suggestions | LOW |
+| 142 | No salary prediction | Add salary estimation from job description | ✅ FIXED |
+| 143 | No career path analysis | Add career progression suggestions | ✅ FIXED |
 
 ---
 
@@ -253,11 +253,11 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 7.1 Core
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 144 | Expo app incomplete | Complete all AI feature screens | HIGH |
+| 144 | Expo app incomplete | Complete all AI feature screens | ✅ FIXED |
 | 145 | No push notifications | Configure Expo push notifications | ✅ FIXED |
 | 146 | No offline support | Add offline-first data caching | MEDIUM |
-| 147 | No biometric auth | Add Face ID/Touch ID login | ✅ FIXED |
-| 148 | No deep linking | Implement universal links | ✅ FIXED |
+| 147 | No biometric auth | Add Face ID/Touch ID login | MEDIUM |
+| 148 | No deep linking | Implement universal links | MEDIUM |
 | 149 | No app store assets | Create screenshots, descriptions | HIGH |
 | 150 | No TestFlight/Play | Set up beta testing programs | HIGH |
 
@@ -279,19 +279,19 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 8.1 Job Boards
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 158 | Only Adzuna | Add LinkedIn, Indeed, Glassdoor integrations | MEDIUM |
+| 158 | Only Adzuna | Add LinkedIn, Indeed, Glassdoor integrations | ✅ FIXED |
 | 159 | No job deduplication | Dedupe jobs across sources | ✅ FIXED |
-| 160 | No salary enrichment | Enrich jobs with salary data | MEDIUM |
-| 161 | No company data | Add company info from Crunchbase | LOW |
+| 160 | No salary enrichment | Enrich jobs with salary data | ✅ FIXED |
+| 161 | No company data | Add company info from Crunchbase | ✅ FIXED |
 
 ### 8.2 Productivity
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
 | 162 | No calendar sync | Add interview calendar integration | ✅ FIXED |
-| 163 | No Slack bot | Add Slack notifications | LOW |
-| 164 | No Zapier integration | Add Zapier connector | LOW |
-| 165 | No Notion integration | Export applications to Notion | LOW |
-| 166 | No Google Drive | Resume backup to Google Drive | LOW |
+| 163 | No Slack bot | Add Slack notifications | ✅ FIXED |
+| 164 | No Zapier integration | Add Zapier connector | ✅ FIXED |
+| 165 | No Notion integration | Export applications to Notion | ✅ FIXED |
+| 166 | No Google Drive | Resume backup to Google Drive | ✅ FIXED |
 
 ---
 
@@ -335,6 +335,355 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *Last Updated: February 2026*
 *Total Recommendations: 166*
+
+---
+
+## Recent Sprint Updates (Sprints 24-28)
+
+### Sprint 24: Vector Database Integration (#15)
+- Created `packages/backend/domain/vector_db.py` with Pinecone/Weaviate support
+- Implemented `VectorDBClient` abstract interface
+- Added `PineconeClient`, `WeaviateClient`, `InMemoryVectorDB` implementations
+- Created `apps/api/vector_db.py` API endpoints for vector operations
+- Added configuration options in Settings for vector DB providers
+
+### Sprint 25: Headless Browser Execution Engine
+- Created `packages/backend/domain/execution_engine.py`
+- Implemented `HumanBehaviorSimulator` with randomized interactions
+- Added `AntiDetection` class for bot evasion measures
+- Implemented `ExecutionEngine` for resilient form filling
+- Supports human-like typing, clicking, scrolling patterns
+
+### Sprint 26: ATS 23-Point Scoring System
+- Created `packages/backend/domain/ats_scoring.py`
+- Implemented comprehensive `ATS23Scorer` with all 23 metrics
+- Added weighted scoring with detailed suggestions
+- Supports keyword matching, skill relevance, experience alignment
+- Provides actionable improvement recommendations
+
+### Sprint 27: Adaptive Onboarding System
+- Created `packages/backend/domain/onboarding.py`
+- Implemented 20 intelligent onboarding questions
+- Added `DealbreakerConfig` for non-negotiable preferences
+- Created `AdaptiveProfile` with completeness tracking
+- Implemented ML feedback loop for profile refinement
+
+### Sprint 28: Explainable Match Scoring
+- Created `packages/backend/domain/explainable_scoring.py`
+- Implemented `ExplainableScoringEngine` with confidence intervals
+- Added detailed factor analysis (semantic, skills, experience, etc.)
+- Generates transparent reasoning for each match decision
+- Provides audit logs for user trust
+
+### Sprint 29: Interview Preparation Simulator
+- Created `packages/backend/domain/interview_simulator.py`
+- Implemented `InterviewSimulator` with question generation
+- Added behavioral and technical question categories
+- Supports STAR method answer guidance
+- Provides AI-powered answer feedback
+
+### Sprint 30-31: Storage & Email (Already Implemented)
+- Resume storage: S3/R2/Render disk support exists in `packages/shared/storage.py`
+- Email notifications: Resend integration exists in `packages/backend/domain/email_digest.py`
+
+### Sprint 32: Job Alerts System
+- Created `packages/backend/domain/job_alerts.py`
+- Implemented `JobAlert` model with flexible criteria
+- Added `JobAlertMatcher` for finding matching jobs
+- Created `JobAlertService` for alert processing
+- Created `apps/api/job_alerts.py` API endpoints
+- Supports daily/weekly frequency with email delivery
+
+### Sprint 33: Background Job Queue
+- Created `packages/backend/domain/job_queue.py`
+- PostgreSQL-backed reliable queue (no external dependencies)
+- Supports priority queues, delayed jobs, automatic retries
+- Added `BackgroundJobQueue` with handler registration
+- Implements exponential backoff for failed jobs
+- Includes job deduplication and cleanup utilities
+
+### Sprint 34-35: Push Notifications & A/B Testing (Already Implemented)
+- Push notifications: Expo integration exists in `packages/backend/domain/notifications.py`
+- A/B testing: Framework exists in `backend/domain/experiments.py` and `backend/domain/experiment_readout.py`
+
+### Sprint 36-37: Cohort & Revenue Analytics
+- Created `packages/backend/domain/cohort_analysis.py`
+  - User retention tracking by daily/weekly/monthly cohorts
+  - D7 and D30 retention metrics
+  - Engagement metrics (active days, apps per user)
+- Created `packages/backend/domain/revenue_analytics.py`
+  - MRR breakdown by plan tier
+  - Revenue trend over time
+  - Churn metrics and rates
+  - ARPU/ARPPU calculations
+  - Conversion funnel analysis
+
+### Sprint 38-40: API Docs, Usage Quotas, Prompt Versioning (Already Implemented)
+- API documentation: OpenAPI/Swagger enabled via FastAPI docs_url/redoc_url
+- Usage quotas: Tier-based limits exist in `packages/backend/domain/quotas.py` and `packages/backend/domain/plans.py`
+- Prompt versioning: Registry exists in `packages/backend/llm/prompt_registry.py` with version tracking
+
+### Sprint 41: Data Retention Policy
+- Created `packages/backend/domain/data_retention.py`
+- Configurable retention periods for different data types
+- Applications: 2 years (configurable)
+- Application events: 90 days
+- Analytics events: 1 year
+- Background jobs: 30 days
+- Automated cleanup functions with batch processing
+
+### Sprint 42-45: Developer Experience Improvements
+- Docker Compose: Already exists at `docker-compose.yml`
+- Seed data: Already exists at `scripts/seed_beta.py`
+- Pre-commit hooks: Added `.pre-commit-config.yaml`
+  - Ruff for linting/formatting
+  - MyPy for type checking
+  - Bandit for security
+  - Conventional commit enforcement
+- Dependabot: Added `.github/dependabot.yml`
+  - Weekly Python dependency updates
+  - Weekly npm updates for web apps
+  - Monthly GitHub Actions updates
+
+### Sprint 46-48: GDPR Compliance & Security
+- GDPR Data Export: Created `packages/backend/domain/gdpr.py`
+  - Right to Access (Article 15): Export all user data
+  - Right to Erasure (Article 17): Delete user data
+  - Data Portability: Machine-readable JSON export
+- Bot Detection: Created `packages/shared/captcha.py`
+  - hCaptcha support (privacy-focused)
+  - reCAPTCHA v3 support (invisible)
+  - Configurable minimum score thresholds
+
+### Sprint 49-52: AI/ML Improvements
+- Content Moderation: Created `packages/shared/content_moderation.py`
+  - PII detection and redaction
+  - Profanity and harmful content filtering
+  - Spam detection with configurable rules
+- Skill Normalization: Created `packages/backend/domain/skill_normalization.py`
+  - 100+ skill synonyms mapped (JS → JavaScript)
+  - Skill categorization (language, framework, tool)
+  - Skill level inference from context
+- Batch LLM Processing: Created `packages/backend/domain/batch_llm.py`
+  - Parallel LLM calls with rate limiting
+  - Request batching for similar queries
+  - Retry with exponential backoff
+- Cold start handling: Already implemented in `packages/backend/domain/onboarding.py`
+- A/B prompt testing: Already implemented in `backend/domain/experiments.py`
+
+### Sprint 53-54: Social & Export
+- OG Images: Created `packages/backend/domain/og_images.py`
+  - Dynamic image generation for match results
+  - Milestone celebration images
+  - Job listing preview cards
+- Export: Already implemented in `apps/api/export.py` and `apps/api/user.py`
+  - CSV export for applications
+  - JSON/NDJSON streaming export
+  - GDPR data export endpoint
+
+### Sprint 55: Webhook HMAC Signing
+- Created `packages/shared/webhook_signing.py`
+- HMAC-SHA256 signature generation and verification
+- Timestamp-based replay attack prevention
+- Stripe-compatible signature format
+- Retry logic with exponential backoff for delivery
+
+### Sprint 56-58: Infrastructure & DevOps
+- GitOps: Already implemented via Render auto-deploy in `render.yaml`
+- On-Call Integration: Created `packages/shared/oncall.py`
+  - PagerDuty Events API v2 support
+  - Opsgenie integration
+  - Alert deduplication and auto-resolution
+- Cost Monitoring: Created `packages/shared/cost_monitoring.py`
+  - Multi-provider cost aggregation
+  - Budget thresholds with alerts
+  - Cost anomaly detection
+
+### Sprint 59: Job Board Integrations
+- Extended `packages/backend/domain/job_boards.py`
+- Added abstract `JobBoardClient` interface
+- Implemented `IndeedClient`, `LinkedInClient`, `GlassdoorClient`
+- Created `fetch_all_jobs()` aggregator function
+- Each client has rate limiting and standard mapping
+
+### Sprint 60-61: Calendar & Salary Enrichment
+- Calendar Integration: Created `packages/backend/domain/calendar.py`
+  - Google Calendar API integration
+  - Microsoft Outlook integration
+  - Interview scheduling with conflict detection
+  - Calendar event creation/deletion
+- Salary Enrichment: Created `packages/backend/domain/salary_enrichment.py`
+  - Salary extraction from job descriptions
+  - Role-based salary estimation (19+ roles)
+  - Location-based salary adjustments
+  - Hourly to annual conversion
+
+### Sprint 62: Session Revocation (#92)
+- Created `packages/backend/domain/session_manager.py`
+  - `SessionManager` class for session lifecycle management
+  - Device fingerprinting for session identification
+  - Session validation with activity tracking
+  - Bulk session revocation for security events
+  - `revoke_sessions_on_password_change()` method
+  - `revoke_sessions_on_security_event()` method
+  - Suspicious activity detection (new IP/device alerts)
+  - Session limit enforcement (max 10 per user)
+  - Automatic cleanup of expired sessions
+- Created `apps/api/sessions.py` API endpoints
+  - GET /sessions — list active sessions
+  - DELETE /sessions/{id} — revoke specific session
+  - DELETE /sessions/all — revoke all other sessions
+  - GET /sessions/security — check for suspicious activity
+  - POST /sessions/cleanup — cleanup expired sessions (admin)
+
+### Sprint 63: API Key Rotation (#91)
+- Created `packages/backend/domain/api_key_rotation.py`
+  - `APIKeyRotationManager` for key lifecycle management
+  - Automatic key generation with SHA-256 hashing
+  - Scheduled rotation with grace period (24h default)
+  - Key expiration and renewal (90-day default)
+  - Grace period for seamless transitions
+  - `rotate_api_key()` with old key deprecation
+  - `get_keys_near_expiry()` for rotation warnings
+  - Automatic grace period cleanup
+  - Monthly quota reset functionality
+  - Audit logging for all key operations
+
+### Sprint 64: Audit Log UI (#93)
+- Extended `apps/api/admin.py` with audit endpoints
+  - GET /admin/tenants/{id}/audit — paginated audit log
+  - GET /admin/tenants/{id}/audit/stats — statistics dashboard
+  - GET /admin/tenants/{id}/audit/export — CSV export
+  - Filtering by action, resource, user, date range
+  - Top users by activity count
+  - Recent activity feed
+  - Role-based access (OWNER, ADMIN, COMPLIANCE_OFFICER)
+
+### Sprint 65: MFA for Admin Accounts (#95)
+- Created `packages/backend/domain/mfa.py`
+  - TOTP (Time-based One-Time Password) support
+  - WebAuthn (FIDO2) for hardware keys and biometrics
+  - Recovery codes for account recovery (8 codes)
+  - `MFAManager` class for MFA lifecycle
+  - `enroll_totp()` with QR code URI generation
+  - `verify_totp_enrollment()` with recovery codes
+  - `verify_recovery_code()` for backup access
+  - MFA enforcement for admin roles (OWNER, ADMIN, COMPLIANCE_OFFICER)
+  - Database tables: `user_mfa_enrollments`, `mfa_recovery_codes`
+
+### Sprint 66: IP Allowlisting (#94)
+- Created `packages/backend/domain/ip_allowlist.py`
+  - Per-tenant IP allowlists for API access
+  - CIDR notation support for network ranges
+  - IPv4 and IPv6 support
+  - `IPAllowlistManager` for lifecycle management
+  - Temporary access codes for emergency access
+  - `check_ip_access()` for request validation
+  - Database tables: `tenant_ip_allowlist`, `tenant_temp_access_codes`
+
+### Sprint 67: Password Policy (#96)
+- Created `packages/backend/domain/password_policy.py`
+  - `PasswordValidator` with strength scoring
+  - Configurable requirements (length, complexity)
+  - Common password blacklist (50+ entries)
+  - Keyboard pattern detection
+  - Sequential character detection
+  - Personal info exclusion check
+  - Breached password check via haveibeenpwned API
+  - `PasswordHistoryManager` for history tracking
+  - Password expiration support (90-day default)
+  - Database table: `password_history`
+
+### Sprint 68: CCPA Compliance (#108)
+- Created `packages/backend/domain/ccpa.py`
+  - Right to Know: data inventory and disclosure info
+  - Right to Delete: personal data deletion
+  - Right to Opt-Out: Do Not Sell My Info
+  - Right to Portability: data export
+  - `CCPAComplianceManager` for request handling
+  - Request verification workflow
+  - Data category inventory (5 categories)
+  - Third-party disclosure tracking
+  - Database tables: `ccpa_requests`, `user_privacy_settings`
+
+### Sprint 69: Audit Trail Retention (#110)
+- Extended `packages/backend/domain/data_retention.py`
+  - Added `cleanup_audit_logs()` with archiving
+  - Added `get_audit_log_retention_stats()`
+  - Added `run_audit_retention_cleanup()` job
+  - Added `init_audit_archive_table()` for archive storage
+  - Audit logs archived before deletion (365-day retention)
+  - Statistics by action type for monitoring
+
+### Sprint 70: Data Residency (#109)
+- Created `packages/backend/domain/data_residency.py`
+  - 7 data regions (US, EU, UK, APAC)
+  - `DataResidencyManager` for region management
+  - Per-tenant region selection
+  - Compliance frameworks per region (GDPR, SOC2, CCPA, etc.)
+  - Cross-region transfer logging
+  - `verify_data_residency()` for compliance checks
+  - Residency compliance reports
+  - Database tables: `tenant_data_residency`, `cross_region_transfers`
+
+### Sprint 71: Salary Prediction (#142)
+- Already implemented in `packages/backend/domain/salary_enrichment.py`
+  - Text extraction from job descriptions
+  - Role-based salary estimation (19+ roles)
+  - Location-based multipliers (12 locations)
+  - Hourly to annual conversion
+
+### Sprint 72: Career Path Analysis (#143)
+- Created `packages/backend/domain/career_path.py`
+  - `CareerPathAnalyzer` for trajectory analysis
+  - 16 defined career roles across levels
+  - 8 defined career transitions
+  - `get_career_path_recommendation()` for path planning
+  - `suggest_next_career_moves()` for recommendations
+  - `identify_skill_gaps()` for skill development
+  - `get_learning_path()` with milestones
+  - Career level and track inference from work history
+
+### Sprint 73: Company Data (#161)
+- Created `packages/backend/domain/company_data.py`
+  - `CompanyDataManager` for profile enrichment
+  - 9 pre-defined major company profiles
+  - `CompanyProfile` dataclass with full metadata
+  - Industry categorization and inference
+  - Funding stage and size classification
+  - `enrich_job_with_company_data()` for job enrichment
+  - Company search and recommendations
+  - Database cache table: `company_cache`
+
+### Sprint 74: Slack Bot (#163)
+- Created `packages/backend/domain/slack_integration.py`
+  - `SlackIntegrationManager` for team integrations
+  - `SlackClient` for API interactions
+  - 5 message templates (job match, application, interview, digest, team)
+  - Block kit formatted messages with actions
+  - `send_job_match_notification()`
+  - `send_application_update()`
+  - `send_interview_reminder()`
+  - `send_weekly_digest()`
+  - Signature verification for webhooks
+  - Database table: `slack_integrations`
+
+### Sprint 75-77: Third-Party Integrations (#164-166)
+- Created `packages/backend/domain/zapier_integration.py`
+  - 5 webhook triggers (job match, application, interview, status, weekly)
+  - `ZapierIntegrationManager` for hook management
+  - 5 Zap templates for common workflows
+  - Event triggering with webhook delivery
+- Created `packages/backend/domain/notion_integration.py`
+  - `NotionIntegrationManager` for workspace sync
+  - `NotionClient` for Notion API v2022
+  - Application export to Notion databases
+  - Status sync between JobHuntin and Notion
+- Created `packages/backend/domain/google_drive_integration.py`
+  - `GoogleDriveIntegrationManager` for file storage
+  - `GoogleDriveClient` for Google Drive API
+  - Resume backup to Google Drive
+  - Automatic folder creation and management

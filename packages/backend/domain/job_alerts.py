@@ -1,507 +1,487 @@
 """
-Job alert service for daily/weekly job notification emails.
+Job Alerts System — daily/weekly email notifications for new matching jobs.
 
-This addresses recommendation #42: Implement daily/weekly job alert emails.
-
-Features:
-- User-configurable alert frequency (daily, weekly)
-- Match score threshold filtering
-- Location and job type preferences
-- Email digest generation via Resend
-- Scheduled job for alert processing
+Users can configure alerts with:
+- Search keywords/titles
+- Location preferences
+- Salary thresholds
+- Company preferences (include/exclude)
+- Frequency (daily, weekly)
 """
 
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
 import asyncpg
+from pydantic import BaseModel, Field
 
-from shared.config import Settings, get_settings
+from shared.config import get_settings
 from shared.logging_config import get_logger
+from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
 from shared.metrics import incr
 
 logger = get_logger("sorce.job_alerts")
 
 
 class AlertFrequency(StrEnum):
-    """Frequency for job alerts."""
     DAILY = "daily"
     WEEKLY = "weekly"
-    NEVER = "never"
+    IMMEDIATE = "immediate"
 
 
-@dataclass
-class JobAlertPreferences:
-    """User preferences for job alerts."""
+class JobAlert(BaseModel):
+    id: str | None = None
     user_id: str
-    frequency: AlertFrequency = AlertFrequency.DAILY
-    min_match_score: float = 0.7
-    locations: list[str] = field(default_factory=list)
-    job_types: list[str] = field(default_factory=list)  # full-time, part-time, contract
-    categories: list[str] = field(default_factory=list)
-    keywords: list[str] = field(default_factory=list)
-    excluded_companies: list[str] = field(default_factory=list)
-    min_salary: int | None = None
+    tenant_id: str | None = None
+    name: str = "Job Alert"
+    keywords: list[str] = Field(default_factory=list)
+    locations: list[str] = Field(default_factory=list)
+    salary_min: int | None = None
+    salary_max: int | None = None
+    companies_include: list[str] = Field(default_factory=list)
+    companies_exclude: list[str] = Field(default_factory=list)
+    job_types: list[str] = Field(default_factory=list)
     remote_only: bool = False
-    last_sent_at: datetime | None = None
+    frequency: AlertFrequency = AlertFrequency.DAILY
     is_active: bool = True
+    last_sent_at: datetime | None = None
+    created_at: datetime | None = None
 
 
-@dataclass
-class JobAlertItem:
-    """A single job to include in an alert."""
+class JobAlertMatch(BaseModel):
     job_id: str
     title: str
     company: str
-    location: str
-    salary_range: str | None
+    location: str | None
+    salary_min: float | None
+    salary_max: float | None
+    application_url: str
     match_score: float
-    match_reasons: list[str]
-    posted_at: datetime
-    job_url: str
+    matched_keywords: list[str]
 
 
-@dataclass
-class JobAlertDigest:
-    """Digest of jobs for a user alert."""
-    user_id: str
-    email: str
-    frequency: AlertFrequency
-    jobs: list[JobAlertItem]
-    total_matches: int
-    digest_period_start: datetime
-    digest_period_end: datetime
-    unsubscribe_url: str
+class JobAlertResult(BaseModel):
+    alert_id: str
+    alert_name: str
+    matches: list[JobAlertMatch]
+    total_new_jobs: int
+
+
+class JobAlertRepo:
+    @staticmethod
+    async def create(
+        conn: asyncpg.Connection,
+        alert: JobAlert,
+    ) -> str:
+        row = await conn.fetchrow(
+            """
+            INSERT INTO public.job_alerts
+                (user_id, tenant_id, name, keywords, locations, salary_min, salary_max,
+                 companies_include, companies_exclude, job_types, remote_only, frequency, is_active)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::public.alert_frequency, $13)
+            RETURNING id
+            """,
+            alert.user_id,
+            alert.tenant_id,
+            alert.name,
+            json.dumps(alert.keywords),
+            json.dumps(alert.locations),
+            alert.salary_min,
+            alert.salary_max,
+            json.dumps(alert.companies_include),
+            json.dumps(alert.companies_exclude),
+            json.dumps(alert.job_types),
+            alert.remote_only,
+            alert.frequency.value,
+            alert.is_active,
+        )
+        return str(row["id"])
+
+    @staticmethod
+    async def get_by_user(
+        conn: asyncpg.Connection,
+        user_id: str,
+    ) -> list[JobAlert]:
+        rows = await conn.fetch(
+            """
+            SELECT * FROM public.job_alerts
+            WHERE user_id = $1 AND is_active = true
+            ORDER BY created_at DESC
+            """,
+            user_id,
+        )
+        return [JobAlertRepo._row_to_model(r) for r in rows]
+
+    @staticmethod
+    async def get_due_alerts(
+        conn: asyncpg.Connection,
+        frequency: AlertFrequency,
+    ) -> list[JobAlert]:
+        if frequency == AlertFrequency.DAILY:
+            interval = "interval '1 day'"
+        elif frequency == AlertFrequency.WEEKLY:
+            interval = "interval '7 days'"
+        else:
+            return []
+
+        rows = await conn.fetch(
+            f"""
+            SELECT * FROM public.job_alerts
+            WHERE is_active = true
+              AND frequency = $1
+              AND (last_sent_at IS NULL OR last_sent_at < now() - {interval})
+            """,
+            frequency.value,
+        )
+        return [JobAlertRepo._row_to_model(r) for r in rows]
+
+    @staticmethod
+    async def update_last_sent(
+        conn: asyncpg.Connection,
+        alert_id: str,
+    ) -> None:
+        await conn.execute(
+            """
+            UPDATE public.job_alerts
+            SET last_sent_at = now()
+            WHERE id = $1
+            """,
+            alert_id,
+        )
+
+    @staticmethod
+    async def delete(
+        conn: asyncpg.Connection,
+        alert_id: str,
+        user_id: str,
+    ) -> bool:
+        result = await conn.execute(
+            """
+            UPDATE public.job_alerts
+            SET is_active = false
+            WHERE id = $1 AND user_id = $2
+            """,
+            alert_id,
+            user_id,
+        )
+        return "UPDATE 1" in result
+
+    @staticmethod
+    def _row_to_model(row: asyncpg.Record) -> JobAlert:
+        return JobAlert(
+            id=str(row["id"]),
+            user_id=str(row["user_id"]),
+            tenant_id=str(row["tenant_id"]) if row["tenant_id"] else None,
+            name=row["name"],
+            keywords=json.loads(row["keywords"]) if row["keywords"] else [],
+            locations=json.loads(row["locations"]) if row["locations"] else [],
+            salary_min=row["salary_min"],
+            salary_max=row["salary_max"],
+            companies_include=json.loads(row["companies_include"])
+            if row["companies_include"]
+            else [],
+            companies_exclude=json.loads(row["companies_exclude"])
+            if row["companies_exclude"]
+            else [],
+            job_types=json.loads(row["job_types"]) if row["job_types"] else [],
+            remote_only=row["remote_only"],
+            frequency=AlertFrequency(row["frequency"]),
+            is_active=row["is_active"],
+            last_sent_at=row["last_sent_at"],
+            created_at=row["created_at"],
+        )
+
+
+class JobAlertMatcher:
+    @staticmethod
+    async def find_matching_jobs(
+        conn: asyncpg.Connection,
+        alert: JobAlert,
+        since_hours: int = 24,
+        limit: int = 50,
+    ) -> list[JobAlertMatch]:
+        conditions = ["j.created_at >= now() - interval '%s hours'" % since_hours]
+        params: list[Any] = []
+        param_idx = 1
+
+        if alert.keywords:
+            keyword_conditions = []
+            for kw in alert.keywords:
+                keyword_conditions.append(f"LOWER(j.title) LIKE ${param_idx}")
+                params.append(f"%{kw.lower()}%")
+                param_idx += 1
+            conditions.append(f"({' OR '.join(keyword_conditions)})")
+
+        if alert.locations:
+            loc_conditions = []
+            for loc in alert.locations:
+                loc_conditions.append(f"LOWER(j.location) LIKE ${param_idx}")
+                params.append(f"%{loc.lower()}%")
+                param_idx += 1
+            conditions.append(f"({' OR '.join(loc_conditions)})")
+
+        if alert.salary_min:
+            conditions.append(
+                f"(j.salary_min >= ${param_idx} OR j.salary_max >= ${param_idx})"
+            )
+            params.append(alert.salary_min)
+            param_idx += 1
+
+        if alert.companies_exclude:
+            exclude_conditions = []
+            for company in alert.companies_exclude:
+                exclude_conditions.append(f"LOWER(j.company) NOT LIKE ${param_idx}")
+                params.append(f"%{company.lower()}%")
+                param_idx += 1
+            conditions.extend(exclude_conditions)
+
+        if alert.companies_include:
+            include_conditions = []
+            for company in alert.companies_include:
+                include_conditions.append(f"LOWER(j.company) LIKE ${param_idx}")
+                params.append(f"%{company.lower()}%")
+                param_idx += 1
+            conditions.append(f"({' OR '.join(include_conditions)})")
+
+        if alert.remote_only:
+            conditions.append("LOWER(j.location) LIKE '%remote%'")
+
+        params.append(limit)
+        limit_param = param_idx
+
+        query = f"""
+            SELECT j.id, j.title, j.company, j.location, j.salary_min, j.salary_max, j.application_url
+            FROM public.jobs j
+            WHERE {" AND ".join(conditions)}
+            ORDER BY j.created_at DESC
+            LIMIT ${limit_param}
+        """
+
+        rows = await conn.fetch(query, *params)
+        return [
+            JobAlertMatch(
+                job_id=str(r["id"]),
+                title=r["title"],
+                company=r["company"],
+                location=r["location"],
+                salary_min=float(r["salary_min"]) if r["salary_min"] else None,
+                salary_max=float(r["salary_max"]) if r["salary_max"] else None,
+                application_url=r["application_url"],
+                match_score=JobAlertMatcher._calculate_score(alert, r),
+                matched_keywords=JobAlertMatcher._get_matched_keywords(alert, r),
+            )
+            for r in rows
+        ]
+
+    @staticmethod
+    def _calculate_score(alert: JobAlert, job: asyncpg.Record) -> float:
+        score = 0.0
+        title_lower = (job["title"] or "").lower()
+        company_lower = (job["company"] or "").lower()
+
+        for kw in alert.keywords:
+            if kw.lower() in title_lower:
+                score += 20.0
+
+        for loc in alert.locations:
+            if loc.lower() in (job["location"] or "").lower():
+                score += 15.0
+
+        for company in alert.companies_include:
+            if company.lower() in company_lower:
+                score += 25.0
+
+        if alert.salary_min and job["salary_max"]:
+            if job["salary_max"] >= alert.salary_min:
+                score += 10.0
+
+        return min(100.0, score)
+
+    @staticmethod
+    def _get_matched_keywords(alert: JobAlert, job: asyncpg.Record) -> list[str]:
+        matched = []
+        title_lower = (job["title"] or "").lower()
+        for kw in alert.keywords:
+            if kw.lower() in title_lower:
+                matched.append(kw)
+        return matched
 
 
 class JobAlertService:
-    """
-    Service for managing and sending job alerts.
-    """
+    def __init__(self, pool: asyncpg.Pool):
+        self.pool = pool
 
-    def __init__(self, db_pool: asyncpg.Pool, settings: Settings | None = None) -> None:
-        self._pool = db_pool
-        self._settings = settings or get_settings()
+    async def create_alert(self, alert: JobAlert) -> str:
+        async with self.pool.acquire() as conn:
+            alert_id = await JobAlertRepo.create(conn, alert)
+            incr("job_alerts.created", {"frequency": alert.frequency.value})
+            return alert_id
 
-    async def get_user_preferences(self, user_id: str) -> JobAlertPreferences | None:
-        """Get alert preferences for a user."""
-        async with self._pool.acquire() as conn:
-            row = await conn.fetchrow(
-                """
-                SELECT 
-                    user_id, frequency, min_match_score, locations, job_types,
-                    categories, keywords, excluded_companies, min_salary,
-                    remote_only, last_sent_at, is_active
-                FROM public.job_alert_preferences
-                WHERE user_id = $1
-                """,
-                user_id,
-            )
-            if not row:
-                return None
+    async def get_user_alerts(self, user_id: str) -> list[JobAlert]:
+        async with self.pool.acquire() as conn:
+            return await JobAlertRepo.get_by_user(conn, user_id)
 
-            return JobAlertPreferences(
-                user_id=row["user_id"],
-                frequency=AlertFrequency(row["frequency"] or "daily"),
-                min_match_score=row["min_match_score"] or 0.7,
-                locations=json.loads(row["locations"]) if row["locations"] else [],
-                job_types=json.loads(row["job_types"]) if row["job_types"] else [],
-                categories=json.loads(row["categories"]) if row["categories"] else [],
-                keywords=json.loads(row["keywords"]) if row["keywords"] else [],
-                excluded_companies=json.loads(row["excluded_companies"]) if row["excluded_companies"] else [],
-                min_salary=row["min_salary"],
-                remote_only=row["remote_only"] or False,
-                last_sent_at=row["last_sent_at"],
-                is_active=row["is_active"],
-            )
-
-    async def save_user_preferences(self, prefs: JobAlertPreferences) -> None:
-        """Save or update alert preferences for a user."""
-        async with self._pool.acquire() as conn:
-            await conn.execute(
-                """
-                INSERT INTO public.job_alert_preferences (
-                    user_id, frequency, min_match_score, locations, job_types,
-                    categories, keywords, excluded_companies, min_salary,
-                    remote_only, is_active, updated_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now())
-                ON CONFLICT (user_id) DO UPDATE SET
-                    frequency = $2,
-                    min_match_score = $3,
-                    locations = $4,
-                    job_types = $5,
-                    categories = $6,
-                    keywords = $7,
-                    excluded_companies = $8,
-                    min_salary = $9,
-                    remote_only = $10,
-                    is_active = $11,
-                    updated_at = now()
-                """,
-                prefs.user_id,
-                prefs.frequency.value,
-                prefs.min_match_score,
-                json.dumps(prefs.locations),
-                json.dumps(prefs.job_types),
-                json.dumps(prefs.categories),
-                json.dumps(prefs.keywords),
-                json.dumps(prefs.excluded_companies),
-                prefs.min_salary,
-                prefs.remote_only,
-                prefs.is_active,
-            )
-
-    async def find_matching_jobs(
-        self,
-        prefs: JobAlertPreferences,
-        since: datetime,
-        limit: int = 20,
-    ) -> list[JobAlertItem]:
-        """Find jobs matching user preferences since the given time."""
-        async with self._pool.acquire() as conn:
-            # Build query with filters
-            conditions = ["j.created_at > $1", "j.is_active = true"]
-            params: list[Any] = [since]
-            param_idx = 2
-
-            # Location filter
-            if prefs.locations:
-                conditions.append(
-                    f"LOWER(j.location) LIKE ANY(${param_idx}::text[])"
-                )
-                params.append([f"%{loc.lower()}%" for loc in prefs.locations])
-                param_idx += 1
-
-            # Remote filter
-            if prefs.remote_only:
-                conditions.append("LOWER(j.location) LIKE '%remote%'")
-
-            # Job type filter
-            if prefs.job_types:
-                conditions.append(f"j.job_type = ANY(${param_idx}::text[])")
-                params.append(prefs.job_types)
-                param_idx += 1
-
-            # Category filter
-            if prefs.categories:
-                conditions.append(f"j.category = ANY(${param_idx}::text[])")
-                params.append(prefs.categories)
-                param_idx += 1
-
-            # Salary filter
-            if prefs.min_salary:
-                conditions.append(
-                    f"(j.salary_max >= ${param_idx} OR j.salary_min >= ${param_idx})"
-                )
-                params.append(prefs.min_salary)
-                param_idx += 1
-
-            # Exclude companies
-            if prefs.excluded_companies:
-                conditions.append(
-                    f"LOWER(j.company) NOT LIKE ALL(${param_idx}::text[])"
-                )
-                params.append([f"%{c.lower()}%" for c in prefs.excluded_companies])
-                param_idx += 1
-
-            # Add limit
-            params.append(limit)
-
-            query = f"""
-                SELECT 
-                    j.id, j.title, j.company, j.location,
-                    j.salary_min, j.salary_max, j.created_at,
-                    COALESCE(m.score, 0.5) as match_score,
-                    m.explanation->>'reasoning' as match_reasoning
-                FROM public.jobs j
-                LEFT JOIN public.job_match_scores m 
-                    ON m.job_id = j.id AND m.user_id = ${param_idx}
-                WHERE {' AND '.join(conditions)}
-                ORDER BY match_score DESC, j.created_at DESC
-                LIMIT ${param_idx + 1}
-            """
-
-            # Add user_id for match scores
-            params.insert(param_idx - 1, prefs.user_id)
-
-            rows = await conn.fetch(query, *params)
-
-            return [
-                JobAlertItem(
-                    job_id=row["id"],
-                    title=row["title"],
-                    company=row["company"],
-                    location=row["location"],
-                    salary_range=self._format_salary(row["salary_min"], row["salary_max"]),
-                    match_score=float(row["match_score"] or 0.5),
-                    match_reasons=[row["match_reasoning"]] if row["match_reasoning"] else [],
-                    posted_at=row["created_at"],
-                    job_url=f"{self._settings.app_base_url}/jobs/{row['id']}",
-                )
-                for row in rows
-                if float(row["match_score"] or 0.5) >= prefs.min_match_score
-            ]
-
-    async def get_users_due_for_alert(
-        self,
-        frequency: AlertFrequency,
-    ) -> list[dict[str, Any]]:
-        """Get users who are due for an alert based on frequency."""
-        async with self._pool.acquire() as conn:
-            if frequency == AlertFrequency.DAILY:
-                interval = timedelta(hours=20)  # Send if last sent > 20 hours ago
-            else:
-                interval = timedelta(days=6)  # Send if last sent > 6 days ago
-
-            cutoff = datetime.now(UTC) - interval
-
-            rows = await conn.fetch(
-                """
-                SELECT 
-                    jap.user_id, jap.frequency, jap.min_match_score,
-                    jap.locations, jap.job_types, jap.categories,
-                    jap.keywords, jap.excluded_companies, jap.min_salary,
-                    jap.remote_only, jap.last_sent_at,
-                    u.email
-                FROM public.job_alert_preferences jap
-                JOIN public.users u ON u.id = jap.user_id
-                WHERE jap.is_active = true
-                    AND jap.frequency = $1
-                    AND (jap.last_sent_at IS NULL OR jap.last_sent_at < $2)
-                """,
-                frequency.value,
-                cutoff,
-            )
-            return [dict(r) for r in rows]
-
-    async def send_alert_email(self, digest: JobAlertDigest) -> bool:
-        """Send job alert email via Resend."""
-        if not self._settings.resend_api_key:
-            logger.warning("Resend API key not configured, skipping alert email")
-            return False
-
-        import httpx
-
-        # Build email content
-        subject = self._build_subject(digest)
-        html_content = self._build_html_email(digest)
-        text_content = self._build_text_email(digest)
-
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                resp = await client.post(
-                    "https://api.resend.com/emails",
-                    headers={
-                        "Authorization": f"Bearer {self._settings.resend_api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "from": self._settings.email_from,
-                        "to": digest.email,
-                        "subject": subject,
-                        "html": html_content,
-                        "text": text_content,
-                        "tags": [
-                            {"name": "type", "value": "job_alert"},
-                            {"name": "frequency", "value": digest.frequency.value},
-                        ],
-                    },
-                )
-                if resp.status_code not in (200, 201):
-                    logger.error(
-                        "Failed to send job alert email: %s - %s",
-                        resp.status_code,
-                        resp.text,
-                    )
-                    return False
-
-                incr("job_alerts.sent", {"frequency": digest.frequency.value})
-                logger.info(
-                    "Sent job alert to %s with %d jobs",
-                    digest.email,
-                    len(digest.jobs),
-                )
-                return True
-
-        except Exception as exc:
-            logger.error("Error sending job alert email: %s", exc)
-            return False
-
-    async def mark_alert_sent(self, user_id: str) -> None:
-        """Mark that an alert was sent to a user."""
-        async with self._pool.acquire() as conn:
-            await conn.execute(
-                """
-                UPDATE public.job_alert_preferences
-                SET last_sent_at = now()
-                WHERE user_id = $1
-                """,
-                user_id,
-            )
+    async def delete_alert(self, alert_id: str, user_id: str) -> bool:
+        async with self.pool.acquire() as conn:
+            return await JobAlertRepo.delete(conn, alert_id, user_id)
 
     async def process_alerts(self, frequency: AlertFrequency) -> dict[str, int]:
-        """
-        Process all pending alerts for a frequency.
-        
-        Returns stats about processed alerts.
-        """
-        users = await self.get_users_due_for_alert(frequency)
-        
-        sent_count = 0
-        skipped_count = 0
-        error_count = 0
+        sent = skipped = failed = 0
+        since_hours = 24 if frequency == AlertFrequency.DAILY else 168
 
-        for user in users:
-            try:
-                prefs = JobAlertPreferences(
-                    user_id=user["user_id"],
-                    frequency=AlertFrequency(user["frequency"] or "daily"),
-                    min_match_score=user["min_match_score"] or 0.7,
-                    locations=json.loads(user["locations"]) if user["locations"] else [],
-                    job_types=json.loads(user["job_types"]) if user["job_types"] else [],
-                    categories=json.loads(user["categories"]) if user["categories"] else [],
-                    keywords=json.loads(user["keywords"]) if user["keywords"] else [],
-                    excluded_companies=json.loads(user["excluded_companies"]) if user["excluded_companies"] else [],
-                    min_salary=user["min_salary"],
-                    remote_only=user["remote_only"] or False,
-                    last_sent_at=user["last_sent_at"],
-                )
+        async with self.pool.acquire() as conn:
+            alerts = await JobAlertRepo.get_due_alerts(conn, frequency)
 
-                # Determine time range
-                if prefs.last_sent_at:
-                    since = prefs.last_sent_at
-                else:
-                    since = datetime.now(UTC) - (
-                        timedelta(days=1) if frequency == AlertFrequency.DAILY 
-                        else timedelta(days=7)
-                    )
-
-                # Find matching jobs
-                jobs = await self.find_matching_jobs(prefs, since)
-
-                if not jobs:
-                    skipped_count += 1
+            for alert in alerts:
+                if not alert.id:
                     continue
 
-                # Create and send digest
-                digest = JobAlertDigest(
-                    user_id=prefs.user_id,
-                    email=user["email"],
-                    frequency=prefs.frequency,
-                    jobs=jobs,
-                    total_matches=len(jobs),
-                    digest_period_start=since,
-                    digest_period_end=datetime.now(UTC),
-                    unsubscribe_url=f"{self._settings.app_base_url}/settings?tab=alerts",
-                )
+                try:
+                    matches = await JobAlertMatcher.find_matching_jobs(
+                        conn, alert, since_hours=since_hours
+                    )
 
-                if await self.send_alert_email(digest):
-                    await self.mark_alert_sent(prefs.user_id)
-                    sent_count += 1
-                else:
-                    error_count += 1
+                    if not matches:
+                        skipped += 1
+                        await JobAlertRepo.update_last_sent(conn, alert.id)
+                        continue
 
-            except Exception as exc:
-                logger.error("Error processing alert for user %s: %s", user["user_id"], exc)
-                error_count += 1
+                    user = await conn.fetchrow(
+                        "SELECT email, raw_user_meta_data->>'full_name' AS name FROM auth.users WHERE id = $1",
+                        alert.user_id,
+                    )
 
-        return {
-            "sent": sent_count,
-            "skipped": skipped_count,
-            "errors": error_count,
-            "total_users": len(users),
-        }
+                    if not user or not user["email"]:
+                        skipped += 1
+                        continue
 
-    def _format_salary(self, salary_min: int | None, salary_max: int | None) -> str | None:
-        """Format salary range for display."""
-        if not salary_min and not salary_max:
-            return None
-        if salary_min and salary_max:
-            return f"${salary_min:,} - ${salary_max:,}"
-        if salary_min:
-            return f"${salary_min:,}+"
-        return f"Up to ${salary_max:,}"
+                    html = self._render_alert_email(alert, matches)
+                    subject = f"{len(matches)} new jobs match your alert: {alert.name}"
 
-    def _build_subject(self, digest: JobAlertDigest) -> str:
-        """Build email subject line."""
-        count = len(digest.jobs)
-        if count == 1:
-            return "🎯 1 New Job Match Found!"
-        return f"🎯 {count} New Job Matches Found!"
+                    success = await self._send_email(user["email"], subject, html)
 
-    def _build_html_email(self, digest: JobAlertDigest) -> str:
-        """Build HTML email content."""
+                    if success:
+                        await JobAlertRepo.update_last_sent(conn, alert.id)
+                        await self._log_alert_sent(conn, alert.id, matches)
+                        sent += 1
+                        incr("job_alerts.sent", {"frequency": frequency.value})
+                    else:
+                        failed += 1
+
+                except Exception as e:
+                    logger.error("Failed to process alert %s: %s", alert.id, e)
+                    failed += 1
+
+        logger.info(
+            "Job alerts processed: sent=%d, skipped=%d, failed=%d",
+            sent,
+            skipped,
+            failed,
+        )
+        return {"sent": sent, "skipped": skipped, "failed": failed}
+
+    async def _send_email(self, to_email: str, subject: str, html: str) -> bool:
+        import httpx
+
+        s = get_settings()
+        if not s.resend_api_key:
+            logger.warning("Resend API key not set, skipping alert email")
+            return False
+
+        cb = get_circuit_breaker("resend")
+
+        try:
+            async with cb:
+                async with httpx.AsyncClient(timeout=10) as client:
+                    resp = await client.post(
+                        "https://api.resend.com/emails",
+                        headers={
+                            "Authorization": f"Bearer {s.resend_api_key}",
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "from": s.email_from,
+                            "to": [to_email],
+                            "subject": subject,
+                            "html": html,
+                        },
+                    )
+                    return resp.status_code in (200, 201)
+        except CircuitBreakerOpen:
+            logger.warning("Resend circuit breaker open")
+            return False
+        except Exception as e:
+            logger.error("Failed to send alert email: %s", e)
+            return False
+
+    def _render_alert_email(self, alert: JobAlert, matches: list[JobAlertMatch]) -> str:
         jobs_html = ""
-        for job in digest.jobs[:10]:  # Limit to 10 jobs in email
+        for m in matches[:10]:
+            salary_str = ""
+            if m.salary_min or m.salary_max:
+                if m.salary_min and m.salary_max:
+                    salary_str = f"${int(m.salary_min):,} - ${int(m.salary_max):,}"
+                elif m.salary_max:
+                    salary_str = f"Up to ${int(m.salary_max):,}"
+                else:
+                    salary_str = f"From ${int(m.salary_min):,}"
+
             jobs_html += f"""
-                <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px;">
-                    <h3 style="margin: 0 0 5px 0;">
-                        <a href="{job.job_url}" style="color: #0066cc; text-decoration: none;">
-                            {job.title}
-                        </a>
-                    </h3>
-                    <p style="margin: 0 0 5px 0; color: #666;">
-                        {job.company} • {job.location}
-                    </p>
-                    {f'<p style="margin: 0 0 5px 0; color: #28a745;">{job.salary_range}</p>' if job.salary_range else ''}
-                    <p style="margin: 0 0 5px 0;">
-                        <span style="background: #e8f5e9; padding: 2px 8px; border-radius: 4px; font-size: 12px;">
-                            {job.match_score:.0%} Match
-                        </span>
-                    </p>
-                </div>
+            <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin: 12px 0;">
+                <h3 style="margin: 0 0 8px; font-size: 16px;">{m.title}</h3>
+                <p style="margin: 0 0 4px; color: #64748B;">{m.company}</p>
+                {f'<p style="margin: 0 0 4px; color: #64748B;">{m.location}</p>' if m.location else ""}
+                {f'<p style="margin: 0 0 8px; color: #10B981; font-weight: 600;">{salary_str}</p>' if salary_str else ""}
+                <a href="{m.application_url}" style="color: #3B82F6; text-decoration: none; font-weight: 600;">View Job →</a>
+            </div>
             """
 
+        more_count = len(matches) - 10 if len(matches) > 10 else 0
+        more_html = (
+            f'<p style="color: #64748B; text-align: center;">+ {more_count} more jobs</p>'
+            if more_count > 0
+            else ""
+        )
+
         return f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            </head>
-            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #333;">🎯 Your Job Matches</h1>
-                <p style="color: #666;">
-                    We found {digest.total_matches} new job{'s' if digest.total_matches != 1 else ''} 
-                    matching your preferences:
-                </p>
-                {jobs_html}
-                <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
-                <p style="color: #999; font-size: 12px;">
-                    You're receiving this because you enabled {digest.frequency.value} job alerts.
-                    <br>
-                    <a href="{digest.unsubscribe_url}">Manage alert preferences</a>
-                </p>
-            </body>
-            </html>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h1 style="color: #3B82F6; margin: 0; font-size: 24px;">JobHuntin</h1>
+                <p style="color: #64748B; margin: 4px 0 0;">New Jobs Matching Your Alert</p>
+            </div>
+
+            <div style="background: #F1F5F9; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: center;">
+                <p style="margin: 0; font-size: 18px;"><strong>{alert.name}</strong></p>
+                <p style="margin: 4px 0 0; color: #64748B;">{len(matches)} new matching jobs</p>
+            </div>
+
+            {jobs_html}
+            {more_html}
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="sorce://alerts/{alert.id}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Manage Alert</a>
+            </div>
+
+            <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
+                You're receiving this because you created a job alert. <a href="sorce://settings/alerts" style="color: #94A3B8;">Manage your alerts</a>
+            </p>
+        </div>
         """
 
-    def _build_text_email(self, digest: JobAlertDigest) -> str:
-        """Build plain text email content."""
-        jobs_text = ""
-        for job in digest.jobs[:10]:
-            jobs_text += f"""
-{job.title}
-{job.company} • {job.location}
-{f'{job.salary_range}' if job.salary_range else ''}
-Match Score: {job.match_score:.0%}
-Link: {job.job_url}
-
-"""
-        return f"""
-Your Job Matches
-
-We found {digest.total_matches} new job{'s' if digest.total_matches != 1 else ''} 
-matching your preferences:
-
-{jobs_text}
-
----
-You're receiving this because you enabled {digest.frequency.value} job alerts.
-Manage preferences: {digest.unsubscribe_url}
-"""
+    async def _log_alert_sent(
+        self, conn: asyncpg.Connection, alert_id: str, matches: list[JobAlertMatch]
+    ) -> None:
+        await conn.execute(
+            """
+            INSERT INTO public.job_alert_log
+                (alert_id, jobs_count, job_ids, sent_at)
+            VALUES ($1, $2, $3::jsonb, now())
+            """,
+            alert_id,
+            len(matches),
+            json.dumps([m.model_dump() for m in matches]),
+        )

@@ -1,491 +1,364 @@
 """
-Skill normalization service.
+Skill Normalization — normalize skills across job postings for better matching.
 
 Provides:
-- Skill synonym mapping
-- Skill categorization
-- Skill level inference
-- Cross-platform skill mapping
+- Skill synonym resolution (JS → JavaScript)
+- Skill categorization (programming, framework, tool)
+- Skill level inference (beginner, intermediate, expert)
+- Canonical skill naming
 """
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional
+from __future__ import annotations
+
 import re
-import logging
+from enum import StrEnum
+from typing import Any
 
-logger = logging.getLogger(__name__)
+from pydantic import BaseModel
+
+from shared.logging_config import get_logger
+
+logger = get_logger("sorce.skill_normalization")
 
 
-class SkillCategory(str, Enum):
-    """Categories of skills."""
+class SkillCategory(StrEnum):
     PROGRAMMING_LANGUAGE = "programming_language"
     FRAMEWORK = "framework"
+    LIBRARY = "library"
     DATABASE = "database"
     CLOUD = "cloud"
-    DEVOPS = "devops"
-    FRONTEND = "frontend"
-    BACKEND = "backend"
-    DATA_SCIENCE = "data_science"
-    MACHINE_LEARNING = "machine_learning"
-    MOBILE = "mobile"
-    DESIGN = "design"
-    PROJECT_MANAGEMENT = "project_management"
-    COMMUNICATION = "communication"
-    LEADERSHIP = "leadership"
-    OTHER = "other"
+    TOOL = "tool"
+    METHODOLOGY = "methodology"
+    SOFT_SKILL = "soft_skill"
+    DOMAIN = "domain"
 
 
-class SkillLevel(str, Enum):
-    """Skill proficiency levels."""
+class SkillLevel(StrEnum):
     BEGINNER = "beginner"
     INTERMEDIATE = "intermediate"
-    ADVANCED = "advanced"
     EXPERT = "expert"
 
 
-@dataclass
-class NormalizedSkill:
-    """A normalized skill with metadata."""
+class NormalizedSkill(BaseModel):
     canonical_name: str
-    display_name: str
+    original: str
     category: SkillCategory
-    level: Optional[SkillLevel] = None
-    aliases: list[str] = field(default_factory=list)
-    related_skills: list[str] = field(default_factory=list)
-    tags: list[str] = field(default_factory=list)
+    aliases: list[str] = []
+    level: SkillLevel | None = None
+    confidence: float = 1.0
 
 
-# Skill synonym mappings
 SKILL_SYNONYMS: dict[str, str] = {
-    # Programming languages
-    "js": "javascript",
-    "ts": "typescript",
-    "py": "python",
-    "golang": "go",
-    "c#": "csharp",
-    "c sharp": "csharp",
-    "c++": "cpp",
-    "c plus plus": "cpp",
-    "objective-c": "objectivec",
-    "obj-c": "objectivec",
-    "k8s": "kubernetes",
-    "gcp": "google cloud platform",
-    "aws": "amazon web services",
-    "azure": "microsoft azure",
-    
-    # Frameworks
-    "reactjs": "react",
-    "react.js": "react",
-    "vuejs": "vue",
-    "vue.js": "vue",
-    "angularjs": "angular",
-    "nextjs": "next.js",
-    "nodejs": "node.js",
-    "expressjs": "express",
-    "express.js": "express",
-    "django rest framework": "django rest framework",
-    "drf": "django rest framework",
-    
-    # Databases
-    "postgres": "postgresql",
-    "pg": "postgresql",
-    "mongo": "mongodb",
-    "redis cache": "redis",
-    
-    # DevOps
-    "ci/cd": "cicd",
-    "ci cd": "cicd",
-    "infrastructure as code": "iac",
-    "terraform": "terraform",
-    "ansible": "ansible",
-    
-    # Data Science
-    "ml": "machine learning",
-    "ai": "artificial intelligence",
-    "nlp": "natural language processing",
-    "cv": "computer vision",
-    "data viz": "data visualization",
-    
-    # Soft skills
-    "comm skills": "communication",
-    "team lead": "team leadership",
-    "project mgmt": "project management",
-    "pmp": "project management professional",
+    "js": "JavaScript",
+    "javascript": "JavaScript",
+    "typescript": "TypeScript",
+    "ts": "TypeScript",
+    "python": "Python",
+    "py": "Python",
+    "java": "Java",
+    "c#": "C#",
+    "csharp": "C#",
+    "c++": "C++",
+    "cpp": "C++",
+    "ruby": "Ruby",
+    "rb": "Ruby",
+    "go": "Go",
+    "golang": "Go",
+    "rust": "Rust",
+    "swift": "Swift",
+    "kotlin": "Kotlin",
+    "scala": "Scala",
+    "php": "PHP",
+    "react": "React",
+    "reactjs": "React",
+    "react.js": "React",
+    "vue": "Vue.js",
+    "vuejs": "Vue.js",
+    "vue.js": "Vue.js",
+    "angular": "Angular",
+    "angularjs": "Angular.js",
+    "angular.js": "Angular.js",
+    "svelte": "Svelte",
+    "nextjs": "Next.js",
+    "next.js": "Next.js",
+    "next": "Next.js",
+    "nuxt": "Nuxt.js",
+    "nuxtjs": "Nuxt.js",
+    "nuxt.js": "Nuxt.js",
+    "node": "Node.js",
+    "nodejs": "Node.js",
+    "node.js": "Node.js",
+    "express": "Express.js",
+    "expressjs": "Express.js",
+    "express.js": "Express.js",
+    "django": "Django",
+    "flask": "Flask",
+    "fastapi": "FastAPI",
+    "rails": "Ruby on Rails",
+    "ruby on rails": "Ruby on Rails",
+    "ror": "Ruby on Rails",
+    "spring": "Spring",
+    "springboot": "Spring Boot",
+    "spring boot": "Spring Boot",
+    "aspnet": "ASP.NET",
+    "asp.net": "ASP.NET",
+    ".net": ".NET",
+    "dotnet": ".NET",
+    "postgres": "PostgreSQL",
+    "postgresql": "PostgreSQL",
+    "mysql": "MySQL",
+    "mongodb": "MongoDB",
+    "mongo": "MongoDB",
+    "redis": "Redis",
+    "elasticsearch": "Elasticsearch",
+    "elastic": "Elasticsearch",
+    "aws": "AWS",
+    "amazon web services": "AWS",
+    "azure": "Azure",
+    "gcp": "Google Cloud",
+    "google cloud": "Google Cloud",
+    "google cloud platform": "Google Cloud",
+    "docker": "Docker",
+    "kubernetes": "Kubernetes",
+    "k8s": "Kubernetes",
+    "terraform": "Terraform",
+    "ansible": "Ansible",
+    "jenkins": "Jenkins",
+    "git": "Git",
+    "github": "GitHub",
+    "gitlab": "GitLab",
+    "ci/cd": "CI/CD",
+    "cicd": "CI/CD",
+    "agile": "Agile",
+    "scrum": "Scrum",
+    "kanban": "Kanban",
+    "rest": "REST API",
+    "rest api": "REST API",
+    "restful": "REST API",
+    "graphql": "GraphQL",
+    "grpc": "gRPC",
+    "sql": "SQL",
+    "nosql": "NoSQL",
+    "ml": "Machine Learning",
+    "machine learning": "Machine Learning",
+    "ai": "Artificial Intelligence",
+    "artificial intelligence": "Artificial Intelligence",
+    "deep learning": "Deep Learning",
+    "nlp": "NLP",
+    "natural language processing": "NLP",
+    "data science": "Data Science",
+    "ds": "Data Science",
+    "etl": "ETL",
+    "spark": "Apache Spark",
+    "hadoop": "Hadoop",
+    "kafka": "Apache Kafka",
+    "kafka": "Apache Kafka",
+    "airflow": "Apache Airflow",
+    "tableau": "Tableau",
+    "power bi": "Power BI",
+    "powerbi": "Power BI",
+    "excel": "Excel",
+    "figma": "Figma",
+    "sketch": "Sketch",
+    "adobe xd": "Adobe XD",
+    "xd": "Adobe XD",
 }
 
-# Skill categorization
 SKILL_CATEGORIES: dict[str, SkillCategory] = {
-    # Programming languages
-    "javascript": SkillCategory.PROGRAMMING_LANGUAGE,
-    "typescript": SkillCategory.PROGRAMMING_LANGUAGE,
-    "python": SkillCategory.PROGRAMMING_LANGUAGE,
-    "java": SkillCategory.PROGRAMMING_LANGUAGE,
-    "c": SkillCategory.PROGRAMMING_LANGUAGE,
-    "cpp": SkillCategory.PROGRAMMING_LANGUAGE,
-    "csharp": SkillCategory.PROGRAMMING_LANGUAGE,
-    "go": SkillCategory.PROGRAMMING_LANGUAGE,
-    "rust": SkillCategory.PROGRAMMING_LANGUAGE,
-    "ruby": SkillCategory.PROGRAMMING_LANGUAGE,
-    "php": SkillCategory.PROGRAMMING_LANGUAGE,
-    "swift": SkillCategory.PROGRAMMING_LANGUAGE,
-    "kotlin": SkillCategory.PROGRAMMING_LANGUAGE,
-    "scala": SkillCategory.PROGRAMMING_LANGUAGE,
-    "r": SkillCategory.PROGRAMMING_LANGUAGE,
-    "sql": SkillCategory.PROGRAMMING_LANGUAGE,
-    
-    # Frontend
-    "react": SkillCategory.FRONTEND,
-    "vue": SkillCategory.FRONTEND,
-    "angular": SkillCategory.FRONTEND,
-    "svelte": SkillCategory.FRONTEND,
-    "next.js": SkillCategory.FRONTEND,
-    "html": SkillCategory.FRONTEND,
-    "css": SkillCategory.FRONTEND,
-    "tailwind": SkillCategory.FRONTEND,
-    "bootstrap": SkillCategory.FRONTEND,
-    
-    # Backend
-    "node.js": SkillCategory.BACKEND,
-    "express": SkillCategory.BACKEND,
-    "django": SkillCategory.BACKEND,
-    "flask": SkillCategory.BACKEND,
-    "fastapi": SkillCategory.BACKEND,
-    "spring": SkillCategory.BACKEND,
-    "rails": SkillCategory.BACKEND,
-    "laravel": SkillCategory.BACKEND,
-    
-    # Database
-    "postgresql": SkillCategory.DATABASE,
-    "mysql": SkillCategory.DATABASE,
-    "mongodb": SkillCategory.DATABASE,
-    "redis": SkillCategory.DATABASE,
-    "elasticsearch": SkillCategory.DATABASE,
-    "sqlite": SkillCategory.DATABASE,
-    "dynamodb": SkillCategory.DATABASE,
-    "cassandra": SkillCategory.DATABASE,
-    
-    # Cloud
-    "amazon web services": SkillCategory.CLOUD,
-    "google cloud platform": SkillCategory.CLOUD,
-    "microsoft azure": SkillCategory.CLOUD,
-    "digitalocean": SkillCategory.CLOUD,
-    "heroku": SkillCategory.CLOUD,
-    "vercel": SkillCategory.CLOUD,
-    "netlify": SkillCategory.CLOUD,
-    
-    # DevOps
-    "docker": SkillCategory.DEVOPS,
-    "kubernetes": SkillCategory.DEVOPS,
-    "terraform": SkillCategory.DEVOPS,
-    "ansible": SkillCategory.DEVOPS,
-    "jenkins": SkillCategory.DEVOPS,
-    "github actions": SkillCategory.DEVOPS,
-    "gitlab ci": SkillCategory.DEVOPS,
-    "cicd": SkillCategory.DEVOPS,
-    
-    # Data Science
-    "pandas": SkillCategory.DATA_SCIENCE,
-    "numpy": SkillCategory.DATA_SCIENCE,
-    "scipy": SkillCategory.DATA_SCIENCE,
-    "matplotlib": SkillCategory.DATA_SCIENCE,
-    "tableau": SkillCategory.DATA_SCIENCE,
-    "power bi": SkillCategory.DATA_SCIENCE,
-    "spark": SkillCategory.DATA_SCIENCE,
-    "hadoop": SkillCategory.DATA_SCIENCE,
-    
-    # Machine Learning
-    "tensorflow": SkillCategory.MACHINE_LEARNING,
-    "pytorch": SkillCategory.MACHINE_LEARNING,
-    "keras": SkillCategory.MACHINE_LEARNING,
-    "scikit-learn": SkillCategory.MACHINE_LEARNING,
-    "machine learning": SkillCategory.MACHINE_LEARNING,
-    "deep learning": SkillCategory.MACHINE_LEARNING,
-    "artificial intelligence": SkillCategory.MACHINE_LEARNING,
-    "natural language processing": SkillCategory.MACHINE_LEARNING,
-    "computer vision": SkillCategory.MACHINE_LEARNING,
-    
-    # Mobile
-    "react native": SkillCategory.MOBILE,
-    "flutter": SkillCategory.MOBILE,
-    "ios": SkillCategory.MOBILE,
-    "android": SkillCategory.MOBILE,
-    "objectivec": SkillCategory.MOBILE,
-    
-    # Design
-    "figma": SkillCategory.DESIGN,
-    "sketch": SkillCategory.DESIGN,
-    "adobe xd": SkillCategory.DESIGN,
-    "photoshop": SkillCategory.DESIGN,
-    "illustrator": SkillCategory.DESIGN,
-    "ui design": SkillCategory.DESIGN,
-    "ux design": SkillCategory.DESIGN,
-    
-    # Project Management
-    "agile": SkillCategory.PROJECT_MANAGEMENT,
-    "scrum": SkillCategory.PROJECT_MANAGEMENT,
-    "kanban": SkillCategory.PROJECT_MANAGEMENT,
-    "jira": SkillCategory.PROJECT_MANAGEMENT,
-    "project management": SkillCategory.PROJECT_MANAGEMENT,
-    
-    # Communication
-    "communication": SkillCategory.COMMUNICATION,
-    "presentation": SkillCategory.COMMUNICATION,
-    "writing": SkillCategory.COMMUNICATION,
-    "public speaking": SkillCategory.COMMUNICATION,
-    
-    # Leadership
-    "leadership": SkillCategory.LEADERSHIP,
-    "team leadership": SkillCategory.LEADERSHIP,
-    "mentoring": SkillCategory.LEADERSHIP,
-    "people management": SkillCategory.LEADERSHIP,
+    "JavaScript": SkillCategory.PROGRAMMING_LANGUAGE,
+    "TypeScript": SkillCategory.PROGRAMMING_LANGUAGE,
+    "Python": SkillCategory.PROGRAMMING_LANGUAGE,
+    "Java": SkillCategory.PROGRAMMING_LANGUAGE,
+    "C#": SkillCategory.PROGRAMMING_LANGUAGE,
+    "C++": SkillCategory.PROGRAMMING_LANGUAGE,
+    "Go": SkillCategory.PROGRAMMING_LANGUAGE,
+    "Rust": SkillCategory.PROGRAMMING_LANGUAGE,
+    "Ruby": SkillCategory.PROGRAMMING_LANGUAGE,
+    "PHP": SkillCategory.PROGRAMMING_LANGUAGE,
+    "Swift": SkillCategory.PROGRAMMING_LANGUAGE,
+    "Kotlin": SkillCategory.PROGRAMMING_LANGUAGE,
+    "Scala": SkillCategory.PROGRAMMING_LANGUAGE,
+    "React": SkillCategory.FRAMEWORK,
+    "Vue.js": SkillCategory.FRAMEWORK,
+    "Angular": SkillCategory.FRAMEWORK,
+    "Angular.js": SkillCategory.FRAMEWORK,
+    "Svelte": SkillCategory.FRAMEWORK,
+    "Next.js": SkillCategory.FRAMEWORK,
+    "Nuxt.js": SkillCategory.FRAMEWORK,
+    "Node.js": SkillCategory.FRAMEWORK,
+    "Express.js": SkillCategory.FRAMEWORK,
+    "Django": SkillCategory.FRAMEWORK,
+    "Flask": SkillCategory.FRAMEWORK,
+    "FastAPI": SkillCategory.FRAMEWORK,
+    "Ruby on Rails": SkillCategory.FRAMEWORK,
+    "Spring": SkillCategory.FRAMEWORK,
+    "Spring Boot": SkillCategory.FRAMEWORK,
+    "ASP.NET": SkillCategory.FRAMEWORK,
+    ".NET": SkillCategory.FRAMEWORK,
+    "PostgreSQL": SkillCategory.DATABASE,
+    "MySQL": SkillCategory.DATABASE,
+    "MongoDB": SkillCategory.DATABASE,
+    "Redis": SkillCategory.DATABASE,
+    "Elasticsearch": SkillCategory.DATABASE,
+    "AWS": SkillCategory.CLOUD,
+    "Azure": SkillCategory.CLOUD,
+    "Google Cloud": SkillCategory.CLOUD,
+    "Docker": SkillCategory.TOOL,
+    "Kubernetes": SkillCategory.TOOL,
+    "Terraform": SkillCategory.TOOL,
+    "Jenkins": SkillCategory.TOOL,
+    "Git": SkillCategory.TOOL,
+    "GitHub": SkillCategory.TOOL,
+    "GitLab": SkillCategory.TOOL,
+    "CI/CD": SkillCategory.METHODOLOGY,
+    "Agile": SkillCategory.METHODOLOGY,
+    "Scrum": SkillCategory.METHODOLOGY,
+    "Kanban": SkillCategory.METHODOLOGY,
+    "Machine Learning": SkillCategory.DOMAIN,
+    "Artificial Intelligence": SkillCategory.DOMAIN,
+    "Deep Learning": SkillCategory.DOMAIN,
+    "Data Science": SkillCategory.DOMAIN,
+    "NLP": SkillCategory.DOMAIN,
+    "Figma": SkillCategory.TOOL,
+    "Excel": SkillCategory.TOOL,
+    "Tableau": SkillCategory.TOOL,
+    "Power BI": SkillCategory.TOOL,
 }
 
-# Related skills mapping
-RELATED_SKILLS: dict[str, list[str]] = {
-    "javascript": ["typescript", "node.js", "react", "vue", "angular"],
-    "typescript": ["javascript", "node.js", "react"],
-    "python": ["django", "flask", "fastapi", "pandas", "numpy"],
-    "react": ["javascript", "typescript", "next.js", "react native"],
-    "node.js": ["javascript", "typescript", "express"],
-    "django": ["python", "postgresql", "django rest framework"],
-    "aws": ["lambda", "ec2", "s3", "dynamodb", "kubernetes"],
-    "docker": ["kubernetes", "cicd", "devops"],
-    "kubernetes": ["docker", "helm", "devops", "cloud"],
-    "machine learning": ["python", "tensorflow", "pytorch", "scikit-learn"],
+LEVEL_INDICATORS = {
+    SkillLevel.BEGINNER: [
+        "familiar",
+        "basic",
+        "beginner",
+        "entry-level",
+        "junior",
+        "understanding of",
+        "exposure to",
+        "learning",
+    ],
+    SkillLevel.INTERMEDIATE: [
+        "intermediate",
+        "experienced",
+        "proficient",
+        "working knowledge",
+        "hands-on",
+        "practical",
+        "1-2 years",
+        "2-3 years",
+    ],
+    SkillLevel.EXPERT: [
+        "expert",
+        "advanced",
+        "senior",
+        "lead",
+        "architect",
+        "5+ years",
+        "7+ years",
+        "10+ years",
+        "deep expertise",
+        "mastery",
+        "specialist",
+    ],
 }
 
 
-class SkillNormalizer:
-    """
-    Normalizes skills across job postings.
-    
-    Features:
-    - Synonym resolution
-    - Category classification
-    - Level inference
-    - Related skill suggestions
-    """
-    
-    def __init__(
-        self,
-        custom_synonyms: Optional[dict[str, str]] = None,
-        custom_categories: Optional[dict[str, SkillCategory]] = None,
-    ):
-        self._synonyms = {**SKILL_SYNONYMS, **(custom_synonyms or {})}
-        self._categories = {**SKILL_CATEGORIES, **(custom_categories or {})}
-    
-    def normalize(self, skill: str) -> NormalizedSkill:
-        """
-        Normalize a skill string.
-        
-        Args:
-            skill: Raw skill string from job posting
-            
-        Returns:
-            NormalizedSkill with canonical name and metadata
-        """
-        # Clean the skill string
-        cleaned = self._clean_skill(skill)
-        
-        # Resolve synonyms
-        canonical = self._resolve_synonym(cleaned)
-        
-        # Get category
-        category = self._get_category(canonical)
-        
-        # Infer level if present
-        level = self._infer_level(skill)
-        
-        # Get related skills
-        related = RELATED_SKILLS.get(canonical, [])
-        
-        # Get aliases
-        aliases = [
-            k for k, v in self._synonyms.items()
-            if v == canonical
-        ]
-        
-        return NormalizedSkill(
-            canonical_name=canonical,
-            display_name=self._format_display_name(canonical),
-            category=category,
-            level=level,
-            aliases=aliases,
-            related_skills=related,
-            tags=self._generate_tags(canonical, category),
-        )
-    
-    def normalize_batch(
-        self,
-        skills: list[str],
-    ) -> list[NormalizedSkill]:
-        """Normalize a batch of skills."""
-        return [self.normalize(skill) for skill in skills]
-    
-    def _clean_skill(self, skill: str) -> str:
-        """Clean and normalize skill string."""
-        # Convert to lowercase
-        cleaned = skill.lower().strip()
-        
-        # Remove common prefixes/suffixes
-        cleaned = re.sub(r'^(proficient in|experience with|knowledge of|expert in)\s*', '', cleaned)
-        cleaned = re.sub(r'\s*(required|preferred|nice to have)$', '', cleaned)
-        
-        # Remove years of experience
-        cleaned = re.sub(r'\s*\d+\+?\s*years?\s*$', '', cleaned)
-        
-        # Remove level indicators
-        cleaned = re.sub(r'\s*(junior|senior|lead|principal|staff)\s*$', '', cleaned)
-        
-        return cleaned.strip()
-    
-    def _resolve_synonym(self, skill: str) -> str:
-        """Resolve skill to canonical name."""
-        # Direct lookup
-        if skill in self._synonyms:
-            return self._synonyms[skill]
-        
-        # Try case-insensitive lookup
-        skill_lower = skill.lower()
-        for key, value in self._synonyms.items():
-            if key.lower() == skill_lower:
-                return value
-        
-        # No synonym found, return cleaned skill
-        return skill_lower
-    
-    def _get_category(self, skill: str) -> SkillCategory:
-        """Get category for a skill."""
-        return self._categories.get(skill, SkillCategory.OTHER)
-    
-    def _infer_level(self, skill: str) -> Optional[SkillLevel]:
-        """Infer skill level from original string."""
-        skill_lower = skill.lower()
-        
-        if any(w in skill_lower for w in ["expert", "guru", "master", "architect"]):
-            return SkillLevel.EXPERT
-        elif any(w in skill_lower for w in ["senior", "lead", "advanced", "strong"]):
-            return SkillLevel.ADVANCED
-        elif any(w in skill_lower for w in ["junior", "entry", "beginner", "basic"]):
-            return SkillLevel.BEGINNER
-        elif any(w in skill_lower for w in ["intermediate", "mid", "mid-level"]):
-            return SkillLevel.INTERMEDIATE
-        
-        return None
-    
-    def _format_display_name(self, skill: str) -> str:
-        """Format skill for display."""
-        # Handle special cases
-        special_cases = {
-            "javascript": "JavaScript",
-            "typescript": "TypeScript",
-            "node.js": "Node.js",
-            "next.js": "Next.js",
-            "vue": "Vue.js",
-            "react": "React",
-            "angular": "Angular",
-            "postgresql": "PostgreSQL",
-            "mongodb": "MongoDB",
-            "aws": "AWS",
-            "gcp": "GCP",
-            "ui design": "UI Design",
-            "ux design": "UX Design",
-            "cicd": "CI/CD",
-        }
-        
-        if skill in special_cases:
-            return special_cases[skill]
-        
-        # Title case for most skills
-        return skill.title()
-    
-    def _generate_tags(
-        self,
-        skill: str,
-        category: SkillCategory,
-    ) -> list[str]:
-        """Generate tags for a skill."""
-        tags = [category.value]
-        
-        # Add technology type tags
-        if category in [SkillCategory.PROGRAMMING_LANGUAGE, SkillCategory.FRONTEND, SkillCategory.BACKEND]:
-            tags.append("technical")
-        elif category in [SkillCategory.COMMUNICATION, SkillCategory.LEADERSHIP]:
-            tags.append("soft_skill")
-        elif category in [SkillCategory.CLOUD, SkillCategory.DEVOPS]:
-            tags.append("infrastructure")
-        elif category in [SkillCategory.DATA_SCIENCE, SkillCategory.MACHINE_LEARNING]:
-            tags.append("data")
-        
-        return tags
-    
-    def extract_skills_from_text(
-        self,
-        text: str,
-    ) -> list[NormalizedSkill]:
-        """
-        Extract and normalize skills from job description text.
-        
-        Args:
-            text: Job description or requirements text
-            
-        Returns:
-            List of normalized skills found
-        """
-        found_skills: list[NormalizedSkill] = []
-        seen: set[str] = set()
-        
-        # Check for known skills
-        for skill_key in self._categories.keys():
-            if skill_key in text.lower() and skill_key not in seen:
-                normalized = self.normalize(skill_key)
-                found_skills.append(normalized)
-                seen.add(skill_key)
-        
-        # Check for synonyms
-        for synonym in self._synonyms.keys():
-            if synonym in text.lower():
-                canonical = self._synonyms[synonym]
-                if canonical not in seen:
-                    normalized = self.normalize(canonical)
-                    found_skills.append(normalized)
-                    seen.add(canonical)
-        
-        return found_skills
-    
-    def group_by_category(
-        self,
-        skills: list[NormalizedSkill],
-    ) -> dict[SkillCategory, list[NormalizedSkill]]:
-        """Group skills by category."""
-        grouped: dict[SkillCategory, list[NormalizedSkill]] = {}
-        
-        for skill in skills:
-            if skill.category not in grouped:
-                grouped[skill.category] = []
-            grouped[skill.category].append(skill)
-        
-        return grouped
+def normalize_skill(skill_text: str) -> NormalizedSkill:
+    original = skill_text.strip()
+    lower = original.lower()
+
+    clean_skill = re.sub(r"[^\w\s\.\+\#\-]", "", lower).strip()
+
+    level = None
+    for skill_level, indicators in LEVEL_INDICATORS.items():
+        for indicator in indicators:
+            if indicator in lower:
+                level = skill_level
+                break
+        if level:
+            break
+
+    canonical = SKILL_SYNONYMS.get(clean_skill, original.title())
+
+    category = SKILL_CATEGORIES.get(canonical, SkillCategory.TOOL)
+
+    aliases = [
+        syn
+        for syn, canon in SKILL_SYNONYMS.items()
+        if canon == canonical and syn != clean_skill
+    ][:5]
+
+    confidence = 1.0 if canonical != original.title() else 0.7
+
+    return NormalizedSkill(
+        canonical_name=canonical,
+        original=original,
+        category=category,
+        aliases=aliases,
+        level=level,
+        confidence=confidence,
+    )
 
 
-# Global normalizer instance
-_normalizer: Optional[SkillNormalizer] = None
+def normalize_skills_list(skills: list[str]) -> list[NormalizedSkill]:
+    normalized = []
+    seen_canonical: set[str] = set()
+
+    for skill in skills:
+        n = normalize_skill(skill)
+        if n.canonical_name not in seen_canonical:
+            seen_canonical.add(n.canonical_name)
+            normalized.append(n)
+
+    return normalized
 
 
-def get_skill_normalizer() -> SkillNormalizer:
-    """Get the global skill normalizer."""
-    global _normalizer
-    if _normalizer is None:
-        _normalizer = SkillNormalizer()
-    return _normalizer
+def extract_skills_from_text(text: str) -> list[str]:
+    patterns = [
+        r"(?:skills?|technologies?|tools?|frameworks?|languages?)[:\s]+([^.\n]+)",
+        r"(?:proficient|experienced|skilled)\s+(?:in|with)\s+([^.\n]+)",
+        r"(?:knowledge|familiarity)\s+(?:of|with)\s+([^.\n]+)",
+    ]
+
+    extracted = []
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        for match in matches:
+            skills = [s.strip() for s in re.split(r"[,;/&]|\band\b", match)]
+            extracted.extend(skills)
+
+    return [s for s in extracted if len(s) > 1]
 
 
-def normalize_skill(skill: str) -> NormalizedSkill:
-    """Convenience function to normalize a single skill."""
-    return get_skill_normalizer().normalize(skill)
+def categorize_skills(skills: list[NormalizedSkill]) -> dict[SkillCategory, list[str]]:
+    categorized: dict[SkillCategory, list[str]] = {cat: [] for cat in SkillCategory}
+
+    for skill in skills:
+        categorized[skill.category].append(skill.canonical_name)
+
+    return {k: v for k, v in categorized.items() if v}
 
 
-def normalize_skills(skills: list[str]) -> list[NormalizedSkill]:
-    """Convenience function to normalize multiple skills."""
-    return get_skill_normalizer().normalize_batch(skills)
+def compare_skill_sets(
+    profile_skills: list[str],
+    job_skills: list[str],
+) -> dict[str, Any]:
+    normalized_profile = normalize_skills_list(profile_skills)
+    normalized_job = normalize_skills_list(job_skills)
+
+    profile_set = {s.canonical_name.lower() for s in normalized_profile}
+    job_set = {s.canonical_name.lower() for s in normalized_job}
+
+    matching = profile_set & job_set
+    missing = job_set - profile_set
+    extra = profile_set - job_set
+
+    match_score = len(matching) / max(len(job_set), 1) if job_set else 0.0
+
+    return {
+        "match_score": round(match_score, 2),
+        "matching_skills": list(matching),
+        "missing_skills": list(missing),
+        "extra_skills": list(extra),
+        "profile_count": len(profile_set),
+        "job_count": len(job_set),
+    }
