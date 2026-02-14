@@ -282,13 +282,13 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 158 | Only Adzuna | Add LinkedIn, Indeed, Glassdoor integrations | ✅ FIXED |
 | 159 | No job deduplication | Dedupe jobs across sources | ✅ FIXED |
 | 160 | No salary enrichment | Enrich jobs with salary data | ✅ FIXED |
-| 161 | No company data | Add company info from Crunchbase | LOW |
+| 161 | No company data | Add company info from Crunchbase | ✅ FIXED |
 
 ### 8.2 Productivity
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
 | 162 | No calendar sync | Add interview calendar integration | ✅ FIXED |
-| 163 | No Slack bot | Add Slack notifications | LOW |
+| 163 | No Slack bot | Add Slack notifications | ✅ FIXED |
 | 164 | No Zapier integration | Add Zapier connector | LOW |
 | 165 | No Notion integration | Export applications to Notion | LOW |
 | 166 | No Google Drive | Resume backup to Google Drive | LOW |
@@ -646,3 +646,27 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - `identify_skill_gaps()` for skill development
   - `get_learning_path()` with milestones
   - Career level and track inference from work history
+
+### Sprint 73: Company Data (#161)
+- Created `packages/backend/domain/company_data.py`
+  - `CompanyDataManager` for profile enrichment
+  - 9 pre-defined major company profiles
+  - `CompanyProfile` dataclass with full metadata
+  - Industry categorization and inference
+  - Funding stage and size classification
+  - `enrich_job_with_company_data()` for job enrichment
+  - Company search and recommendations
+  - Database cache table: `company_cache`
+
+### Sprint 74: Slack Bot (#163)
+- Created `packages/backend/domain/slack_integration.py`
+  - `SlackIntegrationManager` for team integrations
+  - `SlackClient` for API interactions
+  - 5 message templates (job match, application, interview, digest, team)
+  - Block kit formatted messages with actions
+  - `send_job_match_notification()`
+  - `send_application_update()`
+  - `send_interview_reminder()`
+  - `send_weekly_digest()`
+  - Signature verification for webhooks
+  - Database table: `slack_integrations`
