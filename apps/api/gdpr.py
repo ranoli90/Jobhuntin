@@ -109,6 +109,37 @@ TABLES_FOR_DELETION = [
     ("public.profiles", "user_id"),
 ]
 
+# SECURITY: Whitelist of allowed table names for SQL queries
+# This prevents SQL injection by validating table names before use
+ALLOWED_TABLES = {table for table, _, _ in TABLES_WITH_USER_DATA}
+ALLOWED_TABLES.update({table for table, _ in TABLES_FOR_DELETION})
+ALLOWED_USER_COLUMNS = {
+    "public.profiles": "user_id",
+    "public.applications": "user_id",
+    "public.saved_jobs": "user_id",
+    "public.input_answers": "user_id",
+    "public.cover_letters": "user_id",
+    "public.profile_embeddings": "user_id",
+    "public.user_preferences": "user_id",
+    "public.analytics_events": "user_id",
+}
+
+
+def validate_table_name(table: str) -> str:
+    """Validate table name against whitelist to prevent SQL injection."""
+    if table not in ALLOWED_TABLES:
+        raise ValueError(f"Invalid table name: {table}")
+    return table
+
+
+def validate_user_column(table: str, column: str) -> str:
+    """Validate user column name for a table."""
+    if table not in ALLOWED_USER_COLUMNS:
+        raise ValueError(f"Invalid table: {table}")
+    if column != ALLOWED_USER_COLUMNS[table]:
+        raise ValueError(f"Invalid column {column} for table {table}")
+    return column
+
 
 @router.post("/export", response_model=DataExportResponse)
 async def export_user_data(
