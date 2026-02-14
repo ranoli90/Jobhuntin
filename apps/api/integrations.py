@@ -442,10 +442,12 @@ async def list_zapier_hooks(
 async def delete_zapier_hook(
     hook_id: str,
     db: asyncpg.Pool = Depends(_get_pool),
+    tenant_id: str = Depends(_get_tenant_id),  # SECURITY: Require authentication and validate ownership
 ) -> dict[str, str]:
     manager = ZapierIntegrationManager(db)
 
-    success = await manager.unsubscribe(hook_id)
+    # SECURITY: Validate hook ownership before deletion
+    success = await manager.unsubscribe(hook_id, tenant_id=tenant_id)
 
     if not success:
         raise HTTPException(status_code=404, detail="Hook not found")
