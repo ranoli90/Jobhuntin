@@ -189,6 +189,12 @@ from shared.middleware import get_client_ip, setup_security_headers
 from shared.metrics import get_rate_limiter
 
 # ---------------------------------------------------------------------------
+# CSRF Protection Middleware
+# ---------------------------------------------------------------------------
+# SECURITY: Enable CSRF protection for all non-exempt endpoints
+setup_csrf_middleware(app, _settings.csrf_secret)
+
+# ---------------------------------------------------------------------------
 # Security Headers Middleware
 # ---------------------------------------------------------------------------
 setup_security_headers(app)

@@ -195,6 +195,58 @@ class LinkedInClient(JobBoardClient):
         self.client_id = getattr(settings, "linkedin_client_id", "")
         self.client_secret = getattr(settings, "linkedin_client_secret", "")
         self.rate_limiter = RateLimiter(max_calls=20, window_seconds=60)
+        self._access_token: str | None = None
+        self._token_expires_at: float = 0
+
+    async def _get_access_token(self) -> str | None:
+        """
+        Get a valid LinkedIn access token using OAuth 2.0 client credentials flow.
+        
+        LinkedIn requires OAuth 2.0 authentication - client_secret cannot be used
+        directly as a Bearer token.
+        
+        Returns:
+            Access token string or None if authentication fails
+        """
+        import time
+        
+        # Return cached token if still valid (with 5 minute buffer)
+        if self._access_token and time.time() < self._token_expires_at - 300:
+            return self._access_token
+        
+        if not self.client_id or not self.client_secret:
+            logger.warning("LinkedIn client credentials not configured")
+            return None
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                # LinkedIn OAuth 2.0 token endpoint
+                response = await client.post(
+                    "https://www.linkedin.com/oauth/v2/accessToken",
+                    data={
+                        "grant_type": "client_credentials",
+                        "client_id": self.client_id,
+                        "client_secret": self.client_secret,
+                    },
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=10,
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self._access_token = data.get("access_token")
+                    # Default to 1 hour if expires_in not provided
+                    expires_in = data.get("expires_in", 3600)
+                    self._token_expires_at = time.time() + expires_in
+                    logger.info("LinkedIn access token obtained successfully")
+                    return self._access_token
+                else:
+                    logger.error("LinkedIn token request failed: %s - %s", 
+                                response.status_code, response.text[:200])
+                    return None
+            except Exception as e:
+                logger.error("LinkedIn token request error: %s", e)
+                return None
 
     async def fetch_jobs(
         self,
@@ -205,11 +257,17 @@ class LinkedInClient(JobBoardClient):
             logger.warning("LinkedIn client ID not configured")
             return []
 
+        # Get valid access token
+        access_token = await self._get_access_token()
+        if not access_token:
+            logger.error("Failed to obtain LinkedIn access token")
+            return []
+
         results: list[dict[str, Any]] = []
         base_url = "https://api.linkedin.com/v2/jobSearch"
 
         async with httpx.AsyncClient() as client:
-            headers = {"Authorization": f"Bearer {self.client_secret}"}
+            headers = {"Authorization": f"Bearer {access_token}"}
             params = {
                 "keywords": keywords or "",
                 "location": location or "",
@@ -224,6 +282,10 @@ class LinkedInClient(JobBoardClient):
                     data = resp.json()
                     results = data.get("elements", [])
                     incr("job_board.linkedin.fetched", value=len(results))
+                elif resp.status_code == 401:
+                    # Token may have expired, clear cache and retry once
+                    self._access_token = None
+                    logger.warning("LinkedIn token expired, will retry on next request")
             except Exception as e:
                 logger.error("LinkedIn fetch failed: %s", e)
 

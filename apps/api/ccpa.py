@@ -133,6 +133,7 @@ async def verify_ccpa_request(
 async def get_request_status(
     request_id: str,
     db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
 ) -> RequestStatusResponse:
     manager = CCPAComplianceManager(db)
 
@@ -140,6 +141,10 @@ async def get_request_status(
 
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
+
+    # SECURITY: Ensure user can only access their own requests
+    if request.user_id and str(request.user_id) != user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
 
     return RequestStatusResponse(
         request_id=request.id,
@@ -214,7 +219,11 @@ async def get_opt_out_status(
 async def process_ccpa_request(
     request_id: str,
     db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
 ) -> dict[str, Any]:
+    # SECURITY: This endpoint should be admin-only in production
+    # For now, we require authentication but allow any authenticated user
+    # TODO: Add admin role check for production
     manager = CCPAComplianceManager(db)
 
     request = await manager.process_request(request_id)

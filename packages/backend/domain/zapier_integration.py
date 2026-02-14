@@ -209,16 +209,29 @@ class ZapierIntegrationManager:
             created_at=datetime.now(timezone.utc),
         )
 
-    async def unsubscribe(self, hook_id: str) -> bool:
+    async def unsubscribe(self, hook_id: str, tenant_id: str | None = None) -> bool:
+        """Unsubscribe a webhook. If tenant_id is provided, validates ownership."""
         async with self._pool.acquire() as conn:
-            result = await conn.execute(
-                """
-                UPDATE public.zapier_hooks
-                SET is_active = false
-                WHERE hook_id = $1
-                """,
-                hook_id,
-            )
+            if tenant_id:
+                # SECURITY: Validate tenant ownership before deletion
+                result = await conn.execute(
+                    """
+                    UPDATE public.zapier_hooks
+                    SET is_active = false
+                    WHERE hook_id = $1 AND tenant_id = $2
+                    """,
+                    hook_id,
+                    tenant_id,
+                )
+            else:
+                result = await conn.execute(
+                    """
+                    UPDATE public.zapier_hooks
+                    SET is_active = false
+                    WHERE hook_id = $1
+                    """,
+                    hook_id,
+                )
 
             success = result != "UPDATE 0"
             if success:

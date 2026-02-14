@@ -16,10 +16,10 @@ import { magicLinkService } from '../services/magicLinkService';
 
 type AuthMode = "magic" | "password" | "register";
 
-const AUTH_MODE_OPTIONS: { key: AuthMode; label: string; description: string }[] = [
+const AUTH_MODE_OPTIONS: { key: AuthMode; label: string; description: string; disabled?: boolean }[] = [
   { key: "magic", label: "Magic Link", description: "No password" },
-  { key: "password", label: "Password Login", description: "Existing users" },
-  { key: "register", label: "Create Account", description: "New hunters" },
+  { key: "password", label: "Password Login", description: "Existing users", disabled: true },
+  { key: "register", label: "Create Account", description: "New hunters", disabled: true },
 ];
 
 export default function Login() {
@@ -327,14 +327,18 @@ export default function Login() {
               <button
                 type="button"
                 key={option.key}
-                onClick={() => setMode(option.key)}
+                onClick={() => !option.disabled && setMode(option.key)}
                 role="tab"
+                disabled={option.disabled}
                 className={cn(
                   "rounded-xl py-2.5 text-center transition-all text-xs font-bold uppercase tracking-wider",
-                  mode === option.key
-                    ? "bg-white text-primary-600 shadow-sm ring-1 ring-black/5"
-                    : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                  option.disabled
+                    ? "text-slate-300 cursor-not-allowed"
+                    : mode === option.key
+                      ? "bg-white text-primary-600 shadow-sm ring-1 ring-black/5"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
                 )}
+                title={option.disabled ? "Coming soon - use Magic Link" : undefined}
               >
                 {option.label.split(' ')[0]}
               </button>

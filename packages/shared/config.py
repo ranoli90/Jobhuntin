@@ -37,7 +37,9 @@ class Settings(BaseSettings):
     env: Environment = Environment.LOCAL
 
     # ── Database ─────────────────────────────────────────────────
-    database_url: str = "postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g"
+    # SECURITY: Database URL must be provided via DATABASE_URL environment variable
+    # Hardcoded credentials are a critical security vulnerability
+    database_url: str = ""  # Required - must be set via DATABASE_URL env var
     db_pool_min: int = 2
     db_pool_max: int = 10
 
