@@ -186,7 +186,7 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 106 | Data processing agreements | Create DPA templates for enterprise | LOW |
 | 107 | SOC 2 compliance | Begin SOC 2 Type I preparation | LOW |
 | 108 | CCPA compliance | Add California privacy rights | ✅ FIXED |
-| 109 | Data residency | Add region-specific data storage option | LOW |
+| 109 | Data residency | Add region-specific data storage option | ✅ FIXED |
 | 110 | Audit trail retention | Define audit log retention policy | ✅ FIXED |
 
 ---
@@ -617,3 +617,14 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - Added `init_audit_archive_table()` for archive storage
   - Audit logs archived before deletion (365-day retention)
   - Statistics by action type for monitoring
+
+### Sprint 70: Data Residency (#109)
+- Created `packages/backend/domain/data_residency.py`
+  - 7 data regions (US, EU, UK, APAC)
+  - `DataResidencyManager` for region management
+  - Per-tenant region selection
+  - Compliance frameworks per region (GDPR, SOC2, CCPA, etc.)
+  - Cross-region transfer logging
+  - `verify_data_residency()` for compliance checks
+  - Residency compliance reports
+  - Database tables: `tenant_data_residency`, `cross_region_transfers`
