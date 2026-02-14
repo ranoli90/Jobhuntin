@@ -185,9 +185,9 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 105 | Terms of service | Legal review of terms | LOW |
 | 106 | Data processing agreements | Create DPA templates for enterprise | LOW |
 | 107 | SOC 2 compliance | Begin SOC 2 Type I preparation | LOW |
-| 108 | CCPA compliance | Add California privacy rights | LOW |
+| 108 | CCPA compliance | Add California privacy rights | ✅ FIXED |
 | 109 | Data residency | Add region-specific data storage option | LOW |
-| 110 | Audit trail retention | Define audit log retention policy | LOW |
+| 110 | Audit trail retention | Define audit log retention policy | ✅ FIXED |
 
 ---
 
@@ -596,3 +596,24 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - `PasswordHistoryManager` for history tracking
   - Password expiration support (90-day default)
   - Database table: `password_history`
+
+### Sprint 68: CCPA Compliance (#108)
+- Created `packages/backend/domain/ccpa.py`
+  - Right to Know: data inventory and disclosure info
+  - Right to Delete: personal data deletion
+  - Right to Opt-Out: Do Not Sell My Info
+  - Right to Portability: data export
+  - `CCPAComplianceManager` for request handling
+  - Request verification workflow
+  - Data category inventory (5 categories)
+  - Third-party disclosure tracking
+  - Database tables: `ccpa_requests`, `user_privacy_settings`
+
+### Sprint 69: Audit Trail Retention (#110)
+- Extended `packages/backend/domain/data_retention.py`
+  - Added `cleanup_audit_logs()` with archiving
+  - Added `get_audit_log_retention_stats()`
+  - Added `run_audit_retention_cleanup()` job
+  - Added `init_audit_archive_table()` for archive storage
+  - Audit logs archived before deletion (365-day retention)
+  - Statistics by action type for monitoring

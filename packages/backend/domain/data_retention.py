@@ -226,3 +226,129 @@ async def get_retention_policy_config() -> dict[str, Any]:
         "session_data_days": RetentionPolicy.SESSION_DATA_DAYS,
         "audit_log_days": RetentionPolicy.AUDIT_LOG_DAYS,
     }
+
+
+async def cleanup_audit_logs(
+    conn: asyncpg.Connection,
+    days_old: int = RetentionPolicy.AUDIT_LOG_DAYS,
+    archive_before_delete: bool = True,
+) -> dict[str, int]:
+    result = {"archived": 0, "deleted": 0}
+
+    if archive_before_delete:
+        archived = await conn.fetchval(
+            f"""
+            INSERT INTO public.audit_log_archive
+            SELECT * FROM public.audit_log
+            WHERE created_at < NOW() - INTERVAL '{days_old} days'
+            ON CONFLICT (id) DO NOTHING
+            RETURNING COUNT(*)
+            """
+        )
+        result["archived"] = archived or 0
+        if result["archived"] > 0:
+            logger.info("Archived %d audit log entries", result["archived"])
+            incr("retention.audit_archived", value=result["archived"])
+
+    delete_result = await conn.execute(
+        f"""
+        DELETE FROM public.audit_log
+        WHERE created_at < NOW() - INTERVAL '{days_old} days'
+        """
+    )
+    deleted = int(delete_result.split()[-1]) if "DELETE" in delete_result else 0
+    result["deleted"] = deleted
+    if deleted > 0:
+        logger.info(
+            "Cleaned up %d audit log entries older than %d days", deleted, days_old
+        )
+        incr("retention.audit_cleaned", value=deleted)
+
+    return result
+
+
+async def get_audit_log_retention_stats(conn: asyncpg.Connection) -> dict[str, Any]:
+    stats = {}
+
+    stats["audit_log"] = await conn.fetchrow(
+        """
+        SELECT
+            COUNT(*) AS total_entries,
+            COUNT(*) FILTER (WHERE created_at < NOW() - INTERVAL '365 days') AS older_than_1_year,
+            COUNT(*) FILTER (WHERE created_at < NOW() - INTERVAL '730 days') AS older_than_2_years,
+            MIN(created_at) AS oldest_entry,
+            MAX(created_at) AS newest_entry
+        FROM public.audit_log
+        """
+    )
+
+    try:
+        stats["audit_archive"] = await conn.fetchrow(
+            """
+            SELECT
+                COUNT(*) AS total_entries,
+                MIN(created_at) AS oldest_entry,
+                MAX(created_at) AS newest_entry
+            FROM public.audit_log_archive
+            """
+        )
+    except Exception:
+        stats["audit_archive"] = {
+            "total_entries": 0,
+            "oldest_entry": None,
+            "newest_entry": None,
+        }
+
+    try:
+        stats["by_action"] = await conn.fetch(
+            """
+            SELECT action, COUNT(*) as count
+            FROM public.audit_log
+            WHERE created_at >= NOW() - INTERVAL '90 days'
+            GROUP BY action
+            ORDER BY count DESC
+            LIMIT 20
+            """
+        )
+    except Exception:
+        stats["by_action"] = []
+
+    return stats
+
+
+async def run_audit_retention_cleanup(pool: asyncpg.Pool) -> dict[str, int]:
+    results = {"archived": 0, "deleted": 0}
+
+    async with pool.acquire() as conn:
+        result = await cleanup_audit_logs(conn)
+        results["archived"] = result.get("archived", 0)
+        results["deleted"] = result.get("deleted", 0)
+
+    total = results["archived"] + results["deleted"]
+    if total > 0:
+        logger.info(
+            "Audit retention cleanup complete: %d total records processed", total
+        )
+        incr("retention.audit_cleanup_total", value=total)
+
+    return results
+
+
+async def init_audit_archive_table(conn: asyncpg.Connection) -> None:
+    await conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS public.audit_log_archive (
+            LIKE public.audit_log INCLUDING ALL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_audit_archive_created_at
+            ON public.audit_log_archive(created_at);
+
+        CREATE INDEX IF NOT EXISTS idx_audit_archive_tenant_id
+            ON public.audit_log_archive(tenant_id);
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_audit_archive_id
+            ON public.audit_log_archive(id);
+        """
+    )
+    logger.info("Audit log archive table initialized")
