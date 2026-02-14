@@ -1475,7 +1475,9 @@ async def get_job_feedback_stats(
 
 
 @router.get("/llm/metrics")
-async def get_llm_metrics():
+async def get_llm_metrics(
+    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+):
     """
     Get LLM model performance metrics.
 
@@ -1493,7 +1495,10 @@ async def get_llm_metrics():
 
 
 @router.get("/llm/metrics/{model}")
-async def get_llm_model_metrics(model: str):
+async def get_llm_model_metrics(
+    model: str,
+    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+):
     """
     Get performance metrics for a specific LLM model.
     """
@@ -1508,7 +1513,9 @@ async def get_llm_model_metrics(model: str):
 
 
 @router.get("/llm/health")
-async def get_llm_health():
+async def get_llm_health(
+    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+):
     """
     Get health status of all LLM models.
 
@@ -1525,7 +1532,9 @@ async def get_llm_health():
 
 
 @router.get("/llm/semantic-cache/stats")
-async def get_semantic_cache_stats():
+async def get_semantic_cache_stats(
+    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+):
     """
     Get semantic cache statistics.
 
