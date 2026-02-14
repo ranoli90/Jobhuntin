@@ -826,7 +826,12 @@ export function ApplicationsView() {
                   <Clock className="w-4 h-4 text-slate-400" />
                   {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
                 </div>
-                <Button variant="ghost" size="sm" className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600"
+                  onClick={() => navigate(`/app/applications/${app.id}`)}
+                >
                   Details <ArrowUpRight className="ml-1 w-3 h-3" />
                 </Button>
               </div>
@@ -888,7 +893,12 @@ export function ApplicationsView() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="sm" className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600"
+                        onClick={() => navigate(`/app/applications/${app.id}`)}
+                      >
                         Details <ArrowUpRight className="ml-1 w-3 h-3" />
                       </Button>
                     </td>
