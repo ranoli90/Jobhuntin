@@ -77,13 +77,20 @@ export default function Onboarding() {
   });
   const [isSavingContact, setIsSavingContact] = React.useState(false);
 
-  const [linkedinUrl, setLinkedinUrl] = React.useState("");
+  const [linkedinUrl, setLinkedinUrl] = React.useState(formData.linkedinUrl || "");
   const [parsedResume, setParsedResume] = React.useState<ParsedResume | null>(null);
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = React.useState(false);
   const [isCompleting, setIsCompleting] = React.useState(false);
   const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown> | null>(null);
   const [emailTypoSuggestion, setEmailTypoSuggestion] = React.useState<string | null>(null);
+  
+  // Restore linkedinUrl from formData on mount (for page refresh persistence)
+  React.useEffect(() => {
+    if (formData.linkedinUrl && !linkedinUrl) {
+      setLinkedinUrl(formData.linkedinUrl);
+    }
+  }, [formData.linkedinUrl, linkedinUrl]);
 
   const [isFetchingQuestions, setIsFetchingQuestions] = React.useState(false);
   const [isSavingCalibration, setIsSavingCalibration] = React.useState(false);
@@ -176,13 +183,15 @@ export default function Onboarding() {
         email: prev.email || c.email || profile.email || "",
         phone: prev.phone || c.phone || "",
       }));
+      // Pre-fill LinkedIn URL from profile if available
+      setLinkedinUrl(prev => prev || c.linkedin_url || "");
     }
   }, [profile?.contact, profile?.email]);
 
   // Sync internal states to useOnboarding's formData for refresh persistence
   React.useEffect(() => {
-    updateFormData({ contactInfo, preferences });
-  }, [contactInfo, preferences, updateFormData]);
+    updateFormData({ contactInfo, preferences, linkedinUrl });
+  }, [contactInfo, preferences, linkedinUrl, updateFormData]);
 
   // Remember Me - Welcome Back
   React.useEffect(() => {
