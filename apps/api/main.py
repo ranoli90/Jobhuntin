@@ -381,6 +381,56 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[dashboard_mod._get_admin_user_id] = get_current_user_id
     app.include_router(dashboard_mod.router)
 
+    import api.mfa as mfa_mod
+
+    app.dependency_overrides[mfa_mod._get_pool] = get_pool
+    app.dependency_overrides[mfa_mod._get_user_id] = get_current_user_id
+    app.include_router(mfa_mod.router)
+
+    import api.ccpa as ccpa_mod
+
+    app.dependency_overrides[ccpa_mod._get_pool] = get_pool
+    app.dependency_overrides[ccpa_mod._get_user_id] = get_current_user_id
+    app.include_router(ccpa_mod.router)
+
+    import api.interviews as interviews_mod
+
+    app.dependency_overrides[interviews_mod._get_pool] = get_pool
+    app.dependency_overrides[interviews_mod._get_user_id] = get_current_user_id
+    app.include_router(interviews_mod.router)
+
+    import api.career as career_mod
+
+    app.dependency_overrides[career_mod._get_pool] = get_pool
+    app.dependency_overrides[career_mod._get_user_id] = get_current_user_id
+    app.include_router(career_mod.router)
+
+    import api.calendar as calendar_mod
+
+    async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
+        return ctx.tenant_id
+
+    app.dependency_overrides[calendar_mod._get_pool] = get_pool
+    app.dependency_overrides[calendar_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[calendar_mod._get_tenant_id] = _get_tenant_id_from_context
+    app.include_router(calendar_mod.router)
+
+    import api.integrations as integrations_mod
+
+    app.dependency_overrides[integrations_mod._get_pool] = get_pool
+    app.dependency_overrides[integrations_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[integrations_mod._get_tenant_id] = (
+        _get_tenant_id_from_context
+    )
+    app.include_router(integrations_mod.router)
+
+    import api.admin_security as admin_sec_mod
+
+    app.dependency_overrides[admin_sec_mod._get_pool] = get_pool
+    app.dependency_overrides[admin_sec_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[admin_sec_mod._get_tenant_id] = _get_tenant_id_from_context
+    app.include_router(admin_sec_mod.router)
+
 
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
