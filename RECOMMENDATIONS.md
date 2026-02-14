@@ -164,11 +164,11 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 ### 4.3 Security Enhancements
 | # | Issue | Recommendation | Priority |
 |---|-------|---------------|----------|
-| 91 | No API key rotation | Add automatic API key rotation | LOW |
-| 92 | No session revocation | Add session invalidation on password change | LOW |
-| 93 | No audit log UI | Add audit log viewer in admin | LOW |
+| 91 | No API key rotation | Add automatic API key rotation | ✅ FIXED |
+| 92 | No session revocation | Add session invalidation on password change | ✅ FIXED |
+| 93 | No audit log UI | Add audit log viewer in admin | ✅ FIXED |
 | 94 | No IP allowlisting | Add IP allowlist for enterprise tenants | LOW |
-| 95 | No MFA | Add TOTP/WebAuthn for admin accounts | LOW |
+| 95 | No MFA | Add TOTP/WebAuthn for admin accounts | ✅ FIXED |
 | 96 | No password policy | Add password strength requirements | LOW |
 | 97 | No bot detection | Add reCAPTCHA/hCaptcha on forms | ✅ FIXED |
 | 98 | No request signing | Add HMAC signing for webhooks | ✅ FIXED |
@@ -520,3 +520,56 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - Role-based salary estimation (19+ roles)
   - Location-based salary adjustments
   - Hourly to annual conversion
+
+### Sprint 62: Session Revocation (#92)
+- Created `packages/backend/domain/session_manager.py`
+  - `SessionManager` class for session lifecycle management
+  - Device fingerprinting for session identification
+  - Session validation with activity tracking
+  - Bulk session revocation for security events
+  - `revoke_sessions_on_password_change()` method
+  - `revoke_sessions_on_security_event()` method
+  - Suspicious activity detection (new IP/device alerts)
+  - Session limit enforcement (max 10 per user)
+  - Automatic cleanup of expired sessions
+- Created `apps/api/sessions.py` API endpoints
+  - GET /sessions — list active sessions
+  - DELETE /sessions/{id} — revoke specific session
+  - DELETE /sessions/all — revoke all other sessions
+  - GET /sessions/security — check for suspicious activity
+  - POST /sessions/cleanup — cleanup expired sessions (admin)
+
+### Sprint 63: API Key Rotation (#91)
+- Created `packages/backend/domain/api_key_rotation.py`
+  - `APIKeyRotationManager` for key lifecycle management
+  - Automatic key generation with SHA-256 hashing
+  - Scheduled rotation with grace period (24h default)
+  - Key expiration and renewal (90-day default)
+  - Grace period for seamless transitions
+  - `rotate_api_key()` with old key deprecation
+  - `get_keys_near_expiry()` for rotation warnings
+  - Automatic grace period cleanup
+  - Monthly quota reset functionality
+  - Audit logging for all key operations
+
+### Sprint 64: Audit Log UI (#93)
+- Extended `apps/api/admin.py` with audit endpoints
+  - GET /admin/tenants/{id}/audit — paginated audit log
+  - GET /admin/tenants/{id}/audit/stats — statistics dashboard
+  - GET /admin/tenants/{id}/audit/export — CSV export
+  - Filtering by action, resource, user, date range
+  - Top users by activity count
+  - Recent activity feed
+  - Role-based access (OWNER, ADMIN, COMPLIANCE_OFFICER)
+
+### Sprint 65: MFA for Admin Accounts (#95)
+- Created `packages/backend/domain/mfa.py`
+  - TOTP (Time-based One-Time Password) support
+  - WebAuthn (FIDO2) for hardware keys and biometrics
+  - Recovery codes for account recovery (8 codes)
+  - `MFAManager` class for MFA lifecycle
+  - `enroll_totp()` with QR code URI generation
+  - `verify_totp_enrollment()` with recovery codes
+  - `verify_recovery_code()` for backup access
+  - MFA enforcement for admin roles (OWNER, ADMIN, COMPLIANCE_OFFICER)
+  - Database tables: `user_mfa_enrollments`, `mfa_recovery_codes`
