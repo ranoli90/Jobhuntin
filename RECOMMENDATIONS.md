@@ -167,9 +167,9 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 91 | No API key rotation | Add automatic API key rotation | ✅ FIXED |
 | 92 | No session revocation | Add session invalidation on password change | ✅ FIXED |
 | 93 | No audit log UI | Add audit log viewer in admin | ✅ FIXED |
-| 94 | No IP allowlisting | Add IP allowlist for enterprise tenants | LOW |
+| 94 | No IP allowlisting | Add IP allowlist for enterprise tenants | ✅ FIXED |
 | 95 | No MFA | Add TOTP/WebAuthn for admin accounts | ✅ FIXED |
-| 96 | No password policy | Add password strength requirements | LOW |
+| 96 | No password policy | Add password strength requirements | ✅ FIXED |
 | 97 | No bot detection | Add reCAPTCHA/hCaptcha on forms | ✅ FIXED |
 | 98 | No request signing | Add HMAC signing for webhooks | ✅ FIXED |
 | 99 | No vulnerability scanning | Add Snyk/Dependabot for dependencies | ✅ FIXED |
@@ -573,3 +573,26 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - `verify_recovery_code()` for backup access
   - MFA enforcement for admin roles (OWNER, ADMIN, COMPLIANCE_OFFICER)
   - Database tables: `user_mfa_enrollments`, `mfa_recovery_codes`
+
+### Sprint 66: IP Allowlisting (#94)
+- Created `packages/backend/domain/ip_allowlist.py`
+  - Per-tenant IP allowlists for API access
+  - CIDR notation support for network ranges
+  - IPv4 and IPv6 support
+  - `IPAllowlistManager` for lifecycle management
+  - Temporary access codes for emergency access
+  - `check_ip_access()` for request validation
+  - Database tables: `tenant_ip_allowlist`, `tenant_temp_access_codes`
+
+### Sprint 67: Password Policy (#96)
+- Created `packages/backend/domain/password_policy.py`
+  - `PasswordValidator` with strength scoring
+  - Configurable requirements (length, complexity)
+  - Common password blacklist (50+ entries)
+  - Keyboard pattern detection
+  - Sequential character detection
+  - Personal info exclusion check
+  - Breached password check via haveibeenpwned API
+  - `PasswordHistoryManager` for history tracking
+  - Password expiration support (90-day default)
+  - Database table: `password_history`
