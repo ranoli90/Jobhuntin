@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "./lib/supabase";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import DashboardPage from "./pages/DashboardPage";
 import Dashboard from "./pages/Dashboard";
 import MembersPage from "./pages/MembersPage";
@@ -17,6 +17,40 @@ import AuthorDashboard from "./marketplace/AuthorDashboard";
 import SubmitBlueprint from "./marketplace/SubmitBlueprint";
 import ApiKeysPage from "./developer-portal/ApiKeysPage";
 import WebhooksPage from "./developer-portal/WebhooksPage";
+
+// SECURITY: Admin role check - only allow users with admin privileges
+interface AdminUser {
+  id: string;
+  email: string;
+  is_admin: boolean;
+  roles: string[];
+}
+
+async function checkAdminAccess(user: User): Promise<boolean> {
+  try {
+    // Check if user has admin role via the API
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role, is_system_admin')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+    
+    // Check for system admin flag or admin role
+    const isAdmin = data?.is_system_admin === true || 
+                    data?.role === 'admin' ||
+                    data?.role === 'ADMIN';
+    
+    return isAdmin;
+  } catch (err) {
+    console.error('Failed to verify admin access:', err);
+    return false;
+  }
+}
 
 interface NavLink { to: string; label: string; icon: string; section?: string }
 
@@ -81,6 +115,8 @@ function Sidebar() {
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -91,8 +127,49 @@ export default function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center h-screen text-muted-foreground">Loading...</div>;
+  // SECURITY: Check admin access when session changes
+  useEffect(() => {
+    if (session?.user) {
+      setCheckingAdmin(true);
+      checkAdminAccess(session.user).then((hasAccess) => {
+        setIsAdmin(hasAccess);
+        setCheckingAdmin(false);
+      });
+    } else {
+      setIsAdmin(false);
+      setCheckingAdmin(false);
+    }
+  }, [session]);
+
+  if (loading || checkingAdmin) {
+    return (
+      <div className="flex items-center justify-center h-screen text-muted-foreground">
+        Verifying access...
+      </div>
+    );
+  }
+  
   if (!session) return <LoginPage />;
+  
+  // SECURITY: Block non-admin users from accessing the admin dashboard
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive mb-4">Access Denied</h1>
+          <p className="text-muted-foreground mb-4">
+            You do not have admin privileges to access this dashboard.
+          </p>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
