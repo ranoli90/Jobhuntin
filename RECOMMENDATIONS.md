@@ -243,8 +243,8 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 | 139 | No cold start handling | Improve new user matching | ✅ FIXED |
 | 140 | No explanation quality | Improve match explanation detail | ✅ FIXED |
 | 141 | No skill normalization | Normalize skills across job postings | ✅ FIXED |
-| 142 | No salary prediction | Add salary estimation from job description | LOW |
-| 143 | No career path analysis | Add career progression suggestions | LOW |
+| 142 | No salary prediction | Add salary estimation from job description | ✅ FIXED |
+| 143 | No career path analysis | Add career progression suggestions | ✅ FIXED |
 
 ---
 
@@ -628,3 +628,21 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - `verify_data_residency()` for compliance checks
   - Residency compliance reports
   - Database tables: `tenant_data_residency`, `cross_region_transfers`
+
+### Sprint 71: Salary Prediction (#142)
+- Already implemented in `packages/backend/domain/salary_enrichment.py`
+  - Text extraction from job descriptions
+  - Role-based salary estimation (19+ roles)
+  - Location-based multipliers (12 locations)
+  - Hourly to annual conversion
+
+### Sprint 72: Career Path Analysis (#143)
+- Created `packages/backend/domain/career_path.py`
+  - `CareerPathAnalyzer` for trajectory analysis
+  - 16 defined career roles across levels
+  - 8 defined career transitions
+  - `get_career_path_recommendation()` for path planning
+  - `suggest_next_career_moves()` for recommendations
+  - `identify_skill_gaps()` for skill development
+  - `get_learning_path()` with milestones
+  - Career level and track inference from work history
