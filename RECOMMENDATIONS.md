@@ -289,9 +289,9 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
 |---|-------|---------------|----------|
 | 162 | No calendar sync | Add interview calendar integration | ✅ FIXED |
 | 163 | No Slack bot | Add Slack notifications | ✅ FIXED |
-| 164 | No Zapier integration | Add Zapier connector | LOW |
-| 165 | No Notion integration | Export applications to Notion | LOW |
-| 166 | No Google Drive | Resume backup to Google Drive | LOW |
+| 164 | No Zapier integration | Add Zapier connector | ✅ FIXED |
+| 165 | No Notion integration | Export applications to Notion | ✅ FIXED |
+| 166 | No Google Drive | Resume backup to Google Drive | ✅ FIXED |
 
 ---
 
@@ -670,3 +670,20 @@ This document lists ALL recommendations for the Quickly/Sorce platform, categori
   - `send_weekly_digest()`
   - Signature verification for webhooks
   - Database table: `slack_integrations`
+
+### Sprint 75-77: Third-Party Integrations (#164-166)
+- Created `packages/backend/domain/zapier_integration.py`
+  - 5 webhook triggers (job match, application, interview, status, weekly)
+  - `ZapierIntegrationManager` for hook management
+  - 5 Zap templates for common workflows
+  - Event triggering with webhook delivery
+- Created `packages/backend/domain/notion_integration.py`
+  - `NotionIntegrationManager` for workspace sync
+  - `NotionClient` for Notion API v2022
+  - Application export to Notion databases
+  - Status sync between JobHuntin and Notion
+- Created `packages/backend/domain/google_drive_integration.py`
+  - `GoogleDriveIntegrationManager` for file storage
+  - `GoogleDriveClient` for Google Drive API
+  - Resume backup to Google Drive
+  - Automatic folder creation and management
