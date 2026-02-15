@@ -424,7 +424,7 @@ async function generateAggressiveLocalContent(
             }
           ],
           temperature: 0.7,
-          max_tokens: 4000
+          max_tokens: 8000
         }),
         signal: controller.signal
       });
@@ -448,6 +448,13 @@ async function generateAggressiveLocalContent(
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
+      const finishReason = data.choices?.[0]?.finish_reason;
+
+      // Check if response was truncated
+      if (finishReason === 'length') {
+        console.log(`⚠️  Model ${model} hit token limit, response truncated. Trying next model...`);
+        continue;
+      }
 
       if (!content) {
         console.log(`⚠️  Model ${model} returned empty content`);

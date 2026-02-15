@@ -263,7 +263,7 @@ async function generateAggressiveSEOContent(
           model: model,
           messages: [{ role: 'user', content: aggressivePrompt }],
           temperature: 0.8,
-          max_tokens: 4000,
+          max_tokens: 8000,
         }),
       });
 
@@ -285,6 +285,14 @@ async function generateAggressiveSEOContent(
       }
 
       const content = data.choices[0].message?.content;
+      const finishReason = data.choices[0].finish_reason;
+      
+      // Check if response was truncated
+      if (finishReason === 'length') {
+        console.warn(`⚠️  Model ${model} hit token limit, response truncated. Trying next model...`);
+        continue;
+      }
+      
       if (!content) {
         console.warn(`⚠️  Model ${model} returned empty content.`);
         continue;
