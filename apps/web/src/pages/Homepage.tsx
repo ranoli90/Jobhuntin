@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, useScroll, useSpring, useReducedMotion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
@@ -6,7 +6,7 @@ import {
   Sparkles, CheckCircle, ArrowRight,
   MailCheck, Bell,
   Upload, Search, Send, Lock, Shield, Clock,
-  Briefcase, MapPin, User
+  Briefcase, MapPin, User, Zap, FileText, MessageSquare
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -15,47 +15,136 @@ import { SEO } from '../components/marketing/SEO';
 
 import { Button } from '../components/ui/Button';
 
-// --- UTILS ---
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// --- DATA ---
-const ACTIVITY_DATA = [
-  { name: "Michael K.", role: "Senior Product Manager", company: "Stripe", location: "San Francisco", time: "just now" },
-  { name: "Sarah L.", role: "Software Engineer", company: "Vercel", location: "Remote", time: "2m ago" },
-  { name: "David R.", role: "Data Scientist", company: "Netflix", location: "Los Angeles", time: "3m ago" },
-  { name: "Emily W.", role: "UX Designer", company: "Figma", location: "San Francisco", time: "5m ago" },
-  { name: "James T.", role: "Engineering Manager", company: "Airbnb", location: "Remote", time: "7m ago" },
-  { name: "Amanda C.", role: "Frontend Developer", company: "Linear", location: "Remote", time: "9m ago" },
-  { name: "Chris M.", role: "DevOps Engineer", company: "Datadog", location: "New York", time: "11m ago" },
-  { name: "Jessica H.", role: "Product Designer", company: "Notion", location: "San Francisco", time: "14m ago" },
+// Realistic companies - mix of everyday employers
+const COMPANIES = [
+  // Retail & Service
+  "Target", "Walmart", "Costco", "Home Depot", " Lowe's", "Best Buy", "CVS", "Walgreens",
+  "Starbucks", "McDonald's", "Chick-fil-A", "Kroger", "Whole Foods", "Trader Joe's",
+  // Healthcare
+  "UnitedHealth", "Cigna", "Humana", "Kaiser", "HCA Healthcare", "Labcorp", "Quest Diagnostics",
+  // Finance & Insurance  
+  "State Farm", "Allstate", "Liberty Mutual", "USAA", "Nationwide", "Capital One", "Discover",
+  "Wells Fargo", "Chase", "Bank of America", "US Bank", "PNC Bank",
+  // Tech & Telecom
+  "Verizon", "T-Mobile", "AT&T", "Comcast", "Spectrum", "Cisco", "Dell", "HP", "IBM",
+  "Oracle", "SAP", "Salesforce", "Adobe", "Intuit", "PayPal", "Square",
+  // Manufacturing & Logistics
+  "FedEx", "UPS", "Amazon", "J.B. Hunt", "XPO Logistics", "C.H. Robinson", "RR Donnelley",
+  "Caterpillar", "John Deere", "3M", "Honeywell", "GE", "Siemens", "Boeing", "Lockheed Martin",
+  // Energy & Utilities
+  "Duke Energy", "Southern Company", "NextEra", "Dominion Energy", "Exelon", "PG&E",
+  // Professional Services
+  "Deloitte", "PwC", "EY", "KPMG", "Accenture", "Capgemini", "Cognizant", "Infosys",
+  "Robert Half", "Manpower", "Kelly Services", "Adecco",
+  // Media & Entertainment
+  "Disney", "Warner Bros", "Paramount", "NBCUniversal", "Spotify", "Netflix", "HBO Max",
+  // Real Estate
+  "Zillow", "Redfin", "Compass", "Realogy", "CBRE", "JLL",
+  // Automotive
+  "Ford", "GM", "Toyota", "Honda", "Tesla", "CarMax", "AutoNation",
+  // Startups & Tech
+  "Stripe", "Square", "Airbnb", "Uber", "Lyft", "DoorDash", "Instacart", "Slack", "Zoom",
+  "Notion", "Figma", "Canva", "Webflow", "Shopify", "Square", "Plaid", "Ramp"
 ];
 
-const COMPANIES = ["Stripe", "Vercel", "Netflix", "Figma", "Airbnb", "Linear", "Datadog", "Notion", "OpenAI", "Anthropic"];
-const ROLES = ["Senior PM", "Software Engineer", "Data Scientist", "UX Designer", "Engineering Manager", "Frontend Dev", "DevOps Engineer", "Product Designer"];
-const LOCATIONS = ["San Francisco", "New York", "Remote", "Los Angeles", "Seattle", "Austin"];
-const FIRST_NAMES = ["Michael", "Sarah", "David", "Emily", "James", "Amanda", "Chris", "Jessica", "Ryan", "Lisa", "Kevin", "Rachel"];
-const LAST_INITIALS = ["K", "L", "R", "W", "T", "C", "M", "H", "P", "S", "J", "B"];
+// Everyday positions for normal people
+const ROLES = [
+  // Sales
+  "Sales Representative", "Account Executive", "Inside Sales", "Sales Manager", "Business Development",
+  "Account Manager", "Sales Associate", "Retail Sales", "Sales Coordinator",
+  // Customer Service & Support  
+  "Customer Service Rep", "Customer Success Manager", "Support Specialist", "Client Services",
+  "Call Center Rep", "Technical Support", "Help Desk Analyst", "Service Coordinator",
+  // Marketing
+  "Marketing Coordinator", "Digital Marketing", "Social Media Manager", "Content Writer",
+  "Marketing Analyst", "SEO Specialist", "Email Marketing", "Marketing Assistant",
+  // Operations & Admin
+  "Operations Manager", "Office Manager", "Executive Assistant", "Administrative Assistant",
+  "Operations Coordinator", "Project Coordinator", "Program Manager", "Logistics Coordinator",
+  // Finance & Accounting
+  "Accountant", "Financial Analyst", "Bookkeeper", "Accounts Payable", "Accounts Receivable",
+  "Payroll Specialist", "Finance Manager", "Budget Analyst", "Tax Preparer",
+  // HR & Recruiting
+  "HR Coordinator", "Recruiter", "Talent Acquisition", "HR Generalist", "HR Assistant",
+  "People Operations", "Benefits Coordinator", "Training Specialist",
+  // IT & Tech
+  "IT Support", "System Administrator", "Network Engineer", "Help Desk", "Software Developer",
+  "Web Developer", "Data Analyst", "Business Intelligence Analyst", "QA Tester", "DevOps Engineer",
+  // Healthcare (Non-clinical)
+  "Medical Billing", "Medical Coding", "Healthcare Admin", "Patient Services", "Insurance Verification",
+  // Supply Chain
+  "Supply Chain Analyst", "Procurement Specialist", "Inventory Manager", "Warehouse Supervisor",
+  "Purchasing Agent", "Logistics Manager", "Shipping Coordinator",
+  // Skilled Trades
+  "Electrician", "Plumber", "HVAC Technician", "Maintenance Tech", "Facilities Manager",
+  "Carpenter", "Welder", "Mechanic", "Machine Operator",
+  // Education
+  "Teacher", "Tutor", "Academic Advisor", "School Counselor", "Education Coordinator",
+  // Legal
+  "Paralegal", "Legal Assistant", "Compliance Analyst", "Contract Administrator",
+  // Creative
+  "Graphic Designer", "UX Designer", "Video Editor", "Copywriter", "Photographer",
+  // Real Estate
+  "Real Estate Agent", "Property Manager", "Leasing Agent", "Appraiser",
+  // Entry Level
+  "Data Entry", "Receptionist", "File Clerk", "Warehouse Worker", "Delivery Driver",
+  "Security Guard", "Cashier", "Stock Associate", "Production Worker"
+];
 
-function generateActivity() {
-  const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
-  const lastInitial = LAST_INITIALS[Math.floor(Math.random() * LAST_INITIALS.length)];
+const LOCATIONS = [
+  "Remote", "Remote", "Remote", // More remote jobs
+  "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Phoenix, AZ",
+  "Philadelphia, PA", "San Antonio, TX", "San Diego, CA", "Dallas, TX", "San Jose, CA",
+  "Austin, TX", "Jacksonville, FL", "Fort Worth, TX", "Columbus, OH", "Charlotte, NC",
+  "San Francisco, CA", "Indianapolis, IN", "Seattle, WA", "Denver, CO", "Washington, DC",
+  "Boston, MA", "El Paso, TX", "Nashville, TN", "Detroit, MI", "Portland, OR",
+  "Las Vegas, NV", "Memphis, TN", "Louisville, KY", "Baltimore, MD", "Milwaukee, WI",
+  "Albuquerque, NM", "Tucson, AZ", "Fresno, CA", "Sacramento, CA", "Kansas City, MO",
+  "Atlanta, GA", "Miami, FL", "Oakland, CA", "Minneapolis, MN", "Tulsa, OK",
+  "Cleveland, OH", "San Juan, PR", "Raleigh, NC", "Omaha, NE", "Colorado Springs, CO"
+];
+
+const FIRST_NAMES = [
+  "James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda",
+  "David", "Elizabeth", "William", "Barbara", "Richard", "Susan", "Joseph", "Jessica",
+  "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Lisa",
+  "Matthew", "Betty", "Anthony", "Margaret", "Mark", "Sandra", "Donald", "Ashley",
+  "Steven", "Kimberly", "Paul", "Emily", "Andrew", "Donna", "Joshua", "Michelle",
+  "Kenneth", "Dorothy", "Kevin", "Carol", "Brian", "Amanda", "George", "Melissa",
+  "Timothy", "Deborah", "Ronald", "Stephanie", "Edward", "Rebecca", "Jason", "Sharon",
+  "Jeffrey", "Laura", "Ryan", "Cynthia", "Jacob", "Kathleen", "Gary", "Amy",
+  "Nicholas", "Angela", "Eric", "Shirley", "Jonathan", "Anna", "Stephen", "Brenda",
+  "Larry", "Pamela", "Justin", "Emma", "Scott", "Nicole", "Brandon", "Helen",
+  "Benjamin", "Samantha", "Samuel", "Katherine", "Raymond", "Christine", "Gregory", "Debra",
+  "Frank", "Rachel", "Alexander", "Carolyn", "Patrick", "Janet", "Jack", "Catherine"
+];
+
+const LAST_INITIALS = ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R", "S", "T", "W", "Y", "Z"];
+
+function getRandomItem<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateActivity(): { name: string; role: string; company: string; location: string; time: string; id: string } {
   return {
-    name: `${firstName} ${lastInitial}.`,
-    role: ROLES[Math.floor(Math.random() * ROLES.length)],
-    company: COMPANIES[Math.floor(Math.random() * COMPANIES.length)],
-    location: LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)],
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    name: `${getRandomItem(FIRST_NAMES)} ${getRandomItem(LAST_INITIALS)}.`,
+    role: getRandomItem(ROLES),
+    company: getRandomItem(COMPANIES),
+    location: getRandomItem(LOCATIONS),
     time: "just now"
   };
 }
 
-// --- COMPONENTS ---
-
 const LiveActivityStream = () => {
-  const [activities, setActivities] = useState(ACTIVITY_DATA);
+  const [activities, setActivities] = useState(() => 
+    Array.from({ length: 8 }, () => generateActivity())
+  );
   const [isPaused, setIsPaused] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -64,80 +153,85 @@ const LiveActivityStream = () => {
     const interval = setInterval(() => {
       const newActivity = generateActivity();
       setActivities(prev => {
-        const updated = [newActivity, ...prev.slice(0, 7)];
-        updated.forEach((a, i) => {
-          if (i === 0) a.time = "just now";
-          else if (i === 1) a.time = "1m ago";
-          else if (i < 4) a.time = `${i + 1}m ago`;
-          else a.time = `${(i + 1) * 2}m ago`;
-        });
-        return updated;
+        const updated = [newActivity, ...prev.slice(0, 10)];
+        return updated.map((a, i) => ({
+          ...a,
+          time: i === 0 ? "just now" : i === 1 ? "1m ago" : i === 2 ? "2m ago" : `${i + 1}m ago`
+        }));
       });
-    }, 4000);
+    }, 3500);
 
     return () => clearInterval(interval);
   }, [shouldReduceMotion, isPaused]);
 
   return (
     <div 
-      ref={containerRef}
       className="relative"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-violet-500 to-pink-500 rounded-full" />
+      <div className="absolute -left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-violet-400 to-transparent rounded-full" />
       
-      <div className="space-y-0">
+      <div className="overflow-hidden" style={{ maxHeight: '280px' }}>
         <AnimatePresence mode="popLayout">
-          {activities.slice(0, 5).map((activity, i) => (
+          {activities.slice(0, 4).map((activity, i) => (
             <motion.div
-              key={`${activity.name}-${activity.company}-${i}`}
-              initial={{ opacity: 0, x: -20, height: 0 }}
-              animate={{ opacity: i === 0 ? 1 : 0.7 - i * 0.12, x: 0, height: "auto" }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              key={activity.id}
+              layout
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ 
+                opacity: i === 0 ? 1 : 0.6, 
+                y: 0, 
+                scale: 1 
+              }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ 
+                duration: 0.5, 
+                ease: [0.16, 1, 0.3, 1],
+                layout: { duration: 0.4 }
+              }}
               className={cn(
-                "flex items-center gap-3 py-3",
-                i === 0 && "bg-gradient-to-r from-blue-50/80 to-violet-50/80 -mx-3 px-3 rounded-lg"
+                "flex items-center gap-3 py-2.5",
+                i === 0 && "bg-gradient-to-r from-blue-50 via-violet-50 to-transparent -mx-3 px-3 rounded-lg mb-1"
               )}
             >
               <div className={cn(
-                "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
+                "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300",
                 i === 0 
-                  ? "bg-gradient-to-br from-blue-500 to-violet-500 shadow-lg shadow-blue-500/20" 
+                  ? "bg-gradient-to-br from-blue-500 to-violet-500" 
                   : "bg-slate-100"
               )}>
                 {i === 0 ? (
-                  <Send className="w-4 h-4 text-white" />
+                  <Send className="w-3.5 h-3.5 text-white" />
                 ) : (
-                  <User className="w-4 h-4 text-slate-400" />
+                  <User className="w-3.5 h-3.5 text-slate-400" />
                 )}
               </div>
               
               <div className="flex-1 min-w-0">
                 <p className={cn(
-                  "text-sm leading-tight",
+                  "text-sm leading-snug truncate",
                   i === 0 ? "text-slate-900 font-medium" : "text-slate-600"
                 )}>
                   <span className="font-semibold">{activity.name}</span>
-                  <span className="text-slate-400 mx-1.5">→</span>
+                  <span className="text-slate-400 mx-1">→</span>
                   <span className="text-blue-600">{activity.role}</span>
-                  <span className="text-slate-400"> at </span>
-                  <span className="text-slate-700">{activity.company}</span>
+                  <span className="text-slate-400 hidden sm:inline"> at {activity.company}</span>
                 </p>
-                <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
-                  <MapPin className="w-3 h-3" />
-                  <span>{activity.location}</span>
-                  <span className="text-slate-300">•</span>
+                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-400">
+                  <span className="sm:hidden">{activity.company}</span>
+                  <span className="hidden sm:inline">{activity.location}</span>
+                  <span className="text-slate-300">·</span>
                   <span>{activity.time}</span>
                 </div>
               </div>
               
               {i === 0 && (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-medium"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 400 }}
+                  className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-medium"
                 >
                   <CheckCircle className="w-3 h-3" />
                   Applied
@@ -148,9 +242,13 @@ const LiveActivityStream = () => {
         </AnimatePresence>
       </div>
       
-      <div className="mt-4 pt-3 border-t border-slate-200/60">
-        <p className="text-xs text-slate-400 text-center">
-          {isPaused ? "Paused" : "Live"} • Updated in real-time
+      <div className="mt-3 pt-2 border-t border-slate-100">
+        <p className="text-xs text-slate-400 text-center flex items-center justify-center gap-1.5">
+          <span className={cn(
+            "w-1.5 h-1.5 rounded-full",
+            isPaused ? "bg-amber-400" : "bg-emerald-400 animate-pulse"
+          )} />
+          {isPaused ? "Paused" : "Live"} • Updates every few seconds
         </p>
       </div>
     </div>
@@ -159,18 +257,11 @@ const LiveActivityStream = () => {
 
 const ProgressBar = () => {
   const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   return (
     <div className="fixed top-0 left-0 right-0 h-1 bg-slate-100 z-[60]">
-      <motion.div
-        className="h-full bg-gradient-to-r from-primary-500 to-amber-500"
-        style={{ scaleX, transformOrigin: "0%" }}
-      />
+      <motion.div className="h-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500" style={{ scaleX, transformOrigin: "0%" }} />
     </div>
   );
 };
@@ -182,9 +273,7 @@ const Hero = () => {
   const [sentEmail, setSentEmail] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
-  const validateEmail = (e: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
-  };
+  const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,20 +306,20 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[100svh] lg:min-h-[90svh] flex items-center justify-center overflow-hidden bg-white">
+    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-white pb-20">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-100/40 to-violet-100/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-pink-100/30 to-amber-100/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-pink-100/30 to-amber-100/30 rounded-full blur-3xl" />
       </div>
 
       <div className="absolute inset-0 bg-grid-premium opacity-20 pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-20 lg:py-0">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-20 lg:pt-0">
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-50 border border-slate-200/80 mb-8"
           >
             <span className="relative flex h-2 w-2">
@@ -238,15 +327,15 @@ const Hero = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
             <span className="text-xs sm:text-sm font-medium text-slate-600 tracking-wide">
-              <span className="font-bold text-slate-900">147</span> jobs applied today
+              <span className="font-bold text-slate-900">847</span> jobs applied today
             </span>
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter-display leading-[0.95] mb-6 text-balance-hero max-w-3xl"
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-6 text-balance-hero max-w-3xl"
           >
             <span className="text-slate-900">Your AI applies to</span>
             <br />
@@ -258,7 +347,7 @@ const Hero = () => {
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="font-body text-lg sm:text-xl lg:text-2xl text-slate-500 max-w-2xl mb-10 leading-relaxed"
           >
             Upload your resume. Our agent matches, tailors, and submits applications
@@ -270,7 +359,7 @@ const Hero = () => {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="w-full max-w-md"
             >
               <form onSubmit={onSubmit} className="relative">
@@ -295,7 +384,6 @@ const Hero = () => {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    variant="primary"
                     className="h-12 sm:h-auto px-8 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
                   >
                     {isSubmitting ? (
@@ -312,11 +400,7 @@ const Hero = () => {
               </form>
               
               {emailError && (
-                <motion.p
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-3 text-sm text-red-500 font-medium"
-                >
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-sm text-red-500 font-medium">
                   {emailError}
                 </motion.p>
               )}
@@ -331,7 +415,6 @@ const Hero = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
               className="w-full max-w-md bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-200 p-6 text-left shadow-xl"
             >
               <div className="flex items-start gap-4 mb-4">
@@ -346,99 +429,85 @@ const Hero = () => {
               <p className="text-sm text-slate-600 leading-relaxed mb-4">
                 Check your inbox for the magic link. Click it to start your AI job search.
               </p>
-              <button
-                type="button"
-                onClick={() => setSentEmail(null)}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-              >
+              <button onClick={() => setSentEmail(null)} className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
                 Use different email
               </button>
             </motion.div>
           )}
 
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
+            transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mt-16 w-full max-w-3xl"
           >
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent z-10 pointer-events-none" />
+            <div className="bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+              <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-800 bg-slate-900/50">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                <span className="ml-3 text-xs font-mono text-slate-500 uppercase tracking-wider">AI Agent</span>
+              </div>
               
-              <div className="bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
-                <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-800">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  <span className="ml-3 text-[10px] sm:text-xs font-mono text-slate-500 uppercase tracking-wider">AI Agent</span>
+              <div className="p-5 sm:p-6 space-y-2.5">
+                {[
+                  { icon: Upload, label: "Resume parsed", detail: "47 skills extracted" },
+                  { icon: Search, label: "Scanning 2,847 jobs", detail: "Matching your profile..." },
+                  { icon: Send, label: "52 applications sent", detail: "Custom-tailored each one" },
+                  { icon: Bell, label: "2 interview requests", detail: "Recruiters responded!" },
+                ].map((step, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 + i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex items-center gap-3.5"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
+                      <step.icon className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white">{step.label}</p>
+                      <p className="text-xs text-slate-400">{step.detail}</p>
+                    </div>
+                    {i !== 1 && <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
+                  </motion.div>
+                ))}
+              </div>
+              
+              <div className="px-5 sm:px-6 py-3 border-t border-slate-800 bg-slate-900/30">
+                <div className="flex justify-between text-xs font-mono text-slate-500 mb-1.5">
+                  <span>Progress</span>
+                  <span>92%</span>
                 </div>
-                
-                <div className="p-4 sm:p-6 space-y-3">
-                  {[
-                    { icon: Upload, label: "Resume parsed", detail: "24 skills extracted", done: true },
-                    { icon: Search, label: "Scanning 12,847 jobs", detail: "Matching your profile...", done: false },
-                    { icon: Send, label: "47 applications queued", detail: "Tailored per listing", done: true },
-                    { icon: Bell, label: "3 interview requests", detail: "Recruiters responded!", done: true },
-                  ].map((step, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.7 + i * 0.15, duration: 0.4 }}
-                      className="flex items-center gap-3 sm:gap-4"
-                    >
-                      <div className={cn(
-                        "w-9 sm:w-10 h-9 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0",
-                        step.done ? "bg-emerald-500/20" : "bg-blue-500/20"
-                      )}>
-                        <step.icon className={cn("w-4 sm:w-5 h-4 sm:h-5", step.done ? "text-emerald-400" : "text-blue-400")} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm sm:text-base font-semibold text-white">{step.label}</p>
-                        <p className="text-xs sm:text-sm text-slate-400">{step.detail}</p>
-                      </div>
-                      {step.done && <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />}
-                    </motion.div>
-                  ))}
-                </div>
-                
-                <div className="px-4 sm:px-6 py-3 border-t border-slate-800 bg-slate-900/50">
-                  <div className="flex justify-between text-xs font-mono text-slate-500 mb-2">
-                    <span>Progress</span>
-                    <span>78%</span>
-                  </div>
-                  <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500 rounded-full"
-                      initial={{ width: "0%" }}
-                      animate={{ width: "78%" }}
-                      transition={{ delay: 1.5, duration: 1.2, ease: "easeOut" }}
-                    />
-                  </div>
+                <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500 rounded-full"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "92%" }}
+                    transition={{ delay: 1.2, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                  />
                 </div>
               </div>
             </div>
           </motion.div>
         </div>
       </div>
-
-<div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none" />
     </section>
   );
 };
 
 const LiveActivitySection = () => {
-  const shouldReduceMotion = useReducedMotion();
-  
   return (
-    <section className="py-16 sm:py-20 bg-white border-y border-slate-100 relative overflow-hidden">
+    <section className="py-20 sm:py-24 bg-slate-50 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 mb-6"
             >
               <span className="relative flex h-2 w-2">
@@ -452,8 +521,8 @@ const LiveActivitySection = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter-display text-slate-900 mb-4"
+              transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 mb-4"
             >
               Watch it happen<br />
               <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">in real-time</span>
@@ -463,26 +532,26 @@ const LiveActivitySection = () => {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="font-body text-lg text-slate-500 mb-8 leading-relaxed"
             >
               Every few seconds, our AI submits another tailored application. 
-              This is happening right now for users like you.
+              This is happening right now for job seekers just like you.
             </motion.p>
             
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-wrap gap-8"
             >
               <div>
-                <p className="font-display text-4xl font-bold text-slate-900">847</p>
+                <p className="font-display text-4xl font-bold text-slate-900">1,247</p>
                 <p className="text-sm text-slate-500">applications today</p>
               </div>
               <div>
-                <p className="font-display text-4xl font-bold text-slate-900">23</p>
+                <p className="font-display text-4xl font-bold text-slate-900">89</p>
                 <p className="text-sm text-slate-500">interview requests</p>
               </div>
               <div>
@@ -496,8 +565,8 @@ const LiveActivitySection = () => {
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="bg-slate-50 rounded-2xl border border-slate-200 p-6"
+            transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xl shadow-slate-200/50"
           >
             <LiveActivityStream />
           </motion.div>
@@ -508,73 +577,81 @@ const LiveActivitySection = () => {
 };
 
 const Onboarding = () => {
+  const steps = [
+    { icon: Upload, title: "Upload", desc: "Drop your resume, we extract everything in seconds" },
+    { icon: Search, title: "Match", desc: "AI finds jobs that fit your skills and experience" },
+    { icon: FileText, title: "Tailor", desc: "Each application is customized for that specific role" },
+    { icon: MessageSquare, title: "Notify", desc: "Get alerts when recruiters want to interview you" },
+  ];
+
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-slate-50 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-blue-100/30 to-violet-100/30 rounded-full blur-3xl opacity-60 -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-pink-100/20 to-amber-100/20 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+    <section id="how-it-works" className="py-24 sm:py-32 bg-white relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-blue-50/50 to-violet-50/50 rounded-full blur-3xl opacity-60 pointer-events-none" />
 
       <div className="container mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
-        <div className="text-center mb-16 lg:mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 mb-6"
-          >
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">How It Works</span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter-display text-slate-900 mb-4"
-          >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center mb-16 lg:mb-20"
+        >
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 mb-4">
             Four steps to <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">more interviews</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="font-body text-lg text-slate-500 max-w-2xl mx-auto"
-          >
+          </h2>
+          <p className="font-body text-lg text-slate-500 max-w-xl mx-auto">
             Set up once, let the agent run. You only show up for the wins.
-          </motion.p>
+          </p>
+        </motion.div>
+
+        <div className="relative max-w-4xl mx-auto">
+          {/* Connected path */}
+          <div className="absolute top-12 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-200 via-violet-200 to-pink-200 hidden lg:block" />
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
+            {steps.map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                viewport={{ once: true }}
+                className="relative group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative mb-5">
+                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-xl shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-shadow duration-300">
+                      <step.icon className="w-10 h-10 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center text-sm font-bold text-slate-600 shadow-sm">
+                      {i + 1}
+                    </div>
+                  </div>
+                  <h3 className="font-display text-xl font-bold text-slate-900 mb-2">{step.title}</h3>
+                  <p className="font-body text-sm text-slate-500 leading-relaxed">{step.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {[
-            { icon: Upload, step: "01", title: "Upload Resume", desc: "Drop your PDF. We extract 40+ data points in seconds." },
-            { icon: Search, step: "02", title: "AI Matches Jobs", desc: "Scans thousands of listings against your profile daily." },
-            { icon: Send, step: "03", title: "Auto-Applies", desc: "Tailors each application to the specific job requirements." },
-            { icon: Bell, step: "04", title: "You Get Interviews", desc: "We notify you only when a recruiter responds." },
-          ].map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
-              viewport={{ once: true }}
-              className="group relative bg-white rounded-2xl p-6 lg:p-8 border border-slate-200 hover:border-blue-200 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5"
-            >
-              <div className="absolute top-4 right-4 text-xs font-mono text-slate-300 font-semibold">{item.step}</div>
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/20">
-                <item.icon className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-display text-xl font-bold text-slate-900 mb-2 tracking-tight">{item.title}</h3>
-              <p className="font-body text-sm text-slate-500 leading-relaxed">{item.desc}</p>
-            </motion.div>
-          ))}
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-16 text-center"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200">
+            <Zap className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-medium text-slate-600">Average setup time: <span className="font-bold text-slate-900">2 minutes</span></span>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
 };
 
-// AutomationEdge removed — Telegram integrated into Protocol Step 4
-
-// --- MAIN PAGE ---
 export default function Homepage() {
   return (
     <>
@@ -587,34 +664,13 @@ export default function Homepage() {
           "@context": "https://schema.org",
           "@type": "FAQPage",
           "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "Is this legit? Will I get banned from job sites?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Absolutely legit. We follow each platform's Terms of Service. We don't spam, we don't use bots that violate rate limits, and we never submit low-quality applications."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How is this different from just applying myself?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Speed and quality. Most people take 20-30 minutes per application. We do it in under 2 minutes, and we customize every resume and cover letter using AI."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "What happens to my resume and data?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Your data is yours. We store it securely (encrypted at rest), never sell it to third parties, and you can delete everything anytime."
-              }
-            }
+            { "@type": "Question", "name": "Is this legit? Will I get banned from job sites?", "acceptedAnswer": { "@type": "Answer", "text": "Absolutely legit. We follow each platform's Terms of Service. We don't spam, we don't use bots that violate rate limits, and we never submit low-quality applications." }},
+            { "@type": "Question", "name": "How is this different from just applying myself?", "acceptedAnswer": { "@type": "Answer", "text": "Speed and quality. Most people take 20-30 minutes per application. We do it in under 2 minutes, and we customize every resume and cover letter using AI." }},
+            { "@type": "Question", "name": "What happens to my resume and data?", "acceptedAnswer": { "@type": "Answer", "text": "Your data is yours. We store it securely (encrypted at rest), never sell it to third parties, and you can delete everything anytime." }}
           ]
         }}
       />
-<ProgressBar />
+      <ProgressBar />
       <Hero />
       <LiveActivitySection />
       <Onboarding />
