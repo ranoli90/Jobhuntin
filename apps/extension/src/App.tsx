@@ -6,17 +6,17 @@ function App() {
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    // Initial check
+useEffect(() => {
     chrome.storage.local.get(['auth_token'], (data) => {
-      setToken(data.auth_token || null)
+      const token = data.auth_token
+      setToken(typeof token === 'string' ? token : null)
       setLoading(false)
     })
 
-    // Listen for SYNC_SESSION storage changes from the background/content script
     const storageListener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
       if (area === 'local' && changes.auth_token) {
-        setToken(changes.auth_token.newValue || null)
+        const newVal = changes.auth_token.newValue
+        setToken(typeof newVal === 'string' ? newVal : null)
       }
     }
     chrome.storage.onChanged.addListener(storageListener)
@@ -35,10 +35,11 @@ function App() {
     return <div className="p-10 flex justify-center"><div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full" /></div>
   }
 
-  if (!token) {
+if (!token) {
     return <Login onLogin={() => {
       chrome.storage.local.get(['auth_token'], (data) => {
-        setToken(data.auth_token || null)
+        const t = data.auth_token
+        setToken(typeof t === 'string' ? t : null)
       })
     }} />
   }

@@ -3,10 +3,12 @@ import { useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+function getAuthToken(): string | null {
+  return localStorage.getItem("auth_token");
+}
+
 async function authHeaders(): Promise<Record<string, string>> {
-  const { supabase } = await import("../lib/supabase");
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const token = getAuthToken();
   const h: Record<string, string> = { "Content-Type": "application/json" };
   if (token) h["Authorization"] = `Bearer ${token}`;
   return h;

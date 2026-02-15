@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -9,9 +8,12 @@ interface ApiKey {
   is_active: boolean; last_used_at: string | null; created_at: string;
 }
 
+function getAuthToken(): string | null {
+  return localStorage.getItem("auth_token");
+}
+
 async function authHeaders(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const t = data.session?.access_token;
+  const t = getAuthToken();
   return t ? { Authorization: `Bearer ${t}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
 }
 

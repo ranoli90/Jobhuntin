@@ -297,16 +297,23 @@ export default function JobNiche() {
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">
                 Jobs Near {formattedCity}
               </h3>
-              <div className="flex flex-wrap gap-3">
+<div className="flex flex-wrap gap-3">
                 {semanticLinks.filter(l => l.entityType === 'location' || l.entityType === 'nearby-location').map((link, i) => (
                   <Link
                     key={i}
                     to={link.url}
-    </div>
-  ))}
-</div>
+                    className="bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-600 px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-slate-100 hover:border-primary-100"
+                    title={link.anchorText}
+                  >
+                    {link.anchorText}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
-{/* H2 - Feature comparison section */}
+        {/* H2 - Feature comparison section */}
 <div className="grid md:grid-cols-2 gap-12 mb-20 items-center">
   <div>
     <h2 className="text-3xl font-black mb-6">{seoData.h2s[0]}</h2>
