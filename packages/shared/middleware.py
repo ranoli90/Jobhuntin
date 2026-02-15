@@ -71,7 +71,7 @@ class CSRFMiddleware:
     """
 
     # Paths exempt from CSRF protection (webhooks, public endpoints)
-EXEMPT_PATHS = [
+    EXEMPT_PATHS = [
         "/health",
         "/healthz",
         "/auth/magic-link",
@@ -107,7 +107,7 @@ def setup_csrf_middleware(app, secret: str) -> None:
         )
         return
 
-try:
+    try:
         from starlette_csrf.middleware import CSRFMiddleware as StarletteCSRF
 
         exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
