@@ -47,7 +47,6 @@ from backend.domain.repositories import (
 from backend.domain.resume import process_resume_upload
 from backend.domain.tenant import TenantContext
 from shared.metrics import RateLimiter
-from shared.storage import get_storage_service
 
 logger = get_logger("sorce.user")
 

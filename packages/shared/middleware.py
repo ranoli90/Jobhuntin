@@ -8,8 +8,8 @@ Includes:
 
 from __future__ import annotations
 
-import uuid
 import re
+import uuid
 from typing import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware

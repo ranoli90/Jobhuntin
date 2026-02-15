@@ -38,6 +38,7 @@ from shared.config import Environment, get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
 from shared.redis_client import close_redis, get_redis
+from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
 
 from backend.domain.analytics_events import (
@@ -62,7 +63,6 @@ from backend.domain.tenant import (
 )
 from shared.metrics import dump as metrics_dump
 from shared.metrics import incr
-from shared.storage import get_storage_service
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
