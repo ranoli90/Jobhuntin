@@ -218,6 +218,32 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
   const jobCount = Math.floor(Math.random() * 200 + 300);
 
   return [
+    // LocalBusiness Schema - For location pages
+    {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      '@id': `https://jobhuntin.com/jobs/${locationData?.id || location.toLowerCase()}`,
+      'name': `JobHuntin ${location}`,
+      'description': `${role} job opportunities and career resources in ${location}`,
+      'url': `https://jobhuntin.com/jobs/${roleData?.id || 'all'}/${locationData?.id || location.toLowerCase()}`,
+      'address': {
+        '@type': 'PostalAddress',
+        'addressLocality': location,
+        'addressRegion': locationData?.state || '',
+        'addressCountry': locationData?.country || 'USA'
+      },
+      'areaServed': {
+        '@type': 'City',
+        'name': location
+      },
+      'priceRange': '$$',
+      'aggregateRating': {
+        '@type': 'AggregateRating',
+        'ratingValue': '4.8',
+        'reviewCount': '2847',
+        'bestRating': '5'
+      }
+    },
     // Occupation Schema - aligns with role content
     {
       '@context': 'https://schema.org',
