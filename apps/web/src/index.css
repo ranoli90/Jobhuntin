@@ -1,9 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..900;1,200..900&family=Manrope:wght@300..800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Professional SaaS color system */
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+  
   --color-primary-50: 239 246 255;
   --color-primary-500: 59 130 246;
   --color-primary-600: 37 99 235;
@@ -21,14 +25,12 @@
   --color-slate-900: 15 23 42;
   --color-slate-950: 2 6 23;
 
-  /* Legacy mapping for compatibility */
   --jobhuntin-sunrise: 59 130 246;
   --jobhuntin-lagoon: 6 182 212;
   --jobhuntin-mango: 245 158 11;
   --jobhuntin-ink: 15 23 42;
   --jobhuntin-shell: 248 250 252;
 
-  /* Fluid Typography - Dynamic Type Safeguards */
   --fs-sm: clamp(0.8rem, 0.17vw + 0.76rem, 0.89rem);
   --fs-base: clamp(1rem, 0.34vw + 0.91rem, 1.19rem);
   --fs-md: clamp(1.25rem, 0.61vw + 1.1rem, 1.58rem);
@@ -74,12 +76,23 @@ html {
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   background-color: #f8fafc;
   color: #0f172a;
-  line-height: 1.6;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
   width: 100%;
   min-height: 100svh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
 }
 
 #root {
@@ -194,8 +207,109 @@ body {
     background: #94a3b8;
   }
 
-  .custom-scrollbar {
+.custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .tracking-tighter-display {
+    letter-spacing: -0.04em;
+  }
+
+  .tracking-tight-display {
+    letter-spacing: -0.025em;
+  }
+
+  .text-balance-hero {
+    text-wrap: balance;
+    hyphens: none;
+  }
+
+  .animate-gradient-flow {
+    background-size: 200% auto;
+    animation: gradient-flow 8s ease infinite;
+  }
+
+  @keyframes gradient-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .hover-lift {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+  }
+
+  .text-grain {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  .gradient-text-premium {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899) border-box;
+    border: 2px solid transparent;
+  }
+
+  .glow-soft {
+    box-shadow: 0 0 60px -15px rgba(59, 130, 246, 0.4);
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
