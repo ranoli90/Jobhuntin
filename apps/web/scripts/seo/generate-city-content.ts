@@ -63,11 +63,20 @@ import { getCityJobStats, formatStatsForPrompt } from './data-provider.js';
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
-// Use free models to avoid costs, with fallback to Google free tier
-// Use free models to avoid costs, with fallback to Google free tier
+// Free models that actually work on OpenRouter (updated Feb 2026)
 const FREE_MODELS = [
-  'openrouter/free',       // User requested free router
-  'google/gemini-2.0-flash-lite-preview-02-05:free', // Fallback
+  'google/gemini-2.0-flash-exp:free',           // Fast, reliable, good for JSON
+  'meta-llama/llama-3.3-8b-instruct:free',      // Meta's free tier
+  'qwen/qwen3-4b:free',                          // Alibaba's efficient model
+  'mistralai/mistral-small-3.1-24b-instruct:free', // Mistral free tier
+];
+
+// Backup free models for aggressive mode
+const BACKUP_FREE_MODELS: string[] = [
+  'deepseek/deepseek-r1-0528:free',             // DeepSeek reasoning
+  'qwen/qwen3-coder:free',                       // Good for structured output
+  'google/gemma-3n-e4b-it:free',                // Google's free tier
+  'arcee-ai/trinity-mini:free',                  // Arcee's smaller model
 ];
 
 // Content Archetypes to prevent "cookie-cutter" footprint
@@ -105,12 +114,6 @@ const ARCHETYPES = [
       REQUIRED SECTIONS: "Interviewing in ` + '${cityName}' + `", "Skill Stack for 2026", "Networking Tips"
     `
   }
-];
-
-// Additional backup free models for redundancy
-const BACKUP_FREE_MODELS: string[] = [
-  'microsoft/phi-3-mini-128k-instruct:free',     // Backup 1: Microsoft free tier
-  'huggingfaceh4/zephyr-7b-beta:free',           // Backup 2: Hugging Face free tier
 ];
 
 interface LocationData {
@@ -393,6 +396,10 @@ async function generateAggressiveLocalContent(
     }
 
     try {
+      // Add timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout for large content
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -406,18 +413,20 @@ async function generateAggressiveLocalContent(
           messages: [
             {
               role: "system",
-              content: "You are an expert SEO content strategist who creates Google-compliant, high-ranking content that provides genuine value to users."
+              content: "You are an expert SEO content strategist who creates Google-compliant, high-ranking content that provides genuine value to users. Always respond with valid JSON."
             },
             {
               role: "user",
               content: aggressivePrompt
             }
           ],
-          temperature: 0.7, // Balanced creativity and consistency
-          max_tokens: 4000,
-          response_format: { type: "json_object" }
-        })
+          temperature: 0.7,
+          max_tokens: 4000
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -478,7 +487,9 @@ async function generateAggressiveLocalContent(
       console.log(`⚠️  Model ${model} error: ${error.message}`);
 
       // Log additional error context for debugging
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      if (error.name === 'AbortError') {
+        console.log(`   Request timed out after 90s - model may be overloaded`);
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
         console.log(`   Network error - check internet connection`);
       } else if (error.message.includes('timeout')) {
         console.log(`   Request timeout - model may be overloaded`);

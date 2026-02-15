@@ -24,9 +24,12 @@ const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.jso
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
-// STRICT: Only approved NVIDIA free-tier models — no exceptions
+// Free models that actually work on OpenRouter (updated Feb 2026)
 const FREE_MODELS = [
-  'openrouter/free',       // User requested free router
+  'google/gemini-2.0-flash-exp:free',
+  'meta-llama/llama-3.3-8b-instruct:free',
+  'qwen/qwen3-4b:free',
+  'mistralai/mistral-small-3.1-24b-instruct:free',
 ];
 
 interface Competitor {
@@ -121,12 +124,16 @@ async function generateCompetitorData(name: string, url?: string, explicitModel?
 
   const modelsToTry = explicitModel ? [explicitModel] : FREE_MODELS;
   let lastError: Error | null = null;
-  let triedModels = [];
+  let triedModels: string[] = [];
 
   for (const model of modelsToTry) {
     try {
       console.log(`🤖 Attempting research with model: ${model}...`);
       triedModels.push(model);
+
+      // Add timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -141,7 +148,10 @@ async function generateCompetitorData(name: string, url?: string, explicitModel?
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.7,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errText = await response.text();

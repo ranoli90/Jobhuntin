@@ -8,7 +8,12 @@ const SITEMAP_PATH = path.resolve(__dirname, '../../public/sitemap.xml');
 const REPORT_FILE = path.resolve(__dirname, '../../src/data/seo-audit-report.json');
 
 const OPENROUTER_API_KEY = process.env.LLM_API_KEY;
-const MODEL = 'openrouter/free';
+const FREE_MODELS = [
+    'google/gemini-2.0-flash-exp:free',
+    'meta-llama/llama-3.3-8b-instruct:free',
+    'qwen/qwen3-4b:free',
+    'mistralai/mistral-small-3.1-24b-instruct:free',
+];
 
 if (!OPENROUTER_API_KEY) {
     console.error('❌ Error: LLM_API_KEY environment variable is not set.');
@@ -78,62 +83,91 @@ async function auditUrl(url: string): Promise<AuditResult> {
     }
   `;
 
-    try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                'HTTP-Referer': 'https://jobhuntin.com',
-                'X-Title': 'JobHuntin SEO Audit',
-            },
-            body: JSON.stringify({
-                model: MODEL,
-                messages: [{ role: 'user', content: prompt }],
-                temperature: 0.1, // Low temp for consistent analysis
-                response_format: { type: 'json_object' }
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`OpenRouter error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const content = data.choices[0]?.message?.content;
-
-        if (!content) throw new Error('No content from LLM');
-
-        // Parse JSON
-        let result;
+    let lastError: Error | null = null;
+    
+    for (let i = 0; i < FREE_MODELS.length; i++) {
+        const model = FREE_MODELS[i];
+        console.log(`  🔄 Trying model: ${model} (${i + 1}/${FREE_MODELS.length})`);
+        
         try {
-            result = JSON.parse(content);
-        } catch (e) {
-            // Fallback cleanup if markdown is included
-            const clean = content.replace(/```json|```/g, '').trim();
-            result = JSON.parse(clean);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                    'HTTP-Referer': 'https://jobhuntin.com',
+                    'X-Title': 'JobHuntin SEO Audit',
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.1,
+                }),
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.log(`  ⚠️ Model ${model} failed: ${response.status}`);
+                lastError = new Error(`OpenRouter error: ${response.status} - ${errorText}`);
+                
+                if (response.status === 429 || response.status === 404 || response.status === 400) {
+                    await new Promise(r => setTimeout(r, 1000)); // Brief delay before retry
+                    continue;
+                }
+            }
+
+            const data = await response.json();
+            const content = data.choices[0]?.message?.content;
+
+            if (!content) {
+                lastError = new Error('No content from LLM');
+                continue;
+            }
+
+            let result;
+            try {
+                result = JSON.parse(content);
+            } catch (e) {
+                const clean = content.replace(/```json|```/g, '').trim();
+                result = JSON.parse(clean);
+            }
+
+            console.log(`  ✅ Success with model: ${model}`);
+            return {
+                url,
+                seoScore: result.seoScore || 0,
+                isSpam: result.isSpam || false,
+                spamReason: result.spamReason,
+                improvements: result.improvements || [],
+                timestamp: new Date().toISOString()
+            };
+
+        } catch (error: any) {
+            lastError = error;
+            if (error.name === 'AbortError') {
+                console.log(`  ⏱️ Model ${model} timed out`);
+            } else {
+                console.log(`  ⚠️ Model ${model} error: ${error.message}`);
+            }
+            continue;
         }
-
-        return {
-            url,
-            seoScore: result.seoScore || 0,
-            isSpam: result.isSpam || false,
-            spamReason: result.spamReason,
-            improvements: result.improvements || [],
-            timestamp: new Date().toISOString()
-        };
-
-    } catch (error: any) {
-        console.error(`❌ Analysis failed for ${url}:`, error.message);
-        return {
-            url,
-            seoScore: 0,
-            isSpam: false,
-            spamReason: "Analysis failed",
-            improvements: ["Retry analysis"],
-            timestamp: new Date().toISOString()
-        };
     }
+
+    console.error(`❌ All models failed for ${url}:`, lastError?.message);
+    return {
+        url,
+        seoScore: 0,
+        isSpam: false,
+        spamReason: "All models failed",
+        improvements: ["Retry analysis"],
+        timestamp: new Date().toISOString()
+    };
 }
 
 async function main() {
@@ -145,7 +179,7 @@ async function main() {
     const limitIdx = args.indexOf('--limit');
     let limit = limitIdx !== -1 ? parseInt(args[limitIdx + 1]) : urls.length;
 
-    console.log(`🚀 Starting audit for ${limit} URLs using ${MODEL}...`);
+    console.log(`🚀 Starting audit for ${limit} URLs using free models...`);
 
     const results: AuditResult[] = [];
     const BATCH_SIZE = 3; // Small batch to be safe with free tier
