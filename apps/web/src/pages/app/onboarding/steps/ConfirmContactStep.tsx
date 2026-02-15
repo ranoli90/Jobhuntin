@@ -175,7 +175,7 @@ export function ConfirmContactStep({
                 </Button>
                 <Button
                     onClick={onNext}
-                    disabled={!contactInfo.first_name || !contactInfo.email || isSavingContact}
+                    disabled={!contactInfo.first_name || !contactInfo.last_name || !contactInfo.email || isSavingContact}
                     className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-xs md:text-lg disabled:opacity-50 disabled:cursor-not-allowed group"
                     aria-label="Confirm identity and proceed"
                 >

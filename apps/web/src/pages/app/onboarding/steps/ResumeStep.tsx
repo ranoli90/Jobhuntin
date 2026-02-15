@@ -107,7 +107,7 @@ export function ResumeStep({
                 <div className="mb-3 md:mb-8 relative group">
                     <input
                         type="file"
-                        accept=".pdf,.doc,.docx"
+                        accept=".pdf"
                         onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
                         className="hidden"
                         id="resume-upload"

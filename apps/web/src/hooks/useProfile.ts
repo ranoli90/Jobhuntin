@@ -117,7 +117,7 @@ export function useProfile() {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // allow more time for parsing
 
     try {
       const formData = new FormData();
@@ -146,6 +146,11 @@ export function useProfile() {
         await refreshProfile();
       }
       return data;
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        throw new Error("Upload timed out. Please retry on a stable connection.");
+      }
+      throw err;
     } finally {
       clearTimeout(timeoutId);
     }

@@ -206,17 +206,28 @@ export default function Login() {
         "Return to this tab and sign in securely",
       ];
     return (
-      <div className="h-[100dvh] w-full bg-slate-50 flex flex-col items-center justify-center p-4 sm:p-6 font-sans text-slate-900 relative overflow-hidden">
+      <div
+        className="min-h-[100dvh] w-full bg-slate-50 flex flex-col items-center p-4 sm:p-6 pt-8 sm:pt-10 pb-12 font-sans text-slate-900 relative overflow-y-auto"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {/* Background Decoration for Success State */}
         <div className="absolute inset-0 pointer-events-none opacity-30">
           <div className="absolute top-0 left-0 w-[80vw] h-[80vw] max-w-[500px] max-h-[500px] bg-primary-400/10 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
           <div className="absolute bottom-0 right-0 w-[90vw] h-[90vw] max-w-[600px] max-h-[600px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
         </div>
 
+        <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-4 mb-4">
+          <Logo className="mx-auto" />
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white/70 backdrop-blur border border-slate-200 rounded-full shadow-sm">
+            <div className="h-8 w-8 rounded-xl bg-primary-500 text-white font-black flex items-center justify-center text-sm">📧</div>
+            <div className="text-xs font-semibold text-slate-600">Magic link sent · follow the steps below</div>
+          </div>
+        </div>
+
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full shadow-2xl shadow-primary-500/5 text-center border border-white/50 relative z-10"
+          className="bg-white/85 backdrop-blur-xl rounded-3xl p-8 max-w-md w-full shadow-2xl shadow-primary-500/5 text-center border border-white/50 relative z-10"
         >
           <div className="w-24 h-24 bg-gradient-to-br from-green-50 to-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-green-100 relative">
             <div className="absolute inset-0 rounded-full bg-green-500/5 animate-pulse"></div>
@@ -234,7 +245,7 @@ export default function Login() {
                 <>You're almost set. Secure your account by confirming <strong className="text-slate-900">{successState.email}</strong>. Delivery can take up to 2 minutes.</>
               )}
           </p>
-          <ol className="text-left list-decimal list-inside space-y-3 text-slate-600 mb-8 bg-slate-50/50 p-4 rounded-xl border border-slate-100/50">
+          <ol className="text-left list-decimal list-inside space-y-3 text-slate-600 mb-8 bg-slate-50/70 p-4 rounded-xl border border-slate-100/60">
             {steps.map((step, idx) => (
               <li key={idx} className="text-sm">{step}</li>
             ))}
@@ -331,7 +342,7 @@ export default function Login() {
                 role="tab"
                 disabled={option.disabled}
                 className={cn(
-                  "rounded-xl py-2.5 text-center transition-all text-xs font-bold uppercase tracking-wider",
+                  "relative rounded-xl py-2.5 text-center transition-all text-xs font-bold uppercase tracking-wider",
                   option.disabled
                     ? "text-slate-300 cursor-not-allowed"
                     : mode === option.key
@@ -341,6 +352,11 @@ export default function Login() {
                 title={option.disabled ? "Coming soon - use Magic Link" : undefined}
               >
                 {option.label.split(' ')[0]}
+                {option.disabled && (
+                  <span className="absolute -top-2 right-2 text-[9px] font-black text-primary-500 bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Soon
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -350,34 +366,28 @@ export default function Login() {
               variant="outline"
               type="button"
               onClick={() => handleSocialLogin("google")}
-              disabled={!!socialProviderLoading}
-              className="w-full justify-center gap-3 py-6 rounded-2xl font-bold text-slate-700 text-sm hover:bg-white hover:shadow-lg transition-all border-slate-200 hover:scale-[1.01]"
+              disabled
+              className="relative w-full justify-center gap-3 py-6 rounded-2xl font-bold text-slate-400 text-sm border-dashed border-slate-300 bg-slate-50 cursor-not-allowed"
             >
-              {socialProviderLoading === "google" ? (
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
-              ) : (
-                <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                </svg>
-              )}
+              <svg className="w-5 h-5 opacity-60" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#AAB5C5" />
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#AAB5C5" />
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#C4CCD8" />
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#D4DBE5" />
+              </svg>
               Continue with Google
+              <span className="absolute top-2 right-3 text-[10px] font-black text-primary-600 bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full uppercase tracking-wider">Coming Soon</span>
             </Button>
             <Button
               variant="outline"
               type="button"
               onClick={() => handleSocialLogin("linkedin_oidc")}
-              disabled={!!socialProviderLoading}
-              className="w-full justify-center gap-3 py-6 rounded-2xl font-bold text-slate-700 text-sm hover:bg-white hover:shadow-lg transition-all border-slate-200 hover:scale-[1.01]"
+              disabled
+              className="relative w-full justify-center gap-3 py-6 rounded-2xl font-bold text-slate-400 text-sm border-dashed border-slate-300 bg-slate-50 cursor-not-allowed"
             >
-              {socialProviderLoading === "linkedin" ? (
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Sparkles className="w-4 h-4" /></motion.div>
-              ) : (
-                <Linkedin className="w-5 h-5 text-[#0077b5] fill-current" />
-              )}
+              <Linkedin className="w-5 h-5 text-slate-400 fill-current" />
               Continue with LinkedIn
+              <span className="absolute top-2 right-3 text-[10px] font-black text-primary-600 bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full uppercase tracking-wider">Coming Soon</span>
             </Button>
           </div>
 
