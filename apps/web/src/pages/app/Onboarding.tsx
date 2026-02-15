@@ -21,7 +21,7 @@ import { ResumeStep } from "./onboarding/steps/ResumeStep";
 import { SkillReviewStep } from "./onboarding/steps/SkillReviewStep";
 import { ConfirmContactStep } from "./onboarding/steps/ConfirmContactStep";
 import { PreferencesStep } from "./onboarding/steps/PreferencesStep";
-import { CalibrationStep } from "./onboarding/steps/CalibrationStep";
+import { WorkStyleStep } from "./onboarding/steps/WorkStyleStep";
 import { ReadyStep } from "./onboarding/steps/ReadyStep";
 
 // Types
@@ -83,10 +83,12 @@ const [linkedinUrl, setLinkedinUrl] = React.useState(formData.linkedinUrl || "")
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = React.useState(false);
   const [isCompleting, setIsCompleting] = React.useState(false);
-  const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown> | null>(null);
+const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown> | null>(null);
   const [emailTypoSuggestion, setEmailTypoSuggestion] = React.useState<string | null>(null);
   const [richSkills, setRichSkills] = React.useState<RichSkill[]>([]);
   const [isSavingSkills, setIsSavingSkills] = React.useState(false);
+  const [workStyleAnswers, setWorkStyleAnswers] = React.useState<Record<string, string>>({});
+  const [isSavingWorkStyle, setIsSavingWorkStyle] = React.useState(false);
   
   // Restore linkedinUrl from formData on mount (for page refresh persistence)
   React.useEffect(() => {
@@ -94,39 +96,6 @@ const [linkedinUrl, setLinkedinUrl] = React.useState(formData.linkedinUrl || "")
       setLinkedinUrl(formData.linkedinUrl);
     }
   }, [formData.linkedinUrl, linkedinUrl]);
-
-  const [isFetchingQuestions, setIsFetchingQuestions] = React.useState(false);
-  const [isSavingCalibration, setIsSavingCalibration] = React.useState(false);
-  const calibrationQuestions = formData.calibrationQuestions || [];
-  const calibrationAnswers = formData.calibrationAnswers || {};
-
-// Fetch Calibration Questions
-  React.useEffect(() => {
-    if (currentStep === 5 && (!calibrationQuestions || calibrationQuestions.length === 0) && !isFetchingQuestions) {
-      if (!parsedProfile && !profile?.resume_url) return; // Need minimal profile data
-
-      setIsFetchingQuestions(true);
-      // Construct profile for AI
-      const minimalProfile = parsedProfile || {
-        contact: profile?.contact,
-        preferences: profile?.preferences,
-        resume_text: "Profile from DB" // Ideally would fetch resume text but let's rely on what we have
-      };
-
-      api.post("/ai/onboarding-questions", { profile: minimalProfile })
-        .then((res: any) => {
-          if (res.questions) {
-            updateFormData({ calibrationQuestions: res.questions });
-          }
-        })
-        .catch((err: any) => {
-          console.error("Failed to fetch questions", err);
-          // Fallback questions or skip
-          updateFormData({ calibrationQuestions: [] });
-        })
-        .finally(() => setIsFetchingQuestions(false));
-    }
-  }, [currentStep, parsedProfile, profile, calibrationQuestions, isFetchingQuestions, updateFormData]);
 
   const triggerHaptic = (type: 'success' | 'warning' | 'light' = 'light') => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -136,30 +105,17 @@ const [linkedinUrl, setLinkedinUrl] = React.useState(formData.linkedinUrl || "")
     }
   };
 
-  const handleSaveCalibration = async () => {
+  const handleSaveWorkStyle = async () => {
     triggerHaptic('light');
-    setIsSavingCalibration(true);
+    setIsSavingWorkStyle(true);
     try {
-      // Save each answer to memory
-      const promises = Object.entries(calibrationAnswers).map(([qId, answer]) => {
-        // Find question text
-        const question = calibrationQuestions.find((q: any) => q.id === qId);
-        const trimmedAnswer = typeof answer === 'string' ? answer.trim() : String(answer);
-
-        return api.post("/me/answer-memory", {
-          field_label: question?.text || qId,
-          field_type: question?.type || "text",
-          answer_value: trimmedAnswer
-        });
-      });
-
-      await Promise.all(promises);
+      await api.post("/me/work-style", workStyleAnswers);
       nextStep();
     } catch (err) {
       console.error(err);
-      pushToast({ title: "Failed to save answers", tone: "error" });
+      pushToast({ title: "Failed to save work style", tone: "error" });
     } finally {
-      setIsSavingCalibration(false);
+      setIsSavingWorkStyle(false);
     }
   };
 
@@ -421,12 +377,16 @@ const handleConfirmParsing = () => {
 
   const calculateCompleteness = () => {
     let score = 0;
-    if (profile?.resume_url || resumeFile) score += 25;
-    if (contactInfo.first_name && contactInfo.email) score += 25;
+    if (profile?.resume_url || resumeFile) score += 20;
+    if (contactInfo.first_name && contactInfo.email) score += 15;
     if (preferences.location) score += 10;
-    if (preferences.role_type) score += 15;
-    if (preferences.salary_min) score += 15;
-    if (preferences.work_authorized !== undefined) score += 10;
+    if (preferences.role_type) score += 10;
+    if (preferences.salary_min) score += 5;
+    if (preferences.work_authorized !== undefined) score += 5;
+    if (richSkills.length >= 3) score += 15;
+    else if (richSkills.length > 0) score += 5;
+    if (Object.keys(workStyleAnswers).length >= 6) score += 15;
+    else if (Object.keys(workStyleAnswers).length >= 3) score += 5;
     return score;
   };
 
@@ -599,14 +559,14 @@ const handleConfirmParsing = () => {
                   </div>
                 </div>
 
-                {currentStep === 0 && (
+                {currentStepData.id === "welcome" && (
                   <WelcomeStep
                     onNext={nextStep}
                     shouldReduceMotion={!!shouldReduceMotion}
                   />
                 )}
 
-                {currentStep === 1 && (
+                {currentStepData.id === "resume" && (
                   <ResumeStep
                     onNext={nextStep}
                     onPrev={prevStep}
@@ -626,7 +586,7 @@ const handleConfirmParsing = () => {
                   />
                 )}
 
-                {currentStep === 2 && (
+                {currentStepData.id === "skill-review" && (
                   <SkillReviewStep
                     onNext={handleSaveSkills}
                     onPrev={prevStep}
@@ -636,7 +596,7 @@ const handleConfirmParsing = () => {
                   />
                 )}
 
-                {currentStep === 3 && (
+                {currentStepData.id === "confirm-contact" && (
                   <ConfirmContactStep
                     onNext={handleSaveContact}
                     onPrev={prevStep}
@@ -656,7 +616,7 @@ const handleConfirmParsing = () => {
                   />
                 )}
 
-                {currentStep === 4 && (
+                {currentStepData.id === "preferences" && (
                   <PreferencesStep
                     onNext={handleSavePreferences}
                     onPrev={prevStep}
@@ -668,19 +628,17 @@ const handleConfirmParsing = () => {
                   />
                 )}
 
-                {currentStep === 5 && (
-                  <CalibrationStep
-                    onNext={handleSaveCalibration}
+                {currentStepData.id === "work-style" && (
+                  <WorkStyleStep
+                    onNext={handleSaveWorkStyle}
                     onPrev={prevStep}
-                    calibrationQuestions={calibrationQuestions}
-                    calibrationAnswers={calibrationAnswers}
-                    updateFormData={updateFormData}
-                    isFetchingQuestions={isFetchingQuestions}
-                    isSavingCalibration={isSavingCalibration}
+                    answers={workStyleAnswers}
+                    setAnswers={setWorkStyleAnswers}
+                    isSaving={isSavingWorkStyle}
                   />
                 )}
 
-                {currentStep === 6 && (
+                {currentStepData.id === "ready" && (
                   <ReadyStep
                     onNext={handleComplete}
                     isCompleting={isCompleting}

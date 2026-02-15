@@ -871,6 +871,76 @@ async def save_user_skills(
     return {"status": "saved", "count": len(body.skills)}
 
 
+class WorkStyleRequest(BaseModel):
+    autonomy_preference: str = "medium"
+    learning_style: str = "building"
+    company_stage_preference: str = "flexible"
+    communication_style: str = "mixed"
+    pace_preference: str = "steady"
+    ownership_preference: str = "team"
+    career_trajectory: str = "open"
+
+
+@app.get("/me/work-style")
+async def get_work_style(
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
+) -> dict[str, Any] | None:
+    """Get user's work style profile."""
+    async with db.acquire() as conn:
+        row = await conn.fetchrow(
+            """SELECT autonomy_preference, learning_style, company_stage_preference,
+                      communication_style, pace_preference, ownership_preference, 
+                      career_trajectory, created_at, updated_at
+               FROM public.work_style_profiles WHERE user_id = $1""",
+            user_id,
+        )
+    return dict(row) if row else None
+
+
+@app.post("/me/work-style")
+async def save_work_style(
+    body: WorkStyleRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
+) -> dict[str, Any]:
+    """Save user's work style profile."""
+    async with db.acquire() as conn:
+        await conn.execute(
+            """INSERT INTO public.work_style_profiles 
+               (user_id, autonomy_preference, learning_style, company_stage_preference,
+                communication_style, pace_preference, ownership_preference, career_trajectory)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+               ON CONFLICT (user_id) DO UPDATE SET
+                autonomy_preference = $2,
+                learning_style = $3,
+                company_stage_preference = $4,
+                communication_style = $5,
+                pace_preference = $6,
+                ownership_preference = $7,
+                career_trajectory = $8,
+                updated_at = now()""",
+            user_id,
+            body.autonomy_preference,
+            body.learning_style,
+            body.company_stage_preference,
+            body.communication_style,
+            body.pace_preference,
+            body.ownership_preference,
+            body.career_trajectory,
+        )
+
+        # Update profile completeness
+        await conn.execute(
+            """UPDATE public.users SET profile_completeness = 
+               COALESCE(profile_completeness, 0) + 20
+               WHERE id = $1""",
+            user_id,
+        )
+
+    return {"status": "saved"}
+
+
 @app.get("/me/dashboard")
 async def user_dashboard(
     user_id: str = Depends(get_current_user_id),

@@ -5,8 +5,14 @@ export interface Preferences {
   location?: string;
   role_type?: string;
   salary_min?: number;
+  salary_max?: number;
   remote_only?: boolean;
+  hybrid_acceptable?: boolean;
+  onsite_acceptable?: boolean;
   work_authorized?: boolean;
+  visa_sponsorship?: boolean;
+  excluded_companies?: string[];
+  excluded_keywords?: string[];
 }
 
 export interface ContactInfo {
