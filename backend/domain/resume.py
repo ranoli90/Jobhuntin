@@ -1,6 +1,7 @@
 """
 Resume processing domain logic: PDF upload, text extraction, and LLM parsing.
 """
+
 import time
 import uuid
 
@@ -20,8 +21,10 @@ from backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
 from backend.llm.contracts import ResumeParseResponse_V1, build_resume_parse_prompt
 from shared.metrics import incr, observe
+from shared.storage import StorageService, get_storage_service
 
 logger = get_logger("sorce.resume")
+
 
 async def upload_to_supabase_storage(
     bucket: str,
@@ -31,11 +34,13 @@ async def upload_to_supabase_storage(
 ) -> str:
     s = get_settings()
 
-    if not s.supabase_url or "supabase" not in s.supabase_url: # basic check
-       # Fallback: Validation/Storage disabled
-       if not s.supabase_url or not s.supabase_service_key:
-           logger.warning("Supabase storage not configured; skipping upload for %s", path)
-           return f"local-skipped/{bucket}/{path}"
+    if not s.supabase_url or "supabase" not in s.supabase_url:  # basic check
+        # Fallback: Validation/Storage disabled
+        if not s.supabase_url or not s.supabase_service_key:
+            logger.warning(
+                "Supabase storage not configured; skipping upload for %s", path
+            )
+            return f"local-skipped/{bucket}/{path}"
 
     url = f"{s.supabase_url}/storage/v1/object/{bucket}/{path}"
     headers = {
@@ -66,7 +71,7 @@ async def generate_signed_url(storage_path: str, ttl_seconds: int | None = None)
     s = get_settings()
 
     if "local-skipped" in storage_path:
-        return "" # No URL available
+        return ""  # No URL available
 
     ttl = ttl_seconds or s.resume_signed_url_ttl_seconds
 
@@ -128,7 +133,9 @@ async def download_from_supabase_storage(resume_url: str) -> str:
             os.unlink(tmp_path)
         raise
 
-    logger.info("Downloaded resume to %s (%d bytes)", tmp_path, os.path.getsize(tmp_path))
+    logger.info(
+        "Downloaded resume to %s (%d bytes)", tmp_path, os.path.getsize(tmp_path)
+    )
     return tmp_path
 
 
@@ -138,15 +145,23 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
     try:
         with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
             if doc.page_count == 0:
-                raise HTTPException(status_code=422, detail="The PDF file appears to be empty.")
+                raise HTTPException(
+                    status_code=422, detail="The PDF file appears to be empty."
+                )
             for page in doc:
                 text_parts.append(page.get_text())
     except fitz.FileDataError:
         logger.error("Failed to open PDF: Invalid or corrupted file")
-        raise HTTPException(status_code=422, detail="Invalid PDF format or corrupted file. Please ensure you're uploading a valid PDF.")
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid PDF format or corrupted file. Please ensure you're uploading a valid PDF.",
+        )
     except Exception as e:
         logger.error(f"Unexpected error during PDF extraction: {e}")
-        raise HTTPException(status_code=422, detail="Failed to process PDF. Please try a different version of your resume.")
+        raise HTTPException(
+            status_code=422,
+            detail="Failed to process PDF. Please try a different version of your resume.",
+        )
 
     return "\n".join(text_parts)
 
@@ -162,11 +177,13 @@ async def parse_resume_to_profile(resume_text: str) -> dict:
     )
     return result.model_dump()
 
+
 async def process_resume_upload(
     user_id: str,
     tenant_id: str,
     pdf_bytes: bytes,
     db_pool,
+    storage=None,  # StorageService instance - uses Render Disk when configured
 ) -> tuple[str, CanonicalProfile]:
     """
     Orchestrates the full resume upload flow:
@@ -176,13 +193,20 @@ async def process_resume_upload(
     4. Normalize
     5. DB Upsert
     """
+    # 1. Upload to storage (supports Render Disk, S3, or local)
+    from shared.storage import StorageService
+
     s = get_settings()
     storage_path = f"{user_id}/{uuid.uuid4()}.pdf"
+    bucket = "resumes"  # bucket name for the storage service
 
-    # 1. Upload
-    resume_url = await upload_to_supabase_storage(
-        s.supabase_storage_bucket, storage_path, pdf_bytes
-    )
+    if storage is None:
+        # Fallback: import and create default storage service
+        from shared.storage import get_storage_service
+
+        storage = get_storage_service()
+
+    resume_url = await storage.upload_file(bucket, storage_path, pdf_bytes)
 
     # 2. Extract
     resume_text = extract_text_from_pdf(pdf_bytes)
@@ -194,27 +218,41 @@ async def process_resume_upload(
     try:
         raw_profile = await parse_resume_to_profile(resume_text)
     except LLMError as exc:
-        observe("api.llm_latency_seconds", time.monotonic() - t0, {"endpoint": "resume_parse"})
+        observe(
+            "api.llm_latency_seconds",
+            time.monotonic() - t0,
+            {"endpoint": "resume_parse"},
+        )
         incr("api.resume_parse.llm_error")
         await emit_analytics_event(
-            db_pool, RESUME_PARSED_FAILED,
-            tenant_id=tenant_id, user_id=user_id,
+            db_pool,
+            RESUME_PARSED_FAILED,
+            tenant_id=tenant_id,
+            user_id=user_id,
             properties={"error": str(exc)[:200]},
         )
-        raise HTTPException(status_code=502, detail=f"Resume parsing failed: {exc}") from exc
+        raise HTTPException(
+            status_code=502, detail=f"Resume parsing failed: {exc}"
+        ) from exc
 
-    observe("api.llm_latency_seconds", time.monotonic() - t0, {"endpoint": "resume_parse"})
+    observe(
+        "api.llm_latency_seconds", time.monotonic() - t0, {"endpoint": "resume_parse"}
+    )
 
     # 4. Normalize
     canonical = normalize_profile(raw_profile)
 
     # 5. Upsert
     async with db_pool.acquire() as conn:
-        await ProfileRepo.upsert(conn, user_id, canonical.model_dump(), resume_url, tenant_id=tenant_id)
+        await ProfileRepo.upsert(
+            conn, user_id, canonical.model_dump(), resume_url, tenant_id=tenant_id
+        )
 
     await emit_analytics_event(
-        db_pool, RESUME_PARSED_SUCCESS,
-        tenant_id=tenant_id, user_id=user_id,
+        db_pool,
+        RESUME_PARSED_SUCCESS,
+        tenant_id=tenant_id,
+        user_id=user_id,
         properties={"resume_url": resume_url},
     )
 

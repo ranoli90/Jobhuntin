@@ -1229,6 +1229,37 @@ async def healthz(
 
 
 # ---------------------------------------------------------------------------
+# Storage endpoint - serve files from Render Disk or local storage
+# ---------------------------------------------------------------------------
+@app.get("/api/storage/{bucket}/{path:path}")
+async def serve_storage_file(
+    bucket: str,
+    path: str,
+):
+    """Serve files from storage (e.g., resumes, avatars)."""
+    from shared.storage import get_storage_service
+
+    storage = get_storage_service()
+    storage_path = f"{bucket}/{path}"
+
+    try:
+        data = await storage.download_file(storage_path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving file: {str(e)}")
+
+    # Determine content type based on file extension
+    import mimetypes
+
+    content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+
+    from fastapi.responses import Response
+
+    return Response(content=data, media_type=content_type)
+
+
+# ---------------------------------------------------------------------------
 # Mount sub-routers (must be after all dependencies are defined)
 # ---------------------------------------------------------------------------
 _mount_sub_routers()
