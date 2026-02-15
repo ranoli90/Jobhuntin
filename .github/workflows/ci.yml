@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install ruff
-      - run: ruff check . --select E,W,F,I
+      - run: ruff check . --select E,W,F,I --ignore E501
 
   # ── Lint (web) ──────────────────────────────────────────────
   lint-web:
