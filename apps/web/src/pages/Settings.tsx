@@ -158,7 +158,7 @@ export default function Settings() {
             <div className="flex items-center gap-4 mb-6">
               <div className="relative h-20 w-20">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="h-20 w-20 rounded-full object-cover" />
+                  <img src={avatarUrl} alt="User avatar" className="h-20 w-20 rounded-full object-cover" loading="lazy" />
                 ) : (
                   <div className="h-20 w-20 rounded-full bg-brand-ink/10 text-brand-ink flex items-center justify-center text-xl font-semibold">
                     {initials}

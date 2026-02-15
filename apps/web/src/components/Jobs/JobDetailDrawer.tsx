@@ -36,7 +36,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               {job.logo_url ? (
-                <img src={job.logo_url} alt={job.company} className="h-16 w-16 rounded-2xl object-cover" />
+                <img src={job.logo_url} alt={`${job.company} logo`} className="h-16 w-16 rounded-2xl object-cover" loading="lazy" />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-shell">
                   <Briefcase className="h-8 w-8 text-brand-ink/40" />

@@ -247,6 +247,7 @@
     "lastUpdated": "2026-02-11"
   },
   {
+    "id": "cloud-architect",
     "slug": "cloud-architect",
     "name": "Cloud Architect",
     "category": "Technology",
@@ -633,7 +634,8 @@
           "percentile90": 180000
         }
       }
-    ]
+    ],
+    "lastUpdated": "2026-02-15"
   },
   {
     "id": "hr-manager",
@@ -1064,7 +1066,8 @@
           "percentile90": 180000
         }
       }
-    ]
+    ],
+    "lastUpdated": "2026-02-15"
   },
   {
     "id": "project-manager",
@@ -1683,7 +1686,8 @@
       "Sales Associate",
       "Store Clerk",
       "Retail jobs"
-    ]
+    ],
+    "lastUpdated": "2026-02-15"
   },
   {
     "id": "delivery-driver",
@@ -1705,7 +1709,8 @@
       "Courier",
       "Box Truck Driver",
       "Gig economy jobs"
-    ]
+    ],
+    "lastUpdated": "2026-02-15"
   },
   {
     "id": "warehouse-worker",
@@ -1727,7 +1732,8 @@
       "Order Picker",
       "Material Handler",
       "Logistics jobs"
-    ]
+    ],
+    "lastUpdated": "2026-02-15"
   },
   {
     "id": "customer-service-rep",
@@ -1749,7 +1755,8 @@
       "Support Agent",
       "Call Center",
       "Client Relations"
-    ]
+    ],
+    "lastUpdated": "2026-02-15"
   },
   {
     "id": "administrative-assistant",
@@ -1771,7 +1778,8 @@
       "Office Manager",
       "Executive Assistant",
       "Secretary jobs"
-    ]
+    ],
+    "lastUpdated": "2026-02-15"
   },
   {
     "id": "construction-worker",
@@ -1793,6 +1801,7 @@
       "Laborer",
       "General Contractor",
       "Trade jobs"
-    ]
+    ],
+    "lastUpdated": "2026-02-15"
   }
 ]

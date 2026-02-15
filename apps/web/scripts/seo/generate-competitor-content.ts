@@ -33,8 +33,14 @@ const FREE_MODELS = [
   'nvidia/nemotron-3-nano-30b-a3b:free',     // NVIDIA free tier
   'meta-llama/llama-3.3-70b-instruct:free',  // Meta 70B
   'google/gemma-3-27b-it:free',              // Google Gemma 3
-  'deepseek/deepseek-r1-0528:free',          // DeepSeek reasoning
-  'qwen/qwen3-coder:free',                    // Qwen coder
+];
+
+// Backup free models for aggressive mode
+const BACKUP_FREE_MODELS: string[] = [
+  'deepseek/deepseek-r1-0528:free',
+  'qwen/qwen3-coder:free',
+  'google/gemma-3-12b-it:free',
+  'arcee-ai/trinity-mini:free',
 ];
 
 interface Competitor {

@@ -203,6 +203,7 @@ const StoryCard = ({
             src={story.image}
             alt={`${story.name} - ${story.role} Success Story`}
             className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} rounded-full object-cover border-4 border-white shadow-lg`}
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button

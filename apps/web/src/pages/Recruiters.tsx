@@ -90,7 +90,7 @@ export default function Recruiters() {
                   <div className="absolute -inset-4 bg-gradient-to-r from-primary-500 to-blue-400 rounded-[2rem] opacity-20 blur-xl" />
                   <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl relative border border-slate-100">
                     <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
-                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&q=80" alt="Michael Chen - Top Talent Candidate" className="w-12 h-12 rounded-full ring-2 ring-white shadow-sm" />
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&q=80" alt="Michael Chen - Top Talent Candidate" className="w-12 h-12 rounded-full ring-2 ring-white shadow-sm" loading="lazy" />
                       <div>
                         <h3 className="font-bold text-slate-900">Michael Chen</h3>
                         <p className="text-sm text-slate-500">Senior React Developer</p>
@@ -134,9 +134,9 @@ export default function Recruiters() {
               className="font-mono"
             >
               <div className="text-center mb-16">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-6 text-emerald-400 break-all sm:break-normal">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-6 text-emerald-400 break-all sm:break-normal font-mono">
                   $ curl api.jobhuntin.io/v1/candidates
-                </h1>
+                </h2>
                 <p className="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-8 text-balance">
                   Direct pipe to the top 1% of the market. Webhooks, JSON streams, and zero UI friction.
                 </p>
