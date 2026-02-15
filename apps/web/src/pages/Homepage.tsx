@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, useScroll, useSpring, useReducedMotion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, useScroll, useSpring, useReducedMotion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
 import {
   Sparkles, CheckCircle, ArrowRight,
   MailCheck, Bell,
   Upload, Search, Send, Lock, Shield, Clock,
-  Briefcase, MapPin, User, Zap, FileText, MessageSquare
+  User, Zap, FileText, MessageSquare
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -145,6 +145,7 @@ const LiveActivityStream = () => {
     Array.from({ length: 8 }, () => generateActivity())
   );
   const [isPaused, setIsPaused] = useState(false);
+  const [newItemId, setNewItemId] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -152,6 +153,7 @@ const LiveActivityStream = () => {
     
     const interval = setInterval(() => {
       const newActivity = generateActivity();
+      setNewItemId(newActivity.id);
       setActivities(prev => {
         const updated = [newActivity, ...prev.slice(0, 10)];
         return updated.map((a, i) => ({
@@ -159,10 +161,13 @@ const LiveActivityStream = () => {
           time: i === 0 ? "just now" : i === 1 ? "1m ago" : i === 2 ? "2m ago" : `${i + 1}m ago`
         }));
       });
-    }, 3500);
+      setTimeout(() => setNewItemId(null), 600);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [shouldReduceMotion, isPaused]);
+
+  const visibleActivities = activities.slice(0, 4);
 
   return (
     <div 
@@ -172,31 +177,24 @@ const LiveActivityStream = () => {
     >
       <div className="absolute -left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-violet-400 to-transparent rounded-full" />
       
-      <div className="overflow-hidden" style={{ maxHeight: '280px' }}>
-        <AnimatePresence mode="popLayout">
-          {activities.slice(0, 4).map((activity, i) => (
-            <motion.div
+      <div className="space-y-0">
+        {visibleActivities.map((activity, i) => {
+          const isNew = activity.id === newItemId;
+          return (
+            <div
               key={activity.id}
-              layout
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ 
-                opacity: i === 0 ? 1 : 0.6, 
-                y: 0, 
-                scale: 1 
-              }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ 
-                duration: 0.5, 
-                ease: [0.16, 1, 0.3, 1],
-                layout: { duration: 0.4 }
-              }}
               className={cn(
-                "flex items-center gap-3 py-2.5",
-                i === 0 && "bg-gradient-to-r from-blue-50 via-violet-50 to-transparent -mx-3 px-3 rounded-lg mb-1"
+                "flex items-center gap-3 py-2.5 transition-all duration-500 ease-out will-change-transform",
+                i === 0 && "bg-gradient-to-r from-blue-50 via-violet-50 to-transparent -mx-3 px-3 rounded-lg mb-1",
+                isNew && "animate-slide-in"
               )}
+              style={{
+                opacity: i === 0 ? 1 : 0.65,
+                transform: isNew ? 'translateY(0)' : 'translateY(0)'
+              }}
             >
               <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300",
+                "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-300",
                 i === 0 
                   ? "bg-gradient-to-br from-blue-500 to-violet-500" 
                   : "bg-slate-100"
@@ -210,7 +208,7 @@ const LiveActivityStream = () => {
               
               <div className="flex-1 min-w-0">
                 <p className={cn(
-                  "text-sm leading-snug truncate",
+                  "text-sm leading-snug truncate transition-opacity duration-300",
                   i === 0 ? "text-slate-900 font-medium" : "text-slate-600"
                 )}>
                   <span className="font-semibold">{activity.name}</span>
@@ -227,25 +225,20 @@ const LiveActivityStream = () => {
               </div>
               
               {i === 0 && (
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 400 }}
-                  className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-medium"
-                >
+                <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-medium animate-fade-in">
                   <CheckCircle className="w-3 h-3" />
                   Applied
-                </motion.div>
+                </div>
               )}
-            </motion.div>
-          ))}
-        </AnimatePresence>
+            </div>
+          );
+        })}
       </div>
       
       <div className="mt-3 pt-2 border-t border-slate-100">
         <p className="text-xs text-slate-400 text-center flex items-center justify-center gap-1.5">
           <span className={cn(
-            "w-1.5 h-1.5 rounded-full",
+            "w-1.5 h-1.5 rounded-full transition-colors duration-300",
             isPaused ? "bg-amber-400" : "bg-emerald-400 animate-pulse"
           )} />
           {isPaused ? "Paused" : "Live"} • Updates every few seconds
@@ -306,7 +299,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-white pb-20">
+    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/50 pb-32 -mb-16">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-100/40 to-violet-100/40 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-pink-100/30 to-amber-100/30 rounded-full blur-3xl" />
@@ -322,12 +315,9 @@ const Hero = () => {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-50 border border-slate-200/80 mb-8"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
+            <Sparkles className="w-4 h-4 text-amber-500" />
             <span className="text-xs sm:text-sm font-medium text-slate-600 tracking-wide">
-              <span className="font-bold text-slate-900">847</span> jobs applied today
+              The only AI that <span className="font-bold text-slate-900">tailors every resume</span> to each job
             </span>
           </motion.div>
 
@@ -441,54 +431,57 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mt-16 w-full max-w-3xl"
           >
-            <div className="bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
-              <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-800 bg-slate-900/50">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                <span className="ml-3 text-xs font-mono text-slate-500 uppercase tracking-wider">AI Agent</span>
-              </div>
-              
-              <div className="p-5 sm:p-6 space-y-2.5">
-                {[
-                  { icon: Upload, label: "Resume parsed", detail: "47 skills extracted" },
-                  { icon: Search, label: "Scanning 2,847 jobs", detail: "Matching your profile..." },
-                  { icon: Send, label: "52 applications sent", detail: "Custom-tailored each one" },
-                  { icon: Bell, label: "2 interview requests", detail: "Recruiters responded!" },
-                ].map((step, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.7 + i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex items-center gap-3.5"
-                  >
-                    <div className="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-                      <step.icon className="w-4 h-4 text-blue-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white">{step.label}</p>
-                      <p className="text-xs text-slate-400">{step.detail}</p>
-                    </div>
-                    {i !== 1 && <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
-                  </motion.div>
-                ))}
-              </div>
-              
-              <div className="px-5 sm:px-6 py-3 border-t border-slate-800 bg-slate-900/30">
-                <div className="flex justify-between text-xs font-mono text-slate-500 mb-1.5">
-                  <span>Progress</span>
-                  <span>92%</span>
+            <div className="relative">
+              <div className="bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+                <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-800 bg-slate-900/50">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                  <span className="ml-3 text-xs font-mono text-slate-500 uppercase tracking-wider">AI Agent</span>
                 </div>
-                <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500 rounded-full"
-                    initial={{ width: "0%" }}
-                    animate={{ width: "92%" }}
-                    transition={{ delay: 1.2, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                  />
+                
+                <div className="p-5 sm:p-6 space-y-2.5">
+                  {[
+                    { icon: Upload, label: "Resume parsed", detail: "47 skills extracted" },
+                    { icon: Search, label: "Scanning 2,847 jobs", detail: "Matching your profile..." },
+                    { icon: Send, label: "52 applications sent", detail: "Custom-tailored each one" },
+                    { icon: Bell, label: "2 interview requests", detail: "Recruiters responded!" },
+                  ].map((step, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 + i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex items-center gap-3.5"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
+                        <step.icon className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white">{step.label}</p>
+                        <p className="text-xs text-slate-400">{step.detail}</p>
+                      </div>
+                      {i !== 1 && <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
+                    </motion.div>
+                  ))}
+                </div>
+                
+                <div className="px-5 sm:px-6 py-3 border-t border-slate-800 bg-slate-900/30">
+                  <div className="flex justify-between text-xs font-mono text-slate-500 mb-1.5">
+                    <span>Progress</span>
+                    <span>92%</span>
+                  </div>
+                  <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500 rounded-full"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "92%" }}
+                      transition={{ delay: 1.2, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                    />
+                  </div>
                 </div>
               </div>
+              <div className="absolute -bottom-16 left-0 right-0 h-20 bg-gradient-to-b from-transparent via-slate-50/60 to-slate-50 pointer-events-none rounded-b-3xl" />
             </div>
           </motion.div>
         </div>
@@ -499,8 +492,9 @@ const Hero = () => {
 
 const LiveActivitySection = () => {
   return (
-    <section className="py-20 sm:py-24 bg-slate-50 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+    <section className="py-20 sm:py-24 bg-slate-50 relative overflow-hidden -mt-16 pt-32">
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-slate-50 to-white pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
             <motion.div
@@ -544,19 +538,25 @@ const LiveActivitySection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-wrap gap-8"
+              className="flex flex-wrap gap-6 items-center"
             >
-              <div>
-                <p className="font-display text-4xl font-bold text-slate-900">1,247</p>
-                <p className="text-sm text-slate-500">applications today</p>
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">ATS-Optimized</p>
+                  <p className="text-xs text-slate-500">Every resume passes filters</p>
+                </div>
               </div>
-              <div>
-                <p className="font-display text-4xl font-bold text-slate-900">89</p>
-                <p className="text-sm text-slate-500">interview requests</p>
-              </div>
-              <div>
-                <p className="font-display text-4xl font-bold text-slate-900">4.2s</p>
-                <p className="text-sm text-slate-500">avg. apply time</p>
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">Human Quality</p>
+                  <p className="text-xs text-slate-500">No bot-like templates</p>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -585,8 +585,9 @@ const Onboarding = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-white relative overflow-hidden">
+    <section id="how-it-works" className="py-24 sm:py-32 bg-gradient-to-b from-white to-slate-50/30 relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-blue-50/50 to-violet-50/50 rounded-full blur-3xl opacity-60 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50/20 pointer-events-none" />
 
       <div className="container mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
         <motion.div

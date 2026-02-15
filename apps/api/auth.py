@@ -24,12 +24,19 @@ logger = get_logger("sorce.api.auth")
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-_template_path = find_repo_root(Path(__file__)) / "templates" / "emails" / "magic_link.html"
+_template_path = (
+    find_repo_root(Path(__file__)) / "templates" / "emails" / "magic_link.html"
+)
 try:
     MAGIC_LINK_TEMPLATE = _template_path.read_text(encoding="utf-8")
 except FileNotFoundError:
-    MAGIC_LINK_TEMPLATE = """<p>Use this link to sign in: <a href=\"$action_link\">$action_link</a></p>"""
-    logger.warning("Magic link template not found at %s; falling back to plain text HTML", _template_path)
+    MAGIC_LINK_TEMPLATE = (
+        """<p>Use this link to sign in: <a href=\"$action_link\">$action_link</a></p>"""
+    )
+    logger.warning(
+        "Magic link template not found at %s; falling back to plain text HTML",
+        _template_path,
+    )
 
 # TTL-evicting cache for per-email rate limiters.
 # Entries are (limiter, last_access_time). Eviction runs on access.
@@ -56,7 +63,12 @@ def _sanitize_return_to(value: str | None) -> str | None:
 
     # Reject absolute URLs / dangerous schemes / protocol-relative
     lower = trimmed.lower()
-    if lower.startswith("http:") or lower.startswith("https:") or lower.startswith("javascript:") or lower.startswith("data:"):
+    if (
+        lower.startswith("http:")
+        or lower.startswith("https:")
+        or lower.startswith("javascript:")
+        or lower.startswith("data:")
+    ):
         return None
     if not trimmed.startswith("/") or trimmed.startswith("//"):
         return None
@@ -83,7 +95,14 @@ def _sanitize_return_to(value: str | None) -> str | None:
 
 
 def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
-    base = settings.app_base_url.rstrip("/") or "http://localhost:5173"
+    base = settings.app_base_url.rstrip("/")
+    if not base or base == "http://localhost:5173":
+        logger.warning(
+            "[MAGIC_LINK] APP_BASE_URL not configured properly, magic links may not work in production. "
+            "Set APP_BASE_URL environment variable to your production URL (e.g., https://jobhuntin.com)"
+        )
+    if not base:
+        base = "http://localhost:5173"
     redirect = f"{base}/login"
     safe_return = _sanitize_return_to(return_to)
     if safe_return:
@@ -91,19 +110,24 @@ def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
     return redirect
 
 
-
 async def _get_pool():
     """Database pool dependency - overridden at app startup."""
     raise NotImplementedError("Pool dependency not injected")
 
-async def _generate_magic_link(settings: Settings, email: str, redirect_to: str, db: Any) -> str:
+
+async def _generate_magic_link(
+    settings: Settings, email: str, redirect_to: str, db: Any
+) -> str:
     """Generate a magic link with a signed JWT."""
     import uuid
     from datetime import datetime, timedelta, timezone
 
     import jwt
 
-    logger.info("[MAGIC_LINK] Starting generation", extra={"email": email, "redirect_to": redirect_to})
+    logger.info(
+        "[MAGIC_LINK] Starting generation",
+        extra={"email": email, "redirect_to": redirect_to},
+    )
 
     # Find or create user
     async with db.acquire() as conn:
@@ -114,21 +138,34 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
         if not user_id:
             # Create new user
             logger.info("[MAGIC_LINK] Creating new user", extra={"email": email})
-            user_id = await conn.fetchval("""
+            user_id = await conn.fetchval(
+                """
                 INSERT INTO public.users (id, email, created_at, updated_at)
                 VALUES ($1, $2, now(), now())
                 RETURNING id
-            """, str(uuid.uuid4()), email)
-            logger.info("[MAGIC_LINK] User created", extra={"user_id": str(user_id), "email": email})
+            """,
+                str(uuid.uuid4()),
+                email,
+            )
+            logger.info(
+                "[MAGIC_LINK] User created",
+                extra={"user_id": str(user_id), "email": email},
+            )
         else:
-            logger.info("[MAGIC_LINK] Found existing user", extra={"user_id": str(user_id), "email": email})
-        
+            logger.info(
+                "[MAGIC_LINK] Found existing user",
+                extra={"user_id": str(user_id), "email": email},
+            )
+
         # Create empty profile if not exists
-        await conn.execute("""
+        await conn.execute(
+            """
             INSERT INTO public.profiles (user_id, resume_url, profile_data)
             VALUES ($1, '', '{}')
             ON CONFLICT (user_id) DO NOTHING
-        """, user_id)
+        """,
+            user_id,
+        )
         logger.debug("[MAGIC_LINK] Profile ensured", extra={"user_id": str(user_id)})
 
     # Generate token
@@ -136,26 +173,36 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
         "sub": str(user_id),
         "email": email,
         "aud": "authenticated",
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1)
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
     }
 
     if not settings.jwt_secret:
         logger.error("[MAGIC_LINK] JWT_SECRET not set - cannot sign magic link")
-        raise HTTPException(status_code=500, detail="Server misconfiguration: JWT_SECRET missing")
+        raise HTTPException(
+            status_code=500, detail="Server misconfiguration: JWT_SECRET missing"
+        )
 
     secret = settings.jwt_secret
 
     token = jwt.encode(payload, secret, algorithm="HS256")
-    logger.info("[MAGIC_LINK] Token generated", extra={"user_id": str(user_id), "email": email, "token_length": len(token)})
+    logger.info(
+        "[MAGIC_LINK] Token generated",
+        extra={"user_id": str(user_id), "email": email, "token_length": len(token)},
+    )
 
     # Append token to redirect URL
     separator = "&" if "?" in redirect_to else "?"
     magic_link = f"{redirect_to}{separator}token={token}"
-    logger.info("[MAGIC_LINK] Magic link generated successfully", extra={"user_id": str(user_id), "email": email})
+    logger.info(
+        "[MAGIC_LINK] Magic link generated successfully",
+        extra={"user_id": str(user_id), "email": email},
+    )
     return magic_link
 
 
-def _render_email_html(settings: Settings, action_link: str, return_to: str | None) -> str:
+def _render_email_html(
+    settings: Settings, action_link: str, return_to: str | None
+) -> str:
     destination_path = return_to or "/app/dashboard"
     expires_minutes = max(1, settings.magic_link_token_ttl_seconds // 60)
 
@@ -169,11 +216,12 @@ def _render_email_html(settings: Settings, action_link: str, return_to: str | No
         "/app/settings": "Settings",
         "/app/team": "Team Workspace",
     }
-    destination_label = destination_labels.get(destination_path, destination_path.replace("/app/", "").title())
+    destination_label = destination_labels.get(
+        destination_path, destination_path.replace("/app/", "").title()
+    )
 
     html = (
-        MAGIC_LINK_TEMPLATE
-        .replace("$action_link", action_link)
+        MAGIC_LINK_TEMPLATE.replace("$action_link", action_link)
         .replace("$destination", destination_label)
         .replace("$expires_minutes", str(expires_minutes))
     )
@@ -185,12 +233,18 @@ def _evict_stale_limiters() -> None:
     if len(_magic_link_limiters) <= _LIMITER_CACHE_MAX_SIZE:
         return
     now = time.monotonic()
-    expired = [k for k, (_, ts) in _magic_link_limiters.items() if now - ts > _LIMITER_CACHE_TTL]
+    expired = [
+        k
+        for k, (_, ts) in _magic_link_limiters.items()
+        if now - ts > _LIMITER_CACHE_TTL
+    ]
     for k in expired:
         _magic_link_limiters.pop(k, None)
     # If still over limit after TTL eviction, drop oldest entries
     if len(_magic_link_limiters) > _LIMITER_CACHE_MAX_SIZE:
-        sorted_keys = sorted(_magic_link_limiters, key=lambda k: _magic_link_limiters[k][1])
+        sorted_keys = sorted(
+            _magic_link_limiters, key=lambda k: _magic_link_limiters[k][1]
+        )
         for k in sorted_keys[: len(_magic_link_limiters) - _LIMITER_CACHE_MAX_SIZE]:
             _magic_link_limiters.pop(k, None)
 
@@ -198,7 +252,10 @@ def _evict_stale_limiters() -> None:
 def _get_rate_limiter(settings: Settings, email: str) -> RateLimiter:
     _evict_stale_limiters()
     entry = _magic_link_limiters.get(email)
-    if entry is not None and entry[0].max_calls == settings.magic_link_requests_per_hour:
+    if (
+        entry is not None
+        and entry[0].max_calls == settings.magic_link_requests_per_hour
+    ):
         _magic_link_limiters[email] = (entry[0], time.monotonic())
         return entry[0]
     limiter = RateLimiter(
@@ -210,12 +267,14 @@ def _get_rate_limiter(settings: Settings, email: str) -> RateLimiter:
     return limiter
 
 
-async def _send_magic_link_email(settings: Settings, email: str, action_link: str, return_to: str | None) -> None:
+async def _send_magic_link_email(
+    settings: Settings, email: str, action_link: str, return_to: str | None
+) -> None:
     if not settings.resend_api_key:
         raise HTTPException(status_code=500, detail="Email service is not configured")
-    
+
     html = _render_email_html(settings, action_link, return_to)
-    
+
     # Create a proper text version for better deliverability
     destination = return_to or "/app/dashboard"
     destination_name = {
@@ -228,7 +287,7 @@ async def _send_magic_link_email(settings: Settings, email: str, action_link: st
         "/app/settings": "Settings",
         "/app/team": "Team Workspace",
     }.get(destination, destination.replace("/app/", "").title())
-    
+
     text_content = f"""Hey there!
 
 Here's your sign-in link for JobHuntin:
@@ -245,7 +304,7 @@ If you didn't ask for this, no worries — just ignore it.
 JobHuntin — Find your next job, faster
 https://jobhuntin.com
 """
-    
+
     payload = {
         "from": settings.email_from,
         "to": [email],
@@ -257,30 +316,41 @@ https://jobhuntin.com
             "X-MSMail-Priority": "High",
         },
     }
-    
+
     headers = {
         "Authorization": f"Bearer {settings.resend_api_key}",
         "Content-Type": "application/json",
     }
-    
-    logger.info("[MAGIC_LINK] Sending email", extra={"email": email, "destination": destination_name})
-    
+
+    logger.info(
+        "[MAGIC_LINK] Sending email",
+        extra={"email": email, "destination": destination_name},
+    )
+
     async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.post("https://api.resend.com/emails", headers=headers, json=payload)
-    
+        resp = await client.post(
+            "https://api.resend.com/emails", headers=headers, json=payload
+        )
+
     if resp.status_code not in (200, 201):
-        logger.error("[MAGIC_LINK] Resend email failed", extra={
-            "email": email,
-            "status": resp.status_code,
-            "response": resp.text[:200]
-        })
+        logger.error(
+            "[MAGIC_LINK] Resend email failed",
+            extra={
+                "email": email,
+                "status": resp.status_code,
+                "response": resp.text[:200],
+            },
+        )
         raise HTTPException(status_code=502, detail="Failed to send magic link email")
-    
-    logger.info("[MAGIC_LINK] Email sent successfully", extra={
-        "email": email,
-        "destination": destination_name,
-        "resend_response": resp.json() if resp.text else None
-    })
+
+    logger.info(
+        "[MAGIC_LINK] Email sent successfully",
+        extra={
+            "email": email,
+            "destination": destination_name,
+            "resend_response": resp.json() if resp.text else None,
+        },
+    )
     incr("auth.magic_link.sent")
 
 
@@ -295,16 +365,21 @@ async def request_magic_link(
     limiter = _get_rate_limiter(settings, body.email)
     if not await limiter.acquire():
         retry_after = limiter.next_available_in()
-        logger.warning("Magic link rate limit hit", extra={"email": body.email, "retry_after": retry_after})
-        incr("auth.magic_link.rate_limited", {"email_domain": body.email.split('@')[-1]})
+        logger.warning(
+            "Magic link rate limit hit",
+            extra={"email": body.email, "retry_after": retry_after},
+        )
+        incr(
+            "auth.magic_link.rate_limited", {"email_domain": body.email.split("@")[-1]}
+        )
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait before requesting another magic link.",
-            headers={"Retry-After": str(int(math.ceil(retry_after)))}
+            headers={"Retry-After": str(int(math.ceil(retry_after)))},
         )
 
     redirect = _build_redirect_url(settings, body.return_to)
     action_link = await _generate_magic_link(settings, body.email, redirect, db)
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
-    incr("auth.magic_link.sent", {"email_domain": body.email.split('@')[-1]})
+    incr("auth.magic_link.sent", {"email_domain": body.email.split("@")[-1]})
     return MagicLinkResponse()
