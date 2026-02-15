@@ -92,7 +92,8 @@ def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
 
 
 
-def _get_pool():
+async def _get_pool():
+    """Database pool dependency - overridden at app startup."""
     raise NotImplementedError("Pool dependency not injected")
 
 async def _generate_magic_link(settings: Settings, email: str, redirect_to: str, db: Any) -> str:
@@ -102,20 +103,20 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
 
     import jwt
 
-    # Find or create user
+# Find or create user
     async with db.acquire() as conn:
-        # Use UPSERT to avoid race condition
-            user_id = await conn.fetchval("""
-                INSERT INTO public.users (id, email, created_at, updated_at)
-                VALUES ($1, $2, now(), now())
-                ON CONFLICT (email) DO UPDATE SET updated_at = now()
-                RETURNING id
-            """, str(uuid.uuid4()), email)
-            # Create empty profile
-            await conn.execute(
-                "INSERT INTO public.profiles (user_id, resume_url, profile_data) VALUES ($1, '', '{}')",
-                user_id
-            )
+        user_id = await conn.fetchval("""
+            INSERT INTO public.users (id, email, created_at, updated_at)
+            VALUES ($1, $2, now(), now())
+            ON CONFLICT (email) DO UPDATE SET updated_at = now()
+            RETURNING id
+        """, str(uuid.uuid4()), email)
+        # Create empty profile if not exists
+        await conn.execute("""
+            INSERT INTO public.profiles (user_id, resume_url, profile_data)
+            VALUES ($1, '', '{}')
+            ON CONFLICT (user_id) DO NOTHING
+        """, user_id)
 
     # Generate token
     payload = {

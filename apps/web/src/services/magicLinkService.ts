@@ -115,20 +115,10 @@ class MagicLinkService {
       // Use the backend API to send the magic link
       const { apiPost } = await import('../lib/api');
 
-      await apiPost('/auth/magic-link', {
+await apiPost('/auth/magic-link', {
         email: normalizedEmail,
-        redirect_to: redirectUrl // Changed from return_to to match typical auth flow, but let's check auth.py
+        return_to: sanitizedReturnTo
       });
-      // apps/api/auth.py expects `redirect_to`.
-      // Wait, `auth.py` `MagicLinkRequest` model:
-      // class MagicLinkRequest(BaseModel):
-      //     email: EmailStr
-      //     redirect_to: str = "http://localhost:5173/login"
-
-      // The previous code sent `return_to`?
-      // Line 128: return_to: sanitizedReturnTo
-      // But `auth.py` expects `redirect_to`.
-      // I should verify `apps/api/auth.py` model.
 
       console.log('[MagicLink] API request successful');
 
