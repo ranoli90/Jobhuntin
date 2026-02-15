@@ -115,7 +115,7 @@ jobs:
           # Stub auth.uid() function
           psql "$DATABASE_URL" -c "CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS \$\$ SELECT '00000000-0000-0000-0000-000000000000'::uuid; \$\$ LANGUAGE sql;"
           # Stub supabase_realtime publication
-          psql "$DATABASE_URL" -c "CREATE PUBLICATION IF NOT EXISTS supabase_realtime;"
+          psql "$DATABASE_URL" -c "DO \$\$ BEGIN CREATE PUBLICATION supabase_realtime; EXCEPTION WHEN OTHERS THEN END; \$\$;"
           
           # Run Alembic migrations
           alembic upgrade head
