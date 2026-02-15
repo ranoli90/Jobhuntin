@@ -66,20 +66,14 @@ const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 // Free models that actually work on OpenRouter (updated Feb 2026)
 // Using a mix of popular and less popular models to avoid rate limits
 const FREE_MODELS = [
-  'arcee-ai/trinity-large-preview:free',     // 400B MoE, good quality
-  'upstage/solar-pro-3:free',                 // 128k context
-  'stepfun/step-3.5-flash:free',              // 256k context
-  'nvidia/nemotron-3-nano-30b-a3b:free',     // NVIDIA free tier
-  'meta-llama/llama-3.3-70b-instruct:free',  // Meta 70B
-  'google/gemma-3-27b-it:free',              // Google Gemma 3
+  'google/gemini-2.0-flash:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'google/gemma-3-27b-it:free',
 ];
 
-// Backup free models for aggressive mode
 const BACKUP_FREE_MODELS: string[] = [
-  'deepseek/deepseek-r1-0528:free',
   'qwen/qwen3-coder:free',
   'google/gemma-3-12b-it:free',
-  'arcee-ai/trinity-mini:free',
 ];
 
 // Content Archetypes to prevent "cookie-cutter" footprint
@@ -238,65 +232,15 @@ async function generateAggressiveLocalContent(
   // Use free models with fallback to backup models for aggressive mode
   const modelsToTry = aggressive ? [...FREE_MODELS, ...BACKUP_FREE_MODELS] : FREE_MODELS;
 
-  // HIGH-QUALITY CONCISE PROMPT - maintains quality, avoids truncation
   const aggressivePrompt = `
-You are an expert SEO content writer creating content for "${roleName} jobs in ${cityName}".
-
-UNIQUE ID: ${Date.now()}-${Math.random().toString(36).substr(2, 9)}
-ANGLE: ${uniqueAngle}
-DATE: ${currentMonth} ${currentYear}
-
+Write "${roleName} jobs in ${cityName}" page. ${currentMonth} ${currentYear}.
 ${injectedContext}
+Style: ${archetype.name}. ${archetype.instruction.replace('${cityName}', cityName).slice(0, 100)}
 
-Write as "${archetype.name}": ${archetype.instruction.replace('${cityName}', cityName).slice(0, 200)}
-
-Write a comprehensive page that will rank #1 and get clicks. Include:
-
-1. COMPELLING HEADLINES with numbers and power words
-2. SPECIFIC DATA: real salary ranges, company names, job counts for ${cityName}
-3. LOCAL INSIGHTS: neighborhoods, commute, cost of living, top employers
-4. ACTIONABLE ADVICE: how to get hired, interview tips, skills needed
-5. INSIDER SECRETS: what competitors don't tell job seekers
-6. URGENCY: "Updated ${currentMonth}", "Hiring Now", limited positions
-
-For ${roleName} in ${cityName}:
-- Salary range (entry/mid/senior)
-- Top 5 companies hiring now
-- Most in-demand skills
-- Remote work options %
-- Interview tips specific to this city
-
-Return JSON with this structure:
-{
-  "location": {
-    "name": "${cityName}",
-    "seoTitle": "Compelling title with numbers (max 60 chars)",
-    "seoDescription": "Description with specifics (max 155 chars)",
-    "h1": "Main headline with city and role",
-    "h2s": ["8-10 compelling section headings"],
-    "contentSections": [
-      {"heading": "...", "content": "150-200 words with facts and insights", "keywords": [...]}
-    ],
-    "localKeywords": ["10-15 keywords"],
-    "majorEmployers": ["company names hiring for this role"],
-    "medianIncome": number,
-    "contentQuality": 85-100
-  },
-  "role": {
-    "name": "${roleName}",
-    "avgSalary": number,
-    "demandLevel": "High/Medium/Low",
-    "skills": ["top 10 skills"],
-    "contentQuality": 85-100
-  }
-}
-
-CRITICAL: 
-- Every company name must be REAL
-- Every salary number must be REALISTIC
-- Write naturally, avoid repetition
-- Make it valuable enough that users bookmark it
-`;
+Include: salary ranges (entry/mid/senior), 5 real companies, top skills, remote %, interview tips.
+Return JSON only:
+{"location":{"name":"${cityName}","seoTitle":"<60 chars","seoDescription":"<155 chars","h1":"headline","h2s":["8 headings"],"contentSections":[{"heading":"","content":"150 words","keywords":[]}],"localKeywords":["10"],"majorEmployers":[],"medianIncome":0},"role":{"name":"${roleName}","avgSalary":0,"demandLevel":"High","skills":["10"]}}
+Real companies, realistic salaries, natural writing.`;
 
   console.log(`📝 Prompt length: ${aggressivePrompt.length} characters`);
 
@@ -342,7 +286,7 @@ CRITICAL:
             }
           ],
           temperature: 0.7,
-          max_tokens: 16000
+          max_tokens: 4000
         }),
         signal: controller.signal
       });

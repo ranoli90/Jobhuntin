@@ -25,13 +25,14 @@ const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
 // STRICT: Only approved NVIDIA free-tier models — no exceptions
 const PREMIUM_MODELS = [
-  'openrouter/free',
-  'google/gemini-2.0-flash-lite-preview-02-05:free',
+  'google/gemini-2.0-flash:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
 ];
 
 const FREE_MODELS = [
-  'openrouter/free',
-  'google/gemini-2.0-flash-lite-preview-02-05:free',
+  'google/gemini-2.0-flash:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'google/gemma-3-27b-it:free',
 ];
 
 interface Competitor {
@@ -263,7 +264,7 @@ async function generateAggressiveSEOContent(
           model: model,
           messages: [{ role: 'user', content: aggressivePrompt }],
           temperature: 0.8,
-          max_tokens: 8000,
+          max_tokens: 2000,
         }),
       });
 

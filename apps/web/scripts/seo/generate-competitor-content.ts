@@ -27,20 +27,14 @@ const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 // Free models that actually work on OpenRouter (updated Feb 2026)
 // Using a mix of popular and less popular models to avoid rate limits
 const FREE_MODELS = [
-  'arcee-ai/trinity-large-preview:free',     // 400B MoE, good quality
-  'upstage/solar-pro-3:free',                 // 128k context
-  'stepfun/step-3.5-flash:free',              // 256k context
-  'nvidia/nemotron-3-nano-30b-a3b:free',     // NVIDIA free tier
-  'meta-llama/llama-3.3-70b-instruct:free',  // Meta 70B
-  'google/gemma-3-27b-it:free',              // Google Gemma 3
+  'google/gemini-2.0-flash:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'google/gemma-3-27b-it:free',
 ];
 
-// Backup free models for aggressive mode
 const BACKUP_FREE_MODELS: string[] = [
-  'deepseek/deepseek-r1-0528:free',
   'qwen/qwen3-coder:free',
   'google/gemma-3-12b-it:free',
-  'arcee-ai/trinity-mini:free',
 ];
 
 interface Competitor {
@@ -87,51 +81,9 @@ async function generateCompetitorData(name: string, url?: string, explicitModel?
     throw new Error('LLM_API_KEY environment variable is missing.');
   }
 
-  const prompt = `
-    Research the job search tool "${name}"${url ? ` (${url})` : ''}.
-    Generate a JSON object matching this TypeScript interface:
-
-    interface Competitor {
-      slug: string; // kebab-case, e.g. "lazyapply"
-      name: string; // Official name
-      domain: string; // e.g. "lazyapply.com"
-      tagline: string; // Short marketing tagline (max 10 words)
-      tags: string[]; // 3-4 categories, e.g. "Auto-Apply", "Resume Builder"
-      pricing: {
-        freeTrial: boolean;
-        freemium: boolean;
-        startingPrice: number | "Custom"; // Monthly price in USD, or "Custom" string
-        currency: "USD";
-      };
-      features: { // boolean flags
-        autoApply: boolean;
-        resumeBuilder: boolean;
-        coverLetterGen: boolean;
-        networking: boolean;
-        jobTracking: boolean;
-        extension: boolean;
-        emailFinder: boolean;
-        interviewPrep: boolean;
-        salaryInsights: boolean;
-      };
-      weaknesses: string[]; // 3 major cons/limitations vs JobHuntin
-      strengths: string[]; // 3 major pros
-      seoKeywords: string[]; // 5-8 high-intent keywords
-      differentiators: string[]; // 3 unique selling points
-      verdict: string; // 2-3 sentences summarizing who it's for vs JobHuntin
-      rating_vs_jobhuntin: { // ratings [competitor_score, jobhuntin_score] (1-10)
-        speed: number[];
-        quality: number[];
-        automation: number[];
-        stealth: number[];
-        price_value: number[];
-      };
-    }
-
-    Return ONLY the raw JSON object. No markdown, no comments.
-    Ensure "slug" is unique and URL-friendly.
-    Be objective but highlight where it lacks compared to a comprehensive AI agent like JobHuntin.
-  `;
+  const prompt = `Research "${name}"${url ? ` (${url})` : ''}. Return JSON:
+{"slug":"kebab-case","name":"Official","domain":"example.com","tagline":"<10 words","tags":["Auto-Apply","Resume"],"pricing":{"freeTrial":false,"freemium":false,"startingPrice":0,"currency":"USD"},"features":{"autoApply":false,"resumeBuilder":false,"coverLetterGen":false,"networking":false,"jobTracking":false,"extension":false,"emailFinder":false,"interviewPrep":false,"salaryInsights":false},"weaknesses":["3 cons"],"strengths":["3 pros"],"seoKeywords":["5 keywords"],"differentiators":["3 USPs"],"verdict":"2 sentences","rating_vs_jobhuntin":{"speed":[5,9],"quality":[5,9],"automation":[5,9],"stealth":[5,9],"price_value":[5,9]}}
+Be objective. Highlight gaps vs JobHuntin AI.`;
 
   const modelsToTry = explicitModel ? [explicitModel] : FREE_MODELS;
   let lastError: Error | null = null;
