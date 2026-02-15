@@ -392,16 +392,16 @@ async def test_db_transient_failure_during_event_write(db_pool, browser, clean_d
 
     call_count = 0
 
-    # Make record_event fail on the 2nd call (STARTED_PROCESSING),
+# Make record_event fail on the 2nd call (STARTED_PROCESSING),
     # but succeed on subsequent calls (FAILED event write)
     original_record_event = record_event
 
-    async def flaky_record_event(conn, application_id, event_type, payload=None):
+    async def flaky_record_event(conn, application_id, event_type, payload=None, **kwargs):
         nonlocal call_count
         call_count += 1
         if call_count == 2:  # Fail on STARTED_PROCESSING (2nd call, after CLAIMED)
             raise asyncpg.InterfaceError("connection lost during write")
-        return await original_record_event(conn, application_id, event_type, payload)
+        return await original_record_event(conn, application_id, event_type, payload, **kwargs)
 
     async def context_factory():
         ctx = await browser.new_context(viewport={"width": 1280, "height": 900})
