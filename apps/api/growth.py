@@ -182,10 +182,13 @@ async def onboarding_complete(
 ) -> dict[str, Any]:
     """Mark onboarding as complete. Optionally redeem a referral code."""
     async with db.acquire() as conn:
-        await conn.execute(
-            "UPDATE public.users SET onboarding_completed_at = now() WHERE id = $1",
-            user_id,
-        )
+        # Store onboarding completion in profile_data JSON
+        await conn.execute("""
+            INSERT INTO public.profiles (user_id, profile_data, resume_url)
+            VALUES ($1, '{"has_completed_onboarding": true}', '')
+            ON CONFLICT (user_id) DO UPDATE SET
+                profile_data = COALESCE(profile_data, '{}') || '{"has_completed_onboarding": true}'::jsonb
+        """, user_id)
 
     referral_result = None
     if body.referral_code:
