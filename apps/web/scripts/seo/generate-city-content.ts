@@ -217,6 +217,23 @@ async function generateAggressiveLocalContent(
   // Randomly select an archetype ("The Chameleon Engine")
   const archetype = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
   console.log(`🦎 Chameleon Engine: Selected Archetype -> ${archetype.name}`);
+  
+  // Random unique angle for this generation
+  const uniqueAngles = [
+    'Focus on salary negotiation tactics specific to this city',
+    'Highlight remote work opportunities vs local positions',
+    'Emphasize career growth and promotion paths',
+    'Focus on work-life balance and company culture',
+    'Highlight entry-level opportunities and getting started',
+    'Emphasize senior/leadership positions and executive paths',
+    'Focus on startup ecosystem and equity opportunities',
+    'Highlight stable corporate positions with benefits',
+  ];
+  const uniqueAngle = uniqueAngles[Math.floor(Math.random() * uniqueAngles.length)];
+  
+  // Random year reference for freshness
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().toLocaleString('default', { month: 'long' });
 
   // Use free models with fallback to backup models for aggressive mode
   const modelsToTry = aggressive ? [...FREE_MODELS, ...BACKUP_FREE_MODELS] : FREE_MODELS;
@@ -225,12 +242,28 @@ async function generateAggressiveLocalContent(
   // Designed to avoid Google penalties while maximizing rankings
   const aggressivePrompt = `
     You are a top-tier SEO strategist acting as "${archetype.name}". 
-    Create comprehensive, valuable content for "${roleName} jobs in ${cityName}" that will rank #1 in Google.
+    Create UNIQUE, CLICK-WORTHY content for "${roleName} jobs in ${cityName}" that will rank #1 in Google.
+    
+    GENERATION ID: ${Date.now()}-${Math.random().toString(36).substr(2, 9)}
+    This content MUST be completely unique - never generate the same content twice.
+    
+    UNIQUE ANGLE FOR THIS PAGE: ${uniqueAngle}
+    CURRENT DATE: ${currentMonth} ${currentYear}
 
     ${injectedContext}
 
     ARCHETYPE INSTRUCTIONS (${archetype.name}):
     ${archetype.instruction.replace('${cityName}', cityName)}
+
+    CLICK-WORTHY CONTENT REQUIREMENTS:
+    ✅ Create COMPELLING, IRRESISTIBLE headlines that make users WANT to click
+    ✅ Use power words: "Ultimate", "Complete", " Insider", "Revealed", "Secret", "Proven"
+    ✅ Include specific numbers: "47 Companies Hiring Now", "Salary: $73K-$127K"
+    ✅ Add urgency where appropriate: "Updated ${currentMonth} ${currentYear}", "Hiring Now"
+    ✅ Use emotional triggers: avoid "dead-end jobs", find "career fulfillment"
+    ✅ Include surprising facts or little-known insights
+    ✅ Add "secrets" and "insider tips" that competitors don't have
+    ✅ Create FOMO: "Only 12 positions left at top companies"
 
     CRITICAL REQUIREMENTS (Google Employee Perspective):
     ✅ Follow E-E-A-T principles (Experience, Expertise, Authoritativeness, Trustworthiness)

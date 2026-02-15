@@ -105,6 +105,45 @@ function calculatePriority(location: any, role: any): PriorityMatrix {
 }
 
 /**
+ * Check if content already exists for a city/role combination
+ */
+function contentExists(location: any, role: any): boolean {
+  // Check if location has content sections for this role
+  if (location.contentSections && location.contentSections.length > 0) {
+    // Check if there's specific content for this role
+    const hasRoleContent = location.contentSections.some((section: any) => 
+      section.heading?.toLowerCase().includes(role.name.toLowerCase()) ||
+      section.keywords?.some((k: string) => k.toLowerCase().includes(role.name.toLowerCase()))
+    );
+    if (hasRoleContent) return true;
+  }
+  
+  // Check if role has content sections for this location
+  if (role.contentSections && role.contentSections.length > 0) {
+    const hasLocationContent = role.contentSections.some((section: any) =>
+      section.heading?.toLowerCase().includes(location.name.toLowerCase()) ||
+      section.keywords?.some((k: string) => k.toLowerCase().includes(location.name.toLowerCase()))
+    );
+    if (hasLocationContent) return true;
+  }
+  
+  // Check if both have quality scores (indicating they were generated)
+  if (location.contentQuality && location.contentQuality > 70 && 
+      role.contentQuality && role.contentQuality > 70) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Filter matrix to only include combinations that need content
+ */
+function filterNeededCombinations(matrix: PriorityMatrix[]): PriorityMatrix[] {
+  return matrix.filter(item => !contentExists(item.location, item.role));
+}
+
+/**
  * Generate all possible combinations and rank them by priority
  */
 function generatePriorityMatrix(): PriorityMatrix[] {
@@ -232,10 +271,38 @@ async function runAutomation(): Promise<void> {
   console.log('🤖 AUTOMATED RANKING ENGINE STARTED');
   console.log('📈 Generating priority matrix...');
 
-  const priorityMatrix = generatePriorityMatrix();
+  const allCombinations = generatePriorityMatrix();
+  const totalAll = allCombinations.length;
+  
+  // Filter to only combinations that need new content
+  const priorityMatrix = filterNeededCombinations(allCombinations);
+  
   const totalCombinations = priorityMatrix.length;
   let startIndex = await loadProgress();
-  if (startIndex >= totalCombinations) {
+  
+  // If all content exists, we might want to refresh old content
+  if (totalCombinations === 0) {
+    console.log('✅ All content already generated!');
+    console.log('🔄 Checking for content that needs refreshing (older than 30 days)...');
+    
+    // Find combinations with stale content (older than 30 days)
+    const staleCombinations = allCombinations.filter(item => {
+      const lastUpdated = item.location.lastUpdated || item.role.lastUpdated;
+      if (!lastUpdated) return false;
+      const daysSinceUpdate = (Date.now() - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24);
+      return daysSinceUpdate > 30;
+    });
+    
+    if (staleCombinations.length > 0) {
+      console.log(`📅 Found ${staleCombinations.length} pages to refresh`);
+      priorityMatrix.push(...staleCombinations);
+    } else {
+      console.log('🎉 No pages need refreshing. Engine will check again in 24 hours.');
+      return;
+    }
+  }
+  
+  if (startIndex >= priorityMatrix.length) {
     startIndex = 0;
   }
 
@@ -243,8 +310,9 @@ async function runAutomation(): Promise<void> {
   const { used: dailyQuotaUsed, reset: dailyQuotaReset } = await getQuotaState();
   let remainingDailyQuota = Math.max(0, DAILY_SUBMISSION_LIMIT - dailyQuotaUsed);
 
-  console.log(`📊 Found ${totalCombinations} potential page combinations`);
-  console.log(`🏆 Top priority: ${priorityMatrix[0].role.name} in ${priorityMatrix[0].location.name} (Score: ${priorityMatrix[0].potential})`);
+  console.log(`📊 Total combinations: ${totalAll}`);
+  console.log(`🆕 Need content: ${totalCombinations}`);
+  console.log(`🏆 Top priority: ${priorityMatrix[0]?.role?.name || 'N/A'} in ${priorityMatrix[0]?.location?.name || 'N/A'} (Score: ${priorityMatrix[0]?.potential || 0})`);
   console.log(`📦 Daily quota remaining: ${remainingDailyQuota}/${DAILY_SUBMISSION_LIMIT}`);
 
   let generatedCount = 0;
