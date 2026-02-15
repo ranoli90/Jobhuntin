@@ -17,13 +17,14 @@ from pydantic import BaseModel, Field
 # Enums
 # ---------------------------------------------------------------------------
 
+
 class ApplicationStatus(enum.StrEnum):
     QUEUED = "QUEUED"
     PROCESSING = "PROCESSING"
     REQUIRES_INPUT = "REQUIRES_INPUT"
-    APPLIED = "APPLIED"          # Sorce job-app terminal status
-    SUBMITTED = "SUBMITTED"      # Grant/vendor terminal status
-    COMPLETED = "COMPLETED"      # Generic terminal status
+    APPLIED = "APPLIED"  # Sorce job-app terminal status
+    SUBMITTED = "SUBMITTED"  # Grant/vendor terminal status
+    COMPLETED = "COMPLETED"  # Generic terminal status
     FAILED = "FAILED"
 
 
@@ -56,6 +57,7 @@ class ApplicationEventType(enum.StrEnum):
 # Canonical Profile (the "Digital Twin" schema for LLM prompts)
 # ---------------------------------------------------------------------------
 
+
 class CanonicalContact(BaseModel):
     # PII fields: these contain personally identifiable information
     # and must be redacted before logging or support views.
@@ -71,6 +73,7 @@ class CanonicalContact(BaseModel):
 
 class CanonicalEducation(BaseModel):
     """Educational history entry."""
+
     institution: str = ""
     degree: str = ""
     field_of_study: str = ""
@@ -81,6 +84,7 @@ class CanonicalEducation(BaseModel):
 
 class CanonicalExperience(BaseModel):
     """Professional experience entry."""
+
     company: str = ""
     title: str = ""
     start_date: str = ""
@@ -91,6 +95,7 @@ class CanonicalExperience(BaseModel):
 
 class CanonicalSkills(BaseModel):
     """Categorized skills."""
+
     technical: list[str] = Field(default_factory=list)
     soft: list[str] = Field(default_factory=list)
 
@@ -100,6 +105,7 @@ class CanonicalProfile(BaseModel):
     Full normalized user profile.
     Acts as the source of truth for filling job applications.
     """
+
     contact: CanonicalContact = Field(default_factory=CanonicalContact)
     education: list[CanonicalEducation] = Field(default_factory=list)
     experience: list[CanonicalExperience] = Field(default_factory=list)
@@ -121,7 +127,8 @@ def normalize_profile(raw: dict) -> CanonicalProfile:
     contact = CanonicalContact(
         full_name=full_name,
         first_name=contact_raw.get("first_name", "") or (parts[0] if parts else ""),
-        last_name=contact_raw.get("last_name", "") or (parts[1] if len(parts) > 1 else ""),
+        last_name=contact_raw.get("last_name", "")
+        or (parts[1] if len(parts) > 1 else ""),
         email=contact_raw.get("email", ""),
         phone=contact_raw.get("phone", ""),
         location=contact_raw.get("location", ""),
@@ -147,9 +154,29 @@ def normalize_profile(raw: dict) -> CanonicalProfile:
     ]
 
     skills_raw = raw.get("skills", {})
+
+    # Handle V2 rich skills format (objects with confidence) or V1 format (strings)
+    technical_raw = skills_raw.get("technical", [])
+    soft_raw = skills_raw.get("soft", [])
+
+    # Extract skill names from rich format if needed
+    technical = []
+    for s in technical_raw:
+        if isinstance(s, dict):
+            technical.append(s.get("skill", ""))
+        elif isinstance(s, str):
+            technical.append(s)
+
+    soft = []
+    for s in soft_raw:
+        if isinstance(s, dict):
+            soft.append(s.get("skill", ""))
+        elif isinstance(s, str):
+            soft.append(s)
+
     skills = CanonicalSkills(
-        technical=skills_raw.get("technical", []),
-        soft=skills_raw.get("soft", []),
+        technical=[s for s in technical if s],
+        soft=[s for s in soft if s],
     )
 
     current_title = experience[0].title if experience else ""
@@ -173,11 +200,13 @@ def normalize_profile(raw: dict) -> CanonicalProfile:
 # DB row models (for typed returns from repositories)
 # ---------------------------------------------------------------------------
 
+
 class Tenant(BaseModel):
     """
     Tenant (Organization/Team) entity.
     Represents a billing unit and isolation scope.
     """
+
     id: str
     name: str
     slug: str
@@ -243,6 +272,7 @@ class ApplicationInput(BaseModel):
     Interactive form field requiring user input.
     Used when the Agent hits a question it cannot answer automatically.
     """
+
     id: str
     application_id: str
     tenant_id: str | None = None
@@ -294,6 +324,7 @@ class ApplicationDetail(BaseModel):
 # Form / LLM data structures (used by worker)
 # ---------------------------------------------------------------------------
 
+
 class FormFieldOption(BaseModel):
     value: str
     text: str
@@ -303,6 +334,7 @@ class FormField(BaseModel):
     """
     DOM element representation extracted from the target page.
     """
+
     selector: str
     label: str
     type: str
@@ -313,12 +345,14 @@ class FormField(BaseModel):
 
 class UnresolvedField(BaseModel):
     """Field that the LLM could not map confidently."""
+
     selector: str
     question: str
 
 
 class LLMMapping(BaseModel):
     """Response schema for the DOM → profile field mapping LLM call."""
+
     field_values: dict[str, str] = Field(default_factory=dict)
     unresolved_required_fields: list[UnresolvedField] = Field(default_factory=list)
 
@@ -336,8 +370,10 @@ class LLMMapping(BaseModel):
 # Standard API error envelope
 # ---------------------------------------------------------------------------
 
+
 class ErrorResponse(BaseModel):
     """Stable error shape returned by all API error responses."""
+
     error: ErrorDetail
 
 
