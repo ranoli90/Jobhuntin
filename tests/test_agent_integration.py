@@ -419,6 +419,7 @@ async def test_validate_critical_passes_with_all_secrets():
         app_base_url="https://app.example.com",
         csrf_secret="a" * 64,
         sso_session_secret="b" * 64,
+        jwt_secret="c" * 64,
     )
 
     # Should not raise

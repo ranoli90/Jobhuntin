@@ -22,6 +22,7 @@ def upgrade() -> None:
         CREATE TABLE IF NOT EXISTS tenants (
             id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
             name VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) UNIQUE,
             domain VARCHAR(255) UNIQUE,
             plan VARCHAR(50) DEFAULT 'FREE',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -67,10 +68,12 @@ def upgrade() -> None:
     op.execute("""
         CREATE TABLE IF NOT EXISTS jobs (
             id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            external_id VARCHAR(255),
             title VARCHAR(500) NOT NULL,
             company VARCHAR(255) NOT NULL,
             description TEXT,
             location TEXT,
+            application_url TEXT,
             salary_min INTEGER,
             salary_max INTEGER,
             url TEXT,
@@ -88,10 +91,21 @@ def upgrade() -> None:
             user_id UUID NOT NULL REFERENCES users(id),
             job_id UUID REFERENCES jobs(id),
             status VARCHAR(50) DEFAULT 'SAVED',
+            last_error TEXT,
             notes TEXT,
             applied_date DATE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS application_events (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+            event_type VARCHAR(100) NOT NULL,
+            data JSONB,
+            created_at TIMESTAMPTZ DEFAULT now()
         )
     """)
 
@@ -135,6 +149,29 @@ def upgrade() -> None:
         )
     """)
 
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS profiles (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            profile_data JSONB NOT NULL DEFAULT '{}',
+            tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS job_match_cache (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            job_id TEXT NOT NULL,
+            profile_hash TEXT NOT NULL,
+            score_data JSONB NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT now(),
+            updated_at TIMESTAMPTZ DEFAULT now(),
+            UNIQUE(job_id, profile_hash)
+        )
+    """)
+
     op.execute('CREATE INDEX IF NOT EXISTS idx_jobs_title ON jobs(title)')
     op.execute('CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company)')
     op.execute('CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location)')
@@ -157,6 +194,9 @@ def downgrade() -> None:
     op.execute('DROP INDEX IF EXISTS idx_jobs_company')
     op.execute('DROP INDEX IF EXISTS idx_jobs_title')
 
+    op.execute('DROP TABLE IF EXISTS job_match_cache')
+    op.execute('DROP TABLE IF EXISTS profiles')
+    op.execute('DROP TABLE IF EXISTS application_events')
     op.execute('DROP TABLE IF EXISTS answer_memory')
     op.execute('DROP TABLE IF EXISTS events')
     op.execute('DROP TABLE IF EXISTS application_inputs')
