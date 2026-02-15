@@ -461,9 +461,9 @@ const handleConfirmParsing = () => {
   }
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex flex-col relative">
+    <div className="min-h-screen w-full bg-slate-50 flex flex-col relative">
       {/* Minimal Header */}
-      <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50">
+      <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50 sticky top-0">
         <Logo to="/app/onboarding" size="sm" />
         <div className="flex items-center gap-2 md:gap-4">
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
@@ -476,20 +476,17 @@ const handleConfirmParsing = () => {
         </div>
       </header>
 
-      <main className="flex-1 w-full flex flex-col items-center justify-center p-1.5 md:p-4 overflow-hidden bg-grid-premium opacity-100 relative min-h-0">
-        <div className="w-full max-w-xl lg:max-w-5xl h-full max-h-full flex flex-col relative justify-center min-h-0">
-          {/* Subtle background glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-500/5 rounded-full blur-[100px] pointer-events-none" />
-
-          {/* Progress bar - Condensed */}
-          <div className="mb-2 md:mb-6 shrink-0 z-10">
-            <div className="flex items-center justify-between mb-1.5 md:mb-3 px-1">
-              <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.15em] md:tracking-[0.2em]">
+      <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8 bg-grid-premium">
+        <div className="w-full max-w-xl lg:max-w-4xl xl:max-w-5xl">
+          {/* Progress bar */}
+          <div className="mb-4 md:mb-6">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Setup Progress — {(progress).toFixed(0)}%
               </span>
-              <span className="text-[10px] md:text-xs font-black text-primary-600 uppercase tracking-[0.15em] md:tracking-[0.2em]">{currentStepData.title}</span>
+              <span className="text-[10px] md:text-xs font-bold text-primary-600 uppercase tracking-wider">{currentStepData.title}</span>
             </div>
-            <div className="h-1 md:h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+            <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
               <motion.div
                 initial={shouldReduceMotion ? { width: `${progress}%` } : { width: 0 }}
                 animate={{ width: `${progress}%` }}
@@ -502,57 +499,53 @@ const handleConfirmParsing = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
-              className="flex-1 min-h-0 flex flex-col"
-              initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.98, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.98, y: -10 }}
-              transition={shouldReduceMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
+              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
+              transition={shouldReduceMotion ? undefined : { duration: 0.2 }}
             >
-              <Card tone="glass" shadow="lift" className="flex flex-col flex-1 p-3 md:p-8 border-slate-200/60 overflow-hidden relative max-h-full min-h-0">
-                {/* Decorative background elements inside card */}
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl pointer-events-none" />
-
-                {/* Profile completeness indicator - Compact for mobile */}
-                <div className="mb-2 md:mb-6 shrink-0 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-2.5 md:p-4 shadow-xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors" />
-                  <div className="flex items-center justify-between mb-1.5 md:mb-3">
-                    <div className="flex items-center gap-1.5 md:gap-2">
-                      <div className="w-5 h-5 md:w-8 md:h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <Sparkles className="h-2.5 w-2.5 md:h-4 md:w-4 text-emerald-400" />
+              <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
+                {/* Profile completeness indicator - Desktop: horizontal, Mobile: compact */}
+                <div className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                        <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" />
                       </div>
                       <div>
-                        <span className="block text-[7px] md:text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Profile Strength</span>
-                        <span className="text-[9px] md:text-xs font-bold text-white">Setup Progress</span>
+                        <span className="block text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Profile Strength</span>
+                        <span className="text-xs md:text-sm font-bold text-white">Setup Progress</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-base md:text-2xl font-black text-white italic">{completeness}%</span>
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className="flex-1 md:w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${completeness}%` }}
+                          className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                          transition={{ type: "spring", stiffness: 40, damping: 12 }}
+                        />
+                      </div>
+                      <span className="text-lg md:text-2xl font-black text-white">{completeness}%</span>
                     </div>
                   </div>
-                  <div className="h-1 md:h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${completeness}%` }}
-                      className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                      transition={{ type: "spring", stiffness: 40, damping: 12 }}
-                    />
-                  </div>
-                  <div className="mt-1.5 md:mt-4 flex-wrap gap-1 md:gap-2 hidden md:flex">
+                  {/* Badges row */}
+                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
                     {(profile?.resume_url || resumeFile) && (
-                      <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
-                        <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
+                      <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
                         Resume Added
                       </Badge>
                     )}
                     {preferences.location && (
-                      <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
-                        <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
+                      <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
                         Location Set
                       </Badge>
                     )}
                     {preferences.role_type && (
-                      <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
-                        <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
+                      <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
                         Job Title Set
                       </Badge>
                     )}
@@ -653,24 +646,8 @@ const handleConfirmParsing = () => {
               </Card>
             </motion.div>
           </AnimatePresence>
-
-          {/* Helper text - hidden on mobile */}
-          <p className="mt-3 md:mt-8 text-center text-[10px] md:text-xs text-slate-400 font-medium hidden md:block">
-            Step recorded at {new Date().toLocaleTimeString()} • Secured by 256-bit encryption
-          </p>
         </div>
       </main>
-
-      {/* Footer - desktop only */}
-      <footer className="hidden md:block px-6 py-4 lg:py-6 border-t border-slate-200 bg-white shrink-0">
-        <div className="max-w-2xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-slate-400 font-medium font-bold">© {new Date().getFullYear()} JobHuntin AI. Intelligence for Career Acceleration.</p>
-          <div className="flex gap-6">
-            <a href="/privacy" className="text-xs text-slate-400 hover:text-slate-900 font-bold uppercase transition-colors">Privacy</a>
-            <a href="/terms" className="text-xs text-slate-400 hover:text-slate-900 font-bold uppercase transition-colors">Terms</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
