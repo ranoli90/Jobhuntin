@@ -8,7 +8,12 @@ const SITEMAP_PATH = path.resolve(__dirname, '../../public/sitemap.xml');
 const REPORT_FILE = path.resolve(__dirname, '../../src/data/seo-audit-report.json');
 
 const OPENROUTER_API_KEY = process.env.LLM_API_KEY;
+// Using a mix of popular and less popular free models to avoid rate limits
 const FREE_MODELS = [
+    'arcee-ai/trinity-large-preview:free',
+    'upstage/solar-pro-3:free',
+    'stepfun/step-3.5-flash:free',
+    'nvidia/nemotron-3-nano-30b-a3b:free',
     'meta-llama/llama-3.3-70b-instruct:free',
     'google/gemma-3-27b-it:free',
     'deepseek/deepseek-r1-0528:free',

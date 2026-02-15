@@ -25,11 +25,16 @@ const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.jso
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
 // Free models that actually work on OpenRouter (updated Feb 2026)
+// Using a mix of popular and less popular models to avoid rate limits
 const FREE_MODELS = [
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemma-3-27b-it:free',
-  'deepseek/deepseek-r1-0528:free',
-  'qwen/qwen3-coder:free',
+  'arcee-ai/trinity-large-preview:free',     // 400B MoE, good quality
+  'upstage/solar-pro-3:free',                 // 128k context
+  'stepfun/step-3.5-flash:free',              // 256k context
+  'nvidia/nemotron-3-nano-30b-a3b:free',     // NVIDIA free tier
+  'meta-llama/llama-3.3-70b-instruct:free',  // Meta 70B
+  'google/gemma-3-27b-it:free',              // Google Gemma 3
+  'deepseek/deepseek-r1-0528:free',          // DeepSeek reasoning
+  'qwen/qwen3-coder:free',                    // Qwen coder
 ];
 
 interface Competitor {

@@ -64,19 +64,22 @@ import { getCityJobStats, formatStatsForPrompt } from './data-provider.js';
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
 // Free models that actually work on OpenRouter (updated Feb 2026)
+// Using a mix of popular and less popular models to avoid rate limits
 const FREE_MODELS = [
-  'meta-llama/llama-3.3-70b-instruct:free',     // Meta's 70B - best quality free
-  'google/gemma-3-27b-it:free',                  // Google's Gemma 3 27B
-  'deepseek/deepseek-r1-0528:free',             // DeepSeek reasoning model
-  'qwen/qwen3-coder:free',                       // Qwen coder - good for structured output
+  'arcee-ai/trinity-large-preview:free',     // 400B MoE, good quality
+  'upstage/solar-pro-3:free',                 // 128k context
+  'stepfun/step-3.5-flash:free',              // 256k context
+  'nvidia/nemotron-3-nano-30b-a3b:free',     // NVIDIA free tier
+  'meta-llama/llama-3.3-70b-instruct:free',  // Meta 70B
+  'google/gemma-3-27b-it:free',              // Google Gemma 3
 ];
 
 // Backup free models for aggressive mode
 const BACKUP_FREE_MODELS: string[] = [
-  'google/gemma-3-12b-it:free',                 // Smaller Gemma
-  'meta-llama/llama-3.2-3b-instruct:free',     // Smaller Llama
-  'arcee-ai/trinity-mini:free',                  // Arcee's smaller model
-  'qwen/qwen3-4b:free',                          // Smaller Qwen
+  'deepseek/deepseek-r1-0528:free',
+  'qwen/qwen3-coder:free',
+  'google/gemma-3-12b-it:free',
+  'arcee-ai/trinity-mini:free',
 ];
 
 // Content Archetypes to prevent "cookie-cutter" footprint
