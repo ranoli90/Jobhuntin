@@ -22,12 +22,12 @@ services:
       - key: DATABASE_URL
         fromDatabase:
           name: jobhuntin-db
-          property: connectionString
+          property: internalConnectionString
       - key: REDIS_URL
         fromService:
           name: jobhuntin-redis
-          type: redis
-          property: connectionString
+          type: keyvalue
+          property: internalConnectionString
       - key: JWT_SECRET
         sync: false
       - key: CSRF_SECRET
@@ -82,12 +82,12 @@ services:
       - key: DATABASE_URL
         fromDatabase:
           name: jobhuntin-db
-          property: connectionString
+          property: internalConnectionString
       - key: REDIS_URL
         fromService:
           name: jobhuntin-redis
-          type: redis
-          property: connectionString
+          type: keyvalue
+          property: internalConnectionString
       - key: JWT_SECRET
         sync: false
       - key: CSRF_SECRET
@@ -117,12 +117,12 @@ services:
       - key: DATABASE_URL
         fromDatabase:
           name: jobhuntin-db
-          property: connectionString
+          property: internalConnectionString
       - key: REDIS_URL
         fromService:
           name: jobhuntin-redis
-          type: redis
-          property: connectionString
+          type: keyvalue
+          property: internalConnectionString
 
 # ───────────────────────────────────────────────────────────────────────────
 # Databases
