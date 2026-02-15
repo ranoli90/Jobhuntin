@@ -213,24 +213,74 @@ def _get_rate_limiter(settings: Settings, email: str) -> RateLimiter:
 async def _send_magic_link_email(settings: Settings, email: str, action_link: str, return_to: str | None) -> None:
     if not settings.resend_api_key:
         raise HTTPException(status_code=500, detail="Email service is not configured")
+    
     html = _render_email_html(settings, action_link, return_to)
+    
+    # Create a proper text version for better deliverability
+    destination = return_to or "/app/dashboard"
+    destination_name = {
+        "/app/onboarding": "Onboarding",
+        "/app/dashboard": "Dashboard",
+        "/app/jobs": "Job Feed",
+        "/app/applications": "Applications",
+        "/app/holds": "Hold Queue",
+        "/app/billing": "Billing",
+        "/app/settings": "Settings",
+        "/app/team": "Team Workspace",
+    }.get(destination, destination.replace("/app/", "").title())
+    
+    text_content = f"""Sign in to JobHuntin
+
+Click the link below to securely access your account:
+
+{action_link}
+
+Destination: {destination_name}
+
+This sign-in link will expire in {settings.magic_link_token_ttl_seconds // 60} minutes.
+
+If you didn't request this email, you can safely ignore it.
+
+---
+JobHuntin - AI-powered job search automation
+https://jobhuntin.com
+"""
+    
     payload = {
         "from": settings.email_from,
         "to": [email],
-        "subject": "Your access link is ready",
+        "subject": "Sign in to JobHuntin",
         "html": html,
-        "text": f"Use this link to sign in: {action_link}",
+        "text": text_content,
+        "headers": {
+            "X-Priority": "1",
+            "X-MSMail-Priority": "High",
+        },
     }
+    
     headers = {
         "Authorization": f"Bearer {settings.resend_api_key}",
         "Content-Type": "application/json",
     }
+    
+    logger.info("[MAGIC_LINK] Sending email", extra={"email": email, "destination": destination_name})
+    
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.post("https://api.resend.com/emails", headers=headers, json=payload)
+    
     if resp.status_code not in (200, 201):
-        logger.error("Resend email failed: %s - %s", resp.status_code, resp.text[:200])
+        logger.error("[MAGIC_LINK] Resend email failed", extra={
+            "email": email,
+            "status": resp.status_code,
+            "response": resp.text[:200]
+        })
         raise HTTPException(status_code=502, detail="Failed to send magic link email")
-    logger.info("Magic link email queued", extra={"email": email, "return_to": return_to or "/app/dashboard"})
+    
+    logger.info("[MAGIC_LINK] Email sent successfully", extra={
+        "email": email,
+        "destination": destination_name,
+        "resend_response": resp.json() if resp.text else None
+    })
     incr("auth.magic_link.sent")
 
 

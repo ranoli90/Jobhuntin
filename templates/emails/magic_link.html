@@ -1,49 +1,145 @@
-<div style="background-color: #0f172a; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <div style="max-width: 520px; margin: 0 auto; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border: 1px solid rgba(99, 102, 241, 0.2);">
-    
-    <div style="padding: 48px 40px; text-align: center;">
-      <div style="margin-bottom: 36px;">
-        <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); width: 72px; height: 72px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-        </div>
-      </div>
-      
-      <h1 style="color: #ffffff; font-size: 28px; font-weight: 800; margin: 0 0 16px; letter-spacing: -0.03em;">
-        Your Mission Awaits.
-      </h1>
-      
-      <p style="color: #94a3b8; font-size: 17px; line-height: 1.7; margin: 0 0 40px; font-weight: 400;">
-        Your AI-powered job hunting agents are locked and loaded. 
-        <span style="color: #e2e8f0; font-weight: 500;">One click deploys your career acceleration.</span>
-      </p>
-      
-      <a href="$action_link" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; padding: 18px 48px; border-radius: 14px; font-size: 17px; font-weight: 700; text-decoration: none; box-shadow: 0 0 30px rgba(99, 102, 241, 0.5), 0 4px 14px rgba(0, 0, 0, 0.3);">
-        Launch Command Center
-      </a>
-      
-      <div style="margin: 44px 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);"></div>
-      
-      <div style="background: rgba(99, 102, 241, 0.1); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
-        <p style="color: #a5b4fc; font-size: 14px; margin: 0; font-weight: 500;">
-          Destination: <span style="color: #c7d2fe;">$destination</span>
-        </p>
-      </div>
-      
-      <p style="color: #64748b; font-size: 13px; line-height: 1.6; margin: 0 0 8px;">
-        This access link self-destructs in <span style="color: #f87171; font-weight: 600;">$expires_minutes minutes</span>.
-      </p>
-      
-      <p style="color: #475569; font-size: 12px; margin: 0;">
-        Didn't request access? Someone may have entered your email by mistake. Safe to ignore.
-      </p>
-    </div>
-    
-    <div style="background: rgba(15, 23, 42, 0.5); padding: 20px; text-align: center; border-top: 1px solid rgba(99, 102, 241, 0.1);">
-      <p style="margin: 0; font-size: 11px; color: #475569; letter-spacing: 0.5px; text-transform: uppercase;">
-        JobHuntin AI  |  Automated Career Acceleration
-      </p>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Sign in to JobHuntin</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  
+  <!-- Preview text (hidden but important for deliverability) -->
+  <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+    Sign in to your JobHuntin account. This link expires in $expires_minutes minutes.
   </div>
-</div>
+  
+  <!-- Main container -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        
+        <!-- Email card -->
+        <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+          
+          <!-- Header with logo -->
+          <tr>
+            <td style="padding: 40px 40px 32px; text-align: center; border-bottom: 1px solid #f1f5f9;">
+              
+              <!-- Logo -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px;">
+                <tr>
+                  <td style="background-color: #3b82f6; width: 48px; height: 48px; border-radius: 12px; text-align: center; vertical-align: middle;">
+                    <span style="color: #ffffff; font-size: 24px; font-weight: 700; line-height: 48px;">J</span>
+                  </td>
+                </tr>
+              </table>
+              
+              <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em;">
+                Sign in to JobHuntin
+              </h1>
+              
+              <p style="margin: 0; font-size: 16px; color: #64748b; line-height: 1.5;">
+                Click the button below to securely access your account.
+              </p>
+              
+            </td>
+          </tr>
+          
+          <!-- Main content -->
+          <tr>
+            <td style="padding: 40px 40px 32px; text-align: center;">
+              
+              <!-- CTA Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 32px;">
+                <tr>
+                  <td style="background-color: #3b82f6; border-radius: 10px;">
+                    <a href="$action_link" style="display: inline-block; padding: 16px 40px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 10px;">
+                      Continue to $destination
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Destination info -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 16px 20px; text-align: center;">
+                    <p style="margin: 0; font-size: 14px; color: #64748b;">
+                      <span style="color: #3b82f6; font-weight: 500;">Destination:</span> $destination
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer info -->
+          <tr>
+            <td style="padding: 0 40px 40px;">
+              
+              <!-- Expiry notice -->
+              <p style="margin: 0 0 16px; font-size: 14px; color: #64748b; text-align: center;">
+                This sign-in link will expire in <span style="color: #0f172a; font-weight: 600;">$expires_minutes minutes</span>.
+              </p>
+              
+              <!-- Divider -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+                <tr>
+                  <td style="border-top: 1px solid #e2e8f0;"></td>
+                </tr>
+              </table>
+              
+              <!-- Alternative link -->
+              <p style="margin: 0 0 16px; font-size: 13px; color: #94a3b8; text-align: center; line-height: 1.6;">
+                If the button above doesn't work, copy and paste this link into your browser:
+              </p>
+              
+              <p style="margin: 0; font-size: 12px; color: #64748b; text-align: center; word-break: break-all; line-height: 1.6;">
+                <a href="$action_link" style="color: #3b82f6; text-decoration: underline;">$action_link</a>
+              </p>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 40px; background-color: #f8fafc; border-radius: 0 0 16px 16px; text-align: center; border-top: 1px solid #e2e8f0;">
+              
+              <p style="margin: 0 0 8px; font-size: 12px; color: #94a3b8;">
+                If you didn't request this email, you can safely ignore it.
+              </p>
+              
+              <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                <span style="color: #0f172a; font-weight: 600;">JobHuntin</span> &mdash; AI-powered job search automation
+              </p>
+              
+              <p style="margin: 12px 0 0; font-size: 11px; color: #94a3b8;">
+                <a href="https://jobhuntin.com" style="color: #94a3b8; text-decoration: none;">jobhuntin.com</a>
+              </p>
+              
+            </td>
+          </tr>
+          
+        </table>
+        
+        <!-- Powered by -->
+        <p style="margin: 24px 0 0; font-size: 11px; color: #94a3b8; text-align: center;">
+          Powered by <a href="https://jobhuntin.com" style="color: #3b82f6; text-decoration: none;">JobHuntin</a>
+        </p>
+        
+      </td>
+    </tr>
+  </table>
+  
+</body>
+</html>
