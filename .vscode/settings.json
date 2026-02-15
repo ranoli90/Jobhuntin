@@ -1,0 +1,24 @@
+{
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/packages/shared",
+    "${workspaceFolder}/packages/backend",
+    "${workspaceFolder}/packages/blueprints",
+    "${workspaceFolder}/packages/partners",
+    "${workspaceFolder}/apps/api",
+    "${workspaceFolder}/apps/worker",
+    "${workspaceFolder}/apps/api_v2"
+  ],
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.reportMissingImports": false,
+  "python.analysis.reportMissingTypeStubs": false,
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/venv": true,
+    "**/dist": true,
+    "**/build": true
+  }
+}
