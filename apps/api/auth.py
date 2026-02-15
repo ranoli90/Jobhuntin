@@ -103,14 +103,19 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
 
     import jwt
 
-# Find or create user
+    # Find or create user
     async with db.acquire() as conn:
-        user_id = await conn.fetchval("""
-            INSERT INTO public.users (id, email, created_at, updated_at)
-            VALUES ($1, $2, now(), now())
-            ON CONFLICT (email) DO UPDATE SET updated_at = now()
-            RETURNING id
-        """, str(uuid.uuid4()), email)
+        # First try to find existing user by email
+        user_id = await conn.fetchval(
+            "SELECT id FROM public.users WHERE email = $1", email
+        )
+        if not user_id:
+            # Create new user
+            user_id = await conn.fetchval("""
+                INSERT INTO public.users (id, email, created_at, updated_at)
+                VALUES ($1, $2, now(), now())
+                RETURNING id
+            """, str(uuid.uuid4()), email)
         # Create empty profile if not exists
         await conn.execute("""
             INSERT INTO public.profiles (user_id, resume_url, profile_data)
