@@ -123,7 +123,7 @@ export function useProfile() {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // allow more time for parsing
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // Increased timeout to 2 minutes for parsing
 
     try {
       const formData = new FormData();
@@ -154,8 +154,27 @@ export function useProfile() {
       return data;
     } catch (err: any) {
       if (err?.name === "AbortError") {
-        throw new Error("Upload timed out. Please retry on a stable connection.");
+        throw new Error("Upload timed out. Please check your connection and try again.");
       }
+      
+      // Provide more specific error messages based on status
+      if (err?.status) {
+        switch (err.status) {
+          case 413:
+            throw new Error("File too large. Maximum size is 15 MB.");
+          case 429:
+            throw new Error("Too many upload attempts. Please wait a moment and try again.");
+          case 500:
+            throw new Error("Server error during upload. Please try again.");
+          case 502:
+            throw new Error("Resume parsing service unavailable. Please try again in a few minutes.");
+          case 503:
+            throw new Error("Service temporarily unavailable. Please try again.");
+          default:
+            throw err;
+        }
+      }
+      
       throw err;
     } finally {
       clearTimeout(timeoutId);
