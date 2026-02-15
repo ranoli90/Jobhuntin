@@ -74,6 +74,7 @@ def upgrade() -> None:
             description TEXT,
             location TEXT,
             application_url TEXT,
+            source VARCHAR(100),
             salary_min INTEGER,
             salary_max INTEGER,
             url TEXT,
@@ -90,7 +91,13 @@ def upgrade() -> None:
             id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
             user_id UUID NOT NULL REFERENCES users(id),
             job_id UUID REFERENCES jobs(id),
+            tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
             status VARCHAR(50) DEFAULT 'SAVED',
+            attempt_count INTEGER DEFAULT 0,
+            blueprint_key VARCHAR(255),
+            available_at TIMESTAMPTZ,
+            locked_at TIMESTAMPTZ,
+            last_processed_at TIMESTAMPTZ,
             last_error TEXT,
             notes TEXT,
             applied_date DATE,
@@ -100,11 +107,23 @@ def upgrade() -> None:
     """)
 
     op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE application_event_type AS ENUM (
+                'CREATED', 'CLAIMED', 'STARTED_PROCESSING', 'FIELDS_EXTRACTED',
+                'FORM_FILLED', 'SUBMITTED', 'APPLIED', 'FAILED', 'HOLD', 'RESUMED'
+            );
+        EXCEPTION
+            WHEN others THEN NULL;
+        END $$;
+    """)
+
+    op.execute("""
         CREATE TABLE IF NOT EXISTS application_events (
             id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
             application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
-            event_type VARCHAR(100) NOT NULL,
-            data JSONB,
+            event_type application_event_type NOT NULL,
+            payload JSONB,
+            tenant_id UUID,
             created_at TIMESTAMPTZ DEFAULT now()
         )
     """)
@@ -161,6 +180,20 @@ def upgrade() -> None:
     """)
 
     op.execute("""
+        CREATE TABLE IF NOT EXISTS billing_customers (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id UUID NOT NULL UNIQUE REFERENCES tenants(id) ON DELETE CASCADE,
+            provider VARCHAR(50) NOT NULL DEFAULT 'stripe',
+            provider_customer_id VARCHAR(255),
+            current_subscription_id VARCHAR(255),
+            current_subscription_status VARCHAR(50),
+            current_period_end TIMESTAMPTZ,
+            created_at TIMESTAMPTZ DEFAULT now(),
+            updated_at TIMESTAMPTZ DEFAULT now()
+        )
+    """)
+
+    op.execute("""
         CREATE TABLE IF NOT EXISTS job_match_cache (
             id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
             job_id TEXT NOT NULL,
@@ -194,9 +227,11 @@ def downgrade() -> None:
     op.execute('DROP INDEX IF EXISTS idx_jobs_company')
     op.execute('DROP INDEX IF EXISTS idx_jobs_title')
 
+    op.execute('DROP TABLE IF EXISTS billing_customers')
     op.execute('DROP TABLE IF EXISTS job_match_cache')
     op.execute('DROP TABLE IF EXISTS profiles')
     op.execute('DROP TABLE IF EXISTS application_events')
+    op.execute('DROP TYPE IF EXISTS application_event_type')
     op.execute('DROP TABLE IF EXISTS answer_memory')
     op.execute('DROP TABLE IF EXISTS events')
     op.execute('DROP TABLE IF EXISTS application_inputs')
