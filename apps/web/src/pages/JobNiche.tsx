@@ -500,7 +500,7 @@ export default function JobNiche() {
       </div>
     </div>
   </div>
-</div>
+</section>
 
 {/* Popular Cities & Roles for crawl paths */}
 <div className="mt-10 pt-10 border-t border-slate-100">
