@@ -59,15 +59,16 @@ const tools = [
 ];
 
 export default function ToolsHub() {
-  const title = 'Free AI Job Search Tools | Resume Builder, Cover Letter & More';
-  const description = 'Free AI-powered tools to supercharge your job search. Build ATS-optimized resumes, generate cover letters, track applications, and ace interviews. No signup required for basic features.';
+  const title = 'Free AI Job Search Tools | Resume Builder, ATS Checker & Cover Letter Gen';
+  const description = 'Free AI-powered job search tools: ATS-optimized resume builder, cover letter generator, job application tracker, and ATS score checker. No signup required for basic features.';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white font-sans text-slate-900">
       <SEO
         title={title}
         description={description}
-        ogTitle={title}
+        ogTitle="Free AI Job Search Tools | JobHuntin"
+        ogImage="https://jobhuntin.com/og/tools.png"
         canonicalUrl="https://jobhuntin.com/tools"
         includeDate={true}
         schema={[

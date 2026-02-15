@@ -1,20 +1,19 @@
 
 import React, { useMemo } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import { MapPin, Briefcase, Building2, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { SEO } from '../components/marketing/SEO';
 import locations from '../data/locations.json';
 import roles from '../data/roles.json';
 
-// Simple check for popular cities to highlight
 const POPULAR_CITIES = ['New York', 'San Francisco', 'Austin', 'London', 'Remote'];
 
 export default function Locations() {
-    // Group locations by region or just list them alphabetically
     const sortedLocations = useMemo(() =>
         [...locations].sort((a, b) => a.name.localeCompare(b.name)),
         []);
 
-    // Group roles by category
     const rolesByCategory = useMemo(() => {
         const grouped: Record<string, typeof roles> = {};
         roles.forEach(role => {
@@ -25,81 +24,161 @@ export default function Locations() {
         return grouped;
     }, []);
 
+    const title = 'Find Jobs by Location & Role | Remote, NYC, SF, Austin & More';
+    const description = 'Browse AI-powered job opportunities by location and role. Find remote jobs, tech roles in NYC, marketing positions in Austin, and more. JobHuntin auto-applies to matches.';
+    const canonicalUrl = 'https://jobhuntin.com/locations';
+
     return (
-        <>
-            <Helmet>
-                <title>Job Hunt Locations & Roles | JobHuntin</title>
-                <meta name="description" content="Browse jobs by location and role. Find the best opportunities in tech, marketing, sales, and more across top cities worldwide." />
-            </Helmet>
+        <div className="bg-white min-h-screen">
+            <SEO
+                title={title}
+                description={description}
+                ogTitle={title}
+                canonicalUrl={canonicalUrl}
+                schema={[
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "CollectionPage",
+                        "name": "Jobs by Location and Role",
+                        "description": description,
+                        "url": canonicalUrl,
+                    },
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "ItemList",
+                        "name": "Job Locations",
+                        "numberOfItems": locations.length,
+                        "itemListElement": locations.slice(0, 20).map((loc, i) => ({
+                            "@type": "ListItem",
+                            "position": i + 1,
+                            "name": loc.name,
+                            "url": `https://jobhuntin.com/jobs/software-engineer/${loc.id}`
+                        }))
+                    },
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "ItemList",
+                        "name": "Job Roles",
+                        "numberOfItems": roles.length,
+                        "itemListElement": roles.slice(0, 20).map((role, i) => ({
+                            "@type": "ListItem",
+                            "position": i + 1,
+                            "name": role.name,
+                            "url": `https://jobhuntin.com/jobs/${role.id}/remote`
+                        }))
+                    }
+                ]}
+            />
 
-            <div className="bg-white min-h-screen pt-24 pb-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-                    <div className="text-center mb-16">
-                        <h1 className="text-4xl font-extrabold text-slate-900 sm:text-5xl">
-                            Browse Jobs by Location & Role
-                        </h1>
-                        <p className="mt-4 text-xl text-slate-600">
-                            Explore opportunities in your city or find your dream role.
-                        </p>
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center mb-16"
+                >
+                    <div className="inline-flex items-center gap-2 bg-primary-50 text-primary-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-primary-100">
+                        <MapPin className="w-4 h-4" />
+                        Location-Based Job Discovery
                     </div>
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-display mb-6 text-slate-900">
+                        Find Jobs by Location <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">& Role</span>
+                    </h1>
+                    <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+                        Browse AI-powered job opportunities in your city or target role. 
+                        JobHuntin discovers and auto-applies to matching positions.
+                    </p>
+                </motion.div>
 
-                    {/* Locations Grid */}
-                    <section className="mb-16">
-                        <h2 className="text-2xl font-bold text-slate-900 mb-8 border-b pb-2">Destinations</h2>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            {sortedLocations.map(loc => (
-                                <div key={loc.id} className="group">
-                                    <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                        {loc.name}
-                                    </h3>
-                                    <ul className="space-y-1 text-sm text-slate-500">
-                                        {/* Link to top 3 roles for this city to create mesh */}
-                                        {roles.slice(0, 3).map(role => (
-                                            <li key={role.id}>
-                                                <Link to={`/jobs/${role.id}/${loc.id}`} className="hover:text-blue-500 hover:underline block truncate">
-                                                    {role.name}
-                                                </Link>
-                                            </li>
-                                        ))}
-                                        <li>
-                                            <span className="text-xs text-slate-400 italic">...and {roles.length - 3} more</span>
+                <section className="mb-20" aria-labelledby="locations-heading">
+                    <div className="flex items-center gap-3 mb-8">
+                        <Building2 className="w-6 h-6 text-primary-600" />
+                        <h2 id="locations-heading" className="text-2xl font-bold text-slate-900">Popular Job Markets</h2>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {sortedLocations.map(loc => (
+                            <motion.div 
+                                key={loc.id} 
+                                className="group bg-white rounded-2xl border border-slate-100 p-4 hover:border-primary-200 hover:shadow-lg transition-all"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <h3 className="font-bold text-slate-900 mb-3 group-hover:text-primary-600 transition-colors flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-slate-400" />
+                                    {loc.name}
+                                </h3>
+                                <ul className="space-y-1.5 text-sm text-slate-500">
+                                    {roles.slice(0, 3).map(role => (
+                                        <li key={role.id}>
+                                            <Link 
+                                                to={`/jobs/${role.id}/${loc.id}`} 
+                                                className="hover:text-primary-600 hover:underline block truncate transition-colors"
+                                            >
+                                                {role.name}
+                                            </Link>
                                         </li>
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
+                                    ))}
+                                    <li>
+                                        <Link 
+                                            to={`/jobs/software-engineer/${loc.id}`}
+                                            className="text-xs text-primary-600 font-medium hover:underline flex items-center gap-1"
+                                        >
+                                            View all <ArrowRight className="w-3 h-3" />
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </motion.div>
+                        ))}
+                    </div>
+                </section>
 
-                    {/* Roles Grid */}
-                    <section>
-                        <h2 className="text-2xl font-bold text-slate-900 mb-8 border-b pb-2">Browse by Role</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {Object.entries(rolesByCategory).map(([category, categoryRoles]) => (
-                                <div key={category} className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                                    <h3 className="text-lg font-bold text-slate-900 mb-4">{category}</h3>
-                                    <ul className="space-y-2">
-                                        {categoryRoles.map(role => (
-                                            <li key={role.id}>
-                                                <Link
-                                                    to={`/jobs/${role.id}/remote`}
-                                                    className="text-slate-600 hover:text-blue-600 hover:underline flex items-center justify-between"
-                                                >
-                                                    <span>{role.name}</span>
-                                                    <span className="text-xs bg-white px-2 py-1 rounded-full border border-slate-200 text-slate-400">
-                                                        Apply
-                                                    </span>
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
+                <section className="mb-20" aria-labelledby="roles-heading">
+                    <div className="flex items-center gap-3 mb-8">
+                        <Briefcase className="w-6 h-6 text-primary-600" />
+                        <h2 id="roles-heading" className="text-2xl font-bold text-slate-900">Browse by Job Role</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {Object.entries(rolesByCategory).map(([category, categoryRoles]) => (
+                            <motion.div 
+                                key={category} 
+                                className="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-primary-200 transition-colors"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <h3 className="text-lg font-bold text-slate-900 mb-4">{category}</h3>
+                                <ul className="space-y-2">
+                                    {categoryRoles.map(role => (
+                                        <li key={role.id}>
+                                            <Link
+                                                to={`/jobs/${role.id}/remote`}
+                                                className="text-slate-600 hover:text-primary-600 hover:underline flex items-center justify-between group"
+                                            >
+                                                <span>{role.name}</span>
+                                                <span className="text-xs bg-white px-2 py-1 rounded-full border border-slate-200 text-slate-400 group-hover:border-primary-200 group-hover:text-primary-600 transition-colors">
+                                                    Apply
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </motion.div>
+                        ))}
+                    </div>
+                </section>
 
-                </div>
-            </div>
-        </>
+                <section className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-3xl p-8 sm:p-12 text-white text-center">
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-4">Let Our AI Find Jobs For You</h2>
+                    <p className="text-primary-100 mb-8 max-w-xl mx-auto">
+                        Stop browsing manually. Set your preferences once, and JobHuntin's AI agent discovers and applies to matching jobs 24/7.
+                    </p>
+                    <Link
+                        to="/login"
+                        className="inline-flex items-center gap-2 bg-white text-primary-700 px-8 py-4 rounded-xl font-bold hover:bg-primary-50 transition-colors"
+                    >
+                        Start Auto-Applying <ArrowRight className="w-5 h-5" />
+                    </Link>
+                </section>
+            </main>
+        </div>
     );
 }

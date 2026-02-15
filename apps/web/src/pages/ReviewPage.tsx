@@ -60,8 +60,8 @@ export default function ReviewPage() {
     }
 
     const overallScore = calculateOverallScore(competitor.rating_vs_jobhuntin);
-    const title = `${competitor.name} Review — Is It Worth It? | Honest Analysis`;
-    const description = `Honest ${competitor.name} review. We rate it ${overallScore}/10. See pros, cons, pricing, and how it compares to JobHuntin's autonomous AI job agent.`;
+    const title = `${competitor.name} Review 2026 — Is It Worth It? | Honest Analysis`;
+    const description = `Honest ${competitor.name} review. We rate it ${overallScore}/10 vs JobHuntin. Compare ${competitor.name} features, pricing, and auto-apply capabilities.`;
     const canonicalUrl = `https://jobhuntin.com/reviews/${competitorSlug}`;
     const faq = generateFAQ(competitor);
 

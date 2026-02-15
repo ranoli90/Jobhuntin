@@ -11,21 +11,37 @@ export default function Recruiters() {
   return (
     <div className={`min-h-[calc(100vh-80px)] transition-colors duration-500 ${view === 'terminal' ? 'bg-[#0d1117] text-gray-300' : 'bg-slate-50 text-slate-900'}`}>
       <SEO
-        title="For Recruiters | JobHuntin AI - Hire Talent, Not Keyword Stuffers"
-        description="Access a direct pipe to top-tier talent. Our AI pre-interviews candidates, delivering structured data and verified skillsets directly to your ATS."
-        ogTitle="For Recruiters | JobHuntin AI"
+        title="For Recruiters | JobHuntin — Hire Pre-Screened AI-Matched Talent"
+        description="JobHuntin for recruiters: Access pre-screened candidates with AI-verified skills. Get structured data, salary expectations, and match scores delivered to your ATS."
+        ogTitle="For Recruiters | JobHuntin Talent Pipeline"
         ogImage="https://jobhuntin.com/og/recruiters.png"
         canonicalUrl="https://jobhuntin.com/recruiters"
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "Service",
-          "name": "JobHuntin Recruiter API",
-          "description": "AI-powered candidate screening and structured data delivery for recruiters.",
-          "provider": {
-            "@type": "Organization",
-            "name": "JobHuntin"
+        includeDate={true}
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "name": "JobHuntin Recruiter API",
+            "description": "AI-powered candidate screening and structured data delivery for recruiters.",
+            "provider": {
+              "@type": "Organization",
+              "name": "JobHuntin"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "description": "API access for qualified recruiters"
+            }
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "JobHuntin for Recruiters",
+            "description": "AI-powered talent pipeline for recruiters",
+            "url": "https://jobhuntin.com/recruiters"
           }
-        }}
+        ]}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-24 relative">

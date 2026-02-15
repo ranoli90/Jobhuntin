@@ -87,11 +87,48 @@ export default function Pricing() {
     return 'Start Free 7-Day Trial';
   };
 
-  return (
+    return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700 pb-20">
       <SEO
-        title="Pricing | JobHuntin AI — One Interview Pays for a Lifetime"
-        description="Free to start, $19/mo to go unlimited. One interview from JobHuntin covers the cost forever. See why 10,000+ job seekers switched."
+        title="Pricing | JobHuntin AI — Free to Start, $19/mo Pro for Unlimited Auto-Apply"
+        description="JobHuntin pricing: Free tier to start, Pro at $19/month for unlimited AI job applications, resume tailoring, and stealth mode. One interview pays for a lifetime."
+        ogTitle="JobHuntin Pricing — Free to Start"
+        ogImage="https://jobhuntin.com/og/pricing.png"
+        canonicalUrl="https://jobhuntin.com/pricing"
+        includeDate={true}
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "PriceSpecification",
+            "name": "JobHuntin Pricing",
+            "description": "Free to start, $19/mo Pro for unlimited AI job applications",
+            "price": "19",
+            "priceCurrency": "USD",
+            "priceRange": "$0 - $199"
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Can I cancel anytime?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. One click in your dashboard. No awkward phone calls."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is my data safe?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We use bank-level encryption. Your resume is only shared with employers you apply to."
+                }
+              }
+            ]
+          }
+        ]}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-20">

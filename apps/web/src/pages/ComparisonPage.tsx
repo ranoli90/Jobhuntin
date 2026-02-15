@@ -91,8 +91,8 @@ export default function ComparisonPage() {
     );
   }
 
-  const title = `JobHuntin vs ${competitor.name} | Features, Pricing & Verdict`;
-  const description = `Detailed comparison of JobHuntin vs ${competitor.name}. Compare features, pricing, automation level, and see why job hunters choose JobHuntin as the best ${competitor.name} alternative.`;
+  const title = `JobHuntin vs ${competitor.name} 2026 | Features, Pricing & Which is Better`;
+  const description = `Compare JobHuntin vs ${competitor.name}: auto-apply features, resume tailoring, stealth mode, and pricing. See why job seekers choose JobHuntin over ${competitor.name}.`;
   const canonicalUrl = `https://jobhuntin.com/vs/${competitorSlug}`;
   const faq = generateFAQ(competitor);
 

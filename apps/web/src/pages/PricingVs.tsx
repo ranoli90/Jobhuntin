@@ -52,8 +52,8 @@ export default function PricingVs() {
         );
     }
 
-    const title = `${competitor.name} Pricing vs JobHuntin (2026) — Which is Better Value?`;
-    const description = `Compare ${competitor.name} pricing (starts at ${competitor.pricing.starts_at}) with JobHuntin (free to start). See which AI job tool offers better value for your money.`;
+    const title = `${competitor.name} Pricing vs JobHuntin 2026 — Compare Plans & Value`;
+    const description = `Compare ${competitor.name} pricing (starts at ${competitor.pricing.starts_at}) vs JobHuntin (free tier, $19/mo Pro). See which offers better value for AI auto-apply and resume tailoring.`;
     const canonicalUrl = `https://jobhuntin.com/pricing-vs/${competitorSlug}`;
     const faq = generateFAQ(competitor);
 

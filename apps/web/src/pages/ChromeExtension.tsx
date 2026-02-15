@@ -22,28 +22,31 @@ export default function ChromeExtension() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
-        title="Chrome Extension | JobHuntin AI - The 'Add to Cart' for Your Career"
-        description="Automate your job search directly from LinkedIn, Indeed, and Glassdoor. One click to auto-apply, tailor resumes, and draft cover letters."
-        ogTitle="Chrome Extension | JobHuntin AI"
+        title="Chrome Extension | JobHuntin — One-Click Auto-Apply from LinkedIn & Indeed"
+        description="JobHuntin Chrome extension: Auto-apply to jobs with one click from LinkedIn, Indeed, and Glassdoor. AI tailors your resume and writes cover letters instantly."
+        ogTitle="Chrome Extension | JobHuntin Auto-Apply"
         ogImage="https://jobhuntin.com/og/chrome-extension.png"
         canonicalUrl="https://jobhuntin.com/chrome-extension"
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "JobHuntin Chrome Extension",
-          "operatingSystem": "ChromeOS, Windows, macOS, Linux",
-          "applicationCategory": "BrowserApplication",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-          },
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "ratingCount": "1247"
+        includeDate={true}
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "JobHuntin Chrome Extension",
+            "operatingSystem": "ChromeOS, Windows, macOS, Linux",
+            "applicationCategory": "BrowserApplication",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "ratingCount": "1247"
+            }
           }
-        }}
+        ]}
       />
       <main className="max-w-7xl mx-auto px-6 py-24">
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">

@@ -83,10 +83,41 @@ export default function About() {
     return (
         <div className="bg-white overflow-x-hidden">
             <SEO
-                title="About Us | JobHuntin AI — We Automated the Worst Part of Your Career"
-                description="We got tired of the full-time job that is finding a job. So we built an AI agent that never sleeps, never gets tired, and never sends a generic resume."
-                ogTitle="About Us | JobHuntin AI"
+                title="About JobHuntin | AI Job Search Automation That Works While You Sleep"
+                description="JobHuntin is an AI-powered job search automation platform. Our autonomous agent discovers jobs, tailors resumes, and auto-applies 24/7. Built by job seekers, for job seekers."
+                ogTitle="About JobHuntin | AI Job Search Automation"
+                ogImage="https://jobhuntin.com/og/about.png"
                 canonicalUrl="https://jobhuntin.com/about"
+                includeDate={true}
+                schema={[
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "AboutPage",
+                        "name": "About JobHuntin",
+                        "description": "AI-powered job search automation platform",
+                        "url": "https://jobhuntin.com/about",
+                        "mainEntity": {
+                            "@type": "Organization",
+                            "name": "JobHuntin",
+                            "url": "https://jobhuntin.com",
+                            "description": "Autonomous AI job search automation"
+                        }
+                    },
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "Organization",
+                        "name": "JobHuntin",
+                        "url": "https://jobhuntin.com",
+                        "logo": "https://jobhuntin.com/favicon.svg",
+                        "description": "AI-powered job search automation platform",
+                        "foundingDate": "2025",
+                        "contactPoint": {
+                            "@type": "ContactPoint",
+                            "email": "support@jobhuntin.com",
+                            "contactType": "customer service"
+                        }
+                    }
+                ]}
             />
             {/* --- HERO SECTION --- */}
             <section className="relative min-h-[90vh] flex items-center justify-center pt-24 px-6">

@@ -63,11 +63,12 @@ export default function SuccessStories() {
   return (
     <div className="font-sans text-slate-900 overflow-x-hidden">
       <SEO
-        title="Success Stories | JobHuntin AI — They Got Hired. You're Next."
-        description="Real people who stopped scrolling and started interviewing. See how JobHuntin users landed offers in days, not months."
-        ogTitle="Success Stories | JobHuntin AI"
+        title="Success Stories | Real Users Share How They Got Hired with JobHuntin"
+        description="Real JobHuntin success stories: Users landed jobs in 14 days, got salary bumps, and received multiple offers using our AI auto-apply platform. Read their testimonials."
+        ogTitle="Success Stories | JobHuntin Users Got Hired"
         ogImage="https://jobhuntin.com/og/success-stories.png"
         canonicalUrl="https://jobhuntin.com/success-stories"
+        includeDate={true}
         schema={stories.map(story => ({
           "@context": "https://schema.org",
           "@type": "Review",

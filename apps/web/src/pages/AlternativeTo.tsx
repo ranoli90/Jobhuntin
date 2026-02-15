@@ -53,8 +53,8 @@ export default function AlternativeTo() {
         );
     }
 
-    const title = `Best ${competitor.name} Alternative (2026) — Try JobHuntin`;
-    const description = `Looking for a ${competitor.name} alternative? JobHuntin's autonomous AI agent auto-applies to jobs with per-application resume tailoring and stealth mode. Compare features and switch today.`;
+    const title = `Best ${competitor.name} Alternative 2026 — JobHuntin Auto-Apply & Resume Tailoring`;
+    const description = `Looking for a ${competitor.name} alternative? JobHuntin offers autonomous AI auto-apply, per-application resume tailoring, and stealth mode. Compare features and pricing.`;
     const canonicalUrl = `https://jobhuntin.com/alternative-to/${competitorSlug}`;
     const faq = generateFAQ(competitor);
 

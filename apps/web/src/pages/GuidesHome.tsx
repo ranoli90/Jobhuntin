@@ -42,18 +42,34 @@ export default function GuidesHome() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
-        title="Job Search Playbook | AI Automation Guides"
-        description="Master the art of automated job hunting. Explore our deep-dive guides on beating ATS, ethical AI usage, and scaling your search safely."
-        ogTitle="Job Search Playbook | AI Automation Guides"
+        title="Job Search Guides | AI Auto-Apply, ATS Optimization & Resume Tips 2026"
+        description="Master AI-powered job hunting with our guides. Learn to beat ATS systems, optimize your resume, use auto-apply tools ethically, and scale your job search safely."
+        ogTitle="Job Search Guides | AI Automation Playbook"
         ogImage="https://jobhuntin.com/og/guides.png"
         canonicalUrl="https://jobhuntin.com/guides"
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          "name": "JobHuntin Guides",
-          "description": "AI job search guides and playbooks",
-          "url": "https://jobhuntin.com/guides"
-        }}
+        includeDate={true}
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "JobHuntin Guides",
+            "description": "AI job search guides and playbooks",
+            "url": "https://jobhuntin.com/guides"
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Job Search Guides",
+            "numberOfItems": GUIDES.length,
+            "itemListElement": GUIDES.map((guide, i) => ({
+              "@type": "ListItem",
+              "position": i + 1,
+              "name": guide.title,
+              "url": `https://jobhuntin.com/guides/${guide.slug}`,
+              "description": guide.desc
+            }))
+          }
+        ]}
       />
 
 

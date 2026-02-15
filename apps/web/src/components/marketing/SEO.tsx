@@ -64,7 +64,7 @@ export const SEO = ({
     "@type": "Organization",
     "name": "JobHuntin",
     "url": BASE_URL,
-    "logo": `${BASE_URL}/logo.png`,
+    "logo": `${BASE_URL}/favicon.svg`,
     "sameAs": [
       "https://twitter.com/jobhuntin",
       "https://github.com/jobhuntin"

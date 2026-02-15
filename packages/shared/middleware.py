@@ -80,6 +80,8 @@ class CSRFMiddleware:
         "/billing/webhook",
         "/sso/saml/acs",
         "/og/",
+        "/profile/resume",
+        "/profile/avatar",
     ]
 
     @classmethod

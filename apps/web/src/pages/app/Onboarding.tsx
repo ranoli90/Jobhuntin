@@ -273,8 +273,7 @@ export default function Onboarding() {
 
     // Asset Pre-loading
     const preloadImages = [
-      "/logo.png",
-      // Add other critical assets here
+      "/favicon.svg",
     ];
     preloadImages.forEach((src) => {
       const img = new Image();
