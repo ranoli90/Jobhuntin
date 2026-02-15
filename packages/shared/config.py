@@ -52,12 +52,12 @@ class Settings(BaseSettings):
     # ── LLM ──────────────────────────────────────────────────────
     llm_api_base: str = "https://openrouter.ai/api/v1"
     llm_api_key: str = ""
-    llm_model: str = "openrouter/free"  # Default to free tier for development
-    llm_fallback_models: str = ""  # Comma-separated fallback models (e.g., "openai/gpt-3.5-turbo,anthropic/claude-3-haiku")
-    llm_max_tokens: int = 4096
-    llm_rate_limit_per_minute: int = 60  # in-process approximate cap
+    llm_model: str = "google/gemini-2.0-flash"
+    llm_fallback_models: str = "openai/gpt-4o-mini"
+    llm_max_tokens: int = 2048
+    llm_rate_limit_per_minute: int = 60
     llm_retry_count: int = 2
-    llm_timeout_seconds: int = 30  # Reduced from 60s to prevent hanging requests
+    llm_timeout_seconds: int = 45
 
     # Production LLM configuration (recommendation #126)
     # Recommended production models (set LLM_MODEL to one of these in production):
@@ -67,7 +67,9 @@ class Settings(BaseSettings):
     # - "anthropic/claude-3-haiku" - Fast and cheap ($0.25/1M input, $1.25/1M output)
     # - "google/gemini-2.0-flash" - Very fast, good quality ($0.10/1M input, $0.40/1M output)
     llm_production_model: str = "openai/gpt-4o-mini"  # Recommended production model
-    llm_production_fallbacks: str = "anthropic/claude-3-haiku,google/gemini-2.0-flash"  # Production fallbacks
+    llm_production_fallbacks: str = (
+        "anthropic/claude-3-haiku,google/gemini-2.0-flash"  # Production fallbacks
+    )
     llm_enable_auto_upgrade: bool = True  # Auto-upgrade from free tier in production
 
     # ── Playwright / Agent ───────────────────────────────────────
@@ -94,7 +96,9 @@ class Settings(BaseSettings):
 
     # ── Security ─────────────────────────────────────────────────
     csrf_secret: str = ""  # Required in prod - generate with: secrets.token_hex(32)
-    jwt_secret: str = ""  # Required for JWT token signing/validation (magic links, API auth)
+    jwt_secret: str = (
+        ""  # Required for JWT token signing/validation (magic links, API auth)
+    )
     request_id_header: str = "X-Request-ID"
     db_ssl_ca_cert_path: str = (
         ""  # Path to CA cert for DB SSL verification (overrides CERT_NONE)
@@ -318,7 +322,9 @@ class Settings(BaseSettings):
                     )
                     object.__setattr__(self, "llm_model", self.llm_production_model)
                     if not self.llm_fallback_models and self.llm_production_fallbacks:
-                        object.__setattr__(self, "llm_fallback_models", self.llm_production_fallbacks)
+                        object.__setattr__(
+                            self, "llm_fallback_models", self.llm_production_fallbacks
+                        )
                 else:
                     logger.warning(
                         "LLM model '%s' is a free-tier model with no SLA. "

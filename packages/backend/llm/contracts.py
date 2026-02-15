@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 # Shared sub-models
 # ---------------------------------------------------------------------------
 
+
 class UnresolvedField(BaseModel):
     selector: str
     question: str
@@ -27,6 +28,7 @@ class UnresolvedField(BaseModel):
 # ===================================================================
 # Contract 1: Resume Parsing → CanonicalProfile
 # ===================================================================
+
 
 class ContactInfo(BaseModel):
     full_name: str = ""
@@ -62,6 +64,7 @@ class SkillsInfo(BaseModel):
 
 class ResumeParseResponse_V1(BaseModel):
     """Expected JSON output from the resume parsing LLM call."""
+
     contact: ContactInfo = Field(default_factory=ContactInfo)
     education: list[EducationEntry] = Field(default_factory=list)
     experience: list[ExperienceEntry] = Field(default_factory=list)
@@ -71,103 +74,47 @@ class ResumeParseResponse_V1(BaseModel):
     summary: str = ""
 
 
-RESUME_PARSE_PROMPT_V1 = """You are a resume parser. Extract structured information from the following resume text.
-
-## Resume Text
+RESUME_PARSE_PROMPT_V1 = """Extract from resume. Return JSON only:
 {resume_text}
 
-## Instructions
-Return ONLY a JSON object (no markdown fences) with exactly these top-level keys:
-{{
-    "contact": {{
-        "full_name": "",
-        "email": "",
-        "phone": "",
-        "location": "",
-        "linkedin_url": "",
-        "portfolio_url": ""
-    }},
-    "education": [
-        {{
-            "institution": "",
-            "degree": "",
-            "field_of_study": "",
-            "start_date": "",
-            "end_date": "",
-            "gpa": ""
-        }}
-    ],
-    "experience": [
-        {{
-            "company": "",
-            "title": "",
-            "start_date": "",
-            "end_date": "",
-            "location": "",
-            "responsibilities": [""]
-        }}
-    ],
-    "skills": {{
-        "technical": [""],
-        "soft": [""]
-    }},
-    "certifications": [""],
-    "languages": [""],
-    "summary": ""
-}}
-
-Fill in every field you can find. Use empty strings or empty arrays for missing data.
-"""
+Keys: contact(full_name,email,phone,location,linkedin_url,portfolio_url), education[](institution,degree,field_of_study,start_date,end_date,gpa), experience[](company,title,start_date,end_date,location,responsibilities[]), skills(technical[],soft[]), certifications[], languages[], summary.
+Empty string/array if missing."""
 
 
 def build_resume_parse_prompt(resume_text: str) -> str:
-    """Fill the resume parse prompt template."""
-    return RESUME_PARSE_PROMPT_V1.format(resume_text=resume_text)
+    text = resume_text.strip()
+    text = " ".join(text.split())
+    if len(text) > 8000:
+        text = text[:8000] + "... [truncated]"
+    return RESUME_PARSE_PROMPT_V1.format(resume_text=text)
 
 
 # ===================================================================
 # Contract 2: DOM Mapping → field values + unresolved fields
 # ===================================================================
 
+
 class DomMappingResponse_V1(BaseModel):
     """Expected JSON output from the DOM field mapping LLM call."""
+
     field_values: dict[str, str] = Field(default_factory=dict)
     unresolved_required_fields: list[UnresolvedField] = Field(default_factory=list)
 
 
-DOM_MAPPING_PROMPT_V1 = """You are a job-application autofill assistant. Your goal is to fill a web form using the user's profile data.
+DOM_MAPPING_PROMPT_V1 = """Fill form fields. Return JSON only.
 
-## Canonical User Profile
-{profile_json}
+Profile: {profile_json}
+Answered: {answered_json}
+Fields: {fields_json}
 
-## Previously Answered Questions (authoritative – override profile if conflicting)
-{answered_json}
+Rules:
+1. Map selectors to values in field_values
+2. Select/radio: return option value
+3. Checkbox: "true" or "false"
+4. Unresolved required fields: {{"selector":"...", "question":"..."}}
+5. Answered questions override profile
 
-## Form Fields
-Each field is JSON with keys: selector, label, type, required, step_index, options.
-For selects and radios, "options" is a list of {{value, text}} objects.
-{fields_json}
-
-## Rules
-1. For every field, if the profile or previously answered questions contain enough data, add
-   an entry to "field_values" mapping the field's `selector` to the concrete value.
-   - For <select> fields: return the `value` attribute of the best-matching option.
-   - For radio buttons: return the `value` attribute of the best-matching option.
-   - For checkboxes: return "true" or "false".
-   - For text/email/tel/textarea: return the plain string.
-2. If a **required** field cannot be answered, add it to "unresolved_required_fields" with:
-   - "selector": the CSS selector,
-   - "question": a short user-friendly question.
-3. Optional fields that cannot be answered: omit from both lists.
-4. User-provided answers (Previously Answered Questions) are authoritative and must always
-   override any profile data if there is a conflict.
-
-## Respond with ONLY this JSON (no markdown fences, no commentary):
-{{
-    "field_values": {{"<selector>": "<value>"}},
-    "unresolved_required_fields": [{{"selector": "<selector>", "question": "<question>"}}]
-}}
-"""
+Output: {{"field_values":{{}}, "unresolved_required_fields":[]}}"""
 
 
 def build_dom_mapping_prompt(
@@ -175,11 +122,11 @@ def build_dom_mapping_prompt(
     form_fields: list[dict],
     answered_inputs: list[dict] | None = None,
 ) -> str:
-    """Fill the DOM mapping prompt template."""
+    p = {k: v for k, v in profile_dict.items() if v}
     return DOM_MAPPING_PROMPT_V1.format(
-        profile_json=json.dumps(profile_dict, indent=2),
-        answered_json=json.dumps(answered_inputs or [], indent=2),
-        fields_json=json.dumps(form_fields, indent=2, default=str),
+        profile_json=json.dumps(p),
+        answered_json=json.dumps(answered_inputs or []),
+        fields_json=json.dumps(form_fields, default=str),
     )
 
 
@@ -187,125 +134,76 @@ def build_dom_mapping_prompt(
 # Contract 3: Role Suggestion from Resume
 # ===================================================================
 
+
 class RoleSuggestionResponse_V1(BaseModel):
     """AI-suggested job roles based on resume analysis."""
+
     suggested_roles: list[str] = Field(
         default_factory=list,
-        description="Top 3-5 job titles that match the candidate's experience"
+        description="Top 3-5 job titles that match the candidate's experience",
     )
-    primary_role: str = Field(
-        default="",
-        description="The single best-fit role title"
-    )
+    primary_role: str = Field(default="", description="The single best-fit role title")
     experience_level: str = Field(
         default="",
-        description="Experience level: entry, mid, senior, staff, principal, executive"
+        description="Experience level: entry, mid, senior, staff, principal, executive",
     )
     confidence: float = Field(
-        default=0.0,
-        ge=0.0,
-        le=1.0,
-        description="Confidence score 0-1"
+        default=0.0, ge=0.0, le=1.0, description="Confidence score 0-1"
     )
     reasoning: str = Field(
-        default="",
-        description="Brief explanation of why these roles fit"
+        default="", description="Brief explanation of why these roles fit"
     )
 
 
-ROLE_SUGGESTION_PROMPT_V1 = """You are a career advisor AI. Based on the candidate's parsed resume, suggest the most suitable job roles.
-
-## Candidate Profile
+ROLE_SUGGESTION_PROMPT_V1 = """Suggest roles for candidate. Return JSON only:
 {profile_json}
 
-## Instructions
-Analyze the candidate's:
-- Work experience (titles, companies, responsibilities)
-- Technical and soft skills
-- Education and certifications
-- Career progression
-
-Return ONLY a JSON object (no markdown fences):
-{{
-    "suggested_roles": ["Role 1", "Role 2", "Role 3"],
-    "primary_role": "Best Fit Role Title",
-    "experience_level": "senior",
-    "confidence": 0.85,
-    "reasoning": "Brief explanation of role fit"
-}}
-
-Experience levels: entry, mid, senior, staff, principal, executive
-Confidence: 0.0-1.0 based on how clear the career path is
-"""
+Keys: suggested_roles[](3-5), primary_role, experience_level(entry|mid|senior|staff|principal|executive), confidence(0-1), reasoning."""
 
 
 def build_role_suggestion_prompt(profile_dict: dict) -> str:
-    """Build prompt for AI role suggestions."""
-    return ROLE_SUGGESTION_PROMPT_V1.format(
-        profile_json=json.dumps(profile_dict, indent=2)
-    )
+    profile = {
+        k: v
+        for k, v in profile_dict.items()
+        if k in ("experience", "skills", "education") and v
+    }
+    return ROLE_SUGGESTION_PROMPT_V1.format(profile_json=json.dumps(profile))
 
 
 # ===================================================================
 # Contract 4: Salary Suggestion based on Role + Location + Skills
 # ===================================================================
 
+
 class SalarySuggestionResponse_V1(BaseModel):
     """AI-suggested salary range based on role, location, and skills."""
+
     min_salary: int = Field(default=0, description="Minimum suggested salary USD")
     max_salary: int = Field(default=0, description="Maximum suggested salary USD")
     market_median: int = Field(default=0, description="Estimated market median USD")
     currency: str = Field(default="USD", description="Currency code")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     factors: list[str] = Field(
-        default_factory=list,
-        description="Key factors influencing the estimate"
+        default_factory=list, description="Key factors influencing the estimate"
     )
     reasoning: str = Field(default="", description="Explanation of salary estimate")
 
 
-SALARY_SUGGESTION_PROMPT_V1 = """You are a compensation advisor AI. Estimate a competitive salary range for this candidate.
+SALARY_SUGGESTION_PROMPT_V1 = """Estimate salary. Return JSON only.
 
-## Candidate Profile
-{profile_json}
+Profile: {profile_json}
+Role: {target_role}
+Location: {location}
 
-## Target Role
-{target_role}
-
-## Preferred Location
-{location}
-
-## Instructions
-Consider:
-- Years of relevant experience
-- Technical skill rarity and demand
-- Location cost of living and market rates
-- Industry standards for the role
-- Education and certifications
-
-Return ONLY a JSON object (no markdown fences):
-{{
-    "min_salary": 120000,
-    "max_salary": 180000,
-    "market_median": 150000,
-    "currency": "USD",
-    "confidence": 0.75,
-    "factors": ["5+ years experience", "In-demand skills", "High COL location"],
-    "reasoning": "Brief explanation of estimate"
-}}
-
-Use USD as default currency. Be conservative with confidence for unusual combinations.
-"""
+Keys: min_salary, max_salary, market_median, currency(USD), confidence(0-1), factors[], reasoning."""
 
 
 def build_salary_suggestion_prompt(
-    profile_dict: dict,
-    target_role: str,
-    location: str = "Remote"
+    profile_dict: dict, target_role: str, location: str = "Remote"
 ) -> str:
-    """Build prompt for AI salary suggestions."""
+    p = {k: v for k, v in profile_dict.items() if k in ("experience", "skills") and v}
     return SALARY_SUGGESTION_PROMPT_V1.format(
-        profile_json=json.dumps(profile_dict, indent=2),
+        profile_json=json.dumps(p),
         target_role=target_role,
         location=location,
     )
@@ -315,59 +213,39 @@ def build_salary_suggestion_prompt(
 # Contract 5: Location Suggestion based on Skills + Preferences
 # ===================================================================
 
+
 class LocationSuggestionResponse_V1(BaseModel):
     """AI-suggested locations based on skills and job market."""
+
     suggested_locations: list[str] = Field(
-        default_factory=list,
-        description="Top 3-5 recommended job markets"
+        default_factory=list, description="Top 3-5 recommended job markets"
     )
     remote_friendly_score: float = Field(
         default=0.0,
         ge=0.0,
         le=1.0,
-        description="How remote-friendly the candidate's skills are (0-1)"
+        description="How remote-friendly the candidate's skills are (0-1)",
     )
     top_markets: list[str] = Field(
-        default_factory=list,
-        description="Best physical job markets for their skills"
+        default_factory=list, description="Best physical job markets for their skills"
     )
     reasoning: str = Field(default="", description="Explanation of recommendations")
 
 
-LOCATION_SUGGESTION_PROMPT_V1 = """You are a job market advisor AI. Suggest the best locations for this candidate to find work.
+LOCATION_SUGGESTION_PROMPT_V1 = """Suggest locations. Return JSON only.
 
-## Candidate Profile
-{profile_json}
+Profile: {profile_json}
+Current: {current_location}
 
-## Current/Preferred Location (if any)
-{current_location}
-
-## Instructions
-Consider:
-- Where their skills are most in-demand
-- Remote work viability for their role type
-- Major tech/industry hubs relevant to their experience
-- Cost of living vs salary potential
-
-Return ONLY a JSON object (no markdown fences):
-{{
-    "suggested_locations": ["Remote", "San Francisco, CA", "Austin, TX", "New York, NY"],
-    "remote_friendly_score": 0.9,
-    "top_markets": ["San Francisco, CA", "Seattle, WA", "Austin, TX"],
-    "reasoning": "Brief explanation of location recommendations"
-}}
-
-remote_friendly_score: 0.0 = requires on-site, 1.0 = fully remote viable
-"""
+Keys: suggested_locations[](3-5), remote_friendly_score(0-1), top_markets[], reasoning."""
 
 
 def build_location_suggestion_prompt(
-    profile_dict: dict,
-    current_location: str = ""
+    profile_dict: dict, current_location: str = ""
 ) -> str:
-    """Build prompt for AI location suggestions."""
+    p = {k: v for k, v in profile_dict.items() if k in ("experience", "skills") and v}
     return LOCATION_SUGGESTION_PROMPT_V1.format(
-        profile_json=json.dumps(profile_dict, indent=2),
+        profile_json=json.dumps(p),
         current_location=current_location or "Not specified",
     )
 
@@ -376,8 +254,10 @@ def build_location_suggestion_prompt(
 # Contract 6: Job Match Scoring
 # ===================================================================
 
+
 class JobMatchScore_V1(BaseModel):
     """AI-generated match score between candidate and job."""
+
     score: int = Field(default=0, ge=0, le=100, description="Overall match 0-100")
     skill_match: float = Field(default=0.0, ge=0.0, le=1.0)
     experience_match: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -387,42 +267,28 @@ class JobMatchScore_V1(BaseModel):
     summary: str = Field(default="", description="One-line match summary")
 
 
-JOB_MATCH_PROMPT_V1 = """You are a job matching AI. Score how well this candidate matches the job.
+JOB_MATCH_PROMPT_V1 = """Score candidate-job match. Return JSON only.
 
-## Candidate Profile
-{profile_json}
+Profile: {profile_json}
+Job: {job_json}
 
-## Job Posting
-{job_json}
-
-## Instructions
-Score the match considering:
-- Skills overlap (required vs candidate skills)
-- Experience level alignment
-- Location/remote compatibility
-- Salary range fit (if available)
-- Any red flags (overqualified, underqualified, career change)
-
-Return ONLY a JSON object (no markdown fences):
-{{
-    "score": 85,
-    "skill_match": 0.9,
-    "experience_match": 0.8,
-    "location_match": 1.0,
-    "culture_signals": ["startup environment", "fast-paced"],
-    "red_flags": [],
-    "summary": "Strong match - 4/5 required skills, remote-friendly"
-}}
-
-score: 0-100 overall match quality
-"""
+Keys: score(0-100), skill_match(0-1), experience_match(0-1), location_match(0-1), culture_signals[], red_flags[], summary."""
 
 
 def build_job_match_prompt(profile_dict: dict, job_dict: dict) -> str:
-    """Build prompt for AI job matching."""
+    p = {
+        k: v
+        for k, v in profile_dict.items()
+        if k in ("experience", "skills", "contact") and v
+    }
+    j = {
+        k: v
+        for k, v in job_dict.items()
+        if k in ("title", "description", "location", "requirements") and v
+    }
     return JOB_MATCH_PROMPT_V1.format(
-        profile_json=json.dumps(profile_dict, indent=2),
-        job_json=json.dumps(job_dict, indent=2),
+        profile_json=json.dumps(p),
+        job_json=json.dumps(j),
     )
 
 
@@ -430,47 +296,41 @@ def build_job_match_prompt(profile_dict: dict, job_dict: dict) -> str:
 # Contract 7: Cover Letter Generation
 # ===================================================================
 
+
 class CoverLetterResponse_V1(BaseModel):
     """AI-generated cover letter."""
+
     content: str = Field(..., description="Markdown formatted cover letter text")
     subject_line: str = Field(..., description="Suggested email subject line")
 
 
-COVER_LETTER_PROMPT_V1 = """You are an expert career coach. Write a compelling cover letter for this candidate applying to this job.
+COVER_LETTER_PROMPT_V1 = """Write cover letter. Return JSON only.
 
-## Candidate Profile
-{profile_json}
+Profile: {profile_json}
+Job: {job_json}
+Tone: {tone}
 
-## Job Posting
-{job_json}
+Rules: Under 300 words. Professional. No invented facts.
 
-## Tone
-{tone}
-
-## Instructions
-- Highlight relevant experience that matches the job requirements.
-- Show enthusiasm for the company and role.
-- Keep it concise (under 400 words).
-- Use professional formatting.
-- Do not make up facts not in the profile.
-
-Return ONLY a JSON object:
-{{
-    "subject_line": "Application for [Role] - [Name]",
-    "content": "Dear Hiring Manager,\\n\\n..."
-}}
-"""
+Keys: subject_line, content(markdown)."""
 
 
 def build_cover_letter_prompt(
-    profile_dict: dict,
-    job_dict: dict,
-    tone: str = "professional"
+    profile_dict: dict, job_dict: dict, tone: str = "professional"
 ) -> str:
-    """Build prompt for AI cover letter generation."""
+    p = {
+        k: v
+        for k, v in profile_dict.items()
+        if k in ("experience", "skills", "contact", "summary") and v
+    }
+    j = {
+        k: v
+        for k, v in job_dict.items()
+        if k in ("title", "company", "description") and v
+    }
     return COVER_LETTER_PROMPT_V1.format(
-        profile_json=json.dumps(profile_dict, indent=2),
-        job_json=json.dumps(job_dict, indent=2),
+        profile_json=json.dumps(p),
+        job_json=json.dumps(j),
         tone=tone,
     )
 
@@ -479,55 +339,30 @@ def build_cover_letter_prompt(
 # Contract 8: Onboarding Questions
 # ===================================================================
 
+
 class OnboardingQuestionsResponse_V1(BaseModel):
     """AI-generated onboarding calibration questions."""
+
     questions: list[str] = Field(
         default_factory=list,
-        description="Strategic questions to calibrate job matching"
+        description="Strategic questions to calibrate job matching",
     )
     focus_areas: list[str] = Field(
         default_factory=list,
-        description="Key areas to focus on based on profile analysis"
+        description="Key areas to focus on based on profile analysis",
     )
     suggested_preferences: dict = Field(
-        default_factory=dict,
-        description="Suggested job preferences based on profile"
+        default_factory=dict, description="Suggested job preferences based on profile"
     )
 
 
-ONBOARDING_QUESTIONS_PROMPT_V1 = """You are a career advisor AI. Generate strategic calibration questions for this candidate.
+ONBOARDING_QUESTIONS_PROMPT_V1 = """Generate calibration questions. Return JSON only.
 
-## Candidate Profile
-{profile_json}
+Profile: {profile_json}
 
-## Instructions
-Analyze the profile and generate:
-1. 3-5 strategic questions to better understand their job preferences
-2. Key focus areas for their job search
-3. Suggested job preferences (remote preference, salary expectations, company size, etc.)
-
-Return ONLY a JSON object (no markdown fences):
-{{
-    "questions": [
-        "Are you open to relocation, or do you prefer remote-only opportunities?",
-        "What's your target salary range?",
-        "Do you prefer startup or established company environments?"
-    ],
-    "focus_areas": ["remote-first companies", "senior engineering roles", "tech startups"],
-    "suggested_preferences": {{
-        "remote_preference": "remote-first",
-        "company_stage": "series-b-or-later",
-        "min_salary": 150000
-    }}
-}}
-
-Focus on questions that will improve job matching accuracy.
-"""
+Keys: questions[](3-5), focus_areas[], suggested_preferences{{remote_preference, company_stage, min_salary}}."""
 
 
 def build_onboarding_questions_prompt(profile_dict: dict) -> str:
-    """Build prompt for AI onboarding questions."""
-    return ONBOARDING_QUESTIONS_PROMPT_V1.format(
-        profile_json=json.dumps(profile_dict, indent=2)
-    )
-
+    p = {k: v for k, v in profile_dict.items() if v}
+    return ONBOARDING_QUESTIONS_PROMPT_V1.format(profile_json=json.dumps(p))
