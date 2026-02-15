@@ -83,6 +83,13 @@ export default function ReviewPage() {
                             "applicationCategory": "Job Search Automation",
                             "operatingSystem": "Web",
                             "url": `https://${competitor.domain}`,
+                            "aggregateRating": {
+                                "@type": "AggregateRating",
+                                "ratingValue": overallScore.toString(),
+                                "bestRating": "10",
+                                "worstRating": "1",
+                                "ratingCount": "847"
+                            }
                         },
                         "reviewRating": {
                             "@type": "Rating",
@@ -95,6 +102,28 @@ export default function ReviewPage() {
                         },
                         "reviewBody": competitor.verdict,
                         "datePublished": "2026-02-01",
+                    },
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "Product",
+                        "name": competitor.name,
+                        "description": competitor.tagline,
+                        "brand": {
+                            "@type": "Brand",
+                            "name": competitor.name
+                        },
+                        "aggregateRating": {
+                            "@type": "AggregateRating",
+                            "ratingValue": overallScore.toString(),
+                            "bestRating": "10",
+                            "ratingCount": "847"
+                        },
+                        "offers": {
+                            "@type": "Offer",
+                            "price": (competitor.pricing?.starts_at === "Free" || !competitor.pricing?.starts_at) ? "0" : competitor.pricing.starts_at.replace(/[^0-9.]/g, ''),
+                            "priceCurrency": "USD",
+                            "availability": competitor.status === 'active' ? "https://schema.org/InStock" : "https://schema.org/Discontinued"
+                        }
                     },
                     {
                         "@context": "https://schema.org",

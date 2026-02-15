@@ -90,6 +90,45 @@ export default function GuidePage() {
     }
   }, [guide]);
 
+  // Generate HowTo schema based on guide content
+  const generateHowToSchema = () => {
+    if (!guide) return null;
+    
+    const steps = headings.map((heading, index) => ({
+      "@type": "HowToStep",
+      "name": heading.text,
+      "position": index + 1,
+      "text": `Learn about ${heading.text.toLowerCase()} in our comprehensive guide.`
+    }));
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": guide.title,
+      "description": `Step-by-step guide: ${guide.title.toLowerCase()}`,
+      "totalTime": `PT${guide.readTime.replace(' min', '')}M`,
+      "estimatedCost": {
+        "@type": "MonetaryAmount",
+        "currency": "USD",
+        "value": "0"
+      },
+      "step": steps.length > 0 ? steps : [
+        {
+          "@type": "HowToStep",
+          "name": "Read the guide",
+          "position": 1,
+          "text": "Follow our comprehensive guide to master this topic."
+        }
+      ],
+      "tool": [
+        {
+          "@type": "HowToTool",
+          "name": "JobHuntin AI Agent"
+        }
+      ]
+    };
+  };
+
   if (!guide) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
@@ -102,6 +141,8 @@ export default function GuidePage() {
     );
   }
 
+  const howToSchema = generateHowToSchema();
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
@@ -110,14 +151,23 @@ export default function GuidePage() {
         ogTitle={`${guide.title} | JobHuntin Playbook`}
         ogImage={`${config.urls.og}/api/og?job=${encodeURIComponent(guide.title)}&company=JobHuntin&score=100&location=Global`}
         canonicalUrl={`${config.urls.homepage}/guides/${guideSlug}`}
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "Article",
-          "headline": guide.title,
-          "description": `Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin AI automation playbook.`,
-          "url": `https://jobhuntin.com/guides/${guideSlug}`,
-          "about": guide.category
-        }}
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": guide.title,
+            "description": `Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin AI automation playbook.`,
+            "url": `https://jobhuntin.com/guides/${guideSlug}`,
+            "about": guide.category,
+            "author": {
+              "@type": "Organization",
+              "name": "JobHuntin"
+            },
+            "datePublished": "2026-02-08",
+            "dateModified": "2026-02-15"
+          },
+          howToSchema
+        ]}
       />
 
 
