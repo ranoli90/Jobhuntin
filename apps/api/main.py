@@ -274,6 +274,7 @@ app.add_middleware(
         for o in {
             "https://sorce-web.onrender.com",
             "https://sorce-admin.onrender.com",
+            "https://sorce-api.onrender.com",
             _settings.app_base_url.rstrip("/"),
             "https://jobhuntin.com",
             "https://app.jobhuntin.com",
