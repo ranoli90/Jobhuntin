@@ -11,7 +11,7 @@
 
 import * as React from "react";
 import { cn } from "../../lib/utils";
-import { CheckCircle2, XCircle, AlertCircle, TrendingUp, Target, Briefcase, MapPin, DollarSign, Sparkles } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, TrendingUp, Target, Briefcase, MapPin, DollarSign, Sparkles, type LucideIcon } from "lucide-react";
 
 export interface MatchExplanationData {
     score: number;
@@ -38,7 +38,7 @@ export interface MatchExplanationProps {
     compact?: boolean;
 }
 
-function ScoreBar({ label, value, icon: Icon }: { label: string; value: number; icon?: React.ElementType }) {
+function ScoreBar({ label, value, icon: Icon }: { label: string; value: number; icon?: LucideIcon }) {
     const percentage = Math.round(value * 100);
     const colorClass = percentage >= 80
         ? "bg-emerald-500"

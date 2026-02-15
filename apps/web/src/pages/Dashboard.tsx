@@ -755,6 +755,7 @@ export function JobsView() {
 
 
 export function ApplicationsView() {
+  const navigate = useNavigate();
   const { applications, isLoading } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const locale = getLocale();

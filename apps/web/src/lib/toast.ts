@@ -2,7 +2,7 @@ export type ToastPayload = {
   id?: string;
   title: string;
   description?: string;
-  tone?: "success" | "error" | "info";
+  tone?: "success" | "error" | "info" | "warning" | "neutral";
 };
 
 const TOAST_EVENT = "jobhuntin-toast";
