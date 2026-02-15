@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useSpring, useReducedMotion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useScroll, useSpring, useReducedMotion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
 import {
   Sparkles, CheckCircle, ArrowRight,
   MailCheck, Bell,
-  Upload, Search, Send, Lock, Shield, Clock
+  Upload, Search, Send, Lock, Shield, Clock,
+  Briefcase, MapPin, User
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -19,7 +20,142 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// --- DATA ---
+const ACTIVITY_DATA = [
+  { name: "Michael K.", role: "Senior Product Manager", company: "Stripe", location: "San Francisco", time: "just now" },
+  { name: "Sarah L.", role: "Software Engineer", company: "Vercel", location: "Remote", time: "2m ago" },
+  { name: "David R.", role: "Data Scientist", company: "Netflix", location: "Los Angeles", time: "3m ago" },
+  { name: "Emily W.", role: "UX Designer", company: "Figma", location: "San Francisco", time: "5m ago" },
+  { name: "James T.", role: "Engineering Manager", company: "Airbnb", location: "Remote", time: "7m ago" },
+  { name: "Amanda C.", role: "Frontend Developer", company: "Linear", location: "Remote", time: "9m ago" },
+  { name: "Chris M.", role: "DevOps Engineer", company: "Datadog", location: "New York", time: "11m ago" },
+  { name: "Jessica H.", role: "Product Designer", company: "Notion", location: "San Francisco", time: "14m ago" },
+];
+
+const COMPANIES = ["Stripe", "Vercel", "Netflix", "Figma", "Airbnb", "Linear", "Datadog", "Notion", "OpenAI", "Anthropic"];
+const ROLES = ["Senior PM", "Software Engineer", "Data Scientist", "UX Designer", "Engineering Manager", "Frontend Dev", "DevOps Engineer", "Product Designer"];
+const LOCATIONS = ["San Francisco", "New York", "Remote", "Los Angeles", "Seattle", "Austin"];
+const FIRST_NAMES = ["Michael", "Sarah", "David", "Emily", "James", "Amanda", "Chris", "Jessica", "Ryan", "Lisa", "Kevin", "Rachel"];
+const LAST_INITIALS = ["K", "L", "R", "W", "T", "C", "M", "H", "P", "S", "J", "B"];
+
+function generateActivity() {
+  const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
+  const lastInitial = LAST_INITIALS[Math.floor(Math.random() * LAST_INITIALS.length)];
+  return {
+    name: `${firstName} ${lastInitial}.`,
+    role: ROLES[Math.floor(Math.random() * ROLES.length)],
+    company: COMPANIES[Math.floor(Math.random() * COMPANIES.length)],
+    location: LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)],
+    time: "just now"
+  };
+}
+
 // --- COMPONENTS ---
+
+const LiveActivityStream = () => {
+  const [activities, setActivities] = useState(ACTIVITY_DATA);
+  const [isPaused, setIsPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (shouldReduceMotion || isPaused) return;
+    
+    const interval = setInterval(() => {
+      const newActivity = generateActivity();
+      setActivities(prev => {
+        const updated = [newActivity, ...prev.slice(0, 7)];
+        updated.forEach((a, i) => {
+          if (i === 0) a.time = "just now";
+          else if (i === 1) a.time = "1m ago";
+          else if (i < 4) a.time = `${i + 1}m ago`;
+          else a.time = `${(i + 1) * 2}m ago`;
+        });
+        return updated;
+      });
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [shouldReduceMotion, isPaused]);
+
+  return (
+    <div 
+      ref={containerRef}
+      className="relative"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-violet-500 to-pink-500 rounded-full" />
+      
+      <div className="space-y-0">
+        <AnimatePresence mode="popLayout">
+          {activities.slice(0, 5).map((activity, i) => (
+            <motion.div
+              key={`${activity.name}-${activity.company}-${i}`}
+              initial={{ opacity: 0, x: -20, height: 0 }}
+              animate={{ opacity: i === 0 ? 1 : 0.7 - i * 0.12, x: 0, height: "auto" }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className={cn(
+                "flex items-center gap-3 py-3",
+                i === 0 && "bg-gradient-to-r from-blue-50/80 to-violet-50/80 -mx-3 px-3 rounded-lg"
+              )}
+            >
+              <div className={cn(
+                "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
+                i === 0 
+                  ? "bg-gradient-to-br from-blue-500 to-violet-500 shadow-lg shadow-blue-500/20" 
+                  : "bg-slate-100"
+              )}>
+                {i === 0 ? (
+                  <Send className="w-4 h-4 text-white" />
+                ) : (
+                  <User className="w-4 h-4 text-slate-400" />
+                )}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <p className={cn(
+                  "text-sm leading-tight",
+                  i === 0 ? "text-slate-900 font-medium" : "text-slate-600"
+                )}>
+                  <span className="font-semibold">{activity.name}</span>
+                  <span className="text-slate-400 mx-1.5">→</span>
+                  <span className="text-blue-600">{activity.role}</span>
+                  <span className="text-slate-400"> at </span>
+                  <span className="text-slate-700">{activity.company}</span>
+                </p>
+                <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                  <MapPin className="w-3 h-3" />
+                  <span>{activity.location}</span>
+                  <span className="text-slate-300">•</span>
+                  <span>{activity.time}</span>
+                </div>
+              </div>
+              
+              {i === 0 && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-medium"
+                >
+                  <CheckCircle className="w-3 h-3" />
+                  Applied
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+      
+      <div className="mt-4 pt-3 border-t border-slate-200/60">
+        <p className="text-xs text-slate-400 text-center">
+          {isPaused ? "Paused" : "Live"} • Updated in real-time
+        </p>
+      </div>
+    </div>
+  );
+};
 
 const ProgressBar = () => {
   const { scrollYProgress } = useScroll();
@@ -291,6 +427,86 @@ const Hero = () => {
   );
 };
 
+const LiveActivitySection = () => {
+  const shouldReduceMotion = useReducedMotion();
+  
+  return (
+    <section className="py-16 sm:py-20 bg-white border-y border-slate-100 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 mb-6"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Live Feed</span>
+            </motion.div>
+            
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter-display text-slate-900 mb-4"
+            >
+              Watch it happen<br />
+              <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">in real-time</span>
+            </motion.h2>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="font-body text-lg text-slate-500 mb-8 leading-relaxed"
+            >
+              Every few seconds, our AI submits another tailored application. 
+              This is happening right now for users like you.
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-wrap gap-8"
+            >
+              <div>
+                <p className="font-display text-4xl font-bold text-slate-900">847</p>
+                <p className="text-sm text-slate-500">applications today</p>
+              </div>
+              <div>
+                <p className="font-display text-4xl font-bold text-slate-900">23</p>
+                <p className="text-sm text-slate-500">interview requests</p>
+              </div>
+              <div>
+                <p className="font-display text-4xl font-bold text-slate-900">4.2s</p>
+                <p className="text-sm text-slate-500">avg. apply time</p>
+              </div>
+            </motion.div>
+          </div>
+          
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="bg-slate-50 rounded-2xl border border-slate-200 p-6"
+          >
+            <LiveActivityStream />
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const Onboarding = () => {
   return (
     <section id="how-it-works" className="py-24 sm:py-32 bg-slate-50 relative overflow-hidden">
@@ -398,8 +614,9 @@ export default function Homepage() {
           ]
         }}
       />
-      <ProgressBar />
+<ProgressBar />
       <Hero />
+      <LiveActivitySection />
       <Onboarding />
     </>
   );
