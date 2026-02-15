@@ -18,12 +18,11 @@ depends_on = None
 
 
 def upgrade() -> None:
-    """Add pgvector extension and vector tables."""
     try:
         op.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        print("✓ pgvector extension installed")
+        print("pgvector extension installed")
     except Exception as e:
-        print(f"⚠ pgvector extension not available: {e}")
+        print(f"pgvector extension not available: {e}")
         print("  Falling back to JSON-based vector storage")
 
     op.execute(text("""
@@ -36,34 +35,31 @@ def upgrade() -> None:
             updated_at TIMESTAMPTZ DEFAULT now()
         )
     """))
-    print("✓ Created vec_embeddings table")
+    print("Created vec_embeddings table")
 
     op.execute(text("""
         CREATE INDEX IF NOT EXISTS vec_embeddings_namespace_idx
         ON vec_embeddings (namespace)
     """))
-    print("✓ Created namespace index")
+    print("Created namespace index")
 
-    # Try to add vector column if pgvector is available
     try:
         op.execute(text("""
             ALTER TABLE vec_embeddings
             ADD COLUMN IF NOT EXISTS embedding_vec vector(1536)
         """))
-        print("✓ Added vector column for pgvector")
+        print("Added vector column for pgvector")
 
-        # Create vector similarity index
         op.execute(text("""
             CREATE INDEX IF NOT EXISTS vec_embeddings_embedding_vec_idx
             ON vec_embeddings
             USING ivfflat (embedding_vec vector_cosine_ops)
             WITH (lists = 100)
         """))
-        print("✓ Created vector similarity index")
+        print("Created vector similarity index")
     except Exception as e:
-        print(f"⚠ Could not add vector column: {e}")
+        print(f"Could not add vector column: {e}")
 
-    # Create job embeddings table (migration from old JSON-based storage)
     op.execute(text("""
         CREATE TABLE IF NOT EXISTS job_embeddings_v2 (
             job_id TEXT PRIMARY KEY,
@@ -75,9 +71,8 @@ def upgrade() -> None:
             updated_at TIMESTAMPTZ DEFAULT now()
         )
     """))
-    print("✓ Created job_embeddings_v2 table")
+    print("Created job_embeddings_v2 table")
 
-    # Create profile embeddings table
     op.execute(text("""
         CREATE TABLE IF NOT EXISTS profile_embeddings_v2 (
             user_id TEXT PRIMARY KEY,
@@ -89,9 +84,8 @@ def upgrade() -> None:
             updated_at TIMESTAMPTZ DEFAULT now()
         )
     """))
-    print("✓ Created profile_embeddings_v2 table")
+    print("Created profile_embeddings_v2 table")
 
-    # Create indexes for job/profile embeddings
     try:
         op.execute(text("""
             CREATE INDEX IF NOT EXISTS job_embeddings_v2_vec_idx
@@ -105,11 +99,10 @@ def upgrade() -> None:
             USING ivfflat (embedding_vec vector_cosine_ops)
             WITH (lists = 100)
         """))
-        print("✓ Created vector indexes for job/profile embeddings")
+        print("Created vector indexes for job/profile embeddings")
     except Exception as e:
-        print(f"⚠ Could not create vector indexes: {e}")
+        print(f"Could not create vector indexes: {e}")
 
-    # Add function to compute cosine similarity (fallback for non-pgvector)
     op.execute(text("""
         CREATE OR REPLACE FUNCTION cosine_similarity_json(a jsonb, b jsonb)
         RETURNS float AS $$
@@ -137,15 +130,11 @@ def upgrade() -> None:
         END;
         $$ LANGUAGE plpgsql IMMUTABLE;
     """))
-    print("✓ Created cosine_similarity_json function")
+    print("Created cosine_similarity_json function")
 
 
 def downgrade() -> None:
-    """Remove pgvector tables and extension."""
     op.execute(text("DROP TABLE IF EXISTS profile_embeddings_v2"))
     op.execute(text("DROP TABLE IF EXISTS job_embeddings_v2"))
     op.execute(text("DROP TABLE IF EXISTS vec_embeddings"))
     op.execute(text("DROP FUNCTION IF EXISTS cosine_similarity_json(jsonb, jsonb)"))
-
-    # Don't drop the extension as it might be used by other applications
-    # op.execute(text("DROP EXTENSION IF EXISTS vector"))
