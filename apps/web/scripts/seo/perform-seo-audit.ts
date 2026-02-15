@@ -9,10 +9,10 @@ const REPORT_FILE = path.resolve(__dirname, '../../src/data/seo-audit-report.jso
 
 const OPENROUTER_API_KEY = process.env.LLM_API_KEY;
 const FREE_MODELS = [
-    'google/gemini-2.0-flash-exp:free',
-    'meta-llama/llama-3.3-8b-instruct:free',
-    'qwen/qwen3-4b:free',
-    'mistralai/mistral-small-3.1-24b-instruct:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'google/gemma-3-27b-it:free',
+    'deepseek/deepseek-r1-0528:free',
+    'qwen/qwen3-coder:free',
 ];
 
 if (!OPENROUTER_API_KEY) {

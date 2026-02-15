@@ -26,10 +26,10 @@ const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
 // Free models that actually work on OpenRouter (updated Feb 2026)
 const FREE_MODELS = [
-  'google/gemini-2.0-flash-exp:free',
-  'meta-llama/llama-3.3-8b-instruct:free',
-  'qwen/qwen3-4b:free',
-  'mistralai/mistral-small-3.1-24b-instruct:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'google/gemma-3-27b-it:free',
+  'deepseek/deepseek-r1-0528:free',
+  'qwen/qwen3-coder:free',
 ];
 
 interface Competitor {
@@ -126,76 +126,99 @@ async function generateCompetitorData(name: string, url?: string, explicitModel?
   let lastError: Error | null = null;
   let triedModels: string[] = [];
 
-  for (const model of modelsToTry) {
-    try {
-      console.log(`🤖 Attempting research with model: ${model}...`);
-      triedModels.push(model);
-
-      // Add timeout handling
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://jobhuntin.com',
-          'X-Title': 'JobHuntin SEO Bot',
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errText = await response.text();
-        // If 404 (model not found/unavailable) or 400 (bad params/model id), try next
-        if (response.status === 404 || response.status === 400 || response.status === 429) {
-          const msg = `Model ${model} failed: ${response.status} - ${errText}`;
-          console.warn(`⚠️  ${msg}`);
-          lastError = new Error(msg);
-          continue;
-        }
-        throw new Error(`OpenRouter API Error: ${response.status} - ${errText}`);
-      }
-
-      const data = await response.json();
-      if (data.error) {
-        console.warn(`⚠️  Model ${model} returned error: ${JSON.stringify(data.error)}`);
-        lastError = new Error(JSON.stringify(data.error));
-        continue;
-      }
-
-      const content = data.choices[0].message?.content;
-      if (!content) {
-        console.warn(`⚠️  Model ${model} returned empty content.`);
-        continue;
-      }
-
-      // Success! Parse JSON
-      let cleanJson = content.replace(/```json\n?|```/g, '').trim();
-      const firstBrace = cleanJson.indexOf('{');
-      const lastBrace = cleanJson.lastIndexOf('}');
-      if (firstBrace > -1 && lastBrace > -1) {
-        cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
-      }
-
+  for (let modelIdx = 0; modelIdx < modelsToTry.length; modelIdx++) {
+    const model = modelsToTry[modelIdx];
+    
+    // Retry logic for rate limits (up to 2 retries per model)
+    for (let retry = 0; retry < 2; retry++) {
       try {
-        return JSON.parse(cleanJson);
-      } catch (e) {
-        console.error('Failed to parse LLM response for model', model);
-        continue;
-      }
+        if (retry > 0) {
+          const delayMs = 5000 * retry; // 5s, then 10s
+          console.log(`⏳ Rate limited, waiting ${delayMs/1000}s before retry...`);
+          await new Promise(r => setTimeout(r, delayMs));
+        }
+        
+        console.log(`🤖 Attempting research with model: ${model}...`);
+        if (triedModels[triedModels.length - 1] !== model) {
+          triedModels.push(model);
+        }
 
-    } catch (e: any) {
-      lastError = e;
-      console.warn(`⚠️  Error with model ${model}: ${e.message}`);
+        // Add timeout handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'HTTP-Referer': 'https://jobhuntin.com',
+            'X-Title': 'JobHuntin SEO Bot',
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errText = await response.text();
+          // For rate limits, retry
+          if (response.status === 429) {
+            lastError = new Error(`Model ${model} rate limited: ${errText}`);
+            console.warn(`⚠️  Rate limited, will retry...`);
+            continue; // Retry this model
+          }
+          // For 404/400, try next model
+          if (response.status === 404 || response.status === 400) {
+            const msg = `Model ${model} not found: ${errText}`;
+            console.warn(`⚠️  ${msg}`);
+            lastError = new Error(msg);
+            break; // Exit retry loop, go to next model
+          }
+          throw new Error(`OpenRouter API Error: ${response.status} - ${errText}`);
+        }
+
+        const data = await response.json();
+        if (data.error) {
+          console.warn(`⚠️  Model ${model} returned error: ${JSON.stringify(data.error)}`);
+          lastError = new Error(JSON.stringify(data.error));
+          break; // Exit retry loop
+        }
+
+        const content = data.choices[0].message?.content;
+        if (!content) {
+          console.warn(`⚠️  Model ${model} returned empty content.`);
+          break; // Exit retry loop
+        }
+
+        // Success! Parse JSON
+        let cleanJson = content.replace(/```json\n?|```/g, '').trim();
+        const firstBrace = cleanJson.indexOf('{');
+        const lastBrace = cleanJson.lastIndexOf('}');
+        if (firstBrace > -1 && lastBrace > -1) {
+          cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+        }
+
+        try {
+          return JSON.parse(cleanJson);
+        } catch (e) {
+          console.error('Failed to parse LLM response for model', model);
+          break; // Exit retry loop
+        }
+      } catch (e: any) {
+        lastError = e;
+        if (e.name === 'AbortError') {
+          console.warn(`⚠️  Model ${model} timed out`);
+        } else {
+          console.warn(`⚠️  Error with model ${model}: ${e.message}`);
+        }
+        break; // Exit retry loop
+      }
     }
   }
 

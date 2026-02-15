@@ -65,18 +65,18 @@ const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
 // Free models that actually work on OpenRouter (updated Feb 2026)
 const FREE_MODELS = [
-  'google/gemini-2.0-flash-exp:free',           // Fast, reliable, good for JSON
-  'meta-llama/llama-3.3-8b-instruct:free',      // Meta's free tier
-  'qwen/qwen3-4b:free',                          // Alibaba's efficient model
-  'mistralai/mistral-small-3.1-24b-instruct:free', // Mistral free tier
+  'meta-llama/llama-3.3-70b-instruct:free',     // Meta's 70B - best quality free
+  'google/gemma-3-27b-it:free',                  // Google's Gemma 3 27B
+  'deepseek/deepseek-r1-0528:free',             // DeepSeek reasoning model
+  'qwen/qwen3-coder:free',                       // Qwen coder - good for structured output
 ];
 
 // Backup free models for aggressive mode
 const BACKUP_FREE_MODELS: string[] = [
-  'deepseek/deepseek-r1-0528:free',             // DeepSeek reasoning
-  'qwen/qwen3-coder:free',                       // Good for structured output
-  'google/gemma-3n-e4b-it:free',                // Google's free tier
+  'google/gemma-3-12b-it:free',                 // Smaller Gemma
+  'meta-llama/llama-3.2-3b-instruct:free',     // Smaller Llama
   'arcee-ai/trinity-mini:free',                  // Arcee's smaller model
+  'qwen/qwen3-4b:free',                          // Smaller Qwen
 ];
 
 // Content Archetypes to prevent "cookie-cutter" footprint
