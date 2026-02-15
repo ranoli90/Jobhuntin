@@ -82,12 +82,14 @@ jobs:
           echo "⏳ Waiting for deployment to complete..."
           sleep 30
           
-          # Check deployment status
-          curl -X GET \
+          # Check deployment status (handle both array and object responses)
+          RESPONSE=$(curl -s -X GET \
             "https://api.render.com/v1/services/srv-cqdq7t68fa8c73c1qgs0/deploys" \
             -H "Accept: application/json" \
-            -H "Authorization: Bearer ${{ env.RENDER_API_TOKEN }}" | \
-            jq -r '.[0].status'
+            -H "Authorization: Bearer ${{ env.RENDER_API_TOKEN }}")
+          
+          STATUS=$(echo "$RESPONSE" | jq -r 'if type == "array" then .[0].status // .[0].deploy.status else .status // .deploy.status // "unknown" end')
+          echo "Deployment status: $STATUS"
 
   verify-deployment:
     runs-on: ubuntu-latest
