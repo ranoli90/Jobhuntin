@@ -113,15 +113,19 @@ def setup_csrf_middleware(app, secret: str) -> None:
         from starlette_csrf.middleware import CSRFMiddleware as StarletteCSRF
 
         exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
+        s = get_settings()
+        is_cross_origin = s.app_base_url and "jobhuntin.com" in s.app_base_url
         app.add_middleware(
             StarletteCSRF,
             secret=secret,
             cookie_name="csrftoken",
             cookie_secure=True,
-            cookie_samesite="lax",
+            cookie_samesite="none" if is_cross_origin else "lax",
             exempt_urls=exempt_patterns,
         )
-        logger.info("CSRF protection enabled")
+        logger.info(
+            f"CSRF protection enabled (SameSite={'none' if is_cross_origin else 'lax'})"
+        )
     except ImportError:
         logger.error("starlette-csrf not installed - CSRF protection disabled")
 
