@@ -103,6 +103,8 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
 
     import jwt
 
+    logger.info("[MAGIC_LINK] Starting generation", extra={"email": email, "redirect_to": redirect_to})
+
     # Find or create user
     async with db.acquire() as conn:
         # First try to find existing user by email
@@ -111,17 +113,23 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
         )
         if not user_id:
             # Create new user
+            logger.info("[MAGIC_LINK] Creating new user", extra={"email": email})
             user_id = await conn.fetchval("""
                 INSERT INTO public.users (id, email, created_at, updated_at)
                 VALUES ($1, $2, now(), now())
                 RETURNING id
             """, str(uuid.uuid4()), email)
+            logger.info("[MAGIC_LINK] User created", extra={"user_id": str(user_id), "email": email})
+        else:
+            logger.info("[MAGIC_LINK] Found existing user", extra={"user_id": str(user_id), "email": email})
+        
         # Create empty profile if not exists
         await conn.execute("""
             INSERT INTO public.profiles (user_id, resume_url, profile_data)
             VALUES ($1, '', '{}')
             ON CONFLICT (user_id) DO NOTHING
         """, user_id)
+        logger.debug("[MAGIC_LINK] Profile ensured", extra={"user_id": str(user_id)})
 
     # Generate token
     payload = {
@@ -132,16 +140,19 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
     }
 
     if not settings.jwt_secret:
-         logger.error("JWT_SECRET not set - cannot sign magic link")
-         raise HTTPException(status_code=500, detail="Server misconfiguration: JWT_SECRET missing")
+        logger.error("[MAGIC_LINK] JWT_SECRET not set - cannot sign magic link")
+        raise HTTPException(status_code=500, detail="Server misconfiguration: JWT_SECRET missing")
 
     secret = settings.jwt_secret
 
     token = jwt.encode(payload, secret, algorithm="HS256")
+    logger.info("[MAGIC_LINK] Token generated", extra={"user_id": str(user_id), "email": email, "token_length": len(token)})
 
     # Append token to redirect URL
     separator = "&" if "?" in redirect_to else "?"
-    return f"{redirect_to}{separator}token={token}"
+    magic_link = f"{redirect_to}{separator}token={token}"
+    logger.info("[MAGIC_LINK] Magic link generated successfully", extra={"user_id": str(user_id), "email": email})
+    return magic_link
 
 
 def _render_email_html(settings: Settings, action_link: str, return_to: str | None) -> str:

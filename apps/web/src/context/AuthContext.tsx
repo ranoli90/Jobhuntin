@@ -38,10 +38,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     // Helper to fetch user profile
-    const fetchUser = useCallback(async () => {
+const fetchUser = useCallback(async () => {
+        console.log('[AUTH] Fetching user profile...');
         try {
             const profile = await apiGet<User>("/profile");
             setUser(profile);
+            console.log('[AUTH] User profile loaded:', { 
+                id: profile.id, 
+                email: profile.email, 
+                has_completed_onboarding: profile.has_completed_onboarding 
+            });
 
             // Sync extension session state
             localStorage.setItem('jobhuntin-session', JSON.stringify({
@@ -49,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 ts: Date.now(),
             }));
         } catch (error) {
-            console.error("Failed to fetch user profile:", error);
+            console.error("[AUTH] Failed to fetch user profile:", error);
             // If 401, apiGet handles redirect, but we should clear state
             clearAuthToken();
             setUser(null);
@@ -70,34 +76,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
-    // Initialize auth
+// Initialize auth
     useEffect(() => {
         const initAuth = async () => {
+            console.log('[AUTH] Initializing auth...');
+            
             // 1. Check for token in URL (Magic Link flow)
             const params = new URLSearchParams(window.location.search);
             const tokenFromUrl = params.get("token");
 
             if (tokenFromUrl) {
+                console.log('[AUTH] Token found in URL, processing magic link');
                 setAuthToken(tokenFromUrl);
                 // Clean URL
                 const newUrl = window.location.pathname + window.location.hash;
                 window.history.replaceState({}, document.title, newUrl);
+                console.log('[AUTH] URL cleaned, fetching CSRF cookie and user profile');
                 await ensureCsrfCookie();
                 await fetchUser();
+                console.log('[AUTH] Magic link auth complete');
             } else {
                 // 2. Check local storage
                 const token = getAuthToken();
                 if (token) {
+                    console.log('[AUTH] Token found in localStorage, refreshing session');
                     await ensureCsrfCookie();
                     await fetchUser();
                 } else {
+                    console.log('[AUTH] No token found, user is unauthenticated');
                     localStorage.removeItem('jobhuntin-session');
                 }
             }
             setLoading(false);
+            console.log('[AUTH] Auth initialization complete');
         };
 
         const handleUnauthorized = (event: Event) => {
+            console.log('[AUTH] Unauthorized event received, clearing session');
             const detail = (event as CustomEvent<{ returnTo?: string }>).detail;
             clearAuthToken();
             setUser(null);

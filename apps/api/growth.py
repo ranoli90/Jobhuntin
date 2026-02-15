@@ -181,6 +181,11 @@ async def onboarding_complete(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Mark onboarding as complete. Optionally redeem a referral code."""
+    logger.info("[ONBOARDING] Completion requested", extra={
+        "user_id": user_id,
+        "has_referral_code": bool(body.referral_code)
+    })
+    
     async with db.acquire() as conn:
         # Store onboarding completion in profile_data JSON
         await conn.execute("""
@@ -189,13 +194,33 @@ async def onboarding_complete(
             ON CONFLICT (user_id) DO UPDATE SET
                 profile_data = COALESCE(profile_data, '{}') || '{"has_completed_onboarding": true}'::jsonb
         """, user_id)
+        logger.info("[ONBOARDING] Profile updated with completion flag", extra={"user_id": user_id})
 
     referral_result = None
     if body.referral_code:
+        logger.info("[ONBOARDING] Processing referral code", extra={
+            "user_id": user_id,
+            "referral_code": body.referral_code[:8] + "..."
+        })
         async with db_transaction(db) as conn:
             referral_result = await redeem_referral_code(conn, user_id, body.referral_code)
+            if referral_result:
+                logger.info("[ONBOARDING] Referral redeemed successfully", extra={
+                    "user_id": user_id,
+                    "reward_amount": referral_result.get("reward_amount")
+                })
+            else:
+                logger.warning("[ONBOARDING] Referral redemption failed", extra={
+                    "user_id": user_id,
+                    "referral_code": body.referral_code[:8] + "..."
+                })
 
     incr("growth.onboarding.completed")
+    logger.info("[ONBOARDING] Completion successful", extra={
+        "user_id": user_id,
+        "referral_redeemed": referral_result is not None
+    })
+    
     return {
         "status": "completed",
         "referral_redeemed": referral_result is not None,
