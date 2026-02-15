@@ -164,44 +164,40 @@ function generatePriorityMatrix(): PriorityMatrix[] {
  * Generate content for a specific city/role combination
  */
 async function generateContent(city: string, role: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    console.log(`🚀 Generating: ${role} jobs in ${city}`);
+  console.log(`\n${'='.repeat(70)}`);
+  console.log(`🚀 GENERATING: ${role} jobs in ${city}`);
+  console.log(`⏰ Started at: ${new Date().toLocaleTimeString()}`);
+  console.log(`${'='.repeat(70)}`);
 
+  return new Promise((resolve) => {
     // Pass arguments as an array to spawn correctly
     const childProcess = spawn('npx', ['tsx', 'scripts/seo/generate-city-content.ts', city, role, '--aggressive'], {
       cwd: path.resolve(__dirname, '../..'),
-      stdio: 'pipe'
+      stdio: 'inherit' // Show all output in real-time
     });
 
-    let output = '';
-    let errorOutput = '';
     const start = Date.now();
-    const timeoutMs = 8 * 60 * 1000; // kill if >8 minutes
+    const timeoutMs = 10 * 60 * 1000; // kill if >10 minutes
 
     const timeout = setTimeout(() => {
-      console.warn(`⏱️ Generation timeout for ${role} in ${city}. Killing process...`);
+      console.warn(`\n⏱️ TIMEOUT after 10 minutes. Killing process...`);
       childProcess.kill('SIGKILL');
     }, timeoutMs);
-
-    childProcess.stdout.on('data', (data: Buffer) => {
-      output += data.toString();
-    });
-
-    childProcess.stderr.on('data', (data: Buffer) => {
-      errorOutput += data.toString();
-    });
 
     childProcess.on('close', (code: number) => {
       clearTimeout(timeout);
       const duration = ((Date.now() - start) / 1000).toFixed(1);
+      
+      console.log(`\n${'='.repeat(70)}`);
       if (code === 0) {
-        console.log(`✅ Content generated for ${role} in ${city} in ${duration}s`);
-        resolve(true);
+        console.log(`✅ SUCCESS: ${role} in ${city} completed in ${duration}s`);
+        console.log(`🔗 URL: https://jobhuntin.com/jobs/${role.toLowerCase().replace(/\s+/g, '-')}/${city.toLowerCase().replace(/\s+/g, '-')}`);
       } else {
-        console.error(`❌ Content generation failed for ${role} in ${city} (code ${code}) after ${duration}s`);
-        console.error(errorOutput || output);
-        resolve(false);
+        console.log(`❌ FAILED: ${role} in ${city} (exit code ${code}) after ${duration}s`);
       }
+      console.log(`${'='.repeat(70)}\n`);
+      
+      resolve(code === 0);
     });
   });
 }

@@ -238,184 +238,69 @@ async function generateAggressiveLocalContent(
   // Use free models with fallback to backup models for aggressive mode
   const modelsToTry = aggressive ? [...FREE_MODELS, ...BACKUP_FREE_MODELS] : FREE_MODELS;
 
-  // Ultra-aggressive local SEO prompt with semantic triples and entity relationships
-  // Designed to avoid Google penalties while maximizing rankings
+  // HIGH-QUALITY CONCISE PROMPT - maintains quality, avoids truncation
   const aggressivePrompt = `
-    You are a top-tier SEO strategist acting as "${archetype.name}". 
-    Create UNIQUE, CLICK-WORTHY content for "${roleName} jobs in ${cityName}" that will rank #1 in Google.
-    
-    GENERATION ID: ${Date.now()}-${Math.random().toString(36).substr(2, 9)}
-    This content MUST be completely unique - never generate the same content twice.
-    
-    UNIQUE ANGLE FOR THIS PAGE: ${uniqueAngle}
-    CURRENT DATE: ${currentMonth} ${currentYear}
+You are an expert SEO content writer creating content for "${roleName} jobs in ${cityName}".
 
-    ${injectedContext}
+UNIQUE ID: ${Date.now()}-${Math.random().toString(36).substr(2, 9)}
+ANGLE: ${uniqueAngle}
+DATE: ${currentMonth} ${currentYear}
 
-    ARCHETYPE INSTRUCTIONS (${archetype.name}):
-    ${archetype.instruction.replace('${cityName}', cityName)}
+${injectedContext}
 
-    CLICK-WORTHY CONTENT REQUIREMENTS:
-    ✅ Create COMPELLING, IRRESISTIBLE headlines that make users WANT to click
-    ✅ Use power words: "Ultimate", "Complete", " Insider", "Revealed", "Secret", "Proven"
-    ✅ Include specific numbers: "47 Companies Hiring Now", "Salary: $73K-$127K"
-    ✅ Add urgency where appropriate: "Updated ${currentMonth} ${currentYear}", "Hiring Now"
-    ✅ Use emotional triggers: avoid "dead-end jobs", find "career fulfillment"
-    ✅ Include surprising facts or little-known insights
-    ✅ Add "secrets" and "insider tips" that competitors don't have
-    ✅ Create FOMO: "Only 12 positions left at top companies"
+Write as "${archetype.name}": ${archetype.instruction.replace('${cityName}', cityName).slice(0, 200)}
 
-    CRITICAL REQUIREMENTS (Google Employee Perspective):
-    ✅ Follow E-E-A-T principles (Experience, Expertise, Authoritativeness, Trustworthiness)
-    ✅ Provide genuine value - answer real user questions comprehensively
-    ✅ Use factual data - be specific, accurate, and data-driven
-    ✅ Write for humans first - Google second
-    ✅ Maintain content quality - minimum 1500 words per page
-    ✅ Use natural language patterns - avoid robotic text
-    ✅ Include comprehensive topic coverage - don't leave gaps
-    ✅ Add local expertise - geo-specific insights and data
-    ✅ Provide actionable information - users should learn something valuable
-    ✅ Ensure factual accuracy - verify all statistics and claims
+Write a comprehensive page that will rank #1 and get clicks. Include:
 
-    BLACKHAT AVOIDANCE (Professional Perspective):
-    ❌ No keyword stuffing - keep semantic density under 2%
-    ❌ No duplicate content - create unique entity combinations
-    ❌ No thin content - comprehensive coverage required
-    ❌ No misleading information - be honest and accurate
-    ❌ No automation patterns - human-like writing style
-    ❌ No spam signals - natural anchor text and linking
-    ❌ No doorway pages - each page must be valuable standalone
-    ❌ No cloaking - consistent content for users and bots
+1. COMPELLING HEADLINES with numbers and power words
+2. SPECIFIC DATA: real salary ranges, company names, job counts for ${cityName}
+3. LOCAL INSIGHTS: neighborhoods, commute, cost of living, top employers
+4. ACTIONABLE ADVICE: how to get hired, interview tips, skills needed
+5. INSIDER SECRETS: what competitors don't tell job seekers
+6. URGENCY: "Updated ${currentMonth}", "Hiring Now", limited positions
 
-    Generate a comprehensive JSON object with these requirements:
+For ${roleName} in ${cityName}:
+- Salary range (entry/mid/senior)
+- Top 5 companies hiring now
+- Most in-demand skills
+- Remote work options %
+- Interview tips specific to this city
 
-    1. **SEMANTIC TRIPLES**: Create subject-predicate-object relationships that Google can parse naturally
-    2. **ENTITY RELATIONSHIPS**: Build connections between location, role, companies, and skills using real data
-    3. **KNOWLEDGE GRAPH OPTIMIZATION**: Target Google's Knowledge Graph with specific, verifiable entities
-    4. **TOPICAL AUTHORITY**: Establish expertise across the entire topic cluster with comprehensive coverage
-    5. **USER INTENT MAPPING**: Address all search intents (informational, navigational, transactional, commercial)
-    6. **LOCAL EXPERTISE**: Include city-specific insights, salary data, company information, and market trends
-    7. **CONTENT FRESHNESS**: Reference current market conditions, recent data, and timely information
-    8. **COMPREHENSIVE COVERAGE**: Don't leave any subtopics uncovered - be the most complete resource
+Return JSON with this structure:
+{
+  "location": {
+    "name": "${cityName}",
+    "seoTitle": "Compelling title with numbers (max 60 chars)",
+    "seoDescription": "Description with specifics (max 155 chars)",
+    "h1": "Main headline with city and role",
+    "h2s": ["8-10 compelling section headings"],
+    "contentSections": [
+      {"heading": "...", "content": "150-200 words with facts and insights", "keywords": [...]}
+    ],
+    "localKeywords": ["10-15 keywords"],
+    "majorEmployers": ["company names hiring for this role"],
+    "medianIncome": number,
+    "contentQuality": 85-100
+  },
+  "role": {
+    "name": "${roleName}",
+    "avgSalary": number,
+    "demandLevel": "High/Medium/Low",
+    "skills": ["top 10 skills"],
+    "contentQuality": 85-100
+  }
+}
 
-    **LOCATION DATA for ${cityName}:**
-    - Include real population data, cost of living, major employers
-    - Add specific tech companies, startups, and industry presence
-    - Include salary ranges, job market trends, and growth projections
-    - Reference local business districts, tech hubs, and innovation centers
-    - Mention relevant professional networks and industry events
+CRITICAL: 
+- Every company name must be REAL
+- Every salary number must be REALISTIC
+- Write naturally, avoid repetition
+- Make it valuable enough that users bookmark it
+`;
 
-    **ROLE DATA for ${roleName}:**
-    - Include accurate salary ranges for the specific city
-    - Reference in-demand skills and technologies
-    - Mention career progression paths and opportunities
-    - Include remote work statistics and hybrid options
-    - Add industry-specific insights and requirements
+  console.log(`📝 Prompt length: ${aggressivePrompt.length} characters`);
 
-    **CONTENT REQUIREMENTS:**
-    - Minimum 1500 words total across all sections
-    - Each section must provide unique value
-    - Use natural language with varied sentence structure
-    - Include specific data points, statistics, and facts
-    - Reference real companies, organizations, and opportunities
-    - Add actionable advice and practical insights
-    - Include local market conditions and trends
-
-    **TECHNICAL SPECIFICATIONS:**
-    - Semantic keyword density: 1.5-2% maximum
-    - Entity density: 15-25 entities per 1000 words
-    - Content quality score: 85+ (industry standard)
-    - User intent coverage: 4/4 main intents
-    - Factual accuracy: 100% verified information
-
-    Return ONLY valid JSON in this exact structure:
-    {
-      "location": {
-        "slug": "city-slug",
-        "name": "${cityName}",
-        "state": "State Name",
-        "country": "USA",
-        "population": 8500000,
-        "medianIncome": 75000,
-        "costOfLivingIndex": 180.5,
-        "unemploymentRate": 4.2,
-        "majorEmployers": ["Company A", "Company B", "Tech Corp"],
-        "industries": ["Technology", "Finance", "Healthcare"],
-        "techHub": true,
-        "startupScene": "thriving",
-        "remoteFriendly": true,
-        "seoTitle": "Best ${roleName} Jobs in ${cityName} (2024) | Top Companies Hiring Now",
-        "seoDescription": "Find the best ${roleName} jobs in ${cityName}. Compare salaries, top employers, and career opportunities. Updated daily with new openings.",
-        "h1": "${roleName} Jobs in ${cityName}: Complete 2024 Career Guide",
-        "h2s": [
-          "Top Companies Hiring ${roleName}s in ${cityName}",
-          "${roleName} Salary Ranges in ${cityName}",
-          "Best Neighborhoods for Tech Workers",
-          "Remote vs On-site Opportunities",
-          "Career Growth Paths in ${cityName}"
-        ],
-        "contentSections": [
-          {
-            "heading": "Market Overview",
-            "content": "Comprehensive analysis of the ${roleName} job market in ${cityName}...",
-            "keywords": ["${roleName} jobs ${cityName}", "${cityName} tech careers"],
-            "entities": ["Google", "Amazon", "Microsoft", "startup ecosystem"],
-            "wordCount": 400,
-            "semanticDensity": 1.8,
-            "userIntent": "informational"
-          }
-        ],
-        "localKeywords": ["${cityName} tech jobs", "${cityName} ${roleName} openings"],
-        "longTailKeywords": ["best companies hiring ${roleName}s in ${cityName}", "${roleName} salary ${cityName} 2024"],
-        "semanticKeywords": ["software development careers", "tech industry employment"],
-        "entityMentions": ["Silicon Valley", "venture capital", "tech startups"],
-        "schema": ["LocalBusiness", "JobPosting", "City"],
-        "lastUpdated": "2024-01-15",
-        "contentQuality": 88,
-        "entityDensity": 22,
-        "semanticScore": 91,
-        "userIntentCoverage": ["informational", "navigational", "transactional", "commercial"]
-      },
-      "role": {
-        "slug": "role-slug",
-        "name": "${roleName}",
-        "category": "Technology",
-        "avgSalary": 120000,
-        "demandLevel": "High",
-        "remotePercentage": 65,
-        "skills": ["JavaScript", "Python", "React", "AWS"],
-        "seoTitle": "${roleName} Career Guide: Salaries, Skills, and Opportunities in ${cityName}",
-        "seoDescription": "Complete ${roleName} career guide for ${cityName}. Salary ranges, required skills, top employers, and growth opportunities.",
-        "h1": "${roleName} Careers in ${cityName}: 2024 Salary & Opportunity Guide",
-        "h2s": [
-          "Essential Skills for ${roleName}s",
-          "Salary Expectations in ${cityName}",
-          "Top Employers and Companies",
-          "Career Progression Opportunities",
-          "Remote Work Options"
-        ],
-        "contentSections": [
-          {
-            "heading": "Role Overview",
-            "content": "Detailed analysis of ${roleName} responsibilities, requirements, and career path...",
-            "keywords": ["${roleName} career", "${roleName} skills"],
-            "entities": ["programming languages", "development frameworks", "cloud platforms"],
-            "wordCount": 350,
-            "semanticDensity": 1.6,
-            "userIntent": "informational"
-          }
-        ],
-        "roleKeywords": ["${roleName} positions", "${roleName} openings"],
-        "semanticKeywords": ["software engineering", "technical roles", "development positions"],
-        "entityMentions": ["Agile methodology", "DevOps practices", "cloud computing"],
-        "schema": ["JobPosting", "Occupation", "Person"],
-        "contentQuality": 85,
-        "entityDensity": 18,
-        "semanticScore": 89,
-        "userIntentCoverage": ["informational", "commercial", "transactional"]
-      }
-    }
-  `;
+  // Try each model with detailed logging
 
   console.log(`🤖 Generating aggressive local content for: ${roleName} in ${cityName}`);
   console.log(`🎯 Using semantic triples and entity relationships for maximum SEO impact`);
@@ -457,42 +342,49 @@ async function generateAggressiveLocalContent(
             }
           ],
           temperature: 0.7,
-          max_tokens: 8000
+          max_tokens: 16000
         }),
         signal: controller.signal
       });
 
       clearTimeout(timeoutId);
 
+      // DETAILED LOGGING
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`📤 REQUEST: ${roleName} jobs in ${cityName}`);
+      console.log(`🤖 MODEL: ${model}`);
+      console.log(`${'='.repeat(60)}`);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(`⚠️  Model ${model} failed: ${response.status} - ${errorText}`);
-
-        // Log detailed error for debugging
-        try {
-          const errorData = JSON.parse(errorText);
-          console.log(`   Error details: ${JSON.stringify(errorData)}`);
-        } catch {
-          // Not JSON, use raw text
-        }
-
-        continue; // Try next model
+        console.log(`❌ HTTP ERROR: ${response.status}`);
+        console.log(`❌ ERROR DETAILS: ${errorText}`);
+        continue;
       }
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       const finishReason = data.choices?.[0]?.finish_reason;
+      const tokensUsed = data.usage?.total_tokens || 0;
+
+      console.log(`📊 TOKENS USED: ${tokensUsed}`);
+      console.log(`🏁 FINISH REASON: ${finishReason}`);
 
       // Check if response was truncated
       if (finishReason === 'length') {
-        console.log(`⚠️  Model ${model} hit token limit, response truncated. Trying next model...`);
+        console.log(`⚠️  OUTPUT TRUNCATED - model hit token limit`);
+        console.log(`⚠️  Trying next model...`);
         continue;
       }
 
       if (!content) {
-        console.log(`⚠️  Model ${model} returned empty content`);
+        console.log(`❌ EMPTY CONTENT from ${model}`);
         continue;
       }
+
+      console.log(`✅ CONTENT LENGTH: ${content.length} characters`);
+      console.log(`✅ SUCCESS with ${model}`);
+      console.log(`${'='.repeat(60)}\n`);
 
       // Improved JSON extraction
       let jsonString = content.replace(/```json\n?/g, '').replace(/\n?```/g, '').trim();
@@ -694,6 +586,30 @@ async function saveContent(cityName: string, roleName: string, content: { locati
 
     console.log(`💾 Content saved successfully`);
     console.log(`📊 Updated ${locations.length} locations and ${roles.length} roles`);
+
+    // AUTO-REGENERATE SITEMAP
+    console.log(`🗺️  Regenerating sitemap...`);
+    try {
+      const { execSync } = require('child_process');
+      execSync('node scripts/generate-sitemap.cjs', { 
+        cwd: path.resolve(__dirname, '../..'),
+        stdio: 'pipe'
+      });
+      console.log(`✅ Sitemap updated with new pages`);
+    } catch (sitemapError: any) {
+      console.log(`⚠️  Sitemap regeneration failed: ${sitemapError.message}`);
+    }
+
+    // LOG THE NEW URL
+    const roleSlug = content.role?.slug || roleName.toLowerCase().replace(/\s+/g, '-');
+    const citySlug = content.location?.slug || cityName.toLowerCase().replace(/\s+/g, '-');
+    const newUrl = `https://jobhuntin.com/jobs/${roleSlug}/${citySlug}`;
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`*** NEW PAGE CREATED ***`);
+    console.log(`URL: ${newUrl}`);
+    console.log(`Title: ${content.location?.seoTitle || 'Generated'}`);
+    console.log(`Quality Score: ${content.location?.contentQuality || 'N/A'}/100`);
+    console.log(`${'='.repeat(60)}\n`);
 
   } catch (error: any) {
     console.error(`❌ Error saving content: ${error.message}`);
