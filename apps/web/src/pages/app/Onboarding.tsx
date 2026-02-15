@@ -190,7 +190,7 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
 
       if (e.ctrlKey && e.key === 'Enter') {
         // Specific completion logic or generic next
-        if (currentStep === 6 && !isCompleting) {
+        if (isLastStep && !isCompleting) {
           handleComplete();
         } else if (!isLastStep) {
           // Basic validation check before blindly advancing?
