@@ -304,12 +304,12 @@ const handleResumeUpload = async () => {
       }
     } catch (err) {
       const message = (err as Error).message;
+      const status = (err as any).status;
+      console.error("Resume upload failed:", err);
       setResumeError(message);
       pushToast({
-        title: "Upload stalled",
-        description: message.includes("size") || message.includes("type")
-          ? "Use PDF/DOC under 5MB, or try our sample resume to continue."
-          : "Check your connection and retry. PDF/DOC under 5MB works best.",
+        title: "Upload failed",
+        description: status ? `[${status}] ${message}` : message,
         tone: "error"
       });
     } finally {
@@ -468,7 +468,7 @@ const handleConfirmParsing = () => {
         <div className="flex items-center gap-2 md:gap-4">
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
             <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-            <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">AI Calibration Active</span>
+            <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">Setting Up Your Profile</span>
           </div>
           <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100">
             Restart
@@ -477,7 +477,7 @@ const handleConfirmParsing = () => {
       </header>
 
       <main className="flex-1 w-full flex flex-col items-center justify-center p-1.5 md:p-4 overflow-hidden bg-grid-premium opacity-100 relative min-h-0">
-        <div className="w-full max-w-xl lg:max-w-3xl h-full max-h-full flex flex-col relative justify-center min-h-0">
+        <div className="w-full max-w-xl lg:max-w-5xl h-full max-h-full flex flex-col relative justify-center min-h-0">
           {/* Subtle background glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-500/5 rounded-full blur-[100px] pointer-events-none" />
 
@@ -485,7 +485,7 @@ const handleConfirmParsing = () => {
           <div className="mb-2 md:mb-6 shrink-0 z-10">
             <div className="flex items-center justify-between mb-1.5 md:mb-3 px-1">
               <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.15em] md:tracking-[0.2em]">
-                Calibration Progress — {(progress).toFixed(0)}%
+                Setup Progress — {(progress).toFixed(0)}%
               </span>
               <span className="text-[10px] md:text-xs font-black text-primary-600 uppercase tracking-[0.15em] md:tracking-[0.2em]">{currentStepData.title}</span>
             </div>
@@ -521,8 +521,8 @@ const handleConfirmParsing = () => {
                         <Sparkles className="h-2.5 w-2.5 md:h-4 md:w-4 text-emerald-400" />
                       </div>
                       <div>
-                        <span className="block text-[7px] md:text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Intelligence Profile</span>
-                        <span className="text-[9px] md:text-xs font-bold text-white">System Confidence</span>
+                        <span className="block text-[7px] md:text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Profile Strength</span>
+                        <span className="text-[9px] md:text-xs font-bold text-white">Setup Progress</span>
                       </div>
                     </div>
                     <div className="text-right">
@@ -541,19 +541,19 @@ const handleConfirmParsing = () => {
                     {(profile?.resume_url || resumeFile) && (
                       <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
                         <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
-                        Experience Mapped
+                        Resume Added
                       </Badge>
                     )}
                     {preferences.location && (
                       <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
                         <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
-                        Geospatial Set
+                        Location Set
                       </Badge>
                     )}
                     {preferences.role_type && (
                       <Badge className="text-[8px] md:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0.5 md:px-2 md:py-1">
                         <CheckCircle2 className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
-                        Role Target Lock
+                        Job Title Set
                       </Badge>
                     )}
                   </div>

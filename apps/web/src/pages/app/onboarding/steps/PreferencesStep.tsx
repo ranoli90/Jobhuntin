@@ -2,8 +2,11 @@ import * as React from "react";
 import { MapPin, Briefcase, DollarSign, Zap, Shield, ArrowLeft, ArrowRight, HelpCircle, Building2, Ban, Globe, Users, AlertTriangle } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
+import { AutoCompleteInput } from "../../../../components/ui/AutoCompleteInput";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { AISuggestionCard, SalarySuggestionCard } from "../../../../components/ui/AISuggestionCard";
+import { CITIES } from "../../../../data/cities";
+import { JOB_TITLES } from "../../../../data/jobTitles";
 
 interface PreferencesStepProps {
     onNext: () => void;
@@ -46,7 +49,7 @@ export function PreferencesStep({
     aiSuggestions,
     formErrors,
 }: PreferencesStepProps) {
-    const [plainLanguage, setPlainLanguage] = React.useState(false);
+    const [plainLanguage, setPlainLanguage] = React.useState(true); // Default to plain language
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
@@ -56,8 +59,8 @@ export function PreferencesStep({
                         <MapPin className="h-4 w-4 md:h-8 md:w-8" />
                     </div>
                     <div className="min-w-0">
-                        <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">{plainLanguage ? "Job Settings" : "Active Parameters"}</h2>
-                        <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">{plainLanguage ? "Set your location and salary goals." : "Define the geospatial and fiscal bounds."}</p>
+                        <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Job Settings</h2>
+                        <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Set your location and salary goals.</p>
                     </div>
                 </div>
 
@@ -114,36 +117,24 @@ export function PreferencesStep({
                     </div>
                 )}
 
-                <div className="flex justify-end mb-4">
-                    <button
-                        onClick={() => setPlainLanguage(!plainLanguage)}
-                        className="text-[10px] uppercase font-bold text-slate-400 hover:text-slate-600 flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-full transition-colors"
-                    >
-                        <span className={plainLanguage ? "text-primary-600" : ""}>Simple</span>
-                        <span className="text-slate-300">/</span>
-                        <span className={!plainLanguage ? "text-primary-600" : ""}>Technical</span>
-                    </button>
-                </div>
+                {/* Remove the technical/plain language toggle - default to plain language */}
 
                 <div className="space-y-3 md:space-y-8">
                     <div className="grid gap-3 md:gap-8">
                         <div>
-                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group relative w-fit">
+                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                                 <div className="w-1 h-1 rounded-full bg-primary-500" />
-                                {plainLanguage ? "Where do you want to work?" : "Primary Operation Hub"}
-                                <HelpCircle className="w-3 h-3 text-slate-300 cursor-help" />
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium normal-case tracking-normal">
-                                    Determines legal jurisdiction and timezones.
-                                </div>
+                                Where do you want to work?
                             </label>
                             <div className="relative">
-                                <Input
+                                <AutoCompleteInput
                                     icon={<MapPin className="h-4 w-4 md:h-5 md:w-5" />}
                                     type="text"
                                     placeholder="e.g., Remote, Austin TX, London"
                                     value={preferences.location}
-                                    onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
+                                    onChange={(value) => setPreferences((p) => ({ ...p, location: value }))}
                                     onClear={() => setPreferences((p) => ({ ...p, location: "" }))}
+                                    suggestions={CITIES}
                                     className="bg-white shadow-sm text-sm"
                                     error={!!formErrors.location}
                                 />
@@ -153,16 +144,17 @@ export function PreferencesStep({
                         <div>
                             <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                                 <div className="w-1 h-1 rounded-full bg-primary-500" />
-                                {plainLanguage ? "Desired Job Title" : "Target Role Classification"}
+                                Desired Job Title
                             </label>
                             <div className="relative">
-                                <Input
+                                <AutoCompleteInput
                                     icon={<Briefcase className="h-4 w-4 md:h-5 md:w-5" />}
                                     type="text"
                                     placeholder="e.g., Staff AI Engineer"
                                     value={preferences.role_type}
-                                    onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
+                                    onChange={(value) => setPreferences((p) => ({ ...p, role_type: value }))}
                                     onClear={() => setPreferences((p) => ({ ...p, role_type: "" }))}
+                                    suggestions={JOB_TITLES}
                                     className="bg-white shadow-sm text-sm"
                                     error={!!formErrors.role_type}
                                 />
@@ -172,13 +164,9 @@ export function PreferencesStep({
 
                     <div className="grid md:grid-cols-2 gap-3 md:gap-8">
                         <div>
-                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group relative w-fit">
+                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                                 <div className="w-1 h-1 rounded-full bg-primary-500" />
-                                {plainLanguage ? "Minimum Salary" : "Min Multiplier (Salary)"}
-                                <HelpCircle className="w-3 h-3 text-slate-300 cursor-help" />
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium normal-case tracking-normal">
-                                    We filter out roles below this threshold.
-                                </div>
+                                Minimum Salary
                             </label>
                             <div className="relative">
                                 <Input
@@ -198,8 +186,8 @@ export function PreferencesStep({
                                     <Zap className="h-4 w-4 md:h-5 md:w-5" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{plainLanguage ? "Onne-Online (Remote)" : "Geo-Agnostic Only"}</p>
-                                    <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">{plainLanguage ? "Show only work-from-home jobs" : "100% Remote Filter"}</p>
+                                    <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Remote Work Only</p>
+                                    <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Show only work-from-home jobs</p>
                                 </div>
                                 <input
                                     type="checkbox"
@@ -215,9 +203,8 @@ export function PreferencesStep({
                     <div className="flex items-center gap-2 mb-3 md:mb-4">
                         <div className="w-1 h-1 rounded-full bg-red-500" />
                         <label className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            {plainLanguage ? "Dealbreakers" : "Hard Filters"}
+                            Dealbreakers
                         </label>
-                        <HelpCircle className="w-3 h-3 text-slate-300 cursor-help" />
                     </div>
 
                     <div className="space-y-3">
@@ -227,8 +214,8 @@ export function PreferencesStep({
                                 <Globe className="h-4 w-4" />
                             </div>
                             <div className="flex-1">
-                                <p className="text-xs font-bold text-slate-900">{plainLanguage ? "Need Visa Sponsorship?" : "Visa Sponsorship Required"}</p>
-                                <p className="text-[10px] text-slate-500">{plainLanguage ? "I need a company to sponsor my work visa" : "Filter for visa-sponsoring employers"}</p>
+                                <p className="text-xs font-bold text-slate-900">Need Visa Sponsorship?</p>
+                                <p className="text-[10px] text-slate-500">I need a company to sponsor my work visa</p>
                             </div>
                             <input
                                 type="checkbox"
@@ -244,8 +231,8 @@ export function PreferencesStep({
                                 <Building2 className="h-4 w-4" />
                             </div>
                             <div className="flex-1">
-                                <p className="text-xs font-bold text-slate-900">{plainLanguage ? "On-site Only" : "In-Office Required"}</p>
-                                <p className="text-[10px] text-slate-500">{plainLanguage ? "I want to work at the office" : "Filter for on-site positions"}</p>
+                                <p className="text-xs font-bold text-slate-900">On-site Only</p>
+                                <p className="text-[10px] text-slate-500">I want to work at the office</p>
                             </div>
                             <input
                                 type="checkbox"
@@ -262,8 +249,8 @@ export function PreferencesStep({
                                     <DollarSign className="h-4 w-4" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold text-slate-900">{plainLanguage ? "Maximum Salary" : "Salary Ceiling"}</p>
-                                    <p className="text-[10px] text-slate-500">{plainLanguage ? "Hide jobs above this amount" : "Upper salary bound filter"}</p>
+                                    <p className="text-xs font-bold text-slate-900">Maximum Salary</p>
+                                    <p className="text-[10px] text-slate-500">Hide jobs above this amount</p>
                                 </div>
                             </div>
                             <Input
@@ -283,8 +270,8 @@ export function PreferencesStep({
                                     <Ban className="h-4 w-4" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold text-slate-900">{plainLanguage ? "Exclude Companies" : "Company Blocklist"}</p>
-                                    <p className="text-[10px] text-slate-500">{plainLanguage ? "Companies you don't want to apply to" : "Comma-separated company names"}</p>
+                                    <p className="text-xs font-bold text-slate-900">Exclude Companies</p>
+                                    <p className="text-[10px] text-slate-500">Companies you don't want to apply to</p>
                                 </div>
                             </div>
                             <Input
@@ -307,8 +294,8 @@ export function PreferencesStep({
                                     <AlertTriangle className="h-4 w-4" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold text-slate-900">{plainLanguage ? "Exclude Keywords" : "Keyword Blocklist"}</p>
-                                    <p className="text-[10px] text-slate-500">{plainLanguage ? "Jobs with these words won't be shown" : "Comma-separated keywords to avoid"}</p>
+                                    <p className="text-xs font-bold text-slate-900">Exclude Keywords</p>
+                                    <p className="text-[10px] text-slate-500">Jobs with these words won't be shown</p>
                                 </div>
                             </div>
                             <Input
@@ -339,8 +326,8 @@ export function PreferencesStep({
                             <Shield className="h-4 w-4 md:h-5 md:w-5" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{plainLanguage ? "Can you work legally?" : "Authorized to Work"}</p>
-                            <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">{plainLanguage ? "I don't need a visa sponsor" : "No visa sponsorship needed"}</p>
+                            <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Can you work legally?</p>
+                            <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">I don't need a visa sponsor</p>
                         </div>
                         <input
                             type="checkbox"
@@ -358,7 +345,7 @@ export function PreferencesStep({
                     PREV
                 </Button>
                 <Button onClick={onNext} className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-xs md:text-xl group" disabled={isSavingPreferences} aria-label="Save preferences and deploy hunter engine">
-                    {isSavingPreferences ? <LoadingSpinner size="sm" /> : "DEPLOY HUNTER ENGINE"}
+                    {isSavingPreferences ? <LoadingSpinner size="sm" /> : "START JOB SEARCH"}
                     <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
                 </Button>
             </div>

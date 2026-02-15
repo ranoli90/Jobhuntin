@@ -146,9 +146,13 @@ function handleApiError(resp: Response, body: string): never {
       }
     }, 200);
   }
-  const msg = friendlyMessage(resp.status, body);
-  const err = new Error(msg) as Error & { status: number };
+  const parsedMsg = tryParseMessage(body);
+  const msg = parsedMsg 
+    ? `${parsedMsg} (HTTP ${resp.status})`
+    : friendlyMessage(resp.status, body);
+  const err = new Error(msg) as Error & { status: number; rawBody: string };
   err.status = resp.status;
+  err.rawBody = body;
   throw err;
 }
 

@@ -119,8 +119,11 @@ export default function Settings() {
       pushToast({ title: "Resume updated", tone: "success" });
       setResumeSuccess("Resume uploaded successfully");
     } catch (err) {
-      pushToast({ title: "Upload failed", description: (err as Error).message, tone: "error" });
-      setResumeError((err as Error).message);
+      const message = (err as Error).message;
+      const status = (err as any).status;
+      console.error("Resume upload failed:", err);
+      pushToast({ title: "Upload failed", description: status ? `[${status}] ${message}` : message, tone: "error" });
+      setResumeError(status ? `[${status}] ${message}` : message);
     } finally {
       setIsUploading(false);
       e.target.value = "";
