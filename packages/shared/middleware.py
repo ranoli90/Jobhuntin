@@ -9,6 +9,7 @@ Includes:
 from __future__ import annotations
 
 import uuid
+import re
 from typing import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -70,9 +71,11 @@ class CSRFMiddleware:
     """
 
     # Paths exempt from CSRF protection (webhooks, public endpoints)
-    EXEMPT_PATHS = [
+EXEMPT_PATHS = [
         "/health",
         "/healthz",
+        "/auth/magic-link",
+        "/auth/",
         "/api/v2/webhook",
         "/billing/webhook",
         "/sso/saml/acs",
@@ -104,16 +107,17 @@ def setup_csrf_middleware(app, secret: str) -> None:
         )
         return
 
-    try:
+try:
         from starlette_csrf.middleware import CSRFMiddleware as StarletteCSRF
 
+        exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
         app.add_middleware(
             StarletteCSRF,
             secret=secret,
             cookie_name="csrftoken",
-            cookie_secure=True,  # HTTPS only
+            cookie_secure=True,
             cookie_samesite="lax",
-            exempt_urls=CSRFMiddleware.exempt_urls(),
+            exempt_urls=exempt_patterns,
         )
         logger.info("CSRF protection enabled")
     except ImportError:
