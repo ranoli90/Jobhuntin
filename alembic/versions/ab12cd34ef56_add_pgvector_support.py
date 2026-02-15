@@ -16,13 +16,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-    has_pgvector = False
-    try:
-        op.execute('CREATE EXTENSION IF NOT EXISTS vector')
-        has_pgvector = True
-    except Exception:
-        pass
-
     op.execute("""
         CREATE TABLE IF NOT EXISTS vec_embeddings (
             id TEXT PRIMARY KEY,
@@ -39,84 +32,27 @@ def upgrade() -> None:
         ON vec_embeddings (namespace)
     """)
 
-    if has_pgvector:
-        try:
-            op.execute("""
-                ALTER TABLE vec_embeddings
-                ADD COLUMN IF NOT EXISTS embedding_vec vector(1536)
-            """)
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS job_embeddings_v2 (
+            job_id TEXT PRIMARY KEY,
+            embedding JSONB NOT NULL,
+            text_hash TEXT NOT NULL,
+            metadata JSONB DEFAULT '{}',
+            created_at TIMESTAMPTZ DEFAULT now(),
+            updated_at TIMESTAMPTZ DEFAULT now()
+        )
+    """)
 
-            op.execute("""
-                CREATE INDEX IF NOT EXISTS vec_embeddings_embedding_vec_idx
-                ON vec_embeddings
-                USING ivfflat (embedding_vec vector_cosine_ops)
-                WITH (lists = 100)
-            """)
-        except Exception:
-            pass
-
-    if has_pgvector:
-        op.execute("""
-            CREATE TABLE IF NOT EXISTS job_embeddings_v2 (
-                job_id TEXT PRIMARY KEY,
-                embedding JSONB NOT NULL,
-                embedding_vec vector(1536),
-                text_hash TEXT NOT NULL,
-                metadata JSONB DEFAULT '{}',
-                created_at TIMESTAMPTZ DEFAULT now(),
-                updated_at TIMESTAMPTZ DEFAULT now()
-            )
-        """)
-
-        op.execute("""
-            CREATE TABLE IF NOT EXISTS profile_embeddings_v2 (
-                user_id TEXT PRIMARY KEY,
-                embedding JSONB NOT NULL,
-                embedding_vec vector(1536),
-                text_hash TEXT NOT NULL,
-                metadata JSONB DEFAULT '{}',
-                created_at TIMESTAMPTZ DEFAULT now(),
-                updated_at TIMESTAMPTZ DEFAULT now()
-            )
-        """)
-
-        try:
-            op.execute("""
-                CREATE INDEX IF NOT EXISTS job_embeddings_v2_vec_idx
-                ON job_embeddings_v2
-                USING ivfflat (embedding_vec vector_cosine_ops)
-                WITH (lists = 100)
-            """)
-            op.execute("""
-                CREATE INDEX IF NOT EXISTS profile_embeddings_v2_vec_idx
-                ON profile_embeddings_v2
-                USING ivfflat (embedding_vec vector_cosine_ops)
-                WITH (lists = 100)
-            """)
-        except Exception:
-            pass
-    else:
-        op.execute("""
-            CREATE TABLE IF NOT EXISTS job_embeddings_v2 (
-                job_id TEXT PRIMARY KEY,
-                embedding JSONB NOT NULL,
-                text_hash TEXT NOT NULL,
-                metadata JSONB DEFAULT '{}',
-                created_at TIMESTAMPTZ DEFAULT now(),
-                updated_at TIMESTAMPTZ DEFAULT now()
-            )
-        """)
-
-        op.execute("""
-            CREATE TABLE IF NOT EXISTS profile_embeddings_v2 (
-                user_id TEXT PRIMARY KEY,
-                embedding JSONB NOT NULL,
-                text_hash TEXT NOT NULL,
-                metadata JSONB DEFAULT '{}',
-                created_at TIMESTAMPTZ DEFAULT now(),
-                updated_at TIMESTAMPTZ DEFAULT now()
-            )
-        """)
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS profile_embeddings_v2 (
+            user_id TEXT PRIMARY KEY,
+            embedding JSONB NOT NULL,
+            text_hash TEXT NOT NULL,
+            metadata JSONB DEFAULT '{}',
+            created_at TIMESTAMPTZ DEFAULT now(),
+            updated_at TIMESTAMPTZ DEFAULT now()
+        )
+    """)
 
     op.execute("""
         CREATE OR REPLACE FUNCTION cosine_similarity_json(a jsonb, b jsonb)
