@@ -1,4 +1,4 @@
-# Milestone 4: Staging Deployment with E2E Tests
+# Staging Deployment with E2E Tests - CI/CD Pipeline
 #
 # Automated pipeline:
 #   1. Run lint, type-check, unit tests
