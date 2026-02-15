@@ -141,6 +141,7 @@ databases:
 # Redis
 # ───────────────────────────────────────────────────────────────────────────
   - name: jobhuntin-redis
+    type: keyvalue
     region: oregon
     plan: free
     maxMemoryPolicy: allkeys-lru

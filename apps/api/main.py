@@ -114,7 +114,9 @@ async def lifespan(app: FastAPI):
         try:
             r = await get_redis()
             await r.ping()
-            logger.info("Redis connected")
+            is_internal = "red-" in _settings.redis_url and ".render.com" not in _settings.redis_url
+            url_type = "internal" if is_internal else "external"
+            logger.info(f"Redis connected ({url_type})")
         except Exception as e:
             logger.warning(f"Redis connection failed: {e}")
     else:
