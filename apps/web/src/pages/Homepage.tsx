@@ -3,10 +3,10 @@ import { motion, useScroll, useSpring, useReducedMotion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { magicLinkService } from '../services/magicLinkService';
 import {
-  Sparkles, CheckCircle, ArrowRight,
+  CheckCircle, ArrowRight,
   MailCheck, Bell,
   Upload, Search, Send, Lock, Shield, Clock,
-  User, Zap, FileText, MessageSquare
+  User, FileText, MessageSquare, Briefcase, TrendingUp, Target, Award
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -315,9 +315,9 @@ const Hero = () => {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-50 border border-slate-200/80 mb-8"
           >
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            <TrendingUp className="w-4 h-4 text-blue-600" />
             <span className="text-xs sm:text-sm font-medium text-slate-600 tracking-wide">
-              The only AI that <span className="font-bold text-slate-900">tailors every resume</span> to each job
+              The only platform that <span className="font-bold text-slate-900">tailors every resume</span> to each job
             </span>
           </motion.div>
 
@@ -327,7 +327,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-6 text-balance-hero max-w-3xl"
           >
-            <span className="text-slate-900">Your AI applies to</span>
+            <span className="text-slate-900">We apply to</span>
             <br />
             <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 bg-clip-text text-transparent animate-gradient-flow bg-[length:200%_auto]">
               100 jobs daily
@@ -340,7 +340,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="font-body text-lg sm:text-xl lg:text-2xl text-slate-500 max-w-2xl mb-10 leading-relaxed"
           >
-            Upload your resume. Our agent matches, tailors, and submits applications
+            Upload your resume. Our system matches, tailors, and submits applications
             <span className="hidden sm:inline"> while you focus on interviews.</span>
             <span className="sm:hidden"> automatically.</span>
           </motion.p>
@@ -378,7 +378,7 @@ const Hero = () => {
                   >
                     {isSubmitting ? (
                       <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                        <Sparkles className="w-5 h-5" />
+                        <Briefcase className="w-5 h-5" />
                       </motion.div>
                     ) : (
                       <span className="flex items-center gap-2">
@@ -432,20 +432,20 @@ const Hero = () => {
             className="mt-16 w-full max-w-3xl"
           >
             <div className="relative">
-              <div className="bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
-                <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-800 bg-slate-900/50">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  <span className="ml-3 text-xs font-mono text-slate-500 uppercase tracking-wider">AI Agent</span>
+              <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 overflow-hidden shadow-2xl shadow-slate-200/50">
+                <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-100 bg-slate-50/50">
+                  <div className="w-3 h-3 rounded-full bg-slate-300" />
+                  <div className="w-3 h-3 rounded-full bg-slate-300" />
+                  <div className="w-3 h-3 rounded-full bg-slate-300" />
+                  <span className="ml-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Application Dashboard</span>
                 </div>
                 
                 <div className="p-5 sm:p-6 space-y-2.5">
                   {[
-                    { icon: Upload, label: "Resume parsed", detail: "47 skills extracted" },
-                    { icon: Search, label: "Scanning 2,847 jobs", detail: "Matching your profile..." },
-                    { icon: Send, label: "52 applications sent", detail: "Custom-tailored each one" },
-                    { icon: Bell, label: "2 interview requests", detail: "Recruiters responded!" },
+                    { icon: Upload, label: "Resume parsed", detail: "47 skills extracted", color: "bg-emerald-50 text-emerald-600" },
+                    { icon: Search, label: "Scanning 2,847 jobs", detail: "Matching your profile...", color: "bg-blue-50 text-blue-600" },
+                    { icon: Send, label: "52 applications sent", detail: "Custom-tailored each one", color: "bg-violet-50 text-violet-600" },
+                    { icon: Bell, label: "2 interview requests", detail: "Recruiters responded!", color: "bg-amber-50 text-amber-600" },
                   ].map((step, i) => (
                     <motion.div
                       key={i}
@@ -454,26 +454,26 @@ const Hero = () => {
                       transition={{ delay: 0.7 + i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                       className="flex items-center gap-3.5"
                     >
-                      <div className="w-9 h-9 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-                        <step.icon className="w-4 h-4 text-blue-400" />
+                      <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", step.color)}>
+                        <step.icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white">{step.label}</p>
-                        <p className="text-xs text-slate-400">{step.detail}</p>
+                        <p className="text-sm font-medium text-slate-900">{step.label}</p>
+                        <p className="text-xs text-slate-500">{step.detail}</p>
                       </div>
-                      {i !== 1 && <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
+                      {i !== 1 && <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
                     </motion.div>
                   ))}
                 </div>
                 
-                <div className="px-5 sm:px-6 py-3 border-t border-slate-800 bg-slate-900/30">
-                  <div className="flex justify-between text-xs font-mono text-slate-500 mb-1.5">
-                    <span>Progress</span>
+                <div className="px-5 sm:px-6 py-3 border-t border-slate-100 bg-slate-50/50">
+                  <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1.5">
+                    <span>Today's Progress</span>
                     <span>92%</span>
                   </div>
-                  <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500 rounded-full"
+                      className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full"
                       initial={{ width: "0%" }}
                       animate={{ width: "92%" }}
                       transition={{ delay: 1.2, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
@@ -502,13 +502,13 @@ const LiveActivitySection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 mb-6"
             >
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
               </span>
-              <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Live Feed</span>
+              <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Live Activity</span>
             </motion.div>
             
             <motion.h2
@@ -540,22 +540,22 @@ const LiveActivitySection = () => {
               transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-wrap gap-6 items-center"
             >
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">ATS-Optimized</p>
-                  <p className="text-xs text-slate-500">Every resume passes filters</p>
+                  <p className="text-xs text-slate-500">Passes every filter</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center">
+                  <Award className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">Human Quality</p>
-                  <p className="text-xs text-slate-500">No bot-like templates</p>
+                  <p className="text-xs text-slate-500">Professional output</p>
                 </div>
               </div>
             </motion.div>
@@ -578,16 +578,15 @@ const LiveActivitySection = () => {
 
 const Onboarding = () => {
   const steps = [
-    { icon: Upload, title: "Upload", desc: "Drop your resume, we extract everything in seconds" },
-    { icon: Search, title: "Match", desc: "AI finds jobs that fit your skills and experience" },
-    { icon: FileText, title: "Tailor", desc: "Each application is customized for that specific role" },
-    { icon: MessageSquare, title: "Notify", desc: "Get alerts when recruiters want to interview you" },
+    { icon: Upload, title: "Upload", desc: "Drop your resume, we extract everything" },
+    { icon: Search, title: "Match", desc: "Find jobs that fit your skills" },
+    { icon: FileText, title: "Tailor", desc: "Customize for each application" },
+    { icon: MessageSquare, title: "Notify", desc: "Get interview alerts" },
   ];
 
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-gradient-to-b from-white to-slate-50/30 relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-blue-50/50 to-violet-50/50 rounded-full blur-3xl opacity-60 pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50/20 pointer-events-none" />
+    <section id="how-it-works" className="py-24 sm:py-32 bg-white relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-slate-50 to-slate-100 rounded-full blur-3xl opacity-60 pointer-events-none" />
 
       <div className="container mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
         <motion.div
@@ -598,18 +597,17 @@ const Onboarding = () => {
           className="text-center mb-16 lg:mb-20"
         >
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-            Four steps to <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">more interviews</span>
+            Four steps to <span className="text-blue-600">more interviews</span>
           </h2>
           <p className="font-body text-lg text-slate-500 max-w-xl mx-auto">
-            Set up once, let the agent run. You only show up for the wins.
+            Set up once, let us handle the rest. You only show up for the wins.
           </p>
         </motion.div>
 
         <div className="relative max-w-4xl mx-auto">
-          {/* Connected path */}
-          <div className="absolute top-12 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-200 via-violet-200 to-pink-200 hidden lg:block" />
+          <div className="absolute top-12 left-0 right-0 h-px bg-slate-200 hidden lg:block" />
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {steps.map((step, i) => (
               <motion.div
                 key={i}
@@ -621,14 +619,14 @@ const Onboarding = () => {
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="relative mb-5">
-                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-xl shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-shadow duration-300">
-                      <step.icon className="w-10 h-10 text-white" />
+                    <div className="w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-shadow duration-300">
+                      <step.icon className="w-8 h-8 text-white" />
                     </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center text-sm font-bold text-slate-600 shadow-sm">
+                    <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white shadow-lg">
                       {i + 1}
                     </div>
                   </div>
-                  <h3 className="font-display text-xl font-bold text-slate-900 mb-2">{step.title}</h3>
+                  <h3 className="font-display text-lg font-bold text-slate-900 mb-1">{step.title}</h3>
                   <p className="font-body text-sm text-slate-500 leading-relaxed">{step.desc}</p>
                 </div>
               </motion.div>
@@ -644,7 +642,7 @@ const Onboarding = () => {
           className="mt-16 text-center"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200">
-            <Zap className="w-4 h-4 text-amber-500" />
+            <Clock className="w-4 h-4 text-blue-600" />
             <span className="text-sm font-medium text-slate-600">Average setup time: <span className="font-bold text-slate-900">2 minutes</span></span>
           </div>
         </motion.div>
@@ -657,16 +655,16 @@ export default function Homepage() {
   return (
     <>
       <SEO
-        title="JobHuntin — AI That Applies to Jobs While You Sleep"
-        description="Upload your resume once. Your AI agent tailors and applies to hundreds of jobs daily. Land 3.4× more interviews with zero effort."
-        ogTitle="JobHuntin — AI That Applies to Jobs While You Sleep"
+        title="JobHuntin — We Apply to Jobs While You Sleep"
+        description="Upload your resume once. We tailor and apply to hundreds of jobs daily. Land 3.4× more interviews with zero effort."
+        ogTitle="JobHuntin — We Apply to Jobs While You Sleep"
         canonicalUrl="https://jobhuntin.com/"
         schema={{
           "@context": "https://schema.org",
           "@type": "FAQPage",
           "mainEntity": [
             { "@type": "Question", "name": "Is this legit? Will I get banned from job sites?", "acceptedAnswer": { "@type": "Answer", "text": "Absolutely legit. We follow each platform's Terms of Service. We don't spam, we don't use bots that violate rate limits, and we never submit low-quality applications." }},
-            { "@type": "Question", "name": "How is this different from just applying myself?", "acceptedAnswer": { "@type": "Answer", "text": "Speed and quality. Most people take 20-30 minutes per application. We do it in under 2 minutes, and we customize every resume and cover letter using AI." }},
+            { "@type": "Question", "name": "How is this different from just applying myself?", "acceptedAnswer": { "@type": "Answer", "text": "Speed and quality. Most people take 20-30 minutes per application. We do it in under 2 minutes, and we customize every resume and cover letter." }},
             { "@type": "Question", "name": "What happens to my resume and data?", "acceptedAnswer": { "@type": "Answer", "text": "Your data is yours. We store it securely (encrypted at rest), never sell it to third parties, and you can delete everything anytime." }}
           ]
         }}
