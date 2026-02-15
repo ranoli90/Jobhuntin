@@ -30,7 +30,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository }}
-  STAGING_API_URL: https://api-staging.sorce.app
+  STAGING_API_URL: https://jobhuntin-api-staging.onrender.com
   STAGING_WEB_URL: https://sorce-web-staging.onrender.com
 
 jobs:
@@ -193,7 +193,7 @@ jobs:
           echo "Worker Deploy Response: $WORKER_RESPONSE"
           
           # Extract deployment ID
-          DEPLOYMENT_ID=$(echo "$API_RESPONSE" | jq -r '.id // .deploy.id // "unknown'"')
+          DEPLOYMENT_ID=$(echo "$API_RESPONSE" | jq -r '.id // .deploy.id // "unknown"')
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
           
           echo "::notice::Staging deployment initiated: $DEPLOYMENT_ID"
