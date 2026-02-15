@@ -102,6 +102,12 @@ from contextlib import asynccontextmanager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    if not _settings.jwt_secret:
+        if _settings.env == Environment.PROD:
+             logger.critical("JWT_SECRET missing in PROD. Aborting startup.")
+             raise RuntimeError("JWT_SECRET must be set in production")
+        logger.warning("JWT_SECRET not set. Authentication will fail.")
+
     await _pool_manager.initialize()
     # Initialize Redis (optional, but good to fail fast if config is bad)
     if _settings.redis_url:
@@ -1027,6 +1033,12 @@ async def get_application_detail(
 
 @app.get("/health")
 async def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@app.get("/csrf/prepare")
+async def csrf_prepare() -> dict[str, str]:
+    """No-op endpoint to ensure CSRF cookie is issued to the client."""
     return {"status": "ok"}
 
 

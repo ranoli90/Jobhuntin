@@ -1,0 +1,17 @@
+{
+  "name": "sorce-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "mobile"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.0"
+  }
+}

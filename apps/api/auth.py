@@ -125,11 +125,10 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
     }
     
     if not settings.jwt_secret:
-         # Fallback for dev if not set, though main.py requires it.
-         logger.warning("JWT_SECRET not set, using insecure default for magic link")
-         secret = "insecure-change-me" 
-    else:
-         secret = settings.jwt_secret
+         logger.error("JWT_SECRET not set - cannot sign magic link")
+         raise HTTPException(status_code=500, detail="Server misconfiguration: JWT_SECRET missing")
+    
+    secret = settings.jwt_secret
 
     token = jwt.encode(payload, secret, algorithm="HS256")
     
