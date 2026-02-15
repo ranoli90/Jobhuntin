@@ -7,9 +7,10 @@ const STORAGE_KEY = "onboarding_state";
 const STEPS: OnboardingStep[] = [
   { id: "welcome", title: "Welcome to JobHuntin", description: "Let's get you set up in 2 minutes" },
   { id: "resume", title: "Upload your resume", description: "We'll use this to find perfect matches" },
+  { id: "skill-review", title: "Review your skills", description: "Verify the skills we detected" },
   { id: "confirm-contact", title: "Confirm your details", description: "Verify the info we extracted" },
   { id: "preferences", title: "Job preferences", description: "Tell us what you're looking for" },
-  { id: "calibration", title: "Calibrate AI", description: "Help us fine-tune your matches" },
+  { id: "work-style", title: "Work style", description: "Help us find your ideal environment" },
   { id: "ready", title: "You're ready!", description: "Time to start job hunting" },
 ];
 

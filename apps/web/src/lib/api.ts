@@ -266,6 +266,7 @@ export async function apiPost<T = unknown>(path: string, body?: unknown): Promis
   });
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);
+  if (!text) return {} as T;
   return JSON.parse(text) as T;
 }
 
@@ -277,6 +278,7 @@ export async function apiPatch<T = unknown>(path: string, body: unknown): Promis
   });
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);
+  if (!text) return {} as T;
   return JSON.parse(text) as T;
 }
 
@@ -285,6 +287,7 @@ export async function apiDelete<T = unknown>(path: string): Promise<T> {
   const resp = await apiFetch(path, { method: "DELETE" });
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);
+  if (!text) return {} as T;
   return JSON.parse(text) as T;
 }
 

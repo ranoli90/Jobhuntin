@@ -62,6 +62,39 @@ class SkillsInfo(BaseModel):
     soft: list[str] = Field(default_factory=list)
 
 
+class RichSkill(BaseModel):
+    """A skill with confidence, context, and metadata for deep matching."""
+
+    skill: str = Field(..., description="Skill name (e.g., 'React', 'Python')")
+    confidence: float = Field(
+        default=0.5, ge=0.0, le=1.0, description="Confidence score 0-1"
+    )
+    years_actual: float | None = Field(
+        default=None, description="Years of actual usage"
+    )
+    context: str = Field(default="", description="How the skill was used")
+    last_used: str | None = Field(default=None, description="Last usage date (YYYY-MM)")
+    verified: bool = Field(default=False, description="Whether skill is verified")
+    related_to: list[str] = Field(default_factory=list, description="Related skills")
+    source: str = Field(
+        default="resume", description="Source: resume, github, linkedin, manual"
+    )
+    project_count: int = Field(
+        default=0, description="Number of projects using this skill"
+    )
+
+
+class RichSkillsInfo(BaseModel):
+    """Rich skills with confidence and metadata for deep matching."""
+
+    technical: list[RichSkill] = Field(
+        default_factory=list, description="Technical skills with metadata"
+    )
+    soft: list[RichSkill] = Field(
+        default_factory=list, description="Soft skills with metadata"
+    )
+
+
 class ResumeParseResponse_V1(BaseModel):
     """Expected JSON output from the resume parsing LLM call."""
 
@@ -87,6 +120,118 @@ def build_resume_parse_prompt(resume_text: str) -> str:
     if len(text) > 8000:
         text = text[:8000] + "... [truncated]"
     return RESUME_PARSE_PROMPT_V1.format(resume_text=text)
+
+
+class ResumeParseResponse_V2(BaseModel):
+    """Enhanced resume parsing with rich skill extraction."""
+
+    contact: ContactInfo = Field(default_factory=ContactInfo)
+    education: list[EducationEntry] = Field(default_factory=list)
+    experience: list[ExperienceEntry] = Field(default_factory=list)
+    skills: RichSkillsInfo = Field(default_factory=RichSkillsInfo)
+    certifications: list[str] = Field(default_factory=list)
+    languages: list[str] = Field(default_factory=list)
+    summary: str = ""
+    years_experience: float = Field(
+        default=0.0, description="Total years of experience"
+    )
+
+
+RESUME_PARSE_PROMPT_V2 = """You are an expert resume parser. Extract structured information with DEEP skill analysis.
+
+## Resume Text
+{resume_text}
+
+## Instructions
+Return ONLY a JSON object (no markdown fences) with these top-level keys:
+
+{{
+    "contact": {{
+        "full_name": "",
+        "email": "",
+        "phone": "",
+        "location": "",
+        "linkedin_url": "",
+        "portfolio_url": ""
+    }},
+    "education": [
+        {{
+            "institution": "",
+            "degree": "",
+            "field_of_study": "",
+            "start_date": "",
+            "end_date": "",
+            "gpa": ""
+        }}
+    ],
+    "experience": [
+        {{
+            "company": "",
+            "title": "",
+            "start_date": "",
+            "end_date": "",
+            "location": "",
+            "responsibilities": [""]
+        }}
+    ],
+    "skills": {{
+        "technical": [
+            {{
+                "skill": "React",
+                "confidence": 0.85,
+                "years_actual": 3.5,
+                "context": "Built user dashboards and data visualization components",
+                "last_used": "2024-01",
+                "project_count": 4,
+                "related_to": ["TypeScript", "Next.js", "Redux"]
+            }}
+        ],
+        "soft": [
+            {{
+                "skill": "Leadership",
+                "confidence": 0.7,
+                "years_actual": 2.0,
+                "context": "Led team of 5 engineers on product initiatives",
+                "last_used": "2024-01",
+                "project_count": 2,
+                "related_to": ["Mentorship", "Project Management"]
+            }}
+        ]
+    }},
+    "certifications": [""],
+    "languages": [""],
+    "summary": "",
+    "years_experience": 5.5
+}}
+
+## SKILL EXTRACTION RULES (CRITICAL):
+
+1. **Confidence Score (0.0-1.0)**:
+   - 0.9-1.0: Multiple projects with specific achievements, quantified impact
+   - 0.7-0.89: Clear usage in 2+ projects with context
+   - 0.5-0.69: Listed in skills section, mentioned in responsibilities
+   - 0.3-0.49: Mentioned once or indirectly
+   - 0.0-0.29: Just keyword match, unclear usage
+
+2. **Years Actual**: Calculate from experience dates when skill was used
+
+3. **Context**: ONE sentence describing HOW the skill was used
+
+4. **Project Count**: Count distinct projects/roles where skill was applied
+
+5. **Related Skills**: Skills commonly used together (max 5)
+
+Extract 5-15 technical skills and 3-8 soft skills maximum.
+"""
+
+
+def build_resume_parse_prompt_v2(resume_text: str) -> str:
+    """Fill the resume parse prompt V2 template."""
+    text = resume_text.strip()
+    text = " ".join(text.split())
+    if len(text) > 12000:
+        text = text[:12000] + "... [truncated]"
+    return RESUME_PARSE_PROMPT_V2.format(resume_text=text)
 
 
 # ===================================================================

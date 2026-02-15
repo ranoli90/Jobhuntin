@@ -18,13 +18,14 @@ import { checkEmailTypo } from "../../lib/emailUtils";
 // Step Components
 import { WelcomeStep } from "./onboarding/steps/WelcomeStep";
 import { ResumeStep } from "./onboarding/steps/ResumeStep";
+import { SkillReviewStep } from "./onboarding/steps/SkillReviewStep";
 import { ConfirmContactStep } from "./onboarding/steps/ConfirmContactStep";
 import { PreferencesStep } from "./onboarding/steps/PreferencesStep";
 import { CalibrationStep } from "./onboarding/steps/CalibrationStep";
 import { ReadyStep } from "./onboarding/steps/ReadyStep";
 
 // Types
-import { ParsedResume } from "../../types/onboarding";
+import { ParsedResume, RichSkill } from "../../types/onboarding";
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -77,13 +78,15 @@ export default function Onboarding() {
   });
   const [isSavingContact, setIsSavingContact] = React.useState(false);
 
-  const [linkedinUrl, setLinkedinUrl] = React.useState(formData.linkedinUrl || "");
+const [linkedinUrl, setLinkedinUrl] = React.useState(formData.linkedinUrl || "");
   const [parsedResume, setParsedResume] = React.useState<ParsedResume | null>(null);
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = React.useState(false);
   const [isCompleting, setIsCompleting] = React.useState(false);
   const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown> | null>(null);
   const [emailTypoSuggestion, setEmailTypoSuggestion] = React.useState<string | null>(null);
+  const [richSkills, setRichSkills] = React.useState<RichSkill[]>([]);
+  const [isSavingSkills, setIsSavingSkills] = React.useState(false);
   
   // Restore linkedinUrl from formData on mount (for page refresh persistence)
   React.useEffect(() => {
@@ -97,9 +100,9 @@ export default function Onboarding() {
   const calibrationQuestions = formData.calibrationQuestions || [];
   const calibrationAnswers = formData.calibrationAnswers || {};
 
-  // Fetch Calibration Questions
+// Fetch Calibration Questions
   React.useEffect(() => {
-    if (currentStep === 4 && (!calibrationQuestions || calibrationQuestions.length === 0) && !isFetchingQuestions) {
+    if (currentStep === 5 && (!calibrationQuestions || calibrationQuestions.length === 0) && !isFetchingQuestions) {
       if (!parsedProfile && !profile?.resume_url) return; // Need minimal profile data
 
       setIsFetchingQuestions(true);
@@ -231,7 +234,7 @@ export default function Onboarding() {
 
       if (e.ctrlKey && e.key === 'Enter') {
         // Specific completion logic or generic next
-        if (currentStep === 5 && !isCompleting) {
+        if (currentStep === 6 && !isCompleting) {
           handleComplete();
         } else if (!isLastStep) {
           // Basic validation check before blindly advancing?
@@ -282,7 +285,7 @@ export default function Onboarding() {
 
   }, [profile, navigate, resetOnboarding]);
 
-  const handleResumeUpload = async () => {
+const handleResumeUpload = async () => {
     if (!resumeFile) return;
     setIsUploading(true);
     setResumeError(null);
@@ -303,6 +306,36 @@ export default function Onboarding() {
 
         // Store the full parsed profile for AI suggestions
         setParsedProfile(data.parsed_profile);
+        
+        // Extract rich skills from parsed profile (V2 format)
+        const techSkills = p.skills?.technical || [];
+        if (techSkills.length > 0 && typeof techSkills[0] === 'object') {
+          // Rich skills format from V2 parser
+          setRichSkills(techSkills.map((s: any) => ({
+            skill: s.skill,
+            confidence: s.confidence || 0.5,
+            years_actual: s.years_actual || null,
+            context: s.context || "",
+            last_used: s.last_used || null,
+            verified: s.verified || false,
+            related_to: s.related_to || [],
+            source: s.source || "resume",
+            project_count: s.project_count || 0,
+          })));
+        } else {
+          // Old format - convert to rich skills with default values
+          setRichSkills(techSkills.map((skill: string) => ({
+            skill,
+            confidence: 0.5,
+            years_actual: null,
+            context: "",
+            last_used: null,
+            verified: false,
+            related_to: [],
+            source: "resume",
+            project_count: 0,
+          })));
+        }
 
         // Fetch AI suggestions in background (don't block)
         aiSuggestions.fetchAllSuggestions(
@@ -328,9 +361,24 @@ export default function Onboarding() {
     }
   };
 
-  const handleConfirmParsing = () => {
+const handleConfirmParsing = () => {
     setShowParsingPreview(false);
     nextStep();
+  };
+
+  const handleSaveSkills = async () => {
+    triggerHaptic('light');
+    setIsSavingSkills(true);
+    try {
+      // Save skills to backend
+      await api.post("/me/skills", { skills: richSkills });
+      nextStep();
+    } catch (err) {
+      console.error(err);
+      pushToast({ title: "Failed to save skills", tone: "error" });
+    } finally {
+      setIsSavingSkills(false);
+    }
   };
 
   const handleSaveContact = async () => {
@@ -579,6 +627,16 @@ export default function Onboarding() {
                 )}
 
                 {currentStep === 2 && (
+                  <SkillReviewStep
+                    onNext={handleSaveSkills}
+                    onPrev={prevStep}
+                    richSkills={richSkills}
+                    setRichSkills={setRichSkills}
+                    isSaving={isSavingSkills}
+                  />
+                )}
+
+                {currentStep === 3 && (
                   <ConfirmContactStep
                     onNext={handleSaveContact}
                     onPrev={prevStep}
@@ -598,7 +656,7 @@ export default function Onboarding() {
                   />
                 )}
 
-                {currentStep === 3 && (
+                {currentStep === 4 && (
                   <PreferencesStep
                     onNext={handleSavePreferences}
                     onPrev={prevStep}
@@ -610,7 +668,7 @@ export default function Onboarding() {
                   />
                 )}
 
-                {currentStep === 4 && (
+                {currentStep === 5 && (
                   <CalibrationStep
                     onNext={handleSaveCalibration}
                     onPrev={prevStep}
@@ -622,7 +680,7 @@ export default function Onboarding() {
                   />
                 )}
 
-                {currentStep === 5 && (
+                {currentStep === 6 && (
                   <ReadyStep
                     onNext={handleComplete}
                     isCompleting={isCompleting}
