@@ -382,7 +382,7 @@ def patch_map_fields():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_full_application_lifecycle(db_pool, browser):
+async def test_full_application_lifecycle(db_pool, browser, clean_db):
     """
     End-to-end test:
       1. Create test data
@@ -501,7 +501,7 @@ async def test_full_application_lifecycle(db_pool, browser):
 
 
 @pytest.mark.asyncio
-async def test_agent_failure_on_no_form_fields(db_pool, browser):
+async def test_agent_failure_on_no_form_fields(db_pool, browser, clean_db):
     """
     When the page has no form fields, the agent should mark FAILED.
     """

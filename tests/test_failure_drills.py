@@ -186,7 +186,7 @@ SUCCESS_HTML = "<!DOCTYPE html><html><body><h1>Done</h1></body></html>"
 # ===================================================================
 
 @pytest.mark.asyncio
-async def test_llm_outage_marks_failed(db_pool, browser):
+async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
     """
     When map_fields_via_llm raises consistently, the agent should:
       - Mark the application as FAILED
@@ -242,7 +242,7 @@ async def test_llm_outage_marks_failed(db_pool, browser):
 
 
 @pytest.mark.asyncio
-async def test_llm_outage_preserves_events(db_pool, browser):
+async def test_llm_outage_preserves_events(db_pool, browser, clean_db):
     """
     Even on LLM failure, CLAIMED and STARTED_PROCESSING events should exist.
     """
@@ -283,7 +283,7 @@ async def test_llm_outage_preserves_events(db_pool, browser):
 # ===================================================================
 
 @pytest.mark.asyncio
-async def test_dom_no_form_fields(db_pool, browser):
+async def test_dom_no_form_fields(db_pool, browser, clean_db):
     """
     Page has no form fields (e.g., redesigned page).
     Agent should FAIL with 'No form fields' in the error.
@@ -319,7 +319,7 @@ async def test_dom_no_form_fields(db_pool, browser):
 
 
 @pytest.mark.asyncio
-async def test_dom_missing_submit_button(db_pool, browser):
+async def test_dom_missing_submit_button(db_pool, browser, clean_db):
     """
     Page has form fields but no submit button.
     Agent should FAIL with 'submit button' in the error.
@@ -376,7 +376,7 @@ async def test_dom_missing_submit_button(db_pool, browser):
 # ===================================================================
 
 @pytest.mark.asyncio
-async def test_db_transient_failure_during_event_write(db_pool, browser):
+async def test_db_transient_failure_during_event_write(db_pool, browser, clean_db):
     """
     Simulate a transient DB failure during record_event.
     The agent's _handle_failure path should still surface a clean FAILED status
@@ -477,7 +477,7 @@ async def test_profile_with_extra_fields():
 
 
 @pytest.mark.asyncio
-async def test_application_input_meta_with_unknown_keys(db_pool):
+async def test_application_input_meta_with_unknown_keys(db_pool, clean_db):
     """
     Verify that application_inputs rows with extra keys in meta
     are read without errors (forward-compatible).

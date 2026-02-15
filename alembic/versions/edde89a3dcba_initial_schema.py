@@ -95,9 +95,12 @@ def upgrade() -> None:
             status VARCHAR(50) DEFAULT 'SAVED',
             attempt_count INTEGER DEFAULT 0,
             blueprint_key VARCHAR(255),
+            priority_score INTEGER DEFAULT 0,
             available_at TIMESTAMPTZ,
+            snoozed_until TIMESTAMPTZ,
             locked_at TIMESTAMPTZ,
             last_processed_at TIMESTAMPTZ,
+            submitted_at TIMESTAMPTZ,
             last_error TEXT,
             notes TEXT,
             applied_date DATE,
@@ -111,6 +114,16 @@ def upgrade() -> None:
             CREATE TYPE application_event_type AS ENUM (
                 'CREATED', 'CLAIMED', 'STARTED_PROCESSING', 'FIELDS_EXTRACTED',
                 'FORM_FILLED', 'SUBMITTED', 'APPLIED', 'FAILED', 'HOLD', 'RESUMED'
+            );
+        EXCEPTION
+            WHEN others THEN NULL;
+        END $$;
+    """)
+
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE application_status AS ENUM (
+                'SAVED', 'QUEUED', 'PROCESSING', 'REQUIRES_INPUT', 'APPLIED', 'FAILED'
             );
         EXCEPTION
             WHEN others THEN NULL;
@@ -215,6 +228,27 @@ def upgrade() -> None:
     op.execute('CREATE INDEX IF NOT EXISTS idx_events_created_at ON events(created_at)')
     op.execute('CREATE INDEX IF NOT EXISTS idx_answer_memory_user_id ON answer_memory(user_id)')
 
+    op.execute("""
+        CREATE OR REPLACE FUNCTION public.claim_next_prioritized(p_max_attempts int DEFAULT 3)
+        RETURNS SETOF public.applications AS $$
+        BEGIN
+            RETURN QUERY
+            UPDATE public.applications
+            SET status = 'PROCESSING', locked_at = now(), updated_at = now()
+            WHERE id = (
+                SELECT id FROM public.applications
+                WHERE (status = 'QUEUED' OR (status = 'PROCESSING' AND locked_at < now() - interval '10 minutes'))
+                  AND (snoozed_until IS NULL OR snoozed_until < now())
+                  AND attempt_count < p_max_attempts
+                ORDER BY priority_score DESC, created_at ASC
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED
+            )
+            RETURNING *;
+        END;
+        $$ LANGUAGE plpgsql;
+    """)
+
 
 def downgrade() -> None:
     op.execute('DROP INDEX IF EXISTS idx_answer_memory_user_id')
@@ -228,6 +262,7 @@ def downgrade() -> None:
     op.execute('DROP INDEX IF EXISTS idx_jobs_title')
 
     op.execute('DROP TABLE IF EXISTS billing_customers')
+    op.execute('DROP FUNCTION IF EXISTS claim_next_prioritized(int)')
     op.execute('DROP TABLE IF EXISTS job_match_cache')
     op.execute('DROP TABLE IF EXISTS profiles')
     op.execute('DROP TABLE IF EXISTS application_events')
