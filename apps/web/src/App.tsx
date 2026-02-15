@@ -26,6 +26,7 @@ const CategoryHub = React.lazy(() => import("./pages/CategoryHub"));
 const GuidesHome = React.lazy(() => import("./pages/GuidesHome"));
 const GuidePage = React.lazy(() => import("./pages/GuidePage"));
 const BlogHome = React.lazy(() => import("./pages/BlogHome"));
+const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 const ToolsHub = React.lazy(() => import("./pages/ToolsHub"));
 const JobrightVsJobhuntin = React.lazy(() => import("./pages/JobrightVsJobhuntin"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -127,6 +128,7 @@ export default function App() {
             <Route path="/guides" element={<GuidesHome />} />
             <Route path="/guides/:guideSlug" element={<GuidePage />} />
             <Route path="/blog" element={<BlogHome />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/tools" element={<ToolsHub />} />
             <Route path="/vs/jobright" element={<JobrightVsJobhuntin />} />
             <Route path="/privacy" element={<Privacy />} />

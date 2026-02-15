@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bot, ArrowLeft, MapPin, Sparkles, Briefcase, Zap, TrendingUp, DollarSign, Globe, CheckCircle2 } from 'lucide-react';
+import { Bot, ArrowLeft, MapPin, Sparkles, Briefcase, Zap, TrendingUp, DollarSign, Globe, CheckCircle2, Menu, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
 import rolesData from '../data/roles.json';
@@ -10,11 +10,11 @@ import { generateSemanticLinksForLocationRole } from '../utils/semanticLinking';
 
 export default function JobNiche() {
   const { role, city } = useParams<{ role: string; city: string }>();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const roleInfo = rolesData.find(r => r.id === role);
   const cityInfo = locationsData.find(c => c.id === city);
 
-  // Generate aggressive SEO content using our optimizer
   const seoData = generateLocationRoleSEO(
     roleInfo?.name || role || 'Professional',
     cityInfo?.name || city || 'Remote',
@@ -22,7 +22,6 @@ export default function JobNiche() {
     roleInfo
   );
 
-  // Generate semantic internal links
   const semanticLinks = generateSemanticLinksForLocationRole(
     roleInfo?.name || role || 'Professional',
     cityInfo?.name || city || 'Remote',
@@ -36,16 +35,13 @@ export default function JobNiche() {
   const canonicalUrl = `https://jobhuntin.com/jobs/${role ?? ''}/${city ?? ''}`;
   const ogImage = `https://jobhuntin.com/api/og?job=${encodeURIComponent(formattedRole)}&company=${encodeURIComponent(formattedCity)}&score=100&location=${encodeURIComponent(formattedCity)}`;
 
-  // Programmatic City-Specific Stats (Sample logic)
   const isUS = cityInfo?.country === 'USA';
 
   const salaryStats = React.useMemo(() => {
-    // Check if role has comprehensive schema data
     if ((roleInfo as any)?.schema?.[0]?.estimatedSalary) {
       const est = (roleInfo as any).schema[0].estimatedSalary;
       const currency = est.currency === 'USD' ? '$' : '€';
       const format = (val: number) => `${currency}${Math.round(val / 1000)}k`;
-
       return {
         entry: `${format(est.percentile10)} - ${format(est.percentile25)}`,
         mid: `${format(est.percentile25)} - ${format(est.percentile75)}`,
@@ -53,8 +49,6 @@ export default function JobNiche() {
         range: `${format(est.percentile10)} - ${format(est.percentile90)}`
       };
     }
-
-    // Fallback defaults
     return {
       entry: isUS ? "$75k - $95k" : "€50k - €70k",
       mid: isUS ? "$95k - $135k" : "€70k - €100k",
@@ -75,218 +69,200 @@ export default function JobNiche() {
         schema={seoData.schema}
       />
 
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 py-4">
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+      {/* Mobile-optimized sticky header */}
+      <header className="bg-white/95 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-black group-hover:rotate-12 transition-transform">JH</div>
-            <span className="font-black text-xl tracking-tight">JobHuntin</span>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-primary-600 rounded-lg flex items-center justify-center text-white font-black text-sm group-hover:rotate-12 transition-transform">JH</div>
+            <span className="font-black text-lg sm:text-xl tracking-tight hidden sm:block">JobHuntin</span>
           </Link>
-          <Link to="/login" className="bg-primary-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-primary-700 transition-colors">
+          
+          {/* Mobile menu button */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="sm:hidden p-2 text-slate-600"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+          
+          {/* Desktop CTA */}
+          <Link to="/login" className="hidden sm:flex bg-primary-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-primary-700 transition-colors">
             Get Started
           </Link>
         </div>
+        
+        {/* Mobile menu dropdown */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-slate-100 bg-white px-4 py-4">
+            <nav className="space-y-3">
+              <Link to="/" className="block py-2 text-slate-700 font-medium">Home</Link>
+              <Link to="/pricing" className="block py-2 text-slate-700 font-medium">Pricing</Link>
+              <Link to="/blog" className="block py-2 text-slate-700 font-medium">Blog</Link>
+              <Link to="/tools" className="block py-2 text-slate-700 font-medium">Free Tools</Link>
+            </nav>
+            <Link to="/login" className="mt-4 block text-center bg-primary-600 text-white px-5 py-3 rounded-xl font-bold">
+              Get Started Free
+            </Link>
+          </div>
+        )}
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-20">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-20">
+        {/* Breadcrumb for SEO */}
+        <nav className="mb-6 text-sm text-slate-500 hidden sm:block" aria-label="Breadcrumb">
+          <ol className="flex items-center gap-2">
+            <li><Link to="/" className="hover:text-primary-600">Home</Link></li>
+            <li>/</li>
+            <li><Link to="/locations" className="hover:text-primary-600">Jobs by Location</Link></li>
+            <li>/</li>
+            <li className="text-slate-700 font-medium">{formattedCity}</li>
+          </ol>
+        </nav>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="text-center mb-8 sm:mb-16"
         >
-          <div className="inline-flex items-center gap-2 bg-primary-50 text-primary-600 px-4 py-1 rounded-full text-xs font-bold mb-6 border border-primary-100 uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" />
-            Localized AI Job Hunt
+          <div className="inline-flex items-center gap-2 bg-primary-50 text-primary-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold mb-4 sm:mb-6 border border-primary-100 uppercase tracking-wider">
+            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            {formattedCity}, {cityInfo?.state || (isUS ? 'USA' : cityInfo?.country || 'Remote')}
           </div>
-          {/* H1 - Primary heading with semantic keywords */}
-          <h1 className="text-4xl md:text-6xl font-black font-display mb-6 text-slate-900 leading-[1.1]">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display mb-4 sm:mb-6 text-slate-900 leading-[1.1] px-2">
             {seoData.h1}
           </h1>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+          <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium px-4">
             {seoData.description}
           </p>
         </motion.div>
 
-        {/* Market Data Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20">
+        {/* Mobile-optimized Market Data Grid */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-10 sm:mb-20">
           {[
             { label: "Est. Salary", value: salaryStats.range, icon: DollarSign, color: "text-emerald-500" },
-            { label: "Active Openings", value: "240+", icon: Briefcase, color: "text-blue-500" },
-            { label: "Market Density", value: "High", icon: TrendingUp, color: "text-primary-500" },
-            { label: "Remote Options", value: "45%", icon: Globe, color: "text-purple-500" },
+            { label: "Openings", value: "240+", icon: Briefcase, color: "text-blue-500" },
+            { label: "Demand", value: "High", icon: TrendingUp, color: "text-primary-500" },
+            { label: "Remote", value: "45%", icon: Globe, color: "text-purple-500" },
           ].map((stat, i) => (
-            <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</span>
+            <div key={i} className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <stat.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${stat.color}`} />
+                <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</span>
               </div>
-              <div className="text-xl font-black text-slate-900">{stat.value}</div>
+              <div className="text-lg sm:text-xl font-black text-slate-900">{stat.value}</div>
             </div>
           ))}
         </div>
 
-        {/* H2 - Feature comparison section */}
-        <div className="grid md:grid-cols-2 gap-12 mb-20 items-center">
+        {/* Feature Section - Mobile optimized */}
+        <div className="grid md:grid-cols-2 gap-8 sm:gap-12 mb-10 sm:mb-20 items-center">
           <div>
-            <h2 className="text-3xl font-black mb-6">{seoData.h2s[0]}</h2>
-            <div className="space-y-4">
+            <h2 className="text-2xl sm:text-3xl font-black mb-4 sm:mb-6">{seoData.h2s[0]}</h2>
+            <div className="space-y-3 sm:space-y-4">
               {[
-                `Automatic resume tailoring for ${formattedCity} ATS standards`,
-                `Stealth submissions that bypass bot detection`,
-                `24/7 discovery of new ${formattedRole} openings`,
-                `Integrated LinkedIn & Indeed application handling`,
-                "Direct outreach to local tech recruiters"
+                `Auto-tailor resume for ${formattedCity} jobs`,
+                `Stealth applications that bypass detection`,
+                `24/7 discovery of new ${formattedRole} roles`,
+                `LinkedIn & Indeed auto-apply`,
+                "Direct recruiter outreach"
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-slate-600 font-medium">
-                  <CheckCircle2 className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                  {item}
+                <div key={i} className="flex items-start gap-3 text-slate-600 font-medium text-sm sm:text-base">
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary-500 flex-shrink-0 mt-0.5" />
+                  <span>{item}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
+          <div className="bg-slate-900 rounded-2xl sm:rounded-[2.5rem] p-6 sm:p-8 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/20 rounded-full blur-3xl" />
-            <Bot className="w-12 h-12 text-primary-400 mb-6" />
-            <h3 className="text-xl font-bold mb-4">The JobHuntin Edge</h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-6 font-medium">
-              Traditional job boards in {formattedCity} are saturated. Our agent uses
-              advanced scraping patterns and human-simulated browsing to ensure your applications
-              are at the top of the pile the moment a job goes live.
+            <Bot className="w-10 h-10 sm:w-12 sm:h-12 text-primary-400 mb-4 sm:mb-6" />
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">The JobHuntin Edge</h3>
+            <p className="text-slate-400 text-sm leading-relaxed mb-4 sm:mb-6 font-medium">
+              Job boards in {formattedCity} are saturated. Our AI agent uses human-simulated browsing to ensure your applications are seen first.
             </p>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+            <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4">
               <div className="text-xs font-bold text-slate-500 mb-1 uppercase">Top Industry</div>
-              <div className="text-sm font-bold">{cityInfo?.industries?.[0] || "Technology & Innovation"}</div>
+              <div className="text-sm font-bold">{cityInfo?.industries?.[0] || "Technology"}</div>
             </div>
           </div>
         </div>
 
-        {/* H2 - Salary analysis section */}
-        <section className="mb-20">
-          <h2 className="text-2xl font-black mb-8">{seoData.h2s[1]}</h2>
-          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <div className="grid md:grid-cols-3 gap-8">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-3">Entry Level</h3>
-                <div className="text-3xl font-black text-emerald-600 mb-2">{salaryStats.entry}</div>
-                <p className="text-sm text-slate-500">0-2 years experience</p>
+        {/* Salary Section - Mobile optimized */}
+        <section className="mb-10 sm:mb-20">
+          <h2 className="text-xl sm:text-2xl font-black mb-6 sm:mb-8">{seoData.h2s[1]}</h2>
+          <div className="bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+              <div className="text-center sm:text-left">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 sm:mb-3">Entry Level</h3>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-600 mb-1 sm:mb-2">{salaryStats.entry}</div>
+                <p className="text-xs sm:text-sm text-slate-500">0-2 years experience</p>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-3">Mid Level</h3>
-                <div className="text-3xl font-black text-blue-600 mb-2">{salaryStats.mid}</div>
-                <p className="text-sm text-slate-500">3-5 years experience</p>
+              <div className="text-center sm:text-left border-t sm:border-t-0 border-slate-100 pt-4 sm:pt-0">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 sm:mb-3">Mid Level</h3>
+                <div className="text-2xl sm:text-3xl font-black text-blue-600 mb-1 sm:mb-2">{salaryStats.mid}</div>
+                <p className="text-xs sm:text-sm text-slate-500">3-5 years experience</p>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-3">Senior Level</h3>
-                <div className="text-3xl font-black text-purple-600 mb-2">{salaryStats.senior}</div>
-                <p className="text-sm text-slate-500">5+ years experience</p>
+              <div className="text-center sm:text-left border-t sm:border-t-0 border-slate-100 pt-4 sm:pt-0">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 sm:mb-3">Senior Level</h3>
+                <div className="text-2xl sm:text-3xl font-black text-purple-600 mb-1 sm:mb-2">{salaryStats.senior}</div>
+                <p className="text-xs sm:text-sm text-slate-500">5+ years experience</p>
               </div>
-            </div>
-            <div className="mt-8 p-4 bg-slate-50 rounded-2xl">
-              <p className="text-sm text-slate-600">
-                <strong>Pro tip:</strong> {cityInfo?.name || formattedCity} offers competitive salaries with
-                {(cityInfo as any)?.costOfLivingIndex ? ` cost of living index of ${(cityInfo as any).costOfLivingIndex}` : ' excellent cost of living'}
-                and {(cityInfo as any)?.remotePercentage || '45'}% remote opportunities.
-              </p>
             </div>
           </div>
         </section>
 
-        {/* H2 - Local companies section */}
-        <section className="mb-20">
-          <h2 className="text-2xl font-black mb-8">{seoData.h2s[2]}</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Employers Grid - Mobile optimized */}
+        <section className="mb-10 sm:mb-20">
+          <h2 className="text-xl sm:text-2xl font-black mb-6 sm:mb-8">{seoData.h2s[2]}</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
             {cityInfo?.majorEmployers?.slice(0, 6).map((employer, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-4">
-                  <Briefcase className="w-6 h-6 text-primary-600" />
+              <div key={i} className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-3 sm:mb-4">
+                  <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
                 </div>
-                <h3 className="font-bold text-slate-900 mb-2">{employer}</h3>
-                <p className="text-sm text-slate-500 mb-4">{cityInfo?.industries?.[0] || 'Technology'} Company</p>
-                <Link
-                  to={`/jobs/${role}/${city}?company=${encodeURIComponent(employer)}`}
-                  className="text-primary-600 text-sm font-bold hover:text-primary-700 transition-colors"
-                >
-                  View Openings →
-                </Link>
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1 sm:mb-2">{employer}</h3>
+                <p className="text-xs sm:text-sm text-slate-500">{cityInfo?.industries?.[0] || 'Tech'}</p>
               </div>
             )) || (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-slate-500">Major employers data coming soon for {formattedCity}</p>
-                </div>
-              )}
+              <div className="col-span-full text-center py-8">
+                <p className="text-slate-500 text-sm">Employer data coming soon for {formattedCity}</p>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* H2 - FAQ section with semantic keywords */}
-        <section className="mb-20">
-          <h2 className="text-2xl font-black mb-8">{seoData.h2s[3]}</h2>
-          <div className="space-y-4">
+        {/* FAQ Section - Mobile optimized with schema */}
+        <section className="mb-10 sm:mb-20">
+          <h2 className="text-xl sm:text-2xl font-black mb-6 sm:mb-8">{seoData.h2s[3]}</h2>
+          <div className="space-y-3 sm:space-y-4">
             {seoData.faqs.map((faq, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100">
-                <h3 className="font-bold text-slate-900 mb-2">{faq.question}</h3>
-                <p className="text-slate-500 text-sm font-medium">{faq.answer}</p>
-              </div>
+              <details key={i} className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 group">
+                <summary className="p-4 sm:p-6 cursor-pointer list-none flex items-center justify-between font-semibold text-slate-900 text-sm sm:text-base hover:text-primary-600">
+                  {faq.question}
+                  <span className="text-slate-400 text-xs">▼</span>
+                </summary>
+                <div className="px-4 sm:px-6 pb-4 sm:pb-6 text-slate-600 text-sm sm:text-base">
+                  {faq.answer}
+                </div>
+              </details>
             ))}
           </div>
         </section>
 
-        {/* H2 - Application tips section */}
-        <section className="mb-20">
-          <h2 className="text-2xl font-black mb-8">{seoData.h2s[4]}</h2>
-          <div className="bg-gradient-to-br from-primary-50 to-blue-50 p-8 rounded-3xl border border-primary-100">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-4">Resume Optimization</h3>
-                <ul className="space-y-2 text-sm text-slate-600">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
-                    Tailor your resume with {cityInfo?.name || formattedCity}-specific keywords
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
-                    Highlight experience with local tech companies
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
-                    Include relevant certifications and skills
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-4">Interview Preparation</h3>
-                <ul className="space-y-2 text-sm text-slate-600">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
-                    Research {cityInfo?.name || formattedCity} company culture
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
-                    Practice technical assessments
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
-                    Prepare for remote work discussions
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Aggressive Internal Linking Mesh with H3s */}
-        <section className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm mb-20">
-          <h2 className="text-xl font-black mb-8 text-center">Explore Related Opportunities</h2>
-          <div className="grid md:grid-cols-2 gap-12">
+        {/* Related Links - Mobile optimized */}
+        <section className="bg-white rounded-2xl sm:rounded-[2.5rem] p-6 sm:p-10 border border-slate-100 shadow-sm mb-10 sm:mb-20">
+          <h2 className="text-lg sm:text-xl font-black mb-6 sm:mb-8 text-center">Related Opportunities</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-12">
             <div>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">
-                Popular {formattedRole} Searches
+              <h3 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 sm:mb-6 border-b border-slate-100 pb-2">
+                Similar Roles
               </h3>
-              <div className="flex flex-wrap gap-3">
-                {semanticLinks.filter(l => l.entityType === 'role' || l.entityType === 'related-role').map((link, i) => (
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                {semanticLinks.filter(l => l.entityType === 'role' || l.entityType === 'related-role').slice(0, 5).map((link, i) => (
                   <Link
                     key={i}
                     to={link.url}
-                    className="bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-600 px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-slate-100 hover:border-primary-100"
-                    title={link.anchorText}
+                    className="bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-colors border border-slate-100"
                   >
                     {link.anchorText}
                   </Link>
@@ -294,16 +270,15 @@ export default function JobNiche() {
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">
-                Jobs Near {formattedCity}
+              <h3 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 sm:mb-6 border-b border-slate-100 pb-2">
+                Nearby Cities
               </h3>
-              <div className="flex flex-wrap gap-3">
-                {semanticLinks.filter(l => l.entityType === 'location' || l.entityType === 'nearby-location').map((link, i) => (
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                {semanticLinks.filter(l => l.entityType === 'location' || l.entityType === 'nearby-location').slice(0, 5).map((link, i) => (
                   <Link
                     key={i}
                     to={link.url}
-                    className="bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-600 px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-slate-100 hover:border-primary-100"
-                    title={link.anchorText}
+                    className="bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-colors border border-slate-100"
                   >
                     {link.anchorText}
                   </Link>
@@ -311,52 +286,37 @@ export default function JobNiche() {
               </div>
             </div>
           </div>
-
-          {/* Deep Competitor Links for Authority */}
-          <div className="mt-10 pt-10 border-t border-slate-100">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 text-center">
-              Compare Job Search Tools
-            </h3>
-            <div className="flex flex-wrap justify-center gap-4">
-              {semanticLinks.filter(l => l.entityType === 'competitor').map((link, i) => (
-                <Link
-                  key={i}
-                  to={link.url}
-                  className="text-slate-500 hover:text-primary-600 text-sm font-medium transition-colors flex items-center gap-2"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                  {link.anchorText}
-                </Link>
-              ))}
-            </div>
-          </div>
         </section>
 
-        {/* CTA with semantic keywords */}
-        <div className="bg-primary-600 rounded-[3rem] p-12 text-white text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-          <h2 className="text-3xl font-bold mb-6 relative z-10 font-display">
+        {/* CTA - Mobile optimized */}
+        <div className="bg-primary-600 rounded-2xl sm:rounded-[3rem] p-8 sm:p-12 text-white text-center relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-white/10 rounded-full blur-3xl" />
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 relative z-10 font-display">
             {seoData.cta.headline}
           </h2>
-          <p className="text-primary-100 mb-10 relative z-10 max-w-lg mx-auto text-lg font-medium">
+          <p className="text-primary-100 mb-6 sm:mb-10 relative z-10 max-w-lg mx-auto text-base sm:text-lg font-medium">
             {seoData.cta.description}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center relative z-10">
             <Link
               to="/login"
-              className="bg-white text-primary-600 px-10 py-4 rounded-2xl font-black text-lg hover:scale-105 transition-transform shadow-xl shadow-white/5"
-              title={`Apply for ${formattedRole} jobs in ${formattedCity} with AI automation`}
+              className="w-full sm:w-auto bg-white text-primary-600 px-8 sm:px-10 py-4 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg hover:scale-105 transition-transform shadow-xl shadow-white/5"
             >
               {seoData.cta.buttonText}
-            </Link>
-            <Link to="/pricing" className="text-primary-100 font-bold hover:underline">
-              View Pricing Plans
             </Link>
           </div>
         </div>
       </main>
 
-
+      {/* Mobile CTA bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-40">
+        <Link
+          to="/login"
+          className="block w-full bg-primary-600 text-white text-center py-4 rounded-xl font-bold"
+        >
+          Start Applying Free
+        </Link>
+      </div>
     </div>
   );
 }
