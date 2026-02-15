@@ -82,7 +82,7 @@ export default function ComparisonPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
         <Bot className="w-16 h-16 text-primary-500 mb-4 animate-bounce" />
-        <h1 className="text-2xl font-bold mb-4 text-slate-900">Competitor Not Found</h1>
+        <h2 className="text-2xl font-bold mb-4 text-slate-900">Competitor Not Found</h2>
         <p className="text-slate-500 mb-6">We don't have a comparison for this tool yet.</p>
         <Link to="/best/ai-auto-apply-tools" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
           <ArrowLeft className="w-4 h-4" /> Browse All Comparisons

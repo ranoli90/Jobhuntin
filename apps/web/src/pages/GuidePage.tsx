@@ -94,7 +94,7 @@ export default function GuidePage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
         <BookOpen className="w-16 h-16 text-primary-500 mb-4 animate-pulse" />
-        <h1 className="text-2xl font-bold mb-4 text-slate-900">Guide Not Found</h1>
+        <h2 className="text-2xl font-bold mb-4 text-slate-900">Guide Not Found</h2>
         <Link to="/guides" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
           <ArrowLeft className="w-4 h-4" /> Back to Playbook
         </Link>

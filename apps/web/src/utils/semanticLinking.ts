@@ -63,10 +63,20 @@ export function generateSemanticLinksForLocationRole(
     });
   }
 
-  // Competitor comparison linking
+  // Competitor comparison linking (only to existing competitor pages)
+  // Note: We link to actual competitor pages from competitors.json
   links.push({
-    url: `/vs/indeed-${role.toLowerCase().replace(/\s+/g, '-')}-${location.toLowerCase().replace(/\s+/g, '-')}`,
-    anchorText: `Indeed vs JobHuntin for ${role} in ${location}`,
+    url: `/vs/simplify`,
+    anchorText: `Simplify vs JobHuntin comparison`,
+    semanticRelationship: 'competitor-comparison',
+    entityType: 'competitor',
+    priority: 'medium',
+    topicalRelevance: 0.85
+  });
+
+  links.push({
+    url: `/vs/teal`,
+    anchorText: `Teal vs JobHuntin comparison`,
     semanticRelationship: 'competitor-comparison',
     entityType: 'competitor',
     priority: 'medium',
@@ -99,19 +109,15 @@ export function generateSemanticLinksForLocationRole(
     });
   });
 
-  // Skill-based linking
-  if (roleData?.skills) {
-    roleData.skills.slice(0, 3).forEach((skill: string) => {
-      links.push({
-        url: `/skills/${skill.toLowerCase().replace(/\s+/g, '-')}/${location.toLowerCase().replace(/\s+/g, '-')}`,
-        anchorText: `${skill} jobs in ${location}`,
-        semanticRelationship: 'skill-requirement',
-        entityType: 'skill',
-        priority: 'low',
-        topicalRelevance: 0.70
-      });
-    });
-  }
+  // Category page linking (using actual categories from categories.json)
+  links.push({
+    url: `/best/ai-auto-apply-tools`,
+    anchorText: `best AI auto-apply tools`,
+    semanticRelationship: 'category-relationship',
+    entityType: 'category',
+    priority: 'high',
+    topicalRelevance: 0.90
+  });
 
   return links.sort((a, b) => b.topicalRelevance - a.topicalRelevance);
 }

@@ -186,7 +186,7 @@ export function JobCard({
           <p className="text-brand-ink/70">{job.company}</p>
         </div>
         {job.logo_url ? (
-          <img src={job.logo_url} className="h-16 w-16 rounded-2xl object-cover" />
+          <img src={job.logo_url} alt={`${job.company} logo`} className="h-16 w-16 rounded-2xl object-cover" loading="lazy" />
         ) : null}
       </div>
 

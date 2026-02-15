@@ -54,7 +54,7 @@ export default function CategoryHub() {
     if (!category) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
-                <h1 className="text-2xl font-bold mb-4 text-slate-900">Category Not Found</h1>
+                <h2 className="text-2xl font-bold mb-4 text-slate-900">Category Not Found</h2>
                 <Link to="/" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
                     <ArrowLeft className="w-4 h-4" /> Back to Home
                 </Link>

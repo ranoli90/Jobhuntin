@@ -70,13 +70,18 @@ const categoryRoutes = categories.map((cat) => ({
 }));
 
 // Local Job Niche routes (Roles × Locations)
-const localRoutes = roles.flatMap((role) =>
-  locations.map((loc) => ({
-    path: `/jobs/${role.id}/${loc.id}`,
-    priority: 0.7,
-    changefreq: 'daily',
-  }))
-);
+// Filter out roles without valid id field to prevent undefined URLs
+const localRoutes = roles
+  .filter((role) => role.id && typeof role.id === 'string' && role.id.trim() !== '')
+  .flatMap((role) =>
+    locations
+      .filter((loc) => loc.id && typeof loc.id === 'string' && loc.id.trim() !== '')
+      .map((loc) => ({
+        path: `/jobs/${role.id}/${loc.id}`,
+        priority: 0.7,
+        changefreq: 'daily',
+      }))
+  );
 
 const today = new Date().toISOString().split('T')[0];
 
