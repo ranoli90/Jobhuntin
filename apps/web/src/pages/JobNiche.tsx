@@ -1,4 +1,5 @@
 import React from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Bot, ArrowLeft, MapPin, Sparkles, Briefcase, Zap, TrendingUp, DollarSign, Globe, CheckCircle2 } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
