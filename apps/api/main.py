@@ -62,6 +62,7 @@ from backend.domain.tenant import (
 )
 from shared.metrics import dump as metrics_dump
 from shared.metrics import incr
+from shared.storage import get_storage_service
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -99,8 +100,8 @@ async def lifespan(app: FastAPI):
     # Startup
     if not _settings.jwt_secret:
         if _settings.env == Environment.PROD:
-             logger.critical("JWT_SECRET missing in PROD. Aborting startup.")
-             raise RuntimeError("JWT_SECRET must be set in production")
+            logger.critical("JWT_SECRET missing in PROD. Aborting startup.")
+            raise RuntimeError("JWT_SECRET must be set in production")
         logger.warning("JWT_SECRET not set. Authentication will fail.")
 
     await _pool_manager.initialize()
@@ -109,7 +110,10 @@ async def lifespan(app: FastAPI):
         try:
             r = await get_redis()
             await r.ping()
-            is_internal = "red-" in _settings.redis_url and ".render.com" not in _settings.redis_url
+            is_internal = (
+                "red-" in _settings.redis_url
+                and ".render.com" not in _settings.redis_url
+            )
             url_type = "internal" if is_internal else "external"
             logger.info(f"Redis connected ({url_type})")
         except Exception as e:
@@ -876,6 +880,7 @@ async def resume_parse(
         tenant_id=ctx.tenant_id,
         pdf_bytes=pdf_bytes,
         db_pool=db,
+        storage=get_storage_service(),
     )
 
     return ResumeParseResponse(

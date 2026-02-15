@@ -47,6 +47,7 @@ from backend.domain.repositories import (
 from backend.domain.resume import process_resume_upload
 from backend.domain.tenant import TenantContext
 from shared.metrics import RateLimiter
+from shared.storage import get_storage_service
 
 logger = get_logger("sorce.user")
 
@@ -265,10 +266,13 @@ async def undo_application(
         )
 
         if not app:
-            raise HTTPException(status_code=404, detail="No application found for this job")
+            raise HTTPException(
+                status_code=404, detail="No application found for this job"
+            )
 
         # Check if within 5 second undo window
         from datetime import datetime, timedelta
+
         created_at = app["created_at"]
         if created_at and datetime.utcnow() - created_at > timedelta(seconds=30):
             # Allow up to 30 seconds on backend for network latency
@@ -499,7 +503,7 @@ async def get_profile(
 ) -> dict[str, Any]:
     """Current user profile for web: id, email, has_completed_onboarding, resume_url, preferences."""
     logger.info("[PROFILE] Fetching profile", extra={"user_id": str(ctx.user_id)})
-    
+
     async with db.acquire() as conn:
         # Fetch user profile from public.users
         user_row = await conn.fetchrow(
@@ -527,17 +531,20 @@ async def get_profile(
     if isinstance(prefs, str):
         prefs = {}
     contact = profile_data.get("contact") or {}
-    
+
     has_completed_onboarding = profile_data.get("has_completed_onboarding", False)
-    
-    logger.info("[PROFILE] Profile fetched successfully", extra={
-        "user_id": str(ctx.user_id),
-        "email": user_row["email"],
-        "has_completed_onboarding": has_completed_onboarding,
-        "has_resume": bool(resume_url),
-        "has_preferences": bool(prefs)
-    })
-    
+
+    logger.info(
+        "[PROFILE] Profile fetched successfully",
+        extra={
+            "user_id": str(ctx.user_id),
+            "email": user_row["email"],
+            "has_completed_onboarding": has_completed_onboarding,
+            "has_resume": bool(resume_url),
+            "has_preferences": bool(prefs),
+        },
+    )
+
     return {
         "id": str(user_row["id"]),
         "email": user_row["email"] or "",
@@ -589,11 +596,14 @@ async def update_profile(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Update profile: onboarding flag and preferences stored in profile_data."""
-    logger.info("[PROFILE] Update requested", extra={
-        "user_id": str(ctx.user_id),
-        "updates": body.model_dump(exclude_none=True)
-    })
-    
+    logger.info(
+        "[PROFILE] Update requested",
+        extra={
+            "user_id": str(ctx.user_id),
+            "updates": body.model_dump(exclude_none=True),
+        },
+    )
+
     limiter = _get_profile_limiter(ctx.user_id)
     if not await limiter.acquire():
         from shared.metrics import incr
@@ -613,9 +623,12 @@ async def update_profile(
         _merge_profile_update(profile_data, body)
 
         now_onboarding = profile_data.get("has_completed_onboarding", False)
-        
+
         if not was_onboarding and now_onboarding:
-            logger.info("[PROFILE] Onboarding completion detected", extra={"user_id": str(ctx.user_id)})
+            logger.info(
+                "[PROFILE] Onboarding completion detected",
+                extra={"user_id": str(ctx.user_id)},
+            )
             background_tasks.add_task(
                 _hydrate_job_matches,
                 db_pool=db,
@@ -639,11 +652,14 @@ async def update_profile(
             else current_resume,
             tenant_id=ctx.tenant_id,
         )
-        
-        logger.info("[PROFILE] Profile updated successfully", extra={
-            "user_id": str(ctx.user_id),
-            "has_completed_onboarding": now_onboarding
-        })
+
+        logger.info(
+            "[PROFILE] Profile updated successfully",
+            extra={
+                "user_id": str(ctx.user_id),
+                "has_completed_onboarding": now_onboarding,
+            },
+        )
         row = await conn.fetchrow(
             "SELECT resume_url FROM public.profiles WHERE user_id = $1",
             ctx.user_id,
@@ -781,6 +797,7 @@ async def upload_resume(
         tenant_id=ctx.tenant_id,
         pdf_bytes=pdf_bytes,
         db_pool=db,
+        storage=get_storage_service(),
     )
 
     # Telemetry: successful upload
