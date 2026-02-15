@@ -201,154 +201,151 @@ export function SkillReviewStep({
     };
 
     return (
-        <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                <div className="mb-3 md:mb-5 flex items-center gap-2.5 md:gap-4 border-b border-slate-100 pb-2.5 md:pb-5">
-                    <div className="flex h-8 w-10 md:h-11 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
-                        <Sparkles className="h-4 w-4 md:h-6 md:w-6" />
-                    </div>
-                    <div className="min-w-0">
-                        <h2 className="font-display text-base md:text-2xl font-bold text-slate-900 tracking-tight truncate">Review Your Skills</h2>
-                        <p className="text-[10px] md:text-sm text-slate-500 font-medium truncate">{richSkills.length} skills detected from your resume</p>
-                    </div>
+        <div>
+            <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
+                <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
+                    <Sparkles className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
+                <div className="min-w-0">
+                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">Review Your Skills</h2>
+                    <p className="text-xs md:text-sm text-slate-500 font-medium">{richSkills.length} skills detected from your resume</p>
+                </div>
+            </div>
 
-                {richSkills.length === 0 ? (
-                    <div className="text-center py-8 md:py-12">
-                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-slate-100 mx-auto mb-4 flex items-center justify-center">
-                            <AlertCircle className="w-6 h-6 md:w-7 md:h-7 text-slate-400" />
-                        </div>
-                        <p className="text-slate-600 text-sm font-medium mb-1">No skills detected</p>
-                        <p className="text-slate-400 text-xs mb-4">Add your skills manually to improve job matching</p>
-                        <Button
-                            onClick={() => setIsAddingSkill(true)}
-                            className="h-10 text-sm"
-                        >
-                            <Plus className="w-4 h-4 mr-1.5" />
-                            Add Your First Skill
-                        </Button>
+            {richSkills.length === 0 ? (
+                <div className="text-center py-8 md:py-12">
+                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-slate-100 mx-auto mb-4 flex items-center justify-center">
+                        <AlertCircle className="w-6 h-6 md:w-7 md:h-7 text-slate-400" />
                     </div>
-                ) : (
-                    <div className="space-y-3 md:space-y-4">
-                        {highSkills.length > 0 && (
-                            <div className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-emerald-50/50 border border-emerald-100">
-                                <div className="flex items-center gap-2 mb-2 px-1">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                    <span className="text-[10px] md:text-xs font-bold text-emerald-700 uppercase tracking-wide">High Confidence</span>
-                                    <span className="text-[10px] md:text-xs text-emerald-500">({highSkills.length})</span>
-                                </div>
-                                <div className="space-y-1.5 md:space-y-2">
-                                    {highSkills.map((skill) => {
-                                        const globalIdx = richSkills.findIndex(s => s === skill);
-                                        return (
-                                            <SkillRow
-                                                key={skill.skill}
-                                                skill={skill}
-                                                onEdit={() => setEditingIndex(globalIdx)}
-                                                onDelete={() => handleDeleteSkill(globalIdx)}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        {mediumSkills.length > 0 && (
-                            <div className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-amber-50/50 border border-amber-100">
-                                <div className="flex items-center gap-2 mb-2 px-1">
-                                    <div className="w-2 h-2 rounded-full bg-amber-500" />
-                                    <span className="text-[10px] md:text-xs font-bold text-amber-700 uppercase tracking-wide">Medium Confidence</span>
-                                    <span className="text-[10px] md:text-xs text-amber-500">({mediumSkills.length})</span>
-                                </div>
-                                <div className="space-y-1.5 md:space-y-2">
-                                    {mediumSkills.map((skill) => {
-                                        const globalIdx = richSkills.findIndex(s => s === skill);
-                                        return (
-                                            <SkillRow
-                                                key={skill.skill}
-                                                skill={skill}
-                                                onEdit={() => setEditingIndex(globalIdx)}
-                                                onDelete={() => handleDeleteSkill(globalIdx)}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        {lowSkills.length > 0 && (
-                            <div className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-red-50/50 border border-red-100">
-                                <div className="flex items-center gap-2 mb-2 px-1">
-                                    <div className="w-2 h-2 rounded-full bg-red-400" />
-                                    <span className="text-[10px] md:text-xs font-bold text-red-700 uppercase tracking-wide">Low Confidence</span>
-                                    <span className="text-[10px] md:text-xs text-red-400">({lowSkills.length}) — review recommended</span>
-                                </div>
-                                <div className="space-y-1.5 md:space-y-2">
-                                    {lowSkills.map((skill) => {
-                                        const globalIdx = richSkills.findIndex(s => s === skill);
-                                        return (
-                                            <SkillRow
-                                                key={skill.skill}
-                                                skill={skill}
-                                                onEdit={() => setEditingIndex(globalIdx)}
-                                                onDelete={() => handleDeleteSkill(globalIdx)}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                <AnimatePresence>
-                    {isAddingSkill && (
-                        <AddSkillForm
-                            onAdd={handleAddSkill}
-                            onCancel={() => setIsAddingSkill(false)}
-                        />
-                    )}
-                </AnimatePresence>
-
-                {!isAddingSkill && (
+                    <p className="text-slate-600 text-sm font-medium mb-1">No skills detected</p>
+                    <p className="text-slate-400 text-xs mb-4">Add your skills manually to improve job matching</p>
                     <Button
-                        variant="outline"
                         onClick={() => setIsAddingSkill(true)}
-                        className="mt-3 md:mt-4 h-9 md:h-10 text-xs md:text-sm w-full border-dashed border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                        className="h-10 text-sm"
                     >
-                        <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5" />
-                        Add Missing Skill
+                        <Plus className="w-4 h-4 mr-1.5" />
+                        Add Your First Skill
                     </Button>
-                )}
-
-                <div className="mt-3 md:mt-4 p-2.5 md:p-3 rounded-xl bg-blue-50 border border-blue-100">
-                    <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-                        <div>
-                            <p className="text-[10px] md:text-xs font-bold text-blue-800">About Confidence Levels</p>
-                            <p className="text-[10px] md:text-xs text-blue-600 mt-0.5 leading-relaxed">
-                                Higher confidence skills are prioritized in job matching. Remove any skills that don't reflect your expertise.
-                            </p>
+                </div>
+            ) : (
+                <div className="space-y-3 md:space-y-4">
+                    {highSkills.length > 0 && (
+                        <div className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-emerald-50/50 border border-emerald-100">
+                            <div className="flex items-center gap-2 mb-2 px-1">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                <span className="text-[10px] md:text-xs font-bold text-emerald-700 uppercase tracking-wide">High Confidence</span>
+                                <span className="text-[10px] md:text-xs text-emerald-500">({highSkills.length})</span>
+                            </div>
+                            <div className="space-y-1.5 md:space-y-2">
+                                {highSkills.map((skill) => {
+                                    const globalIdx = richSkills.findIndex(s => s === skill);
+                                    return (
+                                        <SkillRow
+                                            key={skill.skill}
+                                            skill={skill}
+                                            onEdit={() => setEditingIndex(globalIdx)}
+                                            onDelete={() => handleDeleteSkill(globalIdx)}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
+                    )}
+
+                    {mediumSkills.length > 0 && (
+                        <div className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-amber-50/50 border border-amber-100">
+                            <div className="flex items-center gap-2 mb-2 px-1">
+                                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                                <span className="text-[10px] md:text-xs font-bold text-amber-700 uppercase tracking-wide">Medium Confidence</span>
+                                <span className="text-[10px] md:text-xs text-amber-500">({mediumSkills.length})</span>
+                            </div>
+                            <div className="space-y-1.5 md:space-y-2">
+                                {mediumSkills.map((skill) => {
+                                    const globalIdx = richSkills.findIndex(s => s === skill);
+                                    return (
+                                        <SkillRow
+                                            key={skill.skill}
+                                            skill={skill}
+                                            onEdit={() => setEditingIndex(globalIdx)}
+                                            onDelete={() => handleDeleteSkill(globalIdx)}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {lowSkills.length > 0 && (
+                        <div className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-red-50/50 border border-red-100">
+                            <div className="flex items-center gap-2 mb-2 px-1">
+                                <div className="w-2 h-2 rounded-full bg-red-400" />
+                                <span className="text-[10px] md:text-xs font-bold text-red-700 uppercase tracking-wide">Low Confidence</span>
+                                <span className="text-[10px] md:text-xs text-red-400">({lowSkills.length}) — review recommended</span>
+                            </div>
+                            <div className="space-y-1.5 md:space-y-2">
+                                {lowSkills.map((skill) => {
+                                    const globalIdx = richSkills.findIndex(s => s === skill);
+                                    return (
+                                        <SkillRow
+                                            key={skill.skill}
+                                            skill={skill}
+                                            onEdit={() => setEditingIndex(globalIdx)}
+                                            onDelete={() => handleDeleteSkill(globalIdx)}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <AnimatePresence>
+                {isAddingSkill && (
+                    <AddSkillForm
+                        onAdd={handleAddSkill}
+                        onCancel={() => setIsAddingSkill(false)}
+                    />
+                )}
+            </AnimatePresence>
+
+            {!isAddingSkill && (
+                <Button
+                    variant="outline"
+                    onClick={() => setIsAddingSkill(true)}
+                    className="mt-3 md:mt-4 h-9 md:h-10 text-xs md:text-sm w-full border-dashed border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                >
+                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5" />
+                    Add Missing Skill
+                </Button>
+            )}
+
+            <div className="mt-3 md:mt-4 p-2.5 md:p-3 rounded-xl bg-blue-50 border border-blue-100">
+                <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                    <div>
+                        <p className="text-[10px] md:text-xs font-bold text-blue-800">About Confidence Levels</p>
+                        <p className="text-[10px] md:text-xs text-blue-600 mt-0.5 leading-relaxed">
+                            Higher confidence skills are prioritized in job matching. Remove any skills that don't reflect your expertise.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <div className="flex gap-2 md:gap-3 pt-2 md:pt-3 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                <Button variant="ghost" onClick={onPrev} className="h-9 md:h-11 rounded-xl md:rounded-2xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-sm px-3 md:px-4" aria-label="Go to previous step">
-                    <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
+            <div className="flex gap-3 pt-4 mt-4">
+                <Button variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                 </Button>
                 <Button
                     onClick={onNext}
                     disabled={richSkills.length === 0 || isSaving}
-                    className="flex-[2] h-9 md:h-11 rounded-xl md:rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed group"
-                    aria-label="Confirm skills and continue"
+                    className="flex-1 h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
                     {isSaving ? <LoadingSpinner size="sm" /> : (
                         <>
                             Save & Continue
-                            <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover:translate-x-0.5 transition-transform" />
+                            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                         </>
                     )}
                 </Button>
