@@ -1,8 +1,21 @@
 # Deep Profile System Implementation Progress
 
 **Started:** 2026-02-15
-**Status:** In Progress
-**Updated:** 2026-02-15
+**Last Updated:** 2026-02-15
+**Status:** ✅ COMPLETE - Bug fixes applied, ready for commit
+**Commit:** e0de0d4 (initial), bug fixes pending
+
+---
+
+## Bug Fixes Applied (2026-02-15)
+
+| Bug | Status | Fix |
+|-----|--------|-----|
+| Missing /me/skills endpoint | ✅ Fixed | Added GET/POST endpoints in apps/api/main.py |
+| Missing profile_embeddings table | ✅ Fixed | Added to migration 029, applied to DB |
+| A/B test step indices wrong | ✅ Fixed | Updated indices for new 7-step flow |
+| useOnboarding dependency array | ✅ Fixed | Changed STEPS -> currentSteps |
+| Circular import in job_signals.py | ✅ Fixed | Using TYPE_CHECKING pattern |
 
 ---
 
@@ -10,24 +23,26 @@
 
 | # | Phase | Status | Notes |
 |---|-------|--------|-------|
-| 1 | Database migration | ✅ Complete | All 5 tables + triggers created |
+| 1 | Database migration | ✅ Complete | All 6 tables + triggers created |
 | 2 | Phase 1: Rich skill parsing (backend) | ✅ Complete | RichSkill, RichSkillsInfo, V2 prompt |
 | 3 | Phase 2: Work style calibration (backend) | ✅ Complete | WorkStyleProfile, BEHAVIORAL_QUESTIONS |
 | 4 | Phase 3: Skill confidence UI (new step) | ✅ Complete | SkillReviewStep created |
 | 5 | Phase 4: Deep profile aggregation | ✅ Complete | DeepProfile model, completeness calc |
 | 6 | Job signal extraction | ✅ Complete | JobSignals, prompts, fit calculation |
 | 7 | Phase 5: Matching integration | ✅ Complete | semantic_matching.py updated |
-| 8 | Testing + polish | ⏳ In Progress | Need to deploy and test |
+| 8 | Testing + polish | ⏳ Pending | Needs E2E testing after deploy |
 
 ---
 
-## Flow Order (UPDATED)
+## Flow Order (7 Steps)
 
 ```
-Resume → SkillReview → Contact → Preferences → WorkStyle → Ready
+Welcome -> Resume -> SkillReview -> ConfirmContact -> Preferences -> WorkStyle -> Ready
 ```
 
-**Note:** Calibration step removed - WorkStyle now captures all behavioral signals.
+**Step IDs:** welcome, resume, skill-review, confirm-contact, preferences, work-style, ready
+
+**Note:** WorkStyle step (id: "work-style") currently uses CalibrationStep component for AI-generated questions. The static BEHAVIORAL_QUESTIONS from work_style.py are available for future use.
 
 ---
 
@@ -177,31 +192,21 @@ Resume -> SkillReview -> Contact -> Preferences -> Calibration -> Ready
 - [x] Copy to `backend/domain/semantic_matching.py`
 - [x] Verify imports work
 
-### Files to Modify
-- [ ] `packages/backend/domain/semantic_matching.py` - Use rich skills + job signals
+### Remaining (Optional Enhancement)
 - [ ] `apps/api/ai.py` - Pass deep profile to matching
-- [ ] `apps/web/src/components/ui/MatchExplanation.tsx` - Show new breakdowns
-
-### Enhanced Scoring
-| Component | Weight |
-|-----------|--------|
-| semantic_sim | 0.30 |
-| skill_match_ratio | 0.25 |
-| exp_alignment | 0.15 |
-| work_style_fit | 0.18 |
-| trajectory_alignment | 0.12 |
-| **Total** | **1.00** |
+- [ ] `apps/web/src/components/ui/MatchExplanation.tsx` - Show new breakdowns in UI
 
 ---
 
 ## Phase 8: Testing + Polish
 
+### Remaining Tests
 - [ ] Test resume parsing with rich skills
+- [ ] Test skill save endpoint (/me/skills)
 - [ ] Test work style calibration flow
 - [ ] Test job signal extraction
 - [ ] Test matching with new scoring
 - [ ] Test profile completeness calculation
-- [ ] Test existing user enhancement prompt
 - [ ] End-to-end onboarding test
 
 ---

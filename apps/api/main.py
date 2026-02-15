@@ -796,6 +796,81 @@ async def save_answer_memory(
     return {"status": "saved"}
 
 
+class RichSkillRequest(BaseModel):
+    skill: str
+    confidence: float = 0.5
+    years_actual: float | None = None
+    context: str = ""
+    last_used: str | None = None
+    verified: bool = False
+    related_to: list[str] = []
+    source: str = "manual"
+    project_count: int = 0
+
+
+class SaveSkillsRequest(BaseModel):
+    skills: list[RichSkillRequest]
+
+
+@app.get("/me/skills")
+async def get_user_skills(
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
+) -> list[dict[str, Any]]:
+    """Get user's rich skills with confidence and metadata."""
+    async with db.acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT skill, confidence, years_actual, context, last_used, verified, 
+                      related_to, source, project_count, created_at, updated_at
+               FROM public.user_skills WHERE user_id = $1
+               ORDER BY confidence DESC, skill""",
+            user_id,
+        )
+    return [dict(r) for r in rows]
+
+
+@app.post("/me/skills")
+async def save_user_skills(
+    body: SaveSkillsRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
+) -> dict[str, Any]:
+    """Save user's rich skills (upsert)."""
+    async with db.acquire() as conn:
+        # Clear existing skills and insert new ones
+        await conn.execute("DELETE FROM public.user_skills WHERE user_id = $1", user_id)
+
+        for skill in body.skills:
+            await conn.execute(
+                """INSERT INTO public.user_skills 
+                   (user_id, skill, confidence, years_actual, context, last_used, 
+                    verified, related_to, source, project_count)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
+                user_id,
+                skill.skill,
+                skill.confidence,
+                skill.years_actual,
+                skill.context,
+                skill.last_used,
+                skill.verified,
+                skill.related_to,
+                skill.source,
+                skill.project_count,
+            )
+
+        # Update profile completeness
+        await conn.execute(
+            """UPDATE public.users SET profile_completeness = 
+               COALESCE(profile_completeness, 0) + 
+               CASE WHEN (SELECT COUNT(*) FROM public.user_skills WHERE user_id = $1) >= 3 
+                    THEN 20 ELSE 10 END
+               WHERE id = $1""",
+            user_id,
+        )
+
+    return {"status": "saved", "count": len(body.skills)}
+
+
 @app.get("/me/dashboard")
 async def user_dashboard(
     user_id: str = Depends(get_current_user_id),

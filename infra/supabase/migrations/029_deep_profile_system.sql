@@ -87,6 +87,16 @@ CREATE TABLE IF NOT EXISTS job_embeddings (
 );
 
 -- ============================================================
+-- Table: profile_embeddings (for semantic matching)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS profile_embeddings (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    embedding JSONB,
+    text_hash VARCHAR(64),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ============================================================
 -- Add columns to users table
 -- ============================================================
 ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completeness DECIMAL(5,2) DEFAULT 0;

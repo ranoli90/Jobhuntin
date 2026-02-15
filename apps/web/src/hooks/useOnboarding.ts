@@ -91,27 +91,17 @@ export function useOnboarding() {
   // Dynamic Steps based on Variant
   const currentSteps = useMemo(() => {
     if (abVariant === "role_first") {
-      // Swap Resume (1) and Preferences (3) - strictly speaking "Role" is in Preferences
-      // Original: Welcome, Resume, Contact, Preferences, Calibration, Ready
-      // New: Welcome, Preferences, Resume, Contact, Calibration, Ready
-      // Actually, let's just swap Resume and Preferences to test "Intent vs Payload"
-      const newSteps = [...STEPS];
-      const resumeStep = newSteps.find(s => s.id === "resume");
-      const prefsStep = newSteps.find(s => s.id === "preferences");
-
-      if (resumeStep && prefsStep) {
-        // This simple swap might be enough for the test
-        // But index management relies on the order.
-        // We need to re-construct the array.
-        return [
-          STEPS[0], // Welcome
-          STEPS[3], // Preferences (Role)
-          STEPS[1], // Resume
-          STEPS[2], // Contact
-          STEPS[4], // Calibration
-          STEPS[5]  // Ready
-        ];
-      }
+      // Swap Resume and Preferences to test "Intent vs Payload"
+      // New STEPS order: Welcome, Preferences, Resume, SkillReview, Contact, WorkStyle, Ready
+      return [
+        STEPS[0], // Welcome (index 0)
+        STEPS[4], // Preferences (index 4 in original)
+        STEPS[1], // Resume (index 1)
+        STEPS[2], // SkillReview (index 2)
+        STEPS[3], // ConfirmContact (index 3)
+        STEPS[5], // WorkStyle (index 5)
+        STEPS[6]  // Ready (index 6)
+      ];
     }
     return STEPS;
   }, [abVariant]);
@@ -138,7 +128,7 @@ export function useOnboarding() {
       }
       return prev; // Stay on the last step if already there
     });
-  }, [STEPS, setCompletedSteps]);
+  }, [currentSteps, setCompletedSteps]);
 
   const prevStep = useCallback(() => {
     if (!isFirstStep) {

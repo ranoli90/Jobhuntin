@@ -8,9 +8,12 @@ two-way compatibility matching between candidates and jobs.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from .work_style import WorkStyleProfile, CareerTrajectory
 
 
 class CompanyStage(str, Enum):
@@ -202,60 +205,67 @@ def parse_job_signals_response(response: JobSignalsResponse_V1) -> JobSignals:
 
 
 def compute_work_style_fit(
-    work_style: "WorkStyleProfile", job_signals: JobSignals
+    work_style: dict[str, str], job_signals: JobSignals
 ) -> float:
     """
     Compute compatibility score between candidate work style and job signals.
+
+    Args:
+        work_style: Dict with keys like autonomy_preference, pace_preference, etc.
+        job_signals: JobSignals model
 
     Returns a score from 0.0 to 1.0.
     """
     scores: list[float] = []
 
     # Company stage match
-    if work_style.company_stage_preference != "flexible" and job_signals.company_stage:
+    pref = work_style.get("company_stage_preference", "flexible")
+    if pref != "flexible" and job_signals.company_stage:
         stage_map = {
             "early_startup": CompanyStage.EARLY_STARTUP,
             "growth": CompanyStage.GROWTH,
             "enterprise": CompanyStage.ENTERPRISE,
         }
-        expected = stage_map.get(work_style.company_stage_preference)
+        expected = stage_map.get(pref)
         scores.append(1.0 if expected == job_signals.company_stage else 0.5)
 
     # Pace match
-    if work_style.pace_preference != "flexible" and job_signals.pace:
+    pace_pref = work_style.get("pace_preference", "flexible")
+    if pace_pref != "flexible" and job_signals.pace:
         pace_map = {
             "fast": WorkPace.FAST,
             "steady": WorkPace.STEADY,
             "methodical": WorkPace.METHODICAL,
         }
-        expected = pace_map.get(work_style.pace_preference)
+        expected = pace_map.get(pace_pref)
         scores.append(1.0 if expected == job_signals.pace else 0.6)
 
     # Autonomy match
-    if work_style.autonomy_preference != "medium" and job_signals.autonomy_level:
+    auto_pref = work_style.get("autonomy_preference", "medium")
+    if auto_pref != "medium" and job_signals.autonomy_level:
         autonomy_map = {
             "high": AutonomyLevel.HIGH,
             "medium": AutonomyLevel.MEDIUM,
             "low": AutonomyLevel.LOW,
         }
-        expected = autonomy_map.get(work_style.autonomy_preference)
+        expected = autonomy_map.get(auto_pref)
         scores.append(1.0 if expected == job_signals.autonomy_level else 0.5)
 
     # Communication style match (if remote culture detected)
-    if work_style.communication_style != "flexible" and job_signals.remote_culture:
+    comm_pref = work_style.get("communication_style", "flexible")
+    if comm_pref != "flexible" and job_signals.remote_culture:
         if (
-            work_style.communication_style == "async"
+            comm_pref == "async"
             and job_signals.remote_culture == RemoteCulture.ASYNC_FIRST
         ):
             scores.append(1.0)
         elif (
-            work_style.communication_style == "sync"
+            comm_pref == "sync"
             and job_signals.remote_culture == RemoteCulture.ONSITE_CULTURE
         ):
             scores.append(1.0)
         elif (
-            work_style.communication_style == "mixed"
-            and job_signals.remote_culture == RemoteCulture.HYBRID
+            comm_pref == "mixed" and job_signals.remote_culture == RemoteCulture.HYBRID
         ):
             scores.append(1.0)
         else:
@@ -264,15 +274,17 @@ def compute_work_style_fit(
     return sum(scores) / len(scores) if scores else 0.7
 
 
-def compute_trajectory_alignment(
-    trajectory: "CareerTrajectory", job_signals: JobSignals
-) -> float:
+def compute_trajectory_alignment(trajectory: str, job_signals: JobSignals) -> float:
     """
     Compute alignment between candidate's career trajectory and job's growth potential.
 
+    Args:
+        trajectory: One of "ic", "tech_lead", "manager", "founder", "open"
+        job_signals: JobSignals model
+
     Returns a score from 0.0 to 1.0.
     """
-    if trajectory == CareerTrajectory.OPEN:
+    if trajectory == "open":
         return 0.7  # Open to anything is moderate fit
 
     if not job_signals.growth_potential:
@@ -280,9 +292,9 @@ def compute_trajectory_alignment(
 
     # Perfect matches
     perfect_matches = {
-        (CareerTrajectory.IC, GrowthPotential.IC_PATH),
-        (CareerTrajectory.TECH_LEAD, GrowthPotential.LEAD_PATH),
-        (CareerTrajectory.MANAGER, GrowthPotential.MANAGER_PATH),
+        ("ic", GrowthPotential.IC_PATH),
+        ("tech_lead", GrowthPotential.LEAD_PATH),
+        ("manager", GrowthPotential.MANAGER_PATH),
     }
 
     if (trajectory, job_signals.growth_potential) in perfect_matches:
@@ -290,10 +302,10 @@ def compute_trajectory_alignment(
 
     # Good matches (adjacent paths)
     good_matches = {
-        (CareerTrajectory.IC, GrowthPotential.LEAD_PATH),
-        (CareerTrajectory.TECH_LEAD, GrowthPotential.IC_PATH),
-        (CareerTrajectory.TECH_LEAD, GrowthPotential.MANAGER_PATH),
-        (CareerTrajectory.MANAGER, GrowthPotential.LEAD_PATH),
+        ("ic", GrowthPotential.LEAD_PATH),
+        ("tech_lead", GrowthPotential.IC_PATH),
+        ("tech_lead", GrowthPotential.MANAGER_PATH),
+        ("manager", GrowthPotential.LEAD_PATH),
     }
 
     if (trajectory, job_signals.growth_potential) in good_matches:
@@ -301,16 +313,8 @@ def compute_trajectory_alignment(
 
     # Limited growth is bad for ambitious trajectories
     if job_signals.growth_potential == GrowthPotential.LIMITED:
-        if trajectory in [
-            CareerTrajectory.TECH_LEAD,
-            CareerTrajectory.MANAGER,
-            CareerTrajectory.FOUNDER,
-        ]:
+        if trajectory in ["tech_lead", "manager", "founder"]:
             return 0.3
         return 0.5
 
     return 0.5
-
-
-# Import for type hints
-from .work_style import WorkStyleProfile, CareerTrajectory
