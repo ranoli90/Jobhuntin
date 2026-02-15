@@ -160,34 +160,10 @@ All endpoints require Bearer token authentication via the Authorization header.
 # OpenTelemetry instrumentation
 setup_telemetry("sorce-api", app)
 
-app.add_middleware(
-    CORSMiddleware,
-    # Environment-aware origins - localhost only in development
-    allow_origins=[
-        o
-        for o in {
-            "https://sorce-web.onrender.com",
-            "https://sorce-admin.onrender.com",
-            _settings.app_base_url.rstrip("/"),
-            "https://jobhuntin.com",
-            "https://app.jobhuntin.com",
-            # Include localhost ONLY in non-production environments
-            *(
-                ["http://localhost:5173", "http://localhost:3000"]
-                if _settings.env.value != "prod"
-                else []
-            ),
-        }
-        if o
-    ],
-    allow_credentials=True,
-    # Explicit method list instead of wildcard
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    # Explicit header list instead of wildcard
-    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token"],
-    expose_headers=["X-Request-ID"],
-    max_age=3600,  # Cache preflight for 1 hour to reduce OPTIONS requests
-)
+# ---------------------------------------------------------------------------
+# IMPORTANT: Middleware executes in REVERSE order of registration.
+# CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
+# ---------------------------------------------------------------------------
 
 # Add Request ID middleware for distributed tracing
 setup_request_id_middleware(app)
@@ -285,6 +261,36 @@ async def rate_limiting_middleware(request: Request, call_next):
             )
 
     return await call_next(request)
+
+
+# ---------------------------------------------------------------------------
+# CORS Middleware - MUST be registered LAST so it executes FIRST
+# (FastAPI middleware executes in reverse order of registration)
+# ---------------------------------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        o
+        for o in {
+            "https://sorce-web.onrender.com",
+            "https://sorce-admin.onrender.com",
+            _settings.app_base_url.rstrip("/"),
+            "https://jobhuntin.com",
+            "https://app.jobhuntin.com",
+            *(
+                ["http://localhost:5173", "http://localhost:3000"]
+                if _settings.env.value != "prod"
+                else []
+            ),
+        }
+        if o
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token"],
+    expose_headers=["X-Request-ID"],
+    max_age=3600,
+)
 
 
 # ---------------------------------------------------------------------------
