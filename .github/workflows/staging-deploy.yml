@@ -92,7 +92,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest pytest-asyncio
+        run: pip install -r requirements.txt pytest pytest-asyncio pytest-cov
       - name: Install Playwright
         run: python -m playwright install --with-deps chromium
       - name: Run migrations
