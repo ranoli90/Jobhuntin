@@ -229,20 +229,20 @@ async def _send_magic_link_email(settings: Settings, email: str, action_link: st
         "/app/team": "Team Workspace",
     }.get(destination, destination.replace("/app/", "").title())
     
-    text_content = f"""Sign in to JobHuntin
+    text_content = f"""Hey there!
 
-Click the link below to securely access your account:
+Here's your sign-in link for JobHuntin:
 
 {action_link}
 
-Destination: {destination_name}
+You'll be taken to: {destination_name}
 
-This sign-in link will expire in {settings.magic_link_token_ttl_seconds // 60} minutes.
+This link expires in {settings.magic_link_token_ttl_seconds // 60} minutes.
 
-If you didn't request this email, you can safely ignore it.
+If you didn't ask for this, no worries — just ignore it.
 
 ---
-JobHuntin - AI-powered job search automation
+JobHuntin — Find your next job, faster
 https://jobhuntin.com
 """
     
