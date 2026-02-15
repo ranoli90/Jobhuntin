@@ -113,7 +113,7 @@ def upgrade() -> None:
         DO $$ BEGIN
             CREATE TYPE application_event_type AS ENUM (
                 'CREATED', 'CLAIMED', 'STARTED_PROCESSING', 'FIELDS_EXTRACTED',
-                'FORM_FILLED', 'SUBMITTED', 'APPLIED', 'FAILED', 'HOLD', 'RESUMED'
+                'FORM_FILLED', 'SUBMITTED', 'APPLIED', 'FAILED', 'HOLD', 'RESUMED', 'RETRY_SCHEDULED'
             );
         EXCEPTION
             WHEN others THEN NULL;
