@@ -112,8 +112,9 @@ def upgrade() -> None:
     op.execute("""
         DO $$ BEGIN
             CREATE TYPE application_event_type AS ENUM (
-                'CREATED', 'CLAIMED', 'STARTED_PROCESSING', 'FIELDS_EXTRACTED',
-                'FORM_FILLED', 'SUBMITTED', 'APPLIED', 'FAILED', 'HOLD', 'RESUMED', 'RETRY_SCHEDULED'
+                'CREATED', 'CLAIMED', 'STARTED_PROCESSING',
+                'FIELDS_EXTRACTED', 'FORM_FILLED', 'SUBMITTED',
+                'APPLIED', 'FAILED', 'HOLD', 'RESUMED', 'RETRY_SCHEDULED'
             );
         EXCEPTION
             WHEN others THEN NULL;

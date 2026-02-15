@@ -31,8 +31,14 @@ def upgrade() -> None:
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    op.execute('CREATE INDEX IF NOT EXISTS idx_cover_letters_user_id ON cover_letters(user_id)')
-    op.execute('CREATE INDEX IF NOT EXISTS idx_cover_letters_job_id ON cover_letters(job_id)')
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS idx_cover_letters_user_id
+        ON cover_letters(user_id)
+    """)
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS idx_cover_letters_job_id
+        ON cover_letters(job_id)
+    """)
 
 
 def downgrade() -> None:
