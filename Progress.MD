@@ -121,9 +121,9 @@ Welcome -> Resume -> SkillReview -> ConfirmContact -> Preferences -> WorkStyle -
 - [x] Show confidence badges (HIGH/MEDIUM/LOW)
 - [x] Add skill edit/add/delete functionality
 
-### Updated Flow
+### Updated Flow (7 Steps)
 ```
-Resume -> SkillReview -> Contact -> Preferences -> Calibration -> Ready
+Welcome -> Resume -> SkillReview -> ConfirmContact -> Preferences -> WorkStyle -> Ready
 ```
 
 ---
