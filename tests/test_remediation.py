@@ -19,7 +19,8 @@ class TestGetClientIp:
         """Standard proxy usage."""
         req = MagicMock()
         def get_header(key):
-            if key == "x-forwarded-for": return "10.0.0.1"
+            if key == "x-forwarded-for":
+                return "10.0.0.1"
             return None
         req.headers.get.side_effect = get_header
         req.client.host = "192.168.1.1" # LB IP
@@ -29,7 +30,8 @@ class TestGetClientIp:
         """Leftmost IP is the client."""
         req = MagicMock()
         def get_header(key):
-            if key == "x-forwarded-for": return "203.0.113.195, 70.41.3.18, 150.172.238.178"
+            if key == "x-forwarded-for":
+                return "203.0.113.195, 70.41.3.18, 150.172.238.178"
             return None
         req.headers.get.side_effect = get_header
         assert get_client_ip(req) == "203.0.113.195"
@@ -38,7 +40,8 @@ class TestGetClientIp:
         """Fallback to X-Real-IP if no XFF."""
         req = MagicMock()
         def get_header(key):
-            if key == "x-real-ip": return "10.0.0.2"
+            if key == "x-real-ip":
+                return "10.0.0.2"
             return None
         req.headers.get.side_effect = get_header
         assert get_client_ip(req) == "10.0.0.2"

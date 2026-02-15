@@ -220,7 +220,7 @@ def setup_datadog_integration(config: MonitoringConfig) -> bool:
         return False
 
     try:
-        from datadog import initialize, statsd
+        from datadog import initialize
 
         initialize(
             api_key=config.notifications.datadog_api_key,

@@ -151,7 +151,6 @@ SKILL_SYNONYMS: dict[str, str] = {
     "spark": "Apache Spark",
     "hadoop": "Hadoop",
     "kafka": "Apache Kafka",
-    "kafka": "Apache Kafka",
     "airflow": "Apache Airflow",
     "tableau": "Tableau",
     "power bi": "Power BI",
