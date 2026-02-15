@@ -144,7 +144,13 @@ await apiPost('/auth/magic-link', {
         };
       }
 
-      const message = error.message || 'Network error';
+      // Extract clean error message
+      let message = 'Network error';
+      if (error?.message) {
+        // Remove HTTP status suffix if present (e.g., " (HTTP 502)")
+        message = error.message.replace(/\s*\(HTTP\s*\d+\)\s*$/, '');
+      }
+      
       return {
         success: false,
         email: normalizedEmail,

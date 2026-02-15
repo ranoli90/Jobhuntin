@@ -100,7 +100,11 @@ function friendlyMessage(status: number, body: string): string {
 function tryParseMessage(body: string): string | null {
   try {
     const json = JSON.parse(body);
-    return json.message || json.detail || json.error || null;
+    // Handle nested error objects from backend
+    if (typeof json === 'object' && json !== null) {
+      return json.message || json.detail || json.error || JSON.stringify(json);
+    }
+    return null;
   } catch {
     return null;
   }
