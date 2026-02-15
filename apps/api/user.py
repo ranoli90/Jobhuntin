@@ -415,6 +415,9 @@ async def list_jobs(
     location: str | None = None,
     min_salary: int | None = None,
     keywords: str | None = None,
+    source: str | None = None,
+    is_remote: bool | None = None,
+    job_type: str | None = None,
     limit: int = 25,
     offset: int = 0,
     ctx: TenantContext = Depends(_get_tenant_ctx),
@@ -423,7 +426,6 @@ async def list_jobs(
     """List jobs from DB with optional filters. Returns { jobs: [...], next_offset } for web."""
     from backend.domain.job_search import search_and_list_jobs
 
-    # Clamp limit to prevent runaway payloads
     limit = max(5, min(limit, 100))
     offset = max(0, offset)
 
@@ -432,12 +434,25 @@ async def list_jobs(
         location=location,
         min_salary=min_salary,
         keywords=keywords,
+        source=source,
+        is_remote=is_remote,
+        job_type=job_type,
         limit=limit,
         offset=offset,
     )
 
     next_offset = offset + len(jobs) if len(jobs) == limit else None
     return {"jobs": jobs, "next_offset": next_offset}
+
+
+@router.get("/jobs/sources")
+async def get_job_sources(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> list[dict[str, Any]]:
+    """Get list of available job sources with stats."""
+    from backend.domain.job_search import get_job_sources
+    return await get_job_sources(db)
 
 
 # ---------------------------------------------------------------------------
@@ -881,3 +896,41 @@ async def upload_avatar(
         )
 
     return {"avatar_url": avatar_url}
+
+
+# ---------------------------------------------------------------------------
+# Admin Job Sync Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/admin/jobs/sync/status")
+async def get_job_sync_status(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Get current job sync status (admin only)."""
+    if not ctx.is_admin:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    from backend.domain.job_search import get_sync_status
+    return await get_sync_status(db)
+
+
+@router.post("/admin/jobs/sync/trigger")
+async def trigger_job_sync(
+    background_tasks: BackgroundTasks,
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, str]:
+    """Manually trigger a job sync (admin only)."""
+    if not ctx.is_admin:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    from backend.domain.job_sync_service import JobSyncService
+    
+    sync_service = JobSyncService(db)
+    background_tasks.add_task(sync_service.sync_all_sources, None, 2)
+    
+    return {"status": "sync_started", "message": "Job sync triggered in background"}

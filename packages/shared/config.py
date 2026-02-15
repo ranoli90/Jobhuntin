@@ -130,6 +130,21 @@ class Settings(BaseSettings):
     adzuna_job_ttl_days: int = 14
     adzuna_rate_limit_per_minute: int = 60
 
+    # ── JobSpy Job Aggregation (Replaces Adzuna) ──────────────────
+    jobspy_enabled: bool = True
+    jobspy_sources: str = "indeed,linkedin,zip_recruiter,glassdoor"
+    jobspy_results_per_source: int = 50
+    jobspy_proxies: str = ""  # Comma-separated: "http://user:pass@host:port"
+    jobspy_proxy_rotation: bool = True
+    jobspy_linkedin_fetch_description: bool = True
+    jobspy_hours_old: int = 168  # Only fetch jobs from last 7 days
+    jobspy_job_ttl_days: int = 7
+    jobspy_sync_interval_hours: int = 4
+    jobspy_concurrent_sources: int = 2
+    jobspy_timeout_seconds: int = 120
+    jobspy_description_max_length: int = 50000
+    jobspy_quality_min_desc_length: int = 50
+
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = "dev-placeholder-webhook-secret"

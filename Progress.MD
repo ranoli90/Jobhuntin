@@ -2,8 +2,56 @@
 
 **Started:** 2026-02-15
 **Last Updated:** 2026-02-15
-**Status:** ✅ COMPLETE - All LSP errors fixed, ready for E2E testing
+**Status:** ✅ COMPLETE - JobSpy integration live, 107 jobs in database
 **Commit:** Pending
+
+---
+
+## JobSpy Integration (2026-02-15)
+
+### What Changed
+- **Replaced Adzuna API** with JobSpy multi-source job aggregation
+- **Sources:** Indeed, LinkedIn, ZipRecruiter, Glassdoor
+- **Sync Strategy:** Background worker runs every 4 hours
+- **Job TTL:** 7 days
+
+### Files Created/Modified
+| File | Action | Description |
+|------|--------|-------------|
+| `infra/supabase/migrations/030_jobspy_integration.sql` | Created | DB migration with new columns and tables |
+| `backend/domain/jobspy_client.py` | Created | Async wrapper for JobSpy library |
+| `backend/domain/job_sync_service.py` | Created | Background sync service |
+| `apps/worker/job_sync_worker.py` | Created | Worker process for scheduled syncs |
+| `backend/domain/job_search.py` | Updated | Uses local DB instead of Adzuna |
+| `apps/api/user.py` | Updated | Added source/is_remote/job_type filters |
+| `apps/web/src/hooks/useJobs.ts` | Updated | Added new filter fields |
+| `apps/web/src/components/Jobs/JobCard.tsx` | Updated | Shows remote badge and source |
+| `packages/shared/config.py` | Updated | Added JobSpy configuration |
+| `requirements.txt` | Updated | Added python-jobspy |
+
+### Database Changes
+- Added columns: `is_remote`, `job_type`, `date_posted`, `job_level`, `company_industry`, `company_logo_url`, `emails`, `raw_data`, `last_synced_at`
+- Created tables: `job_sync_runs`, `popular_searches`, `job_sync_config`
+- Created views: `job_sync_summary`, `job_source_stats`
+- Created function: `cleanup_expired_jobs()`
+
+### Current Job Pool
+- **Total Jobs:** 107
+- **Indeed:** 98 (75 remote)
+- **Internal:** 9
+
+### Architecture
+```
+Background Worker (every 4 hours)
+    ↓
+JobSpy Library (Indeed, LinkedIn, ZipRecruiter, Glassdoor)
+    ↓
+Database (public.jobs)
+    ↓
+API (/jobs endpoint)
+    ↓
+Frontend (JobCard with source badges)
+```
 
 ---
 

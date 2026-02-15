@@ -9,6 +9,9 @@ export interface JobFilters {
   location?: string;
   minSalary?: number;
   keywords?: string;
+  source?: string;
+  isRemote?: boolean;
+  jobType?: string;
 }
 
 export interface JobPosting {
@@ -23,6 +26,20 @@ export interface JobPosting {
   logo_url?: string;
   requirements?: string[];
   match_score?: number;
+  source?: string;
+  is_remote?: boolean;
+  job_type?: string;
+  date_posted?: string;
+  job_level?: string;
+  company_industry?: string;
+}
+
+export interface JobSource {
+  source: string;
+  total_jobs: number;
+  remote_jobs: number;
+  jobs_with_salary: number;
+  last_synced_at?: string;
 }
 
 interface JobsResponse {
@@ -35,6 +52,9 @@ async function fetchJobs(filters: JobFilters, offset = 0, limit = 25): Promise<J
   if (filters.location) params.set("location", filters.location);
   if (filters.minSalary) params.set("min_salary", String(filters.minSalary));
   if (filters.keywords) params.set("keywords", filters.keywords);
+  if (filters.source) params.set("source", filters.source);
+  if (filters.isRemote !== undefined) params.set("is_remote", String(filters.isRemote));
+  if (filters.jobType) params.set("job_type", filters.jobType);
   params.set("limit", String(limit));
   params.set("offset", String(offset));
   const query = params.toString();
@@ -44,12 +64,19 @@ async function fetchJobs(filters: JobFilters, offset = 0, limit = 25): Promise<J
   return { jobs: json.jobs ?? [], next_offset: json.next_offset ?? null };
 }
 
+async function fetchJobSources(): Promise<JobSource[]> {
+  return apiGet<JobSource[]>("jobs/sources");
+}
+
 export function useJobs(filters: JobFilters) {
   const memoFilters = useMemo(() => ({
     location: filters.location,
     minSalary: filters.minSalary,
     keywords: filters.keywords,
-  }), [filters.location, filters.minSalary, filters.keywords]);
+    source: filters.source,
+    isRemote: filters.isRemote,
+    jobType: filters.jobType,
+  }), [filters.location, filters.minSalary, filters.keywords, filters.source, filters.isRemote, filters.jobType]);
 
   const query = useInfiniteQuery({
     queryKey: ["jobs", memoFilters],
@@ -77,4 +104,41 @@ export function useJobs(filters: JobFilters) {
     fetchNextPage: query.fetchNextPage,
     refetch: query.refetch,
   };
+}
+
+export function useJobSources() {
+  return useInfiniteQuery({
+    queryKey: ["jobSources"],
+    queryFn: () => fetchJobSources(),
+    initialPageParam: 0,
+    getNextPageParam: () => undefined,
+  });
+}
+
+export const JOB_SOURCES = [
+  { id: "indeed", label: "Indeed", color: "bg-blue-100 text-blue-700" },
+  { id: "linkedin", label: "LinkedIn", color: "bg-sky-100 text-sky-700" },
+  { id: "zip_recruiter", label: "ZipRecruiter", color: "bg-purple-100 text-purple-700" },
+  { id: "glassdoor", label: "Glassdoor", color: "bg-green-100 text-green-700" },
+] as const;
+
+export const JOB_TYPES = [
+  { id: "fulltime", label: "Full-time" },
+  { id: "parttime", label: "Part-time" },
+  { id: "contract", label: "Contract" },
+  { id: "internship", label: "Internship" },
+] as const;
+
+export function formatTimeAgo(dateStr: string | undefined): string {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  return `${Math.floor(diffDays / 30)} months ago`;
 }

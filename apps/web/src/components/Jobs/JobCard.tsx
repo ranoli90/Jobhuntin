@@ -196,12 +196,17 @@ export function JobCard({
             <MapPin className="h-4 w-4" />
             {job.location ?? "Remote"}
           </div>
-          {dealbreakers?.locationMismatch && (
-            <DealbreakerIndicator
-              type="location"
-              tooltip="Location doesn't match your preferences"
-            />
-          )}
+          <div className="flex items-center gap-2">
+            {job.is_remote && (
+              <Badge variant="success" size="sm" className="text-[10px]">Remote</Badge>
+            )}
+            {dealbreakers?.locationMismatch && (
+              <DealbreakerIndicator
+                type="location"
+                tooltip="Location doesn't match your preferences"
+              />
+            )}
+          </div>
         </div>
 
         <div className="flex items-center justify-between">
@@ -218,6 +223,18 @@ export function JobCard({
             />
           )}
         </div>
+
+        {job.source && (
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span className="capitalize">{job.source.replace("_", " ")}</span>
+            {job.date_posted && (
+              <>
+                <span>•</span>
+                <span>{job.date_posted}</span>
+              </>
+            )}
+          </div>
+        )}
 
         {dealbreakers?.visaIssue && (
           <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">

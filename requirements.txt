@@ -23,3 +23,5 @@ opentelemetry-instrumentation-asyncpg>=0.45b0
 redis>=5.0.0
 alembic>=1.13.0
 sqlalchemy>=2.0.0
+python-jobspy>=1.1.82
+pandas>=2.3.0
