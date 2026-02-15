@@ -27,6 +27,7 @@ class CareerLevel(str, Enum):
     JUNIOR = "junior"
     MID = "mid"
     SENIOR = "senior"
+    MANAGEMENT = "management"
     STAFF = "staff"
     PRINCIPAL = "principal"
     DIRECTOR = "director"
