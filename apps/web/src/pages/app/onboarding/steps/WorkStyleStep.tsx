@@ -162,7 +162,7 @@ export function WorkStyleStep({
             }
         }
         
-        setAnswers(prev => ({ ...prev, [questionId]: value }));
+        setAnswers(prev => ({ ...prev, [mapsTo]: value }));
         
         // Auto-advance to next question if not the last
         if (currentQuestion < totalQuestions - 1) {
