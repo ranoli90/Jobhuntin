@@ -11,12 +11,11 @@ Tracks per-model metrics for:
 
 from __future__ import annotations
 
-import time
+import threading
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
-import threading
 
 from shared.logging_config import get_logger
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncpg
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
+from shared.config import Settings, settings_dependency
+from shared.logging_config import get_logger
 
 from backend.domain.billing import (
     ensure_stripe_customer,
@@ -14,8 +16,6 @@ from backend.domain.billing import (
 from backend.domain.plans import plan_config_for
 from backend.domain.repositories import TenantRepo
 from backend.domain.tenant import TenantContext
-from shared.config import Settings, settings_dependency
-from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.billing")
 

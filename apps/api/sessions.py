@@ -10,15 +10,13 @@ Endpoints for:
 
 from __future__ import annotations
 
-from typing import Any
-
 import asyncpg
+from backend.domain.session_manager import SessionManager
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-
-from backend.domain.session_manager import SessionManager
-from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
+
+from backend.domain.tenant import TenantContext
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.sessions")
@@ -174,7 +172,6 @@ async def check_security(
 async def cleanup_expired_sessions(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> RevokeResponse:
-    from backend.domain.tenant import require_admin
 
     manager = SessionManager(db)
     count = await manager.cleanup_expired_sessions()

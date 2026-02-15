@@ -17,10 +17,9 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from pydantic import BaseModel, Field
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.interview_simulator")
@@ -488,9 +487,9 @@ class InterviewSimulator:
             )
         elif question.question_type == InterviewType.TECHNICAL:
             return (
-                f"For technical questions, structure your answer to show your thought process: "
-                f"1) Clarify the requirements, 2) Discuss your approach, "
-                f"3) Mention trade-offs, 4) Provide concrete examples from your experience."
+                "For technical questions, structure your answer to show your thought process: "
+                "1) Clarify the requirements, 2) Discuss your approach, "
+                "3) Mention trade-offs, 4) Provide concrete examples from your experience."
             )
         return (
             "Practice answering this question concisely while covering the key topics."

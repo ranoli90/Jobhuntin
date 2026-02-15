@@ -17,19 +17,20 @@ from __future__ import annotations
 import asyncio
 import random
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from playwright.async_api import (
-    Page,
     BrowserContext,
-    ElementHandle,
+    Page,
+)
+from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
-
 from shared.logging_config import get_logger
-from shared.metrics import incr, observe
+
+from shared.metrics import incr
 
 logger = get_logger("sorce.execution_engine")
 

@@ -14,7 +14,6 @@ import hashlib
 import hmac
 import json
 import time
-from datetime import UTC, datetime
 from typing import Any
 
 from shared.config import get_settings
@@ -209,8 +208,9 @@ class WebhookDelivery:
         payload: dict[str, Any],
         event_id: str | None = None,
     ) -> tuple[bool, int | None]:
-        import httpx
         import uuid
+
+        import httpx
 
         event_id = event_id or str(uuid.uuid4())
 

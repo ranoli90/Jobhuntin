@@ -22,9 +22,9 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-
 from shared.config import get_settings
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.api_v2")

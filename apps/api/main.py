@@ -34,15 +34,15 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from shared.config import Environment, get_settings
+from shared.logging_config import LogContext, get_logger, setup_logging
+from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
+from shared.redis_client import close_redis, get_redis
+from shared.telemetry import setup_telemetry
 
 from backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
-)
-from backend.domain.debug_schema import (
-    debug_alter_stmts,
-    debug_auth_shim,
-    debug_critical_tables,
 )
 from backend.domain.models import (
     CanonicalProfile,
@@ -60,13 +60,8 @@ from backend.domain.tenant import (
     TenantContext,
     resolve_tenant_context,
 )
-from shared.config import Environment, get_settings
-from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import dump as metrics_dump
 from shared.metrics import incr
-from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
-from shared.telemetry import setup_telemetry
-from shared.redis_client import get_redis, close_redis
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -194,6 +189,7 @@ app.add_middleware(
 setup_request_id_middleware(app)
 
 from shared.middleware import get_client_ip, setup_security_headers
+
 from shared.metrics import get_rate_limiter
 
 # ---------------------------------------------------------------------------
@@ -211,7 +207,7 @@ setup_security_headers(app)
 # Rate Limiting Middleware (Tenant-aware)
 # ---------------------------------------------------------------------------
 
-from shared.tenant_rate_limit import get_tenant_rate_limiter, TenantTier
+from shared.tenant_rate_limit import TenantTier, get_tenant_rate_limiter
 
 
 @app.middleware("http")

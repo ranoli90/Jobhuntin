@@ -8,11 +8,11 @@ Provides:
 - Resource optimization recommendations
 """
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class CostAnomaly:
     deviation_pct: float
     detected_at: datetime
     resource_id: Optional[str] = None
-    
+
     @property
     def severity(self) -> str:
         """Determine anomaly severity."""
@@ -92,7 +92,7 @@ class CostSummary:
     by_category: dict[CostCategory, float] = field(default_factory=dict)
     daily_average: float = 0.0
     projected_monthly: float = 0.0
-    
+
     def to_dict(self) -> dict:
         return {
             "period_start": self.period_start.isoformat(),
@@ -115,7 +115,7 @@ class CostMonitor:
     - Anomaly detection
     - Optimization recommendations
     """
-    
+
     def __init__(
         self,
         db_conn: "asyncpg.Connection",
@@ -125,7 +125,7 @@ class CostMonitor:
         self.db = db_conn
         self.budget_alerts = budget_alerts or []
         self.anomaly_threshold_pct = anomaly_threshold_pct
-    
+
     async def record_cost(self, entry: CostEntry) -> None:
         """Record a cost entry."""
         await self.db.execute(
@@ -142,7 +142,7 @@ class CostMonitor:
             entry.resource_name,
             entry.tags,
         )
-    
+
     async def get_costs(
         self,
         start_date: datetime,
@@ -153,23 +153,23 @@ class CostMonitor:
         """Get cost entries for a period."""
         conditions = ["date >= $1", "date <= $2"]
         params: list = [start_date, end_date]
-        
+
         if provider:
             conditions.append(f"provider = ${len(params) + 1}")
             params.append(provider.value)
-        
+
         if category:
             conditions.append(f"category = ${len(params) + 1}")
             params.append(category.value)
-        
+
         query = f"""
             SELECT * FROM public.cloud_costs
             WHERE {" AND ".join(conditions)}
             ORDER BY date DESC
         """
-        
+
         rows = await self.db.fetch(query, *params)
-        
+
         return [
             CostEntry(
                 provider=CloudProvider(r["provider"]),
@@ -182,7 +182,7 @@ class CostMonitor:
             )
             for r in rows
         ]
-    
+
     async def get_summary(
         self,
         start_date: datetime,
@@ -202,29 +202,29 @@ class CostMonitor:
             start_date,
             end_date,
         )
-        
+
         by_provider: dict[CloudProvider, float] = {}
         by_category: dict[CostCategory, float] = {}
         total = 0.0
-        
+
         for row in rows:
             provider = CloudProvider(row["provider"])
             category = CostCategory(row["category"])
             amount = float(row["total"] or 0)
-            
+
             by_provider[provider] = by_provider.get(provider, 0) + amount
             by_category[category] = by_category.get(category, 0) + amount
             total += amount
-        
+
         days = (end_date - start_date).days or 1
         daily_average = total / days
-        
+
         # Project monthly cost
         now = datetime.utcnow()
         days_in_month = 30  # Approximate
         days_elapsed = min(now.day, days_in_month)
         projected_monthly = (daily_average * days_in_month) if days_elapsed > 0 else 0
-        
+
         return CostSummary(
             period_start=start_date,
             period_end=end_date,
@@ -234,18 +234,18 @@ class CostMonitor:
             daily_average=daily_average,
             projected_monthly=projected_monthly,
         )
-    
+
     async def check_budget_alerts(self) -> list[dict]:
         """Check budget alerts and return triggered alerts."""
         now = datetime.utcnow()
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        
+
         summary = await self.get_summary(month_start, now)
         triggered_alerts = []
-        
+
         for alert in self.budget_alerts:
             usage_pct = summary.total_usd / alert.monthly_budget_usd
-            
+
             for threshold in alert.alert_thresholds:
                 if usage_pct >= threshold:
                     # Check if we already sent this alert
@@ -259,7 +259,7 @@ class CostMonitor:
                         threshold,
                         month_start,
                     )
-                    
+
                     if not existing:
                         triggered_alerts.append({
                             "alert_name": alert.name,
@@ -270,9 +270,9 @@ class CostMonitor:
                             "notify_emails": alert.notify_emails,
                             "notify_slack": alert.notify_slack,
                         })
-        
+
         return triggered_alerts
-    
+
     async def detect_anomalies(
         self,
         lookback_days: int = 30,
@@ -280,24 +280,24 @@ class CostMonitor:
     ) -> list[CostAnomaly]:
         """Detect cost anomalies by comparing periods."""
         now = datetime.utcnow()
-        
+
         # Current period
         current_start = now - timedelta(days=lookback_days)
         current_end = now
-        
+
         # Comparison period
         comparison_start = current_start - timedelta(days=comparison_days)
         comparison_end = current_start
-        
+
         # Get costs by category for both periods
         current_costs = await self._get_costs_by_category(current_start, current_end)
         comparison_costs = await self._get_costs_by_category(comparison_start, comparison_end)
-        
+
         anomalies = []
-        
+
         for category, current_amount in current_costs.items():
             comparison_amount = comparison_costs.get(category, 0)
-            
+
             if comparison_amount == 0:
                 if current_amount > 10:  # New significant cost
                     anomalies.append(CostAnomaly(
@@ -309,9 +309,9 @@ class CostMonitor:
                         detected_at=now,
                     ))
                 continue
-            
+
             deviation = ((current_amount - comparison_amount) / comparison_amount) * 100
-            
+
             if deviation > self.anomaly_threshold_pct:
                 anomalies.append(CostAnomaly(
                     provider=CloudProvider.RENDER,  # Default
@@ -321,9 +321,9 @@ class CostMonitor:
                     deviation_pct=deviation,
                     detected_at=now,
                 ))
-        
+
         return anomalies
-    
+
     async def _get_costs_by_category(
         self,
         start_date: datetime,
@@ -340,21 +340,21 @@ class CostMonitor:
             start_date,
             end_date,
         )
-        
+
         return {
             CostCategory(r["category"]): float(r["total"] or 0)
             for r in rows
         }
-    
+
     async def get_optimization_recommendations(self) -> list[dict]:
         """Get cost optimization recommendations."""
         recommendations = []
-        
+
         # Get current costs
         now = datetime.utcnow()
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         summary = await self.get_summary(month_start, now)
-        
+
         # Check for high database costs
         db_cost = summary.by_category.get(CostCategory.DATABASE, 0)
         if db_cost > 100:
@@ -364,7 +364,7 @@ class CostMonitor:
                 "description": f"Database costs are ${db_cost:.2f}/month. Consider optimizing queries or downgrading tier.",
                 "potential_savings": db_cost * 0.2,
             })
-        
+
         # Check for high AI/LLM costs
         ai_cost = summary.by_category.get(CostCategory.AI_LLM, 0)
         if ai_cost > 50:
@@ -374,7 +374,7 @@ class CostMonitor:
                 "description": f"AI costs are ${ai_cost:.2f}/month. Consider caching responses or using smaller models.",
                 "potential_savings": ai_cost * 0.3,
             })
-        
+
         # Check for high storage costs
         storage_cost = summary.by_category.get(CostCategory.STORAGE, 0)
         if storage_cost > 50:
@@ -384,7 +384,7 @@ class CostMonitor:
                 "description": f"Storage costs are ${storage_cost:.2f}/month. Consider cleaning up old files or using lifecycle policies.",
                 "potential_savings": storage_cost * 0.25,
             })
-        
+
         return recommendations
 
 
@@ -399,5 +399,5 @@ async def setup_cost_monitoring(
         monthly_budget_usd=monthly_budget_usd,
         notify_emails=notify_emails or [],
     )
-    
+
     return CostMonitor(db_conn, budget_alerts=[budget_alert])

@@ -7,11 +7,10 @@ This module analyzes their behavior over subsequent periods.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 import asyncpg
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.cohort_analysis")

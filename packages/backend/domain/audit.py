@@ -10,7 +10,6 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.audit")

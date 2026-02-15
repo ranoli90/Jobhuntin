@@ -5,10 +5,10 @@ import json
 from typing import Any
 
 import asyncpg
-
-from backend.domain.job_boards import AdzunaClient
 from shared.config import get_settings
 from shared.logging_config import get_logger
+
+from backend.domain.job_boards import AdzunaClient
 
 logger = get_logger("sorce.job_search")
 

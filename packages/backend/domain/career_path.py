@@ -12,11 +12,11 @@ Features:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from typing import Any
 
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.career_path")

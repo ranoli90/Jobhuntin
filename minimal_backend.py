@@ -2,8 +2,8 @@
 Minimal backend runner for demonstration - runs without database dependency
 """
 
-from fastapi import FastAPI
 import uvicorn
+from fastapi import FastAPI
 
 app = FastAPI(title="Sorce API - Minimal", version="0.4.0")
 

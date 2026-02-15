@@ -9,7 +9,6 @@ Run this script to generate values for:
 """
 
 import secrets
-import sys
 
 
 def generate_secrets():

@@ -8,12 +8,12 @@ Provides:
 - Interview scheduling and reminders
 """
 
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional
-import logging
-import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -38,14 +38,14 @@ class InterviewEvent:
     timezone: str = "UTC"
     conference_url: Optional[str] = None
     reminder_minutes: list[int] = field(default_factory=lambda: [15, 60])
-    
+
     def to_ical(self) -> str:
         """Generate iCal format string."""
         dt_start = self.start_time.strftime("%Y%m%dT%H%M%SZ")
         dt_end = self.end_time.strftime("%Y%m%dT%H%M%SZ")
         dt_stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
         uid = str(uuid.uuid4())
-        
+
         lines = [
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
@@ -59,10 +59,10 @@ class InterviewEvent:
             f"LOCATION:{self.location}",
             f"DESCRIPTION:{self.description}",
         ]
-        
+
         if self.conference_url:
             lines.append(f"URL:{self.conference_url}")
-        
+
         for reminder in self.reminder_minutes:
             lines.extend([
                 "BEGIN:VALARM",
@@ -71,12 +71,12 @@ class InterviewEvent:
                 f"TRIGGER:-PT{reminder}M",
                 "END:VALARM",
             ])
-        
+
         lines.extend([
             "END:VEVENT",
             "END:VCALENDAR",
         ])
-        
+
         return "\r\n".join(lines)
 
 
@@ -100,10 +100,10 @@ class CalendarService:
     - Microsoft Graph API (Outlook)
     - iCal export
     """
-    
+
     def __init__(self, auth: Optional[CalendarAuth] = None):
         self.auth = auth
-    
+
     async def create_event(
         self,
         event: InterviewEvent,
@@ -120,21 +120,21 @@ class CalendarService:
             Event ID or iCal content
         """
         provider = provider or (self.auth.provider if self.auth else CalendarProvider.ICAL)
-        
+
         if provider == CalendarProvider.GOOGLE:
             return await self._create_google_event(event)
         elif provider == CalendarProvider.OUTLOOK:
             return await self._create_outlook_event(event)
         else:
             return event.to_ical()
-    
+
     async def _create_google_event(self, event: InterviewEvent) -> str:
         """Create event in Google Calendar."""
         if not self.auth or not self.auth.access_token:
             raise ValueError("Google Calendar requires authentication")
-        
+
         import httpx
-        
+
         event_body = {
             "summary": event.title,
             "location": event.location,
@@ -156,7 +156,7 @@ class CalendarService:
                 ],
             },
         }
-        
+
         if event.conference_url:
             event_body["conferenceData"] = {
                 "createRequest": {
@@ -164,7 +164,7 @@ class CalendarService:
                     "conferenceSolutionKey": {"type": "hangoutsMeet"},
                 },
             }
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://www.googleapis.com/calendar/v3/calendars/primary/events",
@@ -175,21 +175,21 @@ class CalendarService:
                 },
                 params={"conferenceDataVersion": "1"} if event.conference_url else {},
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 return data.get("id", "")
             else:
                 logger.error(f"Google Calendar API error: {response.text}")
                 raise Exception(f"Failed to create Google Calendar event: {response.status_code}")
-    
+
     async def _create_outlook_event(self, event: InterviewEvent) -> str:
         """Create event in Microsoft Outlook."""
         if not self.auth or not self.auth.access_token:
             raise ValueError("Outlook requires authentication")
-        
+
         import httpx
-        
+
         event_body = {
             "subject": event.title,
             "body": {
@@ -216,26 +216,26 @@ class CalendarService:
             ],
             "isOnlineMeeting": bool(event.conference_url),
         }
-        
+
         headers = {
             "Authorization": f"Bearer {self.auth.access_token}",
             "Content-Type": "application/json",
         }
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://graph.microsoft.com/v1.0/me/events",
                 json=event_body,
                 headers=headers,
             )
-            
+
             if response.status_code == 201:
                 data = response.json()
                 return data.get("id", "")
             else:
                 logger.error(f"Microsoft Graph API error: {response.text}")
                 raise Exception(f"Failed to create Outlook event: {response.status_code}")
-    
+
     async def get_free_busy(
         self,
         start_time: datetime,
@@ -248,14 +248,14 @@ class CalendarService:
         Returns list of busy periods with start and end times.
         """
         provider = provider or (self.auth.provider if self.auth else None)
-        
+
         if provider == CalendarProvider.GOOGLE:
             return await self._get_google_free_busy(start_time, end_time)
         elif provider == CalendarProvider.OUTLOOK:
             return await self._get_outlook_free_busy(start_time, end_time)
-        
+
         return []
-    
+
     async def _get_google_free_busy(
         self,
         start_time: datetime,
@@ -264,15 +264,15 @@ class CalendarService:
         """Get free/busy from Google Calendar."""
         if not self.auth or not self.auth.access_token:
             return []
-        
+
         import httpx
-        
+
         body = {
             "timeMin": start_time.isoformat() + "Z",
             "timeMax": end_time.isoformat() + "Z",
             "items": [{"id": "primary"}],
         }
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://www.googleapis.com/calendar/v3/freeBusy",
@@ -282,7 +282,7 @@ class CalendarService:
                     "Content-Type": "application/json",
                 },
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 busy = []
@@ -293,9 +293,9 @@ class CalendarService:
                             "end": datetime.fromisoformat(period["end"].replace("Z", "+00:00")),
                         })
                 return busy
-        
+
         return []
-    
+
     async def _get_outlook_free_busy(
         self,
         start_time: datetime,
@@ -304,9 +304,9 @@ class CalendarService:
         """Get free/busy from Outlook."""
         if not self.auth or not self.auth.access_token:
             return []
-        
+
         import httpx
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://graph.microsoft.com/v1.0/me/calendar/getSchedule",
@@ -328,7 +328,7 @@ class CalendarService:
                     "Prefer": 'outlook.timezone="UTC"',
                 },
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 busy = []
@@ -339,9 +339,9 @@ class CalendarService:
                             "end": datetime.fromisoformat(item["end"]["dateTime"].replace("Z", "+00:00")),
                         })
                 return busy
-        
+
         return []
-    
+
     def generate_ical_download(self, event: InterviewEvent) -> tuple[str, str]:
         """
         Generate iCal content for download.
@@ -391,7 +391,7 @@ async def create_interview_event(
         conference_url=conference_url,
         attendees=attendees or [],
     )
-    
+
     service = CalendarService(auth)
     return await service.create_event(event, provider)
 
@@ -406,7 +406,7 @@ def get_google_oauth_url(
         "https://www.googleapis.com/auth/calendar",
         "https://www.googleapis.com/auth/calendar.events",
     ]
-    
+
     params = {
         "client_id": client_id,
         "redirect_uri": redirect_uri,
@@ -415,10 +415,10 @@ def get_google_oauth_url(
         "access_type": "offline",
         "prompt": "consent",
     }
-    
+
     if state:
         params["state"] = state
-    
+
     query = "&".join(f"{k}={v}" for k, v in params.items())
     return f"https://accounts.google.com/o/oauth2/v2/auth?{query}"
 
@@ -435,7 +435,7 @@ def get_microsoft_oauth_url(
         "Calendars.ReadWrite",
         "Calendars.Read",
     ]
-    
+
     params = {
         "client_id": client_id,
         "redirect_uri": redirect_uri,
@@ -443,10 +443,10 @@ def get_microsoft_oauth_url(
         "scope": " ".join(scopes),
         "response_mode": "query",
     }
-    
+
     if state:
         params["state"] = state
-    
+
     query = "&".join(f"{k}={v}" for k, v in params.items())
     return f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?{query}"
 
@@ -471,7 +471,7 @@ async def refresh_google_token(
         Exception: If token refresh fails
     """
     import httpx
-    
+
     async with httpx.AsyncClient() as client:
         response = await client.post(
             "https://oauth2.googleapis.com/token",
@@ -483,7 +483,7 @@ async def refresh_google_token(
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             return {
@@ -519,7 +519,7 @@ async def refresh_microsoft_token(
         Exception: If token refresh fails
     """
     import httpx
-    
+
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token",
@@ -532,7 +532,7 @@ async def refresh_microsoft_token(
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             return {
@@ -566,15 +566,15 @@ async def ensure_valid_token(
     # If no expiration info, assume token is valid for 1 hour from now
     if token_expires_at is None:
         token_expires_at = datetime.utcnow() + timedelta(hours=1)
-    
+
     # If token is still valid for at least 5 minutes, return as-is
     if datetime.utcnow() < token_expires_at - timedelta(minutes=5):
         return auth
-    
+
     # Need to refresh
     if not auth.refresh_token:
         raise ValueError("Token expired and no refresh_token available")
-    
+
     if auth.provider == CalendarProvider.GOOGLE:
         if not auth.client_id:
             raise ValueError("Google refresh requires client_id")
@@ -592,7 +592,7 @@ async def ensure_valid_token(
             client_secret=auth.client_secret,
             tenant_id=auth.tenant_id,
         )
-    
+
     elif auth.provider == CalendarProvider.OUTLOOK:
         if not auth.client_id:
             raise ValueError("Microsoft refresh requires client_id")
@@ -610,5 +610,5 @@ async def ensure_valid_token(
             client_secret=auth.client_secret,
             tenant_id=auth.tenant_id,
         )
-    
+
     raise ValueError(f"Token refresh not supported for provider: {auth.provider}")

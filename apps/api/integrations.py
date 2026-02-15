@@ -8,17 +8,16 @@ import base64
 from typing import Any
 
 import asyncpg
+from backend.domain.google_drive_integration import GoogleDriveIntegrationManager
+from backend.domain.notion_integration import (
+    APPLICATION_DATABASE_SCHEMA,
+    NotionClient,
+    NotionIntegrationManager,
+)
+from backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
+from backend.domain.zapier_integration import ZapierIntegrationManager
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-
-from backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
-from backend.domain.notion_integration import (
-    NotionIntegrationManager,
-    NotionClient,
-    APPLICATION_DATABASE_SCHEMA,
-)
-from backend.domain.google_drive_integration import GoogleDriveIntegrationManager
-from backend.domain.zapier_integration import ZapierIntegrationManager
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.integrations")

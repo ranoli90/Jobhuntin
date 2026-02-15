@@ -1,6 +1,6 @@
 import asyncio
+
 import asyncpg
-import socket
 
 PROJECT_REF = "zglovpfwyobbbaaocawz"
 USER = f"postgres.{PROJECT_REF}"

@@ -7,7 +7,6 @@ import pathlib
 import re
 
 import asyncpg
-
 from shared.logging_config import get_logger
 from shared.repo_root import find_repo_root
 

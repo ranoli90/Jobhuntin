@@ -1,5 +1,4 @@
 import json
-import sys
 
 PASSWORD = "ravhuv-gitqec-nixvY4"
 
@@ -19,7 +18,7 @@ try:
             if "connection_string" in item:
                 conn_str = item["connection_string"]
                 break
-    
+
     if conn_str:
         final_conn_str = conn_str.replace("[YOUR-PASSWORD]", PASSWORD)
         print(final_conn_str)

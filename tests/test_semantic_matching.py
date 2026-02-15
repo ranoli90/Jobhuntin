@@ -7,17 +7,16 @@ Validates the "Precision Matcher" archetype implementation.
 from __future__ import annotations
 
 import pytest
-
 from backend.domain.embeddings import (
-    cosine_similarity,
-    profile_to_searchable_text,
-    job_to_searchable_text,
     compute_text_hash,
+    cosine_similarity,
+    job_to_searchable_text,
+    profile_to_searchable_text,
 )
 from backend.domain.semantic_matching import (
     Dealbreakers,
-    SemanticMatchingService,
     MatchExplanation,
+    SemanticMatchingService,
     SemanticMatchResult,
 )
 

@@ -14,14 +14,12 @@ Features:
 from __future__ import annotations
 
 import hashlib
-import json
 import threading
 import time
 from collections import OrderedDict
 from typing import Any, Optional
 
 from pydantic import BaseModel
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.semantic_cache")
@@ -100,7 +98,7 @@ class SemanticCache:
                 if current_time - entry.created_at <= self.ttl_seconds:
                     entry.hits += 1
                     self._cache.move_to_end(exact_key)
-                    logger.debug(f"Semantic cache exact hit for query")
+                    logger.debug("Semantic cache exact hit for query")
                     return entry.response
 
             # Search for similar queries

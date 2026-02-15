@@ -21,7 +21,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
-from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.tenant_rate_limit")

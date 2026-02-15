@@ -15,14 +15,13 @@ import time
 import uuid
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from typing import Any, Callable
 
 from fastapi import HTTPException, Request, Response
+from shared.logging_config import get_logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.production")

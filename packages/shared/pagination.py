@@ -37,15 +37,15 @@ class PaginationParams:
     after: str | None = None  # Cursor to start after
     last: int | None = None   # Number of items from end
     before: str | None = None  # Cursor to start before
-    
+
     DEFAULT_PAGE_SIZE = 20
     MAX_PAGE_SIZE = 100
-    
+
     def __post_init__(self):
         # Normalize to forward pagination
         if self.first is None and self.last is None:
             self.first = self.DEFAULT_PAGE_SIZE
-        
+
         # Clamp to max
         if self.first and self.first > self.MAX_PAGE_SIZE:
             self.first = self.MAX_PAGE_SIZE
@@ -100,23 +100,23 @@ async def paginate_query(
     """
     args = args or []
     page_size = params.first or params.last or PaginationParams.DEFAULT_PAGE_SIZE
-    
+
     # Build cursor condition
     cursor_condition = ""
     cursor_value = None
-    
+
     if params.after:
         cursor_data = decode_cursor(params.after)
         if cursor_data:
             cursor_value = cursor_data.get("id")
             cursor_condition = f"AND {cursor_field} > ${{cursor_val}}"
-    
+
     if params.before:
         cursor_data = decode_cursor(params.before)
         if cursor_data:
             cursor_value = cursor_data.get("id")
             cursor_condition = f"AND {cursor_field} < ${{cursor_val}}"
-    
+
     # Build full query
     direction = "DESC" if params.last else "ASC"
     full_query = f"""
@@ -126,26 +126,26 @@ async def paginate_query(
         ORDER BY {cursor_field} {direction}
         LIMIT {page_size + 1}
     """
-    
+
     # Execute query
     if cursor_value:
         full_query = full_query.replace("${cursor_val}", f"${len(args) + 1}")
         args.append(cursor_value)
-    
+
     rows = await conn.fetch(full_query, *args)
-    
+
     # Determine if there's a next page
     has_next = len(rows) > page_size
     items = rows[:page_size] if has_next else rows
-    
+
     # Reverse if paginating backwards
     if params.last or params.before:
         items = list(reversed(items))
-    
+
     # Build page info
     start_cursor = create_cursor_from_row(items[0], cursor_field) if items else None
     end_cursor = create_cursor_from_row(items[-1], cursor_field) if items else None
-    
+
     # Get total count (optional)
     count_query = f"SELECT COUNT(*) FROM ({query}) AS subq"
     try:
@@ -153,7 +153,7 @@ async def paginate_query(
         total_count = total_result["count"] if total_result else None
     except Exception:
         total_count = None
-    
+
     return PaginatedResult(
         items=[dict(row) for row in items],
         page_info=PageInfo(

@@ -9,12 +9,11 @@ Implements the feedback loop for ML improvement:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 import asyncpg
 from pydantic import BaseModel, Field
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.match_feedback")

@@ -8,10 +8,10 @@ Provides helpful, actionable error messages with:
 - Related documentation links
 """
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ class ContextualError:
     documentation_url: Optional[str] = None
     support_ticket: bool = False
     retry_possible: bool = False
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for API response."""
         return {
@@ -166,7 +166,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-    
+
     # Authorization errors
     "AUTHZ_001": ContextualError(
         code="AUTHZ_001",
@@ -204,7 +204,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-    
+
     # Validation errors
     "VAL_001": ContextualError(
         code="VAL_001",
@@ -262,7 +262,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-    
+
     # Network errors
     "NET_001": ContextualError(
         code="NET_001",
@@ -300,7 +300,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
         ],
         retry_possible=True,
     ),
-    
+
     # Rate limit errors
     "RATE_001": ContextualError(
         code="RATE_001",
@@ -336,7 +336,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-    
+
     # Payment errors
     "PAY_001": ContextualError(
         code="PAY_001",
@@ -375,7 +375,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-    
+
     # AI Service errors
     "AI_001": ContextualError(
         code="AI_001",
@@ -413,7 +413,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
         ],
         retry_possible=True,
     ),
-    
+
     # Database errors
     "DB_001": ContextualError(
         code="DB_001",
@@ -435,7 +435,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
         ],
         retry_possible=True,
     ),
-    
+
     # Generic errors
     "GEN_001": ContextualError(
         code="GEN_001",
@@ -485,19 +485,19 @@ def create_error_response(
 ) -> dict:
     """Create a full error response for the API."""
     error = ERROR_REGISTRY.get(code)
-    
+
     if not error:
         # Return generic error for unknown codes
         error = ERROR_REGISTRY["GEN_001"]
-    
+
     response = error.to_dict()
-    
+
     if custom_message:
         response["message"] = custom_message
-    
+
     if additional_context:
         response["context"] = additional_context
-    
+
     return response
 
 
@@ -505,28 +505,28 @@ def classify_exception(exc: Exception) -> ContextualError:
     """Classify an exception into a contextual error."""
     exc_type = type(exc).__name__
     exc_message = str(exc).lower()
-    
+
     # Map common exceptions to error codes
     if "authentication" in exc_message or "unauthorized" in exc_message:
         return ERROR_REGISTRY.get("AUTH_001", ERROR_REGISTRY["GEN_001"])
-    
+
     if "permission" in exc_message or "forbidden" in exc_message:
         return ERROR_REGISTRY.get("AUTHZ_001", ERROR_REGISTRY["GEN_001"])
-    
+
     if "timeout" in exc_message:
         return ERROR_REGISTRY.get("NET_002", ERROR_REGISTRY["GEN_001"])
-    
+
     if "connection" in exc_message or "network" in exc_message:
         return ERROR_REGISTRY.get("NET_001", ERROR_REGISTRY["GEN_001"])
-    
+
     if "rate limit" in exc_message or "too many" in exc_message:
         return ERROR_REGISTRY.get("RATE_001", ERROR_REGISTRY["GEN_001"])
-    
+
     if "validation" in exc_message or "invalid" in exc_message:
         return ERROR_REGISTRY.get("VAL_001", ERROR_REGISTRY["GEN_001"])
-    
+
     if "payment" in exc_message or "billing" in exc_message:
         return ERROR_REGISTRY.get("PAY_001", ERROR_REGISTRY["GEN_001"])
-    
+
     # Default to generic error
     return ERROR_REGISTRY["GEN_001"]

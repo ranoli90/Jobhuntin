@@ -13,7 +13,6 @@ import asyncio
 from typing import Any
 
 import asyncpg
-
 from shared.config import get_settings
 from shared.logging_config import get_logger
 

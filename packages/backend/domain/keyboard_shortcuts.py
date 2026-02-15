@@ -8,10 +8,10 @@ Provides a centralized registry for keyboard shortcuts with:
 - Customizable key bindings
 """
 
-from dataclasses import dataclass, field
+import logging
+from dataclasses import dataclass
 from enum import Enum
 from typing import Callable, Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class KeyboardShortcut:
     category: str = "general"
     handler: Optional[Callable] = None
     current_binding: Optional[str] = None
-    
+
     def __post_init__(self):
         if self.current_binding is None:
             self.current_binding = self.default_binding
@@ -52,7 +52,7 @@ class KeyboardShortcutsService:
     - Scope-aware activation
     - Help overlay generation
     """
-    
+
     def __init__(self):
         self._shortcuts: dict[str, KeyboardShortcut] = {}
         self._bindings: dict[str, str] = {}  # binding -> shortcut_id
@@ -60,7 +60,7 @@ class KeyboardShortcutsService:
         self._active_scope: ShortcutScope = ShortcutScope.GLOBAL
         self._enabled: bool = True
         self._register_defaults()
-    
+
     def _register_defaults(self) -> None:
         """Register default keyboard shortcuts."""
         defaults = [
@@ -93,7 +93,7 @@ class KeyboardShortcutsService:
                 default_binding="g p",
                 category="navigation",
             ),
-            
+
             # Job actions
             KeyboardShortcut(
                 id="jobs.search",
@@ -143,7 +143,7 @@ class KeyboardShortcutsService:
                 scope=ShortcutScope.JOBS,
                 category="jobs",
             ),
-            
+
             # Editor actions
             KeyboardShortcut(
                 id="editor.save",
@@ -177,7 +177,7 @@ class KeyboardShortcutsService:
                 scope=ShortcutScope.EDITOR,
                 category="editor",
             ),
-            
+
             # General
             KeyboardShortcut(
                 id="general.help",
@@ -201,141 +201,141 @@ class KeyboardShortcutsService:
                 category="general",
             ),
         ]
-        
+
         for shortcut in defaults:
             self.register(shortcut)
-    
+
     def register(self, shortcut: KeyboardShortcut) -> None:
         """Register a keyboard shortcut."""
         if shortcut.id in self._shortcuts:
             logger.warning(f"Overwriting existing shortcut: {shortcut.id}")
-        
+
         self._shortcuts[shortcut.id] = shortcut
         binding = shortcut.current_binding or shortcut.default_binding
         self._bindings[binding] = shortcut.id
         logger.debug(f"Registered shortcut: {shortcut.id} -> {binding}")
-    
+
     def unregister(self, shortcut_id: str) -> bool:
         """Unregister a keyboard shortcut."""
         if shortcut_id not in self._shortcuts:
             return False
-        
+
         shortcut = self._shortcuts[shortcut_id]
         binding = shortcut.current_binding or shortcut.default_binding
         del self._shortcuts[shortcut_id]
         if binding in self._bindings and self._bindings[binding] == shortcut_id:
             del self._bindings[binding]
-        
+
         return True
-    
+
     def get(self, shortcut_id: str) -> Optional[KeyboardShortcut]:
         """Get a shortcut by ID."""
         return self._shortcuts.get(shortcut_id)
-    
+
     def get_by_binding(self, binding: str) -> Optional[KeyboardShortcut]:
         """Get a shortcut by its key binding."""
         shortcut_id = self._bindings.get(binding)
         if shortcut_id:
             return self._shortcuts.get(shortcut_id)
         return None
-    
+
     def set_binding(self, shortcut_id: str, new_binding: str) -> bool:
         """Set a custom binding for a shortcut."""
         if shortcut_id not in self._shortcuts:
             return False
-        
+
         # Check for conflicts
         if new_binding in self._bindings:
             existing_id = self._bindings[new_binding]
             if existing_id != shortcut_id:
                 logger.warning(f"Binding conflict: {new_binding} already used by {existing_id}")
                 return False
-        
+
         shortcut = self._shortcuts[shortcut_id]
         old_binding = shortcut.current_binding or shortcut.default_binding
-        
+
         # Update bindings
         if old_binding in self._bindings and self._bindings[old_binding] == shortcut_id:
             del self._bindings[old_binding]
-        
+
         shortcut.current_binding = new_binding
         self._bindings[new_binding] = shortcut_id
         self._user_bindings[shortcut_id] = new_binding
-        
+
         return True
-    
+
     def reset_binding(self, shortcut_id: str) -> bool:
         """Reset a shortcut to its default binding."""
         if shortcut_id not in self._shortcuts:
             return False
-        
+
         shortcut = self._shortcuts[shortcut_id]
         current = shortcut.current_binding or shortcut.default_binding
-        
+
         if current in self._bindings and self._bindings[current] == shortcut_id:
             del self._bindings[current]
-        
+
         shortcut.current_binding = shortcut.default_binding
         self._bindings[shortcut.default_binding] = shortcut_id
-        
+
         if shortcut_id in self._user_bindings:
             del self._user_bindings[shortcut_id]
-        
+
         return True
-    
+
     def set_scope(self, scope: ShortcutScope) -> None:
         """Set the active scope for context-sensitive shortcuts."""
         self._active_scope = scope
         logger.debug(f"Active scope changed to: {scope}")
-    
+
     def get_active_shortcuts(self) -> list[KeyboardShortcut]:
         """Get shortcuts active in current scope."""
         return [
             s for s in self._shortcuts.values()
             if s.scope == ShortcutScope.GLOBAL or s.scope == self._active_scope
         ]
-    
+
     def get_all(self) -> list[KeyboardShortcut]:
         """Get all registered shortcuts."""
         return list(self._shortcuts.values())
-    
+
     def get_by_category(self, category: str) -> list[KeyboardShortcut]:
         """Get shortcuts by category."""
         return [s for s in self._shortcuts.values() if s.category == category]
-    
+
     def get_categories(self) -> list[str]:
         """Get all shortcut categories."""
         return list(set(s.category for s in self._shortcuts.values()))
-    
+
     def get_user_bindings(self) -> dict[str, str]:
         """Get user-customized bindings for persistence."""
         return self._user_bindings.copy()
-    
+
     def load_user_bindings(self, bindings: dict[str, str]) -> None:
         """Load user-customized bindings from storage."""
         for shortcut_id, binding in bindings.items():
             self.set_binding(shortcut_id, binding)
-    
+
     def enable(self) -> None:
         """Enable keyboard shortcuts."""
         self._enabled = True
-    
+
     def disable(self) -> None:
         """Disable keyboard shortcuts."""
         self._enabled = False
-    
+
     def is_enabled(self) -> bool:
         """Check if shortcuts are enabled."""
         return self._enabled
-    
+
     def get_help_data(self) -> dict[str, list[dict]]:
         """Get help data for rendering shortcuts overlay."""
         categories: dict[str, list[dict]] = {}
-        
+
         for shortcut in self.get_active_shortcuts():
             if shortcut.category not in categories:
                 categories[shortcut.category] = []
-            
+
             categories[shortcut.category].append({
                 "id": shortcut.id,
                 "name": shortcut.name,
@@ -343,7 +343,7 @@ class KeyboardShortcutsService:
                 "binding": shortcut.current_binding or shortcut.default_binding,
                 "scope": shortcut.scope.value,
             })
-        
+
         return categories
 
 

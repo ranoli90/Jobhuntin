@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import socket
-from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from shared.logging_config import get_logger
 

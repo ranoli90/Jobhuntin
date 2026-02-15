@@ -16,10 +16,9 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 import asyncpg
-from signxml import XMLVerifier
-
 from shared.config import Environment, get_settings
 from shared.logging_config import get_logger
+from signxml import XMLVerifier
 
 logger = get_logger("sorce.sso.saml")
 

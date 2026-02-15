@@ -13,16 +13,14 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import json
-import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
 import asyncpg
-
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.slack")

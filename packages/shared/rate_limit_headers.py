@@ -30,7 +30,7 @@ class RateLimitInfo:
 
 class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
     """Middleware that adds rate limit headers to responses."""
-    
+
     def __init__(
         self,
         app,
@@ -41,39 +41,39 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
         self.default_limit = default_limit
         self.window_seconds = window_seconds
         self._limits: dict[str, RateLimitInfo] = {}
-    
+
     def _get_client_key(self, request: Request) -> str:
         """Get unique key for client (IP or user ID)."""
         # Use user ID if authenticated
         user_id = getattr(request.state, "user_id", None)
         if user_id:
             return f"user:{user_id}"
-        
+
         # Fall back to IP
         forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
             return f"ip:{forwarded.split(',')[0].strip()}"
-        
+
         return f"ip:{request.client.host if request.client else 'unknown'}"
-    
+
     def _get_tier_limit(self, request: Request) -> int:
         """Get rate limit based on user tier."""
         tier = getattr(request.state, "tier", "free")
-        
+
         tier_limits = {
             "free": 100,
             "pro": 500,
             "enterprise": 5000,
         }
-        
+
         return tier_limits.get(tier, self.default_limit)
-    
+
     def check_rate_limit(self, request: Request) -> RateLimitInfo:
         """Check rate limit for client and return info."""
         key = self._get_client_key(request)
         limit = self._get_tier_limit(request)
         now = datetime.now()
-        
+
         if key not in self._limits:
             # First request
             info = RateLimitInfo(
@@ -83,9 +83,9 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
             )
             self._limits[key] = info
             return info
-        
+
         info = self._limits[key]
-        
+
         # Check if window has reset
         if now >= info.reset_at:
             info = RateLimitInfo(
@@ -95,7 +95,7 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
             )
             self._limits[key] = info
             return info
-        
+
         # Decrement remaining
         if info.remaining > 0:
             info.remaining -= 1
@@ -103,23 +103,23 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
             # Rate limited
             retry_after = int((info.reset_at - now).total_seconds())
             info.retry_after = retry_after
-        
+
         return info
-    
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Process request and add rate limit headers."""
         info = self.check_rate_limit(request)
-        
+
         response = await call_next(request)
-        
+
         # Add rate limit headers
         response.headers["X-RateLimit-Limit"] = str(info.limit)
         response.headers["X-RateLimit-Remaining"] = str(info.remaining)
         response.headers["X-RateLimit-Reset"] = str(int(info.reset_at.timestamp()))
-        
+
         if info.retry_after:
             response.headers["Retry-After"] = str(info.retry_after)
-        
+
         return response
 
 

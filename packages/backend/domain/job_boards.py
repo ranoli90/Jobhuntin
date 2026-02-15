@@ -9,9 +9,9 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import httpx
-
 from shared.config import Settings
 from shared.logging_config import get_logger
+
 from shared.metrics import RateLimiter, incr
 
 logger = get_logger("sorce.job_boards")
@@ -209,15 +209,15 @@ class LinkedInClient(JobBoardClient):
             Access token string or None if authentication fails
         """
         import time
-        
+
         # Return cached token if still valid (with 5 minute buffer)
         if self._access_token and time.time() < self._token_expires_at - 300:
             return self._access_token
-        
+
         if not self.client_id or not self.client_secret:
             logger.warning("LinkedIn client credentials not configured")
             return None
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 # LinkedIn OAuth 2.0 token endpoint
@@ -231,7 +231,7 @@ class LinkedInClient(JobBoardClient):
                     headers={"Content-Type": "application/x-www-form-urlencoded"},
                     timeout=10,
                 )
-                
+
                 if response.status_code == 200:
                     data = response.json()
                     self._access_token = data.get("access_token")
@@ -241,7 +241,7 @@ class LinkedInClient(JobBoardClient):
                     logger.info("LinkedIn access token obtained successfully")
                     return self._access_token
                 else:
-                    logger.error("LinkedIn token request failed: %s - %s", 
+                    logger.error("LinkedIn token request failed: %s - %s",
                                 response.status_code, response.text[:200])
                     return None
             except Exception as e:

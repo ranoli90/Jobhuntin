@@ -17,6 +17,9 @@ from datetime import datetime
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from shared.ai_validation import (
+    validate_and_sanitize_ai_input,
+)
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -33,13 +36,6 @@ from backend.llm.contracts import (
     build_onboarding_questions_prompt,
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
-)
-from shared.ai_validation import (
-    validate_and_sanitize_ai_input,
-    sanitize_for_ai,
-    sanitize_dict_for_ai,
-    get_ai_rate_limiter,
-    ValidationResult,
 )
 
 logger = get_logger("sorce.api.ai")
@@ -612,6 +608,7 @@ async def semantic_match_job(
         Dealbreakers,
         get_matching_service,
     )
+
     from backend.domain.masking import strip_pii_for_llm
 
     # Strip PII from profile before processing
@@ -709,6 +706,7 @@ async def semantic_match_batch(
         Dealbreakers,
         get_matching_service,
     )
+
     from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
@@ -1119,6 +1117,7 @@ async def tailor_resume(
     4. Computes ATS optimization score
     """
     from backend.domain.resume_tailoring import get_tailoring_service
+
     from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))

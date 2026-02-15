@@ -25,9 +25,9 @@ from datetime import datetime
 from typing import Any
 
 import asyncpg
+from shared.config import get_settings
 
 from backend.domain.masking import redact_event_payload
-from shared.config import get_settings
 
 
 def _json_serializer(obj: Any) -> Any:

@@ -14,6 +14,7 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
+from shared.logging_config import get_logger
 
 from backend.domain.analytics_events import ALL_EVENT_TYPES
 from backend.domain.eval_queries import get_agent_performance_summary
@@ -23,7 +24,6 @@ from backend.domain.m1_metrics import get_m1_dashboard, refresh_dashboard_views
 from backend.domain.m2_metrics import get_m2_dashboard, refresh_m2_views
 from backend.domain.m3_metrics import get_m3_dashboard, refresh_m3_views
 from backend.domain.m4_metrics import get_m4_dashboard, refresh_m4_views
-from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.analytics")

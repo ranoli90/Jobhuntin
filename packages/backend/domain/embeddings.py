@@ -13,16 +13,15 @@ Implements the "Precision Matcher" archetype from competitive analysis:
 from __future__ import annotations
 
 import hashlib
-import json
 import time
 from typing import Any
 
 import httpx
-
 from shared.config import Settings
 from shared.logging_config import get_logger
+
+from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
 from shared.metrics import incr, observe
-from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
 
 logger = get_logger("sorce.embeddings")
 

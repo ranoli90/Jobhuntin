@@ -12,10 +12,10 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
-
 from shared.config import get_settings
 from shared.logging_config import get_logger
-from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
+
+from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
 
 logger = get_logger("sorce.email_digest")
 

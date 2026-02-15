@@ -11,13 +11,13 @@ Features:
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
 import asyncpg
-
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.google_drive")

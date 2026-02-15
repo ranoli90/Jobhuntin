@@ -8,11 +8,10 @@ Creates monitors via UptimeRobot API for:
 - Database connectivity (via API healthz)
 """
 
-import os
 import json
-import urllib.request
+import os
 import urllib.error
-
+import urllib.request
 
 UPTIMEROBOT_API_URL = "https://api.uptimerobot.com/v2/"
 

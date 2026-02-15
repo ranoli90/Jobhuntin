@@ -19,6 +19,7 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from shared.logging_config import get_logger
 
 from backend.domain.repositories import (
     ApplicationRepo,
@@ -32,7 +33,6 @@ from backend.domain.tenant import (
     require_system_admin,
     resolve_tenant_context,
 )
-from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.admin")
@@ -251,8 +251,8 @@ async def get_tenant_application_detail(
     # Mask PII using the masking module unless explicitly unmasked
     if not unmask:
         from backend.domain.masking import (
-            redact_profile_for_support,
             redact_event_payload,
+            redact_profile_for_support,
         )
 
         if "profile_data" in serialized and isinstance(
@@ -381,8 +381,9 @@ async def get_tenant_audit_log(
 ) -> PaginatedAuditLog:
     """Retrieve audit log for a tenant with filtering options."""
     from datetime import datetime
-    from backend.domain.audit import get_audit_log, get_audit_log_count
+
     from shared.validators import validate_uuid
+
 
     validate_uuid(tenant_id, "tenant_id")
 
@@ -568,8 +569,9 @@ async def export_tenant_audit_log(
 ):
     """Export audit log as CSV for compliance reporting."""
     from fastapi.responses import StreamingResponse
-    from backend.domain.audit import export_audit_log_csv
     from shared.validators import validate_uuid
+
+    from backend.domain.audit import export_audit_log_csv
 
     validate_uuid(tenant_id, "tenant_id")
 

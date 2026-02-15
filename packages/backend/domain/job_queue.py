@@ -20,9 +20,8 @@ from typing import Any, Callable, Coroutine
 
 import asyncpg
 from pydantic import BaseModel, Field
-
-from shared.config import get_settings
 from shared.logging_config import get_logger
+
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.job_queue")

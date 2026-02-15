@@ -47,9 +47,9 @@ def normalize_location(location: str) -> str:
     """Normalize location strings for comparison."""
     if not location:
         return ""
-    
+
     location = location.lower().strip()
-    
+
     # Common abbreviations
     replacements = {
         "remote": "remote",
@@ -64,13 +64,13 @@ def normalize_location(location: str) -> str:
         "london, uk": "london",
         "london, united kingdom": "london",
     }
-    
+
     for old, new in replacements.items():
         location = location.replace(old, new)
-    
+
     # Remove state codes like "CA", "NY" at the end
     location = re.sub(r",?\s*[a-z]{2}\s*$", "", location)
-    
+
     return normalize_text(location)
 
 
@@ -78,19 +78,19 @@ def normalize_company(company: str) -> str:
     """Normalize company names for comparison."""
     if not company:
         return ""
-    
+
     company = company.lower().strip()
-    
+
     # Remove common suffixes
     suffixes = [
         "inc", "inc.", "llc", "ltd", "ltd.", "corp", "corp.",
         "corporation", "company", "co", "co.", "limited",
     ]
-    
+
     for suffix in suffixes:
         if company.endswith(f" {suffix}"):
             company = company[: -len(suffix) - 1]
-    
+
     return normalize_text(company)
 
 
@@ -98,18 +98,18 @@ def normalize_title(title: str) -> str:
     """Normalize job titles for comparison."""
     if not title:
         return ""
-    
+
     title = title.lower().strip()
-    
+
     # Remove level indicators
     level_patterns = [
         r"\b(senior|sr\.?|junior|jr\.?|lead|principal|staff)\b",
         r"\b(i{1,3}|iv|v)\b",  # Roman numerals
     ]
-    
+
     for pattern in level_patterns:
         title = re.sub(pattern, "", title)
-    
+
     # Normalize common job types
     replacements = {
         "software engineer": "software engineer",
@@ -124,10 +124,10 @@ def normalize_title(title: str) -> str:
         "data scientist": "data scientist",
         "product manager": "product manager",
     }
-    
+
     for old, new in replacements.items():
         title = title.replace(old, new)
-    
+
     return normalize_text(title)
 
 
@@ -149,15 +149,15 @@ def jobs_are_similar(job1: JobListing, job2: JobListing, threshold: float = 0.85
     # Exact fingerprint match
     if job1.fingerprint == job2.fingerprint:
         return True
-    
+
     # Check individual field similarities
     title_sim = similarity_score(job1.normalized_title, job2.normalized_title)
     company_sim = similarity_score(job1.normalized_company, job2.normalized_company)
     location_sim = similarity_score(job1.normalized_location, job2.normalized_location)
-    
+
     # Weighted combination
     combined = (title_sim * 0.5 + company_sim * 0.35 + location_sim * 0.15)
-    
+
     return combined >= threshold
 
 
@@ -174,13 +174,13 @@ def normalize_job(raw_job: dict[str, Any], source: str) -> JobListing:
         source=source,
         posted_at=raw_job.get("posted_at", raw_job.get("created", None)),
     )
-    
+
     # Normalize fields
     job.normalized_title = normalize_title(job.title)
     job.normalized_company = normalize_company(job.company)
     job.normalized_location = normalize_location(job.location)
     job.fingerprint = generate_fingerprint(job)
-    
+
     return job
 
 
@@ -196,34 +196,34 @@ def deduplicate_jobs(
         tuple of (unique_jobs, duplicate_jobs)
     """
     normalized = [normalize_job(job, source) for job in jobs]
-    
+
     if existing_jobs is None:
         existing_jobs = []
-    
+
     unique: list[JobListing] = []
     duplicates: list[JobListing] = []
-    
+
     seen_fingerprints: set[str] = {job.fingerprint for job in existing_jobs}
-    
+
     for job in normalized:
         # Quick fingerprint check
         if job.fingerprint in seen_fingerprints:
             duplicates.append(job)
             continue
-        
+
         # Slower similarity check against existing unique jobs
         is_duplicate = False
         for existing in existing_jobs + unique:
             if jobs_are_similar(job, existing):
                 is_duplicate = True
                 break
-        
+
         if is_duplicate:
             duplicates.append(job)
         else:
             unique.append(job)
             seen_fingerprints.add(job.fingerprint)
-    
+
     return unique, duplicates
 
 
@@ -241,10 +241,10 @@ def merge_job_sources(
     """
     all_unique: list[JobListing] = []
     stats: dict[str, int] = {}
-    
+
     for jobs, source in sources:
         unique, duplicates = deduplicate_jobs(jobs, source, all_unique)
         all_unique.extend(unique)
         stats[source] = {"total": len(jobs), "unique": len(unique), "duplicates": len(duplicates)}
-    
+
     return all_unique, stats

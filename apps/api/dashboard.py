@@ -17,15 +17,13 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
-
 from pydantic import BaseModel
-
 from shared.alerting import AlertSeverity, AlertStatus, get_alert_manager
-from shared.circuit_breaker import get_all_circuit_breaker_statuses
 from shared.logging_config import get_logger
-from shared.metrics import dump as metrics_dump
 from shared.monitoring_config import get_monitoring_config
 from shared.structured_logging import get_structured_metrics
+
+from shared.circuit_breaker import get_all_circuit_breaker_statuses
 
 logger = get_logger("sorce.dashboard")
 

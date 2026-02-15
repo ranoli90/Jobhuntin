@@ -69,7 +69,6 @@ async def check_api_health(api_url: str) -> CheckResult:
 async def check_database() -> CheckResult:
     """Check database connectivity and critical tables exist."""
     import asyncpg
-
     from shared.config import get_settings
     s = get_settings()
     t0 = time.monotonic()
@@ -109,7 +108,6 @@ async def check_database() -> CheckResult:
 async def check_jobs_exist() -> CheckResult:
     """Check that the jobs table has data."""
     import asyncpg
-
     from shared.config import get_settings
     s = get_settings()
     t0 = time.monotonic()
@@ -190,7 +188,6 @@ async def check_dashboard_endpoint(api_url: str) -> CheckResult:
 async def check_worker_recent_activity() -> CheckResult:
     """Check if the worker has processed anything in the last hour."""
     import asyncpg
-
     from shared.config import get_settings
     s = get_settings()
     t0 = time.monotonic()

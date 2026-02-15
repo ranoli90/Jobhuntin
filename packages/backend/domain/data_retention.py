@@ -11,13 +11,11 @@ Implements configurable retention periods for different data types:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
-
-from shared.config import get_settings
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.retention")

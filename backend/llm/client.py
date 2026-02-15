@@ -21,11 +21,11 @@ from typing import TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
-
 from shared.config import Settings
 from shared.logging_config import get_logger
+
+from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
 from shared.metrics import incr, observe
-from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
 
 logger = get_logger("sorce.llm")
 

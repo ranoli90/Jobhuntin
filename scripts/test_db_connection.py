@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Test Render database connection"""
-import asyncpg
 import asyncio
-import sys
+
+import asyncpg
+
 
 async def test_connection(db_url):
     try:

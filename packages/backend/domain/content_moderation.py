@@ -8,11 +8,11 @@ Provides:
 - Content safety checks
 """
 
+import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class ModerationResult:
     flagged_text: Optional[str] = None
     redacted_text: Optional[str] = None
     reason: Optional[str] = None
-    
+
     def to_dict(self) -> dict:
         return {
             "is_safe": self.is_safe,
@@ -94,7 +94,7 @@ class ContentModerator:
     - Profanity filtering
     - Configurable thresholds
     """
-    
+
     def __init__(
         self,
         enable_profanity_filter: bool = True,
@@ -110,16 +110,16 @@ class ContentModerator:
         self.block_threshold = block_threshold
         self.flag_threshold = flag_threshold
         self.custom_patterns = custom_patterns or {}
-        
+
         # Compile patterns
         self._profanity_regex = [
             re.compile(p, re.IGNORECASE) for p in PROFANITY_PATTERNS
         ]
         self._pii_regex = {
-            name: re.compile(pattern) 
+            name: re.compile(pattern)
             for name, pattern in PII_PATTERNS.items()
         }
-    
+
     def moderate(self, text: str) -> ModerationResult:
         """
         Moderate content and return result.
@@ -135,19 +135,19 @@ class ContentModerator:
                 is_safe=True,
                 action=ModerationAction.ALLOW,
             )
-        
+
         categories: list[ContentCategory] = []
         flagged_parts: list[str] = []
         redacted_text = text
         confidence = 0.0
-        
+
         # Check PII
         if self.enable_pii_filter:
             pii_found, redacted_text = self._check_pii(redacted_text)
             if pii_found:
                 categories.append(ContentCategory.PII)
                 flagged_parts.append("PII detected")
-        
+
         # Check profanity
         if self.enable_profanity_filter:
             profanity_found, redacted_text = self._check_profanity(redacted_text)
@@ -155,7 +155,7 @@ class ContentModerator:
                 categories.append(ContentCategory.PROFANITY)
                 flagged_parts.append("Profanity detected")
                 confidence = max(confidence, 0.6)
-        
+
         # Check toxicity
         if self.enable_toxicity_check:
             toxicity_score = self._check_toxicity(text)
@@ -163,14 +163,14 @@ class ContentModerator:
                 categories.append(ContentCategory.TOXIC)
                 flagged_parts.append(f"Toxicity score: {toxicity_score:.2f}")
                 confidence = max(confidence, toxicity_score)
-        
+
         # Determine action
         if not categories:
             return ModerationResult(
                 is_safe=True,
                 action=ModerationAction.ALLOW,
             )
-        
+
         if confidence >= self.block_threshold:
             action = ModerationAction.BLOCK
         elif ContentCategory.PII in categories:
@@ -179,7 +179,7 @@ class ContentModerator:
             action = ModerationAction.FLAG
         else:
             action = ModerationAction.ALLOW
-        
+
         return ModerationResult(
             is_safe=action == ModerationAction.ALLOW or action == ModerationAction.REDACT,
             action=action,
@@ -189,12 +189,12 @@ class ContentModerator:
             redacted_text=redacted_text if action == ModerationAction.REDACT else None,
             reason=self._get_reason(categories, action),
         )
-    
+
     def _check_pii(self, text: str) -> tuple[bool, str]:
         """Check for PII and redact."""
         found = False
         redacted = text
-        
+
         for name, pattern in self._pii_regex.items():
             matches = pattern.findall(redacted)
             if matches:
@@ -203,14 +203,14 @@ class ContentModerator:
                     if isinstance(match, tuple):
                         match = match[0] if match else ""
                     redacted = redacted.replace(match, f"[{name.upper()}_REDACTED]")
-        
+
         return found, redacted
-    
+
     def _check_profanity(self, text: str) -> tuple[bool, str]:
         """Check for profanity and censor."""
         found = False
         censored = text
-        
+
         for pattern in self._profanity_regex:
             matches = pattern.findall(censored)
             if matches:
@@ -218,9 +218,9 @@ class ContentModerator:
                 for match in matches:
                     # Replace with asterisks except first letter
                     censored = censored.replace(match, match[0] + "*" * (len(match) - 1))
-        
+
         return found, censored
-    
+
     def _check_toxicity(self, text: str) -> float:
         """
         Check toxicity score (simplified heuristic).
@@ -232,41 +232,41 @@ class ContentModerator:
         """
         text_lower = text.lower()
         matches = sum(1 for indicator in TOXICITY_INDICATORS if indicator in text_lower)
-        
+
         # Normalize to 0-1 range
         # More matches = higher toxicity
         score = min(matches / 5.0, 1.0)
-        
+
         return score
-    
+
     def _get_reason(
-        self, 
-        categories: list[ContentCategory], 
+        self,
+        categories: list[ContentCategory],
         action: ModerationAction
     ) -> str:
         """Get human-readable reason for moderation action."""
         if action == ModerationAction.ALLOW:
             return "Content passed moderation"
-        
+
         category_names = [c.value.replace("_", " ") for c in categories]
-        
+
         if action == ModerationAction.BLOCK:
             return f"Content blocked due to: {', '.join(category_names)}"
         elif action == ModerationAction.REDACT:
             return f"Content redacted due to: {', '.join(category_names)}"
         else:
             return f"Content flagged for: {', '.join(category_names)}"
-    
+
     def is_safe(self, text: str) -> bool:
         """Quick check if content is safe."""
         result = self.moderate(text)
         return result.is_safe
-    
+
     def redact_pii(self, text: str) -> str:
         """Redact PII from text."""
         _, redacted = self._check_pii(text)
         return redacted
-    
+
     def filter_profanity(self, text: str) -> str:
         """Filter profanity from text."""
         _, filtered = self._check_profanity(text)
@@ -279,7 +279,7 @@ class LLMModerator:
     
     Uses LLM-based moderation for more accurate detection.
     """
-    
+
     def __init__(
         self,
         llm_client: "Any",
@@ -290,7 +290,7 @@ class LLMModerator:
         self.use_llm_check = use_llm_check
         self.fallback_to_patterns = fallback_to_patterns
         self._pattern_moderator = ContentModerator()
-    
+
     async def moderate_output(
         self,
         output: str,
@@ -308,25 +308,25 @@ class LLMModerator:
         """
         # First, do pattern-based check
         pattern_result = self._pattern_moderator.moderate(output)
-        
+
         # If pattern check blocks, return immediately
         if pattern_result.action == ModerationAction.BLOCK:
             return pattern_result
-        
+
         # If LLM check enabled, do additional check
         if self.use_llm_check and self.llm_client:
             try:
                 llm_result = await self._llm_moderate(output, context)
-                
+
                 # Combine results
                 if llm_result.action == ModerationAction.BLOCK:
                     return llm_result
-                
+
                 # Merge categories
                 all_categories = list(set(
                     pattern_result.categories + llm_result.categories
                 ))
-                
+
                 # Take more restrictive action
                 actions = [pattern_result.action, llm_result.action]
                 if ModerationAction.BLOCK in actions:
@@ -337,7 +337,7 @@ class LLMModerator:
                     final_action = ModerationAction.FLAG
                 else:
                     final_action = ModerationAction.ALLOW
-                
+
                 return ModerationResult(
                     is_safe=final_action == ModerationAction.ALLOW,
                     action=final_action,
@@ -350,9 +350,9 @@ class LLMModerator:
                 if self.fallback_to_patterns:
                     return pattern_result
                 raise
-        
+
         return pattern_result
-    
+
     async def _llm_moderate(
         self,
         text: str,
@@ -382,19 +382,19 @@ Respond in JSON format:
 
         try:
             response = await self.llm_client.call(prompt)
-            
+
             # Parse response
             import json
             result = json.loads(response)
-            
+
             categories = [
-                ContentCategory(c) 
+                ContentCategory(c)
                 for c in result.get("categories", [])
                 if c in [e.value for e in ContentCategory]
             ]
-            
+
             confidence = result.get("confidence", 0.5)
-            
+
             if result.get("is_safe", True):
                 return ModerationResult(
                     is_safe=True,
@@ -412,7 +412,7 @@ Respond in JSON format:
                     confidence=confidence,
                     reason=result.get("reason", "LLM detected issues"),
                 )
-        
+
         except Exception as e:
             logger.error(f"LLM moderation parse error: {e}")
             # Return safe result on error

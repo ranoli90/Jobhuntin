@@ -14,9 +14,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
-
-from shared.config import get_settings
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.gdpr")
@@ -69,7 +68,7 @@ async def export_user_data(
     if applications:
         app_ids = [str(a["id"]) for a in applications]
         events = await conn.fetch(
-            f"""
+            """
             SELECT application_id, event_type, payload, created_at
             FROM public.application_events
             WHERE application_id = ANY($1::uuid[])
@@ -80,7 +79,7 @@ async def export_user_data(
         data["sections"]["application_events"] = [dict(e) for e in events]
 
         inputs = await conn.fetch(
-            f"""
+            """
             SELECT application_id, selector, question, answer, resolved, created_at
             FROM public.application_inputs
             WHERE application_id = ANY($1::uuid[])

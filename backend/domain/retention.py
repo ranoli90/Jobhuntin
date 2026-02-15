@@ -17,9 +17,9 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
+from shared.logging_config import get_logger
 
 from backend.domain.masking import redact_event_payload
-from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.retention")

@@ -19,10 +19,10 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import asyncpg
-
-from shared.logging_config import get_logger
-from shared.metrics import incr, observe
 from shared.config import Settings
+from shared.logging_config import get_logger
+
+from shared.metrics import incr
 
 logger = get_logger("sorce.vectordb")
 
@@ -149,7 +149,7 @@ class PgVectorBackend(VectorDBBackend):
 
         # Create main vectors table
         table_name = f"{self._table_prefix}_embeddings"
-        
+
         if self._pgvector_available:
             # Use native vector column
             await self._conn.execute(f"""
@@ -266,7 +266,7 @@ class PgVectorBackend(VectorDBBackend):
         if self._pgvector_available:
             # Use native pgvector cosine similarity search
             vec_str = "[" + ",".join(str(x) for x in query_embedding) + "]"
-            
+
             # Build filter conditions
             where_clauses = ["namespace = $1"]
             params: list[Any] = [namespace]
@@ -317,7 +317,7 @@ class PgVectorBackend(VectorDBBackend):
             """
 
             rows = await self._conn.fetch(query, *params)
-            
+
             # Compute cosine similarity for each
             results: list[dict[str, Any]] = []
             for row in rows:
@@ -353,7 +353,7 @@ class PgVectorBackend(VectorDBBackend):
     ) -> int:
         """Delete vectors matching filters."""
         table_name = f"{self._table_prefix}_embeddings"
-        
+
         where_clauses = ["namespace = $1"]
         params: list[Any] = [namespace]
 
@@ -433,7 +433,7 @@ class PineconeBackend(VectorDBBackend):
         """Initialize Pinecone connection."""
         try:
             import pinecone
-            
+
             pinecone.init(
                 api_key=self._api_key,
                 environment=self._environment,

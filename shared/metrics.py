@@ -2,11 +2,10 @@
 Shared metrics and rate limiting utilities.
 """
 
-import asyncio
+import logging
 import time
 from collections import defaultdict
-from typing import Dict, Any, Optional
-import logging
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +75,7 @@ def dump() -> Dict[str, Any]:
     """Dump all metrics data."""
     return {
         "circuit_breakers": get_all_circuit_breaker_statuses(),
-        "rate_limiters": {key: {"max_calls": limiter.max_calls, "window_seconds": limiter.window_seconds, "current_calls": len(limiter.calls)} 
+        "rate_limiters": {key: {"max_calls": limiter.max_calls, "window_seconds": limiter.window_seconds, "current_calls": len(limiter.calls)}
                          for key, limiter in _rate_limiters.items()}
     }
 

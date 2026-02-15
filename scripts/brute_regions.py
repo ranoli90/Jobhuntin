@@ -1,5 +1,6 @@
-import socket
 import asyncio
+import socket
+
 import asyncpg
 
 PROJECT_REF = "zglovpfwyobbbaaocawz"
@@ -36,7 +37,7 @@ async def test_region(region):
         print(f"SUCCESS: Connected to {region}!")
         await conn.close()
         return region
-    except Exception as e:
+    except Exception:
         # print(f"  Failed {region}: {e}")
         pass
     return None

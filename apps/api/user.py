@@ -26,9 +26,14 @@ from fastapi import (
     File,
     HTTPException,
     UploadFile,
+)
+from fastapi import (
     Path as FastAPIPath,
 )
 from pydantic import BaseModel, field_validator
+from shared.config import get_settings
+from shared.logging_config import get_logger
+from shared.storage import get_storage_service
 
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
 from backend.domain.repositories import (
@@ -40,10 +45,7 @@ from backend.domain.repositories import (
     db_transaction,
 )
 from backend.domain.resume import process_resume_upload
-from shared.storage import get_storage_service
 from backend.domain.tenant import TenantContext
-from shared.config import get_settings
-from shared.logging_config import get_logger
 from shared.metrics import RateLimiter
 
 logger = get_logger("sorce.user")
@@ -243,13 +245,13 @@ async def undo_application(
 ) -> dict[str, Any]:
     """Undo the last swipe decision for a job within 5 second window."""
     from shared.validators import validate_uuid
-    
+
     # Validate job_id format
     try:
         validate_uuid(job_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid job ID format")
-    
+
     async with db.acquire() as conn:
         # Find the application for this user/job
         app = await conn.fetchrow(
@@ -261,17 +263,17 @@ async def undo_application(
             ctx.user_id,
             job_id,
         )
-        
+
         if not app:
             raise HTTPException(status_code=404, detail="No application found for this job")
-        
+
         # Check if within 5 second undo window
         from datetime import datetime, timedelta
         created_at = app["created_at"]
         if created_at and datetime.utcnow() - created_at > timedelta(seconds=30):
             # Allow up to 30 seconds on backend for network latency
             raise HTTPException(status_code=400, detail="Undo window has expired")
-        
+
         # Delete the application record
         await conn.execute(
             """
@@ -281,7 +283,7 @@ async def undo_application(
             ctx.user_id,
             job_id,
         )
-        
+
         return {"status": "undone", "job_id": job_id}
 
 

@@ -14,15 +14,14 @@ import base64
 import datetime
 import unittest
 from unittest.mock import patch
-from lxml import etree as ET
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
+from lxml import etree as ET
 from signxml import XMLSigner
 from signxml.algorithms import SignatureConstructionMethod
-
 
 # ---------------------------------------------------------------------------
 # Test helpers: generate a self-signed cert + sign SAML XML

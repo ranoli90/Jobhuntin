@@ -16,15 +16,13 @@ Key features:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
-
-from backend.domain.embeddings import cosine_similarity, get_embedding_client
-from backend.llm.client import LLMClient, LLMError
 from shared.config import get_settings
 from shared.logging_config import get_logger
+
+from backend.llm.client import LLMClient, LLMError
 
 logger = get_logger("sorce.resume_tailoring")
 

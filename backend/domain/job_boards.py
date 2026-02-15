@@ -8,9 +8,9 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-
 from shared.config import Settings
 from shared.logging_config import get_logger
+
 from shared.metrics import RateLimiter
 
 logger = get_logger("sorce.job_boards")

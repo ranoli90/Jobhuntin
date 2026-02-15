@@ -12,11 +12,11 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from shared.logging_config import get_logger
 
+from backend.domain.audit import record_audit_event
 from backend.domain.repositories import db_transaction
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
-from backend.domain.audit import record_audit_event
-from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.bulk")
@@ -171,7 +171,7 @@ async def start_campaign(
         # Create applications for each job in a transaction (Bulk Insert Optimization)
         async with db_transaction(db) as txn_conn:
             blueprint_key = filters.get("blueprint_key", "job-app")
-            
+
             # Optimized: Single query to insert all applications
             # This avoids N round-trips and ensures atomicity without locking for too long
             await txn_conn.execute(

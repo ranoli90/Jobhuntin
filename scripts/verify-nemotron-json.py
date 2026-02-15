@@ -6,9 +6,11 @@ import sys
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages")))
 
-from backend.llm.client import LLMClient
-from shared.config import get_settings
 from pydantic import BaseModel
+from shared.config import get_settings
+
+from backend.llm.client import LLMClient
+
 
 class TestResponse(BaseModel):
     message: str
@@ -18,9 +20,9 @@ class TestResponse(BaseModel):
 async def main():
     settings = get_settings()
     print(f"Testing model: {settings.llm_model} via {settings.llm_api_base}")
-    
+
     client = LLMClient(settings)
-    
+
     prompt = """
     Analyze this text: "The weather is sunny and the temperature is 75 degrees."
     Return a JSON object with:
@@ -28,7 +30,7 @@ async def main():
     - score: a positivity score 1-10
     - tags: list of keywords
     """
-    
+
     try:
         print("Sending request...")
         response = await client.call(

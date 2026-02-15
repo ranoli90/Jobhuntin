@@ -10,11 +10,11 @@ Typed Settings model that:
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from enum import StrEnum
 from functools import lru_cache
-import logging
 
 # Basic logging before shared.logging_config is ready
 logging.basicConfig(level=logging.INFO)
@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     llm_rate_limit_per_minute: int = 60  # in-process approximate cap
     llm_retry_count: int = 2
     llm_timeout_seconds: int = 30  # Reduced from 60s to prevent hanging requests
-    
+
     # Production LLM configuration (recommendation #126)
     # Recommended production models (set LLM_MODEL to one of these in production):
     # - "openai/gpt-4o-mini" - Best value, fast, reliable ($0.15/1M input, $0.60/1M output)

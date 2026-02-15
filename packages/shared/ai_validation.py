@@ -17,9 +17,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
-
-from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.ai_validation")
@@ -335,7 +332,7 @@ class AIRateLimiter:
         tier: str = "FREE",
         operation: str = "ai",
     ) -> tuple[bool, dict[str, Any]]:
-        from shared.tenant_rate_limit import get_tier_limits, TenantTier
+        from shared.tenant_rate_limit import TenantTier, get_tier_limits
 
         tier_enum = TenantTier(tier.upper()) if isinstance(tier, str) else tier
         limits = get_tier_limits(tier_enum)
@@ -383,7 +380,7 @@ class AIRateLimiter:
             }
 
     def acquire_concurrent(self, user_id: str, tier: str = "FREE") -> tuple[bool, int]:
-        from shared.tenant_rate_limit import get_tier_limits, TenantTier
+        from shared.tenant_rate_limit import TenantTier, get_tier_limits
 
         tier_enum = TenantTier(tier.upper()) if isinstance(tier, str) else tier
         limits = get_tier_limits(tier_enum)

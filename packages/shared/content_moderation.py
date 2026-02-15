@@ -17,7 +17,6 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr
 

@@ -20,7 +20,6 @@ from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.explainable_scoring")

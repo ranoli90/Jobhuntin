@@ -9,10 +9,10 @@ Supports multiple backends:
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
+
 import httpx
 
 
@@ -29,7 +29,7 @@ class Event:
 
 class EventTracker:
     """Track and send events to analytics backends."""
-    
+
     def __init__(
         self,
         write_key: str | None = None,
@@ -43,7 +43,7 @@ class EventTracker:
         self.posthog_host = posthog_host
         self._buffer: list[Event] = []
         self._flush_size = 100
-    
+
     def track(
         self,
         event_name: str,
@@ -62,32 +62,32 @@ class EventTracker:
             context=context,
         )
         self._buffer.append(event)
-        
+
         if len(self._buffer) >= self._flush_size:
             self._flush()
-        
+
         return event
-    
+
     def _flush(self) -> None:
         """Send buffered events to analytics backends."""
         if not self._buffer:
             return
-        
+
         events = self._buffer.copy()
         self._buffer = []
-        
+
         # Send to Segment
         if self.write_key:
             self._send_to_segment(events)
-        
+
         # Send to Mixpanel
         if self.mixpanel_token:
             self._send_to_mixpanel(events)
-        
+
         # Send to PostHog
         if self.posthog_key:
             self._send_to_posthog(events)
-    
+
     def _send_to_segment(self, events: list[Event]) -> None:
         """Send events to Segment."""
         batch = {
@@ -103,7 +103,7 @@ class EventTracker:
                 for e in events
             ]
         }
-        
+
         try:
             httpx.post(
                 "https://api.segment.io/v1/batch",
@@ -111,10 +111,10 @@ class EventTracker:
                 json=batch,
                 timeout=10.0,
             )
-        except Exception as e:
+        except Exception:
             # Don't fail on analytics errors
             pass
-    
+
     def _send_to_mixpanel(self, events: list[Event]) -> None:
         """Send events to Mixpanel."""
         batch = [
@@ -129,7 +129,7 @@ class EventTracker:
             }
             for e in events
         ]
-        
+
         try:
             httpx.post(
                 "https://api.mixpanel.com/track",
@@ -139,7 +139,7 @@ class EventTracker:
             )
         except Exception:
             pass
-    
+
     def _send_to_posthog(self, events: list[Event]) -> None:
         """Send events to PostHog."""
         for event in events:
@@ -165,41 +165,41 @@ class EventTracker:
 # Common event names
 class EventName:
     """Standard event names for consistency."""
-    
+
     # User events
     USER_SIGNED_UP = "User Signed Up"
     USER_LOGGED_IN = "User Logged In"
     USER_LOGGED_OUT = "User Logged Out"
     USER_UPGRADED = "User Upgraded"
     USER_DOWNGRADED = "User Downgraded"
-    
+
     # Job events
     JOB_VIEWED = "Job Viewed"
     JOB_MATCHED = "Job Matched"
     JOB_APPLIED = "Job Applied"
     JOB_SAVED = "Job Saved"
     JOB_SHARED = "Job Shared"
-    
+
     # Search events
     SEARCH_PERFORMED = "Search Performed"
     SEARCH_FILTERED = "Search Filtered"
-    
+
     # AI events
     AI_MATCH_REQUESTED = "AI Match Requested"
     AI_MATCH_COMPLETED = "AI Match Completed"
     AI_MATCH_FAILED = "AI Match Failed"
     AI_FEEDBACK_GIVEN = "AI Feedback Given"
-    
+
     # Resume events
     RESUME_UPLOADED = "Resume Uploaded"
     RESUME_PARSED = "Resume Parsed"
     RESUME_TAILORED = "Resume Tailored"
-    
+
     # Engagement events
     NOTIFICATION_OPENED = "Notification Opened"
     EMAIL_OPENED = "Email Opened"
     EMAIL_CLICKED = "Email Clicked"
-    
+
     # Error events
     ERROR_OCCURRED = "Error Occurred"
     PAYMENT_FAILED = "Payment Failed"

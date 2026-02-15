@@ -7,12 +7,12 @@ with circuit breaker pattern.
 
 from __future__ import annotations
 
-from functools import wraps
-from typing import TypeVar, Callable, Any
+from typing import Callable, TypeVar
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
-from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
+
+from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
 
 logger = get_logger("sorce.stripe")
 
@@ -45,10 +45,10 @@ class StripeCircuitBreaker:
             lambda: stripe.Customer.create(email="test@example.com")
         )
     """
-    
+
     def __init__(self):
         self._cb = get_circuit_breaker("stripe")
-    
+
     def call(self, func: Callable[[], T], fallback: T | None = None) -> T | None:
         """
         Execute a Stripe API call with circuit breaker protection.
@@ -64,13 +64,13 @@ class StripeCircuitBreaker:
             Exception: Re-raises Stripe exceptions if circuit is closed
         """
         import asyncio
-        
+
         # Get or create event loop
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = None
-        
+
         if loop is not None:
             # We're in an async context, need to handle synchronously
             # Since Stripe SDK is sync, we just check circuit state manually
@@ -79,7 +79,7 @@ class StripeCircuitBreaker:
                 if fallback is not None:
                     return fallback
                 raise CircuitBreakerOpen("stripe", self._cb.config.timeout_seconds)
-        
+
         try:
             result = func()
             # Manually record success (sync version)
@@ -91,18 +91,19 @@ class StripeCircuitBreaker:
             # Manually record failure (sync version)
             self._cb.stats.failures += 1
             self._cb.stats.total_failures += 1
-            
+
             # Check if we should open the circuit
             if self._cb.stats.failures >= self._cb.config.failure_threshold:
-                from shared.circuit_breaker import CircuitState
                 import time
+
+                from shared.circuit_breaker import CircuitState
                 self._cb.state = CircuitState.OPEN
                 self._cb._opened_at = time.monotonic()
                 logger.error(
                     "Stripe circuit breaker opened after %d failures",
                     self._cb.stats.failures
                 )
-            
+
             logger.warning("Stripe API call failed: %s", str(e)[:100])
             raise
 

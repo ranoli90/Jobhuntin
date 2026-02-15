@@ -248,8 +248,9 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_successful_call_with_response_format(self):
         """LLMClient should parse response into Pydantic model."""
-        from backend.llm.client import LLMClient
         from shared.config import Settings
+
+        from backend.llm.client import LLMClient
 
         settings = Settings(
             llm_api_base="https://api.openai.com/v1",
@@ -277,8 +278,9 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_raw_dict_return_without_response_format(self):
         """Without response_format, should return raw dict."""
-        from backend.llm.client import LLMClient
         from shared.config import Settings
+
+        from backend.llm.client import LLMClient
 
         settings = Settings(
             llm_api_base="https://api.openai.com/v1",
@@ -295,9 +297,9 @@ class TestLLMClient:
     async def test_retry_on_transient_error(self):
         """Should retry on server errors then succeed."""
         import httpx
+        from shared.config import Settings
 
         from backend.llm.client import LLMClient
-        from shared.config import Settings
 
         settings = Settings(
             llm_api_base="https://api.openai.com/v1",
@@ -332,8 +334,9 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_validation_error_not_retried(self):
         """Schema validation failures should not be retried."""
-        from backend.llm.client import LLMClient, LLMValidationError
         from shared.config import Settings
+
+        from backend.llm.client import LLMClient, LLMValidationError
 
         settings = Settings(
             llm_api_base="https://api.openai.com/v1",

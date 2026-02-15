@@ -9,8 +9,6 @@ Supports:
 
 from __future__ import annotations
 
-from typing import Any
-
 import httpx
 from pydantic import BaseModel
 

@@ -1,6 +1,6 @@
-import sys
 import json
 import subprocess
+
 
 def get_env_vars(token, service_id):
     cmd = ["curl.exe", "-s", "-H", f"Authorization: Bearer {token}", f"https://api.render.com/v1/services/{service_id}/env-vars"]
@@ -18,9 +18,9 @@ if __name__ == "__main__":
         "jobhuntin-web": "srv-d63spbogjchc739boblag",
         "jobhuntin-api": "srv-d63l79hr0fns73boblag"
     }
-    
+
     results = {}
     for name, sid in services.items():
         results[name] = get_env_vars(token, sid)
-    
+
     print(json.dumps(results, indent=2))

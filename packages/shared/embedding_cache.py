@@ -11,7 +11,7 @@ import hashlib
 import threading
 import time
 from collections import OrderedDict
-from typing import Any, Optional
+from typing import Optional
 
 from shared.logging_config import get_logger
 

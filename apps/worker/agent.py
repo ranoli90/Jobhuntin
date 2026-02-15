@@ -23,6 +23,10 @@ from playwright.async_api import (
     Page,
     async_playwright,
 )
+from shared.config import get_settings
+from shared.logging_config import LogContext, get_logger, setup_logging
+from shared.storage import get_storage_service
+from shared.telemetry import setup_telemetry
 
 from backend.blueprints.registry import get_blueprint, load_default_blueprints
 from backend.domain.evaluations import record_system_evaluation
@@ -31,8 +35,6 @@ from backend.domain.models import (
     CanonicalProfile,
     normalize_profile,
 )
-from backend.domain.resume import download_resume_from_storage
-from shared.storage import get_storage_service
 from backend.domain.notifications import (
     notify_application_submitted,
     notify_hold_questions,
@@ -45,16 +47,14 @@ from backend.domain.repositories import (
     ProfileRepo,
     db_transaction,
 )
+from backend.domain.resume import download_resume_from_storage
 from backend.llm.client import LLMClient
 from backend.llm.contracts import (
     DomMappingResponse_V1,
     build_dom_mapping_prompt,
 )
 from backend.llm.prompt_registry import get_prompt
-from shared.config import get_settings
-from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import RateLimiter, incr, observe
-from shared.telemetry import setup_telemetry
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)

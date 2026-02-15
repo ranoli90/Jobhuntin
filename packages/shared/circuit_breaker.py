@@ -11,8 +11,8 @@ import asyncio
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TypeVar, Callable, Awaitable, Any
 from functools import wraps
+from typing import Any, Awaitable, Callable, TypeVar
 
 from shared.logging_config import get_logger
 

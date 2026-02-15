@@ -7,6 +7,8 @@ import uuid
 import fitz  # PyMuPDF
 import httpx
 from fastapi import HTTPException
+from shared.config import get_settings
+from shared.logging_config import get_logger
 
 from backend.domain.analytics_events import (
     RESUME_PARSED_FAILED,
@@ -17,8 +19,6 @@ from backend.domain.models import CanonicalProfile, normalize_profile
 from backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
 from backend.llm.contracts import ResumeParseResponse_V1, build_resume_parse_prompt
-from shared.config import get_settings
-from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.resume")
@@ -30,8 +30,8 @@ async def upload_to_supabase_storage(
     content_type: str = "application/pdf",
 ) -> str:
     s = get_settings()
-    
-    if not s.supabase_url or not "supabase" in s.supabase_url: # basic check
+
+    if not s.supabase_url or "supabase" not in s.supabase_url: # basic check
        # Fallback: Validation/Storage disabled
        if not s.supabase_url or not s.supabase_service_key:
            logger.warning("Supabase storage not configured; skipping upload for %s", path)
@@ -64,7 +64,7 @@ async def generate_signed_url(storage_path: str, ttl_seconds: int | None = None)
         A signed URL that expires after ttl_seconds.
     """
     s = get_settings()
-    
+
     if "local-skipped" in storage_path:
         return "" # No URL available
 
@@ -100,8 +100,8 @@ async def download_from_supabase_storage(resume_url: str) -> str:
 
     Accepts either a full URL or an internal storage path (bucket/path).
     """
-    import tempfile
     import os
+    import tempfile
 
     s = get_settings()
     headers = {"Authorization": f"Bearer {s.supabase_service_key}"}
@@ -147,7 +147,7 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
     except Exception as e:
         logger.error(f"Unexpected error during PDF extraction: {e}")
         raise HTTPException(status_code=422, detail="Failed to process PDF. Please try a different version of your resume.")
-        
+
     return "\n".join(text_parts)
 
 

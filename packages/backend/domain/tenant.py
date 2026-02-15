@@ -14,7 +14,6 @@ import uuid
 from dataclasses import dataclass
 
 import asyncpg
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.tenant")

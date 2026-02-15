@@ -8,8 +8,6 @@ This script helps configure:
 - Alert rules for the AlertManager
 """
 
-import os
-import sys
 
 
 def setup_sentry(sentry_dsn: str, environment: str = "production"):

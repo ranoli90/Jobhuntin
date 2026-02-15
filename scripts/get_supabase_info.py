@@ -1,6 +1,5 @@
-import urllib.request
 import json
-import os
+import urllib.request
 
 PROJECT_REF = "zglovpfwyobbbaaocawz"
 # User provided sb_secret_... which might be a management token
@@ -12,7 +11,7 @@ def get_project_info():
         "Authorization": f"Bearer {TOKEN}",
         "Content-Type": "application/json"
     }
-    
+
     req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req) as resp:

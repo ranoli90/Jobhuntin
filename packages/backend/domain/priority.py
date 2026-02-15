@@ -8,7 +8,6 @@ the tenant's plan. Enterprise tasks are processed first.
 from __future__ import annotations
 
 import asyncpg
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.priority")

@@ -9,15 +9,15 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
-
 from backend.domain.job_alerts import (
     AlertFrequency,
     JobAlert,
     JobAlertService,
 )
-from backend.domain.tenant import TenantContext, get_tenant_context
+from fastapi import APIRouter, Depends, HTTPException
 from shared.logging_config import get_logger
+
+from backend.domain.tenant import TenantContext, get_tenant_context
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.job_alerts")

@@ -4,20 +4,20 @@ Auth endpoints for public web clients (magic links, etc.).
 
 from __future__ import annotations
 
+import math
 import time
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
-import math
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
-
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
-from shared.metrics import RateLimiter, incr
 from shared.repo_root import find_repo_root
+
+from shared.metrics import RateLimiter, incr
 
 logger = get_logger("sorce.api.auth")
 
@@ -97,9 +97,10 @@ def _get_pool():
 
 async def _generate_magic_link(settings: Settings, email: str, redirect_to: str, db: Any) -> str:
     """Generate a magic link with a signed JWT."""
-    import jwt
-    from datetime import datetime, timedelta, timezone
     import uuid
+    from datetime import datetime, timedelta, timezone
+
+    import jwt
 
     # Find or create user
     async with db.acquire() as conn:
@@ -123,15 +124,15 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
         "aud": "authenticated",
         "exp": datetime.now(timezone.utc) + timedelta(hours=1)
     }
-    
+
     if not settings.jwt_secret:
          logger.error("JWT_SECRET not set - cannot sign magic link")
          raise HTTPException(status_code=500, detail="Server misconfiguration: JWT_SECRET missing")
-    
+
     secret = settings.jwt_secret
 
     token = jwt.encode(payload, secret, algorithm="HS256")
-    
+
     # Append token to redirect URL
     separator = "&" if "?" in redirect_to else "?"
     return f"{redirect_to}{separator}token={token}"
@@ -140,7 +141,7 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
 def _render_email_html(settings: Settings, action_link: str, return_to: str | None) -> str:
     destination_path = return_to or "/app/dashboard"
     expires_minutes = max(1, settings.magic_link_token_ttl_seconds // 60)
-    
+
     destination_labels = {
         "/app/onboarding": "Onboarding",
         "/app/dashboard": "Dashboard",
@@ -152,7 +153,7 @@ def _render_email_html(settings: Settings, action_link: str, return_to: str | No
         "/app/team": "Team Workspace",
     }
     destination_label = destination_labels.get(destination_path, destination_path.replace("/app/", "").title())
-    
+
     html = (
         MAGIC_LINK_TEMPLATE
         .replace("$action_link", action_link)

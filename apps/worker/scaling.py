@@ -15,9 +15,9 @@ import sys
 from typing import Any
 
 import asyncpg
-
 from shared.config import get_settings
 from shared.logging_config import get_logger
+
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.worker.scaling")
@@ -43,7 +43,7 @@ async def get_db_pool() -> asyncpg.Pool:
     }
     if ssl:
         kwargs["ssl"] = ssl
-    
+
     for attempt in range(1, 4):
         try:
             dsn = resolve_dsn_ipv4(s.database_url)
@@ -69,7 +69,7 @@ async def get_db_pool() -> asyncpg.Pool:
         except Exception as exc:
             logger.error("Unexpected error creating primary DB pool: %s", exc)
             raise
-    
+
     raise RuntimeError("Could not create primary DB pool after 3 attempts")
 
 
@@ -89,7 +89,7 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
     }
     if ssl:
         kwargs["ssl"] = ssl
-    
+
     for attempt in range(1, 4):
         try:
             return await asyncpg.create_pool(resolve_dsn_ipv4(s.read_replica_url), **kwargs)
@@ -115,7 +115,7 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
         except Exception as exc:
             logger.error("Unexpected error creating read replica DB pool: %s", exc)
             raise
-    
+
     logger.warning("Could not create read replica DB pool after 3 attempts; using primary for reads")
     return None
 
@@ -135,7 +135,7 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
     }
     if ssl:
         kwargs["ssl"] = ssl
-    
+
     for attempt in range(1, 4):
         try:
             return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
@@ -161,7 +161,7 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
         except Exception as exc:
             logger.error("Unexpected error creating enterprise DB pool: %s", exc)
             raise
-    
+
     logger.warning("Could not create enterprise DB pool after 3 attempts; using primary pool")
     return None
 
@@ -326,7 +326,7 @@ class WorkerScaler:
         self.primary_pool = await get_db_pool()
         self.read_pool = await create_read_replica_pool()
         self.enterprise_pool = await create_enterprise_pool()
-        
+
         # Initialize BrowserPoolManager (supports local and remote browsers)
         self.browser_pool = BrowserPoolManager()
         await self.browser_pool.start()
@@ -356,18 +356,18 @@ class WorkerScaler:
     async def _worker_loop(self, instance_id: int, agent_cls: Any, context_factory: Any) -> None:
         """Single worker loop — claims and processes tasks."""
         s = get_settings()
-        
+
         # Instantiate the agent for this worker
-        # We share the primary pool. 
+        # We share the primary pool.
         # Ideally, we might want dedicated pools per worker if we were strictly following the original design,
         # but sharing an asyncpg pool is thread/task-safe and efficient.
         agent = agent_cls(self.primary_pool, context_factory)
-        
+
         while not self._shutdown.is_set():
             try:
                 if self.primary_pool is None:
                     break
-                    
+
                 processed = await agent.run_once()
                 if not processed:
                     # No task available — back off
@@ -383,7 +383,7 @@ class WorkerScaler:
         if self._shutdown.is_set() and not self._tasks:
              # Already shut down
              return
-             
+
         logger.info("Shutting down %d workers...", self.instance_count)
         self._shutdown.set()
 
@@ -391,7 +391,7 @@ class WorkerScaler:
             task.cancel()
         await asyncio.gather(*self._tasks, return_exceptions=True)
         self._tasks.clear()
-        
+
         # Close browser pool
         if self.browser_pool:
             await self.browser_pool.shutdown()

@@ -10,16 +10,14 @@ Provides:
 
 from __future__ import annotations
 
-import json
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
 import httpx
 from pydantic import BaseModel
-
-from shared.config import get_settings
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.calendar")

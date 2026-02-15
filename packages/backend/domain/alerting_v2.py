@@ -10,10 +10,10 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-
-from backend.domain.observability import run_all_alerts
 from shared.config import get_settings
 from shared.logging_config import get_logger
+
+from backend.domain.observability import run_all_alerts
 
 logger = get_logger("sorce.alerting_v2")
 

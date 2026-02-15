@@ -9,13 +9,9 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
-
-from shared.config import get_settings
 from shared.logging_config import get_logger
-from shared.metrics import incr
 
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
@@ -27,9 +23,7 @@ from backend.sso.saml import (
     parse_saml_response,
     upsert_sso_config,
 )
-
-
-
+from shared.metrics import incr
 
 logger = get_logger("sorce.api.sso")
 

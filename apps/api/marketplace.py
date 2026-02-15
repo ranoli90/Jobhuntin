@@ -12,10 +12,10 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from shared.logging_config import get_logger
 
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_system_admin
-from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.marketplace")

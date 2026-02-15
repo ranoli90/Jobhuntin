@@ -1,8 +1,7 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 from shared.middleware import get_client_ip
-from apps.worker.agent import MAX_ATTEMPTS
-import json
 
 # ---------------------------------------------------------------------------
 # Task 4: Rate Limiter Proxy Fix Verification
@@ -51,7 +50,7 @@ class TestGetClientIp:
 def test_retry_backoff_formula():
     """Verify the exponential backoff seconds calculation."""
     # formula: 30 * (2 ** (attempt - 1))
-    
+
     def calculate(attempt):
         return 30 * (2 ** (attempt - 1))
 
@@ -71,24 +70,24 @@ async def test_job_match_cache_repo(db_pool):
     Skipped if no DB available.
     """
     from backend.domain.repositories import JobMatchCacheRepo
-    
+
     async with db_pool.acquire() as conn:
         # 1. Setup
         job_id = "test-job-123"
         profile_hash = "abc123hash"
         score_data = {"score": 85, "summary": "Great match"}
-        
+
         # 2. Put
         await JobMatchCacheRepo.put(conn, job_id, profile_hash, score_data)
-        
+
         # 3. Get matches
         result = await JobMatchCacheRepo.get(conn, job_id, profile_hash)
         assert result == score_data
-        
+
         # 4. Get miss returns None
         result_miss = await JobMatchCacheRepo.get(conn, "other-job", profile_hash)
         assert result_miss is None
-        
+
         # 5. Update (Upsert)
         new_score = {"score": 90, "summary": "Better match"}
         await JobMatchCacheRepo.put(conn, job_id, profile_hash, new_score)

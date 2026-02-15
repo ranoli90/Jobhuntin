@@ -28,10 +28,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "packages"))
 
-from backend.domain.repositories import record_event
 from worker.agent import (
     ApplicationAgent,
 )
+
+from backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Shared test fixtures (reuse from test_integration.py)

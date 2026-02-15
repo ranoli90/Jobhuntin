@@ -275,7 +275,7 @@ def setup_otel_metrics(service_name: str = "sorce") -> None:
         )
         from opentelemetry.sdk.metrics import MeterProvider
         from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-        from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+        from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 
         resource = Resource.create({SERVICE_NAME: service_name})
         reader = PeriodicExportingMetricReader(

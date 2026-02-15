@@ -15,7 +15,6 @@ from typing import Any
 
 import asyncpg
 from fastapi import HTTPException, Request
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api_v2.auth")

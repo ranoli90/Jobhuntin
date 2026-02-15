@@ -9,17 +9,17 @@ Configures:
 - Helper decorators for manual tracing
 """
 
-import os
 import functools
-from typing import Optional, Callable, Any
+import os
+from typing import Any, Callable, Optional
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import (
-    Resource,
+    DEPLOYMENT_ENVIRONMENT,
     SERVICE_NAME,
     SERVICE_VERSION,
-    DEPLOYMENT_ENVIRONMENT,
+    Resource,
 )
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter

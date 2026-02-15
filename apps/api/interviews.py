@@ -5,26 +5,22 @@ Interview Simulator API endpoints — AI-powered interview preparation.
 from __future__ import annotations
 
 import json
-from datetime import datetime, UTC
 from typing import Any
-import uuid
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-
 from backend.domain.interview_simulator import (
-    InterviewSimulator,
-    InterviewSession,
+    InterviewPhase,
     InterviewQuestion,
-    UserResponse,
-    QuestionFeedback,
+    InterviewSession,
     InterviewType,
     QuestionDifficulty,
-    InterviewPhase,
+    UserResponse,
     get_interview_simulator,
 )
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.interviews")

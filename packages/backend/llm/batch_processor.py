@@ -9,10 +9,10 @@ Optimizes LLM calls with:
 """
 
 import asyncio
+import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Generic, TypeVar
-import logging
+from typing import Generic, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +41,13 @@ class BatchSummary(Generic[R]):
     total_cost_usd: float = 0.0
     total_latency_ms: float = 0.0
     results: list[BatchResult[R]] = field(default_factory=list)
-    
+
     @property
     def success_rate(self) -> float:
         if self.total_items == 0:
             return 0.0
         return self.successful / self.total_items
-    
+
     @property
     def avg_latency_ms(self) -> float:
         if self.total_items == 0:
@@ -76,7 +76,7 @@ class BatchLLMProcessor(Generic[T, R]):
     - Automatic retry with exponential backoff
     - Cost and token tracking
     """
-    
+
     def __init__(
         self,
         process_fn: "Callable[[T], Awaitable[R]]",
@@ -97,29 +97,29 @@ class BatchLLMProcessor(Generic[T, R]):
         self._config = config or RateLimitConfig()
         self._token_counter = token_counter or (lambda _: 0)
         self._cost_calculator = cost_calculator or (lambda _: 0.0)
-        
+
         # Rate limiting state
         self._request_times: list[float] = []
         self._token_usage: list[tuple[float, int]] = []
         self._semaphore = asyncio.Semaphore(self._config.max_concurrent)
         self._lock = asyncio.Lock()
-    
+
     async def _check_rate_limits(self, estimated_tokens: int = 0) -> None:
         """Check and wait for rate limits if necessary."""
         async with self._lock:
             now = time.time()
             minute_ago = now - 60.0
-            
+
             # Clean old entries
             self._request_times = [t for t in self._request_times if t > minute_ago]
             self._token_usage = [(t, tok) for t, tok in self._token_usage if t > minute_ago]
-            
+
             # Check request rate
             if len(self._request_times) >= self._config.requests_per_minute:
                 wait_time = self._request_times[0] - minute_ago + 0.1
                 logger.debug(f"Rate limit: waiting {wait_time:.2f}s for request slot")
                 await asyncio.sleep(wait_time)
-            
+
             # Check token rate
             current_tokens = sum(tok for _, tok in self._token_usage)
             if current_tokens + estimated_tokens > self._config.tokens_per_minute:
@@ -127,12 +127,12 @@ class BatchLLMProcessor(Generic[T, R]):
                 wait_time = self._token_usage[0][0] - minute_ago + 0.1
                 logger.debug(f"Rate limit: waiting {wait_time:.2f}s for token budget")
                 await asyncio.sleep(wait_time)
-            
+
             # Record this request
             self._request_times.append(time.time())
             if estimated_tokens > 0:
                 self._token_usage.append((time.time(), estimated_tokens))
-    
+
     async def _process_with_retry(
         self,
         item: T,
@@ -140,19 +140,19 @@ class BatchLLMProcessor(Generic[T, R]):
     ) -> BatchResult[R]:
         """Process a single item with retry logic."""
         estimated_tokens = self._token_counter(item)
-        
+
         for attempt in range(self._config.retry_attempts):
             try:
                 async with self._semaphore:
                     await self._check_rate_limits(estimated_tokens)
-                    
+
                     start_time = time.time()
                     result = await self._process_fn(item)
                     latency = (time.time() - start_time) * 1000
-                    
+
                     # Calculate actual cost (would need actual token count from response)
                     cost = self._cost_calculator(estimated_tokens)
-                    
+
                     return BatchResult(
                         success=True,
                         result=result,
@@ -160,13 +160,13 @@ class BatchLLMProcessor(Generic[T, R]):
                         cost_usd=cost,
                         latency_ms=latency,
                     )
-            
+
             except Exception as e:
                 error_msg = str(e)
                 logger.warning(
                     f"Batch item {item_id} attempt {attempt + 1} failed: {error_msg}"
                 )
-                
+
                 if attempt < self._config.retry_attempts - 1:
                     # Exponential backoff
                     delay = min(
@@ -179,9 +179,9 @@ class BatchLLMProcessor(Generic[T, R]):
                         success=False,
                         error=error_msg,
                     )
-        
+
         return BatchResult(success=False, error="Max retries exceeded")
-    
+
     async def process_batch(
         self,
         items: list[T],
@@ -198,23 +198,23 @@ class BatchLLMProcessor(Generic[T, R]):
             BatchSummary with results and statistics
         """
         summary = BatchSummary[R](total_items=len(items))
-        
+
         if not items:
             return summary
-        
+
         # Create tasks for all items
         tasks = [
             self._process_with_retry(item, i)
             for i, item in enumerate(items)
         ]
-        
+
         # Process concurrently
         if fail_fast:
             # Process with early termination on first failure
             for coro in asyncio.as_completed(tasks):
                 result = await coro
                 summary.results.append(result)
-                
+
                 if result.success:
                     summary.successful += 1
                     summary.total_tokens += result.tokens_used
@@ -230,7 +230,7 @@ class BatchLLMProcessor(Generic[T, R]):
         else:
             # Process all items
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             for i, result in enumerate(results):
                 if isinstance(result, Exception):
                     summary.results.append(BatchResult(
@@ -247,14 +247,14 @@ class BatchLLMProcessor(Generic[T, R]):
                         summary.total_latency_ms += result.latency_ms
                     else:
                         summary.failed += 1
-        
+
         logger.info(
             f"Batch processed: {summary.successful}/{summary.total_items} successful, "
             f"{summary.total_tokens} tokens, ${summary.total_cost_usd:.4f}"
         )
-        
+
         return summary
-    
+
     async def process_stream(
         self,
         items: list[T],
@@ -271,11 +271,11 @@ class BatchLLMProcessor(Generic[T, R]):
             BatchSummary with final statistics
         """
         summary = BatchSummary[R](total_items=len(items))
-        
+
         async def process_and_callback(i: int, item: T) -> None:
             result = await self._process_with_retry(item, i)
             summary.results.append(result)
-            
+
             if result.success:
                 summary.successful += 1
                 summary.total_tokens += result.tokens_used
@@ -283,15 +283,15 @@ class BatchLLMProcessor(Generic[T, R]):
                 summary.total_latency_ms += result.latency_ms
             else:
                 summary.failed += 1
-            
+
             await callback(i, result)
-        
+
         # Process all items concurrently
         await asyncio.gather(*[
             process_and_callback(i, item)
             for i, item in enumerate(items)
         ])
-        
+
         return summary
 
 

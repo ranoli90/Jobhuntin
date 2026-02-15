@@ -15,10 +15,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Generic, TypeVar
 
-from pydantic import BaseModel
-
-from shared.config import get_settings
 from shared.logging_config import get_logger
+
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.batch_llm")

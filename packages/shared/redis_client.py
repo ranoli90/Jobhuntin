@@ -1,6 +1,7 @@
-from typing import AsyncGenerator
 import redis.asyncio as redis
+
 from shared.config import get_settings
+
 
 class RedisManager:
     """Singleton manager for Redis connection pool."""
@@ -13,8 +14,8 @@ class RedisManager:
             s = get_settings()
             # redis-py handles connection pooling automatically
             self._client = redis.from_url(
-                s.redis_url, 
-                encoding="utf-8", 
+                s.redis_url,
+                encoding="utf-8",
                 decode_responses=True,
                 socket_timeout=5.0,
                 health_check_interval=30

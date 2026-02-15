@@ -11,6 +11,8 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from shared.config import get_settings
+from shared.logging_config import get_logger
 
 from backend.domain.email_digest import run_weekly_digest
 from backend.domain.notifications import (
@@ -22,8 +24,6 @@ from backend.domain.referrals import (
     redeem_referral_code,
 )
 from backend.domain.repositories import db_transaction
-from shared.config import get_settings
-from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.growth")

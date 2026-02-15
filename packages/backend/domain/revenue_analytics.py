@@ -6,12 +6,12 @@ Provides insights for subscription-based business tracking.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
-
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.revenue_analytics")

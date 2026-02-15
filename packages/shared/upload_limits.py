@@ -130,7 +130,7 @@ def validate_upload(
         tuple of (is_valid, error_message)
     """
     limits = get_limits(tier, file_type)
-    
+
     # Check extension
     extension = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if extension not in limits.allowed_extensions:
@@ -138,26 +138,26 @@ def validate_upload(
             False,
             f"File type .{extension} not allowed. Allowed: {', '.join(limits.allowed_extensions)}"
         )
-    
+
     # Check file size
     file.seek(0, 2)  # Seek to end
     file_size_bytes = file.tell()
     file.seek(0)  # Reset to beginning
     file_size_mb = file_size_bytes / (1024 * 1024)
-    
+
     if file_size_mb > limits.max_file_size_mb:
         return (
             False,
             f"File size {file_size_mb:.1f}MB exceeds limit of {limits.max_file_size_mb}MB"
         )
-    
+
     # Check daily upload limit
     if limits.max_files_per_day > 0 and uploads_today >= limits.max_files_per_day:
         return (
             False,
             f"Daily upload limit of {limits.max_files_per_day} files reached"
         )
-    
+
     # Check total storage
     new_total = current_storage_mb + file_size_mb
     if new_total > limits.max_total_storage_mb:
@@ -166,14 +166,14 @@ def validate_upload(
             False,
             f"Storage limit exceeded. Remaining: {remaining:.1f}MB, File: {file_size_mb:.1f}MB"
         )
-    
+
     return True, ""
 
 
 def get_content_type(filename: str) -> str:
     """Get MIME content type from filename."""
     extension = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-    
+
     content_types = {
         "pdf": "application/pdf",
         "doc": "application/msword",
@@ -191,7 +191,7 @@ def get_content_type(filename: str) -> str:
         "webp": "image/webp",
         "svg": "image/svg+xml",
     }
-    
+
     return content_types.get(extension, "application/octet-stream")
 
 
@@ -203,11 +203,11 @@ async def scan_file_for_malware(file: BinaryIO) -> tuple[bool, str]:
     """
     # TODO: Integrate with actual malware scanner
     # For now, just check for suspicious patterns
-    
+
     file.seek(0)
     header = file.read(1024)
     file.seek(0)
-    
+
     # Check for executable signatures
     suspicious_signatures = [
         b"MZ",           # Windows executable
@@ -215,12 +215,12 @@ async def scan_file_for_malware(file: BinaryIO) -> tuple[bool, str]:
         b"\xca\xfe\xba\xbe",  # Java class
         b"PK\x03\x04",   # ZIP (could be malicious)
     ]
-    
+
     for sig in suspicious_signatures:
         if header.startswith(sig):
             # Allow ZIP for resume bundles, block executables
             if sig == b"PK\x03\x04":
                 continue
             return False, "File type not allowed - potential security risk"
-    
+
     return True, ""

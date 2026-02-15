@@ -1,6 +1,7 @@
 import asyncio
-import asyncpg
 import os
+
+import asyncpg
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,7 +24,7 @@ async def apply():
     try:
         with open("security_hardening.sql", "r", encoding="utf-8") as f:
             sql = f.read()
-    except Exception as e:
+    except Exception:
         # Fallback for utf-16 if powershell created it
         with open("security_hardening.sql", "r", encoding="utf-16") as f:
             sql = f.read()

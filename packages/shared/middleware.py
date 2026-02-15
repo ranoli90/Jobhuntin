@@ -17,7 +17,6 @@ from starlette.responses import Response
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
-from shared.metrics import incr
 
 logger = get_logger("sorce.middleware")
 

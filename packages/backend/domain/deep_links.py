@@ -12,17 +12,11 @@ Features:
 
 from __future__ import annotations
 
-import hashlib
-import hmac
-import json
-import time
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
-from urllib.parse import urlencode, urlparse, urljoin
+from urllib.parse import urlencode, urlparse
 
 import httpx
-
 from shared.config import Settings, get_settings
 from shared.logging_config import get_logger
 
@@ -49,7 +43,7 @@ class DeepLink:
     utm_source: str | None = None
     utm_medium: str | None = None
     utm_campaign: str | None = None
-    
+
     # Generated URLs
     universal_link: str | None = None
     android_link: str | None = None
@@ -273,7 +267,7 @@ class DeepLinkService:
     def _get_og_title(self, link: DeepLink) -> str:
         """Get Open Graph title for the link."""
         if link.link_type == DeepLinkType.JOB_DETAILS:
-            return f"Job Opportunity on JobHuntin"
+            return "Job Opportunity on JobHuntin"
         elif link.link_type == DeepLinkType.REFERRAL:
             return "Join JobHuntin - Get 5 Free Applications"
         elif link.link_type == DeepLinkType.APPLICATION_STATUS:

@@ -6,19 +6,16 @@ Validates platform detection, CAPTCHA detection, and handler functionality.
 
 from __future__ import annotations
 
-import pytest
-
 from backend.domain.ats_handlers import (
-    ATSPlatform,
     ATSDetectionResult,
+    ATSPlatform,
     CAPTCHADetection,
-    detect_ats_platform,
-    detect_captcha,
-    get_handler,
     GreenhouseHandler,
     LeverHandler,
-    WorkdayHandler,
     SmartRecruitersHandler,
+    WorkdayHandler,
+    detect_ats_platform,
+    get_handler,
 )
 
 

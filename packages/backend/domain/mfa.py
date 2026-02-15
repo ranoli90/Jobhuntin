@@ -18,13 +18,13 @@ import secrets
 import struct
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
 import asyncpg
-
 from shared.logging_config import get_logger
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.mfa")
@@ -184,9 +184,8 @@ class WebAuthnManager:
 
             verification_data = auth_data + client_data_hash
 
-            from cryptography.hazmat.primitives.asymmetric import ec
             from cryptography.hazmat.primitives import hashes
-            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives.asymmetric import ec
 
             public_key = ec.EllipticCurvePublicKey.from_encoded_point(
                 ec.SECP256R1(), public_key_bytes

@@ -12,16 +12,16 @@ Users can configure alerts with:
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime, timedelta
+from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
 import asyncpg
 from pydantic import BaseModel, Field
-
 from shared.config import get_settings
 from shared.logging_config import get_logger
-from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
+
+from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
 from shared.metrics import incr
 
 logger = get_logger("sorce.job_alerts")

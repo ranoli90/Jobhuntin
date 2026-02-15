@@ -16,11 +16,11 @@ Key features:
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
 from pydantic import BaseModel, Field
+from shared.logging_config import get_logger
 
 from backend.domain.embeddings import (
     EmbeddingClient,
@@ -28,9 +28,7 @@ from backend.domain.embeddings import (
     get_embedding_client,
     job_to_searchable_text,
     profile_to_searchable_text,
-    compute_text_hash,
 )
-from shared.logging_config import get_logger
 
 logger = get_logger("sorce.matching")
 

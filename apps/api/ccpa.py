@@ -7,15 +7,13 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr
-
 from backend.domain.ccpa import (
+    DATA_INVENTORY,
     CCPAComplianceManager,
     CCPARequestType,
-    CCPARequestStatus,
-    DATA_INVENTORY,
 )
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.ccpa")

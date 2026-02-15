@@ -10,10 +10,14 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-
 from shared.config import get_settings
 from shared.logging_config import get_logger
-from backend.domain.stripe_client import get_stripe, get_protected_stripe, protected_stripe_call
+
+from backend.domain.stripe_client import (
+    get_protected_stripe,
+    get_stripe,
+    protected_stripe_call,
+)
 
 logger = get_logger("sorce.payouts")
 
@@ -122,7 +126,7 @@ async def process_marketplace_payouts(
 
     results = []
     stripe_cb = get_protected_stripe()
-    
+
     for row in rows:
         total_revenue = row["price_cents"] * row["active_installs"]
         author_share = row.get("revenue_share_pct", 70)
