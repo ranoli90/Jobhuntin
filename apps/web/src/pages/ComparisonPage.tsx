@@ -104,17 +104,52 @@ export default function ComparisonPage() {
         ogTitle={title}
         canonicalUrl={canonicalUrl}
         includeDate={true}
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "name": title,
-          "description": description,
-          "url": canonicalUrl,
-          "about": [
-            { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "Job Search Automation" },
-            { "@type": "SoftwareApplication", "name": competitor.name, "applicationCategory": "Job Search" },
-          ],
-        }}
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": title,
+            "description": description,
+            "url": canonicalUrl,
+            "about": [
+              { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "Job Search Automation" },
+              { "@type": "SoftwareApplication", "name": competitor.name, "applicationCategory": "Job Search" },
+            ],
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": `JobHuntin vs ${competitor.name} Feature Comparison`,
+            "itemListOrder": "ItemListUnordered",
+            "numberOfItems": 2,
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "url": canonicalUrl,
+                "name": "JobHuntin",
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": "JobHuntin",
+                  "applicationCategory": "Job Search Automation",
+                  "operatingSystem": "Web"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "url": canonicalUrl,
+                "name": competitor.name,
+                "item": {
+                  "@type": "SoftwareApplication",
+                  "name": competitor.name,
+                  "applicationCategory": "Job Search",
+                  "operatingSystem": "Web"
+                }
+              }
+            ]
+          }
+        ]}
       />
 
       <main className="max-w-5xl mx-auto px-6 py-16 sm:py-24">

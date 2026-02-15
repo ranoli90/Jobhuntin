@@ -138,12 +138,25 @@ async def _generate_magic_link(settings: Settings, email: str, redirect_to: str,
 
 
 def _render_email_html(settings: Settings, action_link: str, return_to: str | None) -> str:
-    destination = return_to or "/app/dashboard"
+    destination_path = return_to or "/app/dashboard"
     expires_minutes = max(1, settings.magic_link_token_ttl_seconds // 60)
+    
+    destination_labels = {
+        "/app/onboarding": "Onboarding",
+        "/app/dashboard": "Dashboard",
+        "/app/jobs": "Job Feed",
+        "/app/applications": "Applications",
+        "/app/holds": "Hold Queue",
+        "/app/billing": "Billing",
+        "/app/settings": "Settings",
+        "/app/team": "Team Workspace",
+    }
+    destination_label = destination_labels.get(destination_path, destination_path.replace("/app/", "").title())
+    
     html = (
         MAGIC_LINK_TEMPLATE
         .replace("$action_link", action_link)
-        .replace("$destination", destination)
+        .replace("$destination", destination_label)
         .replace("$expires_minutes", str(expires_minutes))
     )
     return html
@@ -186,7 +199,7 @@ async def _send_magic_link_email(settings: Settings, email: str, action_link: st
     payload = {
         "from": settings.email_from,
         "to": [email],
-        "subject": "Sign in to JobHuntin",
+        "subject": "Your access link is ready",
         "html": html,
         "text": f"Use this link to sign in: {action_link}",
     }

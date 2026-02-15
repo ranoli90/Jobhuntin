@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
-import { apiGet, clearAuthToken, getAuthToken, setAuthToken } from "../lib/api";
+import { apiGet, clearAuthToken, getApiBase, getAuthToken, setAuthToken } from "../lib/api";
+import { pushToast } from "../lib/toast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -53,6 +54,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             clearAuthToken();
             setUser(null);
             localStorage.removeItem('jobhuntin-session');
+            // Show user-facing error so they know to retry
+            const msg = error instanceof Error ? error.message : "Failed to load profile";
+            pushToast({ title: "Session issue", description: msg, tone: "error" });
+        }
+    }, []);
+
+    const ensureCsrfCookie = useCallback(async () => {
+        try {
+            const base = getApiBase();
+            if (!base) return;
+            await fetch(`${base.replace(/\/$/, "")}/csrf/prepare`, { credentials: "include" });
+        } catch (err) {
+            console.warn("CSRF cookie preflight failed", err);
         }
     }, []);
 
@@ -68,11 +82,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 // Clean URL
                 const newUrl = window.location.pathname + window.location.hash;
                 window.history.replaceState({}, document.title, newUrl);
+                await ensureCsrfCookie();
                 await fetchUser();
             } else {
                 // 2. Check local storage
                 const token = getAuthToken();
                 if (token) {
+                    await ensureCsrfCookie();
                     await fetchUser();
                 } else {
                     localStorage.removeItem('jobhuntin-session');
@@ -81,8 +97,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setLoading(false);
         };
 
+        const handleUnauthorized = (event: Event) => {
+            const detail = (event as CustomEvent<{ returnTo?: string }>).detail;
+            clearAuthToken();
+            setUser(null);
+            localStorage.removeItem('jobhuntin-session');
+            const returnTo = detail?.returnTo ?? encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/login?returnTo=${returnTo}`;
+        };
+
+        window.addEventListener("auth:unauthorized", handleUnauthorized as EventListener);
         initAuth();
-    }, [fetchUser]);
+
+        return () => {
+            window.removeEventListener("auth:unauthorized", handleUnauthorized as EventListener);
+        };
+    }, [ensureCsrfCookie, fetchUser]);
 
     const signInWithMagicLink = async (email: string, returnTo = "/app/onboarding") => {
         try {

@@ -49,22 +49,12 @@ function saveLocalFlags(flags: FeatureFlags): void {
 
 export interface FeatureFlagProviderProps {
   children: ReactNode;
-  supabaseClient?: {
-    from: (table: string) => {
-      select: (columns: string) => {
-        eq: (column: string, value: string) => {
-          single: () => Promise<{ data: FeatureFlags | null; error: Error | null }>;
-        };
-      };
-    };
-  };
   tenantId?: string;
   initialFlags?: FeatureFlags;
 }
 
 export function FeatureFlagProvider({
   children,
-  supabaseClient,
   tenantId,
   initialFlags,
 }: FeatureFlagProviderProps) {
@@ -73,30 +63,11 @@ export function FeatureFlagProvider({
 
   useEffect(() => {
     async function fetchFlags() {
-      if (!supabaseClient || !tenantId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabaseClient
-          .from("feature_flags")
-          .select("flags")
-          .eq("tenant_id", tenantId)
-          .single();
-
-        if (data && !error) {
-          setFlags(prev => ({ ...prev, ...data }));
-        }
-      } catch (err) {
-        console.warn("Failed to fetch feature flags from Supabase:", err);
-      }
-
       setLoading(false);
     }
 
     fetchFlags();
-  }, [supabaseClient, tenantId]);
+  }, [tenantId]);
 
   const isEnabled = useCallback(
     (flag: string): boolean => {

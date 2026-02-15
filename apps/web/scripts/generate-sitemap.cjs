@@ -60,29 +60,62 @@ const localRoutes = roles.flatMap((role) =>
   }))
 );
 
-const allRoutes = [...staticRoutes, ...competitorRoutes, ...categoryRoutes, ...localRoutes];
+const today = new Date().toISOString().split('T')[0];
 
-const generateSitemap = () => {
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allRoutes
-      .map((route) => {
-        return `  <url>
+function writeSitemap(filename, routes) {
+  const body = routes
+    .map((route) => `  <url>
     <loc>${BASE_URL}${route.path}</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <lastmod>${today}</lastmod>
     <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority}</priority>
-  </url>`;
-      })
-      .join('\n')}
+  </url>`)
+    .join('\n');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${body}
 </urlset>`;
 
-  const publicPath = path.resolve(__dirname, '../public/sitemap.xml');
-  fs.writeFileSync(publicPath, sitemap);
-  console.log(`✅ Sitemap generated with ${allRoutes.length} URLs at: ${publicPath}`);
+  const publicPath = path.resolve(__dirname, `../public/${filename}`);
+  fs.writeFileSync(publicPath, xml);
+  return publicPath;
+}
+
+const sections = [
+  { name: 'core', routes: staticRoutes },
+  { name: 'competitors', routes: competitorRoutes },
+  { name: 'categories', routes: categoryRoutes },
+  { name: 'jobs', routes: localRoutes },
+];
+
+function generateSitemaps() {
+  const indexEntries = sections.map(({ name, routes }) => {
+    const filename = `sitemap-${name}.xml`;
+    const filepath = writeSitemap(filename, routes);
+    console.log(`✅ ${filename} written (${routes.length} URLs) -> ${filepath}`);
+    return { filename, count: routes.length };
+  });
+
+  const indexXml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${indexEntries
+      .map(
+        ({ filename }) => `  <sitemap>
+    <loc>${BASE_URL}/${filename}</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`
+      )
+      .join('\n')}
+</sitemapindex>`;
+
+  const indexPath = path.resolve(__dirname, '../public/sitemap.xml');
+  fs.writeFileSync(indexPath, indexXml);
+  console.log('📄 Sitemap index written ->', indexPath);
   console.log(`   - ${staticRoutes.length} static routes`);
   console.log(`   - ${competitorRoutes.length} competitor routes (${competitors.length} brands × 5 page types)`);
   console.log(`   - ${categoryRoutes.length} category hub routes`);
-};
+  console.log(`   - ${localRoutes.length} job routes`);
+}
 
-generateSitemap();
+generateSitemaps();

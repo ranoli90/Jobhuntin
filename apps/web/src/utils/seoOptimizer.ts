@@ -218,41 +218,26 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
   const jobCount = Math.floor(Math.random() * 200 + 300);
 
   return [
-    // JobPosting Schema - Valid and valuable
+    // Occupation Schema - aligns with role content
     {
       '@context': 'https://schema.org',
-      '@type': 'JobPosting',
-      'title': `${role} Position`,
-      'description': `${role} career opportunity in ${location}. Competitive salary and growth opportunities.`,
-      'datePosted': currentDate,
-      'validThrough': new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      'employmentType': ['FULL_TIME', 'CONTRACTOR', 'REMOTE'],
-      'hiringOrganization': {
-        '@type': 'Organization',
-        'name': 'Tech Companies in ' + location,
-        'sameAs': 'https://jobhuntin.com',
-        'logo': 'https://jobhuntin.com/logo.png'
-      },
-      'jobLocation': {
-        '@type': 'Place',
-        'address': {
-          '@type': 'PostalAddress',
-          'addressLocality': location,
-          'addressRegion': locationData?.state || 'CA',
-          'addressCountry': 'US'
-        }
-      },
-      'baseSalary': {
-        '@type': 'MonetaryAmount',
+      '@type': 'Occupation',
+      'name': `${role} in ${location}`,
+      'description': `${role} career guide for ${location} with salary ranges and hiring trends`,
+      'estimatedSalary': {
+        '@type': 'MonetaryAmountDistribution',
         'currency': 'USD',
-        'value': {
-          '@type': 'QuantitativeValue',
-          'minValue': salaryMin,
-          'maxValue': salaryMax,
-          'unitText': 'YEAR'
-        }
+        'duration': 'P1Y',
+        'percentile10': salaryMin,
+        'percentile25': Math.floor(baseSalary * 0.9),
+        'median': baseSalary,
+        'percentile75': Math.floor(baseSalary * 1.2),
+        'percentile90': salaryMax
       },
-      'occupationalCategory': '15-1132.00' // Software Developers, Applications
+      'occupationLocation': {
+        '@type': 'City',
+        'name': location
+      }
     },
     // FAQPage Schema - Addresses user questions
     {
@@ -269,10 +254,10 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
         },
         {
           '@type': 'Question',
-          'name': `Which companies are hiring ${role} in ${location}?`,
+          'name': `Which companies hire ${role} in ${location}?`,
           'acceptedAnswer': {
             '@type': 'Answer',
-            'text': `Major tech companies, startups, and Fortune 500 companies in ${location} are actively hiring ${role} professionals.`
+            'text': `Major employers include Fortune 500 companies, startups, and tech firms across ${location}'s diverse economy.`
           }
         },
         {
@@ -306,38 +291,10 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
         }
       },
       'description': `Comprehensive analysis of the ${role} job market in ${location}, including salary data, hiring trends, and career opportunities.`
-    },
-    // LocalBusiness Schema - Location authority
-    {
-      '@context': 'https://schema.org',
-      '@type': 'LocalBusiness',
-      'name': `${location} ${role} Career Center`,
-      'description': `Leading ${role} job resource for ${location} professionals`,
-      'address': {
-        '@type': 'PostalAddress',
-        'addressLocality': location,
-        'addressRegion': locationData?.state || 'CA',
-        'addressCountry': 'US'
-      },
-      'telephone': '+1-555-0123',
-      'url': `https://jobhuntin.com/jobs/${role.toLowerCase().replace(/\s+/g, '-')}-in-${location.toLowerCase().replace(/\s+/g, '-')}`,
-      'priceRange': '$$$',
-      'openingHoursSpecification': [
-        {
-          '@type': 'OpeningHoursSpecification',
-          'dayOfWeek': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-          'opens': '09:00',
-          'closes': '18:00'
-        }
-      ]
     }
   ];
 }
 
-/**
- * Generate content sections with semantic relationships
- * Focuses on user value and natural language
- */
 function generateContentSections(role: string, location: string, locationData: any, roleData: any, entities: string[]): ContentSection[] {
   const baseSalary = roleData?.avgSalary || 125000;
   const salaryMin = Math.floor(baseSalary * 0.8);

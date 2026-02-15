@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
-import { supabase } from "./lib/supabase";
-import type { Session, User } from "@supabase/supabase-js";
 import DashboardPage from "./pages/DashboardPage";
 import Dashboard from "./pages/Dashboard";
 import MembersPage from "./pages/MembersPage";
@@ -18,36 +16,48 @@ import SubmitBlueprint from "./marketplace/SubmitBlueprint";
 import ApiKeysPage from "./developer-portal/ApiKeysPage";
 import WebhooksPage from "./developer-portal/WebhooksPage";
 
-// SECURITY: Admin role check - only allow users with admin privileges
-interface AdminUser {
+const API_BASE = import.meta.env.VITE_API_URL || "";
+
+interface User {
   id: string;
   email: string;
-  is_admin: boolean;
-  roles: string[];
+}
+
+interface Session {
+  user: User;
+}
+
+async function getSession(): Promise<Session | null> {
+  const token = localStorage.getItem("auth_token");
+  if (!token) return null;
+  try {
+    const resp = await fetch(`${API_BASE}/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) {
+      localStorage.removeItem("auth_token");
+      return null;
+    }
+    const user = await resp.json();
+    return { user };
+  } catch {
+    localStorage.removeItem("auth_token");
+    return null;
+  }
 }
 
 async function checkAdminAccess(user: User): Promise<boolean> {
   try {
-    // Check if user has admin role via the API
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role, is_system_admin')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (error) {
-      console.error('Error checking admin status:', error);
-      return false;
-    }
-    
-    // Check for system admin flag or admin role
-    const isAdmin = data?.is_system_admin === true || 
-                    data?.role === 'admin' ||
-                    data?.role === 'ADMIN';
-    
-    return isAdmin;
+    const token = localStorage.getItem("auth_token");
+    if (!token) return false;
+    const resp = await fetch(`${API_BASE}/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    return data?.is_system_admin === true || data?.role === "admin" || data?.role === "ADMIN";
   } catch (err) {
-    console.error('Failed to verify admin access:', err);
+    console.error("Failed to verify admin access:", err);
     return false;
   }
 }
@@ -74,6 +84,11 @@ const NAV_LINKS: NavLink[] = [
 function Sidebar() {
   const loc = useLocation();
   let lastSection = "";
+
+  const handleSignOut = () => {
+    localStorage.removeItem("auth_token");
+    window.location.reload();
+  };
 
   return (
     <aside className="w-56 bg-card border-r border-border min-h-screen p-4 flex flex-col gap-0.5">
@@ -103,7 +118,7 @@ function Sidebar() {
       })}
       <div className="flex-1" />
       <button
-        onClick={() => supabase.auth.signOut()}
+        onClick={handleSignOut}
         className="px-3 py-2 text-sm text-muted-foreground hover:text-destructive transition-colors rounded-md"
       >
         Sign Out
@@ -119,15 +134,12 @@ export default function App() {
   const [checkingAdmin, setCheckingAdmin] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    getSession().then((s) => {
+      setSession(s);
       setLoading(false);
     });
-    const { data: listener } = supabase.auth.onAuthStateChange((_ev, s) => setSession(s));
-    return () => listener.subscription.unsubscribe();
   }, []);
 
-  // SECURITY: Check admin access when session changes
   useEffect(() => {
     if (session?.user) {
       setCheckingAdmin(true);
@@ -141,6 +153,11 @@ export default function App() {
     }
   }, [session]);
 
+  const handleSignOut = () => {
+    localStorage.removeItem("auth_token");
+    window.location.reload();
+  };
+
   if (loading || checkingAdmin) {
     return (
       <div className="flex items-center justify-center h-screen text-muted-foreground">
@@ -151,7 +168,6 @@ export default function App() {
   
   if (!session) return <LoginPage />;
   
-  // SECURITY: Block non-admin users from accessing the admin dashboard
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -161,7 +177,7 @@ export default function App() {
             You do not have admin privileges to access this dashboard.
           </p>
           <button
-            onClick={() => supabase.auth.signOut()}
+            onClick={handleSignOut}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
           >
             Sign Out

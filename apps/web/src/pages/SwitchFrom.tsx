@@ -105,6 +105,39 @@ export default function SwitchFrom() {
                             "text": step.description,
                         })),
                     },
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "ItemList",
+                        "name": `${competitor.name} to JobHuntin Migration Tools`,
+                        "itemListOrder": "ItemListUnordered",
+                        "numberOfItems": 2,
+                        "itemListElement": [
+                            {
+                                "@type": "ListItem",
+                                "position": 1,
+                                "url": `https://${competitor.domain}`,
+                                "name": competitor.name,
+                                "item": {
+                                    "@type": "SoftwareApplication",
+                                    "name": competitor.name,
+                                    "applicationCategory": "Job Search Automation",
+                                    "operatingSystem": "Web"
+                                }
+                            },
+                            {
+                                "@type": "ListItem",
+                                "position": 2,
+                                "url": "https://jobhuntin.com",
+                                "name": "JobHuntin",
+                                "item": {
+                                    "@type": "SoftwareApplication",
+                                    "name": "JobHuntin",
+                                    "applicationCategory": "Job Search Automation",
+                                    "operatingSystem": "Web"
+                                }
+                            }
+                        ]
+                    }
                 ]}
             />
 

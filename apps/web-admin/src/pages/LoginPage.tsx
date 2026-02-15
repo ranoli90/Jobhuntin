@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
+
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,9 +12,25 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-    if (err) setError(err.message);
-    setLoading(false);
+    try {
+      const resp = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        setError(data.detail || "Login failed");
+        return;
+      }
+      const data = await resp.json();
+      localStorage.setItem("auth_token", data.token);
+      window.location.reload();
+    } catch (err) {
+      setError("Network error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

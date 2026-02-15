@@ -24,7 +24,6 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-ui': ['framer-motion', 'lucide-react'],
           'vendor-query': ['@tanstack/react-query'],
-          'vendor-supabase': ['@supabase/supabase-js'],
           
           // Feature chunks
           'auth': ['./src/hooks/useAuth.ts', './src/services/magicLinkService.ts'],
@@ -81,7 +80,6 @@ export default defineConfig({
       '@tanstack/react-query',
       'framer-motion',
       'lucide-react',
-      '@supabase/supabase-js',
     ],
     
     exclude: [

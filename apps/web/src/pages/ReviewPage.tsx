@@ -96,6 +96,39 @@ export default function ReviewPage() {
                         "reviewBody": competitor.verdict,
                         "datePublished": "2026-02-01",
                     },
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "ItemList",
+                        "name": `${competitor.name} Alternatives Compared`,
+                        "itemListOrder": "ItemListUnordered",
+                        "numberOfItems": 2,
+                        "itemListElement": [
+                            {
+                                "@type": "ListItem",
+                                "position": 1,
+                                "url": canonicalUrl,
+                                "name": competitor.name,
+                                "item": {
+                                    "@type": "SoftwareApplication",
+                                    "name": competitor.name,
+                                    "applicationCategory": "Job Search Automation",
+                                    "operatingSystem": "Web"
+                                }
+                            },
+                            {
+                                "@type": "ListItem",
+                                "position": 2,
+                                "url": "https://jobhuntin.com",
+                                "name": "JobHuntin",
+                                "item": {
+                                    "@type": "SoftwareApplication",
+                                    "name": "JobHuntin",
+                                    "applicationCategory": "Job Search Automation",
+                                    "operatingSystem": "Web"
+                                }
+                            }
+                        ]
+                    }
                 ]}
             />
 

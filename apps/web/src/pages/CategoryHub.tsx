@@ -69,8 +69,25 @@ export default function CategoryHub() {
     // Generate aggressive SEO data
     const seoData = generateCategoryHubSEO(category.name, category, competitors);
 
-    // Merge generated schema with existing schema logic if needed, or just use generated schema
-    // The generated schema is more comprehensive, so we'll use that primarily.
+    const competitorListSchema = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": `${category.name} Tools Compared`,
+        "itemListOrder": "ItemListUnordered",
+        "numberOfItems": competitors.length,
+        "itemListElement": competitors.map((comp, idx) => ({
+            "@type": "ListItem",
+            "position": idx + 1,
+            "name": comp.name,
+            "url": `https://jobhuntin.com/vs/${comp.slug}`,
+            "item": {
+                "@type": "SoftwareApplication",
+                "name": comp.name,
+                "applicationCategory": "Job Search",
+                "operatingSystem": "Web"
+            }
+        }))
+    };
 
     const faq = generateFAQ(category);
 
@@ -81,7 +98,7 @@ export default function CategoryHub() {
                 description={seoData.description}
                 ogTitle={seoData.title}
                 canonicalUrl={`https://jobhuntin.com/best/${categorySlug}`}
-                schema={seoData.schema}
+                schema={[...(Array.isArray(seoData.schema) ? seoData.schema : [seoData.schema]), competitorListSchema]}
             />
 
             <main className="max-w-5xl mx-auto px-6 py-24">

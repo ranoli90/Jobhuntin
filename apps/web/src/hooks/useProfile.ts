@@ -125,7 +125,7 @@ export function useProfile() {
       const data = await apiPostFormData<UploadResumeResponse>("profile/resume", formData, {
         signal: controller.signal
       });
-      setProfile((prev) => {
+      setProfile((prev: UserProfile | null) => {
         // If prev is null, we can't fully reconstruct it without ID/email, 
         // but we can start building it if the backend returned enough info.
         // However, usually uploadResume is called when we are already authenticated.
@@ -155,7 +155,9 @@ export function useProfile() {
     const formData = new FormData();
     formData.append("file", file);
     const data = await apiPostFormData<{ avatar_url: string }>("profile/avatar", formData);
-    setProfile((prev) => (prev ? { ...prev, contact: { ...prev.contact, avatar_url: data.avatar_url } } : prev));
+    setProfile((prev: UserProfile | null) =>
+      prev ? { ...prev, contact: { ...prev.contact, avatar_url: data.avatar_url } } : prev
+    );
     return data.avatar_url;
   };
 
@@ -185,6 +187,7 @@ export function useProfile() {
     completeOnboarding,
     refreshProfile,
     // Force onboarding if profile is missing (new user) or explicitly not completed
-    needsOnboarding: !loading && (!profile || !profile.has_completed_onboarding),
+    // Only force onboarding when we have a valid profile result (no error) and it is incomplete
+    needsOnboarding: !loading && !error && (!profile || !profile.has_completed_onboarding),
   };
 }

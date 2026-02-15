@@ -13,10 +13,10 @@ export const config = {
   // App base URL (used for auth redirects; override in env to avoid preview-domain issues)
   appBaseUrl: import.meta.env.VITE_APP_BASE_URL || "",
 
-  // Authentication
+  // Authentication (handled by backend API)
   auth: {
-    supabaseUrl: import.meta.env.VITE_SUPABASE_URL || "",
-    supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+    // Auth is handled via magic links through the backend API
+    // No direct Supabase client needed
   },
 
   // Analytics
@@ -59,14 +59,6 @@ export function validateConfig(): string[] {
 
   if (!config.api.baseUrl) {
     errors.push("VITE_API_URL is not configured");
-  }
-
-  if (!config.auth.supabaseUrl) {
-    errors.push("VITE_SUPABASE_URL is not configured");
-  }
-
-  if (!config.auth.supabaseAnonKey) {
-    errors.push("VITE_SUPABASE_ANON_KEY is not configured");
   }
 
   if (config.appBaseUrl && !/^https?:\/\//.test(config.appBaseUrl)) {

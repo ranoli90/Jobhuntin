@@ -1,5 +1,5 @@
 /**
- * API client for backend. Sends Supabase JWT on every request so the API can
+ * API client for backend. Sends JWT token on every request so the API can
  * resolve user and tenant. Use this for all VITE_API_URL requests.
  *
  * Features:
@@ -11,7 +11,10 @@
 // Token storage key
 const AUTH_TOKEN_KEY = "auth_token";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+// Prefer explicit API base; fall back to same-origin /api to avoid empty base
+const API_BASE =
+  (import.meta.env.VITE_API_URL as string | undefined) ||
+  (typeof window !== "undefined" ? `${window.location.origin}/api` : "");
 
 /** Maximum number of automatic retries for retryable errors. */
 const MAX_RETRIES = 2;
@@ -28,6 +31,13 @@ export function getAuthToken(): string | null {
   return localStorage.getItem(AUTH_TOKEN_KEY);
 }
 
+/** Read csrf cookie set by backend (starlette-csrf) */
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export function setAuthToken(token: string) {
   localStorage.setItem(AUTH_TOKEN_KEY, token);
 }
@@ -38,11 +48,15 @@ export function clearAuthToken() {
 
 export async function getAuthHeaders(): Promise<HeadersInit> {
   const token = getAuthToken();
+  const csrf = getCsrfToken();
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
   if (token) {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  }
+  if (csrf) {
+    (headers as Record<string, string>)["X-CSRF-Token"] = csrf;
   }
   return headers;
 }
