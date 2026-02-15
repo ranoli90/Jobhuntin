@@ -21,7 +21,7 @@ from backend.domain.analytics_events import (
 from backend.domain.models import CanonicalProfile, normalize_profile
 from backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
-from backend.llm.contracts import ResumeParseResponse_V1, build_resume_parse_prompt
+from backend.llm.contracts import ResumeParseResponse_V2, build_resume_parse_prompt_v2
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.resume")
@@ -61,13 +61,13 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
 
 
 async def parse_resume_to_profile(resume_text: str) -> dict:
-    """Use the LLM client with the versioned resume parse contract."""
+    """Use the LLM client with the V2 resume parse contract for rich skills."""
     s = get_settings()
     llm_client = LLMClient(s)
-    prompt = build_resume_parse_prompt(resume_text)
+    prompt = build_resume_parse_prompt_v2(resume_text)
     result = await llm_client.call(
         prompt=prompt,
-        response_format=ResumeParseResponse_V1,
+        response_format=ResumeParseResponse_V2,
     )
     return result.model_dump()
 

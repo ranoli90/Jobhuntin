@@ -333,11 +333,12 @@ export function SkillReviewStep({
             </div>
 
             <div className="flex gap-3 pt-4 mt-4">
-                <Button variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
+                <Button type="button" variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                 </Button>
                 <Button
+                    type="button"
                     onClick={onNext}
                     disabled={richSkills.length === 0 || isSaving}
                     className="flex-1 h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group"
