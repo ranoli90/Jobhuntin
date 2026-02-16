@@ -9,6 +9,7 @@ interface LogoProps {
     to?: string;
     onClick?: () => void;
     size?: 'sm' | 'md' | 'lg';
+    variant?: 'light' | 'dark';
 }
 
 export function Logo({
@@ -16,7 +17,8 @@ export function Logo({
     iconOnly = false,
     to = "/",
     onClick,
-    size = 'md'
+    size = 'md',
+    variant = 'light'
 }: LogoProps) {
     const sizeClasses = {
         sm: {
@@ -44,14 +46,17 @@ export function Logo({
     const content = (
         <div className={cn("flex items-center group relative z-10", currentSize.container, className)}>
             <div className={cn(
-                "bg-gradient-to-tr from-primary-500 to-primary-600 shadow-lg shadow-primary-500/20 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110",
+                "bg-gradient-to-br from-blue-500 via-violet-500 to-pink-500 shadow-lg shadow-violet-500/30 transition-all duration-300 group-hover:shadow-violet-500/50 group-hover:scale-105",
                 currentSize.iconBox
             )}>
                 <Bot className={cn("text-white", currentSize.bot)} />
             </div>
             {!iconOnly && (
                 <span className={cn(
-                    "font-black font-display text-slate-900 tracking-tight transition-colors group-hover:text-primary-600",
+                    "font-black font-display tracking-tight transition-colors",
+                    variant === 'dark' 
+                        ? "text-white group-hover:text-blue-400" 
+                        : "text-slate-900 group-hover:text-blue-600",
                     currentSize.text
                 )}>
                     JobHuntin

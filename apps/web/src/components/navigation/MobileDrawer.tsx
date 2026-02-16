@@ -144,7 +144,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
             animate={{ x: 0 }}
             exit={{ x: side === "left" ? "-100%" : "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
-            className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[320px] flex flex-col bg-white shadow-[0_0_50px_rgba(0,0,0,0.1)] border-slate-100 ring-1 ring-slate-900/5`}
+            className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[320px] flex flex-col bg-slate-900 shadow-[0_0_50px_rgba(0,0,0,0.5)] border-slate-700 ring-1 ring-slate-700/50`}
             onClick={(e) => e.stopPropagation()}
           >
             {children}
@@ -158,7 +158,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
 
 export function MobileDrawerHeader({ children, onClose }: { children: ReactNode; onClose?: () => void }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+    <div className="flex items-center justify-between border-b border-slate-800 px-6 py-5">
       {children}
       {onClose && (
         <button
@@ -168,7 +168,7 @@ export function MobileDrawerHeader({ children, onClose }: { children: ReactNode;
             e.stopPropagation();
             onClose();
           }}
-          className="p-3 -mr-3 text-slate-400 hover:text-slate-900 transition-colors active:scale-90 touch-manipulation"
+          className="p-3 -mr-3 text-slate-400 hover:text-white transition-colors active:scale-90 touch-manipulation"
           aria-label="Close menu"
         >
           <X className="h-6 w-6" />
@@ -188,7 +188,7 @@ export function MobileDrawerBody({ children }: { children: ReactNode }) {
 
 export function MobileDrawerFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="border-t border-slate-200 px-4 py-4">
+    <div className="border-t border-slate-800 px-4 py-4">
       {children}
     </div>
   );

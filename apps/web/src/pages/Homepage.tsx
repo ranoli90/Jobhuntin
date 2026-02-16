@@ -6,7 +6,7 @@ import {
   CheckCircle, ArrowRight,
   MailCheck, Bell,
   Upload, Search, Send, Lock, Shield, Clock,
-  User, FileText, MessageSquare, Briefcase, TrendingUp, Target, Award
+  User, FileText, MessageSquare, Briefcase, TrendingUp, Target, Award, Moon, Sparkles
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -346,9 +346,14 @@ const Hero = () => {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 mb-8 backdrop-blur-sm"
           >
-            <Clock className="w-4 h-4 text-blue-400" />
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <Moon className="w-4 h-4 text-blue-400" />
+            </motion.div>
             <span className="text-xs sm:text-sm font-medium text-slate-300 tracking-wide">
-              We apply to jobs <span className="font-bold text-blue-400">while you sleep</span>
+              For the <span className="font-bold text-blue-400">night owls</span> who job hunt in their sleep
             </span>
           </motion.div>
 
@@ -683,6 +688,37 @@ const Onboarding = () => {
   );
 };
 
+const StickyMobileCTA = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsVisible(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  if (!isVisible) return null;
+
+  return (
+    <motion.div
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 100, opacity: 0 }}
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-slate-700 p-4 shadow-2xl shadow-black/50"
+    >
+      <Button
+        className="w-full rounded-xl py-4 font-bold text-base bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 shadow-lg shadow-blue-500/30"
+      >
+        <Moon className="w-5 h-5 mr-2" />
+        Start Applying Tonight
+        <ArrowRight className="w-5 h-5 ml-2" />
+      </Button>
+    </motion.div>
+  );
+};
+
 export default function Homepage() {
   return (
     <>
@@ -705,6 +741,7 @@ export default function Homepage() {
       <Hero />
       <LiveActivitySection />
       <Onboarding />
+      <StickyMobileCTA />
     </>
   );
 }

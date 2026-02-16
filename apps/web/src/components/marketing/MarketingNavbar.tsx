@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, ArrowRight } from 'lucide-react';
+import { Menu, ArrowRight, Moon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Logo } from '../brand/Logo';
 import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from '../navigation/MobileDrawer';
@@ -41,7 +41,7 @@ export function MarketingNavbar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
-        <Logo to="/" onClick={closeMenu} />
+        <Logo to="/" onClick={closeMenu} variant="dark" />
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
@@ -89,7 +89,7 @@ export function MarketingNavbar() {
         drawerId="marketing-mobile-drawer"
       >
         <MobileDrawerHeader onClose={closeMenu}>
-          <Logo to="/" onClick={closeMenu} size="sm" />
+          <Logo to="/" onClick={closeMenu} size="sm" variant="dark" />
         </MobileDrawerHeader>
 
         <MobileDrawerBody>
