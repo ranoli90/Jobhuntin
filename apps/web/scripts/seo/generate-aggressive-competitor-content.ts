@@ -23,16 +23,14 @@ const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.jso
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
-// STRICT: Only approved NVIDIA free-tier models — no exceptions
-const PREMIUM_MODELS = [
-  'google/gemini-2.0-flash:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
+// Paid models with excellent quality and low cost
+const PAID_MODELS = [
+  'openai/gpt-4o-mini',
+  'anthropic/claude-3-haiku',
 ];
 
-const FREE_MODELS = [
-  'google/gemini-2.0-flash:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemma-3-27b-it:free',
+const BACKUP_MODELS = [
+  'meta-llama/llama-3.3-70b-instruct',
 ];
 
 interface Competitor {
@@ -103,7 +101,7 @@ async function generateAggressiveSEOContent(
     throw new Error('LLM_API_KEY environment variable is missing.');
   }
 
-  const modelsToTry = aggressive ? [...PREMIUM_MODELS, ...FREE_MODELS] : FREE_MODELS;
+  const modelsToTry = aggressive ? PAID_MODELS : BACKUP_MODELS;
 
   // Aggressive SEO prompt for maximum ranking potential
   const aggressivePrompt = `

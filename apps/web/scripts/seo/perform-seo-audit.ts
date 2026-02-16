@@ -8,11 +8,10 @@ const SITEMAP_PATH = path.resolve(__dirname, '../../public/sitemap.xml');
 const REPORT_FILE = path.resolve(__dirname, '../../src/data/seo-audit-report.json');
 
 const OPENROUTER_API_KEY = process.env.LLM_API_KEY;
-// Using a mix of popular and less popular free models to avoid rate limits
-const FREE_MODELS = [
-    'google/gemini-2.0-flash:free',
-    'meta-llama/llama-3.3-70b-instruct:free',
-    'google/gemma-3-27b-it:free',
+// Paid models with excellent quality and low cost
+const PAID_MODELS = [
+    'openai/gpt-4o-mini',
+    'anthropic/claude-3-haiku',
 ];
 
 if (!OPENROUTER_API_KEY) {
@@ -85,9 +84,9 @@ async function auditUrl(url: string): Promise<AuditResult> {
 
     let lastError: Error | null = null;
     
-    for (let i = 0; i < FREE_MODELS.length; i++) {
-        const model = FREE_MODELS[i];
-        console.log(`  🔄 Trying model: ${model} (${i + 1}/${FREE_MODELS.length})`);
+    for (let i = 0; i < PAID_MODELS.length; i++) {
+        const model = PAID_MODELS[i];
+        console.log(`  🔄 Trying model: ${model} (${i + 1}/${PAID_MODELS.length})`);
         
         try {
             const controller = new AbortController();

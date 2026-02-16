@@ -8,7 +8,7 @@
  * Usage:
  *   npx tsx scripts/seo/generate-competitor-content.ts "CompetitorName"
  *   npx tsx scripts/seo/generate-competitor-content.ts "CompetitorName" --url "https://competitor.com"
- *   npx tsx scripts/seo/generate-competitor-content.ts "CompetitorName" --model "google/gemini-2.0-flash-lite-preview-02-05:free"
+ *   npx tsx scripts/seo/generate-competitor-content.ts "CompetitorName" --model "openai/gpt-4o-mini"
  * 
  * Environment variables:
  *   LLM_API_KEY - OpenRouter API Key
@@ -24,17 +24,14 @@ const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.jso
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
-// Free models that actually work on OpenRouter (updated Feb 2026)
-// Using a mix of popular and less popular models to avoid rate limits
-const FREE_MODELS = [
-  'google/gemini-2.0-flash:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemma-3-27b-it:free',
+// Paid models with excellent quality and low cost
+const PAID_MODELS = [
+  'openai/gpt-4o-mini',
+  'anthropic/claude-3-haiku',
 ];
 
-const BACKUP_FREE_MODELS: string[] = [
-  'qwen/qwen3-coder:free',
-  'google/gemma-3-12b-it:free',
+const BACKUP_MODELS: string[] = [
+  'meta-llama/llama-3.3-70b-instruct',
 ];
 
 interface Competitor {
@@ -85,7 +82,7 @@ async function generateCompetitorData(name: string, url?: string, explicitModel?
 {"slug":"kebab-case","name":"Official","domain":"example.com","tagline":"<10 words","tags":["Auto-Apply","Resume"],"pricing":{"freeTrial":false,"freemium":false,"startingPrice":0,"currency":"USD"},"features":{"autoApply":false,"resumeBuilder":false,"coverLetterGen":false,"networking":false,"jobTracking":false,"extension":false,"emailFinder":false,"interviewPrep":false,"salaryInsights":false},"weaknesses":["3 cons"],"strengths":["3 pros"],"seoKeywords":["5 keywords"],"differentiators":["3 USPs"],"verdict":"2 sentences","rating_vs_jobhuntin":{"speed":[5,9],"quality":[5,9],"automation":[5,9],"stealth":[5,9],"price_value":[5,9]}}
 Be objective. Highlight gaps vs JobHuntin AI.`;
 
-  const modelsToTry = explicitModel ? [explicitModel] : FREE_MODELS;
+  const modelsToTry = explicitModel ? [explicitModel] : PAID_MODELS;
   let lastError: Error | null = null;
   let triedModels: string[] = [];
 

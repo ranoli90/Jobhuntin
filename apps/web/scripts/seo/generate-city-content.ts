@@ -63,17 +63,14 @@ import { getCityJobStats, formatStatsForPrompt } from './data-provider.js';
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
 
-// Free models that actually work on OpenRouter (updated Feb 2026)
-// Using a mix of popular and less popular models to avoid rate limits
-const FREE_MODELS = [
-  'google/gemini-2.0-flash:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemma-3-27b-it:free',
+// Paid models with excellent quality and low cost
+const PAID_MODELS = [
+  'openai/gpt-4o-mini',
+  'anthropic/claude-3-haiku',
 ];
 
-const BACKUP_FREE_MODELS: string[] = [
-  'qwen/qwen3-coder:free',
-  'google/gemma-3-12b-it:free',
+const BACKUP_MODELS: string[] = [
+  'meta-llama/llama-3.3-70b-instruct',
 ];
 
 // Content Archetypes to prevent "cookie-cutter" footprint
@@ -229,8 +226,8 @@ async function generateAggressiveLocalContent(
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().toLocaleString('default', { month: 'long' });
 
-  // Use free models with fallback to backup models for aggressive mode
-  const modelsToTry = aggressive ? [...FREE_MODELS, ...BACKUP_FREE_MODELS] : FREE_MODELS;
+  // Use paid models with fallback to backup models for aggressive mode
+  const modelsToTry = aggressive ? [...PAID_MODELS, ...BACKUP_MODELS] : PAID_MODELS;
 
   const aggressivePrompt = `
 Write "${roleName} jobs in ${cityName}" page. ${currentMonth} ${currentYear}.
