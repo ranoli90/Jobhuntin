@@ -50,7 +50,7 @@ export async function query(text: string, params?: any[]) {
     console.error('Database query error', { 
       query: text.substring(0, 100), 
       duration: `${duration}ms`, 
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
     throw error;
   }
@@ -84,7 +84,7 @@ export async function healthCheck() {
   } catch (error) {
     return { 
       healthy: false, 
-      message: error.message,
+      message: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()
     };
   }
