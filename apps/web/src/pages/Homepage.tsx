@@ -264,6 +264,7 @@ const Hero = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -299,228 +300,178 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pb-32 -mb-16">
-      {/* Night sky background with floating stars */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Sophisticated background layers */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-800/90 to-slate-900/95" />
-        <div className="absolute inset-0 bg-grid-premium opacity-10" />
-        {/* Floating job icons */}
-        <motion.div
-          animate={{
-            y: [0, -20, 0],
-            opacity: [0.3, 0.6, 0.3]
-          }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-20 left-10 w-8 h-8 text-blue-400 opacity-30"
-        >
-          <Briefcase className="w-full h-full" />
-        </motion.div>
-        <motion.div
-          animate={{
-            y: [0, 15, 0],
-            opacity: [0.2, 0.5, 0.2]
-          }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute top-40 right-20 w-6 h-6 text-violet-400 opacity-30"
-        >
-          <FileText className="w-full h-full" />
-        </motion.div>
-        <motion.div
-          animate={{
-            y: [0, -15, 0],
-            opacity: [0.4, 0.7, 0.4]
-          }}
-          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-30 left-1/4 w-7 h-7 text-pink-400 opacity-30"
-        >
-          <Send className="w-full h-full" />
-        </motion.div>
+        {/* Subtle image overlay */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-screen" />
+        
+        {/* Premium gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-transparent to-violet-950/20" />
+        
+        {/* Film grain texture */}
+        <div className="absolute inset-0 bg-film-grain" />
+        
+        {/* Subtle grid */}
+        <div className="absolute inset-0 bg-grid-premium opacity-3" />
+        
+        {/* Ambient light orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/3 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-20 lg:pt-0">
-        <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
+          {/* Sophisticated badge */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 mb-8 backdrop-blur-sm"
-          >
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
-              <Moon className="w-4 h-4 text-blue-400" />
-            </motion.div>
-            <span className="text-xs sm:text-sm font-medium text-slate-300 tracking-wide">
-              For the <span className="font-bold text-blue-400">night owls</span> who job hunt in their sleep
-            </span>
-          </motion.div>
-
-          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-6 text-balance max-w-3xl"
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-12"
           >
-            <span className="text-white">Dream jobs don't</span>
-            <br />
-            <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent animate-gradient-flow bg-[length:200%_auto]">
-              wait for 9 AM applications
-            </span>
-          </motion.h1>
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full surface-premium border-organic hover-organic typography-premium">
+              <motion.div
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity, repeatDelay: 2 }}
+              >
+                <Sparkles className="w-4 h-4 text-blue-400" />
+              </motion.div>
+              <span className="text-sm font-medium text-slate-300 spacing-premium">
+                For those who <span className="font-semibold text-blue-400">work smarter</span>, not harder
+              </span>
+            </div>
+          </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
+          {/* Premium headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="font-body text-lg sm:text-xl lg:text-2xl text-slate-400 max-w-2xl mb-10 leading-relaxed text-balance"
+            transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-8"
           >
-            Upload your resume once. Our AI matches, tailors, and submits applications
-            <span className="hidden sm:inline"> while you focus on interviews.</span>
-            <span className="sm:hidden"> automatically.</span>
+            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-balance text-shadow-premium typography-premium spacing-premium">
+              <span className="block text-white/95 mb-2">Your next career move</span>
+              <span className="block bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong">
+                happens while you sleep
+              </span>
+            </h1>
+          </motion.div>
+
+          {/* Refined description */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="font-body text-xl sm:text-2xl text-slate-400 max-w-3xl mb-12 leading-relaxed text-balance typography-premium spacing-premium"
+          >
+            Upload your resume once. We handle the rest—tailored applications, strategic timing, 
+            and interview opportunities that align with your ambitions.
           </motion.p>
 
+          {/* Premium email capture */}
           {!sentEmail ? (
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-md"
+              transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-lg mb-8"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
             >
               <form onSubmit={onSubmit} className="relative">
-                <div className="flex flex-col sm:flex-row gap-3 p-2 bg-slate-800/50 rounded-2xl border border-slate-700 backdrop-blur-sm">
-                  <div className="relative flex-1">
-                    <MailCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input
-                      type="email"
-                      placeholder="your@email.com"
-                      className={cn(
-                        "w-full pl-12 pr-4 py-3.5 rounded-xl bg-slate-700 border transition-all text-white placeholder:text-slate-400",
-                        "focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400",
-                        emailError ? "border-red-500 bg-red-900/20" : "border-slate-600"
-                      )}
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        if (emailError) setEmailError("");
-                      }}
-                    />
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative glass-premium-dark rounded-2xl border-organic p-1">
+                    <div className="flex flex-col sm:flex-row gap-2 p-2">
+                      <div className="relative flex-1">
+                        <MailCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 transition-colors group-focus-within:text-blue-400" />
+                        <input
+                          type="email"
+                          placeholder="Enter your email"
+                          className={cn(
+                            "w-full pl-12 pr-4 py-4 rounded-xl bg-transparent border-0 text-white placeholder:text-slate-500",
+                            "focus:outline-none focus:ring-0 typography-premium spacing-premium",
+                            "transition-all duration-300",
+                            emailError && "text-red-400 placeholder:text-red-400/50"
+                          )}
+                          value={email}
+                          onChange={(e) => {
+                            setEmail(e.target.value);
+                            if (emailError) setEmailError("");
+                          }}
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-8 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 transition-all duration-300 shadow-lg hover:shadow-xl hover-lift typography-premium border-0"
+                      >
+                        {isSubmitting ? (
+                          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+                            <Briefcase className="w-5 h-5" />
+                          </motion.div>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            Get Started <ArrowRight className="w-4 h-4" />
+                          </span>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="h-12 sm:h-auto px-8 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
-                  >
-                    {isSubmitting ? (
-                      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                        <Briefcase className="w-5 h-5" />
-                      </motion.div>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        Start Applying Now <ArrowRight className="w-4 h-4" />
-                      </span>
-                    )}
-                  </Button>
                 </div>
               </form>
               
               {emailError && (
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-sm text-red-400 font-medium">
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-sm text-red-400 font-medium typography-premium">
                   {emailError}
                 </motion.p>
               )}
 
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
-                <span className="flex items-center gap-1.5"><Lock className="w-4 h-4" /> No credit card</span>
-                <span className="flex items-center gap-1.5"><Shield className="w-4 h-4" /> Secure</span>
-                <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> 2-min setup</span>
+              {/* Sophisticated trust indicators */}
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-slate-500 typography-premium">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                    <Lock className="w-2.5 h-2.5 text-emerald-400" />
+                  </div>
+                  <span>Bank-level security</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <Shield className="w-2.5 h-2.5 text-blue-400" />
+                  </div>
+                  <span>Privacy first</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
+                    <Clock className="w-2.5 h-2.5 text-violet-400" />
+                  </div>
+                  <span>2-minute setup</span>
+                </div>
               </div>
             </motion.div>
           ) : (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="w-full max-w-md bg-slate-800/50 border border-slate-700 p-6 text-left shadow-xl backdrop-blur-sm rounded-2xl"
+              className="w-full max-w-lg glass-premium-dark rounded-2xl border-organic p-8 text-center shadow-2xl"
             >
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
-                  <MailCheck className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-0.5">Sent</p>
-                  <p className="font-semibold text-white">{sentEmail}</p>
-                </div>
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-xl mx-auto mb-6">
+                <MailCheck className="w-8 h-8 text-white" />
               </div>
-              <p className="text-sm text-slate-400 leading-relaxed mb-4">
-                Check your inbox for the magic link. Click it to start your AI job search.
+              <p className="text-lg font-semibold text-white mb-2 typography-premium">Check your inbox</p>
+              <p className="text-slate-400 mb-6 leading-relaxed typography-premium">
+                We've sent a magic link to <span className="text-white font-medium">{sentEmail}</span>. 
+                Click it to begin your journey.
               </p>
-              <button onClick={() => setSentEmail(null)} className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors">
-                Use different email
+              <button 
+                onClick={() => setSentEmail(null)} 
+                className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors typography-premium hover-organic px-4 py-2 rounded-lg"
+              >
+                Use a different email
               </button>
             </motion.div>
           )}
-
-          {/* Live activity feed overlay */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-16 w-full max-w-4xl"
-          >
-            <div className="relative">
-              <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-slate-700 overflow-hidden shadow-2xl shadow-black/40">
-                <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-700 bg-slate-900/50">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="ml-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Live Applications Dashboard</span>
-                </div>
-                
-                <div className="p-5 sm:p-6 space-y-2.5">
-                  {[
-                    { icon: Upload, label: "Resume parsed", detail: "47 skills extracted", color: "bg-emerald-900/30 text-emerald-400" },
-                    { icon: Search, label: "Scanning 2,847 jobs", detail: "Matching your profile...", color: "bg-blue-900/30 text-blue-400" },
-                    { icon: Send, label: "52 applications sent", detail: "Custom-tailored each one", color: "bg-violet-900/30 text-violet-400" },
-                    { icon: Bell, label: "2 interview requests", detail: "Recruiters responded!", color: "bg-amber-900/30 text-amber-400" },
-                  ].map((step, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.7 + i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex items-center gap-3.5"
-                    >
-                      <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", step.color)}>
-                        <step.icon className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white">{step.label}</p>
-                        <p className="text-xs text-slate-400">{step.detail}</p>
-                      </div>
-                      {i !== 1 && <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
-                    </motion.div>
-                  ))}
-                </div>
-                
-                <div className="px-5 sm:px-6 py-3 border-t border-slate-700 bg-slate-900/50">
-                  <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
-                    <span>Today's Progress</span>
-                    <span>92%</span>
-                  </div>
-                  <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full"
-                      initial={{ width: "0%" }}
-                      animate={{ width: "92%" }}
-                      transition={{ delay: 1.2, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -bottom-16 left-0 right-0 h-20 bg-gradient-to-b from-transparent via-slate-900/60 to-slate-900 pointer-events-none rounded-b-3xl" />
-            </div>
-          </motion.div>
         </div>
       </div>
     </section>
@@ -529,83 +480,111 @@ const Hero = () => {
 
 const LiveActivitySection = () => {
   return (
-    <section className="py-20 sm:py-24 bg-slate-900 relative overflow-hidden -mt-16 pt-32">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pointer-events-none" />
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+    <section className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      {/* Sophisticated background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-film-grain" />
+        <div className="absolute inset-0 bg-grid-premium opacity-2" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/3 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/3 rounded-full blur-3xl" />
+      </div>
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
           <div>
+            {/* Premium badge */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-900/30 border border-blue-700 mb-6"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
-              </span>
-              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Live Activity</span>
-            </motion.div>
-            
-            <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4"
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-8"
             >
-              Watch applications<br />
-              <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">roll in overnight</span>
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full surface-premium border-organic hover-organic typography-premium">
+                <div className="relative">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                  <div className="absolute inset-0 w-2 h-2 bg-blue-400 rounded-full animate-ping opacity-75" />
+                </div>
+                <span className="text-sm font-semibold text-blue-400 uppercase tracking-wider spacing-premium">Live Activity</span>
+              </div>
+            </motion.div>
+            
+            {/* Premium headline */}
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6 text-shadow-premium typography-premium spacing-premium"
+            >
+              Watch opportunities<br />
+              <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong">
+                arrive in real-time
+              </span>
             </motion.h2>
             
+            {/* Refined description */}
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="font-body text-lg text-slate-400 mb-8 leading-relaxed"
+              transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="font-body text-lg text-slate-400 mb-10 leading-relaxed max-w-lg typography-premium spacing-premium"
             >
-              Every few seconds, our AI submits another tailored application. 
-              This is happening right now for job seekers just like you.
+              While you focus on what matters, our AI continuously identifies and applies to positions that match your expertise and aspirations.
             </motion.p>
             
+            {/* Premium features */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-wrap gap-6 items-center"
+              transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700">
-                  <Target className="w-5 h-5 text-blue-400" />
+              <div className="flex items-start gap-4 p-4 surface-elevated rounded-xl border-organic hover-organic transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                  <Target className="w-6 h-6 text-blue-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-white">ATS-Optimized</p>
-                  <p className="text-xs text-slate-400">Passes every filter</p>
+                  <h3 className="font-semibold text-white mb-1 typography-premium">Precision Matching</h3>
+                  <p className="text-sm text-slate-400 typography-premium">Advanced algorithms ensure every opportunity aligns with your unique profile</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700">
-                  <Award className="w-5 h-5 text-violet-400" />
+              
+              <div className="flex items-start gap-4 p-4 surface-elevated rounded-xl border-organic hover-organic transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                  <Award className="w-6 h-6 text-violet-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-white">Human Quality</p>
-                  <p className="text-xs text-slate-400">Professional output</p>
+                  <h3 className="font-semibold text-white mb-1 typography-premium">Curated Quality</h3>
+                  <p className="text-sm text-slate-400 typography-premium">Each application is crafted with the attention of a seasoned career consultant</p>
                 </div>
               </div>
             </motion.div>
           </div>
           
+          {/* Premium activity display */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-700 p-6 shadow-xl shadow-black/40"
+            transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="relative"
           >
-            <LiveActivityStream />
+            <div className="glass-premium-dark rounded-3xl border-organic p-8 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-white typography-premium">Recent Activity</h3>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  <span className="text-xs text-emerald-400 font-medium typography-premium">Live</span>
+                </div>
+              </div>
+              <LiveActivityStream />
+            </div>
+            
+            {/* Ambient glow effect */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/10 to-violet-500/10 rounded-3xl blur-xl -z-10" />
           </motion.div>
         </div>
       </div>
@@ -615,72 +594,108 @@ const LiveActivitySection = () => {
 
 const Onboarding = () => {
   const steps = [
-    { icon: Upload, title: "Upload", desc: "Drop your resume, we extract everything" },
-    { icon: Search, title: "Match", desc: "Find jobs that fit your skills" },
-    { icon: FileText, title: "Tailor", desc: "Customize for each application" },
-    { icon: MessageSquare, title: "Notify", desc: "Get interview alerts" },
+    { 
+      icon: Upload, 
+      title: "Initialize", 
+      desc: "Upload your resume and let our AI analyze your unique value proposition",
+      detail: "Skills, experience, and potential extracted in seconds"
+    },
+    { 
+      icon: Search, 
+      title: "Strategic Matching", 
+      desc: "We identify opportunities that align with your career trajectory",
+      detail: "Thousands of positions filtered for perfect fit"
+    },
+    { 
+      icon: FileText, 
+      title: "Crafted Applications", 
+      desc: "Each submission is tailored to resonate with hiring managers",
+      detail: "Personalized narratives that highlight your strengths"
+    },
+    { 
+      icon: MessageSquare, 
+      title: "Interview Ready", 
+      desc: "Receive curated interview opportunities with preparation insights",
+      detail: "Connect with companies actively seeking your expertise"
+    },
   ];
 
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-slate-800 relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-slate-700 to-slate-900 rounded-full blur-3xl opacity-40 pointer-events-none" />
+    <section className="py-24 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
+      {/* Sophisticated background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-film-grain" />
+        <div className="absolute inset-0 bg-grid-premium opacity-2" />
+        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-blue-500/2 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-violet-500/2 rounded-full blur-3xl" />
+      </div>
 
-      <div className="container mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        {/* Premium header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center mb-16 lg:mb-20"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center mb-20"
         >
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4">
-            Four steps to <span className="text-blue-400">more interviews</span>
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6 text-shadow-premium typography-premium spacing-premium">
+            The path to your <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong">next chapter</span>
           </h2>
-          <p className="font-body text-lg text-slate-400 max-w-xl mx-auto">
-            Set up once, let us handle the rest. You only show up for the wins.
+          <p className="font-body text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed typography-premium spacing-premium">
+            A sophisticated approach to career advancement that works while you focus on growth
           </p>
         </motion.div>
 
-        <div className="relative max-w-4xl mx-auto">
-          <div className="absolute top-12 left-0 right-0 h-px bg-slate-700 hidden lg:block" />
+        {/* Premium steps */}
+        <div className="relative max-w-6xl mx-auto">
+          <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-700/30 to-transparent hidden lg:block" />
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             {steps.map((step, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ delay: 0.1 + i * 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true }}
                 className="relative group"
               >
                 <div className="flex flex-col items-center text-center">
-                  <div className="relative mb-5">
-                    <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-shadow duration-300 border border-slate-700">
-                      <step.icon className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white shadow-lg">
-                      {i + 1}
+                  {/* Premium step number */}
+                  <div className="relative mb-8">
+                    <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative surface-elevated rounded-2xl border-organic p-6 hover-organic transition-all duration-300">
+                      <step.icon className="w-8 h-8 text-white mb-4" />
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-sm font-bold text-white shadow-lg">
+                        {i + 1}
+                      </div>
                     </div>
                   </div>
-                  <h3 className="font-display text-lg font-bold text-white mb-1">{step.title}</h3>
-                  <p className="font-body text-sm text-slate-400 leading-relaxed">{step.desc}</p>
+                  
+                  {/* Premium content */}
+                  <h3 className="font-display text-xl font-bold text-white mb-3 typography-premium spacing-premium">{step.title}</h3>
+                  <p className="font-body text-slate-400 leading-relaxed mb-3 typography-premium spacing-premium">{step.desc}</p>
+                  <p className="font-body text-xs text-slate-500 uppercase tracking-wider typography-premium">{step.detail}</p>
                 </div>
               </motion.div>
             ))}
           </div>
         </div>
 
+        {/* Premium footer */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.5, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-16 text-center"
+          transition={{ delay: 0.8, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-20 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-sm">
-            <Clock className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-medium text-slate-300">Average setup time: <span className="font-bold text-white">2 minutes</span></span>
+          <div className="inline-flex items-center gap-4 px-6 py-3 rounded-full surface-premium border-organic hover-organic typography-premium">
+            <Clock className="w-5 h-5 text-blue-400" />
+            <span className="text-sm font-medium text-slate-300 spacing-premium">
+              Complete setup in <span className="font-bold text-white">under 2 minutes</span>
+            </span>
           </div>
         </motion.div>
       </div>
@@ -706,13 +721,13 @@ const StickyMobileCTA = () => {
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 100, opacity: 0 }}
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-slate-700 p-4 shadow-2xl shadow-black/50"
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-premium-dark border-t border-slate-600/50 p-4 shadow-2xl"
     >
       <Button
-        className="w-full rounded-xl py-4 font-bold text-base bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 shadow-lg shadow-blue-500/30"
+        className="w-full rounded-xl py-4 font-bold text-base bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 shadow-xl hover-lift typography-premium border-0"
       >
-        <Moon className="w-5 h-5 mr-2" />
-        Start Applying Tonight
+        <Sparkles className="w-5 h-5 mr-2" />
+        Begin Your Journey
         <ArrowRight className="w-5 h-5 ml-2" />
       </Button>
     </motion.div>
