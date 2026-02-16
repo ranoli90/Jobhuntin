@@ -35,7 +35,7 @@ export function MarketingNavbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen
-        ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/60 shadow-sm'
+        ? 'bg-slate-900/90 backdrop-blur-xl border-b border-slate-700/60 shadow-lg'
         : 'bg-transparent'
         }`}
     >
@@ -49,7 +49,7 @@ export function MarketingNavbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`text-sm font-bold transition-all hover:text-primary-600 active:scale-95 ${location.pathname === link.path ? 'text-primary-600' : 'text-slate-600'
+              className={`text-sm font-bold transition-all hover:text-blue-400 active:scale-95 ${location.pathname === link.path ? 'text-blue-400' : 'text-slate-300'
                 }`}
             >
               {link.name}
@@ -59,11 +59,11 @@ export function MarketingNavbar() {
 
         {/* CTA Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link to="/login?mode=login" className="text-sm font-black text-slate-700 hover:text-primary-600 transition-colors uppercase tracking-wider">
+          <Link to="/login?mode=login" className="text-sm font-black text-slate-300 hover:text-blue-400 transition-colors uppercase tracking-wider">
             Log in
           </Link>
           <Link to="/login">
-            <Button variant="primary" size="sm" className="rounded-2xl px-6 shadow-xl shadow-primary-500/20 font-bold">
+            <Button variant="primary" size="sm" className="rounded-2xl px-6 shadow-xl shadow-blue-500/20 font-bold">
               Get Started <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
@@ -71,7 +71,7 @@ export function MarketingNavbar() {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden p-3 -mr-2 text-slate-600 hover:text-slate-900 bg-slate-100/50 hover:bg-slate-100 rounded-xl transition-all active:scale-90"
+          className="md:hidden p-3 -mr-2 text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-800 rounded-xl transition-all active:scale-90"
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
@@ -100,8 +100,8 @@ export function MarketingNavbar() {
                 to={link.path}
                 onClick={closeMenu}
                 className={`text-lg font-black block py-4 px-4 rounded-2xl transition-all active:scale-[0.98] ${location.pathname === link.path
-                  ? 'bg-primary-50 text-primary-600 shadow-sm'
-                  : 'text-slate-700 hover:bg-slate-50'
+                  ? 'bg-blue-900/20 text-blue-400 shadow-sm'
+                  : 'text-slate-300 hover:bg-slate-800'
                   }`}
               >
                 {link.name}
@@ -117,14 +117,14 @@ export function MarketingNavbar() {
               onClick={closeMenu}
               className="block w-full"
             >
-              <Button variant="outline" size="lg" className="w-full justify-center text-base py-4 rounded-2xl font-bold border-slate-200">Log in</Button>
+              <Button variant="outline" size="lg" className="w-full justify-center text-base py-4 rounded-2xl font-bold border-slate-700">Log in</Button>
             </Link>
             <Link
               to="/login"
               onClick={closeMenu}
               className="block w-full"
             >
-              <Button variant="primary" size="lg" className="w-full justify-center text-base py-4 rounded-2xl shadow-2xl shadow-primary-500/30 font-black">
+              <Button variant="primary" size="lg" className="w-full justify-center text-base py-4 rounded-2xl shadow-2xl shadow-blue-500/30 font-black">
                 Get Started Free
               </Button>
             </Link>

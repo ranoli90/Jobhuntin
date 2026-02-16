@@ -356,7 +356,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-6 text-balance-hero max-w-3xl"
+            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-6 text-balance max-w-3xl"
           >
             <span className="text-white">Dream jobs don't</span>
             <br />
@@ -369,7 +369,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="font-body text-lg sm:text-xl lg:text-2xl text-slate-400 max-w-2xl mb-10 leading-relaxed"
+            className="font-body text-lg sm:text-xl lg:text-2xl text-slate-400 max-w-2xl mb-10 leading-relaxed text-balance"
           >
             Upload your resume once. Our AI matches, tailors, and submits applications
             <span className="hidden sm:inline"> while you focus on interviews.</span>
