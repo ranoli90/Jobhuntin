@@ -59,7 +59,7 @@ export function Logo({
                         : "text-slate-900 group-hover:text-blue-600",
                     currentSize.text
                 )}>
-                    JobHuntin
+                    JobHuntin.com
                 </span>
             )}
         </div>

@@ -68,9 +68,19 @@ export function useOnboarding() {
         completedSteps,
         formData,
       };
+      if (import.meta.env.DEV) console.log('[useOnboarding] Saving state:', state);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (error) {
-      console.warn("Failed to save onboarding state:", error);
+      console.error('[useOnboarding] Failed to save state:', error);
+      // Attempt to clear corrupted data and save minimal state
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        const minimalState = { currentStep: 0, completedSteps: [], formData: {} };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(minimalState));
+        console.log('[useOnboarding] Recovered with minimal state');
+      } catch (recoveryError) {
+        console.error('[useOnboarding] Failed to recover state:', recoveryError);
+      }
     }
   }, [currentStep, completedSteps, formData]);
 
@@ -121,20 +131,8 @@ export function useOnboarding() {
   const nextStep = useCallback(() => {
     const totalSteps = currentSteps.length;
     if (import.meta.env.DEV) console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps, 'currentStep:', currentStep);
-    
-    setCurrentStep((prev) => {
-      // Basic Telemetry
-      telemetry.track("Onboarding Step Completed", { 
-        step: currentSteps[prev].id, 
-        index: prev 
-      });
-      // Mark current step as completed
-      setCompletedSteps((prevCompleted) => {
-        const newCompleted = new Set(prevCompleted);
-        newCompleted.add(currentSteps[prev].id); // Add the ID of the completed step
-        return Array.from(newCompleted); // Convert Set back to Array
-      });
 
+    setCurrentStep((prev) => {
       if (prev < totalSteps - 1) { // Check if not the last step
         console.log('[useOnboarding] Advancing from step', prev, 'to', prev + 1);
         return prev + 1;
@@ -142,7 +140,21 @@ export function useOnboarding() {
       console.log('[useOnboarding] Already at last step, staying at', prev);
       return prev; // Stay on the last step if already there
     });
-  }, [currentSteps, setCompletedSteps]);
+
+    // Track completion AFTER step change to avoid race conditions
+    setTimeout(() => {
+      telemetry.track("Onboarding Step Completed", {
+        step: currentSteps[currentStep].id,
+        index: currentStep
+      });
+      // Mark current step as completed
+      setCompletedSteps((prevCompleted) => {
+        const newCompleted = new Set(prevCompleted);
+        newCompleted.add(currentSteps[currentStep].id);
+        return Array.from(newCompleted);
+      });
+    }, 0);
+  }, [currentSteps, currentStep]);
 
   const prevStep = useCallback(() => {
     if (!isFirstStep) {
@@ -176,14 +188,23 @@ export function useOnboarding() {
   useEffect(() => {
     const processQueue = async () => {
       if (navigator.onLine) {
-        const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
-        if (queue.length > 0) {
-          // We would iterate and retry here, but since our API is not fully set up for generic replay
-          // we will just log for now or clear it if it's too old. 
-          // In a real implementation, we'd map these to api calls.
-          console.log("Processing offline queue:", queue);
-          // For this demo, let's just clear it after 'processing'
-          localStorage.removeItem("offline_queue");
+        try {
+          const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
+          if (queue.length > 0) {
+            // We would iterate and retry here, but since our API is not fully set up for generic replay
+            // we will just log for now or clear it if it's too old. 
+            if (import.meta.env.DEV) console.log("Processing offline queue:", queue);
+            // For this demo, let's just clear it after 'processing'
+            localStorage.removeItem("offline_queue");
+          }
+        } catch (error) {
+          console.error('[useOnboarding] Failed to process offline queue:', error);
+          // Clear corrupted queue
+          try {
+            localStorage.removeItem("offline_queue");
+          } catch (clearError) {
+            console.error('[useOnboarding] Failed to clear corrupted queue:', clearError);
+          }
         }
       }
     };
@@ -193,9 +214,21 @@ export function useOnboarding() {
   }, []);
 
   const queueOfflineAction = useCallback((action: any) => {
-    const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
-    queue.push({ ...action, timestamp: Date.now() });
-    localStorage.setItem("offline_queue", JSON.stringify(queue));
+    try {
+      const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
+      queue.push({ ...action, timestamp: Date.now() });
+      localStorage.setItem("offline_queue", JSON.stringify(queue));
+    } catch (error) {
+      console.error('[useOnboarding] Failed to queue offline action:', error);
+      // Try to clear and retry
+      try {
+        localStorage.removeItem("offline_queue");
+        const newQueue = [{ ...action, timestamp: Date.now() }];
+        localStorage.setItem("offline_queue", JSON.stringify(newQueue));
+      } catch (retryError) {
+        console.error('[useOnboarding] Failed to retry offline action queue:', retryError);
+      }
+    }
   }, []);
 
   return {

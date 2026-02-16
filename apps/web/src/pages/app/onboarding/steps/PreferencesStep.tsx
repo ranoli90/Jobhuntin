@@ -361,7 +361,7 @@ export function PreferencesStep({
                     type="button" 
                     onClick={onNext} 
                     className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation" 
-                    disabled={isSavingPreferences}
+                    disabled={!preferences.location || !preferences.role_type || isSavingPreferences}
                     aria-label="Save preferences and continue"
                 >
                     {isSavingPreferences ? <LoadingSpinner size="sm" /> : "Save & Continue"}

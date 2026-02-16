@@ -133,16 +133,33 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
   });
   const [isSavingWorkStyle, setIsSavingWorkStyle] = React.useState(false);
   
-  // Restore linkedinUrl from formData on mount (for page refresh persistence)
+  // Restore data from formData on mount and step changes (for back navigation persistence)
   React.useEffect(() => {
-    if (formData.linkedinUrl && !linkedinUrl) {
+    // Restore linkedinUrl
+    if (formData.linkedinUrl && linkedinUrl !== formData.linkedinUrl) {
       setLinkedinUrl(formData.linkedinUrl);
     }
-    // Restore workStyleAnswers from formData
-    if (formData.workStyleAnswers && Object.keys(workStyleAnswers).length === 0) {
+    // Restore workStyleAnswers
+    if (formData.workStyleAnswers && JSON.stringify(workStyleAnswers) !== JSON.stringify(formData.workStyleAnswers)) {
       setWorkStyleAnswers(formData.workStyleAnswers);
     }
-  }, [formData.linkedinUrl, formData.workStyleAnswers, linkedinUrl, workStyleAnswers]);
+    // Restore parsed resume data
+    if (formData.parsedResume && (!parsedResume || JSON.stringify(parsedResume) !== JSON.stringify(formData.parsedResume))) {
+      setParsedResume(formData.parsedResume);
+    }
+    // Restore parsed profile
+    if (formData.parsedProfile && (!parsedProfile || JSON.stringify(parsedProfile) !== JSON.stringify(formData.parsedProfile))) {
+      setParsedProfile(formData.parsedProfile);
+    }
+    // Restore rich skills
+    if (formData.richSkills && (!richSkills.length || JSON.stringify(richSkills) !== JSON.stringify(formData.richSkills))) {
+      setRichSkills(formData.richSkills);
+    }
+    // Restore parsing preview state
+    if (formData.showParsingPreview !== undefined && showParsingPreview !== formData.showParsingPreview) {
+      setShowParsingPreview(formData.showParsingPreview);
+    }
+  }, [currentStep, formData]);
   
   // Sync workStyleAnswers to formData for persistence
   React.useEffect(() => {
@@ -150,6 +167,16 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
       updateFormData({ workStyleAnswers });
     }
   }, [workStyleAnswers, updateFormData]);
+
+  // Sync resume-related states to formData for persistence
+  React.useEffect(() => {
+    updateFormData({
+      parsedResume,
+      parsedProfile,
+      richSkills,
+      showParsingPreview,
+    });
+  }, [parsedResume, parsedProfile, richSkills, showParsingPreview, updateFormData]);
 
   const triggerHaptic = (type: 'success' | 'warning' | 'light' = 'light') => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -167,6 +194,21 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
       await api.post("/me/work-style", workStyleAnswers);
       if (import.meta.env.DEV) console.log('[Onboarding] Work style saved');
       pushToast({ title: "Work style saved!", tone: "success" });
+      
+      // Track AI learning event
+      if (import.meta.env.DEV) {
+        console.log("[Telemetry] AI Learned Work Style", {
+          answersCount: Object.keys(workStyleAnswers).length,
+          hasAutonomyPreference: !!workStyleAnswers.autonomy_preference,
+          hasLearningStyle: !!workStyleAnswers.learning_style,
+          hasCompanyStagePreference: !!workStyleAnswers.company_stage_preference,
+          hasCommunicationStyle: !!workStyleAnswers.communication_style,
+          hasPacePreference: !!workStyleAnswers.pace_preference,
+          hasOwnershipPreference: !!workStyleAnswers.ownership_preference,
+          hasCareerTrajectory: !!workStyleAnswers.career_trajectory,
+        });
+      }
+      
       nextStep();
     } catch (err: any) {
       console.error('[Onboarding] Failed to save work style:', err);
@@ -370,6 +412,17 @@ const handleResumeUpload = async () => {
           // Non-critical failure
           if (import.meta.env.DEV) console.log("AI suggestions fetch failed, will continue without");
         });
+
+        // Track AI learning event
+        if (import.meta.env.DEV) {
+          console.log("[Telemetry] AI Learned Resume Data", {
+            hasSkills: !!data.parsed_profile.skills,
+            skillCount: data.parsed_profile.skills?.technical?.length || 0,
+            hasExperience: !!data.parsed_profile.experience,
+            experienceYears: data.parsed_profile.experience?.length || 0,
+            hasEducation: !!data.parsed_profile.education,
+          });
+        }
       }
     } catch (err) {
       const message = (err as Error).message;
@@ -391,20 +444,57 @@ const handleConfirmParsing = () => {
     nextStep();
   };
 
+  const retryWithBackoff = async <T,>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    delay: number = 1000
+  ): Promise<T> => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        if (i === maxRetries - 1) throw error;
+        
+        const isNetworkError = !navigator.onLine || error?.status >= 500;
+        const nextDelay = delay * Math.pow(2, i);
+        
+        if (import.meta.env.DEV) {
+          console.log(`[Onboarding] Retry ${i + 1}/${maxRetries} after ${nextDelay}ms:`, error);
+        }
+        
+        if (isNetworkError) {
+          await new Promise(resolve => setTimeout(resolve, nextDelay));
+        } else {
+          throw error; // Don't retry client errors
+        }
+      }
+    }
+    throw new Error('Max retries exceeded');
+  };
+
   const handleSaveSkills = async () => {
     triggerHaptic('light');
     setIsSavingSkills(true);
     try {
-      // Save skills to backend
+      // Save skills to backend with retry logic
       if (import.meta.env.DEV) console.log('[Onboarding] Saving skills:', richSkills);
-      const result = await api.post<{ status: string; count: number }>("/me/skills", { skills: richSkills });
+      const result = await retryWithBackoff(() => 
+        api.post<{ status: string; count: number }>("/me/skills", { skills: richSkills })
+      );
       if (import.meta.env.DEV) console.log('[Onboarding] Skills saved:', result);
       pushToast({ title: "Skills saved!", tone: "success" });
       nextStep();
     } catch (err: any) {
       console.error('[Onboarding] Failed to save skills:', err);
-      const message = err?.message || "Failed to save skills";
-      pushToast({ title: "Failed to save skills", description: message, tone: "error" });
+      const isNetworkError = !navigator.onLine || err?.status >= 500;
+      const message = isNetworkError 
+        ? "Network error. Please check your connection and try again."
+        : err?.message || "Failed to save skills";
+      pushToast({ 
+        title: "Failed to save skills", 
+        description: message, 
+        tone: "error" 
+      });
     } finally {
       setIsSavingSkills(false);
     }
@@ -441,17 +531,33 @@ const handleConfirmParsing = () => {
         phone: contactInfo.phone?.trim(),
       };
 
-      await updateProfile({
+      await retryWithBackoff(() => updateProfile({
         contact: trimmedContact,
         full_name: `${trimmedContact.first_name} ${trimmedContact.last_name}`
-      });
+      }));
       pushToast({ title: "Contact info saved!", tone: "success" });
+      
+      // Track AI learning event
+      if (import.meta.env.DEV) {
+        console.log("[Telemetry] AI Learned Contact Info", {
+          hasFirstName: !!trimmedContact.first_name,
+          hasLastName: !!trimmedContact.last_name,
+          hasEmail: !!trimmedContact.email,
+          hasPhone: !!trimmedContact.phone,
+          hasLinkedIn: !!linkedinUrl,
+        });
+      }
+      
       nextStep();
     } catch (err: any) {
       console.error('[Onboarding] Failed to save contact:', err);
+      const isNetworkError = !navigator.onLine || err?.status >= 500;
+      const message = isNetworkError 
+        ? "Network error. Please check your connection and try again."
+        : err?.message || "Please try again";
       pushToast({ 
         title: "Failed to save contact info", 
-        description: err?.message || "Please try again", 
+        description: message, 
         tone: "error" 
       });
     } finally {
@@ -525,6 +631,22 @@ const handleConfirmParsing = () => {
         });
       }
       pushToast({ title: "Preferences saved!", tone: "success" });
+      
+      // Track AI learning event
+      if (import.meta.env.DEV) {
+        console.log("[Telemetry] AI Learned Job Preferences", {
+          location: trimmedPrefs.location,
+          roleType: trimmedPrefs.role_type,
+          salaryMin: parseInt(trimmedPrefs.salary_min) || 0,
+          remoteOnly: trimmedPrefs.remote_only,
+          onsiteOnly: trimmedPrefs.onsite_only,
+          workAuthorized: trimmedPrefs.work_authorized,
+          visaSponsorship: trimmedPrefs.visa_sponsorship,
+          excludedCompaniesCount: trimmedPrefs.excluded_companies?.length || 0,
+          excludedKeywordsCount: trimmedPrefs.excluded_keywords?.length || 0,
+        });
+      }
+      
       nextStep();
     } catch (err: any) {
       console.error('[Onboarding] Failed to save preferences:', err);

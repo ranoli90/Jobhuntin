@@ -32,9 +32,9 @@ interface SkillGap {
 
 function ScoreVisualization({ score, label }: { score: number; label: string }) {
   const getScoreColor = (s: number) => {
-    if (s >= 80) return "bg-emerald-500";
-    if (s >= 60) return "bg-amber-500";
-    return "bg-red-500";
+    if (s >= 80) return "from-emerald-400 to-emerald-600";
+    if (s >= 60) return "from-amber-400 to-amber-600";
+    return "from-red-400 to-red-600";
   };
 
   const getScoreTextColor = (s: number) => {
@@ -43,17 +43,26 @@ function ScoreVisualization({ score, label }: { score: number; label: string }) 
     return "text-red-600";
   };
 
+  const getScoreBgColor = (s: number) => {
+    if (s >= 80) return "bg-emerald-50 border-emerald-200";
+    if (s >= 60) return "bg-amber-50 border-amber-200";
+    return "bg-red-50 border-red-200";
+  };
+
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <span className="text-sm font-medium text-slate-600">{label}</span>
-        <span className={cn("text-lg font-bold", getScoreTextColor(score))}>
+    <div className={cn("p-4 rounded-xl border transition-all duration-300 hover:shadow-lg", getScoreBgColor(score))}>
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-sm font-semibold text-slate-700">{label}</span>
+        <span className={cn("text-2xl font-black", getScoreTextColor(score))}>
           {Math.round(score)}%
         </span>
       </div>
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-3 bg-white/50 rounded-full overflow-hidden shadow-inner">
         <div
-          className={cn("h-full rounded-full transition-all duration-500", getScoreColor(score))}
+          className={cn(
+            "h-full bg-gradient-to-r rounded-full transition-all duration-1000 ease-out shadow-sm",
+            getScoreColor(score)
+          )}
           style={{ width: `${Math.min(100, score)}%` }}
         />
       </div>
@@ -233,168 +242,202 @@ export default function MatchesPage() {
 
   return (
     <ErrorBoundaryAI>
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-            <div>
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Semantic Match Analysis
-              </p>
-              <h1 className="text-2xl font-bold text-slate-900">Match Results</h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
-              <Download className="w-4 h-4" />
-              Export
-            </Button>
-          </div>
-        </div>
-
-        {match.loading && (
-          <Card className="p-12">
-            <LoadingSpinner label="Analyzing job match..." />
-          </Card>
-        )}
-
-        {match.error && (
-          <Card className="p-6 border-red-200 bg-red-50">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+        <div className="max-w-4xl mx-auto p-6 space-y-8">
+          <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(-1)}
+                className="gap-2 hover:bg-slate-100 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
               <div>
-                <h3 className="font-semibold text-red-900">Analysis Failed</h3>
-                <p className="text-sm text-red-700">{match.error}</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  AI-Powered Match Analysis
+                </p>
+                <h1 className="text-3xl font-black text-slate-900 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                  Job Match Results
+                </h1>
               </div>
             </div>
-          </Card>
-        )}
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 hover:bg-slate-50 transition-colors">
+                <Share2 className="w-4 h-4" />
+                Share
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport} className="gap-2 hover:bg-slate-50 transition-colors">
+                <Download className="w-4 h-4" />
+                Export
+              </Button>
+            </div>
+          </div>
 
-        {match.data && (
-          <>
-            <Card className="p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div
-                  className={cn(
-                    "w-20 h-20 rounded-2xl flex items-center justify-center",
-                    match.data.score >= 0.8
-                      ? "bg-emerald-100"
-                      : match.data.score >= 0.6
-                        ? "bg-amber-100"
-                        : "bg-red-100"
-                  )}
-                >
-                  <Sparkles
-                    className={cn(
-                      "w-8 h-8",
-                      match.data.score >= 0.8
-                        ? "text-emerald-600"
-                        : match.data.score >= 0.6
-                          ? "text-amber-600"
-                          : "text-red-600"
-                    )}
-                  />
-                </div>
-                <div>
-                  <h2 className="text-3xl font-bold text-slate-900">
-                    {Math.round(match.data.score * 100)}% Match
-                  </h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge
-                      variant={
-                        match.data.confidence === "high"
-                          ? "success"
-                          : match.data.confidence === "medium"
-                            ? "warning"
-                            : "error"
-                      }
-                    >
-                      {match.data.confidence} confidence
-                    </Badge>
-                    {match.data.passed_dealbreakers ? (
-                      <Badge variant="success">Passed Dealbreakers</Badge>
-                    ) : (
-                      <Badge variant="error">Failed Dealbreakers</Badge>
-                    )}
+          {match.loading && (
+            <Card className="p-12 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-xl">
+              <div className="text-center space-y-6">
+                <div className="w-20 h-20 mx-auto">
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-2xl animate-pulse">
+                    <Brain className="w-10 h-10 text-white animate-bounce" />
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <ScoreVisualization
-                  score={match.data.semantic_similarity * 100}
-                  label="Semantic Similarity"
-                />
-                <ScoreVisualization
-                  score={match.data.skill_match_ratio * 100}
-                  label="Skill Match"
-                />
-                <ScoreVisualization
-                  score={match.data.experience_alignment * 100}
-                  label="Experience Alignment"
-                />
-              </div>
-            </Card>
-
-            <DealbreakerWarnings reasons={match.data.dealbreaker_reasons} />
-
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <Brain className="w-5 h-5 text-primary-500" />
-                Skill Gap Analysis
-              </h3>
-
-              <div className="space-y-4">
-                <SkillList
-                  skills={match.data.matched_skills}
-                  title="Matched Skills"
-                  variant="matched"
-                />
-                <SkillList
-                  skills={match.data.missing_skills}
-                  title="Missing Skills"
-                  variant="missing"
-                />
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <button
-                onClick={() => setExpandedExplanation(!expandedExplanation)}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary-500" />
-                  Match Explanation
-                </h3>
-                {expandedExplanation ? (
-                  <ChevronUp className="w-5 h-5 text-slate-400" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-slate-400" />
-                )}
-              </button>
-              {expandedExplanation && (
-                <div className="mt-4 p-4 bg-slate-50 rounded-lg">
-                  <p className="text-slate-700 leading-relaxed">
-                    {match.data.reasoning}
-                  </p>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-slate-900">Analyzing Your Match</h3>
+                  <p className="text-slate-600">AI is processing your resume against this job...</p>
                 </div>
-              )}
+                <div className="w-64 h-2 bg-slate-200 rounded-full mx-auto overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-pulse" style={{width: '60%'}} />
+                </div>
+              </div>
             </Card>
-          </>
-        )}
+          )}
+
+          {match.error && (
+            <Card className="p-6 border-red-200 bg-red-50">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <div>
+                  <h3 className="font-semibold text-red-900">Analysis Failed</h3>
+                  <p className="text-sm text-red-700">{match.error}</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {match.data && (
+            <>
+              <Card className="p-8 bg-gradient-to-br from-slate-50 via-white to-slate-50 border-0 shadow-xl">
+                <div className="flex items-center gap-6 mb-8">
+                  <div
+                    className={cn(
+                      "w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl transition-all duration-500 hover:scale-110",
+                      match.data.score >= 0.8
+                        ? "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/30"
+                        : match.data.score >= 0.6
+                          ? "bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/30"
+                          : "bg-gradient-to-br from-red-400 to-red-600 shadow-red-500/30"
+                    )}
+                  >
+                    <Sparkles
+                      className={cn(
+                        "w-10 h-10 text-white drop-shadow-lg",
+                        match.data.score >= 0.8
+                          ? "animate-pulse"
+                          : match.data.score >= 0.6
+                            ? "animate-bounce"
+                            : ""
+                      )}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-3 mb-2">
+                      <h2 className="text-5xl font-black text-slate-900 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                        {Math.round(match.data.score * 100)}%
+                      </h2>
+                      <span className="text-lg font-semibold text-slate-600">Match</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        variant={
+                          match.data.confidence === "high"
+                            ? "success"
+                            : match.data.confidence === "medium"
+                              ? "warning"
+                              : "error"
+                        }
+                        className="px-3 py-1"
+                      >
+                        {match.data.confidence} confidence
+                      </Badge>
+                      {match.data.passed_dealbreakers ? (
+                        <Badge variant="success" className="px-3 py-1">
+                          ✓ Dealbreakers Passed
+                        </Badge>
+                      ) : (
+                        <Badge variant="error" className="px-3 py-1">
+                          ✗ Dealbreakers Failed
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <ScoreVisualization
+                    score={match.data.semantic_similarity * 100}
+                    label="Semantic Similarity"
+                  />
+                  <ScoreVisualization
+                    score={match.data.skill_match_ratio * 100}
+                    label="Skill Match"
+                  />
+                  <ScoreVisualization
+                    score={match.data.experience_alignment * 100}
+                    label="Experience Alignment"
+                  />
+                </div>
+              </Card>
+
+              <DealbreakerWarnings reasons={match.data.dealbreaker_reasons} />
+
+              <Card className="p-6 bg-gradient-to-br from-blue-50 via-white to-indigo-50 border-0 shadow-lg">
+                <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                    <Brain className="w-5 h-5 text-white" />
+                  </div>
+                  Skill Analysis
+                </h3>
+
+                <div className="space-y-5">
+                  <SkillList
+                    skills={match.data.matched_skills}
+                    title="Matched Skills"
+                    variant="matched"
+                  />
+                  <SkillList
+                    skills={match.data.missing_skills}
+                    title="Missing Skills"
+                    variant="missing"
+                  />
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-gradient-to-br from-purple-50 via-white to-pink-50 border-0 shadow-lg">
+                <button
+                  onClick={() => setExpandedExplanation(!expandedExplanation)}
+                  className="w-full text-left group"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
+                        <TrendingUp className="w-5 h-5 text-white" />
+                      </div>
+                      AI Analysis
+                    </h3>
+                    {expandedExplanation ? (
+                      <ChevronUp className="w-6 h-6 text-slate-400 transition-transform group-hover:text-slate-600" />
+                    ) : (
+                      <ChevronDown className="w-6 h-6 text-slate-400 transition-transform group-hover:text-slate-600" />
+                    )}
+                  </div>
+                </button>
+                <div className={cn(
+                  "overflow-hidden transition-all duration-500 ease-in-out",
+                  expandedExplanation ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                )}>
+                  <div className="p-4 bg-white/70 rounded-xl border border-white/50 shadow-sm">
+                    <p className="text-slate-700 leading-relaxed text-sm">
+                      {match.data.reasoning}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </>
+          )}
+        </div>
       </div>
     </ErrorBoundaryAI>
   );

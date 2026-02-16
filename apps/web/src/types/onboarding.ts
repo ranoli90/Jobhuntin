@@ -43,6 +43,7 @@ export interface OnboardingFormData {
         email: string;
         phone: string;
     };
+    showParsingPreview?: boolean;
 }
 
 export interface OnboardingState {
