@@ -7,6 +7,7 @@
  * 3. Never repeat the same content - tracks what was generated
  * 4. Complete logging with summaries
  * 5. Priority on high-ranking opportunities
+ * 6. First run: submits all existing URLs to Google
  */
 
 import 'dotenv/config';
@@ -14,6 +15,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
+import { google } from 'googleapis';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -107,6 +109,7 @@ interface GenerationState {
   totalGenerated: number;
   dailyQuotaUsed: number;
   quotaResetDate: string;
+  initialSubmissionDone: boolean;
 }
 
 const STATE_FILE = path.resolve(__dirname, '../../logs/seo-state.json');
@@ -130,6 +133,7 @@ function loadState(): GenerationState {
     totalGenerated: 0,
     dailyQuotaUsed: 0,
     quotaResetDate: new Date().toISOString().split('T')[0],
+    initialSubmissionDone: false,
   };
 }
 
@@ -343,6 +347,102 @@ async function generateLocationContent(
 }
 
 /**
+ * Submit all existing URLs from sitemaps to Google (first run only)
+ */
+async function submitExistingUrls(): Promise<number> {
+  console.log('\n📤 FIRST RUN: Submitting existing URLs to Google...');
+  
+  // Extract URLs from sitemaps
+  const sitemapDir = path.resolve(__dirname, '../../public');
+  if (!fs.existsSync(sitemapDir)) {
+    console.log('⚠️ No sitemap directory found');
+    return 0;
+  }
+  
+  const sitemapFiles = fs.readdirSync(sitemapDir).filter(f => 
+    f.startsWith('sitemap') && f.endsWith('.xml')
+  );
+  
+  const allUrls: string[] = [];
+  
+  for (const file of sitemapFiles) {
+    const content = fs.readFileSync(path.join(sitemapDir, file), 'utf-8');
+    const matches = content.match(/<loc>(.*?)<\/loc>/g) || [];
+    const urls = matches.map(m => m.replace(/<\/?loc>/g, ''));
+    allUrls.push(...urls);
+    console.log(`   📄 ${file}: ${urls.length} URLs`);
+  }
+  
+  const uniqueUrls = [...new Set(allUrls)];
+  console.log(`   📊 Total unique URLs: ${uniqueUrls.length}`);
+  
+  // Check for Google credentials
+  const keyEnv = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!keyEnv) {
+    console.log('⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set, skipping submission');
+    return 0;
+  }
+  
+  // Parse credentials
+  let keyContent;
+  try {
+    keyContent = JSON.parse(keyEnv);
+  } catch {
+    try {
+      keyContent = JSON.parse(fs.readFileSync(keyEnv, 'utf8'));
+    } catch {
+      console.log('⚠️ Could not parse Google credentials');
+      return 0;
+    }
+  }
+  
+  console.log(`   🔐 Service account: ${keyContent.client_email}`);
+  
+  // Create JWT client
+  const jwtClient = new google.auth.JWT({
+    email: keyContent.client_email,
+    key: keyContent.private_key,
+    scopes: ['https://www.googleapis.com/auth/indexing']
+  });
+  
+  try {
+    await jwtClient.authorize();
+    const indexing = google.indexing({ version: 'v3', auth: jwtClient });
+    
+    // Submit up to 200 URLs (daily limit)
+    const urlsToSubmit = uniqueUrls.slice(0, 200);
+    let successCount = 0;
+    
+    console.log(`   📤 Submitting ${urlsToSubmit.length} URLs...`);
+    
+    for (let i = 0; i < urlsToSubmit.length; i++) {
+      const url = urlsToSubmit[i];
+      try {
+        await indexing.urlNotifications.publish({
+          requestBody: { url, type: 'URL_UPDATED' }
+        });
+        successCount++;
+        process.stdout.write(`\r   Progress: ${i + 1}/${urlsToSubmit.length} (${successCount} success)`);
+        
+        // Rate limit
+        if (i < urlsToSubmit.length - 1) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      } catch (e) {
+        // Continue on error
+      }
+    }
+    
+    console.log(`\n   ✅ Submitted ${successCount} URLs to Google`);
+    return successCount;
+    
+  } catch (e) {
+    console.log(`   ⚠️ Google API error: ${e}`);
+    return 0;
+  }
+}
+
+/**
  * Main automation run
  */
 async function runAutomation(): Promise<void> {
@@ -357,6 +457,17 @@ async function runAutomation(): Promise<void> {
 
   // Load state
   const state = loadState();
+  
+  // First run: submit all existing URLs
+  if (!state.initialSubmissionDone) {
+    const submitted = await submitExistingUrls();
+    if (submitted > 0) {
+      state.initialSubmissionDone = true;
+      state.dailyQuotaUsed = submitted;
+      saveState(state);
+    }
+    console.log('');
+  }
   
   // Check if quota reset needed
   const today = new Date().toISOString().split('T')[0];
