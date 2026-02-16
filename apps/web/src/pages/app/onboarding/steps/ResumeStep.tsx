@@ -42,6 +42,22 @@ export function ResumeStep({
     shouldReduceMotion,
 }: ResumeStepProps) {
     const [isDragging, setIsDragging] = React.useState(false);
+    const [linkedinError, setLinkedinError] = React.useState<string | null>(null);
+
+    const validateLinkedInUrl = (url: string): boolean => {
+        if (!url) return true;
+        const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/i;
+        return linkedinPattern.test(url.trim());
+    };
+
+    const handleLinkedinChange = (value: string) => {
+        setLinkedinUrl(value);
+        if (value && !validateLinkedInUrl(value)) {
+            setLinkedinError("Please enter a valid LinkedIn profile URL (e.g., linkedin.com/in/yourname)");
+        } else {
+            setLinkedinError(null);
+        }
+    };
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -132,7 +148,7 @@ export function ResumeStep({
                         <p className={`text-base md:text-lg font-bold ${resumeFile ? 'text-primary-700' : 'text-slate-700'}`}>
                             {resumeFile ? resumeFile.name : "Click to upload your resume"}
                         </p>
-                        <p className="text-xs text-slate-400 font-medium">PDF format - Max 10MB</p>
+                        <p className="text-xs text-slate-400 font-medium">PDF format - Max 15MB</p>
                     </div>
                 </label>
                 {resumeFile && !isUploading && (
@@ -171,10 +187,14 @@ export function ResumeStep({
                     type="url"
                     placeholder="LinkedIn URL (optional)"
                     value={linkedinUrl}
-                    onChange={(e) => setLinkedinUrl(e.target.value)}
-                    onClear={() => setLinkedinUrl("")}
+                    onChange={(e) => handleLinkedinChange(e.target.value)}
+                    onClear={() => { setLinkedinUrl(""); setLinkedinError(null); }}
                     className="bg-white shadow-sm"
+                    error={!!linkedinError}
                 />
+                {linkedinError && (
+                    <p className="mt-1 text-[10px] text-red-500 font-medium">{linkedinError}</p>
+                )}
             </div>
 
             {resumeError && (
@@ -296,19 +316,17 @@ export function ResumeStep({
                         disabled={isUploading}
                         className="flex-1 h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group"
                     >
-                        {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "Upload New" : "Parse Resume"}
+                        {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "Re-upload Resume" : "Parse Resume"}
                         {!isUploading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />}
                     </Button>
                 ) : (
                     <Button
-                        variant={resumeError ? "primary" : "outline"}
+                        variant="ghost"
                         onClick={onNext}
-                        className={`flex-1 h-11 rounded-xl font-bold text-sm ${resumeError
-                            ? "bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-white"
-                            : "text-slate-500 hover:border-slate-300 hover:text-slate-700 border border-slate-200"
-                            }`}
+                        className="flex-1 h-11 rounded-xl font-bold text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 text-sm"
                     >
-                        {resumeError ? "Continue Anyway" : "Skip for Now"}
+                        {resumeError ? "Skip Upload" : "Skip for Now"}
+                        <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 )}
             </div>

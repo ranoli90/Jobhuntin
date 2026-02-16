@@ -196,12 +196,16 @@ export function useProfile() {
   };
 
   const completeOnboarding = async () => {
-    // Validate minimum profile completeness
     const c = profile?.contact;
-    const hasName = c?.first_name || c?.full_name;
-    const hasEmail = c?.email || profile?.email;
-    if (!hasName || !hasEmail) {
-      throw new Error("Please confirm your name and email before launching.");
+    const hasFirstName = c?.first_name?.trim();
+    const hasLastName = c?.last_name?.trim();
+    const hasEmail = c?.email?.trim() || profile?.email?.trim();
+    
+    if (!hasFirstName || !hasLastName) {
+      throw new Error("Please provide your first and last name.");
+    }
+    if (!hasEmail) {
+      throw new Error("Please provide your email address.");
     }
     return updateProfile({ has_completed_onboarding: true });
   };

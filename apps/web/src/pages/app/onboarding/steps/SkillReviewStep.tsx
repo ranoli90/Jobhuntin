@@ -20,7 +20,7 @@ function getConfidenceLevel(confidence: number): { label: string; color: string;
     } else if (confidence >= 0.5) {
         return { label: "MEDIUM", color: "text-amber-600", bgColor: "bg-amber-100" };
     } else {
-        return { label: "LOW", color: "text-red-500", bgColor: "bg-red-100" };
+        return { label: "LOW", color: "text-slate-600", bgColor: "bg-slate-100" };
     }
 }
 
@@ -187,6 +187,13 @@ export function SkillReviewStep({
     const lowSkills = richSkills.filter(s => s.confidence < 0.5);
 
     const handleAddSkill = (skill: RichSkill) => {
+        const normalizedSkillName = skill.skill.toLowerCase().trim();
+        const isDuplicate = richSkills.some(
+            s => s.skill.toLowerCase().trim() === normalizedSkillName
+        );
+        if (isDuplicate) {
+            return;
+        }
         setRichSkills(prev => [...prev, skill]);
         setIsAddingSkill(false);
     };
@@ -332,6 +339,20 @@ export function SkillReviewStep({
                 </div>
             </div>
 
+            {richSkills.length === 0 && (
+                <div className="mt-3 md:mt-4 p-2.5 md:p-3 rounded-xl bg-amber-50 border border-amber-200">
+                    <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                        <div>
+                            <p className="text-[10px] md:text-xs font-bold text-amber-800">No Skills Added</p>
+                            <p className="text-[10px] md:text-xs text-amber-600 mt-0.5 leading-relaxed">
+                                Adding skills helps us find better job matches. You can add them later in your profile.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex gap-3 pt-4 mt-4">
                 <Button type="button" variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -340,12 +361,12 @@ export function SkillReviewStep({
                 <Button
                     type="button"
                     onClick={onNext}
-                    disabled={richSkills.length === 0 || isSaving}
+                    disabled={isSaving}
                     className="flex-1 h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
                     {isSaving ? <LoadingSpinner size="sm" /> : (
                         <>
-                            Save & Continue
+                            {richSkills.length === 0 ? "Skip for Now" : "Save & Continue"}
                             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                         </>
                     )}

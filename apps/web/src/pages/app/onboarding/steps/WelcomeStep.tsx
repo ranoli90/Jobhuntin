@@ -26,7 +26,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
                     Find Your <span className="text-primary-600 italic">Dream Job.</span>
                 </h1>
                 <p className="mb-4 md:mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-sm md:text-base">
-                    We'll help you apply to jobs automatically. Setup takes just 90 seconds.
+                    We'll help you apply to jobs automatically. Setup takes about 2 minutes.
                 </p>
                 <div className="grid gap-2 md:gap-3 mb-6 md:mb-8 text-left">
                     {[

@@ -144,9 +144,9 @@ export function WorkStyleStep({
     const allQuestions = [...BEHAVIORAL_QUESTIONS, { ...TRAJECTORY_QUESTION, maps_to: "career_trajectory" }];
     const totalQuestions = allQuestions.length;
     
-    const answeredCount = Object.keys(answers).length;
+    const answeredCount = allQuestions.filter(q => answers[q.maps_to]).length;
     const progress = (answeredCount / totalQuestions) * 100;
-    const isComplete = answeredCount >= totalQuestions;
+    const isComplete = answeredCount >= 4;
 
     const handleAnswer = (questionId: string, option: string, mapsTo: string) => {
         let value = option;
@@ -164,9 +164,8 @@ export function WorkStyleStep({
         
         setAnswers(prev => ({ ...prev, [mapsTo]: value }));
         
-        // Auto-advance to next question if not the last
         if (currentQuestion < totalQuestions - 1) {
-            setTimeout(() => setCurrentQuestion(prev => prev + 1), 300);
+            setTimeout(() => setCurrentQuestion(prev => prev + 1), 600);
         }
     };
 
@@ -192,7 +191,7 @@ export function WorkStyleStep({
                             key={q.id}
                             onClick={() => setCurrentQuestion(idx)}
                             className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all ${
-                                answers[q.id] 
+                                answers[q.maps_to] 
                                     ? "bg-emerald-500" 
                                     : idx === currentQuestion 
                                         ? "bg-slate-400 scale-125" 
@@ -219,44 +218,48 @@ export function WorkStyleStep({
                     <div className="space-y-2 md:space-y-3">
                         {"options" in question && question.options.length > 0 && (
                             typeof question.options[0] === "string" 
-                                ? (question.options as string[]).map((option) => (
-                                    <button
-                                        key={option}
-                                        onClick={() => handleAnswer(question.id, option, question.maps_to)}
-                                        className={`w-full p-3 md:p-4 rounded-xl text-left transition-all border-2 ${
-                                            answers[question.id] === VALUE_MAPS[question.maps_to]?.[option] ||
-                                            (question.id === "career_trajectory" && answers[question.id] === option)
-                                                ? "border-emerald-500 bg-emerald-50"
-                                                : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm md:text-base font-medium text-slate-700">{option}</span>
-                                            {(answers[question.id] === VALUE_MAPS[question.maps_to]?.[option] ||
-                                            (question.id === "career_trajectory" && answers[question.id] === option)) && (
-                                                <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
-                                            )}
-                                        </div>
-                                    </button>
-                                ))
-                                : (question.options as { value: string; label: string }[]).map((option) => (
-                                    <button
-                                        key={option.value}
-                                        onClick={() => handleAnswer(question.id, option.value, question.maps_to)}
-                                        className={`w-full p-3 md:p-4 rounded-xl text-left transition-all border-2 ${
-                                            answers[question.id] === option.value
-                                                ? "border-emerald-500 bg-emerald-50"
-                                                : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm md:text-base font-medium text-slate-700">{option.label}</span>
-                                            {answers[question.id] === option.value && (
-                                                <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
-                                            )}
-                                        </div>
-                                    </button>
-                                ))
+                                ? (question.options as string[]).map((option) => {
+                                    const isSelected = answers[question.maps_to] === VALUE_MAPS[question.maps_to]?.[option];
+                                    return (
+                                        <button
+                                            key={option}
+                                            onClick={() => handleAnswer(question.id, option, question.maps_to)}
+                                            className={`w-full p-3 md:p-4 rounded-xl text-left transition-all border-2 ${
+                                                isSelected
+                                                    ? "border-emerald-500 bg-emerald-50"
+                                                    : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm md:text-base font-medium text-slate-700">{option}</span>
+                                                {isSelected && (
+                                                    <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })
+                                : (question.options as { value: string; label: string }[]).map((option) => {
+                                    const isSelected = answers[question.maps_to] === option.value;
+                                    return (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => handleAnswer(question.id, option.value, question.maps_to)}
+                                            className={`w-full p-3 md:p-4 rounded-xl text-left transition-all border-2 ${
+                                                isSelected
+                                                    ? "border-emerald-500 bg-emerald-50"
+                                                    : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm md:text-base font-medium text-slate-700">{option.label}</span>
+                                                {isSelected && (
+                                                    <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })
                         )}
                     </div>
                 </motion.div>

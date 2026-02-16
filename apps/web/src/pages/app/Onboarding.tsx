@@ -65,7 +65,7 @@ export default function Onboarding() {
     role_type: "",
     salary_min: "",
     remote_only: false,
-    work_authorized: true,
+    work_authorized: undefined as boolean | undefined,
   });
 
   const [formErrors, setFormErrors] = React.useState<Record<string, string>>({});
@@ -618,6 +618,7 @@ const handleConfirmParsing = () => {
                     isSavingPreferences={isSavingPreferences}
                     aiSuggestions={aiSuggestions}
                     formErrors={formErrors}
+                    hasParsedProfile={!!parsedProfile}
                   />
                 )}
 

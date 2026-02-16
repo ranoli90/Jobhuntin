@@ -18,7 +18,7 @@ interface PreferencesStepProps {
         salary_max?: string;
         remote_only: boolean;
         onsite_only?: boolean;
-        work_authorized: boolean;
+        work_authorized?: boolean;
         visa_sponsorship?: boolean;
         excluded_companies?: string[];
         excluded_keywords?: string[];
@@ -30,7 +30,7 @@ interface PreferencesStepProps {
         salary_max?: string;
         remote_only: boolean;
         onsite_only?: boolean;
-        work_authorized: boolean;
+        work_authorized?: boolean;
         visa_sponsorship?: boolean;
         excluded_companies?: string[];
         excluded_keywords?: string[];
@@ -38,6 +38,7 @@ interface PreferencesStepProps {
     isSavingPreferences: boolean;
     aiSuggestions: any;
     formErrors: Record<string, string>;
+    hasParsedProfile?: boolean;
 }
 
 export function PreferencesStep({
@@ -48,7 +49,16 @@ export function PreferencesStep({
     isSavingPreferences,
     aiSuggestions,
     formErrors,
+    hasParsedProfile = false,
 }: PreferencesStepProps) {
+    const showAISuggestions = hasParsedProfile && (
+        aiSuggestions.roles.data || 
+        aiSuggestions.roles.loading || 
+        aiSuggestions.locations.data || 
+        aiSuggestions.locations.loading ||
+        aiSuggestions.salary.data || 
+        aiSuggestions.salary.loading
+    );
     return (
         <div>
             <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
@@ -61,54 +71,56 @@ export function PreferencesStep({
                 </div>
             </div>
 
-            {/* AI Suggestions Section */}
-            {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
-                <div className="grid md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
-                    <AISuggestionCard
-                        title="Suggested Roles"
-                        subtitle="Based on your experience"
-                        suggestions={aiSuggestions.roles.data?.suggested_roles || []}
-                        confidence={aiSuggestions.roles.data?.confidence}
-                        reasoning={aiSuggestions.roles.data?.reasoning}
-                        loading={aiSuggestions.roles.loading}
-                        error={aiSuggestions.roles.error}
-                        onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
-                        onReject={() => { }}
-                    />
-                    <AISuggestionCard
-                        title="Recommended Locations"
-                        subtitle={aiSuggestions.locations.data?.remote_friendly_score
-                            ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote`
-                            : "Based on your skills"
-                        }
-                        suggestions={aiSuggestions.locations.data?.suggested_locations || []}
-                        confidence={aiSuggestions.locations.data?.remote_friendly_score}
-                        reasoning={aiSuggestions.locations.data?.reasoning}
-                        loading={aiSuggestions.locations.loading}
-                        error={aiSuggestions.locations.error}
-                        onAccept={(location) => setPreferences(p => ({ ...p, location }))}
-                        onReject={() => { }}
-                    />
-                </div>
-            )}
+            {showAISuggestions && (
+                <>
+                    {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
+                        <div className="grid md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
+                            <AISuggestionCard
+                                title="Suggested Roles"
+                                subtitle="Based on your experience"
+                                suggestions={aiSuggestions.roles.data?.suggested_roles || []}
+                                confidence={aiSuggestions.roles.data?.confidence}
+                                reasoning={aiSuggestions.roles.data?.reasoning}
+                                loading={aiSuggestions.roles.loading}
+                                error={aiSuggestions.roles.error}
+                                onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
+                                onReject={() => { }}
+                            />
+                            <AISuggestionCard
+                                title="Recommended Locations"
+                                subtitle={aiSuggestions.locations.data?.remote_friendly_score
+                                    ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote`
+                                    : "Based on your skills"
+                                }
+                                suggestions={aiSuggestions.locations.data?.suggested_locations || []}
+                                confidence={aiSuggestions.locations.data?.remote_friendly_score}
+                                reasoning={aiSuggestions.locations.data?.reasoning}
+                                loading={aiSuggestions.locations.loading}
+                                error={aiSuggestions.locations.error}
+                                onAccept={(location) => setPreferences(p => ({ ...p, location }))}
+                                onReject={() => { }}
+                            />
+                        </div>
+                    )}
 
-            {/* Salary Suggestion */}
-            {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
-                <div className="mb-4 md:mb-6">
-                    <SalarySuggestionCard
-                        minSalary={aiSuggestions.salary.data?.min_salary || 0}
-                        maxSalary={aiSuggestions.salary.data?.max_salary || 0}
-                        marketMedian={aiSuggestions.salary.data?.market_median || 0}
-                        currency={aiSuggestions.salary.data?.currency}
-                        confidence={aiSuggestions.salary.data?.confidence}
-                        factors={aiSuggestions.salary.data?.factors}
-                        reasoning={aiSuggestions.salary.data?.reasoning}
-                        loading={aiSuggestions.salary.loading}
-                        error={aiSuggestions.salary.error}
-                        onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
-                        onReject={() => { }}
-                    />
-                </div>
+                    {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
+                        <div className="mb-4 md:mb-6">
+                            <SalarySuggestionCard
+                                minSalary={aiSuggestions.salary.data?.min_salary || 0}
+                                maxSalary={aiSuggestions.salary.data?.max_salary || 0}
+                                marketMedian={aiSuggestions.salary.data?.market_median || 0}
+                                currency={aiSuggestions.salary.data?.currency}
+                                confidence={aiSuggestions.salary.data?.confidence}
+                                factors={aiSuggestions.salary.data?.factors}
+                                reasoning={aiSuggestions.salary.data?.reasoning}
+                                loading={aiSuggestions.salary.loading}
+                                error={aiSuggestions.salary.error}
+                                onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
+                                onReject={() => { }}
+                            />
+                        </div>
+                    )}
+                </>
             )}
 
             <div className="space-y-4 md:space-y-6">

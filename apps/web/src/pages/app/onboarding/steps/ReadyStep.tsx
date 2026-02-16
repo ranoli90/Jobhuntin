@@ -4,6 +4,7 @@ import { CheckCircle2, Rocket, User, MapPin, Briefcase } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Card } from "../../../../components/ui/Card";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
+import { pushToast } from "../../../../lib/toast";
 
 interface ReadyStepProps {
     onNext: () => void;
@@ -26,6 +27,17 @@ export function ReadyStep({
     resumeFile,
     shouldReduceMotion,
 }: ReadyStepProps) {
+    const handleShareArchetype = () => {
+        const archetype = preferences.role_type || "Visionary";
+        const text = `I just calibrated my AI job hunter as a ${archetype}. Expected interview velocity: 300%. #JobHuntin`;
+        navigator.clipboard.writeText(text);
+        pushToast({ title: "Copied to clipboard!", description: "Share your archetype with the world.", tone: "success" });
+    };
+
+    const handleReferFriend = () => {
+        navigator.clipboard.writeText("Join me on JobHuntin and let AI apply for you! https://jobhuntin.com/invite/friend");
+        pushToast({ title: "Referral link copied!", description: "Share with friends to earn rewards.", tone: "success" });
+    };
     return (
         <div className="flex flex-col h-full">
             <div className="flex-1">
@@ -117,14 +129,7 @@ export function ReadyStep({
 
                 <div className="mt-4 md:mt-8 flex justify-center">
                     <button
-                        onClick={() => {
-                            const archetype = preferences.role_type || "Visionary";
-                            const text = `I just calibrated my AI job hunter as a ${archetype}. Expected interview velocity: 300%. #JobHuntin`;
-                            navigator.clipboard.writeText(text);
-                            // Assuming pushToast is available or just alert, but ReadyStep doesn't seem to import pushToast.
-                            // I'll leave it as a simple copy for now or simpler:
-                            alert("Archetype link copied to clipboard!");
-                        }}
+                        onClick={handleShareArchetype}
                         className="text-[10px] md:text-xs font-bold text-primary-600 hover:text-primary-700 underline decoration-dotted underline-offset-4 flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity"
                     >
                         <User className="w-3 h-3" />
@@ -132,11 +137,7 @@ export function ReadyStep({
                     </button>
                     <div className="w-[1px] h-3 bg-slate-300 mx-3 opacity-50"></div>
                     <button
-                        onClick={() => {
-                            // Mock referral
-                            alert(" referral invite sent to your clipboard!");
-                            navigator.clipboard.writeText("Join me on JobHuntin and let AI apply for you! https://jobhuntin.com/invite/friend");
-                        }}
+                        onClick={handleReferFriend}
                         className="text-[10px] md:text-xs font-bold text-slate-400 hover:text-slate-600 underline decoration-dotted underline-offset-4 transition-colors"
                     >
                         REFER A FRIEND
