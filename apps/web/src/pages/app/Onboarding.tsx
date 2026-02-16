@@ -152,11 +152,15 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
     triggerHaptic('light');
     setIsSavingWorkStyle(true);
     try {
+      console.log('[Onboarding] Saving work style:', workStyleAnswers);
       await api.post("/me/work-style", workStyleAnswers);
+      console.log('[Onboarding] Work style saved');
+      pushToast({ title: "Work style saved!", tone: "success" });
       nextStep();
-    } catch (err) {
-      console.error(err);
-      pushToast({ title: "Failed to save work style", tone: "error" });
+    } catch (err: any) {
+      console.error('[Onboarding] Failed to save work style:', err);
+      const message = err?.message || "Failed to save work style";
+      pushToast({ title: "Failed to save work style", description: message, tone: "error" });
     } finally {
       setIsSavingWorkStyle(false);
     }
@@ -295,6 +299,8 @@ const handleResumeUpload = async () => {
 
       if (data.parsed_profile) {
         const p = data.parsed_profile;
+        console.log('[Onboarding] Parsed profile:', p);
+        
         setParsedResume({
           title: p.headline || (p.experience?.[0]?.title),
           skills: p.skills?.technical?.slice(0, 5) || [],
@@ -309,11 +315,14 @@ const handleResumeUpload = async () => {
         
         // Extract rich skills from parsed profile (V2 format)
         const techSkills = p.skills?.technical || [];
-        if (techSkills.length > 0 && typeof techSkills[0] === 'object') {
+        console.log('[Onboarding] Tech skills raw:', techSkills);
+        console.log('[Onboarding] First skill type:', techSkills.length > 0 ? typeof techSkills[0] : 'empty');
+        
+        if (techSkills.length > 0 && typeof techSkills[0] === 'object' && techSkills[0] !== null) {
           // Rich skills format from V2 parser
-          setRichSkills(techSkills.map((s: any) => ({
-            skill: s.skill,
-            confidence: s.confidence || 0.5,
+          const parsedSkills = techSkills.map((s: any) => ({
+            skill: s.skill || String(s),
+            confidence: typeof s.confidence === 'number' ? s.confidence : 0.5,
             years_actual: s.years_actual || null,
             context: s.context || "",
             last_used: s.last_used || null,
@@ -321,9 +330,12 @@ const handleResumeUpload = async () => {
             related_to: s.related_to || [],
             source: s.source || "resume",
             project_count: s.project_count || 0,
-          })));
+          }));
+          console.log('[Onboarding] Parsed rich skills:', parsedSkills);
+          setRichSkills(parsedSkills);
         } else {
           // Old format - convert to rich skills with default values
+          console.log('[Onboarding] Using old format for skills');
           setRichSkills(techSkills.map((skill: string) => ({
             skill,
             confidence: 0.5,
@@ -371,11 +383,15 @@ const handleConfirmParsing = () => {
     setIsSavingSkills(true);
     try {
       // Save skills to backend
-      await api.post("/me/skills", { skills: richSkills });
+      console.log('[Onboarding] Saving skills:', richSkills);
+      const result = await api.post<{ status: string; count: number }>("/me/skills", { skills: richSkills });
+      console.log('[Onboarding] Skills saved:', result);
+      pushToast({ title: "Skills saved!", tone: "success" });
       nextStep();
-    } catch (err) {
-      console.error(err);
-      pushToast({ title: "Failed to save skills", tone: "error" });
+    } catch (err: any) {
+      console.error('[Onboarding] Failed to save skills:', err);
+      const message = err?.message || "Failed to save skills";
+      pushToast({ title: "Failed to save skills", description: message, tone: "error" });
     } finally {
       setIsSavingSkills(false);
     }

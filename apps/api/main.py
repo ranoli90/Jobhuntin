@@ -843,27 +843,45 @@ async def save_user_skills(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Save user's rich skills (upsert)."""
+    logger.info(
+        "[SKILLS] Saving skills for user",
+        extra={"user_id": user_id, "skill_count": len(body.skills)},
+    )
+
+    if not body.skills:
+        logger.warning(
+            "[SKILLS] Empty skills list received", extra={"user_id": user_id}
+        )
+        return {"status": "saved", "count": 0}
+
     async with db.acquire() as conn:
         # Clear existing skills and insert new ones
         await conn.execute("DELETE FROM public.user_skills WHERE user_id = $1", user_id)
 
         for skill in body.skills:
-            await conn.execute(
-                """INSERT INTO public.user_skills 
-                   (user_id, skill, confidence, years_actual, context, last_used, 
-                    verified, related_to, source, project_count)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
-                user_id,
-                skill.skill,
-                skill.confidence,
-                skill.years_actual,
-                skill.context,
-                skill.last_used,
-                skill.verified,
-                skill.related_to,
-                skill.source,
-                skill.project_count,
-            )
+            try:
+                await conn.execute(
+                    """INSERT INTO public.user_skills 
+                       (user_id, skill, confidence, years_actual, context, last_used, 
+                        verified, related_to, source, project_count)
+                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
+                    user_id,
+                    skill.skill,
+                    skill.confidence,
+                    skill.years_actual,
+                    skill.context,
+                    skill.last_used,
+                    skill.verified,
+                    skill.related_to,
+                    skill.source,
+                    skill.project_count,
+                )
+            except Exception as e:
+                logger.error(
+                    "[SKILLS] Failed to insert skill",
+                    extra={"user_id": user_id, "skill": skill.skill, "error": str(e)},
+                )
+                raise
 
         # Update profile completeness
         await conn.execute(
@@ -875,6 +893,10 @@ async def save_user_skills(
             user_id,
         )
 
+    logger.info(
+        "[SKILLS] Skills saved successfully",
+        extra={"user_id": user_id, "count": len(body.skills)},
+    )
     return {"status": "saved", "count": len(body.skills)}
 
 
@@ -886,6 +908,9 @@ class WorkStyleRequest(BaseModel):
     pace_preference: str = "steady"
     ownership_preference: str = "team"
     career_trajectory: str = "open"
+
+    class Config:
+        extra = "ignore"  # Ignore extra fields
 
 
 @app.get("/me/work-style")
@@ -912,6 +937,11 @@ async def save_work_style(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Save user's work style profile."""
+    logger.info(
+        "[WORK_STYLE] Saving work style for user",
+        extra={"user_id": user_id, "data": body.model_dump()},
+    )
+
     async with db.acquire() as conn:
         await conn.execute(
             """INSERT INTO public.work_style_profiles 
@@ -945,6 +975,7 @@ async def save_work_style(
             user_id,
         )
 
+    logger.info("[WORK_STYLE] Saved successfully", extra={"user_id": user_id})
     return {"status": "saved"}
 
 
