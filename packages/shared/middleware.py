@@ -82,6 +82,9 @@ class CSRFMiddleware:
         "/og/",
         "/profile/resume",
         "/profile/avatar",
+        "/me/skills",
+        "/me/work-style",
+        "/ai/",
     ]
 
     @classmethod
