@@ -22,6 +22,7 @@ interface ResumeStepProps {
     parsedResume: ParsedResume | null;
     onConfirmParsing: () => void;
     shouldReduceMotion?: boolean;
+    onResetParsingState?: () => void;
 }
 
 export function ResumeStep({
@@ -40,13 +41,32 @@ export function ResumeStep({
     parsedResume,
     onConfirmParsing,
     shouldReduceMotion,
+    onResetParsingState,
 }: ResumeStepProps) {
     const [isDragging, setIsDragging] = React.useState(false);
     const [linkedinError, setLinkedinError] = React.useState<string | null>(null);
+    
+    // Reset parsing state when a new file is selected
+    const handleFileChange = (file: File | null) => {
+        setResumeFile(file);
+        setResumeError(null);
+        setShowParsingPreview(false);
+        if (onResetParsingState) {
+            onResetParsingState();
+        }
+    };
 
     const validateLinkedInUrl = (url: string): boolean => {
         if (!url) return true;
-        const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/i;
+        // More permissive pattern: accepts various LinkedIn URL formats
+        // - linkedin.com/in/username
+        // - www.linkedin.com/in/username
+        // - https://linkedin.com/in/username
+        // - https://www.linkedin.com/in/username
+        // - http:// variants
+        // - with or without trailing slash
+        // - with additional path segments like /details/experience
+        const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]*)*\/?$/i;
         return linkedinPattern.test(url.trim());
     };
 
@@ -73,7 +93,7 @@ export function ResumeStep({
         e.preventDefault();
         setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            setResumeFile(e.dataTransfer.files[0]);
+            handleFileChange(e.dataTransfer.files[0]);
         }
     };
 
@@ -120,7 +140,7 @@ export function ResumeStep({
                 <input
                     type="file"
                     accept=".pdf"
-                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
                     className="hidden"
                     id="resume-upload"
                     disabled={isUploading}

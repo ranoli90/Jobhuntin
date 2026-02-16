@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Star, Edit2, Trash2, Plus, Check, X, AlertCircle, Sparkles, ArrowLeft, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { pushToast } from "../../../../lib/toast";
 import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
@@ -188,12 +189,22 @@ export function SkillReviewStep({
 
     const handleAddSkill = (skill: RichSkill) => {
         const normalizedSkillName = skill.skill.toLowerCase().trim();
+        
+        // Check for duplicates, including similar spellings (case-insensitive)
         const isDuplicate = richSkills.some(
             s => s.skill.toLowerCase().trim() === normalizedSkillName
         );
+        
         if (isDuplicate) {
+            // Show feedback to user instead of silently ignoring
+            pushToast({ 
+                title: "Skill already exists", 
+                description: `"${skill.skill}" is already in your skills list.`,
+                tone: "warning" 
+            });
             return;
         }
+        
         setRichSkills(prev => [...prev, skill]);
         setIsAddingSkill(false);
     };

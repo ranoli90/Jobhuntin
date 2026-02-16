@@ -14,6 +14,7 @@ import { api } from "../../lib/api";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Skeleton, OnboardingSkeleton } from "../../components/ui/Skeleton";
 import { checkEmailTypo } from "../../lib/emailUtils";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 
 // Step Components
 import { WelcomeStep } from "./onboarding/steps/WelcomeStep";
@@ -25,7 +26,21 @@ import { WorkStyleStep } from "./onboarding/steps/WorkStyleStep";
 import { ReadyStep } from "./onboarding/steps/ReadyStep";
 
 // Types
-import { ParsedResume, RichSkill } from "../../types/onboarding";
+import { ParsedResume, RichSkill, OnboardingFormData } from "../../types/onboarding";
+
+// Type for preferences state - matches PreferencesStepProps
+interface PreferencesState {
+  location: string;
+  role_type: string;
+  salary_min: string;
+  salary_max?: string;
+  remote_only: boolean;
+  onsite_only?: boolean;
+  work_authorized?: boolean;
+  visa_sponsorship?: boolean;
+  excluded_companies?: string[];
+  excluded_keywords?: string[];
+}
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -60,12 +75,17 @@ export default function Onboarding() {
   const [resumeFile, setResumeFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [resumeError, setResumeError] = React.useState<string | null>(null);
-  const [preferences, setPreferences] = React.useState({
+  const [preferences, setPreferences] = React.useState<PreferencesState>({
     location: "",
     role_type: "",
     salary_min: "",
+    salary_max: undefined,
     remote_only: false,
-    work_authorized: undefined as boolean | undefined,
+    onsite_only: undefined,
+    work_authorized: true,
+    visa_sponsorship: false,
+    excluded_companies: [],
+    excluded_keywords: [],
   });
 
   const [formErrors, setFormErrors] = React.useState<Record<string, string>>({});
@@ -87,7 +107,19 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
   const [emailTypoSuggestion, setEmailTypoSuggestion] = React.useState<string | null>(null);
   const [richSkills, setRichSkills] = React.useState<RichSkill[]>([]);
   const [isSavingSkills, setIsSavingSkills] = React.useState(false);
-  const [workStyleAnswers, setWorkStyleAnswers] = React.useState<Record<string, string>>({});
+  const [workStyleAnswers, setWorkStyleAnswers] = React.useState<Record<string, string>>(() => {
+    // Initialize from formData if available (page refresh persistence)
+    try {
+      const stored = localStorage.getItem("onboarding_state");
+      if (stored) {
+        const state = JSON.parse(stored);
+        return state.formData?.workStyleAnswers || {};
+      }
+    } catch {
+      // ignore
+    }
+    return {};
+  });
   const [isSavingWorkStyle, setIsSavingWorkStyle] = React.useState(false);
   
   // Restore linkedinUrl from formData on mount (for page refresh persistence)
@@ -95,7 +127,18 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
     if (formData.linkedinUrl && !linkedinUrl) {
       setLinkedinUrl(formData.linkedinUrl);
     }
-  }, [formData.linkedinUrl, linkedinUrl]);
+    // Restore workStyleAnswers from formData
+    if (formData.workStyleAnswers && Object.keys(workStyleAnswers).length === 0) {
+      setWorkStyleAnswers(formData.workStyleAnswers);
+    }
+  }, [formData.linkedinUrl, formData.workStyleAnswers, linkedinUrl, workStyleAnswers]);
+  
+  // Sync workStyleAnswers to formData for persistence
+  React.useEffect(() => {
+    if (Object.keys(workStyleAnswers).length > 0) {
+      updateFormData({ workStyleAnswers });
+    }
+  }, [workStyleAnswers, updateFormData]);
 
   const triggerHaptic = (type: 'success' | 'warning' | 'light' = 'light') => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -126,8 +169,13 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
         location: p.location ?? "",
         role_type: p.role_type ?? "",
         salary_min: p.salary_min ? String(p.salary_min) : "",
+        salary_max: p.salary_max ? String(p.salary_max) : "",
         remote_only: p.remote_only ?? false,
+        onsite_only: p.onsite_acceptable ?? false,
         work_authorized: p.work_authorized ?? true,
+        visa_sponsorship: p.visa_sponsorship ?? false,
+        excluded_companies: p.excluded_companies ?? [],
+        excluded_keywords: p.excluded_keywords ?? [],
       });
     }
   }, [profile?.preferences]);
@@ -190,27 +238,23 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
 
       if (e.ctrlKey && e.key === 'Enter') {
         // Specific completion logic or generic next
-        if (isLastStep && !isCompleting) {
-          handleComplete();
+        if (isLastStep) {
+          // Use a custom event to trigger completion to avoid stale closure
+          window.dispatchEvent(new CustomEvent('onboarding:complete'));
         } else if (!isLastStep) {
-          // Basic validation check before blindly advancing?
-          // The steps usuall have disabled buttons if invalid.
-          // For now, let's just try calling nextStep, but generally the button state controls flow.
-          // However, nextStep() in hook doesn't check validation. 
-          // We might need to check specific step validation here or just trust the user/hook.
-          // Ideally we trigger the button click.
+          // Trigger next button click
           const nextBtn = document.querySelector('button[aria-label="Confirm identity and proceed"], button[aria-label="Save preferences and deploy hunter engine"], button[aria-label="Save answers and continue"], button[aria-label="Finalize setup and launch command center"]');
           if (nextBtn && !(nextBtn as HTMLButtonElement).disabled) {
             (nextBtn as HTMLElement).click();
           } else {
             // Fallback for simple steps
-            nextStep();
+            window.dispatchEvent(new CustomEvent('onboarding:next'));
           }
         }
       } else if (e.key === 'Escape') {
         // Maybe unrelated, but handy
       } else if (e.altKey && e.key === 'ArrowLeft') {
-        if (!isFirstStep) prevStep();
+        if (!isFirstStep) window.dispatchEvent(new CustomEvent('onboarding:prev'));
       } else if (e.altKey && e.key === 'ArrowRight') {
         // Same logic as Ctrl+Enter for next
         const nextBtn = document.querySelector('button[aria-label*="proceed"], button[aria-label*="deploy"], button[aria-label*="continue"]');
@@ -222,7 +266,7 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentStep, isLastStep, isFirstStep, isCompleting, nextStep, prevStep]);
+  }, [isLastStep, isFirstStep]);
 
   React.useEffect(() => {
     if (profile?.has_completed_onboarding) {
@@ -462,6 +506,7 @@ const handleConfirmParsing = () => {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative">
+      <ErrorBoundary onReset={() => resetOnboarding()}>
       {/* Minimal Header */}
       <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50 sticky top-0">
         <Logo to="/app/onboarding" size="sm" />
@@ -576,6 +621,11 @@ const handleConfirmParsing = () => {
                     parsedResume={parsedResume}
                     onConfirmParsing={handleConfirmParsing}
                     shouldReduceMotion={!!shouldReduceMotion}
+                    onResetParsingState={() => {
+                      setParsedResume(null);
+                      setParsedProfile(null);
+                      setRichSkills([]);
+                    }}
                   />
                 )}
 
@@ -606,6 +656,15 @@ const handleConfirmParsing = () => {
                       }));
                       setEmailTypoSuggestion(null);
                     }}
+                    onClearError={(field) => setFormErrors(prev => {
+                      const updated = { ...prev };
+                      delete updated[field];
+                      return updated;
+                    })}
+                    onSetFormError={(field, error) => setFormErrors(prev => ({
+                      ...prev,
+                      [field]: error
+                    }))}
                   />
                 )}
 
@@ -619,6 +678,11 @@ const handleConfirmParsing = () => {
                     aiSuggestions={aiSuggestions}
                     formErrors={formErrors}
                     hasParsedProfile={!!parsedProfile}
+                    onClearError={(field) => setFormErrors(prev => {
+                      const updated = { ...prev };
+                      delete updated[field];
+                      return updated;
+                    })}
                   />
                 )}
 
@@ -649,6 +713,7 @@ const handleConfirmParsing = () => {
           </AnimatePresence>
         </div>
       </main>
+      </ErrorBoundary>
     </div>
   );
 }

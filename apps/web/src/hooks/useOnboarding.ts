@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 
 import { OnboardingStep, OnboardingState, OnboardingFormData } from "../types/onboarding";
+import { telemetry } from "../lib/logger";
 
 const STORAGE_KEY = "onboarding_state";
 
@@ -84,7 +85,7 @@ export function useOnboarding() {
       localStorage.setItem("onboarding_ab_variant", newVariant);
       setAbVariant(newVariant);
       // Log exposure
-      console.log(`[Telemetry] A/B Test Assignment: onboarding_flow = ${newVariant}`);
+      telemetry.track("A/B Test Assignment", { onboarding_flow: newVariant });
     }
   }, []);
 
@@ -115,7 +116,10 @@ export function useOnboarding() {
     const totalSteps = currentSteps.length;
     setCurrentStep((prev) => {
       // Basic Telemetry
-      console.log(`[Telemetry] Onboarding Step Completed: ${currentSteps[prev].id} (index: ${prev})`);
+      telemetry.track("Onboarding Step Completed", { 
+        step: currentSteps[prev].id, 
+        index: prev 
+      });
       // Mark current step as completed
       setCompletedSteps((prevCompleted) => {
         const newCompleted = new Set(prevCompleted);
@@ -137,10 +141,10 @@ export function useOnboarding() {
   }, [isFirstStep]);
 
   const goToStep = useCallback((index: number) => {
-    if (index >= 0 && index < STEPS.length) {
+    if (index >= 0 && index < currentSteps.length) {
       setCurrentStep(index);
     }
-  }, []);
+  }, [currentSteps.length]);
 
   useEffect(() => {
     saveState();

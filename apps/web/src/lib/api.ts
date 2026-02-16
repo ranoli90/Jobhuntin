@@ -22,6 +22,66 @@ const MAX_RETRIES = 2;
 /** Base delay in ms for exponential back-off (doubled on each retry). */
 const BASE_DELAY_MS = 1000;
 
+/** Maximum retry delay in ms */
+const MAX_DELAY_MS = 30000;
+
+/**
+ * Utility function to retry an async operation with exponential backoff
+ */
+export async function withRetry<T>(
+  operation: () => Promise<T>,
+  options: {
+    maxRetries?: number;
+    baseDelayMs?: number;
+    maxDelayMs?: number;
+    shouldRetry?: (error: Error, attempt: number) => boolean;
+    onRetry?: (error: Error, attempt: number) => void;
+  } = {}
+): Promise<T> {
+  const {
+    maxRetries = 3,
+    baseDelayMs = BASE_DELAY_MS,
+    maxDelayMs = MAX_DELAY_MS,
+    shouldRetry = (err: Error) => {
+      // Retry on network errors and 5xx status
+      const status = (err as any).status;
+      return !status || status >= 500 || status === 429;
+    },
+    onRetry,
+  } = options;
+
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (err: any) {
+      lastError = err;
+
+      // Check if we should retry
+      if (attempt === maxRetries || !shouldRetry(err, attempt)) {
+        throw err;
+      }
+
+      // Calculate delay with exponential backoff and jitter
+      const delay = Math.min(
+        baseDelayMs * Math.pow(2, attempt) + Math.random() * 500,
+        maxDelayMs
+      );
+
+      // Notify about retry
+      if (onRetry) {
+        onRetry(err, attempt);
+      }
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+}
+
 export function getApiBase(): string {
   return API_BASE;
 }

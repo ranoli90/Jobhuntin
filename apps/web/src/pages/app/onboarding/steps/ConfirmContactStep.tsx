@@ -1,7 +1,7 @@
 import * as React from "react";
 import { User, Mail, Phone, Sparkles, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatPhoneNumber } from "../../../../lib/phoneUtils";
+import { formatPhoneNumber, isValidPhoneNumber } from "../../../../lib/phoneUtils";
 import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
@@ -27,6 +27,8 @@ interface ConfirmContactStepProps {
     formErrors: Record<string, string>;
     emailTypoSuggestion?: string | null;
     onApplyEmailSuggestion?: (suggestion: string) => void;
+    onClearError?: (field: string) => void;
+    onSetFormError?: (field: string, error: string) => void;
 }
 
 export function ConfirmContactStep({
@@ -39,7 +41,33 @@ export function ConfirmContactStep({
     formErrors,
     emailTypoSuggestion,
     onApplyEmailSuggestion,
+    onClearError,
+    onSetFormError,
 }: ConfirmContactStepProps) {
+    
+    const handleFieldChange = (field: string, value: string) => {
+        setContactInfo(c => ({ ...c, [field]: value }));
+        // Clear error when user starts typing
+        if (formErrors[field] && onClearError) {
+            onClearError(field);
+        }
+    };
+    
+    const handlePhoneChange = (value: string) => {
+        const formatted = formatPhoneNumber(value);
+        setContactInfo(c => ({ ...c, phone: formatted }));
+        
+        // Clear error when user starts typing
+        if (formErrors.phone && onClearError) {
+            onClearError('phone');
+        }
+        
+        // Validate phone number if provided
+        if (formatted && !isValidPhoneNumber(formatted) && onSetFormError) {
+            onSetFormError('phone', 'Please enter a valid phone number');
+        }
+    };
+    
     return (
         <div>
             <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
@@ -64,7 +92,7 @@ export function ConfirmContactStep({
                             type="text"
                             placeholder="John"
                             value={contactInfo.first_name}
-                            onChange={(e) => setContactInfo(c => ({ ...c, first_name: e.target.value }))}
+                            onChange={(e) => handleFieldChange('first_name', e.target.value)}
                             onClear={() => setContactInfo(c => ({ ...c, first_name: "" }))}
                             className="bg-white shadow-sm"
                             error={!!formErrors.first_name}
@@ -80,7 +108,7 @@ export function ConfirmContactStep({
                             type="text"
                             placeholder="Doe"
                             value={contactInfo.last_name}
-                            onChange={(e) => setContactInfo(c => ({ ...c, last_name: e.target.value }))}
+                            onChange={(e) => handleFieldChange('last_name', e.target.value)}
                             onClear={() => setContactInfo(c => ({ ...c, last_name: "" }))}
                             className="bg-white shadow-sm"
                             error={!!formErrors.last_name}
@@ -98,7 +126,7 @@ export function ConfirmContactStep({
                         type="email"
                         placeholder="john@example.com"
                         value={contactInfo.email}
-                        onChange={(e) => setContactInfo(c => ({ ...c, email: e.target.value }))}
+                        onChange={(e) => handleFieldChange('email', e.target.value)}
                         onClear={() => setContactInfo(c => ({ ...c, email: "" }))}
                         className="bg-white shadow-sm"
                         error={!!formErrors.email}
@@ -134,13 +162,14 @@ export function ConfirmContactStep({
                         type="tel"
                         placeholder="+1 (555) 123-4567"
                         value={contactInfo.phone}
-                        onChange={(e) => {
-                            const formatted = formatPhoneNumber(e.target.value);
-                            setContactInfo(c => ({ ...c, phone: formatted }));
-                        }}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
                         onClear={() => setContactInfo(c => ({ ...c, phone: "" }))}
                         className="bg-white shadow-sm"
+                        error={!!formErrors.phone}
                     />
+                    {formErrors.phone && (
+                        <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.phone}</p>
+                    )}
                 </div>
 
                 {parsedResume && (

@@ -351,7 +351,7 @@ https://jobhuntin.com
             "resend_response": resp.json() if resp.text else None,
         },
     )
-    incr("auth.magic_link.sent")
+    # Note: Metric is incremented in request_magic_link endpoint with email_domain tag
 
 
 @router.post("/magic-link", response_model=MagicLinkResponse)

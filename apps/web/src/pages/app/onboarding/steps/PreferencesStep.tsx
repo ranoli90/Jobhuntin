@@ -39,6 +39,7 @@ interface PreferencesStepProps {
     aiSuggestions: any;
     formErrors: Record<string, string>;
     hasParsedProfile?: boolean;
+    onClearError?: (field: string) => void;
 }
 
 export function PreferencesStep({
@@ -50,7 +51,23 @@ export function PreferencesStep({
     aiSuggestions,
     formErrors,
     hasParsedProfile = false,
+    onClearError,
 }: PreferencesStepProps) {
+    
+    const handleLocationChange = (value: string) => {
+        setPreferences((p) => ({ ...p, location: value }));
+        if (formErrors.location && onClearError) {
+            onClearError('location');
+        }
+    };
+    
+    const handleRoleTypeChange = (value: string) => {
+        setPreferences((p) => ({ ...p, role_type: value }));
+        if (formErrors.role_type && onClearError) {
+            onClearError('role_type');
+        }
+    };
+    
     const showAISuggestions = hasParsedProfile && (
         aiSuggestions.roles.data || 
         aiSuggestions.roles.loading || 
@@ -135,7 +152,7 @@ export function PreferencesStep({
                             type="text"
                             placeholder="e.g., Remote, Austin TX, London"
                             value={preferences.location}
-                            onChange={(value) => setPreferences((p) => ({ ...p, location: value }))}
+                            onChange={handleLocationChange}
                             onClear={() => setPreferences((p) => ({ ...p, location: "" }))}
                             suggestions={CITIES}
                             className="bg-white shadow-sm"
@@ -153,7 +170,7 @@ export function PreferencesStep({
                             type="text"
                             placeholder="e.g., Staff AI Engineer"
                             value={preferences.role_type}
-                            onChange={(value) => setPreferences((p) => ({ ...p, role_type: value }))}
+                            onChange={handleRoleTypeChange}
                             onClear={() => setPreferences((p) => ({ ...p, role_type: "" }))}
                             suggestions={JOB_TITLES}
                             className="bg-white shadow-sm"

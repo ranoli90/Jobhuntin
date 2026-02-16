@@ -28,3 +28,27 @@ export function formatPhoneNumber(value: string): string {
 
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 }
+
+/**
+ * Validates a phone number - basic validation for common formats
+ * Returns true if the phone number appears valid, false otherwise
+ */
+export function isValidPhoneNumber(value: string): boolean {
+    if (!value) return true; // Phone is optional
+    
+    // Remove all non-digit characters except +
+    const cleaned = value.replace(/[^\d+]/g, "");
+    
+    // Check for valid length (10-15 digits, optionally with + prefix)
+    if (cleaned.startsWith("+")) {
+        const numberPart = cleaned.slice(1);
+        return /^\d{10,15}$/.test(numberPart);
+    }
+    
+    // US number: 10 digits, or 11 digits starting with 1
+    if (/^\d{10}$/.test(cleaned)) return true;
+    if (/^1\d{10}$/.test(cleaned)) return true;
+    
+    // International: 10-15 digits
+    return /^\d{10,15}$/.test(cleaned);
+}

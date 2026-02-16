@@ -358,6 +358,33 @@ export class Validator {
 // Rate Limiting Protection
 export class RateLimiter {
   private static attempts = new Map<string, { count: number; resetTime: number }>();
+  private static cleanupInterval: ReturnType<typeof setInterval> | null = null;
+  private static readonly CLEANUP_INTERVAL_MS = 60000; // Clean up every minute
+  
+  /**
+   * Start periodic cleanup of expired entries to prevent memory leaks
+   */
+  static startCleanup(): void {
+    if (this.cleanupInterval) return;
+    this.cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      for (const [key, record] of this.attempts.entries()) {
+        if (now > record.resetTime) {
+          this.attempts.delete(key);
+        }
+      }
+    }, this.CLEANUP_INTERVAL_MS);
+  }
+  
+  /**
+   * Stop cleanup interval (for testing or app shutdown)
+   */
+  static stopCleanup(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
   
   static isAllowed(
     identifier: string,
@@ -391,6 +418,18 @@ export class RateLimiter {
   static reset(identifier: string): void {
     this.attempts.delete(identifier);
   }
+  
+  /**
+   * Clear all rate limit entries (for testing or admin use)
+   */
+  static clearAll(): void {
+    this.attempts.clear();
+  }
+}
+
+// Auto-start cleanup when module is loaded
+if (typeof window !== 'undefined') {
+  RateLimiter.startCleanup();
 }
 
 // CSRF Protection
