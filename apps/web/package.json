@@ -14,7 +14,7 @@
     "seo:submit": "npx tsx scripts/seo/submit-to-google.ts",
     "seo:submit-enhanced": "npx tsx scripts/seo/submit-to-google-enhanced.ts",
     "seo:generate-city": "npx tsx scripts/seo/generate-city-content.ts",
-    "seo:engine": "npx tsx scripts/seo/automated-ranking-engine.ts",
+    "seo:engine": "npx tsx scripts/seo/smart-seo-engine.ts",
     "seo:verify": "npx tsx scripts/seo/verify-google-indexing.ts",
     "seo:backend": "npx tsx scripts/seo/backend-integration.ts",
     "seo:monitor": "npx tsx scripts/seo/seo-monitoring-dashboard.ts",
