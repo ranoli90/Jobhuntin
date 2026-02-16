@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, Zap, Shield, ArrowLeft, ArrowRight, HelpCircle, Building2, Ban, Globe, Users, AlertTriangle } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, Zap, Shield, ArrowLeft, ArrowRight, Building2, Ban, Globe, AlertTriangle } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { AutoCompleteInput } from "../../../../components/ui/AutoCompleteInput";
@@ -49,166 +49,150 @@ export function PreferencesStep({
     aiSuggestions,
     formErrors,
 }: PreferencesStepProps) {
-    const [plainLanguage, setPlainLanguage] = React.useState(true); // Default to plain language
-
     return (
-        <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
-                <div className="flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6 mb-3 md:mb-8">
-                    <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-amber-50 border border-amber-100 text-amber-600 shadow-inner">
-                        <MapPin className="h-4 w-4 md:h-8 md:w-8" />
+        <div>
+            <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
+                <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 shadow-sm">
+                    <MapPin className="h-5 w-5 md:h-6 md:w-6" />
+                </div>
+                <div className="min-w-0">
+                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">Job Settings</h2>
+                    <p className="text-xs md:text-sm text-slate-500 font-medium">Set your location and salary goals.</p>
+                </div>
+            </div>
+
+            {/* AI Suggestions Section */}
+            {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
+                <div className="grid md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
+                    <AISuggestionCard
+                        title="Suggested Roles"
+                        subtitle="Based on your experience"
+                        suggestions={aiSuggestions.roles.data?.suggested_roles || []}
+                        confidence={aiSuggestions.roles.data?.confidence}
+                        reasoning={aiSuggestions.roles.data?.reasoning}
+                        loading={aiSuggestions.roles.loading}
+                        error={aiSuggestions.roles.error}
+                        onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
+                        onReject={() => { }}
+                    />
+                    <AISuggestionCard
+                        title="Recommended Locations"
+                        subtitle={aiSuggestions.locations.data?.remote_friendly_score
+                            ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote`
+                            : "Based on your skills"
+                        }
+                        suggestions={aiSuggestions.locations.data?.suggested_locations || []}
+                        confidence={aiSuggestions.locations.data?.remote_friendly_score}
+                        reasoning={aiSuggestions.locations.data?.reasoning}
+                        loading={aiSuggestions.locations.loading}
+                        error={aiSuggestions.locations.error}
+                        onAccept={(location) => setPreferences(p => ({ ...p, location }))}
+                        onReject={() => { }}
+                    />
+                </div>
+            )}
+
+            {/* Salary Suggestion */}
+            {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
+                <div className="mb-4 md:mb-6">
+                    <SalarySuggestionCard
+                        minSalary={aiSuggestions.salary.data?.min_salary || 0}
+                        maxSalary={aiSuggestions.salary.data?.max_salary || 0}
+                        marketMedian={aiSuggestions.salary.data?.market_median || 0}
+                        currency={aiSuggestions.salary.data?.currency}
+                        confidence={aiSuggestions.salary.data?.confidence}
+                        factors={aiSuggestions.salary.data?.factors}
+                        reasoning={aiSuggestions.salary.data?.reasoning}
+                        loading={aiSuggestions.salary.loading}
+                        error={aiSuggestions.salary.error}
+                        onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
+                        onReject={() => { }}
+                    />
+                </div>
+            )}
+
+            <div className="space-y-4 md:space-y-6">
+                <div className="grid gap-4 md:gap-6">
+                    <div>
+                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <div className="w-1 h-1 rounded-full bg-primary-500" />
+                            Where do you want to work?
+                        </label>
+                        <AutoCompleteInput
+                            icon={<MapPin className="h-4 w-4 md:h-5 md:w-5" />}
+                            type="text"
+                            placeholder="e.g., Remote, Austin TX, London"
+                            value={preferences.location}
+                            onChange={(value) => setPreferences((p) => ({ ...p, location: value }))}
+                            onClear={() => setPreferences((p) => ({ ...p, location: "" }))}
+                            suggestions={CITIES}
+                            className="bg-white shadow-sm"
+                            error={!!formErrors.location}
+                        />
                     </div>
-                    <div className="min-w-0">
-                        <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Job Settings</h2>
-                        <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Set your location and salary goals.</p>
+
+                    <div>
+                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <div className="w-1 h-1 rounded-full bg-primary-500" />
+                            Desired Job Title
+                        </label>
+                        <AutoCompleteInput
+                            icon={<Briefcase className="h-4 w-4 md:h-5 md:w-5" />}
+                            type="text"
+                            placeholder="e.g., Staff AI Engineer"
+                            value={preferences.role_type}
+                            onChange={(value) => setPreferences((p) => ({ ...p, role_type: value }))}
+                            onClear={() => setPreferences((p) => ({ ...p, role_type: "" }))}
+                            suggestions={JOB_TITLES}
+                            className="bg-white shadow-sm"
+                            error={!!formErrors.role_type}
+                        />
                     </div>
                 </div>
 
-                {/* AI Suggestions Section */}
-                {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
-                    <div className="grid md:grid-cols-2 gap-2.5 md:gap-6 mb-3 md:mb-8">
-                        {/* Role Suggestions */}
-                        <AISuggestionCard
-                            title="Suggested Roles"
-                            subtitle="Based on your experience"
-                            suggestions={aiSuggestions.roles.data?.suggested_roles || []}
-                            confidence={aiSuggestions.roles.data?.confidence}
-                            reasoning={aiSuggestions.roles.data?.reasoning}
-                            loading={aiSuggestions.roles.loading}
-                            error={aiSuggestions.roles.error}
-                            onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
-                            onReject={() => { }}
-                        />
-
-                        {/* Location Suggestions */}
-                        <AISuggestionCard
-                            title="Recommended Locations"
-                            subtitle={aiSuggestions.locations.data?.remote_friendly_score
-                                ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote`
-                                : "Based on your skills"
-                            }
-                            suggestions={aiSuggestions.locations.data?.suggested_locations || []}
-                            confidence={aiSuggestions.locations.data?.remote_friendly_score}
-                            reasoning={aiSuggestions.locations.data?.reasoning}
-                            loading={aiSuggestions.locations.loading}
-                            error={aiSuggestions.locations.error}
-                            onAccept={(location) => setPreferences(p => ({ ...p, location }))}
-                            onReject={() => { }}
+                <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <div className="w-1 h-1 rounded-full bg-primary-500" />
+                            Minimum Salary
+                        </label>
+                        <Input
+                            icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5" />}
+                            type="number"
+                            placeholder="150000"
+                            value={preferences.salary_min}
+                            onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
+                            onClear={() => setPreferences((p) => ({ ...p, salary_min: "" }))}
+                            className="bg-white shadow-sm"
                         />
                     </div>
-                )}
-
-                {/* Salary Suggestion */}
-                {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
-                    <div className="mb-3 md:mb-8">
-                        <SalarySuggestionCard
-                            minSalary={aiSuggestions.salary.data?.min_salary || 0}
-                            maxSalary={aiSuggestions.salary.data?.max_salary || 0}
-                            marketMedian={aiSuggestions.salary.data?.market_median || 0}
-                            currency={aiSuggestions.salary.data?.currency}
-                            confidence={aiSuggestions.salary.data?.confidence}
-                            factors={aiSuggestions.salary.data?.factors}
-                            reasoning={aiSuggestions.salary.data?.reasoning}
-                            loading={aiSuggestions.salary.loading}
-                            error={aiSuggestions.salary.error}
-                            onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
-                            onReject={() => { }}
+                    <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200' : 'bg-slate-50 border-slate-100'}`}>
+                        <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.remote_only ? 'bg-primary-600 text-white' : 'bg-white text-slate-300'}`}>
+                            <Zap className="h-4 w-4 md:h-5 md:w-5" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-xs font-bold text-slate-900">Remote Work Only</p>
+                            <p className="text-[10px] text-slate-500">Show only work-from-home jobs</p>
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={preferences.remote_only}
+                            onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
+                            className="h-5 w-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                         />
-                    </div>
-                )}
-
-                {/* Remove the technical/plain language toggle - default to plain language */}
-
-                <div className="space-y-3 md:space-y-8">
-                    <div className="grid gap-3 md:gap-8">
-                        <div>
-                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                <div className="w-1 h-1 rounded-full bg-primary-500" />
-                                Where do you want to work?
-                            </label>
-                            <div className="relative">
-                                <AutoCompleteInput
-                                    icon={<MapPin className="h-4 w-4 md:h-5 md:w-5" />}
-                                    type="text"
-                                    placeholder="e.g., Remote, Austin TX, London"
-                                    value={preferences.location}
-                                    onChange={(value) => setPreferences((p) => ({ ...p, location: value }))}
-                                    onClear={() => setPreferences((p) => ({ ...p, location: "" }))}
-                                    suggestions={CITIES}
-                                    className="bg-white shadow-sm text-sm"
-                                    error={!!formErrors.location}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                <div className="w-1 h-1 rounded-full bg-primary-500" />
-                                Desired Job Title
-                            </label>
-                            <div className="relative">
-                                <AutoCompleteInput
-                                    icon={<Briefcase className="h-4 w-4 md:h-5 md:w-5" />}
-                                    type="text"
-                                    placeholder="e.g., Staff AI Engineer"
-                                    value={preferences.role_type}
-                                    onChange={(value) => setPreferences((p) => ({ ...p, role_type: value }))}
-                                    onClear={() => setPreferences((p) => ({ ...p, role_type: "" }))}
-                                    suggestions={JOB_TITLES}
-                                    className="bg-white shadow-sm text-sm"
-                                    error={!!formErrors.role_type}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-3 md:gap-8">
-                        <div>
-                            <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                <div className="w-1 h-1 rounded-full bg-primary-500" />
-                                Minimum Salary
-                            </label>
-                            <div className="relative">
-                                <Input
-                                    icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5" />}
-                                    type="number"
-                                    placeholder="150000"
-                                    value={preferences.salary_min}
-                                    onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
-                                    onClear={() => setPreferences((p) => ({ ...p, salary_min: "" }))}
-                                    className="bg-white shadow-sm text-sm"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex flex-col justify-end">
-                            <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-5 rounded-2xl cursor-pointer border-2 transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
-                                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.remote_only ? 'bg-primary-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
-                                    <Zap className="h-4 w-4 md:h-5 md:w-5" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Remote Work Only</p>
-                                    <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Show only work-from-home jobs</p>
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    checked={preferences.remote_only}
-                                    onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
-                                    className="h-5 w-5 md:h-6 md:w-6 rounded-lg border-slate-300 text-primary-600 focus:ring-primary-500"
-                                />
                     </label>
                 </div>
 
                 {/* Dealbreaker Filters */}
-                <div className="pt-3 md:pt-6 border-t border-slate-100 mt-3 md:mt-8">
+                <div className="pt-4 md:pt-6 border-t border-slate-100">
                     <div className="flex items-center gap-2 mb-3 md:mb-4">
                         <div className="w-1 h-1 rounded-full bg-red-500" />
-                        <label className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             Dealbreakers
                         </label>
                     </div>
 
                     <div className="space-y-3">
-                        {/* Visa Sponsorship Toggle */}
                         <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.visa_sponsorship ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-100'}`}>
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${preferences.visa_sponsorship ? 'bg-blue-600 text-white' : 'bg-white text-slate-300'}`}>
                                 <Globe className="h-4 w-4" />
@@ -225,7 +209,6 @@ export function PreferencesStep({
                             />
                         </label>
 
-                        {/* On-site Only Toggle */}
                         <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.onsite_only ? 'bg-purple-50 border-purple-200' : 'bg-slate-50 border-slate-100'}`}>
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${preferences.onsite_only ? 'bg-purple-600 text-white' : 'bg-white text-slate-300'}`}>
                                 <Building2 className="h-4 w-4" />
@@ -242,7 +225,6 @@ export function PreferencesStep({
                             />
                         </label>
 
-                        {/* Max Salary */}
                         <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
@@ -263,7 +245,6 @@ export function PreferencesStep({
                             />
                         </div>
 
-                        {/* Excluded Companies */}
                         <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
@@ -287,7 +268,6 @@ export function PreferencesStep({
                             />
                         </div>
 
-                        {/* Excluded Keywords */}
                         <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
@@ -312,41 +292,39 @@ export function PreferencesStep({
                         </div>
                     </div>
                 </div>
-            </div>
-                </div>
 
                 {/* Work Authorization */}
-                <div className="pt-3 md:pt-6 border-t border-slate-100 mt-3 md:mt-8">
-                    <label className="mb-2 md:mb-4 flex items-center gap-2 md:gap-3 text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                <div className="pt-4 md:pt-6 border-t border-slate-100">
+                    <label className="mb-2 md:mb-3 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <div className="w-1 h-1 rounded-full bg-emerald-500" />
                         Work Authorization
                     </label>
-                    <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-5 rounded-2xl cursor-pointer border-2 transition-all ${preferences.work_authorized ? 'bg-emerald-50 border-emerald-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>
-                        <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.work_authorized ? 'bg-emerald-600 text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
+                    <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.work_authorized ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-100'}`}>
+                        <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.work_authorized ? 'bg-emerald-600 text-white' : 'bg-white text-slate-300'}`}>
                             <Shield className="h-4 w-4 md:h-5 md:w-5" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Can you work legally?</p>
-                            <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">I don't need a visa sponsor</p>
+                            <p className="text-xs font-bold text-slate-900">Can you work legally?</p>
+                            <p className="text-[10px] text-slate-500">I don't need a visa sponsor</p>
                         </div>
                         <input
                             type="checkbox"
                             checked={preferences.work_authorized}
                             onChange={(e) => setPreferences((p) => ({ ...p, work_authorized: e.target.checked }))}
-                            className="h-5 w-5 md:h-6 md:w-6 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                            className="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                         />
                     </label>
                 </div>
             </div>
 
-            <div className="flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                <Button variant="ghost" onClick={onPrev} className="h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4" aria-label="Go to previous step">
-                    <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
-                    PREV
+            <div className="flex gap-3 pt-4 mt-4">
+                <Button type="button" variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
                 </Button>
-                <Button onClick={onNext} className="flex-[2] h-9 md:h-12 rounded-[1.25rem] font-black bg-primary-600 hover:bg-primary-500 shadow-2xl shadow-primary-500/30 text-xs md:text-xl group" disabled={isSavingPreferences} aria-label="Save preferences and deploy hunter engine">
-                    {isSavingPreferences ? <LoadingSpinner size="sm" /> : "START JOB SEARCH"}
-                    <ArrowRight className="ml-1.5 md:ml-3 h-4 w-4 md:h-6 md:w-6 group-hover:translate-x-1 transition-transform" />
+                <Button type="button" onClick={onNext} className="flex-1 h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group" disabled={isSavingPreferences}>
+                    {isSavingPreferences ? <LoadingSpinner size="sm" /> : "Save & Continue"}
+                    {!isSavingPreferences && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />}
                 </Button>
             </div>
         </div>

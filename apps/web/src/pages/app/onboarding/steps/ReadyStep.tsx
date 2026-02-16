@@ -27,8 +27,8 @@ export function ReadyStep({
     shouldReduceMotion,
 }: ReadyStepProps) {
     return (
-        <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2">
+        <div className="flex flex-col h-full">
+            <div className="flex-1">
                 <div className="text-center py-2 md:py-6">
                     <div className="mx-auto mb-3 md:mb-10 relative">
                         <motion.div
