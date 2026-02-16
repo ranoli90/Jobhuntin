@@ -383,15 +383,29 @@ async function submitExistingUrls(): Promise<number> {
     return 0;
   }
   
+  console.log(`   🔑 GOOGLE_SERVICE_ACCOUNT_KEY length: ${keyEnv.length}`);
+  console.log(`   🔑 First 50 chars: ${keyEnv.substring(0, 50)}...`);
+  
   // Parse credentials
   let keyContent;
   try {
     keyContent = JSON.parse(keyEnv);
-  } catch {
+    console.log(`   ✅ Parsed as JSON string`);
+  } catch (e1) {
+    console.log(`   ⚠️ Not valid JSON string, trying as file path...`);
     try {
-      keyContent = JSON.parse(fs.readFileSync(keyEnv, 'utf8'));
-    } catch {
-      console.log('⚠️ Could not parse Google credentials');
+      if (fs.existsSync(keyEnv)) {
+        keyContent = JSON.parse(fs.readFileSync(keyEnv, 'utf8'));
+        console.log(`   ✅ Loaded from file: ${keyEnv}`);
+      } else {
+        console.log(`   ⚠️ File does not exist: ${keyEnv}`);
+        console.log(`   ⚠️ Parse error: ${e1}`);
+        return 0;
+      }
+    } catch (e2) {
+      console.log(`   ⚠️ Could not parse Google credentials`);
+      console.log(`   ⚠️ Error 1: ${e1}`);
+      console.log(`   ⚠️ Error 2: ${e2}`);
       return 0;
     }
   }
@@ -532,7 +546,6 @@ async function runAutomation(): Promise<void> {
       }
 
       case 'location_deep_dive': {
-        // Load locations
         const locationsPath = path.resolve(__dirname, '../../src/data/locations.json');
         const rolesPath = path.resolve(__dirname, '../../src/data/roles.json');
         
@@ -547,7 +560,6 @@ async function runAutomation(): Promise<void> {
           continue;
         }
 
-        // Pick a location/role combo not recently covered
         const location = locations[Math.floor(Math.random() * locations.length)];
         const role = roles[Math.floor(Math.random() * roles.length)];
         
@@ -557,6 +569,55 @@ async function runAutomation(): Promise<void> {
           state.locationsCovered.push(location.name);
           state.rolesCovered.push(role.name);
         }
+        break;
+      }
+
+      case 'how_to_guides': {
+        const guides = [
+          'how to write a resume',
+          'how to prepare for an interview',
+          'how to negotiate salary',
+          'how to optimize linkedin profile',
+          'how to write a cover letter',
+          'how to handle rejection',
+          'how to network effectively',
+          'how to switch careers',
+          'how to work remotely',
+          'how to get a promotion',
+        ];
+        const guide = guides[generatedThisRun % guides.length];
+        result = await generateTrendingContent(guide, state);
+        break;
+      }
+
+      case 'role_analysis': {
+        const rolesPath = path.resolve(__dirname, '../../src/data/roles.json');
+        let roles: any[] = [];
+        try {
+          roles = JSON.parse(fs.readFileSync(rolesPath, 'utf-8'));
+        } catch {
+          console.log('⚠️ Could not load roles data');
+          continue;
+        }
+        const role = roles[Math.floor(Math.random() * roles.length)];
+        result = await generateTrendingContent(`${role.name} career guide 2026`, state);
+        if (result.success) {
+          state.rolesCovered.push(role.name);
+        }
+        break;
+      }
+
+      case 'tool_reviews': {
+        const tools = [
+          { name: 'ChatGPT for job search', keywords: ['chatgpt resume', 'chatgpt interview'] },
+          { name: 'Grammarly', keywords: ['grammarly resume', 'grammarly professional'] },
+          { name: 'Canva Resume Builder', keywords: ['canva resume', 'canva cv'] },
+          { name: 'LinkedIn Premium', keywords: ['linkedin premium worth it', 'linkedin premium job search'] },
+          { name: 'Indeed Resume', keywords: ['indeed resume builder', 'indeed cv'] },
+          { name: 'ZipRecruiter', keywords: ['ziprecruiter reviews', 'ziprecruiter worth it'] },
+        ];
+        const tool = tools[Math.floor(Math.random() * tools.length)];
+        result = await generateTrendingContent(`${tool.name} review 2026`, state);
         break;
       }
 
@@ -604,6 +665,12 @@ async function runAutomation(): Promise<void> {
   });
   console.log('');
 
+  // Submit newly generated URLs to Google
+  const successfulUrls = results.filter(r => r.success).map(r => r.url);
+  if (successfulUrls.length > 0) {
+    await submitUrlsToGoogle(successfulUrls);
+  }
+
   // Log to file
   const logPath = path.resolve(__dirname, '../../logs/seo-run-log.json');
   const logDir = path.dirname(logPath);
@@ -627,6 +694,55 @@ async function runAutomation(): Promise<void> {
   } catch {}
   logs.push(logEntry);
   fs.writeFileSync(logPath, JSON.stringify(logs, null, 2));
+}
+
+async function submitUrlsToGoogle(urls: string[]): Promise<number> {
+  const keyEnv = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!keyEnv) {
+    console.log('⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set, skipping URL submission');
+    return 0;
+  }
+
+  console.log(`\n📤 Submitting ${urls.length} new URLs to Google...`);
+
+  let keyContent;
+  try {
+    keyContent = JSON.parse(keyEnv);
+  } catch {
+    console.log('⚠️ Could not parse Google credentials');
+    return 0;
+  }
+
+  try {
+    const jwtClient = new google.auth.JWT({
+      email: keyContent.client_email,
+      key: keyContent.private_key,
+      scopes: ['https://www.googleapis.com/auth/indexing']
+    });
+
+    await jwtClient.authorize();
+    const indexing = google.indexing({ version: 'v3', auth: jwtClient });
+
+    let successCount = 0;
+    for (let i = 0; i < urls.length; i++) {
+      try {
+        await indexing.urlNotifications.publish({
+          requestBody: { url: urls[i], type: 'URL_UPDATED' }
+        });
+        successCount++;
+        console.log(`   ✅ Submitted: ${urls[i]}`);
+        await new Promise(r => setTimeout(r, 200));
+      } catch (e: any) {
+        console.log(`   ⚠️ Failed: ${urls[i]} - ${e.message}`);
+      }
+    }
+
+    console.log(`\n📤 Submitted ${successCount}/${urls.length} URLs to Google`);
+    return successCount;
+  } catch (e) {
+    console.log(`⚠️ Google API error: ${e}`);
+    return 0;
+  }
 }
 
 /**
