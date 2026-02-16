@@ -120,7 +120,7 @@ export function useOnboarding() {
 
   const nextStep = useCallback(() => {
     const totalSteps = currentSteps.length;
-    console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps, 'currentStep:', currentStep);
+    if (import.meta.env.DEV) console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps, 'currentStep:', currentStep);
     
     setCurrentStep((prev) => {
       // Basic Telemetry

@@ -191,8 +191,14 @@ export function ConfirmContactStep({
                 )}
             </div>
 
-            <div className="flex gap-3 pt-4 mt-4">
-                <Button type="button" variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4">
+                <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={onPrev} 
+                    className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
+                    aria-label="Go back to previous step"
+                >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                 </Button>
@@ -200,7 +206,8 @@ export function ConfirmContactStep({
                     type="button"
                     onClick={onNext}
                     disabled={!contactInfo.first_name || !contactInfo.last_name || !contactInfo.email || isSavingContact}
-                    className="flex-1 h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
+                    aria-label="Confirm identity and continue"
                 >
                     {isSavingContact ? <LoadingSpinner size="sm" /> : "Continue"}
                 </Button>

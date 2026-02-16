@@ -28,7 +28,10 @@ function getConfidenceLevel(confidence: number): { label: string; color: string;
 function ConfidenceBadge({ confidence }: { confidence: number }) {
     const { label, color, bgColor } = getConfidenceLevel(confidence);
     return (
-        <span className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[10px] font-black rounded-full ${bgColor} ${color}`}>
+        <span 
+            className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[10px] font-black rounded-full ${bgColor} ${color}`}
+            aria-label={`${label} confidence: ${Math.round(confidence * 100)}%`}
+        >
             {label}
         </span>
     );
@@ -168,12 +171,12 @@ function AddSkillForm({ onAdd, onCancel }: AddSkillFormProps) {
                     className="bg-white text-sm"
                 />
             </div>
-            <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={onCancel} className="h-8 text-xs">
+            <div className="flex flex-col sm:flex-row justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={onCancel} className="h-10 sm:h-8 text-xs touch-manipulation">
                     <X className="w-3 h-3 mr-1" />
                     Cancel
                 </Button>
-                <Button type="submit" disabled={!skillName.trim()} className="h-8 text-xs bg-emerald-600 hover:bg-emerald-500">
+                <Button type="submit" disabled={!skillName.trim()} className="h-10 sm:h-8 text-xs bg-emerald-600 hover:bg-emerald-500 touch-manipulation">
                     <Check className="w-3 h-3 mr-1" />
                     Add Skill
                 </Button>
@@ -340,7 +343,8 @@ export function SkillReviewStep({
                 <Button
                     variant="outline"
                     onClick={() => setIsAddingSkill(true)}
-                    className="mt-3 md:mt-4 h-9 md:h-10 text-xs md:text-sm w-full border-dashed border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                    className="mt-3 md:mt-4 h-10 sm:h-9 md:h-10 text-xs md:text-sm w-full border-dashed border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50 touch-manipulation"
+                    aria-label="Add a new skill"
                 >
                     <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5" />
                     Add Missing Skill
@@ -373,8 +377,14 @@ export function SkillReviewStep({
                 </div>
             )}
 
-            <div className="flex gap-3 pt-4 mt-4">
-                <Button type="button" variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4">
+                <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={onPrev} 
+                    className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
+                    aria-label="Go back to previous step"
+                >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                 </Button>
@@ -382,7 +392,8 @@ export function SkillReviewStep({
                     type="button"
                     onClick={onNext}
                     disabled={isSaving}
-                    className="flex-1 h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
+                    aria-label={richSkills.length === 0 ? "Skip skills and continue" : "Save skills and continue"}
                 >
                     {isSaving ? <LoadingSpinner size="sm" /> : (
                         <>

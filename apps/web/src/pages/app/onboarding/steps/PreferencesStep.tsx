@@ -346,12 +346,24 @@ export function PreferencesStep({
                 </div>
             </div>
 
-            <div className="flex gap-3 pt-4 mt-4">
-                <Button type="button" variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4">
+                <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={onPrev} 
+                    className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
+                    aria-label="Go back to previous step"
+                >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                 </Button>
-                <Button type="button" onClick={onNext} className="flex-1 h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group" disabled={isSavingPreferences}>
+                <Button 
+                    type="button" 
+                    onClick={onNext} 
+                    className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation" 
+                    disabled={isSavingPreferences}
+                    aria-label="Save preferences and continue"
+                >
                     {isSavingPreferences ? <LoadingSpinner size="sm" /> : "Save & Continue"}
                     {!isSavingPreferences && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />}
                 </Button>

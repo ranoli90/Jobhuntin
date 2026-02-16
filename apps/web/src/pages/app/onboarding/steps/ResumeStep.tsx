@@ -314,8 +314,9 @@ export function ResumeStep({
                             <div className="px-4 pb-4">
                                 <Button
                                     variant="primary"
-                                    className="w-full h-11 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20"
+                                    className="w-full h-12 sm:h-11 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 touch-manipulation"
                                     onClick={onConfirmParsing}
+                                    aria-label="Confirm parsed resume and continue"
                                 >
                                     Looks Good, Continue
                                 </Button>
@@ -325,8 +326,13 @@ export function ResumeStep({
                 )}
             </AnimatePresence>
 
-            <div className="flex gap-3 pt-2">
-                <Button variant="ghost" onClick={onPrev} className="h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Button 
+                    variant="ghost" 
+                    onClick={onPrev} 
+                    className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
+                    aria-label="Go back to previous step"
+                >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                 </Button>
@@ -334,7 +340,8 @@ export function ResumeStep({
                     <Button
                         onClick={() => onUpload(resumeFile)}
                         disabled={isUploading}
-                        className="flex-1 h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group"
+                        className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation"
+                        aria-label="Parse resume"
                     >
                         {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "Re-upload Resume" : "Parse Resume"}
                         {!isUploading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />}
@@ -343,7 +350,8 @@ export function ResumeStep({
                     <Button
                         variant="ghost"
                         onClick={onNext}
-                        className="flex-1 h-11 rounded-xl font-bold text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 text-sm"
+                        className="flex-1 h-12 sm:h-11 rounded-xl font-bold text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 text-sm touch-manipulation"
+                        aria-label={resumeError ? "Skip upload and continue" : "Skip for now and continue"}
                     >
                         {resumeError ? "Skip Upload" : "Skip for Now"}
                         <ArrowRight className="ml-2 h-4 w-4" />
