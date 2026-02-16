@@ -19,11 +19,11 @@ import { google } from 'googleapis';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Configuration
+ // Configuration
 const CONFIG = {
   // Gemini 2.0 Flash - Best value: $0.10/1M input, $0.40/1M output
   // Fast, high quality, multi-modal capable
-  MODEL: 'google/gemini-2.0-flash',
+  MODEL: 'google/gemini-2.0-flash:free',
   API_BASE: 'https://openrouter.ai/api/v1',
   
   // Rate limits

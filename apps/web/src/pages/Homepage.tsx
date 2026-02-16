@@ -185,7 +185,7 @@ const LiveActivityStream = () => {
               key={activity.id}
               className={cn(
                 "flex items-center gap-3 py-2.5 transition-all duration-500 ease-out will-change-transform",
-                i === 0 && "bg-gradient-to-r from-blue-50 via-violet-50 to-transparent -mx-3 px-3 rounded-lg mb-1",
+                i === 0 && "bg-gradient-to-r from-blue-900/20 via-violet-900/20 to-transparent -mx-3 px-3 rounded-lg mb-1",
                 isNew && "animate-slide-in"
               )}
               style={{
@@ -197,7 +197,7 @@ const LiveActivityStream = () => {
                 "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-300",
                 i === 0 
                   ? "bg-gradient-to-br from-blue-500 to-violet-500" 
-                  : "bg-slate-100"
+                  : "bg-slate-700"
               )}>
                 {i === 0 ? (
                   <Send className="w-3.5 h-3.5 text-white" />
@@ -209,23 +209,23 @@ const LiveActivityStream = () => {
               <div className="flex-1 min-w-0">
                 <p className={cn(
                   "text-sm leading-snug truncate transition-opacity duration-300",
-                  i === 0 ? "text-slate-900 font-medium" : "text-slate-600"
+                  i === 0 ? "text-white font-medium" : "text-slate-400"
                 )}>
                   <span className="font-semibold">{activity.name}</span>
-                  <span className="text-slate-400 mx-1">→</span>
-                  <span className="text-blue-600">{activity.role}</span>
-                  <span className="text-slate-400 hidden sm:inline"> at {activity.company}</span>
+                  <span className="text-slate-500 mx-1">→</span>
+                  <span className="text-blue-400">{activity.role}</span>
+                  <span className="text-slate-500 hidden sm:inline"> at {activity.company}</span>
                 </p>
-                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-400">
+                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500">
                   <span className="sm:hidden">{activity.company}</span>
                   <span className="hidden sm:inline">{activity.location}</span>
-                  <span className="text-slate-300">·</span>
+                  <span className="text-slate-600">·</span>
                   <span>{activity.time}</span>
                 </div>
               </div>
               
               {i === 0 && (
-                <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-medium animate-fade-in">
+                <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-emerald-900/30 text-emerald-400 rounded-full text-xs font-medium animate-fade-in">
                   <CheckCircle className="w-3 h-3" />
                   Applied
                 </div>
@@ -235,8 +235,8 @@ const LiveActivityStream = () => {
         })}
       </div>
       
-      <div className="mt-3 pt-2 border-t border-slate-100">
-        <p className="text-xs text-slate-400 text-center flex items-center justify-center gap-1.5">
+      <div className="mt-3 pt-2 border-t border-slate-700">
+        <p className="text-xs text-slate-500 text-center flex items-center justify-center gap-1.5">
           <span className={cn(
             "w-1.5 h-1.5 rounded-full transition-colors duration-300",
             isPaused ? "bg-amber-400" : "bg-emerald-400 animate-pulse"
@@ -299,13 +299,44 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/50 pb-32 -mb-16">
+    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pb-32 -mb-16">
+      {/* Night sky background with floating stars */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-100/40 to-violet-100/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-pink-100/30 to-amber-100/30 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-800/90 to-slate-900/95" />
+        <div className="absolute inset-0 bg-grid-premium opacity-10" />
+        {/* Floating job icons */}
+        <motion.div
+          animate={{
+            y: [0, -20, 0],
+            opacity: [0.3, 0.6, 0.3]
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-20 left-10 w-8 h-8 text-blue-400 opacity-30"
+        >
+          <Briefcase className="w-full h-full" />
+        </motion.div>
+        <motion.div
+          animate={{
+            y: [0, 15, 0],
+            opacity: [0.2, 0.5, 0.2]
+          }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute top-40 right-20 w-6 h-6 text-violet-400 opacity-30"
+        >
+          <FileText className="w-full h-full" />
+        </motion.div>
+        <motion.div
+          animate={{
+            y: [0, -15, 0],
+            opacity: [0.4, 0.7, 0.4]
+          }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-30 left-1/4 w-7 h-7 text-pink-400 opacity-30"
+        >
+          <Send className="w-full h-full" />
+        </motion.div>
       </div>
-
-      <div className="absolute inset-0 bg-grid-premium opacity-20 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-20 lg:pt-0">
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
@@ -313,11 +344,11 @@ const Hero = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-50 border border-slate-200/80 mb-8"
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 mb-8 backdrop-blur-sm"
           >
-            <TrendingUp className="w-4 h-4 text-blue-600" />
-            <span className="text-xs sm:text-sm font-medium text-slate-600 tracking-wide">
-              The only platform that <span className="font-bold text-slate-900">tailors every resume</span> to each job
+            <Clock className="w-4 h-4 text-blue-400" />
+            <span className="text-xs sm:text-sm font-medium text-slate-300 tracking-wide">
+              We apply to jobs <span className="font-bold text-blue-400">while you sleep</span>
             </span>
           </motion.div>
 
@@ -327,10 +358,10 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-6 text-balance-hero max-w-3xl"
           >
-            <span className="text-slate-900">We apply to</span>
+            <span className="text-white">Dream jobs don't</span>
             <br />
-            <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 bg-clip-text text-transparent animate-gradient-flow bg-[length:200%_auto]">
-              100 jobs daily
+            <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent animate-gradient-flow bg-[length:200%_auto]">
+              wait for 9 AM applications
             </span>
           </motion.h1>
 
@@ -338,9 +369,9 @@ const Hero = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="font-body text-lg sm:text-xl lg:text-2xl text-slate-500 max-w-2xl mb-10 leading-relaxed"
+            className="font-body text-lg sm:text-xl lg:text-2xl text-slate-400 max-w-2xl mb-10 leading-relaxed"
           >
-            Upload your resume. Our system matches, tailors, and submits applications
+            Upload your resume once. Our AI matches, tailors, and submits applications
             <span className="hidden sm:inline"> while you focus on interviews.</span>
             <span className="sm:hidden"> automatically.</span>
           </motion.p>
@@ -353,16 +384,16 @@ const Hero = () => {
               className="w-full max-w-md"
             >
               <form onSubmit={onSubmit} className="relative">
-                <div className="flex flex-col sm:flex-row gap-3 p-2 bg-slate-50 rounded-2xl border border-slate-200/60">
+                <div className="flex flex-col sm:flex-row gap-3 p-2 bg-slate-800/50 rounded-2xl border border-slate-700 backdrop-blur-sm">
                   <div className="relative flex-1">
                     <MailCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
                       type="email"
                       placeholder="your@email.com"
                       className={cn(
-                        "w-full pl-12 pr-4 py-3.5 rounded-xl bg-white border transition-all text-slate-900 placeholder:text-slate-400",
+                        "w-full pl-12 pr-4 py-3.5 rounded-xl bg-slate-700 border transition-all text-white placeholder:text-slate-400",
                         "focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400",
-                        emailError ? "border-red-300 bg-red-50/50" : "border-slate-200"
+                        emailError ? "border-red-500 bg-red-900/20" : "border-slate-600"
                       )}
                       value={email}
                       onChange={(e) => {
@@ -374,7 +405,7 @@ const Hero = () => {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="h-12 sm:h-auto px-8 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
+                    className="h-12 sm:h-auto px-8 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
                   >
                     {isSubmitting ? (
                       <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
@@ -382,7 +413,7 @@ const Hero = () => {
                       </motion.div>
                     ) : (
                       <span className="flex items-center gap-2">
-                        Get started <ArrowRight className="w-4 h-4" />
+                        Start Applying Now <ArrowRight className="w-4 h-4" />
                       </span>
                     )}
                   </Button>
@@ -390,12 +421,12 @@ const Hero = () => {
               </form>
               
               {emailError && (
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-sm text-red-500 font-medium">
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-sm text-red-400 font-medium">
                   {emailError}
                 </motion.p>
               )}
 
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-400">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
                 <span className="flex items-center gap-1.5"><Lock className="w-4 h-4" /> No credit card</span>
                 <span className="flex items-center gap-1.5"><Shield className="w-4 h-4" /> Secure</span>
                 <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> 2-min setup</span>
@@ -405,7 +436,7 @@ const Hero = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="w-full max-w-md bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-200 p-6 text-left shadow-xl"
+              className="w-full max-w-md bg-slate-800/50 border border-slate-700 p-6 text-left shadow-xl backdrop-blur-sm rounded-2xl"
             >
               <div className="flex items-start gap-4 mb-4">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
@@ -413,39 +444,40 @@ const Hero = () => {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-0.5">Sent</p>
-                  <p className="font-semibold text-slate-900">{sentEmail}</p>
+                  <p className="font-semibold text-white">{sentEmail}</p>
                 </div>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed mb-4">
+              <p className="text-sm text-slate-400 leading-relaxed mb-4">
                 Check your inbox for the magic link. Click it to start your AI job search.
               </p>
-              <button onClick={() => setSentEmail(null)} className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+              <button onClick={() => setSentEmail(null)} className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors">
                 Use different email
               </button>
             </motion.div>
           )}
 
+          {/* Live activity feed overlay */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-16 w-full max-w-3xl"
+            className="mt-16 w-full max-w-4xl"
           >
             <div className="relative">
-              <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 overflow-hidden shadow-2xl shadow-slate-200/50">
-                <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-100 bg-slate-50/50">
-                  <div className="w-3 h-3 rounded-full bg-slate-300" />
-                  <div className="w-3 h-3 rounded-full bg-slate-300" />
-                  <div className="w-3 h-3 rounded-full bg-slate-300" />
-                  <span className="ml-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Application Dashboard</span>
+              <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-slate-700 overflow-hidden shadow-2xl shadow-black/40">
+                <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-700 bg-slate-900/50">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span className="ml-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Live Applications Dashboard</span>
                 </div>
                 
                 <div className="p-5 sm:p-6 space-y-2.5">
                   {[
-                    { icon: Upload, label: "Resume parsed", detail: "47 skills extracted", color: "bg-emerald-50 text-emerald-600" },
-                    { icon: Search, label: "Scanning 2,847 jobs", detail: "Matching your profile...", color: "bg-blue-50 text-blue-600" },
-                    { icon: Send, label: "52 applications sent", detail: "Custom-tailored each one", color: "bg-violet-50 text-violet-600" },
-                    { icon: Bell, label: "2 interview requests", detail: "Recruiters responded!", color: "bg-amber-50 text-amber-600" },
+                    { icon: Upload, label: "Resume parsed", detail: "47 skills extracted", color: "bg-emerald-900/30 text-emerald-400" },
+                    { icon: Search, label: "Scanning 2,847 jobs", detail: "Matching your profile...", color: "bg-blue-900/30 text-blue-400" },
+                    { icon: Send, label: "52 applications sent", detail: "Custom-tailored each one", color: "bg-violet-900/30 text-violet-400" },
+                    { icon: Bell, label: "2 interview requests", detail: "Recruiters responded!", color: "bg-amber-900/30 text-amber-400" },
                   ].map((step, i) => (
                     <motion.div
                       key={i}
@@ -458,20 +490,20 @@ const Hero = () => {
                         <step.icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900">{step.label}</p>
-                        <p className="text-xs text-slate-500">{step.detail}</p>
+                        <p className="text-sm font-medium text-white">{step.label}</p>
+                        <p className="text-xs text-slate-400">{step.detail}</p>
                       </div>
-                      {i !== 1 && <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
+                      {i !== 1 && <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
                     </motion.div>
                   ))}
                 </div>
                 
-                <div className="px-5 sm:px-6 py-3 border-t border-slate-100 bg-slate-50/50">
-                  <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1.5">
+                <div className="px-5 sm:px-6 py-3 border-t border-slate-700 bg-slate-900/50">
+                  <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
                     <span>Today's Progress</span>
                     <span>92%</span>
                   </div>
-                  <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full"
                       initial={{ width: "0%" }}
@@ -481,7 +513,7 @@ const Hero = () => {
                   </div>
                 </div>
               </div>
-              <div className="absolute -bottom-16 left-0 right-0 h-20 bg-gradient-to-b from-transparent via-slate-50/60 to-slate-50 pointer-events-none rounded-b-3xl" />
+              <div className="absolute -bottom-16 left-0 right-0 h-20 bg-gradient-to-b from-transparent via-slate-900/60 to-slate-900 pointer-events-none rounded-b-3xl" />
             </div>
           </motion.div>
         </div>
@@ -492,8 +524,8 @@ const Hero = () => {
 
 const LiveActivitySection = () => {
   return (
-    <section className="py-20 sm:py-24 bg-slate-50 relative overflow-hidden -mt-16 pt-32">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-slate-50 to-white pointer-events-none" />
+    <section className="py-20 sm:py-24 bg-slate-900 relative overflow-hidden -mt-16 pt-32">
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pointer-events-none" />
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
@@ -502,13 +534,13 @@ const LiveActivitySection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-900/30 border border-blue-700 mb-6"
             >
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
               </span>
-              <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Live Activity</span>
+              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Live Activity</span>
             </motion.div>
             
             <motion.h2
@@ -516,10 +548,10 @@ const LiveActivitySection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 mb-4"
+              className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4"
             >
-              Watch it happen<br />
-              <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">in real-time</span>
+              Watch applications<br />
+              <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">roll in overnight</span>
             </motion.h2>
             
             <motion.p
@@ -527,7 +559,7 @@ const LiveActivitySection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="font-body text-lg text-slate-500 mb-8 leading-relaxed"
+              className="font-body text-lg text-slate-400 mb-8 leading-relaxed"
             >
               Every few seconds, our AI submits another tailored application. 
               This is happening right now for job seekers just like you.
@@ -541,21 +573,21 @@ const LiveActivitySection = () => {
               className="flex flex-wrap gap-6 items-center"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700">
+                  <Target className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">ATS-Optimized</p>
-                  <p className="text-xs text-slate-500">Passes every filter</p>
+                  <p className="font-semibold text-white">ATS-Optimized</p>
+                  <p className="text-xs text-slate-400">Passes every filter</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center">
-                  <Award className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700">
+                  <Award className="w-5 h-5 text-violet-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">Human Quality</p>
-                  <p className="text-xs text-slate-500">Professional output</p>
+                  <p className="font-semibold text-white">Human Quality</p>
+                  <p className="text-xs text-slate-400">Professional output</p>
                 </div>
               </div>
             </motion.div>
@@ -566,7 +598,7 @@ const LiveActivitySection = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xl shadow-slate-200/50"
+            className="bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-700 p-6 shadow-xl shadow-black/40"
           >
             <LiveActivityStream />
           </motion.div>
@@ -585,8 +617,8 @@ const Onboarding = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-white relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-slate-50 to-slate-100 rounded-full blur-3xl opacity-60 pointer-events-none" />
+    <section id="how-it-works" className="py-24 sm:py-32 bg-slate-800 relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-slate-700 to-slate-900 rounded-full blur-3xl opacity-40 pointer-events-none" />
 
       <div className="container mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
         <motion.div
@@ -596,16 +628,16 @@ const Onboarding = () => {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-16 lg:mb-20"
         >
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-            Four steps to <span className="text-blue-600">more interviews</span>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4">
+            Four steps to <span className="text-blue-400">more interviews</span>
           </h2>
-          <p className="font-body text-lg text-slate-500 max-w-xl mx-auto">
+          <p className="font-body text-lg text-slate-400 max-w-xl mx-auto">
             Set up once, let us handle the rest. You only show up for the wins.
           </p>
         </motion.div>
 
         <div className="relative max-w-4xl mx-auto">
-          <div className="absolute top-12 left-0 right-0 h-px bg-slate-200 hidden lg:block" />
+          <div className="absolute top-12 left-0 right-0 h-px bg-slate-700 hidden lg:block" />
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {steps.map((step, i) => (
@@ -619,15 +651,15 @@ const Onboarding = () => {
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="relative mb-5">
-                    <div className="w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-shadow duration-300">
+                    <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-shadow duration-300 border border-slate-700">
                       <step.icon className="w-8 h-8 text-white" />
                     </div>
                     <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white shadow-lg">
                       {i + 1}
                     </div>
                   </div>
-                  <h3 className="font-display text-lg font-bold text-slate-900 mb-1">{step.title}</h3>
-                  <p className="font-body text-sm text-slate-500 leading-relaxed">{step.desc}</p>
+                  <h3 className="font-display text-lg font-bold text-white mb-1">{step.title}</h3>
+                  <p className="font-body text-sm text-slate-400 leading-relaxed">{step.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -641,9 +673,9 @@ const Onboarding = () => {
           transition={{ delay: 0.5, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="mt-16 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200">
-            <Clock className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-slate-600">Average setup time: <span className="font-bold text-slate-900">2 minutes</span></span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-sm">
+            <Clock className="w-4 h-4 text-blue-400" />
+            <span className="text-sm font-medium text-slate-300">Average setup time: <span className="font-bold text-white">2 minutes</span></span>
           </div>
         </motion.div>
       </div>

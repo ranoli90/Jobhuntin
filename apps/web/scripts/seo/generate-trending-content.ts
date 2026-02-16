@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const API_KEY = process.env.LLM_API_KEY || '';
 const API_BASE = process.env.LLM_API_BASE || 'https://openrouter.ai/api/v1';
-const MODEL = process.env.LLM_MODEL || 'google/gemini-2.0-flash';
+const MODEL = process.env.LLM_MODEL || 'google/gemini-2.0-flash:free';
 
 const TOPIC = process.argv[2] || 'AI job market trends';
 
