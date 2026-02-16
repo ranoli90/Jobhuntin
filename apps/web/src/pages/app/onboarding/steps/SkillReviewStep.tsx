@@ -103,11 +103,20 @@ function AddSkillForm({ onAdd, onCancel }: AddSkillFormProps) {
         e.preventDefault();
         if (!skillName.trim()) return;
 
+        // Parse years, ensuring we don't get NaN
+        let yearsValue: number | null = null;
+        if (years.trim()) {
+            const parsed = parseFloat(years);
+            if (!isNaN(parsed) && parsed >= 0) {
+                yearsValue = parsed;
+            }
+        }
+
         const newSkill: RichSkill = {
             skill: skillName.trim(),
             confidence: 0.5,
-            years_actual: years ? parseFloat(years) : null,
-            context: context.trim(),
+            years_actual: yearsValue,
+            context: context.trim().slice(0, 200), // Limit context length
             last_used: null,
             verified: false,
             related_to: [],

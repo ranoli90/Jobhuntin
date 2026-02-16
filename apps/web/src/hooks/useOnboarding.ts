@@ -21,10 +21,16 @@ export function useOnboarding() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const state: OnboardingState = JSON.parse(stored);
-        return state.currentStep || 0;
+        // Validate the parsed step is a valid number
+        const step = state.currentStep;
+        return typeof step === 'number' && step >= 0 ? step : 0;
       }
-    } catch {
-      // ignore
+    } catch (e) {
+      // Clear corrupted storage
+      console.warn('[useOnboarding] Corrupted storage, resetting:', e);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {}
     }
     return 0;
   });
@@ -34,10 +40,10 @@ export function useOnboarding() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const state: OnboardingState = JSON.parse(stored);
-        return state.completedSteps || [];
+        return Array.isArray(state.completedSteps) ? state.completedSteps : [];
       }
     } catch {
-      // ignore
+      // Silently fail, use default
     }
     return [];
   });
@@ -47,10 +53,10 @@ export function useOnboarding() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const state: OnboardingState = JSON.parse(stored);
-        return state.formData || {};
+        return state.formData && typeof state.formData === 'object' ? state.formData : {};
       }
     } catch {
-      // ignore
+      // Silently fail, use default
     }
     return {};
   });
@@ -107,10 +113,10 @@ export function useOnboarding() {
     return STEPS;
   }, [abVariant]);
 
-  const currentStepData = currentSteps[currentStep];
+  const currentStepData = currentSteps[currentStep] ?? currentSteps[0];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === currentSteps.length - 1;
-  const progress = ((currentStep + 1) / currentSteps.length) * 100;
+  const progress = currentSteps.length > 0 ? ((currentStep + 1) / currentSteps.length) * 100 : 0;
 
   const nextStep = useCallback(() => {
     const totalSteps = currentSteps.length;

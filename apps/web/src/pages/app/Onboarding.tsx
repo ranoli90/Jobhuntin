@@ -56,18 +56,29 @@ export default function Onboarding() {
     }
 
     // Check battery status if available
+    let batteryObj: any = null;
+    let handleBatteryChange: (() => void) | null = null;
+    
     if ('getBattery' in navigator) {
       (navigator as any).getBattery().then((battery: any) => {
+        batteryObj = battery;
+        handleBatteryChange = () => {
+          setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
+        };
+        
         setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
-
-        battery.addEventListener('levelchange', () => {
-          setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
-        });
-        battery.addEventListener('chargingchange', () => {
-          setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
-        });
+        battery.addEventListener('levelchange', handleBatteryChange);
+        battery.addEventListener('chargingchange', handleBatteryChange);
       });
     }
+
+    return () => {
+      // Cleanup battery event listeners
+      if (batteryObj && handleBatteryChange) {
+        batteryObj.removeEventListener('levelchange', handleBatteryChange);
+        batteryObj.removeEventListener('chargingchange', handleBatteryChange);
+      }
+    };
   }, []);
 
   const shouldReduceMotion = useReducedMotion() || isLowPowerMode;
@@ -398,22 +409,28 @@ const handleConfirmParsing = () => {
   };
 
   const handleSaveContact = async () => {
-    try {
-      setIsSavingContact(true);
-      const errors: Record<string, string> = {};
-      if (!contactInfo.first_name?.trim()) errors.first_name = "Required";
-      if (!contactInfo.last_name?.trim()) errors.last_name = "Required";
+    // Validate first before setting loading state
+    const errors: Record<string, string> = {};
+    if (!contactInfo.first_name?.trim()) errors.first_name = "Required";
+    if (!contactInfo.last_name?.trim()) errors.last_name = "Required";
 
-      const emailRes = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!contactInfo.email?.trim()) {
-        errors.email = "Required";
-      } else if (!emailRes.test(contactInfo.email.trim())) {
-        errors.email = "Invalid format";
-      }
+    const emailRes = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!contactInfo.email?.trim()) {
+      errors.email = "Required";
+    } else if (!emailRes.test(contactInfo.email.trim())) {
+      errors.email = "Invalid format";
+    }
 
+    if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      if (Object.keys(errors).length > 0) return;
+      return;
+    }
 
+    // Clear any previous errors and set loading
+    setFormErrors({});
+    setIsSavingContact(true);
+    
+    try {
       const trimmedContact = {
         ...contactInfo,
         first_name: contactInfo.first_name.trim(),
@@ -426,9 +443,15 @@ const handleConfirmParsing = () => {
         contact: trimmedContact,
         full_name: `${trimmedContact.first_name} ${trimmedContact.last_name}`
       });
+      pushToast({ title: "Contact info saved!", tone: "success" });
       nextStep();
-    } catch (err) {
-      pushToast({ title: "Failed to save contact info.", tone: "error" });
+    } catch (err: any) {
+      console.error('[Onboarding] Failed to save contact:', err);
+      pushToast({ 
+        title: "Failed to save contact info", 
+        description: err?.message || "Please try again", 
+        tone: "error" 
+      });
     } finally {
       setIsSavingContact(false);
     }
@@ -453,15 +476,31 @@ const handleConfirmParsing = () => {
   const completeness = calculateCompleteness();
 
   const handleSavePreferences = async () => {
-    try {
-      setIsSavingPreferences(true);
-      const errors: Record<string, string> = {};
-      if (!preferences.location?.trim()) errors.location = "Required";
-      if (!preferences.role_type?.trim()) errors.role_type = "Required";
+    // Validate first before setting loading state
+    const errors: Record<string, string> = {};
+    if (!preferences.location?.trim()) errors.location = "Required";
+    if (!preferences.role_type?.trim()) errors.role_type = "Required";
 
+    // Salary validation - must be a positive number if provided
+    if (preferences.salary_min?.trim()) {
+      const salaryNum = parseInt(preferences.salary_min.trim());
+      if (isNaN(salaryNum) || salaryNum < 0) {
+        errors.salary_min = "Must be a valid number";
+      } else if (salaryNum > 10000000) {
+        errors.salary_min = "Please enter a reasonable value";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      if (Object.keys(errors).length > 0) return;
+      return;
+    }
 
+    // Clear any previous errors and set loading
+    setFormErrors({});
+    setIsSavingPreferences(true);
+    
+    try {
       const trimmedPrefs = {
         ...preferences,
         location: preferences.location.trim(),
@@ -483,9 +522,15 @@ const handleConfirmParsing = () => {
           }
         });
       }
+      pushToast({ title: "Preferences saved!", tone: "success" });
       nextStep();
-    } catch (err) {
-      pushToast({ title: "Failed to save preferences.", tone: "error" });
+    } catch (err: any) {
+      console.error('[Onboarding] Failed to save preferences:', err);
+      pushToast({ 
+        title: "Failed to save preferences", 
+        description: err?.message || "Please try again", 
+        tone: "error" 
+      });
     } finally {
       setIsSavingPreferences(false);
     }
@@ -498,8 +543,13 @@ const handleConfirmParsing = () => {
       resetOnboarding();
       pushToast({ title: "You're all set! Let's job hunt! 🚀", tone: "success" });
       navigate("/app/jobs");
-    } catch (err) {
-      pushToast({ title: "Almost there!", description: "Please try again.", tone: "error" });
+    } catch (err: any) {
+      console.error('[Onboarding] Failed to complete:', err);
+      pushToast({ 
+        title: "Almost there!", 
+        description: err?.message || "Something went wrong. Please try again.", 
+        tone: "error" 
+      });
     } finally {
       setIsCompleting(false);
     }

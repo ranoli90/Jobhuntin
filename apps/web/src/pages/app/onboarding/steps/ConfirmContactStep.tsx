@@ -70,6 +70,14 @@ export function ConfirmContactStep({
     
     return (
         <div>
+            {/* Screen reader error announcement */}
+            {Object.keys(formErrors).length > 0 && (
+                <div role="alert" aria-live="polite" className="sr-only">
+                    Form has {Object.keys(formErrors).length} error{Object.keys(formErrors).length > 1 ? 's' : ''}: 
+                    {Object.entries(formErrors).map(([field, msg]) => `${field}: ${msg}`).join(', ')}
+                </div>
+            )}
+            
             <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
                 <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
                     <User className="h-5 w-5 md:h-6 md:w-6" />
