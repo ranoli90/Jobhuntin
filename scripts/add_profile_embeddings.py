@@ -2,6 +2,7 @@
 """Add profile_embeddings table to Render PostgreSQL database."""
 
 import asyncio
+
 import asyncpg
 
 DATABASE_URL = "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/jobhuntin?sslmode=require"
@@ -32,8 +33,8 @@ async def run_migration():
 
         # Verify
         tables = await conn.fetch("""
-            SELECT table_name FROM information_schema.tables 
-            WHERE table_schema = 'public' 
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'public'
             AND table_name IN ('job_embeddings', 'profile_embeddings')
             ORDER BY table_name
         """)

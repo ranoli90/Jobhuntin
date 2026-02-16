@@ -171,7 +171,7 @@ class ColdStartHandler:
                 return matches
 
             query = f"""
-                SELECT 
+                SELECT
                     j.id, j.title, j.company, j.location,
                     j.required_skills, j.description
                 FROM public.jobs j
@@ -211,13 +211,13 @@ class ColdStartHandler:
 
         try:
             query = """
-                SELECT 
+                SELECT
                     j.id, j.title, j.company, j.location,
                     COUNT(a.id) AS application_count
                 FROM public.jobs j
                 LEFT JOIN public.applications a ON a.job_id = j.id
                 WHERE j.status = 'ACTIVE'
-                AND ($1::text[] IS NULL OR array_length($1, 1) IS NULL 
+                AND ($1::text[] IS NULL OR array_length($1, 1) IS NULL
                     OR j.location ILIKE ANY($1))
                 GROUP BY j.id
                 ORDER BY application_count DESC, j.created_at DESC
@@ -257,13 +257,13 @@ class ColdStartHandler:
 
         try:
             query = """
-                SELECT 
+                SELECT
                     j.id, j.title, j.company, j.location,
                     COUNT(a.id) FILTER (WHERE a.created_at > now() - interval '7 days') AS recent_apps
                 FROM public.jobs j
                 LEFT JOIN public.applications a ON a.job_id = j.id
                 WHERE j.status = 'ACTIVE'
-                AND ($1::text[] IS NULL OR array_length($1, 1) IS NULL 
+                AND ($1::text[] IS NULL OR array_length($1, 1) IS NULL
                     OR j.industry ILIKE ANY($1))
                 GROUP BY j.id
                 HAVING COUNT(a.id) FILTER (WHERE a.created_at > now() - interval '7 days') > 0
@@ -312,7 +312,7 @@ class ColdStartHandler:
                     LIMIT 100
                 ),
                 similar_applications AS (
-                    SELECT 
+                    SELECT
                         a.job_id,
                         COUNT(*) AS similar_user_count
                     FROM public.applications a
@@ -321,7 +321,7 @@ class ColdStartHandler:
                     ORDER BY similar_user_count DESC
                     LIMIT 20
                 )
-                SELECT 
+                SELECT
                     j.id, j.title, j.company, j.location,
                     sa.similar_user_count
                 FROM similar_applications sa
@@ -361,7 +361,7 @@ class ColdStartHandler:
 
         try:
             query = """
-                SELECT 
+                SELECT
                     j.id, j.title, j.company, j.location,
                     COUNT(a.id) AS application_count
                 FROM public.jobs j

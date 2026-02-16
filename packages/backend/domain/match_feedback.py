@@ -115,7 +115,7 @@ class MatchFeedbackRepo:
         """Get all feedback submitted by a user."""
         rows = await conn.fetch(
             """
-            SELECT 
+            SELECT
                 mf.id, mf.job_id, mf.rating, mf.match_score,
                 mf.feedback_text, mf.feedback_tags, mf.created_at,
                 mf.job_title, mf.company,
@@ -141,7 +141,7 @@ class MatchFeedbackRepo:
         """Get aggregate feedback statistics for a job."""
         row = await conn.fetchrow(
             """
-            SELECT 
+            SELECT
                 job_id,
                 COUNT(*) AS total_feedback,
                 SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS thumbs_up,
@@ -201,7 +201,7 @@ class MatchFeedbackRepo:
         if tenant_id:
             row = await conn.fetchrow(
                 """
-                SELECT 
+                SELECT
                     COUNT(*) AS total_feedback,
                     SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS total_thumbs_up,
                     SUM(CASE WHEN rating = -1 THEN 1 ELSE 0 END) AS total_thumbs_down,
@@ -218,7 +218,7 @@ class MatchFeedbackRepo:
         else:
             row = await conn.fetchrow(
                 """
-                SELECT 
+                SELECT
                     COUNT(*) AS total_feedback,
                     SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS total_thumbs_up,
                     SUM(CASE WHEN rating = -1 THEN 1 ELSE 0 END) AS total_thumbs_down,

@@ -595,7 +595,7 @@ class CoverLetterRepo:
         row = await conn.fetchrow(
             """
             INSERT INTO public.cover_letters (
-                user_id, job_id, content, template_id, tone, 
+                user_id, job_id, content, template_id, tone,
                 quality_score, suggestions
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
@@ -673,8 +673,8 @@ class JobMatchCacheRepo:
             """
             INSERT INTO public.job_match_cache (job_id, profile_hash, score_data)
             VALUES ($1, $2, $3::jsonb)
-            ON CONFLICT (job_id, profile_hash) 
-            DO UPDATE SET 
+            ON CONFLICT (job_id, profile_hash)
+            DO UPDATE SET
                 score_data = EXCLUDED.score_data,
                 created_at = now()
             """,

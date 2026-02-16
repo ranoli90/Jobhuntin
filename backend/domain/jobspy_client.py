@@ -6,16 +6,16 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import json
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime
 from functools import partial
 from typing import Any
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
+
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.jobspy")
@@ -179,7 +179,6 @@ class JobSpyClient:
 
     def _normalize_job(self, row) -> dict[str, Any] | None:
         """Normalize a single job row to database schema."""
-        import pandas as pd
         import math
         
         def clean_val(v):

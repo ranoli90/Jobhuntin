@@ -12,7 +12,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { pushToast } from "../../lib/toast";
 import { api } from "../../lib/api";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { CacheService } from "../../lib/cache";
+import { CacheService } from "../../lib/redis";
 import { Skeleton, OnboardingSkeleton } from "../../components/ui/Skeleton";
 import { checkEmailTypo } from "../../lib/emailUtils";
 import { ErrorBoundary } from "../../components/ErrorBoundary";

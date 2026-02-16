@@ -21,7 +21,6 @@ from backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
 from backend.llm.contracts import ResumeParseResponse_V2, build_resume_parse_prompt_v2
 from shared.metrics import incr, observe
-from shared.storage import StorageService, get_storage_service
 
 logger = get_logger("sorce.resume")
 
@@ -194,7 +193,6 @@ async def process_resume_upload(
     5. DB Upsert
     """
     # 1. Upload to storage (supports Render Disk, S3, or local)
-    from shared.storage import StorageService
 
     s = get_settings()
     storage_path = f"{user_id}/{uuid.uuid4()}.pdf"

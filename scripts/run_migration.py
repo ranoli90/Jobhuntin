@@ -2,6 +2,7 @@
 """Run SQL migration against Render PostgreSQL database."""
 
 import asyncio
+
 import asyncpg
 
 DATABASE_URL = "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/jobhuntin?sslmode=require"
@@ -230,8 +231,8 @@ async def run_migration():
         print("=" * 50)
 
         tables = await conn.fetch("""
-            SELECT table_name FROM information_schema.tables 
-            WHERE table_schema = 'public' 
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'public'
             AND table_name IN ('user_skills', 'work_style_profiles', 'job_signals', 'deep_profiles', 'job_embeddings')
             ORDER BY table_name
         """)
@@ -241,8 +242,8 @@ async def run_migration():
             print(f"  - {t['table_name']}")
 
         columns = await conn.fetch("""
-            SELECT column_name FROM information_schema.columns 
-            WHERE table_name = 'users' 
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name = 'users'
             AND column_name IN ('profile_completeness', 'has_completed_onboarding')
             ORDER BY column_name
         """)

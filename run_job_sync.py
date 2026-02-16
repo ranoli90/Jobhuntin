@@ -1,8 +1,8 @@
 """Run a full job sync to populate the database."""
 import asyncio
-import sys
-import os
 import json
+import os
+import sys
 
 # Must add paths BEFORE any imports
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,8 +18,8 @@ DATABASE_URL = "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg
 def normalize_job(row) -> dict:
     """Normalize a job row from JobSpy DataFrame."""
     import hashlib
-    import pandas as pd
     import math
+
     
     def clean_val(v):
         """Clean a value, handling NaN."""
@@ -187,7 +187,7 @@ async def sync_jobs():
     
     # Check final count
     total_jobs = await conn.fetchval("SELECT COUNT(*) FROM public.jobs")
-    print(f"\n=== Final Results ===")
+    print("\n=== Final Results ===")
     print(f"Total jobs in DB: {total_jobs}")
     print(f"New jobs added: {total_new}")
     print(f"Jobs updated: {total_updated}")

@@ -11,8 +11,6 @@ These endpoints provide AI-powered suggestions for:
 from __future__ import annotations
 
 import hashlib
-import json
-from datetime import datetime
 from typing import Any
 
 import asyncpg
@@ -21,10 +19,9 @@ from pydantic import BaseModel, Field
 from shared.ai_validation import (
     validate_and_sanitize_ai_input,
 )
-from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
+from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
 from backend.llm.contracts import (
     JobMatchScore_V1,

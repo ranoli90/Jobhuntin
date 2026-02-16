@@ -8,7 +8,6 @@ separating it from the API endpoints for better maintainability.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -284,7 +283,7 @@ class AIService:
             # This should be implemented based on your job repository
             query = """
                 SELECT id, title, description, requirements, location, salary_range
-                FROM jobs 
+                FROM jobs
                 WHERE id = $1
             """
             row = await self.db.fetchrow(query, job_id)

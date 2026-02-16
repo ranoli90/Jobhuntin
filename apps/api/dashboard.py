@@ -301,7 +301,7 @@ async def get_tenant_activity(
     async with db.acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT 
+            SELECT
                 t.id as tenant_id,
                 t.name as tenant_name,
                 t.plan,
@@ -313,7 +313,7 @@ async def get_tenant_activity(
                     WHERE a.created_at > now() - interval '24 hours'
                 ) as requests_last_day,
                 COUNT(a.id) FILTER (
-                    WHERE a.status = 'FAILED' 
+                    WHERE a.status = 'FAILED'
                     AND a.updated_at > now() - interval '24 hours'
                 ) as error_count,
                 MAX(a.updated_at) as last_activity
@@ -369,8 +369,8 @@ async def get_performance_trends(
 
     async with db.acquire() as conn:
         rows = await conn.fetch(f"""
-            SELECT 
-                date_trunc('minute', created_at) - 
+            SELECT
+                date_trunc('minute', created_at) -
                 (EXTRACT(minute FROM created_at)::int % 5) * interval '1 minute' as bucket,
                 COUNT(*) as requests,
                 AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) * 1000) as avg_latency_ms,

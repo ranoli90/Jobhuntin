@@ -977,7 +977,7 @@ class FormAgent:
                 # Insert into DLQ
                 await conn.execute(
                     """
-                    INSERT INTO public.job_dead_letter_queue 
+                    INSERT INTO public.job_dead_letter_queue
                     (application_id, tenant_id, failure_reason, attempt_count, last_error, payload)
                     VALUES ($1, $2, $3, $4, $5, $6)
                 """,

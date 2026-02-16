@@ -166,7 +166,7 @@ async def get_job_sources(db_pool: asyncpg.Pool) -> list[dict[str, Any]]:
     async with db_pool.acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT 
+            SELECT
                 source,
                 COUNT(*) AS total_jobs,
                 COUNT(*) FILTER (WHERE is_remote = TRUE) AS remote_jobs,

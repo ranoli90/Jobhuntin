@@ -164,14 +164,14 @@ class PgVectorBackend(VectorDBBackend):
             """)
             # Create vector index for similarity search
             await self._conn.execute(f"""
-                CREATE INDEX IF NOT EXISTS {table_name}_embedding_idx 
-                ON {table_name} 
+                CREATE INDEX IF NOT EXISTS {table_name}_embedding_idx
+                ON {table_name}
                 USING ivfflat (embedding vector_cosine_ops)
                 WITH (lists = 100)
             """)
             # Create namespace index
             await self._conn.execute(f"""
-                CREATE INDEX IF NOT EXISTS {table_name}_namespace_idx 
+                CREATE INDEX IF NOT EXISTS {table_name}_namespace_idx
                 ON {table_name} (namespace)
             """)
         else:
@@ -187,7 +187,7 @@ class PgVectorBackend(VectorDBBackend):
                 )
             """)
             await self._conn.execute(f"""
-                CREATE INDEX IF NOT EXISTS {table_name}_namespace_idx 
+                CREATE INDEX IF NOT EXISTS {table_name}_namespace_idx
                 ON {table_name} (namespace)
             """)
 
@@ -279,7 +279,7 @@ class PgVectorBackend(VectorDBBackend):
                     param_idx += 1
 
             query = f"""
-                SELECT 
+                SELECT
                     id,
                     1 - (embedding <=> $1::vector) as score,
                     metadata

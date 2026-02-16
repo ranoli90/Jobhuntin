@@ -191,7 +191,7 @@ class CostMonitor:
         """Get cost summary for a period."""
         rows = await self.db.fetch(
             """
-            SELECT 
+            SELECT
                 provider,
                 category,
                 SUM(amount_usd) as total

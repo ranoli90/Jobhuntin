@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .work_style import WorkStyleProfile, CareerTrajectory
+from .work_style import CareerTrajectory, WorkStyleProfile
 
 
 class RichSkill(BaseModel):

@@ -605,12 +605,11 @@ async def semantic_match_job(
     This endpoint provides higher accuracy than keyword-based
     matching and matches the capabilities of ApplyPass/JobRight.
     """
+    from backend.domain.masking import strip_pii_for_llm
     from backend.domain.semantic_matching import (
         Dealbreakers,
         get_matching_service,
     )
-
-    from backend.domain.masking import strip_pii_for_llm
 
     # Strip PII from profile before processing
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
@@ -703,12 +702,11 @@ async def semantic_match_batch(
     Processes up to 20 jobs in a single request for efficiency.
     Returns match scores with explanations for each job.
     """
+    from backend.domain.masking import strip_pii_for_llm
     from backend.domain.semantic_matching import (
         Dealbreakers,
         get_matching_service,
     )
-
-    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
 

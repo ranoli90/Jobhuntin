@@ -1,6 +1,6 @@
 """Test JobSpy integration directly."""
-import asyncio
 from jobspy import scrape_jobs
+
 
 def test_jobspy_direct():
     print("Testing JobSpy direct call...")

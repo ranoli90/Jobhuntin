@@ -139,7 +139,7 @@ All endpoints require Bearer token authentication via the Authorization header.
 
 ## Rate Limits
 - FREE tier: 60 requests/minute
-- PRO tier: 200 requests/minute  
+- PRO tier: 200 requests/minute
 - TEAM tier: 500 requests/minute
 - ENTERPRISE tier: Unlimited
 
@@ -221,9 +221,9 @@ async def rate_limiting_middleware(request: Request, call_next):
                     try:
                         async with _pool_manager.pool.acquire() as conn:
                             row = await conn.fetchrow(
-                                """SELECT p.tenant_id, t.plan 
-                                   FROM public.profiles p 
-                                   LEFT JOIN public.tenants t ON t.id = p.tenant_id 
+                                """SELECT p.tenant_id, t.plan
+                                   FROM public.profiles p
+                                   LEFT JOIN public.tenants t ON t.id = p.tenant_id
                                    WHERE p.user_id = $1""",
                                 user_id,
                             )
@@ -827,7 +827,7 @@ async def get_user_skills(
     """Get user's rich skills with confidence and metadata."""
     async with db.acquire() as conn:
         rows = await conn.fetch(
-            """SELECT skill, confidence, years_actual, context, last_used, verified, 
+            """SELECT skill, confidence, years_actual, context, last_used, verified,
                       related_to, source, project_count, created_at, updated_at
                FROM public.user_skills WHERE user_id = $1
                ORDER BY confidence DESC, skill""",
@@ -861,8 +861,8 @@ async def save_user_skills(
         for skill in body.skills:
             try:
                 await conn.execute(
-                    """INSERT INTO public.user_skills 
-                       (user_id, skill, confidence, years_actual, context, last_used, 
+                    """INSERT INTO public.user_skills
+                       (user_id, skill, confidence, years_actual, context, last_used,
                         verified, related_to, source, project_count)
                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
                     user_id,
@@ -885,9 +885,9 @@ async def save_user_skills(
 
         # Update profile completeness
         await conn.execute(
-            """UPDATE public.users SET profile_completeness = 
-               COALESCE(profile_completeness, 0) + 
-               CASE WHEN (SELECT COUNT(*) FROM public.user_skills WHERE user_id = $1) >= 3 
+            """UPDATE public.users SET profile_completeness =
+               COALESCE(profile_completeness, 0) +
+               CASE WHEN (SELECT COUNT(*) FROM public.user_skills WHERE user_id = $1) >= 3
                     THEN 20 ELSE 10 END
                WHERE id = $1""",
             user_id,
@@ -922,7 +922,7 @@ async def get_work_style(
     async with db.acquire() as conn:
         row = await conn.fetchrow(
             """SELECT autonomy_preference, learning_style, company_stage_preference,
-                      communication_style, pace_preference, ownership_preference, 
+                      communication_style, pace_preference, ownership_preference,
                       career_trajectory, created_at, updated_at
                FROM public.work_style_profiles WHERE user_id = $1""",
             user_id,
@@ -944,7 +944,7 @@ async def save_work_style(
 
     async with db.acquire() as conn:
         await conn.execute(
-            """INSERT INTO public.work_style_profiles 
+            """INSERT INTO public.work_style_profiles
                (user_id, autonomy_preference, learning_style, company_stage_preference,
                 communication_style, pace_preference, ownership_preference, career_trajectory)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -969,7 +969,7 @@ async def save_work_style(
 
         # Update profile completeness
         await conn.execute(
-            """UPDATE public.users SET profile_completeness = 
+            """UPDATE public.users SET profile_completeness =
                COALESCE(profile_completeness, 0) + 20
                WHERE id = $1""",
             user_id,

@@ -8,10 +8,10 @@ enabling horizontal scaling of read operations and improved performance.
 from __future__ import annotations
 
 import asyncio
-import random
 from typing import Any, Dict, List, Optional, Union
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe

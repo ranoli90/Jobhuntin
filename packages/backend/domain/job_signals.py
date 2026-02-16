@@ -8,12 +8,12 @@ two-way compatibility matching between candidates and jobs.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from .work_style import WorkStyleProfile, CareerTrajectory
+    pass
 
 
 class CompanyStage(str, Enum):

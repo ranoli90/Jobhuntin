@@ -176,9 +176,9 @@ async def start_campaign(
             # This avoids N round-trips and ensures atomicity without locking for too long
             await txn_conn.execute(
                 """
-                INSERT INTO public.applications 
+                INSERT INTO public.applications
                     (user_id, job_id, tenant_id, blueprint_key, status, priority_score)
-                SELECT 
+                SELECT
                     $1, id, $3, $4, 'QUEUED', $5
                 FROM public.jobs
                 WHERE (tenant_id = $3 OR tenant_id IS NULL)

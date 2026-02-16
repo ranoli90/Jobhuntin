@@ -476,7 +476,7 @@ class SemanticMatchingService:
         }
 
         if (trajectory, growth) in good_matches:
-            return 0.7, f"Role offers growth toward your trajectory"
+            return 0.7, "Role offers growth toward your trajectory"
 
         # Limited growth is bad for ambitious trajectories
         if growth == "limited":

@@ -7,16 +7,15 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from dataclasses import dataclass
 from typing import Any
 
 import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
-from shared.metrics import incr, observe
 
 from backend.domain.jobspy_client import JobSpyClient, JobSpyError
+from shared.metrics import incr
 
 logger = get_logger("sorce.job_sync")
 
@@ -348,7 +347,7 @@ class JobSyncService:
                     """
                     SELECT search_term, location FROM public.popular_searches
                     WHERE is_active = TRUE
-                      AND (last_synced_at IS NULL 
+                      AND (last_synced_at IS NULL
                            OR last_synced_at < now() - interval '4 hours')
                     ORDER BY priority DESC, search_count DESC
                     LIMIT 15
@@ -372,7 +371,7 @@ class JobSyncService:
         async with self.db_pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
-                INSERT INTO public.job_sync_runs 
+                INSERT INTO public.job_sync_runs
                     (source, search_term, location, status, started_at)
                 VALUES ($1, $2, $3, 'running', now())
                 RETURNING id

@@ -7,13 +7,12 @@ ensure fair usage, and protect against DDoS attacks.
 
 from __future__ import annotations
 
-import asyncio
 import time
-from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from shared.redis_client import get_redis
 from shared.logging_config import get_logger
+from shared.redis_client import get_redis
+
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.ai_rate_limiting")

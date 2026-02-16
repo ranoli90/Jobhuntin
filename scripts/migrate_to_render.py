@@ -33,7 +33,7 @@ async def migrate_data():
 
             # Get list of tables to migrate
             tables = await src_conn.fetch(
-                """SELECT table_name FROM information_schema.tables 
+                """SELECT table_name FROM information_schema.tables
                    WHERE table_schema = 'public' AND table_type = 'BASE TABLE'"""
             )
 
