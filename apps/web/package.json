@@ -23,6 +23,7 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
     "@tanstack/react-query": "^5.24.0",
+    "@types/redis": "^4.0.10",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
@@ -37,6 +38,7 @@
     "react-hook-form": "^7.71.1",
     "react-router-dom": "^6.30.3",
     "react-syntax-highlighter": "^15.5.0",
+    "redis": "^5.10.0",
     "rss-parser": "^3.13.0",
     "tailwind-merge": "^2.2.0",
     "zod": "^3.22.4"
@@ -48,7 +50,7 @@
     "@types/canvas-confetti": "^1.6.8",
     "@types/node": "^20.19.33",
     "@types/pg": "^8.16.0",
-"@types/react": "18.2.43",
+    "@types/react": "18.2.43",
     "@types/react-dom": "18.2.17",
     "@types/react-syntax-highlighter": "^15.5.11",
     "@types/testing-library__jest-dom": "^5.14.9",

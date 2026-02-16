@@ -36,7 +36,9 @@ services:
     startCommand: python -m apps.api.main
     envVars:
       - key: DATABASE_URL
-        value: postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g
+        sync: false  # Set in Render dashboard - NEVER hardcode credentials
+      - key: DATABASE_READ_URL
+        sync: false  # Set in Render dashboard for read replicas
       - key: LLM_API_KEY
         sync: false  # OpenRouter API Key for free NVIDIA models
       - key: LLM_API_BASE
@@ -55,6 +57,8 @@ services:
         sync: false  # Set in Render dashboard
       - key: WEBHOOK_SIGNING_SECRET
         sync: false  # Set in Render dashboard
+      - key: REDIS_URL
+        sync: false  # Set in Render dashboard for caching
     healthCheckPath: /healthz
     autoDeploy: true
     
@@ -80,7 +84,9 @@ services:
       - key: LLM_MODEL
         value: google/gemini-2.0-flash  # Best value: $0.10/1M input, $0.40/1M output
       - key: DATABASE_URL
-        sync: false  # For progress tracking
+        sync: false  # For progress tracking - NEVER hardcode
+      - key: REDIS_URL
+        sync: false  # For caching SEO results
     autoDeploy: true
 
   # Background Worker (Auto-Apply Agent)
@@ -91,7 +97,9 @@ services:
     startCommand: python -m apps.worker.scaling --instances 2
     envVars:
       - key: DATABASE_URL
-        value: postgresql://dpg-d66ck524d50c73bas62g-a:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/dpg-d66ck524d50c73bas62g
+        sync: false  # Set in Render dashboard - NEVER hardcode credentials
+      - key: DATABASE_READ_URL
+        sync: false  # Set in Render dashboard for read operations
       - key: LLM_API_KEY
         sync: false  # OpenRouter API Key for free NVIDIA models
       - key: LLM_API_BASE
@@ -112,6 +120,8 @@ services:
         sync: false  # Set in Render dashboard
       - key: WEBHOOK_SIGNING_SECRET
         sync: false  # Set in Render dashboard
+      - key: REDIS_URL
+        sync: false  # For caching worker results
     autoDeploy: true
 
 # Environment Variables Setup Instructions:

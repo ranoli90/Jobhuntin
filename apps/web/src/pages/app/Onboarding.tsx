@@ -12,6 +12,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { pushToast } from "../../lib/toast";
 import { api } from "../../lib/api";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { CacheService } from "../../lib/cache";
 import { Skeleton, OnboardingSkeleton } from "../../components/ui/Skeleton";
 import { checkEmailTypo } from "../../lib/emailUtils";
 import { ErrorBoundary } from "../../components/ErrorBoundary";
@@ -48,6 +49,7 @@ export default function Onboarding() {
   const { profile, loading, uploadResume, savePreferences, completeOnboarding, updateProfile } = useProfile();
   const aiSuggestions = useAISuggestions();
   const [isLowPowerMode, setIsLowPowerMode] = React.useState(false);
+  const cacheService = React.useMemo(() => CacheService.getInstance(), []);
 
   React.useEffect(() => {
     // Check for save-data preference
@@ -80,6 +82,48 @@ export default function Onboarding() {
       }
     };
   }, []);
+
+  // Load cached data on component mount
+  React.useEffect(() => {
+    const loadCachedData = async () => {
+      if (profile?.id) {
+        try {
+          // Load cached resume data
+          const cachedResume = await cacheService.getParsedResume(profile.id);
+          if (cachedResume) {
+            if (import.meta.env.DEV) console.log('[Onboarding] Loading cached resume data');
+            setParsedResume({
+              title: cachedResume.title,
+              skills: cachedResume.skills,
+              years: cachedResume.years,
+              summary: cachedResume.summary,
+              headline: cachedResume.headline,
+            });
+            setParsedProfile(cachedResume.parsedProfile);
+            setRichSkills(cachedResume.richSkills || []);
+          }
+
+          // Load cached skills
+          const cachedSkills = await cacheService.getSkills(profile.id);
+          if (cachedSkills) {
+            if (import.meta.env.DEV) console.log('[Onboarding] Loading cached skills');
+            setRichSkills(cachedSkills);
+          }
+
+          // Load cached preferences
+          const cachedPrefs = await cacheService.getUserPreferences(profile.id);
+          if (cachedPrefs) {
+            if (import.meta.env.DEV) console.log('[Onboarding] Loading cached preferences');
+            setPreferences(cachedPrefs);
+          }
+        } catch (error) {
+          if (import.meta.env.DEV) console.error('[Onboarding] Error loading cached data:', error);
+        }
+      }
+    };
+
+    loadCachedData();
+  }, [profile?.id, cacheService]);
 
   const shouldReduceMotion = useReducedMotion() || isLowPowerMode;
 
@@ -354,17 +398,16 @@ const handleResumeUpload = async () => {
         const p = data.parsed_profile;
         if (import.meta.env.DEV) console.log('[Onboarding] Parsed profile:', p);
         
-        setParsedResume({
+        // Cache parsed resume data for future use
+        const resumeData = {
           title: p.headline || (p.experience?.[0]?.title),
           skills: p.skills?.technical?.slice(0, 5) || [],
           years: p.experience?.length || 0,
           summary: p.summary,
           headline: p.headline,
-        });
-        setShowParsingPreview(true);
-
-        // Store the full parsed profile for AI suggestions
-        setParsedProfile(data.parsed_profile);
+          parsedProfile: data.parsed_profile,
+          richSkills: null
+        };
         
         // Extract rich skills from parsed profile (V2 format)
         const techSkills = p.skills?.technical || [];
@@ -388,10 +431,11 @@ const handleResumeUpload = async () => {
           }));
           if (import.meta.env.DEV) console.log('[Onboarding] Parsed rich skills:', parsedSkills);
           setRichSkills(parsedSkills);
+          resumeData.richSkills = parsedSkills;
         } else {
           // Old format - convert to rich skills with default values
           if (import.meta.env.DEV) console.log('[Onboarding] Using old format for skills');
-          setRichSkills(techSkills.map((skill: string) => ({
+          const parsedSkills = techSkills.map((skill: string) => ({
             skill,
             confidence: 0.5,
             years_actual: null,
@@ -401,8 +445,25 @@ const handleResumeUpload = async () => {
             related_to: [],
             source: "resume",
             project_count: 0,
-          })));
+          }));
+          setRichSkills(parsedSkills);
+          resumeData.richSkills = parsedSkills;
         }
+        
+        // Cache the resume data
+        await cacheService.cacheParsedResume(profile?.id || 'anonymous', resumeData);
+        
+        setParsedResume({
+          title: resumeData.title,
+          skills: resumeData.skills,
+          years: resumeData.years,
+          summary: resumeData.summary,
+          headline: resumeData.headline,
+        });
+        setShowParsingPreview(true);
+
+        // Store the full parsed profile for AI suggestions
+        setParsedProfile(data.parsed_profile);
 
         // Fetch AI suggestions in background (don't block)
         aiSuggestions.fetchAllSuggestions(
@@ -476,6 +537,9 @@ const handleConfirmParsing = () => {
     triggerHaptic('light');
     setIsSavingSkills(true);
     try {
+      // Cache skills data
+      await cacheService.cacheSkills(profile?.id || 'anonymous', richSkills);
+      
       // Save skills to backend with retry logic
       if (import.meta.env.DEV) console.log('[Onboarding] Saving skills:', richSkills);
       const result = await retryWithBackoff(() => 
@@ -616,6 +680,9 @@ const handleConfirmParsing = () => {
         salary_min: preferences.salary_min.trim(),
       };
 
+      // Cache preferences data
+      await cacheService.cacheUserPreferences(profile?.id || 'anonymous', trimmedPrefs);
+
       await savePreferences({
         ...trimmedPrefs,
         salary_min: parseInt(trimmedPrefs.salary_min) || 0
@@ -725,8 +792,8 @@ const handleConfirmParsing = () => {
               <motion.div
                 initial={shouldReduceMotion ? { width: `${progress}%` } : { width: 0 }}
                 animate={{ width: `${progress}%` }}
-                className="h-full bg-primary-600 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
-                transition={shouldReduceMotion ? undefined : { type: "spring", stiffness: 50, damping: 15 }}
+                className="h-full bg-primary-600"
+                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
               />
             </div>
           </div>
@@ -734,10 +801,11 @@ const handleConfirmParsing = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
-              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
-              transition={shouldReduceMotion ? undefined : { duration: 0.2 }}
+              initial={shouldReduceMotion ? undefined : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0 }}
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
+              className="w-full"
             >
               <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
                 {/* Profile completeness indicator - Desktop: horizontal, Mobile: compact */}
@@ -757,8 +825,8 @@ const handleConfirmParsing = () => {
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${completeness}%` }}
-                          className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                          transition={{ type: "spring", stiffness: 40, damping: 12 }}
+                          className="h-full bg-emerald-500"
+                          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
                         />
                       </div>
                       <span className="text-lg md:text-2xl font-black text-white">{completeness}%</span>

@@ -175,17 +175,17 @@ const LiveActivityStream = () => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="absolute -left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-violet-400 to-transparent rounded-full" />
+      <div className="absolute -left-2 sm:-left-4 top-0 bottom-0 w-0.5 sm:w-1 bg-gradient-to-b from-blue-400 via-violet-400 to-transparent rounded-full" />
       
-      <div className="space-y-0">
+      <div className="space-y-1 sm:space-y-2">
         {visibleActivities.map((activity, i) => {
           const isNew = activity.id === newItemId;
           return (
             <div
               key={activity.id}
               className={cn(
-                "flex items-center gap-3 py-2.5 transition-all duration-500 ease-out will-change-transform",
-                i === 0 && "bg-gradient-to-r from-blue-900/20 via-violet-900/20 to-transparent -mx-3 px-3 rounded-lg mb-1",
+                "flex items-center gap-2 sm:gap-3 py-2 sm:py-3 transition-all duration-500 ease-out will-change-transform",
+                i === 0 && "bg-gradient-to-r from-blue-900/20 via-violet-900/20 to-transparent -mx-2 sm:-mx-3 px-2 sm:px-3 rounded-lg sm:rounded-xl mb-1",
                 isNew && "animate-slide-in"
               )}
               style={{
@@ -194,21 +194,21 @@ const LiveActivityStream = () => {
               }}
             >
               <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-300",
+                "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-300",
                 i === 0 
                   ? "bg-gradient-to-br from-blue-500 to-violet-500" 
                   : "bg-slate-700"
               )}>
                 {i === 0 ? (
-                  <Send className="w-3.5 h-3.5 text-white" />
+                  <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
                 ) : (
-                  <User className="w-3.5 h-3.5 text-slate-400" />
+                  <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" />
                 )}
               </div>
               
               <div className="flex-1 min-w-0">
                 <p className={cn(
-                  "text-sm leading-snug truncate transition-opacity duration-300",
+                  "text-xs sm:text-sm leading-snug truncate transition-opacity duration-300 typography-premium text-perfect",
                   i === 0 ? "text-white font-medium" : "text-slate-400"
                 )}>
                   <span className="font-semibold">{activity.name}</span>
@@ -235,13 +235,13 @@ const LiveActivityStream = () => {
         })}
       </div>
       
-      <div className="mt-3 pt-2 border-t border-slate-700">
-        <p className="text-xs text-slate-500 text-center flex items-center justify-center gap-1.5">
+      <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-slate-700">
+        <p className="text-xs text-slate-500 text-center flex items-center justify-center gap-1.5 typography-premium text-perfect">
           <span className={cn(
             "w-1.5 h-1.5 rounded-full transition-colors duration-300",
             isPaused ? "bg-amber-400" : "bg-emerald-400 animate-pulse"
           )} />
-          {isPaused ? "Paused" : "Live"} • Updates every few seconds
+          <span className="text-xs sm:text-sm">{isPaused ? "Paused" : "Live"} • Updates every few seconds</span>
         </p>
       </div>
     </div>
@@ -328,16 +328,16 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-12"
+            className="mb-8 sm:mb-12"
           >
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full surface-premium border-organic hover-organic typography-premium">
+            <div className="inline-flex items-center gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-full surface-premium border-organic hover-organic typography-premium">
               <motion.div
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 4, repeat: Infinity, repeatDelay: 2 }}
               >
                 <Sparkles className="w-4 h-4 text-blue-400" />
               </motion.div>
-              <span className="text-sm font-medium text-slate-300 spacing-premium">
+              <span className="text-sm sm:text-base font-medium text-slate-300 spacing-premium text-perfect">
                 For those who <span className="font-semibold text-blue-400">work smarter</span>, not harder
               </span>
             </div>
@@ -348,11 +348,11 @@ const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           >
-            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-balance text-shadow-premium typography-premium spacing-premium">
-              <span className="block text-white/95 mb-2">Your next career move</span>
-              <span className="block bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-[0.9] sm:leading-[0.85] text-balance text-shadow-premium typography-premium spacing-premium text-perfect">
+              <span className="block text-white/95 mb-2 heading-large-mobile-optimized heading-large-desktop-optimized">Your next career move</span>
+              <span className="block bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong heading-large-mobile-optimized heading-large-desktop-optimized">
                 happens while you sleep
               </span>
             </h1>
@@ -363,7 +363,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="font-body text-xl sm:text-2xl text-slate-400 max-w-3xl mb-12 leading-relaxed text-balance typography-premium spacing-premium"
+            className="font-body text-lg sm:text-xl lg:text-2xl text-slate-400 max-w-3xl mb-8 sm:mb-12 leading-relaxed text-balance typography-premium spacing-premium text-perfect text-mobile-optimized"
           >
             Upload your resume once. We handle the rest—tailored applications, strategic timing, 
             and interview opportunities that align with your ambitions.
@@ -375,7 +375,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-lg mb-8"
+              className="w-full max-w-lg sm:max-w-xl mb-8 sm:mb-10"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
@@ -383,15 +383,15 @@ const Hero = () => {
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative glass-premium-dark rounded-2xl border-organic p-1">
-                    <div className="flex flex-col sm:flex-row gap-2 p-2">
+                    <div className="flex flex-col sm:flex-row gap-2 p-3 sm:p-4">
                       <div className="relative flex-1">
                         <MailCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 transition-colors group-focus-within:text-blue-400" />
                         <input
                           type="email"
                           placeholder="Enter your email"
                           className={cn(
-                            "w-full pl-12 pr-4 py-4 rounded-xl bg-transparent border-0 text-white placeholder:text-slate-500",
-                            "focus:outline-none focus:ring-0 typography-premium spacing-premium",
+                            "w-full pl-12 pr-4 py-4 sm:py-5 rounded-xl bg-transparent border-0 text-white placeholder:text-slate-500",
+                            "focus:outline-none focus:ring-0 typography-premium spacing-premium text-perfect text-mobile-optimized",
                             "transition-all duration-300",
                             emailError && "text-red-400 placeholder:text-red-400/50"
                           )}
@@ -405,14 +405,14 @@ const Hero = () => {
                       <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className="px-8 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 transition-all duration-300 shadow-lg hover:shadow-xl hover-lift typography-premium border-0"
+                        className="px-6 sm:px-8 py-4 sm:py-5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 transition-all duration-300 shadow-lg hover:shadow-xl hover-lift typography-premium border-0 text-perfect"
                       >
                         {isSubmitting ? (
                           <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
                             <Briefcase className="w-5 h-5" />
                           </motion.div>
                         ) : (
-                          <span className="flex items-center gap-2">
+                          <span className="flex items-center gap-2 text-sm sm:text-base">
                             Get Started <ArrowRight className="w-4 h-4" />
                           </span>
                         )}
@@ -423,30 +423,30 @@ const Hero = () => {
               </form>
               
               {emailError && (
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-sm text-red-400 font-medium typography-premium">
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-sm text-red-400 font-medium typography-premium text-perfect">
                   {emailError}
                 </motion.p>
               )}
 
               {/* Sophisticated trust indicators */}
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-slate-500 typography-premium">
+              <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-3 text-sm text-slate-500 typography-premium text-perfect">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
                     <Lock className="w-2.5 h-2.5 text-emerald-400" />
                   </div>
-                  <span>Bank-level security</span>
+                  <span className="text-xs sm:text-sm">Bank-level security</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
                     <Shield className="w-2.5 h-2.5 text-blue-400" />
                   </div>
-                  <span>Privacy first</span>
+                  <span className="text-xs sm:text-sm">Privacy first</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
                     <Clock className="w-2.5 h-2.5 text-violet-400" />
                   </div>
-                  <span>2-minute setup</span>
+                  <span className="text-xs sm:text-sm">2-minute setup</span>
                 </div>
               </div>
             </motion.div>
@@ -454,19 +454,19 @@ const Hero = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="w-full max-w-lg glass-premium-dark rounded-2xl border-organic p-8 text-center shadow-2xl"
+              className="w-full max-w-lg sm:max-w-xl glass-premium-dark rounded-2xl border-organic p-6 sm:p-8 text-center shadow-2xl"
             >
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-xl mx-auto mb-6">
                 <MailCheck className="w-8 h-8 text-white" />
               </div>
-              <p className="text-lg font-semibold text-white mb-2 typography-premium">Check your inbox</p>
-              <p className="text-slate-400 mb-6 leading-relaxed typography-premium">
+              <p className="text-lg sm:text-xl font-semibold text-white mb-2 typography-premium text-perfect">Check your inbox</p>
+              <p className="text-slate-400 mb-6 leading-relaxed typography-premium text-perfect text-mobile-optimized">
                 We've sent a magic link to <span className="text-white font-medium">{sentEmail}</span>. 
                 Click it to begin your journey.
               </p>
               <button 
                 onClick={() => setSentEmail(null)} 
-                className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors typography-premium hover-organic px-4 py-2 rounded-lg"
+                className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors typography-premium hover-organic px-4 py-2 rounded-lg text-perfect"
               >
                 Use a different email
               </button>
@@ -515,10 +515,10 @@ const LiveActivitySection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6 text-shadow-premium typography-premium spacing-premium"
+              className="font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white mb-4 sm:mb-6 text-shadow-premium typography-premium spacing-premium text-perfect heading-mobile-optimized heading-desktop-optimized"
             >
               Watch opportunities<br />
-              <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong">
+              <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong heading-mobile-optimized heading-desktop-optimized">
                 arrive in real-time
               </span>
             </motion.h2>
@@ -529,7 +529,7 @@ const LiveActivitySection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="font-body text-lg text-slate-400 mb-10 leading-relaxed max-w-lg typography-premium spacing-premium"
+              className="font-body text-lg sm:text-xl text-slate-400 mb-8 sm:mb-10 leading-relaxed max-w-lg typography-premium spacing-premium text-perfect text-mobile-optimized"
             >
               While you focus on what matters, our AI continuously identifies and applies to positions that match your expertise and aspirations.
             </motion.p>
@@ -542,23 +542,23 @@ const LiveActivitySection = () => {
               transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="space-y-4"
             >
-              <div className="flex items-start gap-4 p-4 surface-elevated rounded-xl border-organic hover-organic transition-all duration-300">
+              <div className="flex items-start gap-4 p-4 sm:p-6 surface-elevated rounded-xl border-organic hover-organic transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
                   <Target className="w-6 h-6 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white mb-1 typography-premium">Precision Matching</h3>
-                  <p className="text-sm text-slate-400 typography-premium">Advanced algorithms ensure every opportunity aligns with your unique profile</p>
+                  <h3 className="font-semibold text-white mb-1 typography-premium text-perfect text-mobile-optimized">Precision Matching</h3>
+                  <p className="text-sm text-slate-400 typography-premium text-perfect text-mobile-optimized">Advanced algorithms ensure every opportunity aligns with your unique profile</p>
                 </div>
               </div>
               
-              <div className="flex items-start gap-4 p-4 surface-elevated rounded-xl border-organic hover-organic transition-all duration-300">
+              <div className="flex items-start gap-4 p-4 sm:p-6 surface-elevated rounded-xl border-organic hover-organic transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
                   <Award className="w-6 h-6 text-violet-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white mb-1 typography-premium">Curated Quality</h3>
-                  <p className="text-sm text-slate-400 typography-premium">Each application is crafted with the attention of a seasoned career consultant</p>
+                  <h3 className="font-semibold text-white mb-1 typography-premium text-perfect text-mobile-optimized">Curated Quality</h3>
+                  <p className="text-sm text-slate-400 typography-premium text-perfect text-mobile-optimized">Each application is crafted with the attention of a seasoned career consultant</p>
                 </div>
               </div>
             </motion.div>
@@ -572,12 +572,12 @@ const LiveActivitySection = () => {
             transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="relative"
           >
-            <div className="glass-premium-dark rounded-3xl border-organic p-8 shadow-2xl">
+            <div className="glass-premium-dark rounded-2xl sm:rounded-3xl border-organic p-6 sm:p-8 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-white typography-premium">Recent Activity</h3>
+                <h3 className="text-lg sm:text-xl font-semibold text-white typography-premium text-perfect text-mobile-optimized">Recent Activity</h3>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                  <span className="text-xs text-emerald-400 font-medium typography-premium">Live</span>
+                  <span className="text-xs sm:text-sm text-emerald-400 font-medium typography-premium text-perfect">Live</span>
                 </div>
               </div>
               <LiveActivityStream />
@@ -639,10 +639,10 @@ const Onboarding = () => {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-20"
         >
-          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6 text-shadow-premium typography-premium spacing-premium">
-            The path to your <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong">next chapter</span>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white mb-4 sm:mb-6 text-shadow-premium typography-premium spacing-premium text-perfect heading-mobile-optimized heading-desktop-optimized">
+            The path to your <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-shadow-strong heading-mobile-optimized heading-desktop-optimized">next chapter</span>
           </h2>
-          <p className="font-body text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed typography-premium spacing-premium">
+          <p className="font-body text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed typography-premium spacing-premium text-perfect text-mobile-optimized">
             A sophisticated approach to career advancement that works while you focus on growth
           </p>
         </motion.div>
@@ -674,9 +674,9 @@ const Onboarding = () => {
                   </div>
                   
                   {/* Premium content */}
-                  <h3 className="font-display text-xl font-bold text-white mb-3 typography-premium spacing-premium">{step.title}</h3>
-                  <p className="font-body text-slate-400 leading-relaxed mb-3 typography-premium spacing-premium">{step.desc}</p>
-                  <p className="font-body text-xs text-slate-500 uppercase tracking-wider typography-premium">{step.detail}</p>
+                  <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 typography-premium spacing-premium text-perfect text-mobile-optimized">{step.title}</h3>
+                  <p className="font-body text-sm sm:text-base text-slate-400 leading-relaxed mb-2 sm:mb-3 typography-premium spacing-premium text-perfect text-mobile-optimized">{step.desc}</p>
+                  <p className="font-body text-xs sm:text-sm text-slate-500 uppercase tracking-wider typography-premium text-perfect text-mobile-optimized">{step.detail}</p>
                 </div>
               </motion.div>
             ))}
@@ -691,9 +691,9 @@ const Onboarding = () => {
           transition={{ delay: 0.8, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="mt-20 text-center"
         >
-          <div className="inline-flex items-center gap-4 px-6 py-3 rounded-full surface-premium border-organic hover-organic typography-premium">
-            <Clock className="w-5 h-5 text-blue-400" />
-            <span className="text-sm font-medium text-slate-300 spacing-premium">
+          <div className="inline-flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-2 sm:py-3 rounded-full surface-premium border-organic hover-organic typography-premium">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+            <span className="text-sm sm:text-base font-medium text-slate-300 spacing-premium text-perfect text-mobile-optimized">
               Complete setup in <span className="font-bold text-white">under 2 minutes</span>
             </span>
           </div>

@@ -101,7 +101,9 @@ export function useOnboarding() {
       localStorage.setItem("onboarding_ab_variant", newVariant);
       setAbVariant(newVariant);
       // Log exposure
-      telemetry.track("A/B Test Assignment", { onboarding_flow: newVariant });
+      if (import.meta.env.DEV) {
+        console.log("[Telemetry] A/B Test Assignment", { onboarding_flow: newVariant });
+      }
     }
   }, []);
 
@@ -143,17 +145,19 @@ export function useOnboarding() {
 
     // Track completion AFTER step change to avoid race conditions
     setTimeout(() => {
-      telemetry.track("Onboarding Step Completed", {
-        step: currentSteps[currentStep].id,
-        index: currentStep
-      });
+      if (import.meta.env.DEV) {
+        console.log("[Telemetry] Onboarding Step Completed", {
+          step: currentSteps[currentStep].id,
+          index: currentStep
+        });
+      }
       // Mark current step as completed
       setCompletedSteps((prevCompleted) => {
         const newCompleted = new Set(prevCompleted);
         newCompleted.add(currentSteps[currentStep].id);
         return Array.from(newCompleted);
       });
-    }, 0);
+    }, 100);
   }, [currentSteps, currentStep]);
 
   const prevStep = useCallback(() => {

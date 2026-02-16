@@ -375,6 +375,52 @@ select {
     pointer-events: none;
   }
 
+  /* Responsive image optimization */
+  .image-responsive {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .image-contain {
+    object-fit: contain;
+  }
+
+  .image-cover {
+    object-fit: cover;
+  }
+
+  /* Perfect image rendering */
+  .image-perfect {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    @supports (image-rendering: -webkit-optimize-contrast) {
+      image-rendering: -webkit-optimize-contrast;
+    }
+    @supports (image-rendering: crisp-edges) {
+      image-rendering: crisp-edges;
+    }
+  }
+
+  /* High-DPI optimization */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .image-hidpi {
+      image-rendering: -webkit-optimize-contrast;
+    }
+  }
+
+  /* Mobile image optimization */
+  @media (max-width: 768px) {
+    .image-mobile-optimized {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      object-position: center;
+    }
+  }
+
   .text-shadow-premium {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   }
@@ -410,14 +456,153 @@ select {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1);
   }
 
+  /* Mobile-optimized hover */
+  @media (max-width: 768px) {
+    .hover-organic {
+      transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    .hover-organic:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  /* Desktop-optimized hover */
+  @media (min-width: 1024px) {
+    .hover-organic:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2), 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  /* Responsive spacing */
+  .spacing-responsive {
+    padding: clamp(1rem, 4vw, 2rem);
+  }
+
+  .spacing-responsive-sm {
+    padding: clamp(0.5rem, 2vw, 1rem);
+  }
+
+  .spacing-responsive-lg {
+    padding: clamp(2rem, 6vw, 4rem);
+  }
+
+  .margin-responsive {
+    margin: clamp(1rem, 4vw, 2rem);
+  }
+
+  .margin-responsive-sm {
+    margin: clamp(0.5rem, 2vw, 1rem);
+  }
+
+  .margin-responsive-lg {
+    margin: clamp(2rem, 6vw, 4rem);
+  }
+
+  /* Perfect alignment */
+  .align-perfect {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .align-perfect-start {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .align-perfect-end {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .align-perfect-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .typography-premium {
     font-variant-ligatures: common-ligatures discretionary-ligatures historical-ligatures;
     font-feature-settings: "kern" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .spacing-premium {
     letter-spacing: -0.02em;
     line-height: 1.4;
+  }
+
+  .text-responsive {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+  }
+
+  .heading-responsive {
+    font-size: clamp(2rem, 5vw, 4rem);
+  }
+
+  .heading-large-responsive {
+    font-size: clamp(3rem, 8vw, 6rem);
+  }
+
+  .heading-xlarge-responsive {
+    font-size: clamp(4rem, 10vw, 8rem);
+  }
+
+  /* Perfect text rendering for all devices */
+  .text-perfect {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  }
+
+  /* Mobile-optimized text */
+  @media (max-width: 768px) {
+    .text-mobile-optimized {
+      font-size: clamp(0.875rem, 4vw, 1rem);
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+    }
+    
+    .heading-mobile-optimized {
+      font-size: clamp(1.5rem, 6vw, 2.5rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+    
+    .heading-large-mobile-optimized {
+      font-size: clamp(2rem, 8vw, 3.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+  }
+
+  /* Desktop-optimized text */
+  @media (min-width: 1024px) {
+    .text-desktop-optimized {
+      font-size: clamp(1rem, 1.25vw, 1.25rem);
+      line-height: 1.4;
+      letter-spacing: -0.02em;
+    }
+    
+    .heading-desktop-optimized {
+      font-size: clamp(2.5rem, 3vw, 4rem);
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+    }
+    
+    .heading-large-desktop-optimized {
+      font-size: clamp(3.5rem, 4vw, 6rem);
+      line-height: 0.9;
+      letter-spacing: -0.035em;
+    }
   }
 
   .gradient-text-premium {

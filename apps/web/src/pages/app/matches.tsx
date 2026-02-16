@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Download,
@@ -50,23 +51,32 @@ function ScoreVisualization({ score, label }: { score: number; label: string }) 
   };
 
   return (
-    <div className={cn("p-4 rounded-xl border transition-all duration-300 hover:shadow-lg", getScoreBgColor(score))}>
-      <div className="flex justify-between items-center mb-3">
-        <span className="text-sm font-semibold text-slate-700">{label}</span>
-        <span className={cn("text-2xl font-black", getScoreTextColor(score))}>
-          {Math.round(score)}%
-        </span>
+    <motion.div 
+      className={`p-4 rounded-lg border ${getScoreBgColor(score)}`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-slate-600">{label}</span>
+        <motion.div 
+          className={`text-2xl font-bold ${getScoreTextColor(score)}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.2 }}
+        >
+          {score}%
+        </motion.div>
       </div>
-      <div className="h-3 bg-white/50 rounded-full overflow-hidden shadow-inner">
-        <div
-          className={cn(
-            "h-full bg-gradient-to-r rounded-full transition-all duration-1000 ease-out shadow-sm",
-            getScoreColor(score)
-          )}
-          style={{ width: `${Math.min(100, score)}%` }}
+      <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+        <motion.div 
+          className={`h-full bg-gradient-to-r ${getScoreColor(score)} rounded-full`}
+          initial={{ width: 0 }}
+          animate={{ width: `${score}%` }}
+          transition={{ delay: 0.2, duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -84,10 +94,12 @@ function SkillList({
   if (skills.length === 0) return null;
 
   return (
-    <div className="space-y-2">
-      <button
+    <motion.div className="space-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+      <motion.button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full text-left"
+        whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+        transition={{ duration: 0.15 }}
       >
         <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
           {variant === "matched" ? (
@@ -100,27 +112,37 @@ function SkillList({
             {skills.length}
           </Badge>
         </h4>
-        {expanded ? (
-          <ChevronUp className="w-4 h-4 text-slate-400" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-slate-400" />
+        <motion.div 
+          className="w-4 h-4 text-slate-400"
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown />
+        </motion.div>
+      </motion.button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div 
+            className="flex flex-wrap gap-2 pl-6"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {skills.map((skill, i) => (
+              <Badge
+                key={i}
+                variant={variant === "matched" ? "success" : "error"}
+                size="sm"
+                className="text-xs"
+              >
+                {skill}
+              </Badge>
+            ))}
+          </motion.div>
         )}
-      </button>
-      {expanded && (
-        <div className="flex flex-wrap gap-2 pl-6">
-          {skills.map((skill, i) => (
-            <Badge
-              key={i}
-              variant={variant === "matched" ? "success" : "error"}
-              size="sm"
-              className="text-xs"
-            >
-              {skill}
-            </Badge>
-          ))}
-        </div>
-      )}
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -128,22 +150,34 @@ function DealbreakerWarnings({ reasons }: { reasons: string[] }) {
   if (reasons.length === 0) return null;
 
   return (
-    <Card className="p-4 border-red-200 bg-red-50">
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-        <div>
-          <h4 className="font-semibold text-red-900 mb-2">Dealbreaker Issues Detected</h4>
-          <ul className="space-y-1">
-            {reasons.map((reason, i) => (
-              <li key={i} className="text-sm text-red-700 flex items-center gap-2">
-                <XCircle className="w-3 h-3" />
-                {reason}
-              </li>
-            ))}
-          </ul>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Card className="p-4 border-red-200 bg-red-50">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-red-900 mb-2">Dealbreaker Issues Detected</h4>
+            <ul className="space-y-1">
+              {reasons.map((reason, i) => (
+                <motion.li 
+                  key={i} 
+                  className="text-sm text-red-700 flex items-center gap-2"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05, duration: 0.2 }}
+                >
+                  <XCircle className="w-3 h-3" />
+                  {reason}
+                </motion.li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </motion.div>
   );
 }
 
