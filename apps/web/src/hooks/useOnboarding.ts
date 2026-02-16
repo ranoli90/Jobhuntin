@@ -114,6 +114,8 @@ export function useOnboarding() {
 
   const nextStep = useCallback(() => {
     const totalSteps = currentSteps.length;
+    console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps, 'currentStep:', currentStep);
+    
     setCurrentStep((prev) => {
       // Basic Telemetry
       telemetry.track("Onboarding Step Completed", { 
@@ -128,8 +130,10 @@ export function useOnboarding() {
       });
 
       if (prev < totalSteps - 1) { // Check if not the last step
+        console.log('[useOnboarding] Advancing from step', prev, 'to', prev + 1);
         return prev + 1;
       }
+      console.log('[useOnboarding] Already at last step, staying at', prev);
       return prev; // Stay on the last step if already there
     });
   }, [currentSteps, setCompletedSteps]);
