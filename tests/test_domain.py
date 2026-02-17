@@ -210,7 +210,7 @@ class TestResumeParseContract:
     def test_prompt_builder(self):
         prompt = build_resume_parse_prompt("Some resume text here")
         assert "Some resume text here" in prompt
-        assert "resume parser" in prompt.lower()
+        assert "json only" in prompt.lower()
 
 
 class TestDomMappingContract:
