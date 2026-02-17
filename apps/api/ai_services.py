@@ -67,8 +67,7 @@ class AIService:
                 education_level=education_level,
             )
             
-            response = await self.llm_client.complete(prompt)
-            result = RoleSuggestionResponse_V1.parse_raw(response)
+            result = await self.llm_client.call(prompt=prompt, response_format=RoleSuggestionResponse_V1)
             
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=3600)
@@ -111,8 +110,7 @@ class AIService:
                 education_level=education_level,
             )
             
-            response = await self.llm_client.complete(prompt)
-            result = SalarySuggestionResponse_V1.parse_raw(response)
+            result = await self.llm_client.call(prompt=prompt, response_format=SalarySuggestionResponse_V1)
             
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=7200)  # 2 hours cache
@@ -152,8 +150,7 @@ class AIService:
                 remote_preference=remote_preference,
             )
             
-            response = await self.llm_client.complete(prompt)
-            result = LocationSuggestionResponse_V1.parse_raw(response)
+            result = await self.llm_client.call(prompt=prompt, response_format=LocationSuggestionResponse_V1)
             
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=3600)
@@ -232,8 +229,7 @@ class AIService:
                 current_step=sanitized_step,
             )
             
-            response = await self.llm_client.complete(prompt)
-            result = OnboardingQuestionsResponse_V1.parse_raw(response)
+            result = await self.llm_client.call(prompt=prompt, response_format=OnboardingQuestionsResponse_V1)
             
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=1800)
@@ -267,8 +263,7 @@ class AIService:
                 prompt = self._build_job_match_prompt(profile, job_details)
                 
                 # Get AI response
-                response = await self.llm_client.complete(prompt)
-                match_score = JobMatchScore_V1.parse_raw(response)
+                match_score = await self.llm_client.call(prompt=prompt, response_format=JobMatchScore_V1)
                 matches.append(match_score)
                 
             except Exception as e:

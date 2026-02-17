@@ -35,7 +35,7 @@ async def get_or_create_referral_code(
         user_id,
     )
     if code:
-        return code
+        return str(code)
 
     code = generate_referral_code(user_id)
 

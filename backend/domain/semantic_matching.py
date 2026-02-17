@@ -16,7 +16,10 @@ Key features:
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from backend.domain.vectordb import VectorDB
 
 import asyncpg
 from pydantic import BaseModel, Field
