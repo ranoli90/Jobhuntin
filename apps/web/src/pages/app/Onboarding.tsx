@@ -763,7 +763,7 @@ const handleConfirmParsing = () => {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative">
-      <ErrorBoundary onReset={() => resetOnboarding()}>
+      <ErrorBoundary>
       {/* Minimal Header */}
       <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50 sticky top-0">
         <Logo to="/app/onboarding" size="sm" />
