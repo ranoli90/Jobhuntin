@@ -5,7 +5,7 @@ export const COPY = {
   // Brand basics
   brandName: "JobHuntin",
   tagline: "Other people applied to your dream job today. Did you?",
-  
+
   // Hero / Landing
   hero: {
     headline: "Other people applied to your dream job today. Did you?",
@@ -14,7 +14,7 @@ export const COPY = {
     ctaSecondary: "Watch it work",
     trustBadge: "No credit card • 10 free apps • 2-minute setup",
   },
-  
+
   // Actions / Buttons
   actions: {
     apply: "JobHuntin this job",
@@ -29,7 +29,7 @@ export const COPY = {
     export: "Export CSV",
     refresh: "Find more jobs",
   },
-  
+
   // Empty states
   empty: {
     jobs: {
@@ -53,16 +53,16 @@ export const COPY = {
       action: "Retry",
     },
   },
-  
+
   // Error messages (human, reassuring)
   errors: {
     generic: "Something went sideways, but your data is safe. Try again.",
     network: "Internet hiccuped. Give it another shot?",
-    upload: "Upload failed. Check file size (max 5MB) and retry.",
+    upload: "Upload failed. Check file size (max 15MB) and retry.",
     auth: "Session expired — sign in to keep your streak going.",
     api: "Servers are catching their breath. Try again in a moment.",
   },
-  
+
   // Success messages (celebratory, playful)
   success: {
     applied: "🚀 Sent! One step closer to your offer letter.",
@@ -77,7 +77,7 @@ export const COPY = {
       description: "Most users land their first interview within 48 hours. You're in the game now.",
     },
   },
-  
+
   // Onboarding
   onboarding: {
     step1: {
@@ -108,7 +108,7 @@ export const COPY = {
       ],
     },
   },
-  
+
   // Trust & Safety
   trust: {
     howItWorks: "How JobHuntin applies on your behalf",
@@ -121,7 +121,7 @@ export const COPY = {
       { title: "100% ToS compliant", description: "We play by the rules so your accounts stay safe." },
     ],
   },
-  
+
   // Navigation labels
   nav: {
     dashboard: "Dashboard",
@@ -132,7 +132,7 @@ export const COPY = {
     billing: "Billing",
     logout: "Log out",
   },
-  
+
   // Misc UI
   ui: {
     loading: "Loading...",

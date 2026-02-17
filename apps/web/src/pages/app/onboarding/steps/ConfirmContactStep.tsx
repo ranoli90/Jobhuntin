@@ -44,7 +44,7 @@ export function ConfirmContactStep({
     onClearError,
     onSetFormError,
 }: ConfirmContactStepProps) {
-    
+
     const handleFieldChange = (field: string, value: string) => {
         setContactInfo(c => ({ ...c, [field]: value }));
         // Clear error when user starts typing
@@ -52,32 +52,32 @@ export function ConfirmContactStep({
             onClearError(field);
         }
     };
-    
+
     const handlePhoneChange = (value: string) => {
         const formatted = formatPhoneNumber(value);
         setContactInfo(c => ({ ...c, phone: formatted }));
-        
+
         // Clear error when user starts typing
         if (formErrors.phone && onClearError) {
             onClearError('phone');
         }
-        
+
         // Validate phone number if provided
         if (formatted && !isValidPhoneNumber(formatted) && onSetFormError) {
             onSetFormError('phone', 'Please enter a valid phone number');
         }
     };
-    
+
     return (
         <div>
             {/* Screen reader error announcement */}
             {Object.keys(formErrors).length > 0 && (
                 <div role="alert" aria-live="polite" className="sr-only">
-                    Form has {Object.keys(formErrors).length} error{Object.keys(formErrors).length > 1 ? 's' : ''}: 
+                    Form has {Object.keys(formErrors).length} error{Object.keys(formErrors).length > 1 ? 's' : ''}:
                     {Object.entries(formErrors).map(([field, msg]) => `${field}: ${msg}`).join(', ')}
                 </div>
             )}
-            
+
             <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
                 <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
                     <User className="h-5 w-5 md:h-6 md:w-6" />
@@ -192,10 +192,10 @@ export function ConfirmContactStep({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4">
-                <Button 
-                    type="button" 
-                    variant="ghost" 
-                    onClick={onPrev} 
+                <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onPrev}
                     className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
                     aria-label="Go back to previous step"
                 >
@@ -205,7 +205,7 @@ export function ConfirmContactStep({
                 <Button
                     type="button"
                     onClick={onNext}
-                    disabled={!contactInfo.first_name || !contactInfo.last_name || !contactInfo.email || isSavingContact}
+                    disabled={!contactInfo.first_name || !contactInfo.last_name || !contactInfo.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo.email) || isSavingContact}
                     className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
                     aria-label="Confirm identity and continue"
                 >

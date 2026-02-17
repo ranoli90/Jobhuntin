@@ -13,8 +13,12 @@ const COMMON_DOMAINS = [
 
 const TYPO_MAP: Record<string, string[]> = {
     "gmail.com": ["gnail.com", "gmali.com", "gmal.com", "gmai.com", "gail.com", "googlemail.com"],
-    "yahoo.com": ["yaho.com", "yahho.com", "yhaoo.com"],
-    "hotmail.com": ["hotmial.com", "hotmal.com", "hotmale.com"],
+    "yahoo.com": ["yaho.com", "yahho.com", "yhaoo.com", "yahooo.com"],
+    "hotmail.com": ["hotmial.com", "hotmal.com", "hotmale.com", "hotmai.com"],
+    "outlook.com": ["outlok.com", "outllok.com", "outloock.com", "outlookk.com", "outloo.com"],
+    "icloud.com": ["icould.com", "iclod.com", "icloud.co", "icload.com"],
+    "aol.com": ["ao.com", "aoll.com", "aol.co"],
+    "msn.com": ["msn.co", "mns.com"],
 };
 
 export function checkEmailTypo(email: string): string | null {

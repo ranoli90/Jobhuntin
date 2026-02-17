@@ -1,13 +1,12 @@
-import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, TrendingUp, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle } from "lucide-react";
+import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle, Radar } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { useBilling } from "../hooks/useBilling";
 import { useApplications } from "../hooks/useApplications";
 import { useNavigate } from "react-router-dom";
-import { cn } from "../lib/utils";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiPost, apiGet } from "../lib/api";
 import { pushToast } from "../lib/toast";
 import { fireSuccessConfetti } from "../lib/confetti";
@@ -18,24 +17,142 @@ import { formatCurrency, formatDate } from "../lib/format";
 import { t, isRTL, getLocale } from "../lib/i18n";
 import { useSessionMilestone } from "../hooks/useCelebrations";
 
+// N-10: Centralised status → Badge variant mapping
+function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
+  switch (status) {
+    case 'APPLIED': return 'success';
+    case 'HOLD': return 'warning';
+    case 'FAILED':
+    case 'REJECTED': return 'error';
+    default: return 'default';
+  }
+}
+
+// N-8: Tier pricing extracted to a constant so it isn't recreated every render
+const BILLING_TIERS = [
+  { name: "FREE" as const, price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null },
+  { name: "PRO" as const, price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, actionKey: "upgrade" as const },
+  { name: "TEAM" as const, price: "$49", features: ["10 team seats", "API access", "White-label reports"], actionKey: "addSeats" as const },
+] as const;
+
+// N-2: Shared locale helper – used by all sub-views
+const sharedLocale = getLocale();
+const sharedRtl = isRTL(sharedLocale);
+
+// M-12: Page size for ApplicationsView pagination
+const APPLICATIONS_PAGE_SIZE = 20;
+
+/**
+ * L-3: JobCard wrapper — provides drag threshold visual feedback.
+ * Shows green/red overlay tint as the user drags past the ±100px threshold.
+ */
+function JobCard({
+  job,
+  isTop,
+  idx,
+  shouldReduceMotion,
+  swipeDirection,
+  onSwipe,
+  locale,
+  children,
+}: {
+  job: { id: string };
+  isTop: boolean;
+  idx: number;
+  shouldReduceMotion: boolean;
+  swipeDirection: 'left' | 'right' | null;
+  onSwipe: (direction: 'ACCEPT' | 'REJECT') => void;
+  locale: string | undefined;
+  children: React.ReactNode;
+}) {
+  const x = useMotionValue(0);
+  // L-3: opacity for accept overlay (right drag ➡ green)
+  const acceptOpacity = useTransform(x, [0, 100, 200], [0, 0, 0.25]);
+  // L-3: opacity for reject overlay (left drag ➡ red)
+  const rejectOpacity = useTransform(x, [0, -100, -200], [0, 0, 0.25]);
+
+  return (
+    <motion.div
+      style={{
+        zIndex: idx,
+        position: 'absolute',
+        width: '100%',
+        x,
+      }}
+      initial={shouldReduceMotion ? undefined : { scale: 0.95, opacity: 0, y: 20 }}
+      animate={{
+        scale: isTop ? 1 : 0.95,
+        opacity: 1,
+        y: isTop ? 0 : 20,
+        rotate: isTop ? 0 : idx % 2 === 0 ? 1 : -1,
+      }}
+      exit={
+        shouldReduceMotion
+          ? undefined
+          : {
+            x: swipeDirection === 'left' ? -1000 : 1000,
+            opacity: 0,
+            rotate: swipeDirection === 'left' ? -20 : 20,
+            transition: { duration: 0.5 },
+          }
+      }
+      drag={isTop && !shouldReduceMotion ? 'x' : false}
+      dragConstraints={{ left: 0, right: 0 }}
+      onDragEnd={(_, info) => {
+        if (info.offset.x > 100) onSwipe('ACCEPT');
+        else if (info.offset.x < -100) onSwipe('REJECT');
+      }}
+    >
+      {/* L-3: Accept overlay (green) */}
+      <motion.div
+        className="absolute inset-0 rounded-2xl bg-emerald-500 z-20 pointer-events-none flex items-center justify-center"
+        style={{ opacity: acceptOpacity }}
+      >
+        <span className="text-6xl text-white font-black">✓</span>
+      </motion.div>
+      {/* L-3: Reject overlay (red) */}
+      <motion.div
+        className="absolute inset-0 rounded-2xl bg-red-500 z-20 pointer-events-none flex items-center justify-center"
+        style={{ opacity: rejectOpacity }}
+      >
+        <span className="text-6xl text-white font-black">✕</span>
+      </motion.div>
+      {children}
+    </motion.div>
+  );
+}
+
 const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
+  const prevValueRef = useRef(0);
 
   useEffect(() => {
     const numValue = Number(value);
-    if (isNaN(numValue)) return;
+    if (isNaN(numValue) || numValue < 0) {
+      setDisplayValue(numValue || 0);
+      return;
+    }
 
-    let start = 0;
+    const start = prevValueRef.current;
     const end = numValue;
-    const increment = end / (duration * 60); // 60fps
+    prevValueRef.current = end;
+
+    if (start === end) {
+      setDisplayValue(end);
+      return;
+    }
+
+    const diff = end - start;
+    const increment = diff / (duration * 60); // 60fps
+    let current = start;
 
     const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) {
+      current += increment;
+      if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
         setDisplayValue(end);
         clearInterval(timer);
       } else {
-        setDisplayValue(Math.floor(start));
+        setDisplayValue(Math.floor(current));
       }
     }, 1000 / 60);
 
@@ -48,57 +165,62 @@ const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; dur
 export default function Dashboard() {
   const navigate = useNavigate();
   const { status } = useBilling();
-  const { applications, holdApplications, byStatus, stats, isLoading } = useApplications();
-  const [isHovered, setIsHovered] = useState(false);
+  const { applications, holdApplications, byStatus, stats, isLoading, error } = useApplications();
+
   const shouldReduceMotion = useReducedMotion();
 
-  const locale = typeof navigator !== "undefined" ? navigator.language : undefined;
-  const rtl = isRTL(locale);
+  // N-2: Use shared locale instead of duplicating detection
+  const locale = sharedLocale;
+  const rtl = sharedRtl;
+
+  // L-2: Compute data-driven progress values
+  const totalApps = applications.length || 1; // avoid /0
+  const activeCount = byStatus.APPLYING + byStatus.APPLIED;
+  const activeProgress = Math.min(100, Math.round((activeCount / totalApps) * 100));
+  const successProgress = Math.min(100, stats.successRate);
+  const holdProgress = Math.min(100, Math.round((byStatus.HOLD / totalApps) * 100));
+  const monthlyProgress = Math.min(100, Math.round((stats.monthlyApps / Math.max(stats.monthlyApps, 100)) * 100));
 
   const metrics = [
     {
       label: "Active Applications",
-      value: byStatus.APPLYING + byStatus.APPLIED,
+      value: activeCount,
       icon: Briefcase,
-      trend: 0,
-      delta: 'neutral',
       color: 'from-blue-500 to-blue-600',
       bg: 'bg-blue-50',
       text: 'text-blue-600',
-      iconColor: 'text-blue-500'
+      iconColor: 'text-blue-500',
+      progress: activeProgress,
     },
     {
       label: "Success Rate",
       value: `${stats.successRate}%`,
       icon: BarChart3,
-      trend: 0,
-      delta: 'neutral',
       color: 'from-emerald-500 to-emerald-600',
       bg: 'bg-emerald-50',
       text: 'text-emerald-600',
-      iconColor: 'text-emerald-500'
+      iconColor: 'text-emerald-500',
+      progress: successProgress,
     },
     {
       label: "Pending HOLDs",
       value: byStatus.HOLD,
       icon: Inbox,
-      trend: 0,
-      delta: 'neutral',
       color: 'from-amber-500 to-amber-600',
       bg: 'bg-amber-50',
       text: 'text-amber-600',
-      iconColor: 'text-amber-500'
+      iconColor: 'text-amber-500',
+      progress: holdProgress,
     },
     {
       label: "Total Applications",
       value: stats.monthlyApps,
       icon: Zap,
-      trend: 0,
-      delta: 'neutral',
       color: 'from-primary-500 to-primary-600',
       bg: 'bg-primary-50',
       text: 'text-primary-600',
-      iconColor: 'text-primary-500'
+      iconColor: 'text-primary-500',
+      progress: monthlyProgress,
     },
   ];
 
@@ -109,6 +231,19 @@ export default function Dashboard() {
       transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
       className="space-y-3 max-w-7xl mx-auto px-4 lg:px-6 pb-8"
     >
+      {/* M-5: Error banner when data fetch fails */}
+      {error && (
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800">
+          <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="font-bold text-sm">Unable to load dashboard data</p>
+            <p className="text-xs text-red-600 mt-0.5">{error}</p>
+          </div>
+          <Button variant="ghost" size="sm" className="text-red-600 font-bold text-xs" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -167,22 +302,13 @@ export default function Dashboard() {
                       )}
                     </p>
                   </div>
-                  {metric.trend !== 0 && (
-                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${metric.bg} ${metric.text}`}>
-                      {metric.delta === 'up' ? (
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                      ) : (
-                        <ArrowUpRight className="h-3 w-3 mr-1 transform rotate-180" />
-                      )}
-                      {metric.trend}%
-                    </div>
-                  )}
                 </div>
+                {/* L-2: Data-driven progress bar */}
                 <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                   <motion.div
                     className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
-                    initial={shouldReduceMotion ? { width: `${Math.min(100, 30 + index * 10)}%` } : { width: 0 }}
-                    animate={{ width: `${Math.min(100, 30 + index * 10)}%` }}
+                    initial={shouldReduceMotion ? { width: `${metric.progress}%` } : { width: 0 }}
+                    animate={{ width: `${metric.progress}%` }}
                     transition={shouldReduceMotion ? undefined : { delay: 0.2 + index * 0.08, duration: 0.6, type: 'spring' }}
                   />
                 </div>
@@ -366,20 +492,33 @@ export default function Dashboard() {
 }
 
 export function JobsView() {
+  // M-3: Debounced filter — local input value updates instantly, API filters update after 400ms
+  const [localLocation, setLocalLocation] = useState("");
   const [filters, setFilters] = useState<JobFilters>({ location: "" });
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleLocationChange = useCallback((value: string) => {
+    setLocalLocation(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setFilters(f => ({ ...f, location: value }));
+    }, 400);
+  }, []);
+
   const { jobs, isLoading, isFetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useJobs(filters);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
   const streakToasted = useRef<Set<number>>(new Set());
   const alertedMatches = useRef<Set<string>>(new Set());
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
-  const swipeTimeoutRef = useRef<any>(null);
+  const swipeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReduceMotion = useReducedMotion();
   const [statusMessage, setStatusMessage] = useState("");
   const { celebrate: celebrateSession } = useSessionMilestone();
-  const locale = getLocale();
-  const rtl = isRTL(locale);
-  
+  // N-2: Use shared locale
+  const locale = sharedLocale;
+  const rtl = sharedRtl;
+
   // Undo functionality state
   const [lastSwipe, setLastSwipe] = useState<{
     jobId: string;
@@ -390,9 +529,19 @@ export function JobsView() {
   const [isUndoing, setIsUndoing] = useState(false);
   const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-
+  // H-1: Cleanup timeouts on unmount to prevent state updates on unmounted component
   useEffect(() => {
-    const milestones = [1, 10, 25, 50];
+    return () => {
+      if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
+      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+
+  // N-5: Swipe milestones use [1, 5, 10, 25] – session milestone hook handles [50, 100]
+  useEffect(() => {
+    const milestones = [1, 5, 10, 25];
     milestones.forEach((m) => {
       if (swipeCount >= m && !streakToasted.current.has(m)) {
         streakToasted.current.add(m);
@@ -433,29 +582,32 @@ export function JobsView() {
   const handleSwipe = async (direction: "ACCEPT" | "REJECT") => {
     if (!currentJob) return;
 
+    // M-4: Capture job reference before any state updates to avoid stale closure
+    const swipedJob = currentJob;
+
     setSwipeDirection(direction === "ACCEPT" ? "right" : "left");
-    setStatusMessage(`${direction === "ACCEPT" ? "Accepting" : "Rejecting"} ${currentJob.title} at ${currentJob.company}`);
+    setStatusMessage(`${direction === "ACCEPT" ? "Accepting" : "Rejecting"} ${swipedJob.title} at ${swipedJob.company}`);
 
     // Store previous state for undo
     const previousIndex = currentIndex;
 
     try {
       // Record swipe decision with API
-      await apiPost("applications", { job_id: currentJob.id, decision: direction });
+      await apiPost("applications", { job_id: swipedJob.id, decision: direction });
 
-      // Store last swipe for undo functionality (5 second window)
+      // Store last swipe for undo functionality (10 second window)
       setLastSwipe({
-        jobId: currentJob.id,
+        jobId: swipedJob.id,
         direction,
         previousIndex,
         timestamp: Date.now(),
       });
 
-      // Clear undo state after 5 seconds
+      // Clear undo state after 10 seconds (backend allows up to 10s for latency)
       if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
       undoTimeoutRef.current = setTimeout(() => {
         setLastSwipe(null);
-      }, 5000);
+      }, 10_000);
 
       setCurrentIndex(prev => prev + 1);
       setSwipeCount(prev => prev + 1);
@@ -464,17 +616,17 @@ export function JobsView() {
         fireSuccessConfetti();
         pushToast({
           title: "Match queued! 🚀",
-          description: `AI is now tailoring your resume for ${currentJob.company}. Undo available for 5s.`,
+          description: `AI is now tailoring your resume for ${swipedJob.company}. Undo available for 10s.`,
           tone: "success"
         });
-        setStatusMessage(`Accepted ${currentJob.title} at ${currentJob.company}`);
+        setStatusMessage(`Accepted ${swipedJob.title} at ${swipedJob.company}`);
       } else {
         pushToast({
           title: "Job passed",
-          description: `Undo available for 5s.`,
+          description: `Undo available for 10s.`,
           tone: "neutral"
         });
-        setStatusMessage(`Rejected ${currentJob.title} at ${currentJob.company}`);
+        setStatusMessage(`Rejected ${swipedJob.title} at ${swipedJob.company}`);
       }
     } catch (error) {
       // Revert UI state on API failure
@@ -593,9 +745,10 @@ export function JobsView() {
           <input
             type="text"
             placeholder={t("dashboard.filterPlaceholder", locale)}
+            aria-label="Filter jobs by location"
             className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none bg-white font-medium"
-            value={filters.location}
-            onChange={(e) => setFilters(f => ({ ...f, location: e.target.value }))}
+            value={localLocation}
+            onChange={(e) => handleLocationChange(e.target.value)}
           />
           <Badge variant="primary" className="py-2 px-4 rounded-xl">
             {jobs.length - currentIndex} jobs remaining
@@ -613,32 +766,15 @@ export function JobsView() {
           {jobs.slice(currentIndex, currentIndex + 2).reverse().map((job, idx) => {
             const isTop = idx === (jobs.slice(currentIndex, currentIndex + 2).length - 1);
             return (
-              <motion.div
+              <JobCard
                 key={job.id}
-                style={{
-                  zIndex: idx,
-                  position: 'absolute',
-                  width: '100%',
-                }}
-                initial={shouldReduceMotion ? undefined : { scale: 0.95, opacity: 0, y: 20 }}
-                animate={{
-                  scale: isTop ? 1 : 0.95,
-                  opacity: 1,
-                  y: isTop ? 0 : 20,
-                  rotate: isTop ? 0 : (idx % 2 === 0 ? 1 : -1)
-                }}
-                exit={shouldReduceMotion ? undefined : {
-                  x: swipeDirection === 'left' ? -1000 : 1000,
-                  opacity: 0,
-                  rotate: swipeDirection === 'left' ? -20 : 20,
-                  transition: { duration: 0.5 }
-                }}
-                drag={isTop && !shouldReduceMotion ? "x" : false}
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x > 100) handleSwipe("ACCEPT");
-                  else if (info.offset.x < -100) handleSwipe("REJECT");
-                }}
+                job={job}
+                isTop={isTop}
+                idx={idx}
+                shouldReduceMotion={!!shouldReduceMotion}
+                swipeDirection={swipeDirection}
+                onSwipe={handleSwipe}
+                locale={locale}
               >
                 <Card
                   className="p-0 overflow-hidden shadow-2xl border-slate-100 h-full flex flex-col"
@@ -661,7 +797,7 @@ export function JobsView() {
                     </div>
                     <h2 className="text-2xl font-black leading-tight mb-2">{job.title}</h2>
                     <div className="flex gap-2">
-                      <Badge className="bg-white/10 text-white border-transparent">Full-time</Badge>
+                      <Badge className="bg-white/10 text-white border-transparent">{job.job_type || 'Full-time'}</Badge>
                       <Badge className="bg-primary-500/20 text-primary-400 border-transparent">
                         <DollarSign className="h-4 w-4" /> {job.salary_min ? `${formatCurrency(job.salary_min, locale)}+` : "Salary shared on match"}
                       </Badge>
@@ -721,7 +857,7 @@ export function JobsView() {
                     </button>
                   </div>
                 </Card>
-              </motion.div>
+              </JobCard>
             );
           })}
         </AnimatePresence>
@@ -758,13 +894,23 @@ export function ApplicationsView() {
   const navigate = useNavigate();
   const { applications, isLoading } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
-  const locale = getLocale();
-  const rtl = isRTL(locale);
+  const locale = sharedLocale; // N-2: shared locale
+  // M-12: Client-side pagination
+  const [page, setPage] = useState(0);
 
-  const filteredApps = applications.filter(app =>
-    app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.job_title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredApps = useMemo(
+    () => applications.filter(app =>
+      app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.job_title.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [applications, searchTerm]
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredApps.length / APPLICATIONS_PAGE_SIZE));
+  const pagedApps = filteredApps.slice(page * APPLICATIONS_PAGE_SIZE, (page + 1) * APPLICATIONS_PAGE_SIZE);
+
+  // Reset page when search changes
+  useEffect(() => { setPage(0); }, [searchTerm]);
 
   if (isLoading) {
     return (
@@ -795,12 +941,23 @@ export function ApplicationsView() {
 
       {/* Mobile Card List */}
       <div className="grid gap-3 md:hidden">
-        {filteredApps.length === 0 ? (
-          <Card className="p-6 text-center" shadow="sm">
-            <p className="text-slate-500 font-medium">No active transmissions found matching your search.</p>
+        {pagedApps.length === 0 ? (
+          <Card className="flex flex-col items-center justify-center p-8 text-center" shadow="sm">
+            <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+              <Radar className="w-8 h-8 text-slate-400 animate-pulse" />
+            </div>
+            <h3 className="text-lg font-black text-slate-900 mb-2">Signal Silence</h3>
+            <p className="text-slate-500 font-medium mb-6 max-w-xs">
+              {searchTerm ? "No transmissions found matching your encryption key." : "Your agent hasn't intercepted any opportunities yet."}
+            </p>
+            {!searchTerm && (
+              <Button onClick={() => navigate('/app/jobs')} className="font-bold text-xs uppercase rounded-xl">
+                Start Hunting <Rocket className="ml-2 w-4 h-4" />
+              </Button>
+            )}
           </Card>
         ) : (
-          filteredApps.map((app) => (
+          pagedApps.map((app) => (
             <Card key={app.id} className="p-4 border-slate-200" shadow="sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
@@ -811,11 +968,7 @@ export function ApplicationsView() {
                   <p className="text-xs text-slate-500 font-medium truncate">{app.job_title}</p>
                 </div>
                 <Badge
-                  variant={
-                    app.status === 'APPLIED' ? 'success' :
-                      app.status === 'HOLD' ? 'warning' :
-                        app.status === 'FAILED' ? 'error' : 'default'
-                  }
+                  variant={statusVariant(app.status)}
                   className="rounded-lg px-3 py-1 font-bold text-[10px] tracking-wider uppercase border-none"
                 >
                   {app.status === 'APPLYING' && <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse mr-2" />}
@@ -827,9 +980,9 @@ export function ApplicationsView() {
                   <Clock className="w-4 h-4 text-slate-400" />
                   {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600"
                   onClick={() => navigate(`/app/applications/${app.id}`)}
                 >
@@ -854,14 +1007,28 @@ export function ApplicationsView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {filteredApps.length === 0 ? (
+              {pagedApps.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-20 text-center text-slate-500 font-medium">
-                    No active transmissions found matching your search.
+                  <td colSpan={4} className="px-6 py-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-6 relative">
+                        <Radar className="w-10 h-10 text-slate-300" />
+                        <div className="absolute inset-0 rounded-full border border-slate-100 animate-ping opacity-20" />
+                      </div>
+                      <h3 className="text-xl font-black text-slate-900 mb-2">No Active Transmissions</h3>
+                      <p className="text-slate-500 font-medium mb-8 max-w-sm">
+                        {searchTerm ? "We couldn't locate any signals matching your search parameters." : "Your frequency is clear. Initialize a hunt to start intercepting job signals."}
+                      </p>
+                      {!searchTerm && (
+                        <Button onClick={() => navigate('/app/jobs')} variant="primary" className="font-bold uppercase rounded-xl shadow-lg shadow-primary-500/20">
+                          Initialize Hunt <Rocket className="ml-2 w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
-                filteredApps.map((app) => (
+                pagedApps.map((app) => (
                   <tr key={app.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -876,11 +1043,7 @@ export function ApplicationsView() {
                     </td>
                     <td className="px-6 py-4">
                       <Badge
-                        variant={
-                          app.status === 'APPLIED' ? 'success' :
-                            app.status === 'HOLD' ? 'warning' :
-                              app.status === 'FAILED' ? 'error' : 'default'
-                        }
+                        variant={statusVariant(app.status)}
                         className="rounded-lg px-3 py-1 font-bold text-[10px] tracking-wider uppercase border-none"
                       >
                         {app.status === 'APPLYING' && <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse mr-2" />}
@@ -894,9 +1057,9 @@ export function ApplicationsView() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600"
                         onClick={() => navigate(`/app/applications/${app.id}`)}
                       >
@@ -911,12 +1074,41 @@ export function ApplicationsView() {
         </div>
       </Card>
 
+      {/* M-12: Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-slate-400 font-medium">
+            Showing {page * APPLICATIONS_PAGE_SIZE + 1}–{Math.min((page + 1) * APPLICATIONS_PAGE_SIZE, filteredApps.length)} of {filteredApps.length}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 0}
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              className="text-xs font-bold"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage(p => p + 1)}
+              className="text-xs font-bold"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 flex items-center gap-4">
         <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-primary-500 shadow-sm flex-shrink-0">
           <Zap className="h-5 w-5" />
         </div>
         <p className="text-sm text-primary-900 font-medium font-display leading-tight">
-          Your AI agent is currently monitoring <span className="font-black">124 new job signals</span> across LinkedIn and Wellfound. New matches will appear in your Radar shortly.
+          Your AI agent is actively monitoring <span className="font-black">new job signals</span> across LinkedIn and Wellfound. New matches will appear in your Radar shortly.
         </p>
       </div>
     </div>
@@ -925,7 +1117,7 @@ export function ApplicationsView() {
 
 
 export function HoldsView() {
-  const { holdApplications, answerHold, snoozeApplication, isLoading } = useApplications();
+  const { holdApplications, answerHold, snoozeApplication, isLoading, isSubmitting } = useApplications();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const shouldReduceMotion = useReducedMotion();
 
@@ -991,6 +1183,7 @@ export function HoldsView() {
                 <div className="space-y-4">
                   <textarea
                     className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none bg-white font-medium min-h-[100px]"
+                    maxLength={5000}
                     placeholder="Type your response here... (e.g. Yes, I have 5 years experience with Kubernetes)"
                     value={answers[app.id] || ""}
                     onChange={(e) => setAnswers(prev => ({ ...prev, [app.id]: e.target.value }))}
@@ -1000,16 +1193,18 @@ export function HoldsView() {
                       variant="ghost"
                       size="sm"
                       className="text-slate-400 hover:text-slate-600 font-bold text-xs uppercase"
+                      disabled={isSubmitting(`snooze-${app.id}`)}
                       onClick={() => snoozeApplication(app.id)}
                     >
-                      <Clock className="w-4 h-4 mr-2" /> Snooze 24h
+                      {isSubmitting(`snooze-${app.id}`) ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Clock className="w-4 h-4 mr-2" />} Snooze 24h
                     </Button>
                     <Button
-                      disabled={!answers[app.id]}
+                      disabled={!answers[app.id] || isSubmitting(app.id)}
                       onClick={() => answerHold(app.id, answers[app.id])}
                       className="bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl px-6 sm:px-8 shadow-lg shadow-primary-500/20"
                     >
-                      Send Instructions <Send className="ml-2 w-4 h-4" />
+                      {isSubmitting(app.id) ? <Loader2 className="ml-2 w-4 h-4 animate-spin" /> : <Send className="ml-2 w-4 h-4" />}
+                      {isSubmitting(app.id) ? "Sending..." : "Send Instructions"}
                     </Button>
                   </div>
                 </div>
@@ -1040,7 +1235,7 @@ export function TeamView() {
           className="rounded-xl font-bold text-xs uppercase"
           onClick={() => navigate("/app/billing")}
         >
-          Add Seats
+          {plan === "TEAM" ? "Add Seats" : "Upgrade to Team"}
         </Button>
       </div>
 
@@ -1102,7 +1297,7 @@ export function TeamView() {
 
 
 export function BillingView() {
-  const { status, plan, usage, upgrade, addSeats } = useBilling();
+  const { status, plan, usage, upgrade, addSeats, manageBilling } = useBilling();
   const shouldReduceMotion = useReducedMotion();
 
   const usageUsed = usage?.monthly_used ?? 0;
@@ -1112,11 +1307,12 @@ export function BillingView() {
     ? new Date(status.current_period_end).toLocaleDateString()
     : null;
 
-  const tiers = [
-    { name: "FREE", price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], action: null },
-    { name: "PRO", price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, action: upgrade },
-    { name: "TEAM", price: "$49", features: ["10 team seats", "API access", "White-label reports"], action: addSeats },
-  ];
+  // N-8: Map constant tier config to runtime actions
+  const actionMap: Record<string, (() => Promise<void>) | null> = { upgrade, addSeats };
+  const tiers = BILLING_TIERS.map(t => ({
+    ...t,
+    action: t.actionKey ? actionMap[t.actionKey] ?? null : null,
+  }));
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-6 px-4 lg:px-0">
@@ -1157,10 +1353,8 @@ export function BillingView() {
             {tiers.map((tier) => (
               <Card
                 key={tier.name}
-                className={cn(
-                  "p-6 flex flex-col items-center text-center transition-all hover:shadow-lg",
-                  tier.recommended ? "border-primary-500 shadow-xl shadow-primary-500/10 ring-1 ring-primary-500" : "border-slate-100"
-                )}
+                className={`p-6 flex flex-col items-center text-center transition-all hover:shadow-lg ${tier.recommended ? "border-primary-500 shadow-xl shadow-primary-500/10 ring-1 ring-primary-500" : "border-slate-100"
+                  }`}
               >
                 <h4 className="font-black text-slate-900 text-lg mb-1">{tier.name}</h4>
                 <p className="text-3xl font-black text-slate-900 mb-6">{tier.price}</p>
@@ -1175,7 +1369,7 @@ export function BillingView() {
                   variant={tier.recommended ? "primary" : "outline"}
                   className="w-full font-bold text-xs uppercase rounded-xl"
                   disabled={tier.name === plan}
-                  onClick={tier.action ? async () => { try { await tier.action(); } catch (e) { pushToast({ title: "Checkout failed", description: (e as Error).message, tone: "error" }); } } : undefined}
+                  onClick={tier.action ? async () => { try { await tier.action!(); } catch (e) { pushToast({ title: "Checkout failed", description: (e as Error).message, tone: "error" }); } } : undefined}
                 >
                   {tier.name === plan ? "Current" : "Upgrade"}
                 </Button>
@@ -1210,7 +1404,7 @@ export function BillingView() {
               <Button
                 variant="ghost"
                 className="w-full mt-4 text-white/50 hover:text-white hover:bg-white/5 text-xs font-bold uppercase transition-colors"
-                onClick={async () => { try { await upgrade(); } catch (e) { pushToast({ title: "Billing portal error", description: (e as Error).message, tone: "error" }); } }}
+                onClick={() => manageBilling()}
               >
                 Manage Billing Portal <ArrowUpRight className="ml-2 w-3 h-3" />
               </Button>

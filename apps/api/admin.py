@@ -16,8 +16,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
@@ -596,3 +595,57 @@ async def export_tenant_audit_log(
             "Content-Disposition": f"attachment; filename=audit_log_{tenant_id[:8]}_{days}d.csv"
         },
     )
+
+# ---------------------------------------------------------------------------
+# JobSpy / Job Source Management
+# ---------------------------------------------------------------------------
+
+
+@router.get("/jobs/sync-status")
+async def get_job_sync_status(
+    user_id: str = Depends(_get_admin_user_id),
+    db: asyncpg.Pool = Depends(_get_pool),
+):
+    """
+    Get current status of JobSpy integration.
+    Returns configured sources, last run stats, and circuit breaker status.
+    """
+    from backend.domain.job_sync_service import JobSyncService
+    
+    async with db.acquire() as conn:
+        await require_system_admin(conn, user_id)
+    
+    # We initialize service just to read status; it's lightweight
+    # In a real app, this service might be a singleton or injected
+    service = JobSyncService(db)
+    return await service.get_sync_status()
+
+
+@router.post("/jobs/sync")
+async def trigger_job_sync(
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(_get_admin_user_id),
+    db: asyncpg.Pool = Depends(_get_pool),
+):
+    """
+    Trigger a manual job sync in the background.
+    """
+    from backend.domain.job_sync_service import JobSyncService
+    
+    async with db.acquire() as conn:
+        await require_system_admin(conn, user_id)
+
+    service = JobSyncService(db)
+    
+    # Check if already running (simple in-memory check for this instance)
+    # Ideally we'd check DB or Redis lock for multi-instance deployments
+    if service._running:
+        raise HTTPException(status_code=409, detail="Sync already in progress")
+
+    # Run in background
+    background_tasks.add_task(service.sync_all_sources)
+    
+    incr("admin.job_sync.triggered", tags={"user_id": user_id})
+    logger.info("Admin triggered manual job sync", extra={"user_id": user_id})
+    
+    return {"status": "triggered", "message": "Job sync started in background"}

@@ -211,7 +211,7 @@ function handleApiError(resp: Response, body: string): never {
     }, 200);
   }
   const parsedMsg = tryParseMessage(body);
-  const msg = parsedMsg 
+  const msg = parsedMsg
     ? `${parsedMsg} (HTTP ${resp.status})`
     : friendlyMessage(resp.status, body);
   const err = new Error(msg) as Error & { status: number; rawBody: string };
@@ -260,8 +260,9 @@ export async function apiFetch(
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     // If user provided a signal, listen to it
+    const onUserAbort = () => controller.abort();
     if (options.signal) {
-      options.signal.addEventListener("abort", () => controller.abort());
+      options.signal.addEventListener("abort", onUserAbort);
     }
 
     try {
@@ -273,6 +274,9 @@ export async function apiFetch(
       });
 
       clearTimeout(timeoutId);
+      if (options.signal) {
+        options.signal.removeEventListener("abort", onUserAbort);
+      }
 
       if (resp.ok) return resp;
 
@@ -284,6 +288,9 @@ export async function apiFetch(
       lastResp = resp;
     } catch (err: any) {
       clearTimeout(timeoutId);
+      if (options.signal) {
+        options.signal.removeEventListener("abort", onUserAbort);
+      }
       lastError = err;
 
       // Retry on network errors/timeouts if it's an idempotent method
@@ -368,35 +375,49 @@ export async function apiPostFormData<T = unknown>(path: string, body: FormData,
 
   let lastResp: Response | undefined;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const startController = new AbortController();
-    // If user provided a signal, we need to respect it. 
-    // However, for simplicity here we just use the one created for timeout if no user signal.
-    // Ideally we merge signals but standard fetch doesn't support multiple signals easily.
-    // For now, we'll just ignore the internal timeout if user provided a signal (or handle it simplistically).
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s for uploads
 
-    // Actually, `apiFetch` handles this with `timeout` option. 
-    // Let's verify if we can simply use `options.signal` if present.
-
-    const resp = await fetch(url, {
-      method: "POST",
-      credentials: "include",
-      headers: h,
-      body,
-      signal: options.signal,
-    });
-
-    if (resp.ok) {
-      const text = await resp.text();
-      return JSON.parse(text) as T;
+    // Forward user-provided signal
+    const onUserAbort = () => controller.abort();
+    if (options.signal) {
+      options.signal.addEventListener("abort", onUserAbort);
     }
 
-    if (!isRetryable(resp.status) || attempt === MAX_RETRIES) {
-      const text = await resp.text();
-      handleApiError(resp, text);
+    try {
+      const resp = await fetch(url, {
+        method: "POST",
+        credentials: "include",
+        headers: h,
+        body,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      if (options.signal) {
+        options.signal.removeEventListener("abort", onUserAbort);
+      }
+
+      if (resp.ok) {
+        const text = await resp.text();
+        return JSON.parse(text) as T;
+      }
+
+      if (!isRetryable(resp.status, "POST") || attempt === MAX_RETRIES) {
+        const text = await resp.text();
+        handleApiError(resp, text);
+      }
+
+      lastResp = resp;
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (options.signal) {
+        options.signal.removeEventListener("abort", onUserAbort);
+      }
+      throw err;
     }
 
-    lastResp = resp;
-    const delay = retryDelay(attempt, resp);
+    const delay = retryDelay(attempt, lastResp);
     await new Promise(r => setTimeout(r, delay));
   }
 

@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import React, { Suspense } from 'react';
 import { Helmet } from "react-helmet-async";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Button } from "./components/ui/Button";
 import ScrollToTop from "./components/ScrollToTop";
 import MarketingLayout from "./layouts/MarketingLayout";
 import AuthGuard from "./guards/AuthGuard";
@@ -48,6 +50,7 @@ const ATSScorePage = React.lazy(() => import("./pages/app/ats-score"));
 const AdminUsagePage = React.lazy(() => import("./pages/admin/usage"));
 const AdminMatchesPage = React.lazy(() => import("./pages/admin/matches"));
 const AdminAlertsPage = React.lazy(() => import("./pages/admin/alerts"));
+const AdminSourcesPage = React.lazy(() => import("./pages/admin/sources"));
 
 // Dashboard sub-component wrappers for lazy loading
 const JobsViewWrapper = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.JobsView })));
@@ -58,8 +61,52 @@ const BillingViewWrapper = React.lazy(() => import("./pages/Dashboard").then(mod
 
 // Dashboard sub-components are exported from Dashboard.tsx and will be loaded when Dashboard chunk loads
 
+/**
+ * Bi-directional onboarding guard:
+ * - Users who haven't completed onboarding are redirected TO /app/onboarding
+ * - Users who HAVE completed onboarding are redirected AWAY from /app/onboarding
+ */
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const { loading, needsOnboarding, error } = useProfile();
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <LoadingSpinner label="Loading..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 p-4 text-center">
+        <div className="rounded-full bg-destructive/10 p-4">
+          <AlertCircle className="h-8 w-8 text-destructive" />
+        </div>
+        <h2 className="text-xl font-semibold">Connection Failed</h2>
+        <p className="text-muted-foreground max-w-sm">
+          We couldn't load your profile. Please check your internet connection and try again.
+        </p>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Retry Connection
+        </Button>
+      </div>
+    );
+  }
+
+  // User still needs onboarding — redirect to onboarding page
+  if (needsOnboarding && location.pathname !== "/app/onboarding") {
+    return <Navigate to="/app/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+/**
+ * Prevents already-onboarded users from re-entering the onboarding flow.
+ */
+function CompletedOnboardingRedirect({ children }: { children: React.ReactNode }) {
   const { loading, needsOnboarding } = useProfile();
 
   if (loading) {
@@ -70,8 +117,9 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (needsOnboarding && location.pathname !== "/app/onboarding") {
-    return <Navigate to="/app/onboarding" replace />;
+  // Already completed onboarding — redirect to dashboard
+  if (!needsOnboarding) {
+    return <Navigate to="/app/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -86,7 +134,6 @@ const PageLoader = () => (
 
 export default function App() {
   const location = useLocation();
-  const isAppRoute = location.pathname.startsWith("/app");
 
   // Track page views on route change
   useGoogleAnalytics();
@@ -105,7 +152,7 @@ export default function App() {
         <meta name="twitter:title" content="JobHuntin | AI Job Search Automation & Auto-Apply" />
         <meta name="twitter:description" content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily." />
         <meta name="twitter:image" content={`${config.urls.og}/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global`} />
-        {isAppRoute && <meta name="robots" content="noindex, nofollow" />}
+        {location.pathname.startsWith("/app") && <meta name="robots" content="noindex, nofollow" />}
         <link rel="canonical" href={`${config.urls.homepage}${location.pathname === "/" ? "" : location.pathname}`} />
       </Helmet>
       <ScrollToTop />
@@ -141,7 +188,7 @@ export default function App() {
 
           {/* App Protected Routes */}
           <Route path="/app" element={<AuthGuard />}>
-            <Route path="onboarding" element={<Onboarding />} />
+            <Route path="onboarding" element={<CompletedOnboardingRedirect><Onboarding /></CompletedOnboardingRedirect>} />
 
             <Route element={<OnboardingGuard><AppLayout /></OnboardingGuard>}>
               <Route index element={<Navigate to="/app/dashboard" replace />} />
@@ -150,19 +197,20 @@ export default function App() {
               <Route path="applications" element={<React.Suspense fallback={<PageLoader />}><ApplicationsViewWrapper /></React.Suspense>} />
               <Route path="holds" element={<React.Suspense fallback={<PageLoader />}><HoldsViewWrapper /></React.Suspense>} />
               <Route path="team" element={<React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense>} />
-<Route path="billing" element={<React.Suspense fallback={<PageLoader />}><BillingViewWrapper /></React.Suspense>} />
+              <Route path="billing" element={<React.Suspense fallback={<PageLoader />}><BillingViewWrapper /></React.Suspense>} />
               <Route path="settings" element={<Settings />} />
-              
+
               {/* AI Feature Routes */}
               <Route path="matches" element={<React.Suspense fallback={<PageLoader />}><MatchesPage /></React.Suspense>} />
               <Route path="tailor" element={<React.Suspense fallback={<PageLoader />}><AITailorPage /></React.Suspense>} />
               <Route path="ats-score" element={<React.Suspense fallback={<PageLoader />}><ATSScorePage /></React.Suspense>} />
-              
+
               {/* Admin Routes */}
               <Route path="admin/usage" element={<React.Suspense fallback={<PageLoader />}><AdminUsagePage /></React.Suspense>} />
               <Route path="admin/matches" element={<React.Suspense fallback={<PageLoader />}><AdminMatchesPage /></React.Suspense>} />
               <Route path="admin/alerts" element={<React.Suspense fallback={<PageLoader />}><AdminAlertsPage /></React.Suspense>} />
-              
+              <Route path="admin/sources" element={<React.Suspense fallback={<PageLoader />}><AdminSourcesPage /></React.Suspense>} />
+
               <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
             </Route>
           </Route>

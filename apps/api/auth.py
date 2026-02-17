@@ -73,8 +73,10 @@ def _sanitize_return_to(value: str | None) -> str | None:
     if not trimmed.startswith("/") or trimmed.startswith("//"):
         return None
 
-    # Strip query/hash; only trust path
-    path_only = trimmed.split("?")[0].split("#")[0]
+    # Separate path from query/hash for whitelist check, but preserve query
+    parts = trimmed.split("?", 1)
+    path_only = parts[0].split("#")[0]
+    query = parts[1].split("#")[0] if len(parts) > 1 else None
 
     # Block traversal
     if "../" in path_only or "..\\" in path_only:
@@ -91,7 +93,11 @@ def _sanitize_return_to(value: str | None) -> str | None:
         "/app/team",
     }
 
-    return path_only if path_only in allowed else None
+    if path_only not in allowed:
+        return None
+
+    # Re-append query string if present (safe: path is whitelisted)
+    return f"{path_only}?{query}" if query else path_only
 
 
 def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
@@ -169,11 +175,12 @@ async def _generate_magic_link(
         logger.debug("[MAGIC_LINK] Profile ensured", extra={"user_id": str(user_id)})
 
     # Generate token
+    ttl_seconds = getattr(settings, "magic_link_token_ttl_seconds", 3600)
     payload = {
         "sub": str(user_id),
         "email": email,
         "aud": "authenticated",
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        "exp": datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds),
     }
 
     if not settings.jwt_secret:

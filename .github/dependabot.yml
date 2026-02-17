@@ -3,7 +3,7 @@
 
 version: 2
 updates:
-  # Python dependencies
+  # Python dependencies (backend)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -13,13 +13,11 @@ updates:
       timezone: "America/Los_Angeles"
     open-pull-requests-limit: 10
     commit-message:
-      prefix: "deps"
+      prefix: "deps(python)"
       include: "scope"
     labels:
       - "dependencies"
       - "python"
-    reviewers:
-      - "maintainers"
     groups:
       production-dependencies:
         dependency-type: "production"
@@ -29,7 +27,7 @@ updates:
           - "minor"
           - "patch"
 
-  # Node.js dependencies for web app
+  # Node.js dependencies — web app
   - package-ecosystem: "npm"
     directory: "/apps/web"
     schedule:
@@ -44,18 +42,29 @@ updates:
       - "dependencies"
       - "javascript"
     groups:
-      react-dependencies:
+      react-ecosystem:
         patterns:
           - "react"
           - "react-dom"
           - "react-router*"
+          - "@tanstack/*"
+      build-tools:
+        patterns:
+          - "vite"
+          - "typescript"
+          - "@vitejs/*"
+          - "postcss*"
+          - "autoprefixer"
+        update-types:
+          - "minor"
+          - "patch"
       dev-dependencies:
         dependency-type: "development"
         update-types:
           - "minor"
           - "patch"
 
-  # Node.js dependencies for admin app
+  # Node.js dependencies — admin app
   - package-ecosystem: "npm"
     directory: "/apps/web-admin"
     schedule:
@@ -69,12 +78,38 @@ updates:
     labels:
       - "dependencies"
       - "javascript"
+    groups:
+      all-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
-  # GitHub Actions
+  # Node.js dependencies — Chrome extension
+  - package-ecosystem: "npm"
+    directory: "/apps/extension"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(extension)"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "extension"
+    groups:
+      all-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions versions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
       day: "monday"
       time: "06:00"
       timezone: "America/Los_Angeles"
@@ -83,3 +118,24 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      actions-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker base images
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Los_Angeles"
+    commit-message:
+      prefix: "deps(docker)"
+    labels:
+      - "dependencies"
+      - "docker"

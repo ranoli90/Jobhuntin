@@ -12,9 +12,11 @@ export function fireSuccessConfetti() {
   });
 }
 
-export function fireUpgradeConfetti() {
+export function fireUpgradeConfetti(): () => void {
   const end = Date.now() + 600;
+  let cancelled = false;
   const frame = () => {
+    if (cancelled) return;
     confetti({
       particleCount: 3,
       angle: 60,
@@ -29,7 +31,8 @@ export function fireUpgradeConfetti() {
       origin: { x: 1 },
       colors: ['#10b981', '#8b5cf6'],
     });
-    if (Date.now() < end) requestAnimationFrame(frame);
+    if (Date.now() < end && !cancelled) requestAnimationFrame(frame);
   };
   frame();
+  return () => { cancelled = true; };
 }

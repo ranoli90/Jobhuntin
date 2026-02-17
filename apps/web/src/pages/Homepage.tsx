@@ -8,21 +8,16 @@ import {
   Upload, Search, Send, Lock, Shield, Clock,
   User, FileText, MessageSquare, Briefcase, TrendingUp, Target, Award, Moon, Sparkles
 } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
+import { cn } from '../lib/utils';
 
 import { Button } from '../components/ui/Button';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 // Realistic companies - mix of everyday employers
 const COMPANIES = [
   // Retail & Service
-  "Target", "Walmart", "Costco", "Home Depot", " Lowe's", "Best Buy", "CVS", "Walgreens",
+  "Target", "Walmart", "Costco", "Home Depot", "Lowe's", "Best Buy", "CVS", "Walgreens",
   "Starbucks", "McDonald's", "Chick-fil-A", "Kroger", "Whole Foods", "Trader Joe's",
   // Healthcare
   "UnitedHealth", "Cigna", "Humana", "Kaiser", "HCA Healthcare", "Labcorp", "Quest Diagnostics",
@@ -48,7 +43,7 @@ const COMPANIES = [
   "Ford", "GM", "Toyota", "Honda", "Tesla", "CarMax", "AutoNation",
   // Startups & Tech
   "Stripe", "Square", "Airbnb", "Uber", "Lyft", "DoorDash", "Instacart", "Slack", "Zoom",
-  "Notion", "Figma", "Canva", "Webflow", "Shopify", "Square", "Plaid", "Ramp"
+  "Notion", "Figma", "Canva", "Webflow", "Shopify", "Plaid", "Ramp"
 ];
 
 // Everyday positions for normal people
@@ -141,7 +136,7 @@ function generateActivity(): { name: string; role: string; company: string; loca
 }
 
 const LiveActivityStream = () => {
-  const [activities, setActivities] = useState(() => 
+  const [activities, setActivities] = useState(() =>
     Array.from({ length: 8 }, () => generateActivity())
   );
   const [isPaused, setIsPaused] = useState(false);
@@ -150,7 +145,7 @@ const LiveActivityStream = () => {
 
   useEffect(() => {
     if (shouldReduceMotion || isPaused) return;
-    
+
     const interval = setInterval(() => {
       const newActivity = generateActivity();
       setNewItemId(newActivity.id);
@@ -158,7 +153,7 @@ const LiveActivityStream = () => {
         const updated = [newActivity, ...prev.slice(0, 10)];
         return updated.map((a, i) => ({
           ...a,
-          time: i === 0 ? "just now" : i === 1 ? "1m ago" : i === 2 ? "2m ago" : `${i + 1}m ago`
+          time: i === 0 ? "just now" : `${i}m ago`
         }));
       });
       setTimeout(() => setNewItemId(null), 600);
@@ -170,13 +165,13 @@ const LiveActivityStream = () => {
   const visibleActivities = activities.slice(0, 4);
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="absolute -left-2 sm:-left-4 top-0 bottom-0 w-0.5 sm:w-1 bg-gradient-to-b from-blue-400 via-violet-400 to-transparent rounded-full" />
-      
+
       <div className="space-y-1 sm:space-y-2">
         {visibleActivities.map((activity, i) => {
           const isNew = activity.id === newItemId;
@@ -195,8 +190,8 @@ const LiveActivityStream = () => {
             >
               <div className={cn(
                 "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-300",
-                i === 0 
-                  ? "bg-gradient-to-br from-blue-500 to-violet-500" 
+                i === 0
+                  ? "bg-gradient-to-br from-blue-500 to-violet-500"
                   : "bg-slate-700"
               )}>
                 {i === 0 ? (
@@ -205,7 +200,7 @@ const LiveActivityStream = () => {
                   <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" />
                 )}
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <p className={cn(
                   "text-xs sm:text-sm leading-snug truncate transition-opacity duration-300 typography-premium text-perfect",
@@ -223,7 +218,7 @@ const LiveActivityStream = () => {
                   <span>{activity.time}</span>
                 </div>
               </div>
-              
+
               {i === 0 && (
                 <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-emerald-900/30 text-emerald-400 rounded-full text-xs font-medium animate-fade-in">
                   <CheckCircle className="w-3 h-3" />
@@ -234,7 +229,7 @@ const LiveActivityStream = () => {
           );
         })}
       </div>
-      
+
       <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-slate-700">
         <p className="text-xs text-slate-500 text-center flex items-center justify-center gap-1.5 typography-premium text-perfect">
           <span className={cn(
@@ -264,7 +259,6 @@ const Hero = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -281,13 +275,13 @@ const Hero = () => {
     setSentEmail(null);
 
     try {
-      const result = await magicLinkService.sendMagicLink(email, "/app/onboarding");
+      const result = await magicLinkService.sendMagicLink(email, "/app/dashboard");
       if (!result.success) throw new Error(result.error || "Failed");
-      
+
       if (typeof window !== 'undefined' && confetti && !shouldReduceMotion) {
         confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ['#3b82f6', '#8b5cf6', '#ec4899'] });
       }
-      
+
       pushToast({ title: "Check your inbox", description: "Magic link sent!", tone: "success" });
       setSentEmail(result.email);
       setEmail("");
@@ -305,16 +299,16 @@ const Hero = () => {
       <div className="absolute inset-0 pointer-events-none">
         {/* Subtle image overlay */}
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-screen" />
-        
+
         {/* Premium gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-transparent to-violet-950/20" />
-        
+
         {/* Film grain texture */}
         <div className="absolute inset-0 bg-film-grain" />
-        
+
         {/* Subtle grid */}
         <div className="absolute inset-0 bg-grid-premium opacity-3" />
-        
+
         {/* Ambient light orbs */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl" />
@@ -365,7 +359,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="font-body text-lg sm:text-xl lg:text-2xl text-slate-400 max-w-3xl mb-8 sm:mb-12 leading-relaxed text-balance typography-premium spacing-premium text-perfect text-mobile-optimized"
           >
-            Upload your resume once. We handle the rest—tailored applications, strategic timing, 
+            Upload your resume once. We handle the rest—tailored applications, strategic timing,
             and interview opportunities that align with your ambitions.
           </motion.p>
 
@@ -376,8 +370,6 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="w-full max-w-lg sm:max-w-xl mb-8 sm:mb-10"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
             >
               <form onSubmit={onSubmit} className="relative">
                 <div className="relative group">
@@ -421,7 +413,7 @@ const Hero = () => {
                   </div>
                 </div>
               </form>
-              
+
               {emailError && (
                 <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-sm text-red-400 font-medium typography-premium text-perfect">
                   {emailError}
@@ -461,11 +453,11 @@ const Hero = () => {
               </div>
               <p className="text-lg sm:text-xl font-semibold text-white mb-2 typography-premium text-perfect">Check your inbox</p>
               <p className="text-slate-400 mb-6 leading-relaxed typography-premium text-perfect text-mobile-optimized">
-                We've sent a magic link to <span className="text-white font-medium">{sentEmail}</span>. 
+                We've sent a magic link to <span className="text-white font-medium">{sentEmail}</span>.
                 Click it to begin your journey.
               </p>
-              <button 
-                onClick={() => setSentEmail(null)} 
+              <button
+                onClick={() => setSentEmail(null)}
                 className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors typography-premium hover-organic px-4 py-2 rounded-lg text-perfect"
               >
                 Use a different email
@@ -488,7 +480,7 @@ const LiveActivitySection = () => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/3 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/3 rounded-full blur-3xl" />
       </div>
-      
+
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
           <div>
@@ -508,7 +500,7 @@ const LiveActivitySection = () => {
                 <span className="text-sm font-semibold text-blue-400 uppercase tracking-wider spacing-premium">Live Activity</span>
               </div>
             </motion.div>
-            
+
             {/* Premium headline */}
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
@@ -522,7 +514,7 @@ const LiveActivitySection = () => {
                 arrive in real-time
               </span>
             </motion.h2>
-            
+
             {/* Refined description */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -533,7 +525,7 @@ const LiveActivitySection = () => {
             >
               While you focus on what matters, our AI continuously identifies and applies to positions that match your expertise and aspirations.
             </motion.p>
-            
+
             {/* Premium features */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -551,7 +543,7 @@ const LiveActivitySection = () => {
                   <p className="text-sm text-slate-400 typography-premium text-perfect text-mobile-optimized">Advanced algorithms ensure every opportunity aligns with your unique profile</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4 p-4 sm:p-6 surface-elevated rounded-xl border-organic hover-organic transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
                   <Award className="w-6 h-6 text-violet-400" />
@@ -563,7 +555,7 @@ const LiveActivitySection = () => {
               </div>
             </motion.div>
           </div>
-          
+
           {/* Premium activity display */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
@@ -582,7 +574,7 @@ const LiveActivitySection = () => {
               </div>
               <LiveActivityStream />
             </div>
-            
+
             {/* Ambient glow effect */}
             <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/10 to-violet-500/10 rounded-3xl blur-xl -z-10" />
           </motion.div>
@@ -594,27 +586,27 @@ const LiveActivitySection = () => {
 
 const Onboarding = () => {
   const steps = [
-    { 
-      icon: Upload, 
-      title: "Initialize", 
+    {
+      icon: Upload,
+      title: "Initialize",
       desc: "Upload your resume and let our AI analyze your unique value proposition",
       detail: "Skills, experience, and potential extracted in seconds"
     },
-    { 
-      icon: Search, 
-      title: "Strategic Matching", 
+    {
+      icon: Search,
+      title: "Strategic Matching",
       desc: "We identify opportunities that align with your career trajectory",
       detail: "Thousands of positions filtered for perfect fit"
     },
-    { 
-      icon: FileText, 
-      title: "Crafted Applications", 
+    {
+      icon: FileText,
+      title: "Crafted Applications",
       desc: "Each submission is tailored to resonate with hiring managers",
       detail: "Personalized narratives that highlight your strengths"
     },
-    { 
-      icon: MessageSquare, 
-      title: "Interview Ready", 
+    {
+      icon: MessageSquare,
+      title: "Interview Ready",
       desc: "Receive curated interview opportunities with preparation insights",
       detail: "Connect with companies actively seeking your expertise"
     },
@@ -650,7 +642,7 @@ const Onboarding = () => {
         {/* Premium steps */}
         <div className="relative max-w-6xl mx-auto">
           <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-700/30 to-transparent hidden lg:block" />
-          
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             {steps.map((step, i) => (
               <motion.div
@@ -672,7 +664,7 @@ const Onboarding = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Premium content */}
                   <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 typography-premium spacing-premium text-perfect text-mobile-optimized">{step.title}</h3>
                   <p className="font-body text-sm sm:text-base text-slate-400 leading-relaxed mb-2 sm:mb-3 typography-premium spacing-premium text-perfect text-mobile-optimized">{step.desc}</p>
@@ -725,6 +717,7 @@ const StickyMobileCTA = () => {
     >
       <Button
         className="w-full rounded-xl py-4 font-bold text-base bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 shadow-xl hover-lift typography-premium border-0"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       >
         <Sparkles className="w-5 h-5 mr-2" />
         Begin Your Journey
@@ -746,9 +739,9 @@ export default function Homepage() {
           "@context": "https://schema.org",
           "@type": "FAQPage",
           "mainEntity": [
-            { "@type": "Question", "name": "Is this legit? Will I get banned from job sites?", "acceptedAnswer": { "@type": "Answer", "text": "Absolutely legit. We follow each platform's Terms of Service. We don't spam, we don't use bots that violate rate limits, and we never submit low-quality applications." }},
-            { "@type": "Question", "name": "How is this different from just applying myself?", "acceptedAnswer": { "@type": "Answer", "text": "Speed and quality. Most people take 20-30 minutes per application. We do it in under 2 minutes, and we customize every resume and cover letter." }},
-            { "@type": "Question", "name": "What happens to my resume and data?", "acceptedAnswer": { "@type": "Answer", "text": "Your data is yours. We store it securely (encrypted at rest), never sell it to third parties, and you can delete everything anytime." }}
+            { "@type": "Question", "name": "Is this legit? Will I get banned from job sites?", "acceptedAnswer": { "@type": "Answer", "text": "Absolutely legit. We follow each platform's Terms of Service. We don't spam, we don't use bots that violate rate limits, and we never submit low-quality applications." } },
+            { "@type": "Question", "name": "How is this different from just applying myself?", "acceptedAnswer": { "@type": "Answer", "text": "Speed and quality. Most people take 20-30 minutes per application. We do it in under 2 minutes, and we customize every resume and cover letter." } },
+            { "@type": "Question", "name": "What happens to my resume and data?", "acceptedAnswer": { "@type": "Answer", "text": "Your data is yours. We store it securely (encrypted at rest), never sell it to third parties, and you can delete everything anytime." } }
           ]
         }}
       />

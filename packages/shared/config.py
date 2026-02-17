@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     )
 
     # ── Upload limits ─────────────────────────────────────────────
-    max_upload_size_bytes: int = 15_728_640  # 10 MB for PDF resumes
+    max_upload_size_bytes: int = 15_728_640  # 15 MB for PDF resumes
     max_avatar_size_bytes: int = 5_242_880  # 5 MB for avatar images
     resume_signed_url_ttl_seconds: int = 3600  # 1 hour
 

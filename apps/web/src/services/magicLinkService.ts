@@ -110,12 +110,15 @@ class MagicLinkService {
         throw new Error('Invalid redirect URL: must be absolute URL with protocol');
       }
 
-      console.log('[MagicLink] Sending request to API:', normalizedEmail, 'return_to:', sanitizedReturnTo);
+      if (import.meta.env.DEV) {
+        const maskedEmail = normalizedEmail.replace(/(^.{2}).+(@.+)$/, '$1***$2');
+        console.log('[MagicLink] Sending request to API:', maskedEmail, 'return_to:', sanitizedReturnTo);
+      }
 
       // Use the backend API to send the magic link
       const { apiPost } = await import('../lib/api');
 
-await apiPost('/auth/magic-link', {
+      await apiPost('/auth/magic-link', {
         email: normalizedEmail,
         return_to: sanitizedReturnTo
       });
@@ -150,7 +153,7 @@ await apiPost('/auth/magic-link', {
         // Remove HTTP status suffix if present (e.g., " (HTTP 502)")
         message = error.message.replace(/\s*\(HTTP\s*\d+\)\s*$/, '');
       }
-      
+
       return {
         success: false,
         email: normalizedEmail,

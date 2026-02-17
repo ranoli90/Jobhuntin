@@ -13,6 +13,10 @@
 # Explicit subdirectory .env files (belt-and-suspenders)
 apps/**/.env
 packages/**/.env
+scripts/**/.env
+scripts/**/temp.env
+*.env.local
+*.env.*.local
 
 # Service account keys (NEVER commit private keys)
 **/service-account.json

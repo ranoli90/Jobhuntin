@@ -11,8 +11,9 @@ import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { pushToast } from "../../lib/toast";
 import { api } from "../../lib/api";
+import { telemetry } from "../../lib/telemetry";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { CacheService } from "../../lib/redis";
+import { BrowserCacheService } from "../../lib/browserCache";
 import { Skeleton, OnboardingSkeleton } from "../../components/ui/Skeleton";
 import { checkEmailTypo } from "../../lib/emailUtils";
 import { ErrorBoundary } from "../../components/ErrorBoundary";
@@ -49,7 +50,7 @@ export default function Onboarding() {
   const { profile, loading, uploadResume, savePreferences, completeOnboarding, updateProfile } = useProfile();
   const aiSuggestions = useAISuggestions();
   const [isLowPowerMode, setIsLowPowerMode] = React.useState(false);
-  const cacheService = React.useMemo(() => CacheService.getInstance(), []);
+  const cacheService = React.useMemo(() => BrowserCacheService.getInstance(), []);
 
   React.useEffect(() => {
     // Check for save-data preference
@@ -60,14 +61,14 @@ export default function Onboarding() {
     // Check battery status if available
     let batteryObj: any = null;
     let handleBatteryChange: (() => void) | null = null;
-    
+
     if ('getBattery' in navigator) {
       (navigator as any).getBattery().then((battery: any) => {
         batteryObj = battery;
         handleBatteryChange = () => {
           setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
         };
-        
+
         setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
         battery.addEventListener('levelchange', handleBatteryChange);
         battery.addEventListener('chargingchange', handleBatteryChange);
@@ -153,12 +154,12 @@ export default function Onboarding() {
   });
   const [isSavingContact, setIsSavingContact] = React.useState(false);
 
-const [linkedinUrl, setLinkedinUrl] = React.useState(formData.linkedinUrl || "");
+  const [linkedinUrl, setLinkedinUrl] = React.useState(formData.linkedinUrl || "");
   const [parsedResume, setParsedResume] = React.useState<ParsedResume | null>(null);
   const [showParsingPreview, setShowParsingPreview] = React.useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = React.useState(false);
   const [isCompleting, setIsCompleting] = React.useState(false);
-const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown> | null>(null);
+  const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown> | null>(null);
   const [emailTypoSuggestion, setEmailTypoSuggestion] = React.useState<string | null>(null);
   const [richSkills, setRichSkills] = React.useState<RichSkill[]>([]);
   const [isSavingSkills, setIsSavingSkills] = React.useState(false);
@@ -176,7 +177,7 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
     return {};
   });
   const [isSavingWorkStyle, setIsSavingWorkStyle] = React.useState(false);
-  
+
   // Restore data from formData on mount and step changes (for back navigation persistence)
   React.useEffect(() => {
     // Restore linkedinUrl
@@ -204,7 +205,7 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
       setShowParsingPreview(formData.showParsingPreview);
     }
   }, [currentStep, formData]);
-  
+
   // Sync workStyleAnswers to formData for persistence
   React.useEffect(() => {
     if (Object.keys(workStyleAnswers).length > 0) {
@@ -238,21 +239,21 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
       await api.post("/me/work-style", workStyleAnswers);
       if (import.meta.env.DEV) console.log('[Onboarding] Work style saved');
       pushToast({ title: "Work style saved!", tone: "success" });
-      
+
       // Track AI learning event
-      if (import.meta.env.DEV) {
-        console.log("[Telemetry] AI Learned Work Style", {
-          answersCount: Object.keys(workStyleAnswers).length,
-          hasAutonomyPreference: !!workStyleAnswers.autonomy_preference,
-          hasLearningStyle: !!workStyleAnswers.learning_style,
-          hasCompanyStagePreference: !!workStyleAnswers.company_stage_preference,
-          hasCommunicationStyle: !!workStyleAnswers.communication_style,
-          hasPacePreference: !!workStyleAnswers.pace_preference,
-          hasOwnershipPreference: !!workStyleAnswers.ownership_preference,
-          hasCareerTrajectory: !!workStyleAnswers.career_trajectory,
-        });
-      }
-      
+
+      // Track AI learning event
+      telemetry.track("AI Learned Work Style", {
+        answersCount: Object.keys(workStyleAnswers).length,
+        hasAutonomyPreference: !!workStyleAnswers.autonomy_preference,
+        hasLearningStyle: !!workStyleAnswers.learning_style,
+        hasCompanyStagePreference: !!workStyleAnswers.company_stage_preference,
+        hasCommunicationStyle: !!workStyleAnswers.communication_style,
+        hasPacePreference: !!workStyleAnswers.pace_preference,
+        hasOwnershipPreference: !!workStyleAnswers.ownership_preference,
+        hasCareerTrajectory: !!workStyleAnswers.career_trajectory,
+      });
+
       nextStep();
     } catch (err: any) {
       console.error('[Onboarding] Failed to save work style:', err);
@@ -386,7 +387,7 @@ const [parsedProfile, setParsedProfile] = React.useState<Record<string, unknown>
 
   }, [profile, navigate, resetOnboarding]);
 
-const handleResumeUpload = async () => {
+  const handleResumeUpload = async () => {
     if (!resumeFile) return;
     setIsUploading(true);
     setResumeError(null);
@@ -397,7 +398,7 @@ const handleResumeUpload = async () => {
       if (data.parsed_profile) {
         const p = data.parsed_profile;
         if (import.meta.env.DEV) console.log('[Onboarding] Parsed profile:', p);
-        
+
         // Cache parsed resume data for future use
         const resumeData = {
           title: p.headline || (p.experience?.[0]?.title),
@@ -408,14 +409,14 @@ const handleResumeUpload = async () => {
           parsedProfile: data.parsed_profile,
           richSkills: null
         };
-        
+
         // Extract rich skills from parsed profile (V2 format)
         const techSkills = p.skills?.technical || [];
         if (import.meta.env.DEV) {
           console.log('[Onboarding] Tech skills raw:', techSkills);
           console.log('[Onboarding] First skill type:', techSkills.length > 0 ? typeof techSkills[0] : 'empty');
         }
-        
+
         if (techSkills.length > 0 && typeof techSkills[0] === 'object' && techSkills[0] !== null) {
           // Rich skills format from V2 parser
           const parsedSkills = techSkills.map((s: any) => ({
@@ -449,10 +450,10 @@ const handleResumeUpload = async () => {
           setRichSkills(parsedSkills);
           resumeData.richSkills = parsedSkills;
         }
-        
+
         // Cache the resume data
         await cacheService.cacheParsedResume(profile?.id || 'anonymous', resumeData);
-        
+
         setParsedResume({
           title: resumeData.title,
           skills: resumeData.skills,
@@ -475,15 +476,14 @@ const handleResumeUpload = async () => {
         });
 
         // Track AI learning event
-        if (import.meta.env.DEV) {
-          console.log("[Telemetry] AI Learned Resume Data", {
-            hasSkills: !!data.parsed_profile.skills,
-            skillCount: data.parsed_profile.skills?.technical?.length || 0,
-            hasExperience: !!data.parsed_profile.experience,
-            experienceYears: data.parsed_profile.experience?.length || 0,
-            hasEducation: !!data.parsed_profile.education,
-          });
-        }
+        // Track AI learning event
+        telemetry.track("AI Learned Resume Data", {
+          hasSkills: !!data.parsed_profile.skills,
+          skillCount: data.parsed_profile.skills?.technical?.length || 0,
+          hasExperience: !!data.parsed_profile.experience,
+          experienceYears: data.parsed_profile.experience?.length || 0,
+          hasEducation: !!data.parsed_profile.education,
+        });
       }
     } catch (err) {
       const message = (err as Error).message;
@@ -500,7 +500,7 @@ const handleResumeUpload = async () => {
     }
   };
 
-const handleConfirmParsing = () => {
+  const handleConfirmParsing = () => {
     setShowParsingPreview(false);
     nextStep();
   };
@@ -515,14 +515,14 @@ const handleConfirmParsing = () => {
         return await fn();
       } catch (error: any) {
         if (i === maxRetries - 1) throw error;
-        
+
         const isNetworkError = !navigator.onLine || error?.status >= 500;
         const nextDelay = delay * Math.pow(2, i);
-        
+
         if (import.meta.env.DEV) {
           console.log(`[Onboarding] Retry ${i + 1}/${maxRetries} after ${nextDelay}ms:`, error);
         }
-        
+
         if (isNetworkError) {
           await new Promise(resolve => setTimeout(resolve, nextDelay));
         } else {
@@ -539,10 +539,10 @@ const handleConfirmParsing = () => {
     try {
       // Cache skills data
       await cacheService.cacheSkills(profile?.id || 'anonymous', richSkills);
-      
+
       // Save skills to backend with retry logic
       if (import.meta.env.DEV) console.log('[Onboarding] Saving skills:', richSkills);
-      const result = await retryWithBackoff(() => 
+      const result = await retryWithBackoff(() =>
         api.post<{ status: string; count: number }>("/me/skills", { skills: richSkills })
       );
       if (import.meta.env.DEV) console.log('[Onboarding] Skills saved:', result);
@@ -551,13 +551,13 @@ const handleConfirmParsing = () => {
     } catch (err: any) {
       console.error('[Onboarding] Failed to save skills:', err);
       const isNetworkError = !navigator.onLine || err?.status >= 500;
-      const message = isNetworkError 
+      const message = isNetworkError
         ? "Network error. Please check your connection and try again."
         : err?.message || "Failed to save skills";
-      pushToast({ 
-        title: "Failed to save skills", 
-        description: message, 
-        tone: "error" 
+      pushToast({
+        title: "Failed to save skills",
+        description: message,
+        tone: "error"
       });
     } finally {
       setIsSavingSkills(false);
@@ -585,7 +585,7 @@ const handleConfirmParsing = () => {
     // Clear any previous errors and set loading
     setFormErrors({});
     setIsSavingContact(true);
-    
+
     try {
       const trimmedContact = {
         ...contactInfo,
@@ -600,7 +600,7 @@ const handleConfirmParsing = () => {
         full_name: `${trimmedContact.first_name} ${trimmedContact.last_name}`
       }));
       pushToast({ title: "Contact info saved!", tone: "success" });
-      
+
       // Track AI learning event
       if (import.meta.env.DEV) {
         console.log("[Telemetry] AI Learned Contact Info", {
@@ -611,18 +611,18 @@ const handleConfirmParsing = () => {
           hasLinkedIn: !!linkedinUrl,
         });
       }
-      
+
       nextStep();
     } catch (err: any) {
       console.error('[Onboarding] Failed to save contact:', err);
       const isNetworkError = !navigator.onLine || err?.status >= 500;
-      const message = isNetworkError 
+      const message = isNetworkError
         ? "Network error. Please check your connection and try again."
         : err?.message || "Please try again";
-      pushToast({ 
-        title: "Failed to save contact info", 
-        description: message, 
-        tone: "error" 
+      pushToast({
+        title: "Failed to save contact info",
+        description: message,
+        tone: "error"
       });
     } finally {
       setIsSavingContact(false);
@@ -671,7 +671,7 @@ const handleConfirmParsing = () => {
     // Clear any previous errors and set loading
     setFormErrors({});
     setIsSavingPreferences(true);
-    
+
     try {
       const trimmedPrefs = {
         ...preferences,
@@ -698,7 +698,7 @@ const handleConfirmParsing = () => {
         });
       }
       pushToast({ title: "Preferences saved!", tone: "success" });
-      
+
       // Track AI learning event
       if (import.meta.env.DEV) {
         console.log("[Telemetry] AI Learned Job Preferences", {
@@ -713,14 +713,14 @@ const handleConfirmParsing = () => {
           excludedKeywordsCount: trimmedPrefs.excluded_keywords?.length || 0,
         });
       }
-      
+
       nextStep();
     } catch (err: any) {
       console.error('[Onboarding] Failed to save preferences:', err);
-      pushToast({ 
-        title: "Failed to save preferences", 
-        description: err?.message || "Please try again", 
-        tone: "error" 
+      pushToast({
+        title: "Failed to save preferences",
+        description: err?.message || "Please try again",
+        tone: "error"
       });
     } finally {
       setIsSavingPreferences(false);
@@ -736,10 +736,10 @@ const handleConfirmParsing = () => {
       navigate("/app/jobs");
     } catch (err: any) {
       console.error('[Onboarding] Failed to complete:', err);
-      pushToast({ 
-        title: "Almost there!", 
-        description: err?.message || "Something went wrong. Please try again.", 
-        tone: "error" 
+      pushToast({
+        title: "Almost there!",
+        description: err?.message || "Something went wrong. Please try again.",
+        tone: "error"
       });
     } finally {
       setIsCompleting(false);
@@ -764,213 +764,213 @@ const handleConfirmParsing = () => {
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative">
       <ErrorBoundary>
-      {/* Minimal Header */}
-      <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50 sticky top-0">
-        <Logo to="/app/onboarding" size="sm" />
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
-            <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-            <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">Setting Up Your Profile</span>
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100">
-            Restart
-          </Button>
-        </div>
-      </header>
-
-      <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8 bg-grid-premium">
-        <div className="w-full max-w-xl lg:max-w-4xl xl:max-w-5xl">
-          {/* Progress bar */}
-          <div className="mb-4 md:mb-6">
-            <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Setup Progress — {(progress).toFixed(0)}%
-              </span>
-              <span className="text-[10px] md:text-xs font-bold text-primary-600 uppercase tracking-wider">{currentStepData.title}</span>
+        {/* Minimal Header */}
+        <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50 sticky top-0">
+          <Logo to="/app/onboarding" size="sm" />
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
+              <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+              <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">Setting Up Your Profile</span>
             </div>
-            <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+            <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100">
+              Restart
+            </Button>
+          </div>
+        </header>
+
+        <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8 bg-grid-premium">
+          <div className="w-full max-w-xl lg:max-w-4xl xl:max-w-5xl">
+            {/* Progress bar */}
+            <div className="mb-4 md:mb-6">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Setup Progress — {(progress).toFixed(0)}%
+                </span>
+                <span className="text-[10px] md:text-xs font-bold text-primary-600 uppercase tracking-wider">{currentStepData.title}</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                <motion.div
+                  initial={shouldReduceMotion ? { width: `${progress}%` } : { width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  className="h-full bg-primary-600"
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                />
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait">
               <motion.div
-                initial={shouldReduceMotion ? { width: `${progress}%` } : { width: 0 }}
-                animate={{ width: `${progress}%` }}
-                className="h-full bg-primary-600"
-                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-              />
-            </div>
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={shouldReduceMotion ? undefined : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={shouldReduceMotion ? undefined : { opacity: 0 }}
-              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
-              className="w-full"
-            >
-              <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
-                {/* Profile completeness indicator - Desktop: horizontal, Mobile: compact */}
-                <div className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 md:gap-3">
-                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                        <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" />
+                key={currentStep}
+                initial={shouldReduceMotion ? undefined : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={shouldReduceMotion ? undefined : { opacity: 0 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
+                className="w-full"
+              >
+                <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
+                  {/* Profile completeness indicator - Desktop: horizontal, Mobile: compact */}
+                  <div className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                          <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" />
+                        </div>
+                        <div>
+                          <span className="block text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Profile Strength</span>
+                          <span className="text-xs md:text-sm font-bold text-white">Setup Progress</span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="block text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Profile Strength</span>
-                        <span className="text-xs md:text-sm font-bold text-white">Setup Progress</span>
+                      <div className="flex items-center gap-3 md:gap-4">
+                        <div className="flex-1 md:w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${completeness}%` }}
+                            className="h-full bg-emerald-500"
+                            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                          />
+                        </div>
+                        <span className="text-lg md:text-2xl font-black text-white">{completeness}%</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 md:gap-4">
-                      <div className="flex-1 md:w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${completeness}%` }}
-                          className="h-full bg-emerald-500"
-                          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                        />
-                      </div>
-                      <span className="text-lg md:text-2xl font-black text-white">{completeness}%</span>
+                    {/* Badges row */}
+                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
+                      {(profile?.resume_url || resumeFile) && (
+                        <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          Resume Added
+                        </Badge>
+                      )}
+                      {preferences.location && (
+                        <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          Location Set
+                        </Badge>
+                      )}
+                      {preferences.role_type && (
+                        <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
+                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          Job Title Set
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  {/* Badges row */}
-                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
-                    {(profile?.resume_url || resumeFile) && (
-                      <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                        Resume Added
-                      </Badge>
-                    )}
-                    {preferences.location && (
-                      <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                        Location Set
-                      </Badge>
-                    )}
-                    {preferences.role_type && (
-                      <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                        Job Title Set
-                      </Badge>
-                    )}
-                  </div>
-                </div>
 
-                {currentStepData.id === "welcome" && (
-                  <WelcomeStep
-                    onNext={nextStep}
-                    shouldReduceMotion={!!shouldReduceMotion}
-                  />
-                )}
+                  {currentStepData.id === "welcome" && (
+                    <WelcomeStep
+                      onNext={nextStep}
+                      shouldReduceMotion={!!shouldReduceMotion}
+                    />
+                  )}
 
-                {currentStepData.id === "resume" && (
-                  <ResumeStep
-                    onNext={nextStep}
-                    onPrev={prevStep}
-                    onUpload={handleResumeUpload}
-                    resumeFile={resumeFile}
-                    setResumeFile={setResumeFile}
-                    isUploading={isUploading}
-                    resumeError={resumeError}
-                    setResumeError={setResumeError}
-                    linkedinUrl={linkedinUrl}
-                    setLinkedinUrl={setLinkedinUrl}
-                    showParsingPreview={showParsingPreview}
-                    setShowParsingPreview={setShowParsingPreview}
-                    parsedResume={parsedResume}
-                    onConfirmParsing={handleConfirmParsing}
-                    shouldReduceMotion={!!shouldReduceMotion}
-                    onResetParsingState={() => {
-                      setParsedResume(null);
-                      setParsedProfile(null);
-                      setRichSkills([]);
-                    }}
-                  />
-                )}
+                  {currentStepData.id === "resume" && (
+                    <ResumeStep
+                      onNext={nextStep}
+                      onPrev={prevStep}
+                      onUpload={handleResumeUpload}
+                      resumeFile={resumeFile}
+                      setResumeFile={setResumeFile}
+                      isUploading={isUploading}
+                      resumeError={resumeError}
+                      setResumeError={setResumeError}
+                      linkedinUrl={linkedinUrl}
+                      setLinkedinUrl={setLinkedinUrl}
+                      showParsingPreview={showParsingPreview}
+                      setShowParsingPreview={setShowParsingPreview}
+                      parsedResume={parsedResume}
+                      onConfirmParsing={handleConfirmParsing}
+                      shouldReduceMotion={!!shouldReduceMotion}
+                      onResetParsingState={() => {
+                        setParsedResume(null);
+                        setParsedProfile(null);
+                        setRichSkills([]);
+                      }}
+                    />
+                  )}
 
-                {currentStepData.id === "skill-review" && (
-                  <SkillReviewStep
-                    onNext={handleSaveSkills}
-                    onPrev={prevStep}
-                    richSkills={richSkills}
-                    setRichSkills={setRichSkills}
-                    isSaving={isSavingSkills}
-                  />
-                )}
+                  {currentStepData.id === "skill-review" && (
+                    <SkillReviewStep
+                      onNext={handleSaveSkills}
+                      onPrev={prevStep}
+                      richSkills={richSkills}
+                      setRichSkills={setRichSkills}
+                      isSaving={isSavingSkills}
+                    />
+                  )}
 
-                {currentStepData.id === "confirm-contact" && (
-                  <ConfirmContactStep
-                    onNext={handleSaveContact}
-                    onPrev={prevStep}
-                    contactInfo={contactInfo}
-                    setContactInfo={setContactInfo}
-                    isSavingContact={isSavingContact}
-                    parsedResume={parsedResume}
-                    formErrors={formErrors}
-                    emailTypoSuggestion={emailTypoSuggestion}
-                    onApplyEmailSuggestion={(suggestion) => {
-                      setContactInfo(prev => ({
+                  {currentStepData.id === "confirm-contact" && (
+                    <ConfirmContactStep
+                      onNext={handleSaveContact}
+                      onPrev={prevStep}
+                      contactInfo={contactInfo}
+                      setContactInfo={setContactInfo}
+                      isSavingContact={isSavingContact}
+                      parsedResume={parsedResume}
+                      formErrors={formErrors}
+                      emailTypoSuggestion={emailTypoSuggestion}
+                      onApplyEmailSuggestion={(suggestion) => {
+                        setContactInfo(prev => ({
+                          ...prev,
+                          email: `${prev.email.split('@')[0]}@${suggestion}`
+                        }));
+                        setEmailTypoSuggestion(null);
+                      }}
+                      onClearError={(field) => setFormErrors(prev => {
+                        const updated = { ...prev };
+                        delete updated[field];
+                        return updated;
+                      })}
+                      onSetFormError={(field, error) => setFormErrors(prev => ({
                         ...prev,
-                        email: `${prev.email.split('@')[0]}@${suggestion}`
-                      }));
-                      setEmailTypoSuggestion(null);
-                    }}
-                    onClearError={(field) => setFormErrors(prev => {
-                      const updated = { ...prev };
-                      delete updated[field];
-                      return updated;
-                    })}
-                    onSetFormError={(field, error) => setFormErrors(prev => ({
-                      ...prev,
-                      [field]: error
-                    }))}
-                  />
-                )}
+                        [field]: error
+                      }))}
+                    />
+                  )}
 
-                {currentStepData.id === "preferences" && (
-                  <PreferencesStep
-                    onNext={handleSavePreferences}
-                    onPrev={prevStep}
-                    preferences={preferences}
-                    setPreferences={setPreferences}
-                    isSavingPreferences={isSavingPreferences}
-                    aiSuggestions={aiSuggestions}
-                    formErrors={formErrors}
-                    hasParsedProfile={!!parsedProfile}
-                    onClearError={(field) => setFormErrors(prev => {
-                      const updated = { ...prev };
-                      delete updated[field];
-                      return updated;
-                    })}
-                  />
-                )}
+                  {currentStepData.id === "preferences" && (
+                    <PreferencesStep
+                      onNext={handleSavePreferences}
+                      onPrev={prevStep}
+                      preferences={preferences}
+                      setPreferences={setPreferences}
+                      isSavingPreferences={isSavingPreferences}
+                      aiSuggestions={aiSuggestions}
+                      formErrors={formErrors}
+                      hasParsedProfile={!!parsedProfile}
+                      onClearError={(field) => setFormErrors(prev => {
+                        const updated = { ...prev };
+                        delete updated[field];
+                        return updated;
+                      })}
+                    />
+                  )}
 
-                {currentStepData.id === "work-style" && (
-                  <WorkStyleStep
-                    onNext={handleSaveWorkStyle}
-                    onPrev={prevStep}
-                    answers={workStyleAnswers}
-                    setAnswers={setWorkStyleAnswers}
-                    isSaving={isSavingWorkStyle}
-                  />
-                )}
+                  {currentStepData.id === "work-style" && (
+                    <WorkStyleStep
+                      onNext={handleSaveWorkStyle}
+                      onPrev={prevStep}
+                      answers={workStyleAnswers}
+                      setAnswers={setWorkStyleAnswers}
+                      isSaving={isSavingWorkStyle}
+                    />
+                  )}
 
-                {currentStepData.id === "ready" && (
-                  <ReadyStep
-                    onNext={handleComplete}
-                    isCompleting={isCompleting}
-                    contactInfo={contactInfo}
-                    preferences={preferences}
-                    completeness={completeness}
-                    profile={profile}
-                    resumeFile={resumeFile}
-                    shouldReduceMotion={!!shouldReduceMotion}
-                  />
-                )}
-              </Card>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </main>
+                  {currentStepData.id === "ready" && (
+                    <ReadyStep
+                      onNext={handleComplete}
+                      isCompleting={isCompleting}
+                      contactInfo={contactInfo}
+                      preferences={preferences}
+                      completeness={completeness}
+                      profile={profile}
+                      resumeFile={resumeFile}
+                      shouldReduceMotion={!!shouldReduceMotion}
+                    />
+                  )}
+                </Card>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </main>
       </ErrorBoundary>
     </div>
   );

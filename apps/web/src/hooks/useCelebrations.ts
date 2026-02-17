@@ -18,7 +18,9 @@ export function useFirstSaveCelebration() {
 }
 
 export function useSessionMilestone() {
-  const milestones = [10, 25, 50, 100];
+  // N-5: Session milestones use higher thresholds to avoid overlapping with
+  // per-swipe milestones [1, 5, 10, 25] defined in JobsView.
+  const milestones = [50, 100, 250, 500];
   const toasted = useRef<Set<number>>(new Set());
 
   const celebrate = (count: number) => {

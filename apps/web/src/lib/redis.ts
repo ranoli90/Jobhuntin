@@ -1,12 +1,17 @@
 import { createClient } from 'redis';
 
-// Redis client configuration
+// SECURITY: This module must ONLY run server-side. Never import in browser bundles.
+if (typeof window !== 'undefined') {
+  console.error('[SECURITY] redis.ts was imported in a browser context — this is a configuration error.');
+}
+
+// Redis client configuration — all values MUST come from environment variables
 const redis = createClient({
   socket: {
-    host: process.env.REDIS_HOST || 'redis-18567.c270.us-east-1-3.ec2.cloud.redislabs.com',
-    port: parseInt(process.env.REDIS_PORT || '18567'),
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT || '6379'),
   },
-  password: process.env.REDIS_PASSWORD || 'your-redis-password',
+  password: process.env.REDIS_PASSWORD,
 });
 
 // Redis connection events
@@ -138,7 +143,7 @@ export class CacheService {
       `matches:${userId}`,
       `skills:${userId}`
     ];
-    
+
     try {
       await Promise.all(keys.map(key => this.del(key)));
     } catch (error) {
@@ -151,9 +156,9 @@ export class CacheService {
       await this.client.ping();
       return { healthy: true, message: 'Redis is healthy' };
     } catch (error) {
-      return { 
-        healthy: false, 
-        message: `Redis error: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      return {
+        healthy: false,
+        message: `Redis error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }

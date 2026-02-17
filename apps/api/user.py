@@ -162,9 +162,13 @@ async def create_application(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """Create an application when user swipes ACCEPT; REJECT is a no-op."""
+    """Create an application when user swipes ACCEPT; record REJECTED for REJECT."""
+    # N-7: Import at function scope to keep it visible
+    from backend.domain.priority import compute_priority_score
+
     if body.decision != "ACCEPT":
-        # Persist rejection to avoid resurfacing the same job in feeds
+        # H-3: Persist rejection with REJECTED status (not FAILED) to avoid
+        # inflating failure metrics while still preventing job resurfacing.
         async with db.acquire() as conn:
             job = await JobRepo.get_by_id(conn, body.job_id)
             if not job:
@@ -177,9 +181,9 @@ async def create_application(
                 """
                 INSERT INTO public.applications
                     (user_id, job_id, tenant_id, blueprint_key, status, priority_score)
-                VALUES ($1, $2, $3, $4, 'FAILED', 0)
+                VALUES ($1, $2, $3, $4, 'REJECTED', 0)
                 ON CONFLICT (user_id, job_id) DO UPDATE SET
-                    status = 'FAILED',
+                    status = 'REJECTED',
                     updated_at = now()
                 """,
                 ctx.user_id,
@@ -202,8 +206,6 @@ async def create_application(
 
         s = get_settings()
         blueprint_key = s.default_blueprint_key or "job-app"
-
-        from backend.domain.priority import compute_priority_score
 
         priority = compute_priority_score(ctx.plan)
 
@@ -234,16 +236,18 @@ async def create_application(
 
 # ---------------------------------------------------------------------------
 # POST /applications/{job_id}/undo
+# NOTE (M-7): The path parameter is `job_id` (not application_id).
+# The endpoint looks up the application by (user_id, job_id) pair.
 # ---------------------------------------------------------------------------
 
 
 @router.post("/applications/{job_id}/undo")
 async def undo_application(
-    job_id: str = FastAPIPath(...),
+    job_id: str = FastAPIPath(..., description="The job ID (not application ID) whose swipe to undo"),
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """Undo the last swipe decision for a job within 5 second window."""
+    """Undo the last swipe decision for a job (identified by job_id) within 10 second window."""
     from shared.validators import validate_uuid
 
     # Validate job_id format
@@ -269,12 +273,11 @@ async def undo_application(
                 status_code=404, detail="No application found for this job"
             )
 
-        # Check if within 5 second undo window
+        # Check if within 10 second undo window
         from datetime import datetime, timedelta
 
         created_at = app["created_at"]
-        if created_at and datetime.utcnow() - created_at > timedelta(seconds=30):
-            # Allow up to 30 seconds on backend for network latency
+        if created_at and datetime.now(UTC) - created_at > timedelta(seconds=10):
             raise HTTPException(status_code=400, detail="Undo window has expired")
 
         # Delete the application record
@@ -580,8 +583,13 @@ class Preferences(BaseModel):
     location: str | None = None
     role_type: str | None = None
     salary_min: int | None = None
+    salary_max: int | None = None
     remote_only: bool | None = None
+    onsite_only: bool | None = None
     work_authorized: bool | None = None
+    visa_sponsorship: bool | None = None
+    excluded_companies: list[str] | None = None
+    excluded_keywords: list[str] | None = None
 
 
 class ProfileUpdate(BaseModel):
@@ -680,15 +688,14 @@ async def update_profile(
         )
         final_resume = row["resume_url"] if row else None
 
+        user_row = await conn.fetchrow(
+            "SELECT email FROM public.users WHERE id = $1", ctx.user_id
+        )
+        user_email = user_row["email"] if user_row else ""
+
     return {
         "id": ctx.user_id,
-        "email": user_row["email"]
-        if (
-            user_row := await conn.fetchrow(
-                "SELECT email FROM public.users WHERE id = $1", ctx.user_id
-            )
-        )
-        else "",
+        "email": user_email,
         "has_completed_onboarding": profile_data.get("has_completed_onboarding", False),
         "resume_url": final_resume,
         "preferences": profile_data.get("preferences") or {},

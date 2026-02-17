@@ -7,7 +7,7 @@
  * - Customizable bindings
  */
 
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 
 export type ShortcutScope = 'global' | 'dashboard' | 'jobs' | 'editor' | 'modal';
 
@@ -287,6 +287,29 @@ export function useKeyboardShortcuts(
   const sequenceState = useRef({ keys: [] as string[], timeout: null as ReturnType<typeof setTimeout> | null });
   const [helpOpen, setHelpOpen] = useState(false);
 
+  // M-9: Store latest shortcuts in a ref so the effect handler always sees
+  // the freshest handlers without re-registering the event listener.
+  const shortcutsRef = useRef(shortcuts);
+  shortcutsRef.current = shortcuts;
+
+  // L-11: Pre-compute binding strings once per shortcut change instead of
+  // rebuilding them on every keypress event.
+  const bindings = useMemo(
+    () =>
+      shortcuts.map((s) => {
+        const parts: string[] = [];
+        if (s.ctrl) parts.push('Ctrl');
+        if (s.shift) parts.push('Shift');
+        if (s.alt) parts.push('Alt');
+        if (s.meta) parts.push('Meta');
+        parts.push(s.key);
+        return { binding: parts.join('+'), scope: s.scope || 'global' };
+      }),
+    [shortcuts]
+  );
+  const bindingsRef = useRef(bindings);
+  bindingsRef.current = bindings;
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -306,23 +329,17 @@ export function useKeyboardShortcuts(
         return;
       }
 
-      // Check each shortcut
-      for (const shortcut of shortcuts) {
-        const shortcutScope = shortcut.scope || 'global';
+      // Check each shortcut using latest refs
+      const currentShortcuts = shortcutsRef.current;
+      const currentBindings = bindingsRef.current;
+      for (let i = 0; i < currentShortcuts.length; i++) {
+        const shortcut = currentShortcuts[i];
+        const { binding, scope: shortcutScope } = currentBindings[i];
 
         // Check scope match
         if (shortcutScope !== 'global' && shortcutScope !== scope) {
           continue;
         }
-
-        // Build binding string
-        const parts: string[] = [];
-        if (shortcut.ctrl) parts.push('Ctrl');
-        if (shortcut.shift) parts.push('Shift');
-        if (shortcut.alt) parts.push('Alt');
-        if (shortcut.meta) parts.push('Meta');
-        parts.push(shortcut.key);
-        const binding = parts.join('+');
 
         if (matchesBinding(event, binding, sequenceState.current)) {
           event.preventDefault();
@@ -340,7 +357,7 @@ export function useKeyboardShortcuts(
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [shortcuts, scope, enabled]);
+  }, [scope, enabled]); // M-9: removed `shortcuts` dep — we read from ref instead
 
   const openHelp = useCallback(() => setHelpOpen(true), []);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
@@ -381,6 +398,7 @@ export function useShortcutsHelp() {
 
 /**
  * Hook for a single keyboard shortcut.
+ * M-9: Uses a ref for the handler to avoid re-registering on every render.
  */
 export function useKeyboardShortcut(
   key: string,
@@ -394,6 +412,11 @@ export function useKeyboardShortcut(
   } = {}
 ) {
   const { ctrl, shift, alt, meta, enabled = true } = options;
+
+  // M-9: Store handler in ref so we always call the latest without
+  // re-registering the keydown listener on every render.
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
 
   useEffect(() => {
     if (!enabled) return;
@@ -418,13 +441,13 @@ export function useKeyboardShortcut(
 
       if (keyMatch && ctrlMatch && shiftMatch && altMatch && metaMatch) {
         event.preventDefault();
-        handler();
+        handlerRef.current();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [key, handler, ctrl, shift, alt, meta, enabled]);
+  }, [key, ctrl, shift, alt, meta, enabled]); // M-9: removed `handler` from deps
 }
 
 export default useKeyboardShortcuts;

@@ -1,12 +1,12 @@
-# Staging Deployment with E2E Tests - CI/CD Pipeline
+# Staging Deployment with E2E Tests – Full CI/CD Pipeline
 #
 # Automated pipeline:
-#   1. Run lint, type-check, unit tests
-#   2. Build Docker images for API + Worker
+#   1. Quality gates: lint + type-check + tests
+#   2. Build and push Docker images to GHCR
 #   3. Deploy to staging environment on Render
-#   4. Run E2E tests against staging
-#   5. Report results and create deployment record
-#   6. Manual approval → promote to production
+#   4. Smoke tests against staging
+#   5. Manual approval → promote to production
+#   6. Create GitHub release on prod deployment
 
 name: Staging Deploy
 
@@ -15,14 +15,24 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      skip_tests:
+        description: 'Skip test suite (emergency deploy)'
+        required: false
+        default: false
+        type: boolean
       skip_e2e:
         description: 'Skip E2E tests'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
+# Cancel previous runs on the same branch
+concurrency:
+  group: staging-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
-  contents: read
+  contents: write
   packages: write
   deployments: write
   id-token: write
@@ -32,20 +42,26 @@ env:
   IMAGE_PREFIX: ${{ github.repository }}
   STAGING_API_URL: https://jobhuntin-api-staging.onrender.com
   STAGING_WEB_URL: https://sorce-web.onrender.com
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "20"
 
 jobs:
   # ── Quality Gates ───────────────────────────────────────────────
-  lint:
+  lint-backend:
+    name: 🐍 Lint Backend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
       - run: pip install ruff
-      - run: ruff check . --select E,W,F,I --ignore E501,E402,W291,W293,F841,F823,F821,E722
+      - run: ruff check . --select E,W,F,I --ignore E501,E402
 
   lint-web:
+    name: 🌐 Lint Web
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -54,15 +70,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - run: npm ci
       - run: npx tsc --noEmit
 
+  # ── Backend Tests ──────────────────────────────────────────────
   test:
+    name: 🧪 Test Backend
     runs-on: ubuntu-latest
-    needs: [lint, lint-web]
+    needs: [lint-backend, lint-web]
+    if: ${{ !inputs.skip_tests }}
     services:
       postgres:
         image: postgres:16-alpine
@@ -90,11 +109,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest pytest-asyncio pytest-cov
-      - name: Install Playwright
-        run: python -m playwright install --with-deps chromium
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov psycopg2-binary alembic
       - name: Run migrations
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sorce_test
@@ -104,7 +125,7 @@ jobs:
           psql "$DATABASE_URL" -c "CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY);"
           psql "$DATABASE_URL" -c "CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS \$\$ SELECT '00000000-0000-0000-0000-000000000000'::uuid; \$\$ LANGUAGE sql;"
           psql "$DATABASE_URL" -c "DO \$\$ BEGIN CREATE PUBLICATION supabase_realtime; EXCEPTION WHEN OTHERS THEN END; \$\$;"
-          alembic upgrade head || true
+          alembic upgrade head
       - name: Run tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sorce_test
@@ -112,19 +133,42 @@ jobs:
           ENV: local
           LLM_API_KEY: test-key
           SUPABASE_JWT_SECRET: test-secret
-        run: pytest tests/ -v --tb=short --cov=apps --cov=packages --cov-report=xml
+        run: pytest tests/ -v --tb=short --cov=apps --cov=packages --cov-report=xml --cov-report=term-missing
       - name: Upload coverage
+        if: always()
         uses: codecov/codecov-action@v4
         with:
           files: coverage.xml
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ── Web Build ──────────────────────────────────────────────────
+  build-web:
+    name: 📦 Build Web
+    runs-on: ubuntu-latest
+    needs: [lint-web]
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - name: Production build
+        run: npm run build
+        env:
+          NODE_ENV: production
 
   # ── Build Docker Images ──────────────────────────────────────────
-  build:
+  build-docker:
+    name: 🐳 Build Docker (${{ matrix.target }})
     runs-on: ubuntu-latest
-    needs: [test]
-    outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
+    needs: [test, build-web]
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped') && needs.build-web.result == 'success'
     permissions:
       contents: read
       packages: write
@@ -162,20 +206,20 @@ jobs:
 
   # ── Deploy to Staging ───────────────────────────────────────────
   deploy-staging:
+    name: 🚀 Deploy Staging
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [build-docker]
     environment: staging
     outputs:
       deployment_id: ${{ steps.deploy.outputs.deployment_id }}
     steps:
-      - uses: actions/checkout@v4
       - name: Deploy to Render Staging
         id: deploy
         env:
           RENDER_API_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
         run: |
           # Deploy API
-          API_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_API_ID }}/deploys" \
+          API_RESPONSE=$(curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_API_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $RENDER_API_TOKEN" \
@@ -183,44 +227,91 @@ jobs:
           
           echo "API Deploy Response: $API_RESPONSE"
           
-          # Deploy Worker
-          WORKER_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_WORKER_ID }}/deploys" \
-            -H "Accept: application/json" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $RENDER_API_TOKEN" \
-            -d '{"clearCache": true}')
+          # Deploy Worker (if staging worker exists)
+          if [ -n "${{ secrets.RENDER_STAGING_WORKER_ID }}" ]; then
+            curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_WORKER_ID }}/deploys" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $RENDER_API_TOKEN" \
+              -d '{"clearCache": true}' || echo "Worker deploy skipped"
+          fi
           
-          echo "Worker Deploy Response: $WORKER_RESPONSE"
-          
-          # Extract deployment ID
           DEPLOYMENT_ID=$(echo "$API_RESPONSE" | jq -r '.id // .deploy.id // "unknown"')
           echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
-          
           echo "::notice::Staging deployment initiated: $DEPLOYMENT_ID"
       
       - name: Wait for deployment
         run: |
-          echo "Waiting for staging deployment to complete..."
+          echo "Waiting 60s for deployment to start..."
           sleep 60
           
-          # Poll for healthy status
-          for i in {1..30}; do
+          for i in {1..20}; do
             if curl -sf "${{ env.STAGING_API_URL }}/healthz" > /dev/null 2>&1; then
-              echo "Staging API is healthy!"
+              echo "✅ Staging API is healthy!"
               exit 0
             fi
-            echo "Waiting for staging API... attempt $i/30"
-            sleep 10
+            echo "⏳ Waiting for staging API... attempt $i/20"
+            sleep 15
           done
           
-          echo "::warning::Staging API health check timed out"
+          echo "::error::Staging API health check timed out after 5 minutes"
           exit 1
+
+  # ── Smoke Tests ─────────────────────────────────────────────────
+  smoke-tests:
+    name: 🏥 Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    steps:
+      - name: Run smoke tests
+        run: |
+          echo "## 🏥 Staging Smoke Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          PASS=0
+          FAIL=0
+          
+          # 1. API Health
+          if curl -sf "${{ env.STAGING_API_URL }}/healthz" | jq '.' > /dev/null 2>&1; then
+            echo "- ✅ API /healthz" >> $GITHUB_STEP_SUMMARY
+            PASS=$((PASS + 1))
+          else
+            echo "- ❌ API /healthz" >> $GITHUB_STEP_SUMMARY
+            FAIL=$((FAIL + 1))
+          fi
+          
+          # 2. Web App responds
+          if curl -sf "${{ env.STAGING_WEB_URL }}" -o /dev/null; then
+            echo "- ✅ Web app loads" >> $GITHUB_STEP_SUMMARY
+            PASS=$((PASS + 1))
+          else
+            echo "- ❌ Web app loads" >> $GITHUB_STEP_SUMMARY
+            FAIL=$((FAIL + 1))
+          fi
+          
+          # 3. OG image endpoint (non-critical)
+          if curl -sf "${{ env.STAGING_API_URL }}/og/default" -o /dev/null; then
+            echo "- ✅ OG image endpoint" >> $GITHUB_STEP_SUMMARY
+            PASS=$((PASS + 1))
+          else
+            echo "- ⚠️ OG image endpoint (non-critical)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Results:** $PASS passed, $FAIL failed" >> $GITHUB_STEP_SUMMARY
+          
+          if [ $FAIL -gt 0 ]; then
+            echo "::error::$FAIL smoke test(s) failed"
+            exit 1
+          fi
 
   # ── E2E Tests Against Staging ────────────────────────────────────
   e2e-tests:
-    if: false
+    name: 🎭 E2E Tests
+    if: ${{ !inputs.skip_e2e }}
     runs-on: ubuntu-latest
     needs: [deploy-staging]
+    continue-on-error: true
     defaults:
       run:
         working-directory: apps/web
@@ -228,7 +319,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - name: Install dependencies
@@ -239,11 +330,8 @@ jobs:
         env:
           BASE_URL: ${{ env.STAGING_WEB_URL }}
           API_URL: ${{ env.STAGING_API_URL }}
-        run: |
-          npx playwright test tests/e2e.spec.ts \
-            --project=chromium \
-            --reporter=html \
-            --output=test-results/
+        run: npx playwright test --project=chromium --reporter=html
+        continue-on-error: true
       - name: Upload E2E results
         uses: actions/upload-artifact@v4
         if: always()
@@ -252,109 +340,34 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
-  # ── Advanced E2E Suite ──────────────────────────────────────────
-  e2e-advanced:
-    if: false
-    runs-on: ubuntu-latest
-    needs: [deploy-staging]
-    defaults:
-      run:
-        working-directory: jobhuntin-e2e-tests
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: jobhuntin-e2e-tests/package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
-      - name: Run advanced E2E suite
-        env:
-          BASE_URL: ${{ env.STAGING_WEB_URL }}
-          API_URL: ${{ env.STAGING_API_URL }}
-        run: |
-          npm run test -- \
-            --project=chromium \
-            --reporter=html \
-            --grep-invert="@skip-staging"
-      - name: Upload advanced E2E results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-advanced-results
-          path: jobhuntin-e2e-tests/playwright-report/
-          retention-days: 7
-
-  # ── Smoke Tests ─────────────────────────────────────────────────
-  smoke-tests:
-    runs-on: ubuntu-latest
-    needs: [deploy-staging]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run smoke tests
-        run: |
-          # API Health Check
-          echo "Testing API health endpoint..."
-          curl -sf "${{ env.STAGING_API_URL }}/healthz" | jq '.'
-          
-          # API Deep Health Check
-          echo "Testing API deep health..."
-          curl -sf "${{ env.STAGING_API_URL }}/healthz" | jq '.db == "ok"'
-          
-          # Web App Health Check
-          echo "Testing Web app..."
-          curl -sf "${{ env.STAGING_WEB_URL }}" -o /dev/null
-          
-          # Check critical endpoints
-          echo "Testing critical endpoints..."
-          
-          # OG Image generation
-          curl -sf "${{ env.STAGING_API_URL }}/og/default" -o /dev/null || echo "OG endpoint check failed (non-critical)"
-          
-          echo "✅ Smoke tests passed!"
-
   # ── Deployment Summary ──────────────────────────────────────────
   deploy-summary:
+    name: 📋 Summary
     runs-on: ubuntu-latest
-    needs: [deploy-staging, e2e-tests, e2e-advanced, smoke-tests]
-    if: always()
-    permissions:
-      statuses: write
+    needs: [deploy-staging, smoke-tests, e2e-tests]
+    if: always() && needs.deploy-staging.result == 'success'
     steps:
-      - name: Create deployment status
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const e2eResult = '${{ needs.e2e-tests.result }}';
-            const e2eAdvancedResult = '${{ needs.e2e-advanced.result }}';
-            const smokeResult = '${{ needs.smoke-tests.result }}';
-            
-            const allPassed = e2eResult === 'success' && 
-                              e2eAdvancedResult === 'success' && 
-                              smokeResult === 'success';
-            
-            await github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              state: allPassed ? 'success' : 'failure',
-              target_url: '${{ env.STAGING_WEB_URL }}',
-              description: allPassed ? 
-                'Staging deployment successful' : 
-                'Staging deployment completed with issues',
-              context: 'staging-deploy'
-            });
-            
-            core.setOutput('status', allPassed ? 'success' : 'failure');
+      - name: Create deployment summary
+        run: |
+          SMOKE="${{ needs.smoke-tests.result }}"
+          E2E="${{ needs.e2e-tests.result }}"
+          
+          echo "## 📋 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Smoke Tests | $([ '$SMOKE' = 'success' ] && echo '✅' || echo '⚠️') $SMOKE |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | $([ '$E2E' = 'success' ] && echo '✅' || echo '⚠️') $E2E |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Staging URL:** ${{ env.STAGING_WEB_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
 
   # ── Promote to Production (Manual Gate) ─────────────────────────
   promote-production:
+    name: 🏁 Production Deploy
     runs-on: ubuntu-latest
-    needs: [deploy-staging, e2e-tests, e2e-advanced, smoke-tests]
-    if: success()
+    needs: [deploy-staging, smoke-tests]
+    if: needs.smoke-tests.result == 'success'
     environment: production
     steps:
       - name: Promote to production
@@ -363,15 +376,15 @@ jobs:
         run: |
           echo "::notice::Production promotion triggered"
           
-          # Deploy API to production
-          curl -s -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PROD_API_ID }}/deploys" \
+          # Deploy API
+          curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PROD_API_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $RENDER_API_TOKEN" \
             -d '{"clearCache": true}'
           
-          # Deploy Worker to production
-          curl -s -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PROD_WORKER_ID }}/deploys" \
+          # Deploy Worker
+          curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PROD_WORKER_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $RENDER_API_TOKEN" \
@@ -379,23 +392,24 @@ jobs:
           
           echo "::notice::Production deployment initiated"
       
-      - name: Wait for production deployment
+      - name: Wait for production
         run: |
-          echo "Waiting for production deployment..."
+          echo "Waiting 90s for production deployment..."
           sleep 90
           
-          for i in {1..30}; do
-            if curl -sf "https://api.sorce.app/healthz" > /dev/null 2>&1; then
-              echo "Production API is healthy!"
+          for i in {1..20}; do
+            if curl -sf "https://sorce-api.onrender.com/healthz" > /dev/null 2>&1; then
+              echo "✅ Production API is healthy!"
               exit 0
             fi
-            echo "Waiting for production API... attempt $i/30"
-            sleep 10
+            echo "⏳ Waiting for production API... attempt $i/20"
+            sleep 15
           done
           
           echo "::error::Production API health check failed"
           exit 1
       
+      - uses: actions/checkout@v4
       - name: Create GitHub release
         uses: actions/github-script@v7
         with:
@@ -403,12 +417,30 @@ jobs:
             const date = new Date().toISOString().split('T')[0];
             const shortSha = context.sha.substring(0, 7);
             
-            await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: `v${date}-${shortSha}`,
-              name: `Production Release ${date}`,
-              body: `## Deployment\n- Commit: ${context.sha}\n- Deployed: ${new Date().toISOString()}\n- Workflow: ${context.workflow}`,
-              draft: false,
-              prerelease: false
-            });
+            try {
+              await github.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: `v${date}-${shortSha}`,
+                name: `Production Release ${date}`,
+                body: [
+                  '## Deployment',
+                  `- **Commit:** ${context.sha}`,
+                  `- **Deployed:** ${new Date().toISOString()}`,
+                  `- **Workflow:** ${context.workflow}`,
+                  `- **Actor:** @${context.actor}`,
+                ].join('\n'),
+                draft: false,
+                prerelease: false
+              });
+            } catch (e) {
+              core.warning(`Release creation failed: ${e.message}`);
+            }
+      
+      - name: Production summary
+        run: |
+          echo "## 🏁 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          echo "- **API:** https://sorce-api.onrender.com" >> $GITHUB_STEP_SUMMARY

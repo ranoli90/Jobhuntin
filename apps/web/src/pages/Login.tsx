@@ -17,7 +17,16 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const returnTo = searchParams.get("returnTo") || "/app/dashboard";
+  const returnTo = searchParams.get("returnTo");
+
+  const safeReturnTo = useMemo(() => {
+    if (!returnTo) return "/app/dashboard";
+    // Check if it's a relative path (starts with /) and NOT protocol-relative (starts with //)
+    if (returnTo.startsWith("/") && !returnTo.startsWith("//")) {
+      return returnTo;
+    }
+    return "/app/dashboard";
+  }, [returnTo]);
 
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,26 +38,29 @@ export default function Login() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      const decodedReturnTo = decodeURIComponent(returnTo);
-      const finalDest = decodedReturnTo.includes('/login') ? '/app/dashboard' : decodedReturnTo;
-      navigate(finalDest, { replace: true });
+      // Security: safeReturnTo is already sanitized to be a relative path
+      navigate(safeReturnTo, { replace: true });
     }
-  }, [authLoading, user, navigate, returnTo]);
+  }, [authLoading, user, navigate, safeReturnTo]);
 
   const emailIsValid = useMemo(() => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }, [email]);
 
-  const safeReturnTo = useMemo(() => {
-    if (!returnTo.startsWith("/")) return "/app/dashboard";
-    if (returnTo.startsWith("//")) return "/app/dashboard";
-    return returnTo;
-  }, [returnTo]);
+
 
   useEffect(() => {
-    if (!rateLimitCountdown) return;
-    const timer = setTimeout(() => setRateLimitCountdown(null), rateLimitCountdown * 1000);
-    return () => clearTimeout(timer);
+    if (!rateLimitCountdown || rateLimitCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setRateLimitCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
   }, [rateLimitCountdown]);
 
   const requestMagicLink = async (targetEmail: string, destination: string) => {
@@ -133,6 +145,16 @@ export default function Login() {
           </div>
 
           <div className="space-y-3">
+            {formError && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg"
+              >
+                <AlertCircle className="w-4 h-4" />
+                {formError}
+              </motion.div>
+            )}
             <Button
               variant="ghost"
               onClick={async () => {
@@ -168,7 +190,7 @@ export default function Login() {
           <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/20 to-violet-500/20 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-gradient-to-tr from-pink-500/10 to-amber-500/10 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           <div>
             <div className="flex items-center gap-2 text-white/60 mb-2">

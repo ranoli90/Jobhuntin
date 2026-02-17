@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, Zap, Shield, ArrowLeft, ArrowRight, Building2, Ban, Globe, AlertTriangle } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, Wifi, Shield, ArrowLeft, ArrowRight, Building2, Ban, Globe, AlertTriangle } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { AutoCompleteInput } from "../../../../components/ui/AutoCompleteInput";
@@ -53,27 +53,35 @@ export function PreferencesStep({
     hasParsedProfile = false,
     onClearError,
 }: PreferencesStepProps) {
-    
+
+    // M-3 fix: store raw text while editing to avoid flickering from split/join on each keystroke
+    const [excludedCompaniesText, setExcludedCompaniesText] = React.useState(
+        (preferences.excluded_companies || []).join(", ")
+    );
+    const [excludedKeywordsText, setExcludedKeywordsText] = React.useState(
+        (preferences.excluded_keywords || []).join(", ")
+    );
+
     const handleLocationChange = (value: string) => {
         setPreferences((p) => ({ ...p, location: value }));
         if (formErrors.location && onClearError) {
             onClearError('location');
         }
     };
-    
+
     const handleRoleTypeChange = (value: string) => {
         setPreferences((p) => ({ ...p, role_type: value }));
         if (formErrors.role_type && onClearError) {
             onClearError('role_type');
         }
     };
-    
+
     const showAISuggestions = hasParsedProfile && (
-        aiSuggestions.roles.data || 
-        aiSuggestions.roles.loading || 
-        aiSuggestions.locations.data || 
+        aiSuggestions.roles.data ||
+        aiSuggestions.roles.loading ||
+        aiSuggestions.locations.data ||
         aiSuggestions.locations.loading ||
-        aiSuggestions.salary.data || 
+        aiSuggestions.salary.data ||
         aiSuggestions.salary.loading
     );
     return (
@@ -101,7 +109,7 @@ export function PreferencesStep({
                                 loading={aiSuggestions.roles.loading}
                                 error={aiSuggestions.roles.error}
                                 onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
-                                onReject={() => { }}
+                                onReject={() => { console.debug('[AI] User dismissed role suggestion'); }}
                             />
                             <AISuggestionCard
                                 title="Recommended Locations"
@@ -115,7 +123,7 @@ export function PreferencesStep({
                                 loading={aiSuggestions.locations.loading}
                                 error={aiSuggestions.locations.error}
                                 onAccept={(location) => setPreferences(p => ({ ...p, location }))}
-                                onReject={() => { }}
+                                onReject={() => { console.debug('[AI] User dismissed location suggestion'); }}
                             />
                         </div>
                     )}
@@ -132,8 +140,8 @@ export function PreferencesStep({
                                 reasoning={aiSuggestions.salary.data?.reasoning}
                                 loading={aiSuggestions.salary.loading}
                                 error={aiSuggestions.salary.error}
-                                onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
-                                onReject={() => { }}
+                                onAccept={(min) => setPreferences(p => ({ ...p, salary_min: min }))}
+                                onReject={() => { console.debug('[AI] User dismissed salary suggestion'); }}
                             />
                         </div>
                     )}
@@ -188,16 +196,18 @@ export function PreferencesStep({
                         <Input
                             icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5" />}
                             type="number"
+                            min="0"
+                            max="10000000"
                             placeholder="150000"
                             value={preferences.salary_min}
-                            onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
+                            onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value ? Number(e.target.value) : "" }))}
                             onClear={() => setPreferences((p) => ({ ...p, salary_min: "" }))}
                             className="bg-white shadow-sm"
                         />
                     </div>
                     <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200' : 'bg-slate-50 border-slate-100'}`}>
                         <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.remote_only ? 'bg-primary-600 text-white' : 'bg-white text-slate-300'}`}>
-                            <Zap className="h-4 w-4 md:h-5 md:w-5" />
+                            <Wifi className="h-4 w-4 md:h-5 md:w-5" />
                         </div>
                         <div className="flex-1">
                             <p className="text-xs font-bold text-slate-900">Remote Work Only</p>
@@ -206,7 +216,7 @@ export function PreferencesStep({
                         <input
                             type="checkbox"
                             checked={preferences.remote_only}
-                            onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked }))}
+                            onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked, onsite_only: e.target.checked ? false : p.onsite_only }))}
                             className="h-5 w-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                         />
                     </label>
@@ -249,7 +259,7 @@ export function PreferencesStep({
                             <input
                                 type="checkbox"
                                 checked={preferences.onsite_only || false}
-                                onChange={(e) => setPreferences((p) => ({ ...p, onsite_only: e.target.checked }))}
+                                onChange={(e) => setPreferences((p) => ({ ...p, onsite_only: e.target.checked, remote_only: e.target.checked ? false : p.remote_only }))}
                                 className="h-5 w-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
                             />
                         </label>
@@ -260,15 +270,17 @@ export function PreferencesStep({
                                     <DollarSign className="h-4 w-4" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold text-slate-900">Maximum Salary</p>
-                                    <p className="text-[10px] text-slate-500">Hide jobs above this amount</p>
+                                    <p className="text-xs font-bold text-slate-900">Salary Cap</p>
+                                    <p className="text-[10px] text-slate-500">Your target upper range</p>
                                 </div>
                             </div>
                             <Input
                                 type="number"
+                                min="0"
+                                max="10000000"
                                 placeholder="e.g., 300000"
                                 value={preferences.salary_max || ""}
-                                onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value }))}
+                                onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value ? Number(e.target.value) : "" }))}
                                 onClear={() => setPreferences((p) => ({ ...p, salary_max: "" }))}
                                 className="bg-white"
                             />
@@ -287,12 +299,13 @@ export function PreferencesStep({
                             <Input
                                 type="text"
                                 placeholder="e.g., BadCorp, ToxicInc"
-                                value={(preferences.excluded_companies || []).join(", ")}
-                                onChange={(e) => setPreferences((p) => ({
+                                value={excludedCompaniesText}
+                                onChange={(e) => setExcludedCompaniesText(e.target.value)}
+                                onBlur={() => setPreferences((p) => ({
                                     ...p,
-                                    excluded_companies: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                    excluded_companies: excludedCompaniesText.split(",").map(s => s.trim()).filter(Boolean)
                                 }))}
-                                onClear={() => setPreferences((p) => ({ ...p, excluded_companies: [] }))}
+                                onClear={() => { setExcludedCompaniesText(""); setPreferences((p) => ({ ...p, excluded_companies: [] })); }}
                                 className="bg-white"
                             />
                         </div>
@@ -310,12 +323,13 @@ export function PreferencesStep({
                             <Input
                                 type="text"
                                 placeholder="e.g., senior, lead, manager"
-                                value={(preferences.excluded_keywords || []).join(", ")}
-                                onChange={(e) => setPreferences((p) => ({
+                                value={excludedKeywordsText}
+                                onChange={(e) => setExcludedKeywordsText(e.target.value)}
+                                onBlur={() => setPreferences((p) => ({
                                     ...p,
-                                    excluded_keywords: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
+                                    excluded_keywords: excludedKeywordsText.split(",").map(s => s.trim()).filter(Boolean)
                                 }))}
-                                onClear={() => setPreferences((p) => ({ ...p, excluded_keywords: [] }))}
+                                onClear={() => { setExcludedKeywordsText(""); setPreferences((p) => ({ ...p, excluded_keywords: [] })); }}
                                 className="bg-white"
                             />
                         </div>
@@ -347,20 +361,20 @@ export function PreferencesStep({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4">
-                <Button 
-                    type="button" 
-                    variant="ghost" 
-                    onClick={onPrev} 
+                <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onPrev}
                     className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
                     aria-label="Go back to previous step"
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                 </Button>
-                <Button 
-                    type="button" 
-                    onClick={onNext} 
-                    className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation" 
+                <Button
+                    type="button"
+                    onClick={onNext}
+                    className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation"
                     disabled={!preferences.location || !preferences.role_type || isSavingPreferences}
                     aria-label="Save preferences and continue"
                 >

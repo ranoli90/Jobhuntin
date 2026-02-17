@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
+import { telemetry } from "../lib/telemetry";
 
 import { OnboardingStep, OnboardingState, OnboardingFormData } from "../types/onboarding";
-import { telemetry } from "../lib/logger";
 
 const STORAGE_KEY = "onboarding_state";
 
@@ -16,49 +16,34 @@ const STEPS: OnboardingStep[] = [
 ];
 
 export function useOnboarding() {
-  const [currentStep, setCurrentStep] = useState(() => {
+  // Parse localStorage once on mount for all state initializers
+  const _initialState = (() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const state: OnboardingState = JSON.parse(stored);
-        // Validate the parsed step is a valid number
-        const step = state.currentStep;
-        return typeof step === 'number' && step >= 0 ? step : 0;
+        return state;
       }
     } catch (e) {
-      // Clear corrupted storage
       console.warn('[useOnboarding] Corrupted storage, resetting:', e);
       try {
         localStorage.removeItem(STORAGE_KEY);
-      } catch {}
+      } catch { }
     }
-    return 0;
+    return null;
+  })();
+
+  const [currentStep, setCurrentStep] = useState(() => {
+    const step = _initialState?.currentStep;
+    return typeof step === 'number' && step >= 0 ? step : 0;
   });
 
   const [completedSteps, setCompletedSteps] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const state: OnboardingState = JSON.parse(stored);
-        return Array.isArray(state.completedSteps) ? state.completedSteps : [];
-      }
-    } catch {
-      // Silently fail, use default
-    }
-    return [];
+    return Array.isArray(_initialState?.completedSteps) ? _initialState!.completedSteps : [];
   });
 
   const [formData, setFormData] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const state: OnboardingState = JSON.parse(stored);
-        return state.formData && typeof state.formData === 'object' ? state.formData : {};
-      }
-    } catch {
-      // Silently fail, use default
-    }
-    return {};
+    return _initialState?.formData && typeof _initialState.formData === 'object' ? _initialState.formData : {};
   });
 
   const saveState = useCallback(() => {
@@ -77,7 +62,7 @@ export function useOnboarding() {
         localStorage.removeItem(STORAGE_KEY);
         const minimalState = { currentStep: 0, completedSteps: [], formData: {} };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(minimalState));
-        console.log('[useOnboarding] Recovered with minimal state');
+        if (import.meta.env.DEV) console.log('[useOnboarding] Recovered with minimal state');
       } catch (recoveryError) {
         console.error('[useOnboarding] Failed to recover state:', recoveryError);
       }
@@ -101,9 +86,7 @@ export function useOnboarding() {
       localStorage.setItem("onboarding_ab_variant", newVariant);
       setAbVariant(newVariant);
       // Log exposure
-      if (import.meta.env.DEV) {
-        console.log("[Telemetry] A/B Test Assignment", { onboarding_flow: newVariant });
-      }
+      telemetry.track("A/B Test Assignment", { onboarding_flow: newVariant });
     }
   }, []);
 
@@ -135,29 +118,28 @@ export function useOnboarding() {
     if (import.meta.env.DEV) console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps, 'currentStep:', currentStep);
 
     setCurrentStep((prev) => {
-      if (prev < totalSteps - 1) { // Check if not the last step
-        console.log('[useOnboarding] Advancing from step', prev, 'to', prev + 1);
+      if (prev < totalSteps - 1) {
+        if (import.meta.env.DEV) console.log('[useOnboarding] Advancing from step', prev, 'to', prev + 1);
+
+        // Mark the step we're leaving as completed using the actual prev value
+        const completedStepId = currentSteps[prev]?.id;
+        if (completedStepId) {
+          telemetry.track("Onboarding Step Completed", {
+            step: completedStepId,
+            index: prev
+          });
+          setCompletedSteps((prevCompleted) => {
+            const newCompleted = new Set(prevCompleted);
+            newCompleted.add(completedStepId);
+            return Array.from(newCompleted);
+          });
+        }
+
         return prev + 1;
       }
-      console.log('[useOnboarding] Already at last step, staying at', prev);
-      return prev; // Stay on the last step if already there
+      if (import.meta.env.DEV) console.log('[useOnboarding] Already at last step, staying at', prev);
+      return prev;
     });
-
-    // Track completion AFTER step change to avoid race conditions
-    setTimeout(() => {
-      if (import.meta.env.DEV) {
-        console.log("[Telemetry] Onboarding Step Completed", {
-          step: currentSteps[currentStep].id,
-          index: currentStep
-        });
-      }
-      // Mark current step as completed
-      setCompletedSteps((prevCompleted) => {
-        const newCompleted = new Set(prevCompleted);
-        newCompleted.add(currentSteps[currentStep].id);
-        return Array.from(newCompleted);
-      });
-    }, 100);
   }, [currentSteps, currentStep]);
 
   const prevStep = useCallback(() => {
@@ -236,7 +218,7 @@ export function useOnboarding() {
   }, []);
 
   return {
-    steps: STEPS,
+    steps: currentSteps,
     currentStep,
     currentStepData,
     completedSteps,

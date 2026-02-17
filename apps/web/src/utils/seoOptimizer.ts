@@ -134,17 +134,17 @@ export function generateLocationRoleSEO(
 
   // Natural title generation with semantic variation
   const titles = [
-    `${role} Jobs in ${location} (${year}): ${Math.floor(Math.random() * 200 + 300)}+ Openings | Updated Daily`,
+    `${role} Jobs in ${location} (${year}): Find Open Positions | Updated Daily`,
     `${location} ${role} Careers: Find Your Dream Job in ${month} ${year}`,
     `Hiring Now: ${role} Positions in ${location} - Apply Today`,
-    `${role} Salary Guide ${location} (${year}): $${Math.floor(Math.random() * 30 + 85)}K-$${Math.floor(Math.random() * 50 + 150)}K Range`,
+    `${role} Salary Guide ${location} (${year}): Comprehensive Compensation Data`,
     `Best ${role} Companies in ${location}: Top Employers Hiring Now`,
     `${location} ${role} Market Report: Trends, Salaries & Opportunities`
   ];
 
   // Natural description generation
   const descriptions = [
-    `Find ${Math.floor(Math.random() * 200 + 300)}+ ${role} jobs in ${location} with top companies. Average salary $${Math.floor(Math.random() * 30 + 85)}K-$${Math.floor(Math.random() * 50 + 150)}K. Updated daily with new opportunities.`,
+    `Find numerous ${role} jobs in ${location} with top companies. Competitive salaries and growth opportunities available. Updated daily with new opportunities.`,
     `Discover ${location}'s thriving ${role} job market. Connect with top employers, compare salaries, and land your dream role. Expert career guidance included.`,
     `${location} companies are actively hiring ${role} professionals. Browse verified job listings, salary data, and career resources. Apply in minutes.`,
     `Complete ${role} career guide for ${location}. Salary ranges, top employers, skills in demand, and job market trends. Everything you need to advance your career.`,
@@ -153,7 +153,7 @@ export function generateLocationRoleSEO(
 
   // Natural H1 variations
   const h1s = [
-    `${role} Jobs in ${location}: ${Math.floor(Math.random() * 200 + 300)}+ Career Opportunities`,
+    `${role} Jobs in ${location}: Career Opportunities Available Now`,
     `Find ${role} Careers in ${location} - Updated ${month} ${year}`,
     `${location} ${role} Job Market: Complete Guide for ${year}`,
     `Hiring Now: ${role} Positions in ${location}`,
@@ -215,7 +215,6 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
   const baseSalary = roleData?.avgSalary || 125000;
   const salaryMin = Math.floor(baseSalary * 0.8);
   const salaryMax = Math.floor(baseSalary * 1.4);
-  const jobCount = Math.floor(Math.random() * 200 + 300);
 
   return [
     // LocalBusiness Schema - For location pages
@@ -236,13 +235,10 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
         '@type': 'City',
         'name': location
       },
-      'priceRange': '$$',
-      'aggregateRating': {
-        '@type': 'AggregateRating',
-        'ratingValue': '4.8',
-        'reviewCount': '2847',
-        'bestRating': '5'
-      }
+      'priceRange': '$$'
+      // NOTE: aggregateRating REMOVED - Google requires ratings to reflect
+      // real user reviews. Fabricated ratings violate structured data policies
+      // and can trigger manual actions. Add this back only with real review data.
     },
     // Occupation Schema - aligns with role content
     {
@@ -325,12 +321,11 @@ function generateContentSections(role: string, location: string, locationData: a
   const baseSalary = roleData?.avgSalary || 125000;
   const salaryMin = Math.floor(baseSalary * 0.8);
   const salaryMax = Math.floor(baseSalary * 1.4);
-  const jobCount = Math.floor(Math.random() * 200 + 300);
 
   return [
     {
       heading: `${location}'s ${role} Job Market Overview`,
-      content: `${location} offers exceptional opportunities for ${role} professionals, with over ${jobCount} active job listings across diverse industries. The city's thriving tech ecosystem provides competitive salaries ranging from $${salaryMin.toLocaleString()} to $${salaryMax.toLocaleString()} annually. Major employers consistently seek qualified ${role} talent, making it an ideal location for career advancement.`,
+      content: `${location} offers exceptional opportunities for ${role} professionals, with numerous active job listings across diverse industries. The city's thriving tech ecosystem provides competitive salaries ranging from $${salaryMin.toLocaleString()} to $${salaryMax.toLocaleString()} annually. Major employers consistently seek qualified ${role} talent, making it an ideal location for career advancement.`,
       keywords: [`${role} jobs ${location}`, `${location} ${role} market`, `${role} salary ${location}`],
       entities: entities.slice(0, 5)
     },

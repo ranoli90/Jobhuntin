@@ -20,6 +20,7 @@ import {
   CreditCard,
   Settings,
   LogOut,
+  Globe,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { label: "HOLDs", to: "/app/holds", icon: HelpCircle },
   { label: "Team", to: "/app/team", icon: Users },
   { label: "Billing", to: "/app/billing", icon: CreditCard },
+  { label: "Sources", to: "/app/admin/sources", icon: Globe },
   { label: "Settings", to: "/app/settings", icon: Settings },
 ];
 

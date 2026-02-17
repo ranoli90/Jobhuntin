@@ -6,14 +6,26 @@ import { Card } from "../../../../components/ui/Card";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { pushToast } from "../../../../lib/toast";
 
+interface ContactInfo {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+}
+
+interface PreferencesInfo {
+    location?: string;
+    role_type?: string;
+    salary_min?: number | string;
+}
+
 interface ReadyStepProps {
     onNext: () => void;
     isCompleting: boolean;
-    contactInfo: any;
-    preferences: any;
+    contactInfo: ContactInfo;
+    preferences: PreferencesInfo;
     completeness: number;
-    profile: any;
-    resumeFile: any;
+    profile: { resume_url?: string | null } | null;
+    resumeFile: File | null;
     shouldReduceMotion?: boolean;
 }
 
@@ -27,16 +39,25 @@ export function ReadyStep({
     resumeFile,
     shouldReduceMotion,
 }: ReadyStepProps) {
-    const handleShareArchetype = () => {
-        const archetype = preferences.role_type || "Visionary";
-        const text = `I just calibrated my AI job hunter as a ${archetype}. Expected interview velocity: 300%. #JobHuntin`;
-        navigator.clipboard.writeText(text);
-        pushToast({ title: "Copied to clipboard!", description: "Share your archetype with the world.", tone: "success" });
+    const handleShareArchetype = async () => {
+        const role = preferences.role_type || "tech professional";
+        const text = `I just set up my AI job hunter on JobHuntin as a ${role}. Check it out! #JobHuntin`;
+        try {
+            await navigator.clipboard.writeText(text);
+            pushToast({ title: "Copied to clipboard!", description: "Share it on social media.", tone: "success" });
+        } catch {
+            pushToast({ title: "Couldn't copy", description: "Your browser blocked clipboard access.", tone: "error" });
+        }
     };
 
-    const handleReferFriend = () => {
-        navigator.clipboard.writeText("Join me on JobHuntin and let AI apply for you! https://jobhuntin.com/invite/friend");
-        pushToast({ title: "Referral link copied!", description: "Share with friends to earn rewards.", tone: "success" });
+    const handleReferFriend = async () => {
+        const text = "Join me on JobHuntin and let AI apply for you! https://jobhuntin.com";
+        try {
+            await navigator.clipboard.writeText(text);
+            pushToast({ title: "Link copied!", description: "Share with friends.", tone: "success" });
+        } catch {
+            pushToast({ title: "Couldn't copy", description: "Your browser blocked clipboard access.", tone: "error" });
+        }
     };
     return (
         <div className="flex flex-col h-full">
@@ -104,7 +125,7 @@ export function ReadyStep({
                                     </div>
                                     <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-primary-500/10 border border-primary-500/20 group">
                                         <p className="text-[8px] md:text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Data Points</p>
-                                        <p className="text-xl md:text-2xl font-black text-primary-400 italic">{[contactInfo.first_name, contactInfo.email, preferences.location, preferences.role_type, preferences.salary_min, (profile?.resume_url || resumeFile)].filter(Boolean).length}/6</p>
+                                        <p className="text-xl md:text-2xl font-black text-primary-400 italic">{[contactInfo.first_name, contactInfo.email, preferences.location, preferences.role_type, (preferences.salary_min != null && preferences.salary_min !== ""), (profile?.resume_url || (resumeFile instanceof File))].filter(Boolean).length}/6</p>
                                     </div>
                                 </div>
                             </div>

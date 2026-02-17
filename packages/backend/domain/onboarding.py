@@ -463,7 +463,8 @@ class OnboardingService:
         total_fields = 0
         filled_fields = 0
 
-        if profile.current_title:
+        # current_title is stored in basic_info, not as a direct attribute
+        if profile.basic_info.get("current_title"):
             filled_fields += 1
         total_fields += 1
 

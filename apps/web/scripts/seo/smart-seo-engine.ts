@@ -2,7 +2,7 @@
  * SMART SEO ENGINE - High-Impact Content Generation
  * 
  * Strategy:
- * 1. Use Gemini 2.0 Flash (excellent quality, insanely cheap - $0.10/1M input tokens)
+ * 1. Use OpenRouter API with configurable model (default: GPT-4o-mini)
  * 2. Diverse content types: rankings, comparisons, current events, trends
  * 3. Never repeat the same content - tracks what was generated
  * 4. Complete logging with summaries
@@ -19,18 +19,17 @@ import { google } from 'googleapis';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
- // Configuration
+// Configuration
 const CONFIG = {
-  // GPT-4o-mini - Best value: $0.15/1M input, $0.60/1M output
-  // Fast, reliable, excellent quality
-  MODEL: 'openai/gpt-4o-mini',
+  // GPT-4o-mini via OpenRouter - Best value: $0.15/1M input, $0.60/1M output
+  MODEL: process.env.LLM_MODEL || 'openai/gpt-4o-mini',
   API_BASE: 'https://openrouter.ai/api/v1',
-  
+
   // Rate limits
   DAILY_GENERATION_LIMIT: 100,
   BATCH_SIZE: 5,
   BATCH_DELAY_MS: 60000, // 1 minute between batches
-  
+
   // Content diversity - ensure we don't repeat
   CONTENT_ROTATION_HOURS: 4,
 };
@@ -122,7 +121,7 @@ function loadState(): GenerationState {
   } catch (e) {
     console.warn('Could not load state, starting fresh');
   }
-  
+
   return {
     lastRun: new Date().toISOString(),
     currentContentTypeIndex: 0,
@@ -160,7 +159,7 @@ function getNextContentType(state: GenerationState): typeof CONTENT_TYPES[0] {
 function getNextCompetitor(state: GenerationState): typeof COMPETITORS[0] | null {
   // Sort by volume (descending)
   const sorted = [...COMPETITORS].sort((a, b) => b.volume - a.volume);
-  
+
   // Find first not recently covered
   for (const comp of sorted) {
     const recentIdx = state.competitorsCovered.lastIndexOf(comp.name);
@@ -172,7 +171,7 @@ function getNextCompetitor(state: GenerationState): typeof COMPETITORS[0] | null
       return comp;
     }
   }
-  
+
   // All covered recently, pick highest volume
   return sorted[0];
 }
@@ -193,7 +192,7 @@ async function generateCompetitorComparison(
 
   return new Promise((resolve) => {
     const childProcess = spawn('npx', [
-      'tsx', 
+      'tsx',
       'scripts/seo/generate-competitor-content.ts',
       competitor.name,
       '--model', CONFIG.MODEL,
@@ -219,7 +218,7 @@ async function generateCompetitorComparison(
     childProcess.on('close', (code: number) => {
       clearTimeout(timeout);
       const duration = ((Date.now() - start) / 1000).toFixed(1);
-      
+
       console.log('\n' + '-'.repeat(80));
       if (code === 0) {
         console.log(`✅ SUCCESS: ${competitor.name} comparison completed in ${duration}s`);
@@ -274,7 +273,7 @@ async function generateTrendingContent(
     childProcess.on('close', (code: number) => {
       clearTimeout(timeout);
       const duration = ((Date.now() - start) / 1000).toFixed(1);
-      
+
       console.log('\n' + '-'.repeat(80));
       if (code === 0) {
         console.log(`✅ SUCCESS: Trending content for "${topic}" completed in ${duration}s`);
@@ -331,7 +330,7 @@ async function generateLocationContent(
     childProcess.on('close', (code: number) => {
       clearTimeout(timeout);
       const duration = ((Date.now() - start) / 1000).toFixed(1);
-      
+
       console.log('\n' + '-'.repeat(80));
       if (code === 0) {
         console.log(`✅ SUCCESS: ${role} in ${location} completed in ${duration}s`);
@@ -351,20 +350,20 @@ async function generateLocationContent(
  */
 async function submitExistingUrls(): Promise<number> {
   console.log('\n📤 FIRST RUN: Submitting existing URLs to Google...');
-  
+
   // Extract URLs from sitemaps
   const sitemapDir = path.resolve(__dirname, '../../public');
   if (!fs.existsSync(sitemapDir)) {
     console.log('⚠️ No sitemap directory found');
     return 0;
   }
-  
-  const sitemapFiles = fs.readdirSync(sitemapDir).filter(f => 
+
+  const sitemapFiles = fs.readdirSync(sitemapDir).filter(f =>
     f.startsWith('sitemap') && f.endsWith('.xml')
   );
-  
+
   const allUrls: string[] = [];
-  
+
   for (const file of sitemapFiles) {
     const content = fs.readFileSync(path.join(sitemapDir, file), 'utf-8');
     const matches = content.match(/<loc>(.*?)<\/loc>/g) || [];
@@ -372,20 +371,19 @@ async function submitExistingUrls(): Promise<number> {
     allUrls.push(...urls);
     console.log(`   📄 ${file}: ${urls.length} URLs`);
   }
-  
+
   const uniqueUrls = [...new Set(allUrls)];
   console.log(`   📊 Total unique URLs: ${uniqueUrls.length}`);
-  
+
   // Check for Google credentials
   const keyEnv = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
   if (!keyEnv) {
     console.log('⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set, skipping submission');
     return 0;
   }
-  
-  console.log(`   🔑 GOOGLE_SERVICE_ACCOUNT_KEY length: ${keyEnv.length}`);
-  console.log(`   🔑 First 50 chars: ${keyEnv.substring(0, 50)}...`);
-  
+
+  console.log(`   🔑 GOOGLE_SERVICE_ACCOUNT_KEY found (${keyEnv.length} chars)`);
+
   // Parse credentials
   let keyContent;
   try {
@@ -409,26 +407,26 @@ async function submitExistingUrls(): Promise<number> {
       return 0;
     }
   }
-  
-  console.log(`   🔐 Service account: ${keyContent.client_email}`);
-  
+
+  console.log(`   🔐 Service account configured`);
+
   // Create JWT client
   const jwtClient = new google.auth.JWT({
     email: keyContent.client_email,
     key: keyContent.private_key,
     scopes: ['https://www.googleapis.com/auth/indexing']
   });
-  
+
   try {
     await jwtClient.authorize();
     const indexing = google.indexing({ version: 'v3', auth: jwtClient });
-    
+
     // Submit up to 200 URLs (daily limit)
     const urlsToSubmit = uniqueUrls.slice(0, 200);
     let successCount = 0;
-    
+
     console.log(`   📤 Submitting ${urlsToSubmit.length} URLs...`);
-    
+
     for (let i = 0; i < urlsToSubmit.length; i++) {
       const url = urlsToSubmit[i];
       try {
@@ -437,7 +435,7 @@ async function submitExistingUrls(): Promise<number> {
         });
         successCount++;
         process.stdout.write(`\r   Progress: ${i + 1}/${urlsToSubmit.length} (${successCount} success)`);
-        
+
         // Rate limit
         if (i < urlsToSubmit.length - 1) {
           await new Promise(r => setTimeout(r, 1000));
@@ -446,10 +444,10 @@ async function submitExistingUrls(): Promise<number> {
         // Continue on error
       }
     }
-    
+
     console.log(`\n   ✅ Submitted ${successCount} URLs to Google`);
     return successCount;
-    
+
   } catch (e) {
     console.log(`   ⚠️ Google API error: ${e}`);
     return 0;
@@ -465,13 +463,13 @@ async function runAutomation(): Promise<void> {
   console.log('█  🤖 SMART SEO ENGINE - DIVERSIFIED CONTENT GENERATION              █');
   console.log('█'.repeat(80));
   console.log(`📅 Run started: ${new Date().toISOString()}`);
-  console.log(`🧠 Model: ${CONFIG.MODEL} (Best value: $0.10/1M tokens)`);
+  console.log(`🧠 Model: ${CONFIG.MODEL} via OpenRouter`);
   console.log(`📊 Daily limit: ${CONFIG.DAILY_GENERATION_LIMIT} pages`);
   console.log('');
 
   // Load state
   const state = loadState();
-  
+
   // First run: submit all existing URLs
   if (!state.initialSubmissionDone) {
     const submitted = await submitExistingUrls();
@@ -482,7 +480,7 @@ async function runAutomation(): Promise<void> {
     }
     console.log('');
   }
-  
+
   // Check if quota reset needed
   const today = new Date().toISOString().split('T')[0];
   if (state.quotaResetDate !== today) {
@@ -548,10 +546,10 @@ async function runAutomation(): Promise<void> {
       case 'location_deep_dive': {
         const locationsPath = path.resolve(__dirname, '../../src/data/locations.json');
         const rolesPath = path.resolve(__dirname, '../../src/data/roles.json');
-        
+
         let locations: any[] = [];
         let roles: any[] = [];
-        
+
         try {
           locations = JSON.parse(fs.readFileSync(locationsPath, 'utf-8'));
           roles = JSON.parse(fs.readFileSync(rolesPath, 'utf-8'));
@@ -562,9 +560,9 @@ async function runAutomation(): Promise<void> {
 
         const location = locations[Math.floor(Math.random() * locations.length)];
         const role = roles[Math.floor(Math.random() * roles.length)];
-        
+
         result = await generateLocationContent(location.name, role.name, state);
-        
+
         if (result.success) {
           state.locationsCovered.push(location.name);
           state.rolesCovered.push(role.name);
@@ -627,7 +625,7 @@ async function runAutomation(): Promise<void> {
     }
 
     results.push({ type: contentType.id, ...result });
-    
+
     if (result.success) {
       state.generatedPages.push(result.url);
       state.dailyQuotaUsed++;
@@ -677,7 +675,7 @@ async function runAutomation(): Promise<void> {
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
-  
+
   const logEntry = {
     timestamp: new Date().toISOString(),
     generatedThisRun,
@@ -685,13 +683,13 @@ async function runAutomation(): Promise<void> {
     results,
     model: CONFIG.MODEL,
   };
-  
+
   let logs: any[] = [];
   try {
     if (fs.existsSync(logPath)) {
       logs = JSON.parse(fs.readFileSync(logPath, 'utf-8'));
     }
-  } catch {}
+  } catch { }
   logs.push(logEntry);
   fs.writeFileSync(logPath, JSON.stringify(logs, null, 2));
 }
@@ -760,7 +758,7 @@ async function main(): Promise<void> {
 
   console.log('🚀 Starting Smart SEO Engine...');
   console.log(`🧠 Model: ${CONFIG.MODEL}`);
-  console.log(`💰 Cost: $0.10 per 1M input tokens, $0.40 per 1M output tokens`);
+  console.log(`💰 Cost: ~$0.15 per 1M input tokens (GPT-4o-mini via OpenRouter)`);
   console.log('');
 
   try {

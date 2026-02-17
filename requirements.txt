@@ -1,27 +1,57 @@
+# =================================================================
+# Production Dependencies — pinned with compatible version ranges
+# =================================================================
+
+# ── Web Framework ────────────────────────────────────────────────
 fastapi>=0.110,<1
 uvicorn[standard]>=0.29,<1
+python-multipart>=0.0.18
+starlette-csrf==3.0.0
+
+# ── Database ─────────────────────────────────────────────────────
 asyncpg>=0.29,<1
+alembic>=1.13.0
+sqlalchemy>=2.0.0
+
+# ── Data Validation ──────────────────────────────────────────────
 pydantic[email]>=2.6,<3
 pydantic-settings>=2.2,<3
-python-multipart>=0.0.18
+
+# ── HTTP Client ──────────────────────────────────────────────────
 httpx>=0.27,<1
+
+# ── Authentication & Security ────────────────────────────────────
 PyJWT[crypto]>=2.8,<3
 signxml>=3.2,<4
-pyopenssl>=23.0,<24
+pyopenssl>=23.0,<25
+
+# ── PDF Parsing ──────────────────────────────────────────────────
 PyMuPDF>=1.24,<2
+
+# ── Browser Automation (Worker) ──────────────────────────────────
 playwright>=1.43,<2
-python-json-logger>=2.0,<3
+
+# ── Payments ─────────────────────────────────────────────────────
 stripe>=8.0,<12
+
+# ── Image Processing (OG images) ─────────────────────────────────
 Pillow>=10.2,<11
-starlette-csrf==3.0.0
+
+# ── Caching ──────────────────────────────────────────────────────
+redis>=5.0.0
+
+# ── Logging ──────────────────────────────────────────────────────
+python-json-logger>=2.0,<3
+
+# ── Observability / Monitoring ───────────────────────────────────
 opentelemetry-api>=1.24.0
 opentelemetry-sdk>=1.24.0
 opentelemetry-instrumentation-fastapi>=0.45b0
 opentelemetry-exporter-otlp>=1.24.0
 opentelemetry-instrumentation-httpx>=0.45b0
 opentelemetry-instrumentation-asyncpg>=0.45b0
-redis>=5.0.0
-alembic>=1.13.0
-sqlalchemy>=2.0.0
+sentry-sdk[fastapi]>=2.0.0
+
+# ── Job Aggregation ──────────────────────────────────────────────
 python-jobspy>=1.1.82
 pandas>=2.3.0

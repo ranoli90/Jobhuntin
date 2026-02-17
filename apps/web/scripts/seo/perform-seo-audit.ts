@@ -83,11 +83,11 @@ async function auditUrl(url: string): Promise<AuditResult> {
   `;
 
     let lastError: Error | null = null;
-    
+
     for (let i = 0; i < PAID_MODELS.length; i++) {
         const model = PAID_MODELS[i];
         console.log(`  🔄 Trying model: ${model} (${i + 1}/${PAID_MODELS.length})`);
-        
+
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
@@ -114,7 +114,7 @@ async function auditUrl(url: string): Promise<AuditResult> {
                 const errorText = await response.text();
                 console.log(`  ⚠️ Model ${model} failed: ${response.status}`);
                 lastError = new Error(`OpenRouter error: ${response.status} - ${errorText}`);
-                
+
                 if (response.status === 429 || response.status === 404 || response.status === 400) {
                     await new Promise(r => setTimeout(r, 1000)); // Brief delay before retry
                     continue;
@@ -178,7 +178,7 @@ async function main() {
     const limitIdx = args.indexOf('--limit');
     let limit = limitIdx !== -1 ? parseInt(args[limitIdx + 1]) : urls.length;
 
-    console.log(`🚀 Starting audit for ${limit} URLs using free models...`);
+    console.log(`🚀 Starting audit for ${limit} URLs using ${PAID_MODELS[0]}...`);
 
     const results: AuditResult[] = [];
     const BATCH_SIZE = 3; // Small batch to be safe with free tier

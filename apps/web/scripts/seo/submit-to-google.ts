@@ -248,7 +248,7 @@ async function main() {
 
     // Rename variable to reflect it can be content too
     const keyConfig = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-    console.log(`DEBUG: GOOGLE_SERVICE_ACCOUNT_KEY found: ${!!keyConfig}`);
+    // Key presence is verified below with user-friendly messaging
     if (!keyConfig) {
         console.log('⚠️  GOOGLE_SERVICE_ACCOUNT_KEY environment variable not set.');
         console.log('');

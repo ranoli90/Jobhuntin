@@ -4,7 +4,7 @@ Calendar Integration API endpoints — interview scheduling and calendar sync.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -161,7 +161,7 @@ async def list_calendar_events(
             detail="Calendar not connected",
         )
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     time_min = now - timedelta(days=days_back)
     time_max = now + timedelta(days=days_ahead)
 
@@ -223,7 +223,7 @@ async def check_calendar_conflicts(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format")
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     time_min = now - timedelta(days=1)
     time_max = now + timedelta(days=30)
 

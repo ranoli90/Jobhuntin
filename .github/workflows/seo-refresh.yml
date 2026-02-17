@@ -1,8 +1,13 @@
+# SEO Content Refresh — automated sitemap regeneration & URL submission
+#
+# Schedule: Every Monday at 6 AM UTC
+# Manual: workflow_dispatch with mode selection
+
 name: SEO Content Refresh
 
 on:
   schedule:
-    # Run every Monday at 6:00 AM UTC
+    # Every Monday at 6:00 AM UTC
     - cron: '0 6 * * 1'
   workflow_dispatch:
     inputs:
@@ -16,8 +21,17 @@ on:
           - full-refresh
           - submit-urls
 
+# Only one SEO refresh at a time
+concurrency:
+  group: seo-refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
 jobs:
   refresh-seo:
+    name: 🔍 SEO Refresh
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,6 +40,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -40,40 +56,53 @@ jobs:
       - name: Regenerate sitemap
         run: node scripts/generate-sitemap.cjs
 
-      - name: Submit URLs to Google (if configured)
-        if: github.event.inputs.mode == 'submit-urls' || github.event_name == 'schedule'
+      - name: Submit URLs to Google
+        if: >-
+          github.event.inputs.mode == 'submit-urls' || 
+          github.event.inputs.mode == 'full-refresh' ||
+          github.event_name == 'schedule'
         env:
           GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
-          REFRESH_MODE: ${{ github.event.inputs.mode }}
+          REFRESH_MODE: ${{ github.event.inputs.mode || 'scheduled' }}
         run: |
-          if [ -n "$GOOGLE_SERVICE_ACCOUNT_KEY" ] && [ "$REFRESH_MODE" = "submit-urls" ]; then
+          if [ -n "$GOOGLE_SERVICE_ACCOUNT_KEY" ]; then
             npx tsx scripts/seo/submit-to-google.ts
           else
-            echo "⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not configured, skipping URL submission"
-            npx tsx scripts/seo/submit-to-google.ts --dry-run
+            echo "⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not configured"
+            npx tsx scripts/seo/submit-to-google.ts --dry-run || true
           fi
 
       - name: Build verification
         run: npx vite build
+        env:
+          NODE_ENV: production
 
       - name: Commit updated sitemap
         run: |
+          cd "${{ github.workspace }}"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add public/sitemap.xml
-          git diff --staged --quiet || git commit -m "chore(seo): refresh sitemap [$(date +%Y-%m-%d)]"
+          git add apps/web/public/sitemap.xml
+          if git diff --staged --quiet; then
+            echo "ℹ️ No sitemap changes to commit"
+          else
+            git commit -m "chore(seo): refresh sitemap [$(date -u +%Y-%m-%d)]"
+          fi
 
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@v0.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
 
       - name: Summary
         run: |
-          echo "## SEO Refresh Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 SEO Refresh Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Date:** $(date +%Y-%m-%d)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Mode:** ${{ github.event.inputs.mode || 'scheduled' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Sitemap:** Updated" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build:** Verified" >> $GITHUB_STEP_SUMMARY
+          echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Date | $(date -u +%Y-%m-%d) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mode | ${{ github.event.inputs.mode || 'scheduled' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Sitemap | ✅ Regenerated |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ✅ Verified |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
