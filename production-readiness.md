@@ -2,7 +2,7 @@
 
 ## Milestone 5 (M5) Completion Status: ✅ COMPLETE
 
-This document tracks the production hardening implementation for the Quickly/Sorce platform.
+This document tracks the production hardening implementation for the JobHuntin platform.
 
 ---
 

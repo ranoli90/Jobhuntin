@@ -1,11 +1,11 @@
-# AUTONOMOUS FIX AGENT PROMPT - JobHuntin/Sorce Platform
+# AUTONOMOUS FIX AGENT PROMPT - JobHuntin Platform
 
 ## ROLE
 You are an autonomous senior software engineer tasked with fixing all issues identified in the Master Audit Report. Work through sprints autonomously, verifying each fix before proceeding. You have full access to read, write, and execute commands.
 
 ## PROJECT CONTEXT
 
-### Repository: C:\Users\Administrator\Desktop\Quickly
+### Repository: JobHuntin Monorepo
 ### Tech Stack:
 - Frontend: React/Vite/TypeScript (apps/web)
 - Admin: React/Vite/TypeScript (apps/web-admin)
@@ -13,8 +13,8 @@ You are an autonomous senior software engineer tasked with fixing all issues ide
 - Extension: Chrome Extension (apps/extension)
 - Backend: FastAPI/Python (apps/api, packages/backend)
 - Database: PostgreSQL (Render)
-- Auth: Supabase Auth with JWT
-- LLM: OpenRouter with Nvidia Nemotron
+- Auth: JWT-based authentication
+- LLM: OpenRouter with Google Gemini
 
 ### Architecture:
 apps/api/ - FastAPI v1 endpoints
@@ -398,7 +398,7 @@ Verification: Enter LinkedIn URL, complete onboarding, check profile - URL shoul
 After each sprint, run:
 
 # Backend
-cd C:\Users\Administrator\Desktop\Quickly
+cd /path/to/jobhuntin
 python -m pytest tests/ -v --tb=short
 ruff check apps/ packages/
 python -m mypy apps/api --ignore-missing-imports

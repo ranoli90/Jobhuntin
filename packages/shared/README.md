@@ -6,7 +6,7 @@ Infrastructure glue consumed by every Python process (APIs, workers, scripts). T
 
 | Module | Purpose |
 | --- | --- |
-| `config.py` | Central Settings object (Pydantic) that reads env vars for Supabase, Render, Browserless, Redis, Playwright, and LLM defaults. Sets `LLM_MODEL` to `nvidia/nemotron-4-340b-instruct` via OpenRouter unless overridden, ensuring SEO scripts stay on the approved free tier. |
+| `config.py` | Central Settings object (Pydantic) that reads env vars for database, Render, Browserless, Redis, Playwright, and LLM defaults. Sets `LLM_MODEL` to `google/gemini-2.0-flash` via OpenRouter unless overridden, ensuring optimal cost/performance balance. |
 | `logging_config.py` | Structured logging setup with JSON support and request-scoped context helpers. |
 | `metrics.py` | In-process counters, histograms, and rate limit helpers (`RateLimiter`) wired to StatsD/Prometheus exporters. |
 | `telemetry.py` | OpenTelemetry exporters for traces/logs. |
@@ -17,12 +17,12 @@ Infrastructure glue consumed by every Python process (APIs, workers, scripts). T
 
 ## Usage patterns
 
-1. **Bootstrap** – Every Python entry point loads `shared.config.get_settings()` before touching asyncpg/Playwright so DB SSL flags, Supabase URLs, and Nemotron credentials are in memory.
+1. **Bootstrap** – Every Python entry point loads `shared.config.get_settings()` before touching asyncpg/Playwright so DB SSL flags, database URLs, and LLM credentials are in memory.
 2. **Workers** – `apps/worker/agent.py` imports `RateLimiter`, telemetry, and logging setup from here to enforce throughput caps and emit metrics.
 3. **APIs** – FastAPI apps wire `middleware.py` components to enforce Zero-Defect policies (request IDs, auth, structured error responses).
 
 ## Guardrails
 
-- **Nemotron enforcement** – `config.py` is the single source of truth for the LLM model string. Altering it without finance approval breaks the "no accidental paid LLM" rule.
-- **Supabase SSL** – Settings expose CA paths and toggles; do not bypass them when adding new pools.
+- **LLM configuration** – `config.py` is the single source of truth for the LLM model string. Altering it without finance approval breaks the cost management rules.
+- **Database SSL** – Settings expose CA paths and toggles; do not bypass them when adding new pools.
 - **Rate limits** – Use `RateLimiter` + metrics when adding new bursty operations (magic links, Playwright claims, etc.).

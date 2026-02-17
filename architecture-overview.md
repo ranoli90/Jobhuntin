@@ -339,5 +339,5 @@ profile_embeddings
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *Last Updated: February 2026*

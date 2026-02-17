@@ -1,6 +1,6 @@
-# Contributing to Sorce / JobHuntin
+# Contributing to JobHuntin
 
-This repo powers live job application automation, Nemotron SEO generation, and customer-facing UI. Every change must uphold two guardrails:
+This repo powers live job application automation, AI-powered SEO generation, and customer-facing UI. Every change must uphold two guardrails:
 
 1. **Zero-Defect Standard** – No regressions in automation accuracy, Supabase data integrity, or SEO throughput. Ship with exhaustive tests, telemetry, and roll-back plans.
 2. **No-Scroll UI Standard** – Any user-facing surface (web, mobile, extension) must keep critical CTAs above the fold. Avoid shipping components that require manual scrolling to reach the primary action unless UX explicitly approves.
@@ -34,7 +34,7 @@ This repo powers live job application automation, Nemotron SEO generation, and c
 | Python | `ruff check .`, `pytest`, `mypy` (where configured) |
 | Frontend | `npm run lint`, component/unit tests (Vitest/Jest), Storybook updates if UI changes |
 | Worker | Run `python -m apps.worker.agent --dry-run` or integration tests covering blueprints touched |
-| SEO Scripts | `npm run seo:engine -- --dry-run`, confirm Nemotron model remains `nvidia/nemotron-4-340b-instruct` |
+| SEO Scripts | `npm run seo:engine -- --dry-run`, confirm AI model configuration remains consistent |
 
 Telemetry hooks (metrics, logs) must be updated when adding new workflows so the Zero-Defect dashboard reflects reality.
 
@@ -59,7 +59,7 @@ Telemetry hooks (metrics, logs) must be updated when adding new workflows so the
 ## Issue Reporting
 
 - Use templates in the tracker.
-- Provide reproduction steps, logs, and mention whether Nemotron SEO, Supabase, or Playwright worker fleets are impacted.
+- Provide reproduction steps, logs, and mention whether AI SEO, database, or Playwright worker fleets are impacted.
 
 ## Release Checklist
 

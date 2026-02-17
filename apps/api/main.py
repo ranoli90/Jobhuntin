@@ -518,7 +518,7 @@ class DatabasePoolManager:
                     logger.warning(
                         "DB pool attempt %d/3 failed: %s. "
                         "This usually means DATABASE_URL credentials are incorrect. "
-                        "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Supabase project.",
+                        "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Render PostgreSQL database.",
                         attempt,
                         exc,
                     )

@@ -4,11 +4,10 @@
 
 ### Database Configuration
 - **Name**: jobhuntin-db
-- **ID**: dpg-d66ck524d50c73bas62g-a
-- **Plan**: basic_256mb (NEEDS UPGRADE)
+- **Provider**: Render PostgreSQL
 - **Version**: PostgreSQL 16
 - **Region**: oregon
-- **Connection String**: postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/jobhuntin
+- **Connection String**: Configure via DATABASE_URL environment variable
 
 ### Current Settings Analysis
 ```
@@ -21,7 +20,6 @@ maintenance_work_mem: 16384 (16MB)
 
 ### Redis Instance Available
 - **Name**: jobhuntin-redis
-- **ID**: red-d6761bp5pdvs73e7b3mg
 - **Plan**: starter
 - **Version**: 8.1.4
 - **Region**: oregon
@@ -58,7 +56,7 @@ Add health checks and metrics for database performance.
 
 ## Next Actions
 
-1. Upgrade database plan via Render dashboard (API endpoint issues)
+1. Upgrade database plan via Render dashboard
 2. Implement connection pooling code
 3. Set up Redis caching
 4. Add monitoring and health checks

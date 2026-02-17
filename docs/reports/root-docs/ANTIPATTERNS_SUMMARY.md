@@ -1,7 +1,7 @@
 # Anti-Patterns Fix Summary
 
 ## Overview
-Comprehensive analysis and fixes for anti-patterns found in the Quickly codebase (frontend and backend).
+Comprehensive analysis and fixes for anti-patterns found in the JobHuntin codebase (frontend and backend).
 
 ## Quick Reference
 

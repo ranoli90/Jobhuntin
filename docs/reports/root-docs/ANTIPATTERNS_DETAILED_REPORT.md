@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document details all anti-patterns identified in the Quickly codebase (frontend and backend) and the fixes applied. The codebase had several common issues that could lead to bugs, memory leaks, poor maintainability, and reduced performance.
+This document details all anti-patterns identified in the JobHuntin codebase (frontend and backend) and the fixes applied. The codebase had several common issues that could lead to bugs, memory leaks, poor maintainability, and reduced performance.
 
 ---
 

@@ -19,4 +19,4 @@ Blueprint definitions that describe end-to-end workflows for each tenant vertica
 
 ## SEO / LLM Coordination
 
-Blueprint descriptors embed prompt fragments that the `backend.llm` module stitches into the Nvidia Nemotron SEO generator as well as the FormAgent DOM mapping prompts. Do **not** remove Nemotron identifiers from blueprint metadata; that is how we prevent developers from swapping to paid LLMs accidentally.
+Blueprint descriptors embed prompt fragments that the `backend.llm` module stitches into the AI-powered SEO generator as well as the FormAgent DOM mapping prompts. Model identifiers in blueprint metadata help maintain consistent LLM configuration across the platform.

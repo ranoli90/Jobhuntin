@@ -1,7 +1,7 @@
 # Comprehensive Recommendations & Improvements List
 
 ## Overview
-This document lists ALL recommendations for the Quickly/Sorce platform, categorized by priority and domain.
+This document lists ALL recommendations for the JobHuntin platform, categorized by priority and domain.
 
 ---
 

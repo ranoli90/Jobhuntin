@@ -62,7 +62,7 @@
 apps/
 ├── api/           FastAPI v1 (tenants, applications, webhooks)
 ├── api_v2/        Experimental routes, magic-link auth
-├── web/           Vite/React UI + Nemotron SEO scripts
+├── web/           Vite/React UI + AI-powered SEO scripts
 ├── web-admin/     Operator dashboard for agencies
 ├── extension/     Chromium extension
 ├── worker/        Playwright FormAgent + ScalingManager
@@ -77,10 +77,10 @@ packages/
 - **Backend:** Python 3.12, FastAPI, asyncpg, Pydantic
 - **Frontend:** React 18, Vite, Tailwind, TypeScript
 - **Mobile:** Expo/React Native
-- **Database:** PostgreSQL (Render), Supabase (migrating from)
-- **LLM:** OpenRouter with nvidia/nemotron-4-340b-instruct (SEO), google/gemma-2-9b-it:free (default)
+- **Database:** PostgreSQL (Render)
+- **LLM:** OpenRouter with google/gemini-2.0-flash (primary), openai/gpt-4o-mini (fallback)
 - **Browser Automation:** Playwright
-- **Infrastructure:** Render (API, workers), Vercel (web)
+- **Infrastructure:** Render (API, workers, web)
 - **Billing:** Stripe
 
 ### Key Domain Modules (backend/domain/)
@@ -99,7 +99,7 @@ packages/
 ## FormAgent (Worker)
 
 ### Flow
-1. Poll Supabase queue for pending applications
+1. Poll PostgreSQL queue for pending applications
 2. Fetch job URL and CanonicalProfile
 3. Launch Playwright headless browser
 4. Navigate to job application page
@@ -120,7 +120,7 @@ packages/
 `apps/web/scripts/seo/`
 
 ### Components
-- `automated-ranking-engine.ts` - Nemotron-powered content generation
+- `automated-ranking-engine.ts` - AI-powered content generation
 - `submit-to-google.ts` - Google Indexing API integration
 - `seo-monitoring-dashboard.ts` - Performance tracking
 - `generate-competitor-content.ts` - Competitive content pages

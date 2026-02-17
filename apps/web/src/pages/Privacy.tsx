@@ -89,8 +89,8 @@ export default function Privacy() {
             <p>We transmit data to the following third-party AI providers:</p>
             <ul>
               <li><strong>OpenRouter.ai:</strong> Our primary gateway for LLM inference.</li>
-              <li><strong>Nvidia (Nemotron) & OpenAI:</strong> The underlying models used for reasoning and content generation.</li>
-              <li><strong>Supabase:</strong> Provides vector storage and database hosting.</li>
+              <li><strong>Google (Gemini) & OpenAI:</strong> The underlying models used for reasoning and content generation.</li>
+              <li><strong>Render:</strong> Provides database hosting and application infrastructure.</li>
             </ul>
 
             <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 my-6 not-prose">

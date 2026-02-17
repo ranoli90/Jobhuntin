@@ -1,8 +1,8 @@
-# DATABASE_URL FIX - CRITICAL INSTRUCTIONS
+# DATABASE_URL FIX - INSTRUCTIONS
 
 ## 🚨 ROOT CAUSE IDENTIFIED
 
-The application is failing because **DATABASE_URL environment variable is missing** from the Render service `jobhuntin-api`.
+The application is failing because **DATABASE_URL environment variable is missing** or misconfigured from the Render service.
 
 ## 📋 Error Analysis
 
@@ -19,7 +19,7 @@ Could not create DB pool after 3 attempts. The application will start in degrade
 2. Login with your credentials
 
 ### Step 2: Navigate to API Service
-1. Find service: `jobhuntin-api` (ID: srv-d63l79hr0fns73boblag)
+1. Find service: `jobhuntin-api`
 2. Click on the service name
 
 ### Step 3: Add Environment Variable
@@ -29,15 +29,15 @@ Could not create DB pool after 3 attempts. The application will start in degrade
 
 **Key:** `DATABASE_URL`
 
-**Value:** `postgresql://postgres.zglovpfwyobbbaaocawz:ravhuv-gitqec-nixvY4@aws-0-us-east-1.pooler.supabase.com:5432/postgres`
+**Value:** Configure with your Render PostgreSQL connection string
 
 ### Step 4: Save and Redeploy
 1. Click **"Save Changes"**
 2. Click **"Manual Deploy"** → **"Deploy Latest Commit"**
 
-## 🎯 ALTERNATIVE: MIGRATE TO RENDER DATABASE
+## 🎯 ALTERNATIVE: CREATE RENDER DATABASE
 
-If you want to move away from Supabase entirely:
+If you need a new database:
 
 ### Option A: Create Render PostgreSQL Database
 1. In Render Dashboard, click **"New"** → **"PostgreSQL"**
@@ -51,7 +51,7 @@ Once created, Render will provide a connection string like:
 postgresql://user:password@host:port/database
 ```
 
-Use this as your DATABASE_URL instead of the Supabase one.
+Use this as your DATABASE_URL.
 
 ## 🔍 Verification
 
@@ -66,17 +66,9 @@ After setting DATABASE_URL:
 
 3. Test API endpoints that require database access
 
-## 📞 Current Status
-
-- ✅ Deployment triggered: `dep-d66ca9pr0fns73cvmvlg`
-- ❌ DATABASE_URL still missing (needs manual setup)
-- ⏳ Waiting for environment variable configuration
-
 ## 🚀 Next Steps
 
-1. **IMMEDIATELY** add the DATABASE_URL as shown above
+1. Add the DATABASE_URL environment variable
 2. Monitor the deployment logs
 3. Test database connectivity
 4. Verify all API endpoints work correctly
-
-The fix is simple - just add that one environment variable and the application will work perfectly!

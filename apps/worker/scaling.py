@@ -99,7 +99,7 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
                 logger.warning(
                     "Read replica DB pool attempt %d/3 failed: %s. "
                     "This usually means READ_REPLICA_URL credentials are incorrect. "
-                    "Check that the read replica credentials match your Supabase project.",
+                    "Check that the read replica credentials match your Render PostgreSQL database.",
                     attempt, exc
                 )
             elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
@@ -145,7 +145,7 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
                 logger.warning(
                     "Enterprise DB pool attempt %d/3 failed: %s. "
                     "This usually means DATABASE_URL credentials are incorrect. "
-                    "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Supabase project.",
+                    "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Render PostgreSQL database.",
                     attempt, exc
                 )
             elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
