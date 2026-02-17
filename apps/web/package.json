@@ -55,7 +55,7 @@
     "@types/react-dom": "18.2.17",
     "@types/react-syntax-highlighter": "^15.5.11",
     "@types/testing-library__jest-dom": "^5.14.9",
-    "@types/testing-library__react": "^10.0.1",
+    "@types/testing-library__react": "^10.2.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
