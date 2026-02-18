@@ -20,10 +20,10 @@ export function MarketingNavbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu when the route changes
+  // Close mobile menu when the route changes (pathname, search, or hash)
   useEffect(() => {
     setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, location.search, location.hash, location.key]);
 
   const navLinks = [
     { name: "How it Works", path: "/#how-it-works" },

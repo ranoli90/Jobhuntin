@@ -610,23 +610,120 @@ export default function Homepage() {
           </FadeIn>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { n: "1", icon: Upload, t: "Upload resume", d: "Drop your PDF or paste a URL. We parse skills, experience, and preferences instantly.", bg: "bg-gradient-to-br from-purple-500 to-purple-700", shadow: "hover:shadow-purple-500/20" },
-              { n: "2", icon: SlidersHorizontal, t: "Set your filters", d: "Roles, locations, salary range, company size — we only apply to what genuinely matches.", bg: "bg-gradient-to-br from-orange-400 to-rose-500", shadow: "hover:shadow-orange-500/20" },
-              { n: "3", icon: Send, t: "AI applies for you", d: "Every application is individually tailored with a custom resume and cover letter.", bg: "bg-gradient-to-br from-sky-400 to-blue-600", shadow: "hover:shadow-blue-500/20" },
-              { n: "4", icon: Trophy, t: "Get interviews", d: "Track responses, prep for interviews with AI insights, and land your dream role.", bg: "bg-gradient-to-br from-emerald-400 to-emerald-600", shadow: "hover:shadow-emerald-500/20" },
-            ].map((step, idx) => (
-              <FadeIn key={step.n} delay={idx * 100}>
-                <div className={cn("rounded-3xl p-8 text-white min-h-[280px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl", step.bg, step.shadow)}>
-                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <step.icon className="w-7 h-7 text-white" />
+            {/* Step 1 — Upload Resume */}
+            <FadeIn delay={0}>
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-violet-700 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute top-3 right-3 w-24 h-24 bg-white/[0.06] rounded-2xl rotate-12" />
+                <div className="absolute bottom-8 right-6 w-16 h-16 bg-white/[0.04] rounded-xl -rotate-6" />
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5">
+                    <Upload className="w-6 h-6 text-white" />
                   </div>
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3">Step {step.n}</div>
-                  <h3 className="text-xl font-bold mb-3">{step.t}</h3>
-                  <p className="text-white/75 text-[14px] leading-relaxed flex-1">{step.d}</p>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 1</div>
+                  <h3 className="text-xl font-bold mb-3">Upload resume</h3>
+                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Drop your PDF or paste a URL. We parse skills, experience, and preferences instantly.</p>
                 </div>
-              </FadeIn>
-            ))}
+                <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-white/[0.06]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                      <Upload className="w-5 h-5 text-white/50" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="h-2 bg-white/20 rounded-full w-2/3 mb-1.5" />
+                      <div className="h-1.5 bg-white/10 rounded-full w-1/2" />
+                    </div>
+                    <div className="px-2 py-1 rounded-lg bg-green-400/20 text-[8px] font-bold text-green-300">Parsed ✓</div>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Step 2 — Set Filters */}
+            <FadeIn delay={100}>
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-orange-400 via-rose-500 to-pink-600 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/20">
+                <div className="absolute top-4 right-4 w-20 h-20 bg-white/[0.06] rounded-full" />
+                <div className="absolute bottom-10 right-8 w-12 h-12 bg-white/[0.04] rounded-full" />
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5">
+                    <SlidersHorizontal className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 2</div>
+                  <h3 className="text-xl font-bold mb-3">Set your filters</h3>
+                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Roles, locations, salary range, company size — we only apply to what genuinely matches.</p>
+                </div>
+                <div className="mt-auto relative space-y-2">
+                  {[
+                    { label: "Role", value: "Frontend Engineer" },
+                    { label: "Salary", value: "$150k – $200k" },
+                    { label: "Remote", value: "Yes" },
+                  ].map((f) => (
+                    <div key={f.label} className="flex items-center justify-between bg-white/[0.08] rounded-lg px-3 py-2 border border-white/[0.06]">
+                      <span className="text-[10px] text-white/40 font-semibold">{f.label}</span>
+                      <span className="text-[10px] text-white/80 font-bold">{f.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Step 3 — AI Applies */}
+            <FadeIn delay={200}>
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20">
+                <div className="absolute top-3 right-3 w-28 h-16 bg-white/[0.05] rounded-xl rotate-6" />
+                <div className="absolute bottom-12 right-4 w-14 h-14 bg-white/[0.04] rounded-lg -rotate-12" />
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5">
+                    <Send className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 3</div>
+                  <h3 className="text-xl font-bold mb-3">AI applies for you</h3>
+                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Every application is individually tailored with a custom resume and cover letter.</p>
+                </div>
+                <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-white/[0.06]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                    <span className="text-[9px] text-white/50 font-semibold">Applying now…</span>
+                  </div>
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-white/30 rounded-full w-[72%] animate-pulse" />
+                  </div>
+                  <div className="flex justify-between mt-1.5">
+                    <span className="text-[8px] text-white/30">18 of 25 today</span>
+                    <span className="text-[8px] text-green-300 font-bold">72%</span>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Step 4 — Get Interviews */}
+            <FadeIn delay={300}>
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20">
+                <div className="absolute top-4 right-4 w-20 h-20 bg-white/[0.06] rounded-2xl rotate-12" />
+                <div className="absolute bottom-8 right-6 w-14 h-10 bg-white/[0.04] rounded-xl -rotate-3" />
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5">
+                    <Trophy className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 4</div>
+                  <h3 className="text-xl font-bold mb-3">Get interviews</h3>
+                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Track responses, prep for interviews with AI insights, and land your dream role.</p>
+                </div>
+                <div className="mt-auto relative grid grid-cols-3 gap-2">
+                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-white/[0.06]">
+                    <div className="text-lg font-extrabold">7</div>
+                    <div className="text-[7px] text-white/40 uppercase font-bold tracking-wide">Interviews</div>
+                  </div>
+                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-white/[0.06]">
+                    <div className="text-lg font-extrabold">3</div>
+                    <div className="text-[7px] text-white/40 uppercase font-bold tracking-wide">Offers</div>
+                  </div>
+                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-white/[0.06]">
+                    <div className="text-lg font-extrabold text-green-300">1</div>
+                    <div className="text-[7px] text-white/40 uppercase font-bold tracking-wide">Accepted</div>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
           </div>
 
           <FadeIn delay={400}>
