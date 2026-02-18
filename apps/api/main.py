@@ -343,11 +343,14 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[growth_mod._get_admin_user_id] = get_current_user_id
     app.include_router(growth_mod.router)
 
-    import api.sso as sso_mod
+    try:
+        import api.sso as sso_mod
 
-    app.dependency_overrides[sso_mod._get_pool] = get_pool
-    app.dependency_overrides[sso_mod._get_tenant_ctx] = get_tenant_context
-    app.include_router(sso_mod.router)
+        app.dependency_overrides[sso_mod._get_pool] = get_pool
+        app.dependency_overrides[sso_mod._get_tenant_ctx] = get_tenant_context
+        app.include_router(sso_mod.router)
+    except ImportError as exc:
+        logger.warning("SSO module unavailable (signxml/pyOpenSSL issue): %s — SSO endpoints disabled", exc)
 
     import api.bulk as bulk_mod
 

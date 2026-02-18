@@ -17,6 +17,14 @@ async function prerender() {
         process.exit(1);
     }
 
+    // Preserve the original SPA index.html as 200.html fallback for non-prerendered routes
+    const spaFallbackSrc = path.join(DIST_DIR, 'index.html');
+    const spaFallbackDst = path.join(DIST_DIR, '200.html');
+    if (fs.existsSync(spaFallbackSrc) && !fs.existsSync(spaFallbackDst)) {
+        fs.copyFileSync(spaFallbackSrc, spaFallbackDst);
+        console.log('📋 Preserved SPA fallback as 200.html');
+    }
+
     // Start Vite Preview Server
     console.log('📦 Starting preview server...');
     const server = await preview({

@@ -74,7 +74,7 @@ export default function Pricing() {
       return;
     }
     try {
-      await upgrade();
+      await upgrade(annual ? "annual" : "monthly");
     } catch (err) {
       console.error('Checkout failed:', err);
     }

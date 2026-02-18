@@ -1,35 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..900;1,200..900&family=Manrope:wght@300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   
-  --color-primary-50: 239 246 255;
-  --color-primary-500: 59 130 246;
-  --color-primary-600: 37 99 235;
-  --color-primary-700: 29 78 216;
+  /* Warm neutral palette — no AI blue/violet/pink */
+  --color-primary-50: 245 243 240;
+  --color-primary-500: 28 25 23;
+  --color-primary-600: 20 18 16;
+  --color-primary-700: 12 10 9;
 
-  --color-slate-50: 248 250 252;
-  --color-slate-100: 241 245 249;
-  --color-slate-200: 226 232 240;
-  --color-slate-300: 203 213 225;
-  --color-slate-400: 148 163 184;
-  --color-slate-500: 100 116 139;
-  --color-slate-600: 71 85 105;
-  --color-slate-700: 51 65 85;
-  --color-slate-800: 30 41 59;
-  --color-slate-900: 15 23 42;
-  --color-slate-950: 2 6 23;
+  --color-stone-50: 250 250 249;
+  --color-stone-100: 245 245 244;
+  --color-stone-200: 231 229 228;
+  --color-stone-300: 214 211 209;
+  --color-stone-400: 168 162 158;
+  --color-stone-500: 120 113 108;
+  --color-stone-600: 87 83 78;
+  --color-stone-700: 68 64 60;
+  --color-stone-800: 41 37 36;
+  --color-stone-900: 28 25 23;
+  --color-stone-950: 12 10 9;
 
-  --jobhuntin-sunrise: 59 130 246;
-  --jobhuntin-lagoon: 6 182 212;
-  --jobhuntin-mango: 245 158 11;
-  --jobhuntin-ink: 15 23 42;
-  --jobhuntin-shell: 248 250 252;
+  /* Single accent — warm amber, not AI blue */
+  --color-accent: 217 119 6;
+  --color-accent-light: 245 158 11;
 
   --fs-sm: clamp(0.8rem, 0.17vw + 0.76rem, 0.89rem);
   --fs-base: clamp(1rem, 0.34vw + 0.91rem, 1.19rem);
@@ -77,10 +76,10 @@ html {
 
 body {
   font-family: var(--font-body);
-  background-color: #f8fafc;
-  color: #0f172a;
-  line-height: 1.7;
-  letter-spacing: -0.01em;
+  background-color: #fafaf9;
+  color: #1c1917;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
   width: 100%;
   min-height: 100svh;
   -webkit-font-smoothing: antialiased;
@@ -102,13 +101,13 @@ body {
 
 /* Professional selection styling */
 ::selection {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #1e40af;
+  background-color: rgba(28, 25, 23, 0.12);
+  color: #1c1917;
 }
 
 /* Focus visible styles for accessibility */
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #1c1917;
   outline-offset: 2px;
 }
 
@@ -135,16 +134,16 @@ select {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #fafaf9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d6d3d1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a8a29e;
 }
 
 /* Utility classes */

@@ -208,15 +208,19 @@ try {
             urls.push(calculateUrlPriority(BASE_URL + page, 'Static'));
         });
 
-        // Competitor comparison pages (high priority)
+        // Competitor pages — all 5 page types per competitor
         competitors.forEach((competitor: any) => {
-            const url = `${BASE_URL}/compare/${competitor.slug}`;
-            urls.push(calculateUrlPriority(url, 'Competitor', competitor));
+            const slug = competitor.slug;
+            urls.push(calculateUrlPriority(`${BASE_URL}/vs/${slug}`, 'Competitor', competitor));
+            urls.push(calculateUrlPriority(`${BASE_URL}/alternative-to/${slug}`, 'Competitor', competitor));
+            urls.push(calculateUrlPriority(`${BASE_URL}/reviews/${slug}`, 'Competitor', competitor));
+            urls.push(calculateUrlPriority(`${BASE_URL}/switch-from/${slug}`, 'Competitor', competitor));
+            urls.push(calculateUrlPriority(`${BASE_URL}/pricing-vs/${slug}`, 'Competitor', competitor));
         });
 
-        // Category pages
+        // Category hub pages
         categories.forEach((category: any) => {
-            const url = `${BASE_URL}/category/${category.slug}`;
+            const url = `${BASE_URL}/best/${category.slug}`;
             urls.push(calculateUrlPriority(url, 'Category', category));
         });
 
@@ -227,10 +231,10 @@ try {
                 const locationSlug = location.id || location.slug;
                 
                 if (!roleSlug || !locationSlug) {
-                    return; // Skip if no valid slug found
+                    return;
                 }
 
-                const url = `${BASE_URL}/jobs/${roleSlug}-in-${locationSlug}`;
+                const url = `${BASE_URL}/jobs/${roleSlug}/${locationSlug}`;
                 urls.push(calculateUrlPriority(url, 'Local', {
                     location: location,
                     role: role

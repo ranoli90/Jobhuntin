@@ -38,6 +38,7 @@ async def _get_tenant_ctx() -> TenantContext:
 class CheckoutRequest(BaseModel):
     success_url: str
     cancel_url: str
+    billing_period: str = "monthly"  # "monthly" or "annual"
 
 class CheckoutResponse(BaseModel):
     checkout_url: str
@@ -161,13 +162,19 @@ async def create_checkout_session(
 
         customer_id = await ensure_stripe_customer(conn, ctx.tenant_id, email)
 
+    price_id = (
+        settings.stripe_pro_annual_price_id
+        if body.billing_period == "annual" and settings.stripe_pro_annual_price_id
+        else settings.stripe_pro_price_id
+    )
+
     try:
         session = stripe.checkout.Session.create(
             customer=customer_id,
             payment_method_types=["card"],
             mode="subscription",
             line_items=[{
-                "price": settings.stripe_pro_price_id,
+                "price": price_id,
                 "quantity": 1,
             }],
             success_url=body.success_url,
@@ -176,6 +183,7 @@ async def create_checkout_session(
                 "tenant_id": ctx.tenant_id,
                 "user_id": ctx.user_id,
                 "plan": "PRO",
+                "billing_period": body.billing_period,
             },
         )
         return CheckoutResponse(checkout_url=session.url, session_id=session.id)

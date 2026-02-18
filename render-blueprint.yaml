@@ -14,7 +14,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     branch: main
-    healthCheckPath: /healthz
+    healthCheckPath: /health
     numInstances: 1
     disk:
       name: storage
@@ -43,7 +43,7 @@ services:
       - key: LLM_API_BASE
         value: https://openrouter.ai/api/v1
       - key: LLM_MODEL
-        value: openrouter/free
+        value: google/gemini-2.0-flash
       - key: APP_BASE_URL
         value: https://jobhuntin.com
       - key: LOG_LEVEL
@@ -69,7 +69,7 @@ services:
     routes:
       - type: rewrite
         source: /*
-        destination: /index.html
+        destination: /200.html
 
   # ─────────────────────────────────────────────────────────────────────────
   # API Service (Staging)
@@ -82,7 +82,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     branch: staging
-    healthCheckPath: /healthz
+    healthCheckPath: /health
     numInstances: 1
     disk:
       name: storage

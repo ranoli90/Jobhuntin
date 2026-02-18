@@ -127,7 +127,7 @@ class JobSpyClient:
             logger.warning("All sources have circuit breakers open")
             return []
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         executor = _get_executor()
 
         func = partial(

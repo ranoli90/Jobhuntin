@@ -12,7 +12,10 @@ export default function Settings() {
     location: "",
     role_type: "",
     salary_min: "",
+    salary_max: "",
     remote_only: false,
+    work_authorized: true,
+    visa_sponsorship: false,
   });
   const [contactForm, setContactForm] = React.useState({
     full_name: "",
@@ -33,7 +36,10 @@ export default function Settings() {
         location: p.location ?? "",
         role_type: p.role_type ?? "",
         salary_min: p.salary_min ? String(p.salary_min) : "",
+        salary_max: p.salary_max ? String(p.salary_max) : "",
         remote_only: p.remote_only ?? false,
+        work_authorized: p.work_authorized ?? true,
+        visa_sponsorship: p.visa_sponsorship ?? false,
       });
     }
   }, [profile?.preferences]);
@@ -55,7 +61,10 @@ export default function Settings() {
           location: preferences.location || undefined,
           role_type: preferences.role_type || undefined,
           salary_min: preferences.salary_min ? Number(preferences.salary_min) : undefined,
+          salary_max: preferences.salary_max ? Number(preferences.salary_max) : undefined,
           remote_only: preferences.remote_only,
+          work_authorized: preferences.work_authorized,
+          visa_sponsorship: preferences.visa_sponsorship,
         },
       });
       pushToast({ title: "Preferences saved", tone: "success" });
@@ -290,32 +299,55 @@ export default function Settings() {
               />
               <p className="text-xs text-brand-ink/50 mt-1">Annual salary in USD</p>
             </div>
-            <div className="space-y-1">
-              <button
-                type="button"
-                role="switch"
-                aria-checked={preferences.remote_only}
-                onClick={() => setPreferences((p) => ({ ...p, remote_only: !p.remote_only }))}
-                className={`flex items-center justify-between w-full rounded-2xl border px-4 py-3 transition-all ${preferences.remote_only
-                  ? "bg-primary-50 border-primary-200 text-primary-700"
-                  : "bg-white border-brand-ink/10 text-brand-ink"
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold">Remote only</span>
-                  <span className="text-xs text-brand-ink/60">Prioritize remote-first roles</span>
-                </div>
-                <span
-                  className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-all ${preferences.remote_only ? "bg-primary-500" : "bg-slate-200"
-                    }`}
-                >
-                  <span
-                    className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${preferences.remote_only ? "translate-x-5" : "translate-x-0"
+            <div>
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
+                <DollarSign className="h-4 w-4" /> Max salary (optional)
+              </label>
+              <input
+                type="number"
+                placeholder="e.g. 200000"
+                min="0"
+                max="10000000"
+                inputMode="numeric"
+                value={preferences.salary_max}
+                onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value }))}
+                className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
+              />
+              <p className="text-xs text-brand-ink/50 mt-1">Annual salary in USD</p>
+            </div>
+            <div className="space-y-3">
+              {[
+                { key: 'remote_only' as const, label: 'Remote only', desc: 'Prioritize remote-first roles' },
+                { key: 'work_authorized' as const, label: 'Work authorized', desc: 'I am authorized to work in my target location' },
+                { key: 'visa_sponsorship' as const, label: 'Need visa sponsorship', desc: 'Only show roles offering visa sponsorship' },
+              ].map(({ key, label, desc }) => (
+                <div key={key} className="space-y-1">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={preferences[key]}
+                    onClick={() => setPreferences((p) => ({ ...p, [key]: !p[key] }))}
+                    className={`flex items-center justify-between w-full rounded-2xl border px-4 py-3 transition-all ${preferences[key]
+                      ? "bg-primary-50 border-primary-200 text-primary-700"
+                      : "bg-white border-brand-ink/10 text-brand-ink"
                       }`}
-                  />
-                </span>
-              </button>
-              <p className="text-xs text-brand-ink/60">We’ll bias search and auto-apply to remote-friendly openings.</p>
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold">{label}</span>
+                      <span className="text-xs text-brand-ink/60">{desc}</span>
+                    </div>
+                    <span
+                      className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-all ${preferences[key] ? "bg-primary-500" : "bg-slate-200"
+                        }`}
+                    >
+                      <span
+                        className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${preferences[key] ? "translate-x-5" : "translate-x-0"
+                          }`}
+                      />
+                    </span>
+                  </button>
+                </div>
+              ))}
             </div>
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Saving…" : "Save preferences"}

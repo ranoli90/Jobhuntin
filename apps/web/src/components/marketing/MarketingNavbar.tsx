@@ -39,14 +39,14 @@ export function MarketingNavbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen
-        ? 'bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/60 shadow-lg'
+        ? 'bg-stone-950/95 backdrop-blur-xl border-b border-stone-800/60 shadow-lg'
         : 'bg-transparent'
         }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo - always visible with gradient background */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-violet-600/20 blur-xl rounded-full" />
+          <div className="absolute inset-0" />
           <Logo to="/" onClick={closeMenu} variant="dark" />
         </div>
 
@@ -56,7 +56,7 @@ export function MarketingNavbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`text-sm font-bold transition-all hover:text-blue-400 active:scale-95 ${location.pathname === link.path ? 'text-blue-400' : 'text-slate-300'
+              className={`text-sm font-medium transition-all hover:text-stone-100 active:scale-95 ${location.pathname === link.path ? 'text-stone-100' : 'text-stone-400'
                 }`}
             >
               {link.name}
@@ -68,23 +68,23 @@ export function MarketingNavbar() {
         <div className="hidden md:flex items-center gap-4">
           {isLoggedIn ? (
             <>
-              <Link to="/app/dashboard" className="text-sm font-black text-slate-300 hover:text-blue-400 transition-colors uppercase tracking-wider flex items-center gap-2">
+              <Link to="/app/dashboard" className="text-sm font-medium text-stone-400 hover:text-stone-100 transition-colors tracking-wide flex items-center gap-2">
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </Link>
               <Link to="/app/jobs">
-                <Button variant="primary" size="sm" className="rounded-2xl px-6 shadow-xl shadow-blue-500/20 font-bold">
+                <Button variant="primary" size="sm" className="rounded-lg px-6 font-medium">
                   View Jobs <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
             </>
           ) : (
             <>
-              <Link to="/login?mode=login" className="text-sm font-black text-slate-300 hover:text-blue-400 transition-colors uppercase tracking-wider">
+              <Link to="/login?mode=login" className="text-sm font-medium text-stone-400 hover:text-stone-100 transition-colors">
                 Log in
               </Link>
               <Link to="/login">
-                <Button variant="primary" size="sm" className="rounded-2xl px-6 shadow-xl shadow-blue-500/20 font-bold">
+                <Button variant="primary" size="sm" className="rounded-lg px-6 font-medium">
                   Get Started <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
@@ -94,7 +94,7 @@ export function MarketingNavbar() {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden p-3 -mr-2 text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-800 rounded-xl transition-all active:scale-90"
+          className="md:hidden p-3 -mr-2 text-stone-400 hover:text-white bg-stone-800/50 hover:bg-stone-800 rounded-lg transition-all active:scale-90"
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
@@ -122,9 +122,9 @@ export function MarketingNavbar() {
                 key={link.path}
                 to={link.path}
                 onClick={closeMenu}
-                className={`text-lg font-black block py-4 px-4 rounded-2xl transition-all active:scale-[0.98] ${location.pathname === link.path
-                  ? 'bg-blue-900/20 text-blue-400 shadow-sm'
-                  : 'text-slate-300 hover:bg-slate-800'
+                className={`text-lg font-medium block py-4 px-4 rounded-lg transition-all active:scale-[0.98] ${location.pathname === link.path
+                  ? 'bg-stone-800 text-stone-100'
+                  : 'text-stone-400 hover:bg-stone-800'
                   }`}
               >
                 {link.name}
@@ -134,7 +134,7 @@ export function MarketingNavbar() {
               <Link
                 to="/app/dashboard"
                 onClick={closeMenu}
-                className="text-lg font-black block py-4 px-4 rounded-2xl transition-all active:scale-[0.98] text-slate-300 hover:bg-slate-800 flex items-center gap-2"
+                className="text-lg font-medium block py-4 px-4 rounded-lg transition-all active:scale-[0.98] text-stone-400 hover:bg-stone-800 flex items-center gap-2"
               >
                 <LayoutDashboard className="w-5 h-5" />
                 Dashboard
@@ -151,7 +151,7 @@ export function MarketingNavbar() {
                 onClick={closeMenu}
                 className="block w-full"
               >
-                <Button variant="primary" size="lg" className="w-full justify-center text-base py-4 rounded-2xl shadow-2xl shadow-blue-500/30 font-black">
+                <Button variant="primary" size="lg" className="w-full justify-center text-base py-4 rounded-lg font-medium">
                   View Jobs
                 </Button>
               </Link>
@@ -162,14 +162,14 @@ export function MarketingNavbar() {
                   onClick={closeMenu}
                   className="block w-full"
                 >
-                  <Button variant="outline" size="lg" className="w-full justify-center text-base py-4 rounded-2xl font-bold border-slate-700">Log in</Button>
+                  <Button variant="outline" size="lg" className="w-full justify-center text-base py-4 rounded-lg font-medium border-stone-700">Log in</Button>
                 </Link>
                 <Link
                   to="/login"
                   onClick={closeMenu}
                   className="block w-full"
                 >
-                  <Button variant="primary" size="lg" className="w-full justify-center text-base py-4 rounded-2xl shadow-2xl shadow-blue-500/30 font-black">
+                  <Button variant="primary" size="lg" className="w-full justify-center text-base py-4 rounded-lg font-medium">
                     Get Started Free
                   </Button>
                 </Link>

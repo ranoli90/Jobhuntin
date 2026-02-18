@@ -241,8 +241,6 @@ export default function Onboarding() {
       pushToast({ title: "Work style saved!", tone: "success" });
 
       // Track AI learning event
-
-      // Track AI learning event
       telemetry.track("AI Learned Work Style", {
         answersCount: Object.keys(workStyleAnswers).length,
         hasAutonomyPreference: !!workStyleAnswers.autonomy_preference,
@@ -475,7 +473,6 @@ export default function Onboarding() {
           if (import.meta.env.DEV) console.log("AI suggestions fetch failed, will continue without");
         });
 
-        // Track AI learning event
         // Track AI learning event
         telemetry.track("AI Learned Resume Data", {
           hasSkills: !!data.parsed_profile.skills,

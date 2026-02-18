@@ -48,27 +48,27 @@ export function MarketingFooter() {
   ];
 
   return (
-    <footer className="bg-slate-900 pt-16 pb-10 border-t border-slate-800">
+    <footer className="bg-stone-950 pt-16 pb-10 border-t border-stone-800">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-2 group mb-5">
-              <div className="bg-gradient-to-tr from-blue-500 to-violet-500 p-2 rounded-xl rotate-3 shadow-lg shadow-blue-500/20 group-hover:rotate-6 transition-transform duration-300">
+              <div className="bg-stone-800 p-2 rounded-xl shadow-lg group-hover:bg-stone-700 transition-colors duration-300">
                 <Bot className="text-white w-5 h-5" />
               </div>
-              <span className="text-lg font-bold font-display text-white tracking-tight">JobHuntin</span>
+              <span className="text-lg font-semibold text-white tracking-tight">JobHuntin</span>
             </Link>
-            <p className="text-slate-400 text-sm mb-6 max-w-xs leading-relaxed">
+            <p className="text-stone-400 text-sm mb-6 max-w-xs leading-relaxed">
               The AI agent that applies to jobs while you sleep.
             </p>
             <div className="flex gap-3">
-              <a href="#" className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-[#1DA1F2] hover:shadow-md transition-all">
+              <a href="#" className="w-9 h-9 bg-stone-800 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-200 hover:bg-stone-700 transition-all">
                 <Twitter className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-[#0077b5] hover:shadow-md transition-all">
+              <a href="#" className="w-9 h-9 bg-stone-800 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-200 hover:bg-stone-700 transition-all">
                 <Linkedin className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-200 hover:shadow-md transition-all">
+              <a href="#" className="w-9 h-9 bg-stone-800 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-200 hover:bg-stone-700 transition-all">
                 <Github className="w-4 h-4" />
               </a>
             </div>
@@ -76,13 +76,13 @@ export function MarketingFooter() {
 
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h3 className="font-semibold text-white mb-4 text-sm">{section.title}</h3>
+              <h3 className="font-medium text-stone-200 mb-4 text-sm">{section.title}</h3>
               <ul className="space-y-2.5">
                 {section.links.map((link) => (
                   <li key={link.name}>
                     <Link
                       to={link.path}
-                      className="text-slate-400 hover:text-blue-400 transition-colors text-sm"
+                      className="text-stone-500 hover:text-stone-200 transition-colors text-sm"
                     >
                       {link.name}
                     </Link>
@@ -93,12 +93,12 @@ export function MarketingFooter() {
           ))}
         </div>
 
-        <div className="pt-6 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-slate-500 text-sm">
+        <div className="pt-6 border-t border-stone-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-stone-600 text-sm">
             &copy; {new Date().getFullYear()} JobHuntin AI Inc. All rights reserved.
           </p>
-          <p className="text-slate-500 text-sm flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> in Denver, CO
+          <p className="text-stone-600 text-sm flex items-center gap-1">
+            Made with <Heart className="w-4 h-4 text-stone-500 fill-current" /> in Denver, CO
           </p>
         </div>
       </div>

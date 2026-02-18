@@ -2,30 +2,26 @@
 # This file configures your automated SEO system to deploy with your backend
 
 services:
-  # Web Application (Frontend)
+  # Web Application (Frontend) — Static Site
   - type: web
     name: jobhuntin-web
-    env: node
+    env: static
     buildCommand: cd apps/web && npm ci && npm run build
-    startCommand: cd apps/web && npm run seo:backend
+    staticPublishPath: apps/web/dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /200.html
     envVars:
-      - key: GOOGLE_SERVICE_ACCOUNT_KEY
-        sync: false  # Set in Render dashboard
-      - key: GOOGLE_SEARCH_CONSOLE_SITE
-        value: https://jobhuntin.com
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
       - key: NODE_VERSION
         value: 20  # Fix for npm ci segfault (exit status 139)
-      - key: LLM_API_KEY
-        sync: false  # OpenRouter API Key for free NVIDIA models
-      - key: LLM_API_BASE
-        value: https://openrouter.ai/api/v1
-      - key: LLM_MODEL
-        value: google/gemma-2-9b-it:free
-    healthCheckPath: /api/seo-health
     autoDeploy: true
     
   # API Backend
@@ -33,7 +29,7 @@ services:
     name: jobhuntin-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python -m apps.api.main
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
     envVars:
       - key: DATABASE_URL
         sync: false  # Set in Render dashboard - NEVER hardcode credentials
@@ -44,22 +40,26 @@ services:
       - key: LLM_API_BASE
         value: https://openrouter.ai/api/v1
       - key: LLM_MODEL
-        value: google/gemma-2-9b-it:free
+        value: google/gemini-2.0-flash
       - key: ENV
         value: production
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
-        value: https://api.jobhuntin.com
+        value: https://jobhuntin.com
       - key: CSRF_SECRET
         sync: false  # Set in Render dashboard
       - key: JWT_SECRET
         sync: false  # Set in Render dashboard
       - key: WEBHOOK_SIGNING_SECRET
         sync: false  # Set in Render dashboard
+      - key: STRIPE_SECRET_KEY
+        sync: false  # Set in Render dashboard
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false  # Set in Render dashboard
       - key: REDIS_URL
         sync: false  # Set in Render dashboard for caching
-    healthCheckPath: /healthz
+    healthCheckPath: /health
     autoDeploy: true
     
   # Background Worker (SEO Engine)
@@ -105,7 +105,7 @@ services:
       - key: LLM_API_BASE
         value: https://openrouter.ai/api/v1
       - key: LLM_MODEL
-        value: google/gemma-2-9b-it:free
+        value: google/gemini-2.0-flash
       - key: AGENT_ENABLED
         value: true
       - key: ENV
@@ -113,7 +113,7 @@ services:
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
-        value: https://api.jobhuntin.com
+        value: https://jobhuntin.com
       - key: CSRF_SECRET
         sync: false  # Set in Render dashboard
       - key: JWT_SECRET

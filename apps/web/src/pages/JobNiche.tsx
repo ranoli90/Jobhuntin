@@ -140,9 +140,9 @@ export default function JobNiche() {
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-10 sm:mb-20">
           {[
             { label: "Est. Salary", value: salaryStats.range, icon: DollarSign, color: "text-emerald-500" },
-            { label: "Openings", value: "240+", icon: Briefcase, color: "text-blue-500" },
-            { label: "Demand", value: "High", icon: TrendingUp, color: "text-primary-500" },
-            { label: "Remote", value: "45%", icon: Globe, color: "text-purple-500" },
+            { label: "Openings", value: `${(cityInfo?.population ? Math.max(50, Math.floor(parseInt(String(cityInfo.population).replace(/k/i,'000').replace(/[^0-9]/g,'')) / 5000)) : 100)}+`, icon: Briefcase, color: "text-blue-500" },
+            { label: "Demand", value: cityInfo?.techHub ? "Very High" : (cityInfo?.startupScene ? "High" : "Moderate"), icon: TrendingUp, color: "text-primary-500" },
+            { label: "Remote", value: `${cityInfo?.remotePercentage ?? 35}%`, icon: Globe, color: "text-purple-500" },
           ].map((stat, i) => (
             <div key={i} className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
               <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
@@ -210,6 +210,46 @@ export default function JobNiche() {
             </div>
           </div>
         </section>
+
+        {/* Local Market Insights — unique per city, kills thin content signal */}
+        {cityInfo && (
+          <section className="mb-10 sm:mb-20">
+            <h2 className="text-xl sm:text-2xl font-black mb-6 sm:mb-8">{formattedCity} Job Market at a Glance</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {cityInfo.medianIncome && (
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-100 shadow-sm">
+                  <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Median Income</div>
+                  <div className="text-lg sm:text-xl font-black text-slate-900">{isUS ? '$' : '€'}{Math.round((cityInfo.medianIncome as number) / 1000)}k</div>
+                </div>
+              )}
+              {cityInfo.unemploymentRate && (
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-100 shadow-sm">
+                  <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Unemployment</div>
+                  <div className="text-lg sm:text-xl font-black text-slate-900">{cityInfo.unemploymentRate}%</div>
+                </div>
+              )}
+              {cityInfo.costOfLivingIndex && (
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-100 shadow-sm">
+                  <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Cost of Living</div>
+                  <div className="text-lg sm:text-xl font-black text-slate-900">{(cityInfo.costOfLivingIndex as number) > 150 ? 'High' : (cityInfo.costOfLivingIndex as number) > 100 ? 'Moderate' : 'Low'}</div>
+                </div>
+              )}
+              {cityInfo.industries && cityInfo.industries.length > 0 && (
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-100 shadow-sm">
+                  <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Top Industry</div>
+                  <div className="text-lg sm:text-xl font-black text-slate-900 truncate">{cityInfo.industries[0]}</div>
+                </div>
+              )}
+            </div>
+            {cityInfo.industries && cityInfo.industries.length > 1 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {cityInfo.industries.map((ind: string, i: number) => (
+                  <span key={i} className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-medium">{ind}</span>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Employers Grid - Mobile optimized */}
         <section className="mb-10 sm:mb-20">

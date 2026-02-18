@@ -334,7 +334,7 @@ async function generateLocationContent(
       console.log('\n' + '-'.repeat(80));
       if (code === 0) {
         console.log(`✅ SUCCESS: ${role} in ${location} completed in ${duration}s`);
-        const url = `https://jobhuntin.com/jobs/${role.toLowerCase().replace(/\s+/g, '-')}-in-${location.toLowerCase().replace(/\s+/g, '-')}`;
+        const url = `https://jobhuntin.com/jobs/${role.toLowerCase().replace(/\s+/g, '-')}/${location.toLowerCase().replace(/\s+/g, '-')}`;
         resolve({ url, title: `${role} Jobs in ${location}`, success: true });
       } else {
         console.log(`❌ FAILED: ${role} in ${location} (exit ${code}) after ${duration}s`);
@@ -349,12 +349,12 @@ async function generateLocationContent(
  * Submit all existing URLs from sitemaps to Google (first run only)
  */
 async function submitExistingUrls(): Promise<number> {
-  console.log('\n📤 FIRST RUN: Submitting existing URLs to Google...');
+  log('SUBMIT', '📤 FIRST RUN: Submitting existing URLs to Google...');
 
   // Extract URLs from sitemaps
   const sitemapDir = path.resolve(__dirname, '../../public');
   if (!fs.existsSync(sitemapDir)) {
-    console.log('⚠️ No sitemap directory found');
+    log('SUBMIT', '⚠️ No sitemap directory found at ' + sitemapDir);
     return 0;
   }
 
@@ -369,46 +369,44 @@ async function submitExistingUrls(): Promise<number> {
     const matches = content.match(/<loc>(.*?)<\/loc>/g) || [];
     const urls = matches.map(m => m.replace(/<\/?loc>/g, ''));
     allUrls.push(...urls);
-    console.log(`   📄 ${file}: ${urls.length} URLs`);
+    log('SUBMIT', `${file}: ${urls.length} URLs`);
+    urls.slice(0, 2).forEach(u => log('SUBMIT', `  sample: ${u}`));
   }
 
   const uniqueUrls = [...new Set(allUrls)];
-  console.log(`   📊 Total unique URLs: ${uniqueUrls.length}`);
+  log('SUBMIT', `Total unique URLs: ${uniqueUrls.length}`);
 
   // Check for Google credentials
   const keyEnv = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
   if (!keyEnv) {
-    console.log('⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set, skipping submission');
+    log('SUBMIT', '⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set, skipping submission');
     return 0;
   }
 
-  console.log(`   🔑 GOOGLE_SERVICE_ACCOUNT_KEY found (${keyEnv.length} chars)`);
+  log('SUBMIT', `🔑 GOOGLE_SERVICE_ACCOUNT_KEY found (${keyEnv.length} chars)`);
 
   // Parse credentials
   let keyContent;
   try {
     keyContent = JSON.parse(keyEnv);
-    console.log(`   ✅ Parsed as JSON string`);
+    log('SUBMIT', '✅ Parsed credentials as JSON string');
   } catch (e1) {
-    console.log(`   ⚠️ Not valid JSON string, trying as file path...`);
+    log('SUBMIT', '⚠️ Not valid JSON string, trying as file path...');
     try {
       if (fs.existsSync(keyEnv)) {
         keyContent = JSON.parse(fs.readFileSync(keyEnv, 'utf8'));
-        console.log(`   ✅ Loaded from file: ${keyEnv}`);
+        log('SUBMIT', `✅ Loaded from file: ${keyEnv}`);
       } else {
-        console.log(`   ⚠️ File does not exist: ${keyEnv}`);
-        console.log(`   ⚠️ Parse error: ${e1}`);
+        log('SUBMIT', `❌ File does not exist: ${keyEnv}`);
         return 0;
       }
     } catch (e2) {
-      console.log(`   ⚠️ Could not parse Google credentials`);
-      console.log(`   ⚠️ Error 1: ${e1}`);
-      console.log(`   ⚠️ Error 2: ${e2}`);
+      log('SUBMIT', `❌ Could not parse Google credentials: ${e2}`);
       return 0;
     }
   }
 
-  console.log(`   🔐 Service account configured`);
+  log('SUBMIT', `🔐 Service account: ${keyContent.client_email}`);
 
   // Create JWT client
   const jwtClient = new google.auth.JWT({
@@ -419,37 +417,53 @@ async function submitExistingUrls(): Promise<number> {
 
   try {
     await jwtClient.authorize();
+    log('SUBMIT', '✅ Google API authenticated');
     const indexing = google.indexing({ version: 'v3', auth: jwtClient });
 
     // Submit up to 200 URLs (daily limit)
     const urlsToSubmit = uniqueUrls.slice(0, 200);
     let successCount = 0;
+    let errorCount = 0;
 
-    console.log(`   📤 Submitting ${urlsToSubmit.length} URLs...`);
+    log('SUBMIT', `📤 Submitting ${urlsToSubmit.length} URLs (daily limit: 200)...`);
+    log('SUBMIT', `First: ${urlsToSubmit[0]}`);
+    log('SUBMIT', `Last: ${urlsToSubmit[urlsToSubmit.length - 1]}`);
 
     for (let i = 0; i < urlsToSubmit.length; i++) {
       const url = urlsToSubmit[i];
+      const start = Date.now();
       try {
         await indexing.urlNotifications.publish({
           requestBody: { url, type: 'URL_UPDATED' }
         });
+        const ms = Date.now() - start;
         successCount++;
-        process.stdout.write(`\r   Progress: ${i + 1}/${urlsToSubmit.length} (${successCount} success)`);
+        // Log every URL so you can see exactly what's happening
+        log('SUBMIT', `[${i + 1}/${urlsToSubmit.length}] ✅ ${url} (${ms}ms)`);
 
         // Rate limit
         if (i < urlsToSubmit.length - 1) {
           await new Promise(r => setTimeout(r, 1000));
         }
-      } catch (e) {
-        // Continue on error
+      } catch (e: any) {
+        const ms = Date.now() - start;
+        const msg = e?.response?.data?.error?.message || e.message;
+        const code = e?.response?.status || 'N/A';
+        errorCount++;
+        log('SUBMIT', `[${i + 1}/${urlsToSubmit.length}] ❌ ${url} → HTTP ${code} (${ms}ms) | ${msg}`);
+      }
+
+      // Progress checkpoint every 50
+      if ((i + 1) % 50 === 0) {
+        log('SUBMIT', `--- Progress: ${i + 1}/${urlsToSubmit.length} | ✅ ${successCount} | ❌ ${errorCount} ---`);
       }
     }
 
-    console.log(`\n   ✅ Submitted ${successCount} URLs to Google`);
+    log('SUBMIT', `✅ Done: ${successCount}/${urlsToSubmit.length} submitted (${errorCount} errors)`);
     return successCount;
 
-  } catch (e) {
-    console.log(`   ⚠️ Google API error: ${e}`);
+  } catch (e: any) {
+    log('SUBMIT', `❌ Google API auth error: ${e.message}`);
     return 0;
   }
 }
@@ -648,20 +662,18 @@ async function runAutomation(): Promise<void> {
   saveState(state);
 
   // Print summary
-  console.log('\n');
-  console.log('█'.repeat(80));
-  console.log('█  📊 RUN SUMMARY                                                      █');
-  console.log('█'.repeat(80));
-  console.log(`✅ Generated this run: ${generatedThisRun} pages`);
-  console.log(`📊 Daily quota used: ${state.dailyQuotaUsed}/${CONFIG.DAILY_GENERATION_LIMIT}`);
-  console.log(`📈 Total generated: ${state.totalGenerated} pages`);
-  console.log('');
-  console.log('Generated URLs:');
+  log('CONTENT', '════════════════════════════════════════════════════════════');
+  log('CONTENT', '📊 CONTENT GENERATION SUMMARY');
+  log('CONTENT', '════════════════════════════════════════════════════════════');
+  log('CONTENT', `Generated this run: ${generatedThisRun} pages`);
+  log('CONTENT', `Daily quota used: ${state.dailyQuotaUsed}/${CONFIG.DAILY_GENERATION_LIMIT}`);
+  log('CONTENT', `Total generated (all time): ${state.totalGenerated} pages`);
   results.filter(r => r.success).forEach((r, i) => {
-    console.log(`  ${i + 1}. [${r.type}] ${r.title}`);
-    console.log(`     ${r.url}`);
+    log('CONTENT', `  ${i + 1}. [${r.type}] ${r.title} → ${r.url}`);
   });
-  console.log('');
+  results.filter(r => !r.success).forEach((r, i) => {
+    log('CONTENT', `  FAILED: [${r.type}] ${r.title}`);
+  });
 
   // Submit newly generated URLs to Google
   const successfulUrls = results.filter(r => r.success).map(r => r.url);
@@ -697,17 +709,18 @@ async function runAutomation(): Promise<void> {
 async function submitUrlsToGoogle(urls: string[]): Promise<number> {
   const keyEnv = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
   if (!keyEnv) {
-    console.log('⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set, skipping URL submission');
+    log('GOOGLE-NEW', '⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set, skipping new URL submission');
     return 0;
   }
 
-  console.log(`\n📤 Submitting ${urls.length} new URLs to Google...`);
+  log('GOOGLE-NEW', `📤 Submitting ${urls.length} newly generated URLs to Google...`);
+  urls.forEach((u, i) => log('GOOGLE-NEW', `  ${i + 1}. ${u}`));
 
   let keyContent;
   try {
     keyContent = JSON.parse(keyEnv);
   } catch {
-    console.log('⚠️ Could not parse Google credentials');
+    log('GOOGLE-NEW', '❌ Could not parse Google credentials');
     return 0;
   }
 
@@ -719,66 +732,171 @@ async function submitUrlsToGoogle(urls: string[]): Promise<number> {
     });
 
     await jwtClient.authorize();
+    log('GOOGLE-NEW', `✅ Authenticated as ${keyContent.client_email}`);
     const indexing = google.indexing({ version: 'v3', auth: jwtClient });
 
     let successCount = 0;
     for (let i = 0; i < urls.length; i++) {
+      const start = Date.now();
       try {
         await indexing.urlNotifications.publish({
           requestBody: { url: urls[i], type: 'URL_UPDATED' }
         });
+        const ms = Date.now() - start;
         successCount++;
-        console.log(`   ✅ Submitted: ${urls[i]}`);
+        log('GOOGLE-NEW', `[${i + 1}/${urls.length}] ✅ ${urls[i]} (${ms}ms)`);
         await new Promise(r => setTimeout(r, 200));
       } catch (e: any) {
-        console.log(`   ⚠️ Failed: ${urls[i]} - ${e.message}`);
+        const ms = Date.now() - start;
+        const msg = e?.response?.data?.error?.message || e.message;
+        const code = e?.response?.status || 'N/A';
+        log('GOOGLE-NEW', `[${i + 1}/${urls.length}] ❌ ${urls[i]} → HTTP ${code} (${ms}ms) | ${msg}`);
       }
     }
 
-    console.log(`\n📤 Submitted ${successCount}/${urls.length} URLs to Google`);
+    log('GOOGLE-NEW', `Done: ${successCount}/${urls.length} submitted`);
     return successCount;
-  } catch (e) {
-    console.log(`⚠️ Google API error: ${e}`);
+  } catch (e: any) {
+    log('GOOGLE-NEW', `❌ Google API error: ${e.message}`);
     return 0;
   }
 }
 
 /**
- * Main entry point
+ * Run fast-index cycle: IndexNow + Sitemap Ping + Google Indexing API
+ * This submits ALL existing URLs for indexing using multiple methods
  */
-async function main(): Promise<void> {
-  // Check required env vars
-  if (!process.env.LLM_API_KEY) {
-    console.error('❌ LLM_API_KEY not set. Content generation will fail.');
-    process.exit(1);
-  }
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-    console.warn('⚠️ GOOGLE_SERVICE_ACCOUNT_KEY not set. Google submission disabled.');
-  }
-
-  console.log('🚀 Starting Smart SEO Engine...');
-  console.log(`🧠 Model: ${CONFIG.MODEL}`);
-  console.log(`💰 Cost: ~$0.15 per 1M input tokens (GPT-4o-mini via OpenRouter)`);
-  console.log('');
+async function runFastIndex(): Promise<void> {
+  const cycleStart = Date.now();
+  log('FAST-INDEX', '🚀 Starting fast-index cycle...');
 
   try {
-    await runAutomation();
-  } catch (error) {
-    console.error('❌ Automation failed:', error);
-  }
+    // Dynamically import to avoid issues if fast-index has problems
+    const fastIndexPath = path.resolve(__dirname, './fast-index.ts');
+    if (!fs.existsSync(fastIndexPath)) {
+      log('FAST-INDEX', '⚠️ fast-index.ts not found, skipping');
+      return;
+    }
 
-  // Schedule next run in 4 hours
-  const nextRun = new Date(Date.now() + 4 * 60 * 60 * 1000);
-  console.log(`\n⏰ Next run scheduled: ${nextRun.toISOString()}`);
+    // Run fast-index as a child process so its logging goes to stdout
+    const child = spawn('npx', ['tsx', 'scripts/seo/fast-index.ts'], {
+      cwd: path.resolve(__dirname, '../..'),
+      stdio: 'inherit',
+      env: { ...process.env },
+    });
+
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(() => {
+        log('FAST-INDEX', '⏱️ TIMEOUT after 15 minutes, killing process');
+        child.kill('SIGKILL');
+        resolve();
+      }, 15 * 60 * 1000);
+
+      child.on('close', (code: number) => {
+        clearTimeout(timeout);
+        const duration = ((Date.now() - cycleStart) / 1000).toFixed(1);
+        if (code === 0) {
+          log('FAST-INDEX', `✅ Completed in ${duration}s`);
+        } else {
+          log('FAST-INDEX', `❌ Exited with code ${code} after ${duration}s`);
+        }
+        resolve();
+      });
+
+      child.on('error', (err: Error) => {
+        clearTimeout(timeout);
+        log('FAST-INDEX', `❌ Spawn error: ${err.message}`);
+        resolve();
+      });
+    });
+  } catch (err: any) {
+    log('FAST-INDEX', `❌ Error: ${err.message}`);
+  }
 }
 
-// Error handling
+/**
+ * Structured logger — every line has a timestamp and category for Render log filtering
+ */
+function log(category: string, message: string): void {
+  const ts = new Date().toISOString();
+  console.log(`[${ts}] [${category}] ${message}`);
+}
+
+/**
+ * Single automation cycle: fast-index + content generation
+ */
+async function runCycle(cycleNumber: number): Promise<void> {
+  const cycleStart = Date.now();
+  log('CYCLE', `════════════════════════════════════════════════════════════`);
+  log('CYCLE', `🔄 CYCLE #${cycleNumber} STARTED`);
+  log('CYCLE', `════════════════════════════════════════════════════════════`);
+
+  // Step 1: Always run fast-index (IndexNow + sitemap ping + Google API)
+  log('CYCLE', '📤 Step 1/2: Fast-index (IndexNow + Sitemap Ping + Google API)');
+  await runFastIndex();
+
+  // Step 2: Content generation (only if LLM_API_KEY is set)
+  if (process.env.LLM_API_KEY) {
+    log('CYCLE', '📝 Step 2/2: Content generation');
+    try {
+      await runAutomation();
+    } catch (error: any) {
+      log('CYCLE', `❌ Content generation failed: ${error.message}`);
+    }
+  } else {
+    log('CYCLE', '⚠️ Step 2/2: Skipped — LLM_API_KEY not set');
+  }
+
+  const duration = ((Date.now() - cycleStart) / 1000).toFixed(1);
+  log('CYCLE', `✅ CYCLE #${cycleNumber} COMPLETED in ${duration}s`);
+  log('CYCLE', `════════════════════════════════════════════════════════════`);
+}
+
+/**
+ * Main entry point — runs forever as a long-lived worker
+ */
+async function main(): Promise<void> {
+  log('MAIN', '█████████████████████████████████████████████████████████████');
+  log('MAIN', '█  🤖 SMART SEO ENGINE — LONG-LIVED WORKER                  █');
+  log('MAIN', '█████████████████████████████████████████████████████████████');
+  log('MAIN', `🧠 Model: ${CONFIG.MODEL}`);
+  log('MAIN', `🔑 LLM_API_KEY: ${process.env.LLM_API_KEY ? 'SET' : 'NOT SET (content gen disabled)'}`);
+  log('MAIN', `� GOOGLE_SERVICE_ACCOUNT_KEY: ${process.env.GOOGLE_SERVICE_ACCOUNT_KEY ? 'SET' : 'NOT SET (Google API disabled)'}`);
+  log('MAIN', `⏱️ Cycle interval: ${CONFIG.CONTENT_ROTATION_HOURS} hours`);
+  log('MAIN', `📊 Daily generation limit: ${CONFIG.DAILY_GENERATION_LIMIT}`);
+  log('MAIN', '');
+
+  let cycleNumber = 1;
+
+  // Run forever — Render worker stays alive
+  while (true) {
+    try {
+      await runCycle(cycleNumber);
+    } catch (error: any) {
+      log('MAIN', `❌ Cycle #${cycleNumber} crashed: ${error.message}`);
+      log('MAIN', `Stack: ${error.stack}`);
+    }
+
+    cycleNumber++;
+    const nextRun = new Date(Date.now() + CONFIG.CONTENT_ROTATION_HOURS * 60 * 60 * 1000);
+    log('MAIN', `⏰ Next cycle (#${cycleNumber}) at: ${nextRun.toISOString()}`);
+    log('MAIN', `💤 Sleeping ${CONFIG.CONTENT_ROTATION_HOURS} hours...`);
+
+    // Sleep until next cycle
+    await new Promise(resolve => setTimeout(resolve, CONFIG.CONTENT_ROTATION_HOURS * 60 * 60 * 1000));
+  }
+}
+
+// Error handling — log but don't crash
 process.on('unhandledRejection', (error) => {
-  console.error('❌ Unhandled rejection:', error);
+  log('ERROR', `Unhandled rejection: ${error}`);
 });
 
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught exception:', error);
+  log('ERROR', `Uncaught exception: ${error}`);
 });
 
-main().catch(console.error);
+main().catch((err) => {
+  log('FATAL', `Main loop crashed: ${err}`);
+  process.exit(1);
+});

@@ -334,7 +334,7 @@ async function runAutomation(): Promise<void> {
     for (const item of batch) {
       const roleSlug = item.role.id || item.role.slug || item.role.name.toLowerCase().replace(/\s+/g, '-');
       const locSlug = item.location.id || item.location.slug || item.location.name.toLowerCase().replace(/\s+/g, '-');
-      const url = `${BASE_URL}/jobs/${roleSlug}-in-${locSlug}`;
+      const url = `${BASE_URL}/jobs/${roleSlug}/${locSlug}`;
       urlsToSubmit.push(url);
     }
 

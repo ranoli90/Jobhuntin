@@ -5,7 +5,7 @@ import { pushToast } from "../lib/toast";
 
 interface BillingStatus {
   tenant_id: string;
-  plan: "FREE" | "PRO" | "TEAM";
+  plan: "FREE" | "PRO" | "TEAM" | "ENTERPRISE";
   provider: string | null;
   provider_customer_id: string | null;
   subscription_status: string;
@@ -77,10 +77,11 @@ export function useBilling() {
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
-  const upgrade = useCallback(async () => {
+  const upgrade = useCallback(async (billingPeriod: "monthly" | "annual" = "monthly") => {
     const json = await apiPost<{ checkout_url: string }>("billing/checkout", {
       success_url: `${baseUrl}/app/billing?success=1`,
       cancel_url: `${baseUrl}/app/billing`,
+      billing_period: billingPeriod,
     });
     window.location.href = json.checkout_url;
   }, [baseUrl]);

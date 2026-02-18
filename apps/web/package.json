@@ -7,6 +7,7 @@
     "dev": "vite",
     "prebuild": "node scripts/generate-sitemap.cjs",
     "build": "vite build",
+    "postbuild": "npx tsx scripts/seo/prerender.ts",
     "build:types": "tsc -b",
     "preview": "vite preview",
     "seo:prerender": "npx tsx scripts/seo/prerender.ts",
@@ -18,7 +19,10 @@
     "seo:verify": "npx tsx scripts/seo/verify-google-indexing.ts",
     "seo:backend": "npx tsx scripts/seo/backend-integration.ts",
     "seo:monitor": "npx tsx scripts/seo/seo-monitoring-dashboard.ts",
-    "seo:news": "npx tsx scripts/seo/news-monitor.ts"
+    "seo:news": "npx tsx scripts/seo/news-monitor.ts",
+    "seo:fast-index": "npx tsx scripts/seo/fast-index.ts",
+    "seo:fast-index:dry": "npx tsx scripts/seo/fast-index.ts --dry-run",
+    "seo:submit-all": "npx tsx scripts/seo/submit-all-urls.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",

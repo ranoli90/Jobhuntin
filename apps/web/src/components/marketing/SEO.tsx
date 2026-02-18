@@ -106,11 +106,13 @@ export const SEO = ({
       <title>{displayTitle}</title>
       <meta name="description" content={displayDescription} />
       <link rel="canonical" href={resolvedCanonical} />
-      <meta name="robots" content={robots} />
+      <meta name="robots" content={`${robots}, max-image-preview:large, max-snippet:-1, max-video-preview:-1`} />
       <meta name="theme-color" content={themeColor} />
+      <meta property="og:locale" content="en_US" />
+      <meta name="author" content="JobHuntin" />
 
       {/* Open Graph / Facebook */}
-      <meta property="og:type" content="website" />
+      <meta property="og:type" content={location.pathname.includes('/reviews/') || location.pathname.includes('/blog/') ? 'article' : 'website'} />
       <meta property="og:url" content={resolvedCanonical} />
       <meta property="og:title" content={ogTitle || displayTitle} />
       <meta property="og:description" content={ogDescription || displayDescription} />

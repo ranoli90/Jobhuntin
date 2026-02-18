@@ -50,6 +50,15 @@ export interface ContentSection {
  * Generate aggressive SEO content for location + role combinations
  * OPTIMIZED FOR GOOGLE COMPLIANCE - No blackhat techniques
  */
+function stableHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
 export function generateLocationRoleSEO(
   role: string,
   location: string,
@@ -59,6 +68,7 @@ export function generateLocationRoleSEO(
   const year = new Date().getFullYear();
   const month = new Date().toLocaleString('default', { month: 'long' });
   const currentDate = new Date().toISOString().split('T')[0]; // For freshness signals
+  const pageHash = stableHash(`${role}-${location}`);
 
   // 1% SEO Technique: Entity-based optimization with semantic relationships
   // Focus on user intent and natural language patterns
@@ -179,11 +189,11 @@ export function generateLocationRoleSEO(
     `Top ${role} Skills to Learn for ${location} Job Market`
   ];
 
-  // Select random variations for natural diversity
-  const selectedTitle = titles[Math.floor(Math.random() * titles.length)];
-  const selectedDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
-  const selectedH1 = h1s[Math.floor(Math.random() * h1s.length)];
-  const selectedH2s = h2Variations.sort(() => 0.5 - Math.random()).slice(0, 8);
+  // Select deterministic variations based on page identity (stable for Googlebot)
+  const selectedTitle = titles[pageHash % titles.length];
+  const selectedDescription = descriptions[pageHash % descriptions.length];
+  const selectedH1 = h1s[pageHash % h1s.length];
+  const selectedH2s = h2Variations.slice(0, 8);
 
   return {
     title: selectedTitle,

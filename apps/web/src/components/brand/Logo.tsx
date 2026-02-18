@@ -46,20 +46,20 @@ export function Logo({
     const content = (
         <div className={cn("flex items-center group relative z-10", currentSize.container, className)}>
             <div className={cn(
-                "bg-gradient-to-br from-blue-500 via-violet-500 to-pink-500 shadow-lg shadow-violet-500/30 transition-all duration-300 group-hover:shadow-violet-500/50 group-hover:scale-105",
+                "bg-stone-800 shadow-sm transition-all duration-300 group-hover:bg-stone-700",
                 currentSize.iconBox
             )}>
                 <Bot className={cn("text-white", currentSize.bot)} />
             </div>
             {!iconOnly && (
                 <span className={cn(
-                    "font-black font-display tracking-tight transition-colors",
+                    "font-semibold tracking-tight transition-colors",
                     variant === 'dark' 
-                        ? "text-white group-hover:text-blue-400" 
-                        : "text-slate-900 group-hover:text-blue-600",
+                        ? "text-white group-hover:text-stone-300" 
+                        : "text-stone-900 group-hover:text-stone-600",
                     currentSize.text
                 )}>
-                    JobHuntin.com
+                    JobHuntin
                 </span>
             )}
         </div>

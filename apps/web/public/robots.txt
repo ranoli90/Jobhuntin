@@ -1,8 +1,14 @@
 # robots.txt for JobHuntin.com
-# Optimized for search engine crawling
+# Optimized for maximum crawl efficiency
 
 User-agent: *
 Allow: /
+Allow: /api/og
+Disallow: /api/
+Disallow: /app/
+Disallow: /onboarding
+Disallow: /login
+Disallow: /settings
 
 # Sitemaps
 Sitemap: https://jobhuntin.com/sitemap.xml
@@ -11,35 +17,7 @@ Sitemap: https://jobhuntin.com/sitemap-competitors.xml
 Sitemap: https://jobhuntin.com/sitemap-categories.xml
 Sitemap: https://jobhuntin.com/sitemap-jobs.xml
 
-# Disallow App & Private Routes
-Disallow: /app/
-Disallow: /app/*
-Disallow: /onboarding
-Disallow: /onboarding/*
-Disallow: /login
-Disallow: /settings
-Disallow: /settings/*
-Disallow: /api/
-Disallow: /api/*
-
-# Allow specific public API endpoints
-Allow: /api/og
-Allow: /api/health
-
-# Crawl delay for aggressive bots (reduces server load)
-Crawl-delay: 1
-
-# Google-specific
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-# Bing-specific
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
-
-# Block AI training crawlers (optional - remove if you want AI indexing)
+# Block AI training crawlers
 User-agent: GPTBot
 Disallow: /
 
@@ -52,15 +30,16 @@ Disallow: /
 User-agent: anthropic-ai
 Disallow: /
 
-# Block known bad bots
-User-agent: AhrefsBot
-Crawl-delay: 10
-
-User-agent: SemrushBot
-Crawl-delay: 10
-
+# Block bad bots
 User-agent: MJ12bot
 Disallow: /
 
 User-agent: DotBot
 Disallow: /
+
+# Allow SEO tools to crawl (helps with competitive analysis)
+User-agent: AhrefsBot
+Allow: /
+
+User-agent: SemrushBot
+Allow: /
