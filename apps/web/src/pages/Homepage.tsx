@@ -4,7 +4,7 @@ import { magicLinkService } from '../services/magicLinkService';
 import {
   ArrowRight, MailCheck, Target, Sparkles, Activity,
   Upload, SlidersHorizontal, Send, Trophy,
-  ChevronRight, Check, Star, Briefcase, TrendingUp, Eye
+  ChevronRight, Check, Star, Briefcase, TrendingUp
 } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
@@ -277,88 +277,149 @@ export default function Homepage() {
           </FadeIn>
 
           <div className="grid md:grid-cols-3 gap-7">
-            {[
-              {
-                gradient: "from-purple-500 to-purple-700",
-                shadow: "shadow-purple-500/25",
-                icon: Target,
-                title: "Precision Matching",
-                desc: "AI analyzes thousands of listings and only applies to roles that truly fit your skills and goals.",
-                mockContent: (
-                  <div className="space-y-2.5">
-                    {[{ role: "Sr. Frontend Eng", co: "Stripe", match: "98%" }, { role: "Product Manager", co: "Airbnb", match: "95%" }, { role: "UX Designer", co: "Figma", match: "92%" }].map((j, i) => (
-                      <div key={i} className="flex items-center gap-3 bg-white/10 rounded-xl p-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center"><Briefcase className="w-4 h-4 text-white/70" /></div>
-                        <div className="flex-1 min-w-0"><p className="text-[11px] font-semibold text-white truncate">{j.role}</p><p className="text-[9px] text-white/50">{j.co}</p></div>
-                        <div className="px-2 py-0.5 rounded-full bg-green-400/20 text-[9px] font-bold text-green-200">{j.match}</div>
-                      </div>
-                    ))}
+            {/* ── Card 1: Precision Matching (Purple) ── */}
+            <FadeIn delay={0}>
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700 shadow-purple-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="flex-1">
+                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <Target className="w-7 h-7 text-white" />
                   </div>
-                ),
-              },
-              {
-                gradient: "from-orange-400 to-rose-500",
-                shadow: "shadow-orange-500/25",
-                icon: Sparkles,
-                title: "Curated Quality",
-                desc: "Every resume & cover letter is custom-tailored, ATS-optimized, and company-tone matched.",
-                mockContent: (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-bold text-white/80">Cover Letter</span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/15 text-[8px] font-bold text-white/70">Tailored ✓</span>
+                  <h3 className="text-2xl font-bold text-white mb-3">Precision Matching</h3>
+                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">AI analyzes thousands of listings and only applies to roles that truly fit your skills and goals.</p>
+                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  </a>
+                </div>
+                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Top Matches</span>
+                    <span className="text-[9px] text-white/40">3 of 47 found</span>
+                  </div>
+                  {[
+                    { role: "Sr. Frontend Eng", co: "Stripe", match: 98, salary: "$180k–$220k" },
+                    { role: "Product Manager", co: "Airbnb", match: 95, salary: "$165k–$200k" },
+                    { role: "UX Designer", co: "Figma", match: 92, salary: "$140k–$175k" },
+                  ].map((j, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-white/[0.06] rounded-xl p-3 mb-2 last:mb-0">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-[11px] font-black text-white/60 shrink-0">{j.co.charAt(0)}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-white truncate">{j.role}</p>
+                        <p className="text-[9px] text-white/40">{j.co} · {j.salary}</p>
+                        <div className="mt-1.5 h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full bg-green-400/60 rounded-full" style={{ width: `${j.match}%` }} />
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-[13px] font-extrabold text-green-300">{j.match}%</div>
+                        <div className="text-[7px] text-white/30 uppercase">match</div>
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      {[100, 90, 75, 85, 60].map((w, i) => (
-                        <div key={i} className="h-2 bg-white/15 rounded-full" style={{ width: `${w}%` }} />
+                  ))}
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* ── Card 2: Curated Quality (Orange) ── */}
+            <FadeIn delay={120}>
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-orange-400 to-rose-500 shadow-orange-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="flex-1">
+                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <Sparkles className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Curated Quality</h3>
+                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">Every resume &amp; cover letter is custom-tailored, ATS-optimized, and company-tone matched.</p>
+                  <a href="#features" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  </a>
+                </div>
+                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                  {/* Mini resume document mock */}
+                  <div className="bg-white/[0.06] rounded-xl p-3.5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="h-3 w-24 bg-white/30 rounded-full mb-1" />
+                        <div className="h-2 w-16 bg-white/15 rounded-full" />
+                      </div>
+                      <div className="px-2.5 py-1 rounded-lg bg-green-400/20 text-[9px] font-bold text-green-200 flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3" /> ATS 94%
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="h-1.5 bg-white/20 rounded-full w-full" />
+                      <div className="h-1.5 bg-white/15 rounded-full w-[90%]" />
+                      <div className="h-1.5 bg-white/10 rounded-full w-[75%]" />
+                    </div>
+                    <div className="mt-2.5 pt-2.5 border-t border-white/5">
+                      <div className="h-2 w-14 bg-white/20 rounded-full mb-1.5" />
+                      <div className="space-y-1">
+                        <div className="h-1.5 bg-white/10 rounded-full w-full" />
+                        <div className="h-1.5 bg-white/10 rounded-full w-[85%]" />
+                      </div>
+                    </div>
+                    <div className="mt-2.5 flex gap-1.5 flex-wrap">
+                      {["React", "TS", "Node", "AWS"].map((s) => (
+                        <span key={s} className="px-2 py-0.5 rounded bg-white/10 text-[7px] font-bold text-white/60">{s}</span>
                       ))}
                     </div>
-                    <div className="mt-3 flex gap-2">
-                      <div className="px-2 py-1 rounded-lg bg-white/15 text-[8px] text-white/70 font-medium">ATS: 94%</div>
-                      <div className="px-2 py-1 rounded-lg bg-white/15 text-[8px] text-white/70 font-medium">Tone: ✓</div>
-                      <div className="px-2 py-1 rounded-lg bg-white/15 text-[8px] text-white/70 font-medium">Keywords: ✓</div>
-                    </div>
                   </div>
-                ),
-              },
-              {
-                gradient: "from-sky-400 to-blue-600",
-                shadow: "shadow-blue-500/25",
-                icon: Activity,
-                title: "Live Tracking",
-                desc: "Watch applications go out in real-time. See matches, responses, and interview invites instantly.",
-                mockContent: (
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2.5"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span className="text-[9px] text-white/50">Live</span></div>
-                    {[{ a: "Applied to Stripe", t: "2s" }, { a: "Matched at Vercel", t: "1m" }, { a: "Interview at Figma", t: "3m" }].map((x, i) => (
-                      <div key={i} className="flex items-center gap-2 py-1.5 border-t border-white/5">
-                        <div className={cn("w-1.5 h-1.5 rounded-full", i === 2 ? "bg-amber-400" : "bg-white/30")} />
-                        <span className="text-[10px] text-white/60 flex-1">{x.a}</span>
-                        <span className="text-[8px] text-white/30">{x.t}</span>
+                  {/* Quality metrics */}
+                  <div className="mt-2.5 grid grid-cols-3 gap-1.5">
+                    {[
+                      { label: "Tone", icon: "✓", color: "bg-green-400/15 text-green-200" },
+                      { label: "Keywords", icon: "✓", color: "bg-green-400/15 text-green-200" },
+                      { label: "Format", icon: "✓", color: "bg-green-400/15 text-green-200" },
+                    ].map((m) => (
+                      <div key={m.label} className={cn("rounded-lg px-2 py-1.5 text-center text-[8px] font-bold", m.color)}>
+                        {m.icon} {m.label}
                       </div>
                     ))}
                   </div>
-                ),
-              },
-            ].map((card, idx) => (
-              <FadeIn key={card.title} delay={idx * 120}>
-                <div className={cn("group rounded-3xl overflow-hidden bg-gradient-to-br p-7 sm:p-8 pb-0 min-h-[460px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl", card.gradient, card.shadow)}>
-                  <div className="flex-1">
-                    <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
-                      <card.icon className="w-7 h-7 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-white mb-3">{card.title}</h3>
-                    <p className="text-white/75 leading-relaxed text-[15px] mb-2">{card.desc}</p>
-                    <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
-                      Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
-                    </a>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* ── Card 3: Live Tracking (Blue) ── */}
+            <FadeIn delay={240}>
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-sky-400 to-blue-600 shadow-blue-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="flex-1">
+                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <Activity className="w-7 h-7 text-white" />
                   </div>
-                  <div className="mt-6 bg-white/[0.07] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
-                    {card.mockContent}
+                  <h3 className="text-2xl font-bold text-white mb-3">Live Tracking</h3>
+                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">Watch applications go out in real-time. See matches, responses, and interview invites instantly.</p>
+                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  </a>
+                </div>
+                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                  {/* Mini stats row */}
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
+                      <div className="text-[15px] font-extrabold text-white">18</div>
+                      <div className="text-[7px] text-white/40 uppercase tracking-wide">Today</div>
+                    </div>
+                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
+                      <div className="text-[15px] font-extrabold text-white">127</div>
+                      <div className="text-[7px] text-white/40 uppercase tracking-wide">This week</div>
+                    </div>
+                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
+                      <div className="text-[15px] font-extrabold text-green-300">4</div>
+                      <div className="text-[7px] text-white/40 uppercase tracking-wide">Interviews</div>
+                    </div>
+                  </div>
+                  {/* Activity bar chart */}
+                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span className="text-[8px] text-white/40 uppercase tracking-wider font-bold">Activity This Week</span></div>
+                  <div className="flex items-end gap-1 h-10 mb-1">
+                    {[40, 65, 55, 80, 70, 90, 45].map((h, i) => (
+                      <div key={i} className="flex-1 rounded-t bg-white/15 hover:bg-white/25 transition-colors" style={{ height: `${h}%` }} />
+                    ))}
+                  </div>
+                  <div className="flex justify-between text-[7px] text-white/25 font-medium">
+                    {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
                   </div>
                 </div>
-              </FadeIn>
-            ))}
+              </div>
+            </FadeIn>
           </div>
         </div>
       </section>
