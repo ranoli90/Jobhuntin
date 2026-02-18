@@ -22,7 +22,8 @@ httpx>=0.27,<1
 
 # ── Authentication & Security ────────────────────────────────────
 PyJWT[crypto]>=2.8,<3
-signxml>=4.3.0
+signxml>=4.3.1
+# Note: signxml>=4.3 no longer uses pyOpenSSL; it uses cryptography directly
 
 # ── PDF Parsing ──────────────────────────────────────────────────
 PyMuPDF>=1.24,<2
