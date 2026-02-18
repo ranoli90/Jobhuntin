@@ -325,6 +325,7 @@ async function submitGoogleIndexingApi(urls: string[], progress: Progress): Prom
   const indexing = google.indexing({ version: 'v3', auth: jwtClient });
   let successCount = 0;
   let errorCount = 0;
+  let consecutive429 = 0;
 
   for (let i = 0; i < batch.length; i++) {
     const url = batch[i];
@@ -337,12 +338,23 @@ async function submitGoogleIndexingApi(urls: string[], progress: Progress): Prom
       log('GOOGLE', `[${i + 1}/${batch.length}] ✅ ${url} (${ms}ms)`);
       progress.googleApiSubmitted.push(url);
       successCount++;
+      consecutive429 = 0;
     } catch (err: any) {
       const ms = Date.now() - start;
       const msg = err?.response?.data?.error?.message || err.message;
       const code = err?.response?.status || 'N/A';
       log('GOOGLE', `[${i + 1}/${batch.length}] ❌ ${url} → HTTP ${code} (${ms}ms) | ${msg}`);
       errorCount++;
+
+      if (code === 429) {
+        consecutive429++;
+        if (consecutive429 >= 3) {
+          log('GOOGLE', `🛑 3 consecutive 429s — daily quota exhausted. Stopping early (${i + 1}/${batch.length}).`);
+          break;
+        }
+      } else {
+        consecutive429 = 0;
+      }
     }
 
     // Rate limit: ~1 req/sec
