@@ -6,7 +6,7 @@ Mounted at /sso prefix by api/main.py.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -15,14 +15,21 @@ from shared.logging_config import get_logger
 
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
-from backend.sso.saml import (
-    create_sso_session_token,
-    find_tenant_by_sso_domain,
-    generate_sp_metadata,
-    get_sso_config,
-    parse_saml_response,
-    upsert_sso_config,
-)
+
+try:
+    from backend.sso.saml import (
+        create_sso_session_token,
+        find_tenant_by_sso_domain,
+        generate_sp_metadata,
+        get_sso_config,
+        parse_saml_response,
+        upsert_sso_config,
+    )
+    SSO_AVAILABLE = True
+except ImportError as e:
+    SSO_AVAILABLE = False
+    logger = get_logger("sorce.api.sso")
+    logger.warning("SSO module unavailable (signxml/pyOpenSSL issue): %s — SSO endpoints disabled", e)
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.sso")
@@ -73,6 +80,8 @@ class SSOConfigResponse(BaseModel):
 @router.get("/saml/metadata", response_class=Response)
 async def saml_metadata():  # type: ignore[return]
     """Return SAML Service Provider metadata XML."""
+    if not SSO_AVAILABLE:
+        raise HTTPException(status_code=503, detail="SSO service unavailable - missing dependencies")
     xml = generate_sp_metadata()
     return Response(content=xml, media_type="application/xml")
 
@@ -91,6 +100,9 @@ async def saml_acs(
     3. Create/find Supabase user
     4. Return SSO session token for client redirect
     """
+    if not SSO_AVAILABLE:
+        raise HTTPException(status_code=503, detail="SSO service unavailable - missing dependencies")
+
     form = await request.form()
     saml_response = form.get("SAMLResponse", "")
     relay_state = form.get("RelayState", "")
@@ -210,6 +222,8 @@ async def get_config(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> SSOConfigResponse:
     """Get SSO configuration for current tenant."""
+    if not SSO_AVAILABLE:
+        raise HTTPException(status_code=503, detail="SSO service unavailable - missing dependencies")
     if ctx.plan != "ENTERPRISE":
         raise HTTPException(status_code=403, detail="SSO requires ENTERPRISE plan")
 
@@ -239,6 +253,8 @@ async def update_config(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> SSOConfigResponse:
     """Configure SSO for current tenant (ENTERPRISE only)."""
+    if not SSO_AVAILABLE:
+        raise HTTPException(status_code=503, detail="SSO service unavailable - missing dependencies")
     if ctx.plan != "ENTERPRISE":
         raise HTTPException(status_code=403, detail="SSO requires ENTERPRISE plan")
     try:
