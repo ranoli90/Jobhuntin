@@ -64,7 +64,7 @@ services:
     region: oregon
     plan: free
     branch: main
-    buildCommand: cd apps/web && npm install && npm run build
+    buildCommand: cd apps/web && npm install && npx playwright install chromium && npm run build
     staticPublishPath: apps/web/dist
     routes:
       - type: rewrite

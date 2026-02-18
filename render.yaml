@@ -6,7 +6,7 @@ services:
   - type: web
     name: jobhuntin-web
     env: static
-    buildCommand: cd apps/web && npm ci && npm run build
+    buildCommand: cd apps/web && npm ci && npx playwright install chromium && npm run build
     staticPublishPath: apps/web/dist
     headers:
       - path: /*

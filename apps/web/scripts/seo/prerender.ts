@@ -93,4 +93,8 @@ async function prerender() {
     console.log(`   Errors: ${errorCount}`);
 }
 
-prerender().catch(console.error);
+prerender().catch((err) => {
+    console.warn('⚠️ Prerendering skipped (non-fatal):', err.message || err);
+    console.warn('   The SPA will still work — prerendering is an SEO enhancement.');
+    process.exit(0);
+});
