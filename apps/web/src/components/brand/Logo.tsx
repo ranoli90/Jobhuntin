@@ -46,7 +46,9 @@ export function Logo({
     const content = (
         <div className={cn("flex items-center group relative z-10", currentSize.container, className)}>
             <div className={cn(
-                "bg-stone-800 shadow-sm transition-all duration-300 group-hover:bg-stone-700",
+                variant === 'dark'
+                    ? "bg-white/10 shadow-sm transition-all duration-300 group-hover:bg-white/20"
+                    : "bg-purple-600 shadow-lg shadow-purple-600/20 transition-all duration-300 group-hover:bg-purple-700",
                 currentSize.iconBox
             )}>
                 <Bot className={cn("text-white", currentSize.bot)} />

@@ -8,9 +8,9 @@ export default function MarketingLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-stone-50 font-sans text-stone-900 selection:bg-stone-900/10 selection:text-stone-900 flex flex-col">
+    <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-purple-600/10 selection:text-gray-900 flex flex-col">
       <MarketingNavbar />
-      <main className="flex-1 pt-20 md:pt-24">
+      <main className="flex-1 pt-[72px]">
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname} className="h-full">
             <Outlet />
