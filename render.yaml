@@ -59,6 +59,10 @@ services:
         sync: false  # Set in Render dashboard
       - key: REDIS_URL
         sync: false  # Set in Render dashboard for caching
+      - key: RESEND_API_KEY
+        sync: false  # Resend API key for magic link emails
+      - key: EMAIL_FROM
+        value: JobHuntin <noreply@jobhuntin.com>
     healthCheckPath: /health
     autoDeploy: true
     
