@@ -15,25 +15,40 @@ import datetime
 import unittest
 from unittest.mock import patch
 
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
-from lxml import etree as ET
-from signxml import XMLSigner
-from signxml.algorithms import SignatureConstructionMethod
+import pytest
+
+try:
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from cryptography.x509.oid import NameOID
+    from lxml import etree as ET
+    from signxml import XMLSigner
+    from signxml.algorithms import SignatureConstructionMethod
+
+    SIGNXML_AVAILABLE = True
+except ImportError:
+    SIGNXML_AVAILABLE = False
+
+pytestmark = pytest.mark.skipif(
+    not SIGNXML_AVAILABLE,
+    reason="signxml not available or incompatible OpenSSL version",
+)
 
 # ---------------------------------------------------------------------------
 # Test helpers: generate a self-signed cert + sign SAML XML
 # ---------------------------------------------------------------------------
 
+
 def _generate_self_signed_cert() -> tuple[bytes, bytes]:
     """Return (private_key_pem, certificate_pem) for a self-signed test cert."""
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, "test-idp.example.com"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test IdP"),
-    ])
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "test-idp.example.com"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test IdP"),
+        ]
+    )
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
@@ -41,7 +56,9 @@ def _generate_self_signed_cert() -> tuple[bytes, bytes]:
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.datetime.now(datetime.UTC))
-        .not_valid_after(datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=365))
+        .not_valid_after(
+            datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=365)
+        )
         .sign(key, hashes.SHA256())
     )
     key_pem = key.private_bytes(
@@ -103,6 +120,7 @@ class _MockSettings:
     like ``s.env in (Environment.PROD, Environment.STAGING)`` work
     correctly in the code under test.
     """
+
     def __init__(self, env: Environment = Environment.LOCAL):
         self.env = env
         self.sso_session_secret = "test-secret-for-hmac"
@@ -123,6 +141,7 @@ class _MockLocalSettings(_MockSettings):
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestSAMLSignatureVerification(unittest.TestCase):
     """End-to-end tests for parse_saml_response with real XML signatures."""
@@ -167,7 +186,9 @@ class TestSAMLSignatureVerification(unittest.TestCase):
 
         result = parse_saml_response(self._signed_b64(), self.wrong_cert_str)
 
-        self.assertIsNone(result, "Should reject when certificate doesn't match signing key")
+        self.assertIsNone(
+            result, "Should reject when certificate doesn't match signing key"
+        )
 
     @patch("backend.sso.saml.get_settings", return_value=_MockProdSettings())
     def test_no_cert_in_prod_rejects(self, _mock):
@@ -176,7 +197,9 @@ class TestSAMLSignatureVerification(unittest.TestCase):
 
         result = parse_saml_response(self._unsigned_b64(), "")
 
-        self.assertIsNone(result, "Should reject unsigned response in prod when no cert configured")
+        self.assertIsNone(
+            result, "Should reject unsigned response in prod when no cert configured"
+        )
 
     @patch("backend.sso.saml.get_settings", return_value=_MockLocalSettings())
     def test_no_cert_in_local_allows_unsigned(self, _mock):
