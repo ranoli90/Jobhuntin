@@ -147,11 +147,12 @@ class MagicLinkService {
         };
       }
 
-      // Extract clean error message
-      let message = 'Network error';
-      if (error?.message) {
-        // Remove HTTP status suffix if present (e.g., " (HTTP 502)")
+      // Extract clean error message — guard against [object Object]
+      let message = 'Something went wrong. Please try again.';
+      if (typeof error?.message === 'string' && error.message.length > 0 && !error.message.includes('[object Object]')) {
         message = error.message.replace(/\s*\(HTTP\s*\d+\)\s*$/, '');
+      } else if (typeof error === 'string') {
+        message = error;
       }
 
       return {

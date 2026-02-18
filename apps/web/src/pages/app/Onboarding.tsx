@@ -255,7 +255,7 @@ export default function Onboarding() {
       nextStep();
     } catch (err: any) {
       console.error('[Onboarding] Failed to save work style:', err);
-      const message = err?.message || "Failed to save work style";
+      const message = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to save work style";
       pushToast({ title: "Failed to save work style", description: message, tone: "error" });
     } finally {
       setIsSavingWorkStyle(false);
@@ -550,7 +550,7 @@ export default function Onboarding() {
       const isNetworkError = !navigator.onLine || err?.status >= 500;
       const message = isNetworkError
         ? "Network error. Please check your connection and try again."
-        : err?.message || "Failed to save skills";
+        : (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to save skills";
       pushToast({
         title: "Failed to save skills",
         description: message,
@@ -615,7 +615,7 @@ export default function Onboarding() {
       const isNetworkError = !navigator.onLine || err?.status >= 500;
       const message = isNetworkError
         ? "Network error. Please check your connection and try again."
-        : err?.message || "Please try again";
+        : (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again";
       pushToast({
         title: "Failed to save contact info",
         description: message,
@@ -716,7 +716,7 @@ export default function Onboarding() {
       console.error('[Onboarding] Failed to save preferences:', err);
       pushToast({
         title: "Failed to save preferences",
-        description: err?.message || "Please try again",
+        description: (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
         tone: "error"
       });
     } finally {
@@ -735,7 +735,7 @@ export default function Onboarding() {
       console.error('[Onboarding] Failed to complete:', err);
       pushToast({
         title: "Almost there!",
-        description: err?.message || "Something went wrong. Please try again.",
+        description: (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.",
         tone: "error"
       });
     } finally {

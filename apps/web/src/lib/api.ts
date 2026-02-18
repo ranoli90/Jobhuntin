@@ -160,10 +160,28 @@ function friendlyMessage(status: number, body: string): string {
 function tryParseMessage(body: string): string | null {
   try {
     const json = JSON.parse(body);
-    // Handle nested error objects from backend
     if (typeof json === 'object' && json !== null) {
-      return json.message || json.detail || json.error || JSON.stringify(json);
+      // Extract the first string-type field we find
+      for (const key of ['message', 'detail', 'error']) {
+        const val = json[key];
+        if (typeof val === 'string' && val.length > 0) return val;
+        // FastAPI can return detail as array: [{"msg":"...","type":"..."}]
+        if (Array.isArray(val) && val.length > 0) {
+          const first = val[0];
+          if (typeof first === 'string') return first;
+          if (typeof first === 'object' && first?.msg) return String(first.msg);
+        }
+        // detail can be an object like {"msg": "..."}
+        if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+          if (typeof val.msg === 'string') return val.msg;
+          if (typeof val.message === 'string') return val.message;
+        }
+      }
+      // Last resort: stringify, but only if it's small enough to be useful
+      const str = JSON.stringify(json);
+      if (str.length < 200) return str;
     }
+    if (typeof json === 'string') return json;
     return null;
   } catch {
     return null;

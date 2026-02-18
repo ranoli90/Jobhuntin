@@ -31,8 +31,9 @@ function useEmailCapture() {
       setSentEmail(result.email);
       setEmail("");
     } catch (err: any) {
-      setEmailError(err?.message || "Failed to send");
-      pushToast({ title: "Error", description: err?.message || "Failed", tone: "error" });
+      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
+      setEmailError(msg);
+      pushToast({ title: "Error", description: msg, tone: "error" });
     } finally { setIsSubmitting(false); }
   };
   return { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit };

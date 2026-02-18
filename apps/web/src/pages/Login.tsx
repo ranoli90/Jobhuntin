@@ -84,7 +84,8 @@ export default function Login() {
       setSuccessState({ email: normalized });
       pushToast({ title: "Check your inbox", tone: "success" });
     } catch (err: any) {
-      setFormError(err.message || "Failed to send magic link");
+      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
+      setFormError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -163,7 +164,8 @@ export default function Login() {
                   await requestMagicLink(successState.email, safeReturnTo);
                   pushToast({ title: "Link resent", tone: "success" });
                 } catch (err: any) {
-                  setFormError(err?.message);
+                  const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to resend. Please try again.";
+                  setFormError(msg);
                 } finally {
                   setResendLoading(false);
                 }
