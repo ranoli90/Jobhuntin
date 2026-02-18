@@ -12,7 +12,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import Optional, Any
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ TOXICITY_INDICATORS = [
 class ContentModerator:
     """
     Content moderation for LLM outputs.
-    
+
     Features:
     - Pattern-based detection
     - PII redaction
@@ -123,10 +123,10 @@ class ContentModerator:
     def moderate(self, text: str) -> ModerationResult:
         """
         Moderate content and return result.
-        
+
         Args:
             text: Text to moderate
-            
+
         Returns:
             ModerationResult with action and details
         """
@@ -224,7 +224,7 @@ class ContentModerator:
     def _check_toxicity(self, text: str) -> float:
         """
         Check toxicity score (simplified heuristic).
-        
+
         In production, use a proper ML model like:
         - Perspective API
         - OpenAI Moderation API
@@ -276,7 +276,7 @@ class ContentModerator:
 class LLMModerator:
     """
     Specialized moderator for LLM outputs.
-    
+
     Uses LLM-based moderation for more accurate detection.
     """
 
@@ -298,11 +298,11 @@ class LLMModerator:
     ) -> ModerationResult:
         """
         Moderate LLM output.
-        
+
         Args:
             output: LLM output to moderate
             context: Optional context for the output
-            
+
         Returns:
             ModerationResult
         """

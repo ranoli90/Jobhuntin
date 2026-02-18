@@ -12,7 +12,10 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import asyncpg
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +111,7 @@ class CostSummary:
 class CostMonitor:
     """
     Cloud cost monitoring service.
-    
+
     Features:
     - Multi-provider cost aggregation
     - Budget alerts and notifications

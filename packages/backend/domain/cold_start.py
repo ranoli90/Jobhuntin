@@ -10,7 +10,10 @@ Provides:
 
 import logging
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import asyncpg
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +47,7 @@ class ColdStartRecommendation:
 class ColdStartHandler:
     """
     Handles cold start problem for new users.
-    
+
     Strategies:
     1. Popularity-based: Recommend popular jobs in user's area
     2. Trending: Recommend trending jobs in user's industry
@@ -69,7 +72,7 @@ class ColdStartHandler:
     ) -> list[ColdStartRecommendation]:
         """
         Get initial job recommendations for a new user.
-        
+
         Combines multiple strategies to provide diverse recommendations.
         """
         recommendations: list[ColdStartRecommendation] = []

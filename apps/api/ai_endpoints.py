@@ -16,9 +16,6 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from shared.ai_validation import (
-    validate_and_sanitize_ai_input,
-)
 from shared.logging_config import get_logger
 
 from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
@@ -35,6 +32,9 @@ from backend.llm.contracts import (
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
 )
+from shared.ai_validation import (
+    validate_and_sanitize_ai_input,
+)
 
 logger = get_logger("sorce.api.ai")
 
@@ -50,6 +50,13 @@ def _get_llm_client() -> LLMClient:
     if _llm_client is None:
         _llm_client = LLMClient()
     return _llm_client
+
+
+async def get_db_connection() -> asyncpg.Connection:
+    """Get database connection."""
+    from shared.db import get_db_pool
+    pool = get_db_pool()
+    return await pool.acquire()
 
 
 # ---------------------------------------------------------------------------
@@ -110,10 +117,10 @@ async def suggest_roles(
     try:
         # Validate and sanitize input
         sanitized_text = validate_and_sanitize_ai_input(request.resume_text)
-        
+
         # Get LLM client
         llm = _get_llm_client()
-        
+
         # Build prompt
         prompt = build_role_suggestion_prompt(
             resume_text=sanitized_text,
@@ -121,13 +128,13 @@ async def suggest_roles(
             experience_years=request.experience_years,
             education_level=request.education_level,
         )
-        
+
         # Get AI response
         response = await llm.complete(prompt)
-        
+
         # Parse and validate response
         result = RoleSuggestionResponse_V1.parse_raw(response)
-        
+
         # Log analytics
         await emit_analytics_event(
             "ai_role_suggestion_completed",
@@ -138,9 +145,9 @@ async def suggest_roles(
                 "suggestions_count": len(result.suggestions),
             },
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error in role suggestion: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate role suggestions")
@@ -156,10 +163,10 @@ async def suggest_salary(
         # Validate and sanitize input
         sanitized_role = validate_and_sanitize_ai_input(request.role)
         sanitized_location = validate_and_sanitize_ai_input(request.location)
-        
+
         # Get LLM client
         llm = _get_llm_client()
-        
+
         # Build prompt
         prompt = build_salary_suggestion_prompt(
             role=sanitized_role,
@@ -168,13 +175,13 @@ async def suggest_salary(
             experience_years=request.experience_years,
             education_level=request.education_level,
         )
-        
+
         # Get AI response
         response = await llm.complete(prompt)
-        
+
         # Parse and validate response
         result = SalarySuggestionResponse_V1.parse_raw(response)
-        
+
         # Log analytics
         await emit_analytics_event(
             "ai_salary_suggestion_completed",
@@ -185,9 +192,9 @@ async def suggest_salary(
                 "experience_years": request.experience_years,
             },
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error in salary suggestion: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate salary suggestions")
@@ -203,10 +210,10 @@ async def suggest_locations(
         # Validate and sanitize input
         sanitized_skills = [validate_and_sanitize_ai_input(skill) for skill in request.skills]
         sanitized_role = validate_and_sanitize_ai_input(request.role)
-        
+
         # Get LLM client
         llm = _get_llm_client()
-        
+
         # Build prompt
         prompt = build_location_suggestion_prompt(
             skills=sanitized_skills,
@@ -214,13 +221,13 @@ async def suggest_locations(
             experience_years=request.experience_years,
             remote_preference=request.remote_preference,
         )
-        
+
         # Get AI response
         response = await llm.complete(prompt)
-        
+
         # Parse and validate response
         result = LocationSuggestionResponse_V1.parse_raw(response)
-        
+
         # Log analytics
         await emit_analytics_event(
             "ai_location_suggestion_completed",
@@ -231,9 +238,9 @@ async def suggest_locations(
                 "remote_preference": request.remote_preference,
             },
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error in location suggestion: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate location suggestions")
@@ -251,17 +258,17 @@ async def match_jobs(
         profile = await profile_repo.get_by_id(request.profile_id)
         if not profile:
             raise HTTPException(status_code=404, detail="Profile not found")
-        
+
         # Check cache first
         cache_repo = JobMatchCacheRepo(db)
         cache_key = _generate_cache_key(request.profile_id, request.job_ids)
         cached_result = await cache_repo.get(cache_key)
         if cached_result:
             return JobMatchScore_V1.parse_raw(cached_result)
-        
+
         # Get LLM client
         llm = _get_llm_client()
-        
+
         # Build prompt for each job
         matches = []
         for job_id in request.job_ids[:request.limit]:
@@ -270,25 +277,25 @@ async def match_jobs(
                 job_details = await _get_job_details(db, job_id)
                 if not job_details:
                     continue
-                
+
                 prompt = build_job_match_prompt(
                     profile=profile,
                     job=job_details,
                 )
-                
+
                 # Get AI response
                 response = await llm.complete(prompt)
                 match_score = JobMatchScore_V1.parse_raw(response)
                 matches.append(match_score)
-                
+
             except Exception as e:
                 logger.warning(f"Error processing job {job_id}: {e}")
                 continue
-        
+
         # Cache results
         result = JobMatchScore_V1(matches=matches)
         await cache_repo.set(cache_key, result.json(), ttl=3600)  # 1 hour cache
-        
+
         # Log analytics
         await emit_analytics_event(
             "ai_job_matching_completed",
@@ -298,9 +305,9 @@ async def match_jobs(
                 "cache_hit": False,
             },
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error in job matching: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate job matches")
@@ -316,22 +323,22 @@ async def generate_onboarding_questions(
         # Validate and sanitize input
         sanitized_text = validate_and_sanitize_ai_input(request.resume_text)
         sanitized_step = validate_and_sanitize_ai_input(request.current_step)
-        
+
         # Get LLM client
         llm = _get_llm_client()
-        
+
         # Build prompt
         prompt = build_onboarding_questions_prompt(
             resume_text=sanitized_text,
             current_step=sanitized_step,
         )
-        
+
         # Get AI response
         response = await llm.complete(prompt)
-        
+
         # Parse and validate response
         result = OnboardingQuestionsResponse_V1.parse_raw(response)
-        
+
         # Log analytics
         await emit_analytics_event(
             "ai_onboarding_questions_completed",
@@ -340,9 +347,9 @@ async def generate_onboarding_questions(
                 "questions_count": len(result.questions),
             },
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error in onboarding questions: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate onboarding questions")
@@ -373,11 +380,7 @@ async def _get_job_details(db: asyncpg.Connection, job_id: str) -> dict[str, Any
     }
 
 
-async def get_db_connection() -> asyncpg.Connection:
-    """Get database connection."""
-    from shared.db import get_db_pool
-    pool = get_db_pool()
-    return await pool.acquire()
+
 
 
 async def emit_analytics_event(event_name: str, data: dict[str, Any]) -> None:

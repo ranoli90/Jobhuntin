@@ -12,7 +12,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Callable, Awaitable
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ class RateLimitConfig:
 class BatchLLMProcessor(Generic[T, R]):
     """
     Batch processor for LLM operations.
-    
+
     Features:
     - Concurrent processing with configurable parallelism
     - Rate limit management
@@ -86,7 +86,7 @@ class BatchLLMProcessor(Generic[T, R]):
     ):
         """
         Initialize batch processor.
-        
+
         Args:
             process_fn: Async function to process each item
             config: Rate limit configuration
@@ -189,11 +189,11 @@ class BatchLLMProcessor(Generic[T, R]):
     ) -> BatchSummary[R]:
         """
         Process a batch of items concurrently.
-        
+
         Args:
             items: List of items to process
             fail_fast: If True, stop on first error
-            
+
         Returns:
             BatchSummary with results and statistics
         """
@@ -262,11 +262,11 @@ class BatchLLMProcessor(Generic[T, R]):
     ) -> BatchSummary[R]:
         """
         Process items and stream results via callback.
-        
+
         Args:
             items: List of items to process
             callback: Async callback for each result (index, result)
-            
+
         Returns:
             BatchSummary with final statistics
         """
@@ -338,13 +338,13 @@ async def batch_process_llm_requests(
 ) -> BatchSummary[R]:
     """
     Convenience function for batch LLM processing.
-    
+
     Args:
         items: Items to process
         process_fn: Async processing function
         max_concurrent: Maximum concurrent requests
         requests_per_minute: Rate limit
-        
+
     Returns:
         BatchSummary with results
     """

@@ -69,7 +69,7 @@ class APIKeyRotationManager:
 
     @staticmethod
     def hash_key(raw_key: str) -> str:
-        return hashlib.sha256(raw.encode()).hexdigest()
+        return hashlib.sha256(raw_key.encode()).hexdigest()
 
     async def create_api_key(
         self,
@@ -395,7 +395,7 @@ class APIKeyRotationManager:
 
     async def schedule_automatic_rotation(self) -> dict[str, int]:
         near_expiry = await self.get_keys_near_expiry()
-        expired_grace = await self.get_expired_grace_keys()
+        await self.get_expired_grace_keys()
 
         rotated = 0
         for key in near_expiry:

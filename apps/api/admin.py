@@ -16,7 +16,8 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+import asyncpg
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
@@ -611,10 +612,10 @@ async def get_job_sync_status(
     Returns configured sources, last run stats, and circuit breaker status.
     """
     from backend.domain.job_sync_service import JobSyncService
-    
+
     async with db.acquire() as conn:
         await require_system_admin(conn, user_id)
-    
+
     # We initialize service just to read status; it's lightweight
     # In a real app, this service might be a singleton or injected
     service = JobSyncService(db)
@@ -631,12 +632,12 @@ async def trigger_job_sync(
     Trigger a manual job sync in the background.
     """
     from backend.domain.job_sync_service import JobSyncService
-    
+
     async with db.acquire() as conn:
         await require_system_admin(conn, user_id)
 
     service = JobSyncService(db)
-    
+
     # Check if already running (simple in-memory check for this instance)
     # Ideally we'd check DB or Redis lock for multi-instance deployments
     if service._running:
@@ -644,8 +645,8 @@ async def trigger_job_sync(
 
     # Run in background
     background_tasks.add_task(service.sync_all_sources)
-    
+
     incr("admin.job_sync.triggered", tags={"user_id": user_id})
     logger.info("Admin triggered manual job sync", extra={"user_id": user_id})
-    
+
     return {"status": "triggered", "message": "Job sync started in background"}
