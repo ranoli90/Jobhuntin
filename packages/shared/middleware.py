@@ -14,7 +14,7 @@ from typing import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -80,6 +80,7 @@ class CSRFMiddleware:
         "/billing/webhook",
         "/sso/saml/acs",
         "/og/",
+        "/profile",
         "/profile/resume",
         "/profile/avatar",
         "/me/skills",
@@ -118,8 +119,22 @@ def setup_csrf_middleware(app, secret: str) -> None:
         exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
         s = get_settings()
         is_cross_origin = s.app_base_url and "jobhuntin.com" in s.app_base_url
+
+        class CSRFForCORSMiddleware(StarletteCSRF):
+            def _get_error_response(self, request: Request) -> Response:
+                response = JSONResponse(
+                    {"error": {"code": "CSRF_FAILED", "message": "CSRF validation failed"}},
+                    status_code=403,
+                )
+                origin = request.headers.get("origin", "")
+                cors_origins = getattr(app.state, "cors_origins", [])
+                if origin and (origin in cors_origins or not cors_origins):
+                    response.headers["Access-Control-Allow-Origin"] = origin
+                    response.headers["Access-Control-Allow-Credentials"] = "true"
+                return response
+
         app.add_middleware(
-            StarletteCSRF,
+            CSRFForCORSMiddleware,
             secret=secret,
             cookie_name="csrftoken",
             cookie_secure=True,

@@ -160,6 +160,40 @@ All endpoints require Bearer token authentication via the Authorization header.
 # OpenTelemetry instrumentation
 setup_telemetry("sorce-api", app)
 
+CORS_ORIGINS = [
+    o
+    for o in {
+        "https://sorce-web.onrender.com",
+        "https://sorce-admin.onrender.com",
+        "https://sorce-api.onrender.com",
+        _settings.app_base_url.rstrip("/"),
+        "https://jobhuntin.com",
+        "https://app.jobhuntin.com",
+        *(
+            ["http://localhost:5173", "http://localhost:3000"]
+            if _settings.env.value != "prod"
+            else []
+        ),
+    }
+    if o
+]
+
+app.state.cors_origins = CORS_ORIGINS
+
+
+@app.middleware("http")
+async def ensure_cors_on_all_responses(request: Request, call_next):
+    origin = request.headers.get("origin", "")
+    is_allowed_origin = origin in CORS_ORIGINS
+    
+    response = await call_next(request)
+    
+    if is_allowed_origin:
+        response.headers.setdefault("Access-Control-Allow-Origin", origin)
+        response.headers.setdefault("Access-Control-Allow-Credentials", "true")
+    
+    return response
+
 # ---------------------------------------------------------------------------
 # IMPORTANT: Middleware executes in REVERSE order of registration.
 # CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
@@ -269,23 +303,7 @@ async def rate_limiting_middleware(request: Request, call_next):
 # ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        o
-        for o in {
-            "https://sorce-web.onrender.com",
-            "https://sorce-admin.onrender.com",
-            "https://sorce-api.onrender.com",
-            _settings.app_base_url.rstrip("/"),
-            "https://jobhuntin.com",
-            "https://app.jobhuntin.com",
-            *(
-                ["http://localhost:5173", "http://localhost:3000"]
-                if _settings.env.value != "prod"
-                else []
-            ),
-        }
-        if o
-    ],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token"],
@@ -633,17 +651,18 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
             message=str(exc.detail),
         )
     )
-    return JSONResponse(status_code=exc.status_code, content=body.model_dump())
+    response = JSONResponse(status_code=exc.status_code, content=body.model_dump())
+    origin = request.headers.get("origin", "")
+    if origin in CORS_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
 
 
-# Safety net for unhandled exceptions (500)
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions to prevent stack trace leaks in production."""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
-
-    # In local dev, we might want to see the error, but standard is to hide it.
-    # FastAPI usually prints to console anyway.
 
     if _settings.env == Environment.LOCAL:
         msg = f"Internal Server Error: {str(exc)}"
@@ -656,7 +675,12 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             message=msg,
         )
     )
-    return JSONResponse(status_code=500, content=body.model_dump())
+    response = JSONResponse(status_code=500, content=body.model_dump())
+    origin = request.headers.get("origin", "")
+    if origin in CORS_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
 
 
 # ---------------------------------------------------------------------------

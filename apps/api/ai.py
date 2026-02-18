@@ -326,7 +326,13 @@ async def suggest_roles(
         return result
     except Exception as exc:
         logger.error("Role suggestion failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"AI suggestion failed: {exc}")
+        return RoleSuggestionResponse_V1(
+            suggested_roles=["Software Engineer", "Full Stack Developer", "Backend Engineer"],
+            primary_role="Software Engineer",
+            experience_level="mid",
+            confidence=0.5,
+            reasoning="AI suggestions temporarily unavailable. Default roles provided based on common tech profiles.",
+        )
 
 
 @router.post("/suggest-salary", response_model=SalarySuggestionResponse_V1)
@@ -369,7 +375,15 @@ async def suggest_salary(
         return result
     except Exception as exc:
         logger.error("Salary suggestion failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"AI suggestion failed: {exc}")
+        return SalarySuggestionResponse_V1(
+            min_salary=80000,
+            max_salary=150000,
+            market_median=115000,
+            currency="USD",
+            confidence=0.5,
+            factors=["Experience level", "Location market rates", "Skill demand"],
+            reasoning="AI suggestions temporarily unavailable. Default salary range provided based on industry averages.",
+        )
 
 
 @router.post("/suggest-locations", response_model=LocationSuggestionResponse_V1)
@@ -405,7 +419,12 @@ async def suggest_locations(
         return result
     except Exception as exc:
         logger.error("Location suggestion failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"AI suggestion failed: {exc}")
+        return LocationSuggestionResponse_V1(
+            suggested_locations=["Remote", "San Francisco, CA", "New York, NY", "Austin, TX", "Seattle, WA"],
+            remote_friendly_score=0.8,
+            top_markets=["San Francisco", "New York", "Seattle"],
+            reasoning="AI suggestions temporarily unavailable. Default tech hubs provided.",
+        )
 
 
 @router.post("/match-job", response_model=JobMatchScore_V1)

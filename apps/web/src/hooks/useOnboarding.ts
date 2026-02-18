@@ -115,13 +115,12 @@ export function useOnboarding() {
 
   const nextStep = useCallback(() => {
     const totalSteps = currentSteps.length;
-    if (import.meta.env.DEV) console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps, 'currentStep:', currentStep);
+    if (import.meta.env.DEV) console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps);
 
     setCurrentStep((prev) => {
       if (prev < totalSteps - 1) {
         if (import.meta.env.DEV) console.log('[useOnboarding] Advancing from step', prev, 'to', prev + 1);
 
-        // Mark the step we're leaving as completed using the actual prev value
         const completedStepId = currentSteps[prev]?.id;
         if (completedStepId) {
           telemetry.track("Onboarding Step Completed", {
@@ -140,7 +139,7 @@ export function useOnboarding() {
       if (import.meta.env.DEV) console.log('[useOnboarding] Already at last step, staying at', prev);
       return prev;
     });
-  }, [currentSteps, currentStep]);
+  }, [currentSteps]);
 
   const prevStep = useCallback(() => {
     if (!isFirstStep) {
