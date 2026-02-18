@@ -795,12 +795,10 @@ async def upload_resume(
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
-    # Simple corruption guard: reject empty files
     if file.size == 0:
         raise HTTPException(status_code=400, detail="File is empty or corrupted")
 
     settings = get_settings()
-    # Pre-check Content-Length header to reject before reading body into memory
     if file.size and file.size > settings.max_upload_size_bytes:
         raise HTTPException(
             status_code=413,
@@ -813,15 +811,23 @@ async def upload_resume(
             detail=f"File too large. Maximum size is {settings.max_upload_size_bytes // 1_048_576} MB",
         )
 
-    resume_url, canonical = await process_resume_upload(
-        user_id=ctx.user_id,
-        tenant_id=ctx.tenant_id,
-        pdf_bytes=pdf_bytes,
-        db_pool=db,
-        storage=get_storage_service(),
-    )
+    try:
+        resume_url, canonical = await process_resume_upload(
+            user_id=ctx.user_id,
+            tenant_id=ctx.tenant_id,
+            pdf_bytes=pdf_bytes,
+            db_pool=db,
+            storage=get_storage_service(),
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Resume upload failed: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Resume processing failed. Please try again."
+        )
 
-    # Telemetry: successful upload
     from shared.metrics import incr
 
     incr("profile.resume.uploaded", {"user_id": ctx.user_id})
