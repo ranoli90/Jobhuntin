@@ -52,7 +52,7 @@ jobs:
             "https://api.render.com/v1/services/${{ secrets.RENDER_WEB_SERVICE_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": "true"}'
+            -d '{"clearCache": "clear"}'
           
           echo "✅ Web app deployment triggered"
 
@@ -70,7 +70,7 @@ jobs:
             "https://api.render.com/v1/services/${{ secrets.RENDER_SEO_WORKER_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": "true"}'
+            -d '{"clearCache": "clear"}'
           
           echo "🚀 SEO Ranking Engine deployment triggered"
 

@@ -296,7 +296,7 @@ jobs:
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": true}'
+            -d '{"clearCache": "clear"}'
       - name: Wait for staging health
         run: |
           echo "Waiting 60s for deployment to start..."
@@ -338,14 +338,14 @@ jobs:
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": true}'
+            -d '{"clearCache": "clear"}'
       - name: Deploy Worker to production
         run: |
           curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_WORKER_SERVICE_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
-            -d '{"clearCache": true}'
+            -d '{"clearCache": "clear"}'
       - name: Wait and smoke test production
         run: |
           echo "Waiting 90s for production deployment..."

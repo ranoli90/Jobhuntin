@@ -223,7 +223,7 @@ jobs:
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $RENDER_API_TOKEN" \
-            -d '{"clearCache": true}')
+            -d '{"clearCache": "clear"}')
           
           echo "API Deploy Response: $API_RESPONSE"
           
@@ -233,7 +233,7 @@ jobs:
               -H "Accept: application/json" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer $RENDER_API_TOKEN" \
-              -d '{"clearCache": true}' || echo "Worker deploy skipped"
+              -d '{"clearCache": "clear"}' || echo "Worker deploy skipped"
           fi
           
           DEPLOYMENT_ID=$(echo "$API_RESPONSE" | jq -r '.id // .deploy.id // "unknown"')
@@ -381,14 +381,14 @@ jobs:
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $RENDER_API_TOKEN" \
-            -d '{"clearCache": true}'
+            -d '{"clearCache": "clear"}'
           
           # Deploy Worker
           curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_PROD_WORKER_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $RENDER_API_TOKEN" \
-            -d '{"clearCache": true}'
+            -d '{"clearCache": "clear"}'
           
           echo "::notice::Production deployment initiated"
       
