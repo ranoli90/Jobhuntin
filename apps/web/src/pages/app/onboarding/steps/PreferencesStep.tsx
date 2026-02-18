@@ -140,7 +140,7 @@ export function PreferencesStep({
                                 reasoning={aiSuggestions.salary.data?.reasoning}
                                 loading={aiSuggestions.salary.loading}
                                 error={aiSuggestions.salary.error}
-                                onAccept={(min) => setPreferences(p => ({ ...p, salary_min: min }))}
+                                onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
                                 onReject={() => { console.debug('[AI] User dismissed salary suggestion'); }}
                             />
                         </div>
@@ -200,7 +200,7 @@ export function PreferencesStep({
                             max="10000000"
                             placeholder="150000"
                             value={preferences.salary_min}
-                            onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value ? Number(e.target.value) : "" }))}
+                            onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value || "" }))}
                             onClear={() => setPreferences((p) => ({ ...p, salary_min: "" }))}
                             className="bg-white shadow-sm"
                         />
@@ -280,7 +280,7 @@ export function PreferencesStep({
                                 max="10000000"
                                 placeholder="e.g., 300000"
                                 value={preferences.salary_max || ""}
-                                onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value ? Number(e.target.value) : "" }))}
+                                onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value || "" }))}
                                 onClear={() => setPreferences((p) => ({ ...p, salary_max: "" }))}
                                 className="bg-white"
                             />

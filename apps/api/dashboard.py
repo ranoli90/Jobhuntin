@@ -365,7 +365,7 @@ async def get_performance_trends(
     }
 
     duration = time_range_map.get(time_range, timedelta(hours=1))
-    interval_str = interval_map.get(interval, "5 minutes")
+    interval_map.get(interval, "5 minutes")
 
     async with db.acquire() as conn:
         rows = await conn.fetch(f"""

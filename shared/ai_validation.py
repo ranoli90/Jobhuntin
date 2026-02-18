@@ -70,14 +70,14 @@ def sanitize_input(text: str) -> str:
 def validate_and_sanitize_ai_input(*args: Any, **kwargs: Any) -> Any:
     """
     Polymorphic validation function to handle inconsistent usage across the codebase.
-    
+
     Usage 1: validate_and_sanitize_ai_input(text_string) -> str
     Usage 2: validate_and_sanitize_ai_input(profile=..., user_id=...) -> ValidationResult
     """
     # Case 1: Single string argument (sanitization only)
     if len(args) == 1 and isinstance(args[0], str):
         return sanitize_input(args[0])
-    
+
     if len(args) == 1 and args[0] is None:
         return ""
 
@@ -87,7 +87,7 @@ def validate_and_sanitize_ai_input(*args: Any, **kwargs: Any) -> Any:
         # Basic validation logic (placeholder)
         if not isinstance(profile, dict):
              return ValidationResult(is_valid=False, error_message="Profile must be a dictionary")
-        
+
         # Pass through as valid for now to unblock
         return ValidationResult(
             is_valid=True,

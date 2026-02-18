@@ -71,7 +71,7 @@ class WebhookDelivery:
     ) -> bool:
         """
         Deliver webhook with exponential backoff retry.
-        
+
         Returns True if delivery succeeded, False if all retries exhausted.
         """
         payload_str = json.dumps(payload)
@@ -206,7 +206,7 @@ async def send_webhook(
 ) -> bool:
     """
     Send a webhook notification.
-    
+
     Usage:
         await send_webhook(
             url="https://example.com/webhooks",

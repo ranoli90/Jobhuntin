@@ -12,7 +12,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar, Callable, Awaitable
+from typing import Awaitable, Callable, Generic, TypeVar
 
 logger = logging.getLogger(__name__)
 

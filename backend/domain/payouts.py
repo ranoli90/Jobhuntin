@@ -70,7 +70,7 @@ async def create_connect_onboarding_link(
     """Create a Stripe Connect onboarding link for the author."""
     account_id = await get_or_create_connect_account(conn, tenant_id, email)
 
-    s = get_settings()
+    get_settings()
     stripe = get_stripe()
     link = protected_stripe_call(
         lambda: stripe.AccountLink.create(

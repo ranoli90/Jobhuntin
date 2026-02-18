@@ -166,12 +166,12 @@ class TestATSScorer:
         resume = """
         John Doe
         Senior Python Developer
-        
+
         Experience:
         - Developed web applications using Python and Django
         - Managed AWS infrastructure
         - Led team of 5 developers
-        
+
         Skills: Python, Django, AWS, Docker, PostgreSQL
         """
         job = "Looking for Python Developer with AWS and Django experience"

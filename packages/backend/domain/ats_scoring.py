@@ -376,7 +376,7 @@ class ATS23Scorer:
             all_skills.extend(category_skills)
 
         job_skills = [s for s in all_skills if s in job]
-        resume_skills = [s for s in all_skills if s in resume]
+        [s for s in all_skills if s in resume]
 
         if job_skills:
             matched = [s for s in job_skills if s in resume]
@@ -508,7 +508,6 @@ class ATS23Scorer:
     async def _score_section_order(self, resume: str, sections: dict) -> None:
         details: list[str] = []
 
-        typical_order = ["contact", "summary", "experience", "education", "skills"]
         found_sections = []
 
         section_patterns = {

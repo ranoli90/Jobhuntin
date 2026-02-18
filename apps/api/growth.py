@@ -185,7 +185,7 @@ async def onboarding_complete(
         "user_id": user_id,
         "has_referral_code": bool(body.referral_code)
     })
-    
+
     async with db.acquire() as conn:
         # Store onboarding completion in profile_data JSON
         await conn.execute("""
@@ -220,7 +220,7 @@ async def onboarding_complete(
         "user_id": user_id,
         "referral_redeemed": referral_result is not None
     })
-    
+
     return {
         "status": "completed",
         "referral_redeemed": referral_result is not None,

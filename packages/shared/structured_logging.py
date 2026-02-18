@@ -269,7 +269,7 @@ class StructuredMetrics:
             lines.append("")
 
             for endpoint, metrics in self._endpoints.items():
-                safe_endpoint = (
+                (
                     endpoint.replace("/", "_").replace("-", "_").strip("_") or "root"
                 )
 
@@ -305,7 +305,7 @@ class StructuredMetrics:
                 lines.append("")
 
             for operation, metrics in self._operations.items():
-                safe_op = operation.replace("-", "_").replace(" ", "_")
+                operation.replace("-", "_").replace(" ", "_")
 
                 lines.append(f"# Operation: {operation}")
                 lines.append(

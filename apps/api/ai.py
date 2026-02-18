@@ -18,9 +18,6 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from shared.ai_validation import (
-    validate_and_sanitize_ai_input,
-)
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -37,6 +34,9 @@ from backend.llm.contracts import (
     build_onboarding_questions_prompt,
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
+)
+from shared.ai_validation import (
+    validate_and_sanitize_ai_input,
 )
 
 logger = get_logger("sorce.api.ai")

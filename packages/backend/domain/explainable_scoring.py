@@ -207,7 +207,7 @@ class ExplainableScoringEngine:
             for s in profile_skills
             if any(s.lower() in js.lower() for js in job_skills)
         ]
-        missing_skills = [
+        [
             js
             for js in job_skills
             if not any(ps.lower() in js.lower() for ps in profile_skills)
@@ -369,7 +369,7 @@ class ExplainableScoringEngine:
         job: dict[str, Any],
     ) -> str:
         skill_factor = factors.get(MatchFactorType.SKILL_MATCH)
-        semantic_factor = factors.get(MatchFactorType.SEMANTIC_SIMILARITY)
+        factors.get(MatchFactorType.SEMANTIC_SIMILARITY)
 
         skills_evidence = skill_factor.evidence[:3] if skill_factor else []
 

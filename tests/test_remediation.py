@@ -72,10 +72,10 @@ async def test_job_match_cache_repo(db_pool):
     Test Put/Get roundtrip for JobMatchCacheRepo.
     Skipped if no DB available.
     """
-    from backend.domain.repositories import JobMatchCacheRepo
-
     import asyncpg
     import pytest
+
+    from backend.domain.repositories import JobMatchCacheRepo
 
     async with db_pool.acquire() as conn:
         # 1. Setup

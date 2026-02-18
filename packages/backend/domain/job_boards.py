@@ -201,10 +201,10 @@ class LinkedInClient(JobBoardClient):
     async def _get_access_token(self) -> str | None:
         """
         Get a valid LinkedIn access token using OAuth 2.0 client credentials flow.
-        
+
         LinkedIn requires OAuth 2.0 authentication - client_secret cannot be used
         directly as a Bearer token.
-        
+
         Returns:
             Access token string or None if authentication fails
         """

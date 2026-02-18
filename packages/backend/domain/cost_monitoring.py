@@ -12,7 +12,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     import asyncpg
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class CloudProvider(str, Enum):
     """Supported cloud providers."""
+
     AWS = "aws"
     GCP = "gcp"
     AZURE = "azure"
@@ -32,6 +33,7 @@ class CloudProvider(str, Enum):
 
 class CostCategory(str, Enum):
     """Categories of cloud costs."""
+
     COMPUTE = "compute"
     DATABASE = "database"
     STORAGE = "storage"
@@ -44,6 +46,7 @@ class CostCategory(str, Enum):
 @dataclass
 class CostEntry:
     """A single cost entry."""
+
     provider: CloudProvider
     category: CostCategory
     amount_usd: float
@@ -56,6 +59,7 @@ class CostEntry:
 @dataclass
 class BudgetAlert:
     """A budget alert configuration."""
+
     name: str
     monthly_budget_usd: float
     alert_thresholds: list[float] = field(default_factory=lambda: [0.5, 0.75, 0.9, 1.0])
@@ -66,6 +70,7 @@ class BudgetAlert:
 @dataclass
 class CostAnomaly:
     """A detected cost anomaly."""
+
     provider: CloudProvider
     category: CostCategory
     expected_usd: float
@@ -88,6 +93,7 @@ class CostAnomaly:
 @dataclass
 class CostSummary:
     """Summary of cloud costs."""
+
     period_start: datetime
     period_end: datetime
     total_usd: float
@@ -264,15 +270,17 @@ class CostMonitor:
                     )
 
                     if not existing:
-                        triggered_alerts.append({
-                            "alert_name": alert.name,
-                            "threshold": threshold,
-                            "usage_pct": round(usage_pct * 100, 1),
-                            "current_spend": round(summary.total_usd, 2),
-                            "budget": alert.monthly_budget_usd,
-                            "notify_emails": alert.notify_emails,
-                            "notify_slack": alert.notify_slack,
-                        })
+                        triggered_alerts.append(
+                            {
+                                "alert_name": alert.name,
+                                "threshold": threshold,
+                                "usage_pct": round(usage_pct * 100, 1),
+                                "current_spend": round(summary.total_usd, 2),
+                                "budget": alert.monthly_budget_usd,
+                                "notify_emails": alert.notify_emails,
+                                "notify_slack": alert.notify_slack,
+                            }
+                        )
 
         return triggered_alerts
 
@@ -294,7 +302,9 @@ class CostMonitor:
 
         # Get costs by category for both periods
         current_costs = await self._get_costs_by_category(current_start, current_end)
-        comparison_costs = await self._get_costs_by_category(comparison_start, comparison_end)
+        comparison_costs = await self._get_costs_by_category(
+            comparison_start, comparison_end
+        )
 
         anomalies = []
 
@@ -303,27 +313,31 @@ class CostMonitor:
 
             if comparison_amount == 0:
                 if current_amount > 10:  # New significant cost
-                    anomalies.append(CostAnomaly(
-                        provider=CloudProvider.RENDER,  # Default
-                        category=category,
-                        expected_usd=0,
-                        actual_usd=current_amount,
-                        deviation_pct=100,
-                        detected_at=now,
-                    ))
+                    anomalies.append(
+                        CostAnomaly(
+                            provider=CloudProvider.RENDER,  # Default
+                            category=category,
+                            expected_usd=0,
+                            actual_usd=current_amount,
+                            deviation_pct=100,
+                            detected_at=now,
+                        )
+                    )
                 continue
 
             deviation = ((current_amount - comparison_amount) / comparison_amount) * 100
 
             if deviation > self.anomaly_threshold_pct:
-                anomalies.append(CostAnomaly(
-                    provider=CloudProvider.RENDER,  # Default
-                    category=category,
-                    expected_usd=comparison_amount,
-                    actual_usd=current_amount,
-                    deviation_pct=deviation,
-                    detected_at=now,
-                ))
+                anomalies.append(
+                    CostAnomaly(
+                        provider=CloudProvider.RENDER,  # Default
+                        category=category,
+                        expected_usd=comparison_amount,
+                        actual_usd=current_amount,
+                        deviation_pct=deviation,
+                        detected_at=now,
+                    )
+                )
 
         return anomalies
 
@@ -344,10 +358,7 @@ class CostMonitor:
             end_date,
         )
 
-        return {
-            CostCategory(r["category"]): float(r["total"] or 0)
-            for r in rows
-        }
+        return {CostCategory(r["category"]): float(r["total"] or 0) for r in rows}
 
     async def get_optimization_recommendations(self) -> list[dict]:
         """Get cost optimization recommendations."""
@@ -361,32 +372,38 @@ class CostMonitor:
         # Check for high database costs
         db_cost = summary.by_category.get(CostCategory.DATABASE, 0)
         if db_cost > 100:
-            recommendations.append({
-                "category": "database",
-                "title": "Review database tier",
-                "description": f"Database costs are ${db_cost:.2f}/month. Consider optimizing queries or downgrading tier.",
-                "potential_savings": db_cost * 0.2,
-            })
+            recommendations.append(
+                {
+                    "category": "database",
+                    "title": "Review database tier",
+                    "description": f"Database costs are ${db_cost:.2f}/month. Consider optimizing queries or downgrading tier.",
+                    "potential_savings": db_cost * 0.2,
+                }
+            )
 
         # Check for high AI/LLM costs
         ai_cost = summary.by_category.get(CostCategory.AI_LLM, 0)
         if ai_cost > 50:
-            recommendations.append({
-                "category": "ai_llm",
-                "title": "Optimize LLM usage",
-                "description": f"AI costs are ${ai_cost:.2f}/month. Consider caching responses or using smaller models.",
-                "potential_savings": ai_cost * 0.3,
-            })
+            recommendations.append(
+                {
+                    "category": "ai_llm",
+                    "title": "Optimize LLM usage",
+                    "description": f"AI costs are ${ai_cost:.2f}/month. Consider caching responses or using smaller models.",
+                    "potential_savings": ai_cost * 0.3,
+                }
+            )
 
         # Check for high storage costs
         storage_cost = summary.by_category.get(CostCategory.STORAGE, 0)
         if storage_cost > 50:
-            recommendations.append({
-                "category": "storage",
-                "title": "Review storage usage",
-                "description": f"Storage costs are ${storage_cost:.2f}/month. Consider cleaning up old files or using lifecycle policies.",
-                "potential_savings": storage_cost * 0.25,
-            })
+            recommendations.append(
+                {
+                    "category": "storage",
+                    "title": "Review storage usage",
+                    "description": f"Storage costs are ${storage_cost:.2f}/month. Consider cleaning up old files or using lifecycle policies.",
+                    "potential_savings": storage_cost * 0.25,
+                }
+            )
 
         return recommendations
 

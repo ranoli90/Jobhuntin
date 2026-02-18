@@ -503,7 +503,7 @@ def create_error_response(
 
 def classify_exception(exc: Exception) -> ContextualError:
     """Classify an exception into a contextual error."""
-    exc_type = type(exc).__name__
+    type(exc).__name__
     exc_message = str(exc).lower()
 
     # Map common exceptions to error codes

@@ -36,10 +36,10 @@ def get_stripe():
 class StripeCircuitBreaker:
     """
     Wrapper for Stripe API calls with circuit breaker protection.
-    
+
     Usage:
         stripe_cb = StripeCircuitBreaker()
-        
+
         # Protected call
         customer = stripe_cb.call(
             lambda: stripe.Customer.create(email="test@example.com")
@@ -52,14 +52,14 @@ class StripeCircuitBreaker:
     def call(self, func: Callable[[], T], fallback: T | None = None) -> T | None:
         """
         Execute a Stripe API call with circuit breaker protection.
-        
+
         Args:
             func: A callable that performs the Stripe API call
             fallback: Optional fallback value if circuit is open
-            
+
         Returns:
             Result of the Stripe call, or fallback if circuit is open
-            
+
         Raises:
             Exception: Re-raises Stripe exceptions if circuit is closed
         """
@@ -123,10 +123,10 @@ def get_protected_stripe() -> StripeCircuitBreaker:
 def protected_stripe_call(func: Callable[[], T], fallback: T | None = None) -> T | None:
     """
     Convenience function for making protected Stripe calls.
-    
+
     Example:
         from backend.domain.stripe_client import protected_stripe_call
-        
+
         customer = protected_stripe_call(
             lambda: stripe.Customer.create(email="test@example.com")
         )

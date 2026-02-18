@@ -191,7 +191,7 @@ def deduplicate_jobs(
 ) -> tuple[list[JobListing], list[JobListing]]:
     """
     Deduplicate a list of jobs.
-    
+
     Returns:
         tuple of (unique_jobs, duplicate_jobs)
     """
@@ -232,10 +232,10 @@ def merge_job_sources(
 ) -> tuple[list[JobListing], dict[str, int]]:
     """
     Merge jobs from multiple sources with deduplication.
-    
+
     Args:
         sources: List of (jobs_list, source_name) tuples
-    
+
     Returns:
         tuple of (unique_jobs, stats_dict)
     """

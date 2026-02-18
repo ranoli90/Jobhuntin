@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 # Add project root to path
 sys.path.append(os.getcwd())
@@ -22,20 +22,22 @@ async def test_auth_security():
     mock_db = MagicMock()
 
     try:
-        await _generate_magic_link(mock_settings, "test@example.com", "http://localhost", mock_db)
+        await _generate_magic_link(
+            mock_settings, "test@example.com", "http://localhost", mock_db
+        )
         print("❌ FAILED: _generate_magic_link should have raised HTTPException")
         sys.exit(1)
     except HTTPException as e:
         if e.status_code == 500 and "JWT_SECRET missing" in e.detail:
-            print("✅ PASSED: _generate_magic_link raised 500 when JWT_SECRET is missing")
+            print(
+                "✅ PASSED: _generate_magic_link raised 500 when JWT_SECRET is missing"
+            )
         else:
             print(f"❌ FAILED: Raised unexpected HTTPException: {e}")
             sys.exit(1)
     except Exception as e:
         print(f"❌ FAILED: Raised unexpected exception: {type(e).__name__}: {e}")
         sys.exit(1)
-
-    from unittest.mock import AsyncMock, MagicMock
 
     # Test with secret
     mock_settings.jwt_secret = "secret"
@@ -53,15 +55,20 @@ async def test_auth_security():
     mock_db.acquire.return_value = mock_ctx
 
     try:
-        link = await _generate_magic_link(mock_settings, "test@example.com", "http://localhost", mock_db)
+        link = await _generate_magic_link(
+            mock_settings, "test@example.com", "http://localhost", mock_db
+        )
         if "token=" in link:
-             print("✅ PASSED: _generate_magic_link generated link with token when secret is present")
+            print(
+                "✅ PASSED: _generate_magic_link generated link with token when secret is present"
+            )
         else:
-             print("❌ FAILED: Link missing token")
-             sys.exit(1)
+            print("❌ FAILED: Link missing token")
+            sys.exit(1)
     except Exception as e:
         print(f"❌ FAILED: Raised unexpected exception with valid secret: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(test_auth_security())

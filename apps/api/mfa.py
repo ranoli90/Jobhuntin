@@ -104,31 +104,6 @@ async def enroll_totp(
         secret=secret,
     )
 
-    if not email:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    enrollment_id, uri = await manager.enroll_totp(user_id, email)
-
-    async with db.acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT config FROM public.user_mfa_enrollments WHERE id = $1",
-            enrollment_id,
-        )
-        import json
-
-        config = (
-            row["config"]
-            if isinstance(row["config"], dict)
-            else json.loads(row["config"] or "{}")
-        )
-        secret = config.get("secret", "")
-
-    return TOTPEnrollResponse(
-        enrollment_id=enrollment_id,
-        provisioning_uri=uri,
-        secret=secret,
-    )
-
 
 @router.post("/totp/verify-enrollment", response_model=TOTPVerifyResponse)
 async def verify_totp_enrollment(

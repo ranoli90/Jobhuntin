@@ -83,14 +83,14 @@ class TenantRateLimiter:
     local window_seconds = tonumber(ARGV[2])
     local max_requests = tonumber(ARGV[3])
     local cutoff = now - window_seconds
-    
+
     redis.call('ZREMRANGEBYSCORE', key, 0, cutoff)
     local count = redis.call('ZCARD', key)
-    
+
     if count >= max_requests then
         return {0, count}
     end
-    
+
     local member = tostring(now) .. ':' .. tostring(math.random(1000000))
     redis.call('ZADD', key, now, member)
     redis.call('EXPIRE', key, window_seconds + 10)

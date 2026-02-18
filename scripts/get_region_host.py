@@ -1,10 +1,11 @@
 import json
 
+data = None
 try:
     with open("projects.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-except:
-    pass # Assume utf-8 worked or failed loudly, but json.load likely failed if file empty
+except Exception:
+    pass
 
 if isinstance(data, list) and len(data) > 0:
     proj = data[0]

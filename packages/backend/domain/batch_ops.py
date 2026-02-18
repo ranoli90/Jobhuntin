@@ -45,12 +45,12 @@ async def process_in_chunks(
 ) -> BatchResult:
     """
     Process items in chunks with controlled concurrency.
-    
+
     Args:
         items: List of items to process
         processor: Async function to process each item
         config: Batch configuration
-    
+
     Returns:
         BatchResult with successful and failed results
     """
@@ -125,7 +125,7 @@ async def stream_items(
 ) -> AsyncIterator[list[T]]:
     """
     Stream items in chunks for memory-efficient processing.
-    
+
     Usage:
         async for chunk in stream_items(jobs, chunk_size=10):
             await process_chunk(chunk)
@@ -179,7 +179,7 @@ async def batch_match_jobs(
 ) -> list[dict[str, Any]]:
     """
     Batch match multiple jobs against a profile.
-    
+
     Optimized for >20 jobs with streaming and concurrency control.
     """
     config = config or BatchConfig(chunk_size=20, max_concurrent=5)

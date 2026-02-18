@@ -53,7 +53,7 @@ class DeepLink:
 class DeepLinkService:
     """
     Service for generating and resolving deep links.
-    
+
     Supports:
     - iOS Universal Links
     - Android App Links
@@ -75,7 +75,7 @@ class DeepLinkService:
     ) -> DeepLink:
         """
         Generate a universal link that works on both iOS and Android.
-        
+
         Universal links use the https:// format and are handled by the app
         when installed, or fall back to the web when not.
         """
@@ -126,7 +126,7 @@ class DeepLinkService:
     ) -> str:
         """
         Generate a Branch.io short link for attribution.
-        
+
         Branch links provide:
         - Attribution tracking
         - Deferred deep linking
@@ -176,7 +176,7 @@ class DeepLinkService:
     def parse_universal_link(self, url: str) -> DeepLink | None:
         """
         Parse a universal link URL into a DeepLink object.
-        
+
         Used by the mobile app to handle incoming links.
         """
         try:

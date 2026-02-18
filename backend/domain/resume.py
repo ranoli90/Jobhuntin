@@ -194,7 +194,7 @@ async def process_resume_upload(
     """
     # 1. Upload to storage (supports Render Disk, S3, or local)
 
-    s = get_settings()
+    get_settings()
     storage_path = f"{user_id}/{uuid.uuid4()}.pdf"
     bucket = "resumes"  # bucket name for the storage service
 

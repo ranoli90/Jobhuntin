@@ -10,7 +10,7 @@ Provides:
 
 import logging
 from dataclasses import dataclass, field
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     import asyncpg
@@ -21,12 +21,15 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OnboardingProfile:
     """Profile data collected during onboarding."""
+
     job_titles: list[str] = field(default_factory=list)
     skills: list[str] = field(default_factory=list)
     locations: list[str] = field(default_factory=list)
     experience_years: Optional[int] = None
     salary_expectation: Optional[int] = None
-    job_types: list[str] = field(default_factory=list)  # full-time, part-time, contract, remote
+    job_types: list[str] = field(
+        default_factory=list
+    )  # full-time, part-time, contract, remote
     industries: list[str] = field(default_factory=list)
     willing_to_relocate: bool = False
     remote_preference: str = "hybrid"  # remote, hybrid, onsite
@@ -35,6 +38,7 @@ class OnboardingProfile:
 @dataclass
 class ColdStartRecommendation:
     """A recommendation for a new user."""
+
     job_id: str
     title: str
     company: str
@@ -119,7 +123,7 @@ class ColdStartHandler:
 
         # Sort by match score and limit
         recommendations.sort(key=lambda r: r.match_score, reverse=True)
-        return recommendations[:self.max_recommendations]
+        return recommendations[: self.max_recommendations]
 
     async def _get_profile_matches(
         self,
@@ -190,15 +194,17 @@ class ColdStartHandler:
                 # Calculate match score based on profile overlap
                 score = self._calculate_profile_match_score(row, onboarding)
 
-                matches.append(ColdStartRecommendation(
-                    job_id=str(row["id"]),
-                    title=row["title"],
-                    company=row["company"],
-                    location=row["location"],
-                    match_score=score,
-                    reason="Matches your profile preferences",
-                    source="profile_match",
-                ))
+                matches.append(
+                    ColdStartRecommendation(
+                        job_id=str(row["id"]),
+                        title=row["title"],
+                        company=row["company"],
+                        location=row["location"],
+                        match_score=score,
+                        reason="Matches your profile preferences",
+                        source="profile_match",
+                    )
+                )
 
         except Exception as e:
             logger.error(f"Error getting profile matches: {e}")
@@ -236,15 +242,17 @@ class ColdStartHandler:
                 # Normalize score by popularity
                 score = min((row["application_count"] or 0) / max_count, 1.0) * 0.8
 
-                matches.append(ColdStartRecommendation(
-                    job_id=str(row["id"]),
-                    title=row["title"],
-                    company=row["company"],
-                    location=row["location"],
-                    match_score=score,
-                    reason="Popular job in your area",
-                    source="popularity",
-                ))
+                matches.append(
+                    ColdStartRecommendation(
+                        job_id=str(row["id"]),
+                        title=row["title"],
+                        company=row["company"],
+                        location=row["location"],
+                        match_score=score,
+                        reason="Popular job in your area",
+                        source="popularity",
+                    )
+                )
 
         except Exception as e:
             logger.error(f"Error getting popular jobs: {e}")
@@ -274,7 +282,9 @@ class ColdStartHandler:
                 LIMIT 15
             """
 
-            industry_patterns = [f"%{ind}%" for ind in industries] if industries else None
+            industry_patterns = (
+                [f"%{ind}%" for ind in industries] if industries else None
+            )
             rows = await self.db.fetch(query, industry_patterns)
 
             max_recent = max((r["recent_apps"] or 0 for r in rows), default=1)
@@ -282,15 +292,17 @@ class ColdStartHandler:
             for row in rows:
                 score = min((row["recent_apps"] or 0) / max_recent, 1.0) * 0.75
 
-                matches.append(ColdStartRecommendation(
-                    job_id=str(row["id"]),
-                    title=row["title"],
-                    company=row["company"],
-                    location=row["location"],
-                    match_score=score,
-                    reason="Trending job in your industry",
-                    source="trending",
-                ))
+                matches.append(
+                    ColdStartRecommendation(
+                        job_id=str(row["id"]),
+                        title=row["title"],
+                        company=row["company"],
+                        location=row["location"],
+                        match_score=score,
+                        reason="Trending job in your industry",
+                        source="trending",
+                    )
+                )
 
         except Exception as e:
             logger.error(f"Error getting trending jobs: {e}")
@@ -343,15 +355,17 @@ class ColdStartHandler:
             for row in rows:
                 score = min((row["similar_user_count"] or 0) / max_count, 1.0) * 0.7
 
-                matches.append(ColdStartRecommendation(
-                    job_id=str(row["id"]),
-                    title=row["title"],
-                    company=row["company"],
-                    location=row["location"],
-                    match_score=score,
-                    reason="Users with similar profiles applied",
-                    source="similar_users",
-                ))
+                matches.append(
+                    ColdStartRecommendation(
+                        job_id=str(row["id"]),
+                        title=row["title"],
+                        company=row["company"],
+                        location=row["location"],
+                        match_score=score,
+                        reason="Users with similar profiles applied",
+                        source="similar_users",
+                    )
+                )
 
         except Exception as e:
             logger.error(f"Error getting similar user jobs: {e}")
@@ -383,15 +397,17 @@ class ColdStartHandler:
             for row in rows:
                 score = min((row["application_count"] or 0) / max_count, 1.0) * 0.6
 
-                matches.append(ColdStartRecommendation(
-                    job_id=str(row["id"]),
-                    title=row["title"],
-                    company=row["company"],
-                    location=row["location"],
-                    match_score=score,
-                    reason="Popular recent job",
-                    source="popularity",
-                ))
+                matches.append(
+                    ColdStartRecommendation(
+                        job_id=str(row["id"]),
+                        title=row["title"],
+                        company=row["company"],
+                        location=row["location"],
+                        match_score=score,
+                        reason="Popular recent job",
+                        source="popularity",
+                    )
+                )
 
         except Exception as e:
             logger.error(f"Error getting general popular jobs: {e}")
@@ -421,9 +437,10 @@ class ColdStartHandler:
             description = (job_row.get("description") or "").lower()
 
             matched_skills = sum(
-                1 for skill in onboarding.skills
-                if skill.lower() in description or
-                   any(skill.lower() in (s or "").lower() for s in job_skills)
+                1
+                for skill in onboarding.skills
+                if skill.lower() in description
+                or any(skill.lower() in (s or "").lower() for s in job_skills)
             )
             skill_score = matched_skills / max(len(onboarding.skills), 1)
             score += 0.25 * skill_score

@@ -86,7 +86,7 @@ async def paginate_query(
 ) -> PaginatedResult[dict]:
     """
     Execute a paginated query.
-    
+
     Args:
         conn: Database connection
         query: Base query (without ORDER BY and LIMIT)
@@ -94,7 +94,7 @@ async def paginate_query(
         cursor_field: Field to use for cursor
         extra_conditions: Additional WHERE conditions
         args: Query arguments
-    
+
     Returns:
         PaginatedResult with items and page info
     """

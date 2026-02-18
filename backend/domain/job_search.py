@@ -27,21 +27,21 @@ async def search_and_list_jobs(
 ) -> list[dict[str, Any]]:
     """
     Search jobs from local database (synced from JobSpy).
-    
+
     No longer fetches from external APIs on-demand - uses background sync.
     """
     s = get_settings()
-    
+
     async with db_pool.acquire() as conn:
         query, params = _build_job_search_query(
             s, location, min_salary, keywords, source, is_remote, job_type, limit, offset
         )
         rows = await conn.fetch(query, *params)
-    
+
     # Track popular searches for proactive syncing
     if keywords or location:
         await _track_search(db_pool, keywords, location)
-    
+
     return [_map_job_row(r) for r in rows]
 
 
@@ -66,45 +66,45 @@ def _build_job_search_query(
     """
     params: list[Any] = []
     n = 0
-    
+
     if location:
         n += 1
         query += f" AND location ILIKE ${n}"
         params.append(f"%{location}%")
-    
+
     if min_salary is not None:
         n += 1
         query += f" AND (salary_max IS NULL OR salary_max >= ${n})"
         params.append(min_salary)
-    
+
     if keywords:
         n += 1
         query += f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
         params.append(f"%{keywords}%")
-    
+
     if source:
         n += 1
         query += f" AND source = ${n}"
         params.append(source.lower())
-    
+
     if is_remote is not None:
         n += 1
         query += f" AND is_remote = ${n}"
         params.append(is_remote)
-    
+
     if job_type:
         n += 1
         query += f" AND job_type = ${n}"
         params.append(job_type.lower())
-    
+
     # Filter out expired jobs using last_synced_at
     ttl_days = getattr(settings, 'jobspy_job_ttl_days', 7)
     if ttl_days > 0:
         query += f" AND (last_synced_at IS NULL OR last_synced_at >= now() - interval '{ttl_days} days')"
-    
+
     query += " ORDER BY date_posted DESC NULLS LAST, created_at DESC LIMIT $%d OFFSET $%d" % (n + 1, n + 2)
     params.extend([limit, offset])
-    
+
     return query, params
 
 
@@ -115,11 +115,11 @@ def _map_job_row(r: Any) -> dict[str, Any]:
             raw = json.loads(raw)
         except Exception:
             raw = {}
-    
+
     logo_url = r.get("company_logo_url")
     if not logo_url and isinstance(raw, dict):
         logo_url = raw.get("logo_url") or raw.get("logo")
-    
+
     return {
         "id": str(r["id"]),
         "title": r["title"],
@@ -143,7 +143,7 @@ async def _track_search(db_pool: asyncpg.Pool, keywords: str | None, location: s
     """Track search for proactive syncing."""
     if not keywords:
         return
-    
+
     try:
         async with db_pool.acquire() as conn:
             await conn.execute(
@@ -195,7 +195,7 @@ async def get_sync_status(db_pool: asyncpg.Pool) -> dict[str, Any]:
             """
         )
         total_jobs = await conn.fetchval("SELECT COUNT(*) FROM public.jobs WHERE last_synced_at > now() - interval '7 days'")
-    
+
     return {
         "sources": [dict(c) for c in config],
         "recent_runs": [dict(r) for r in recent],

@@ -2,6 +2,7 @@
 JobSpy integration client for multi-source job aggregation.
 Wraps the python-jobspy library with async support and error handling.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -33,6 +34,7 @@ def _get_executor() -> ThreadPoolExecutor:
 @dataclass
 class ScrapingResult:
     """Result of a scraping operation for a single source."""
+
     source: str
     success: bool
     jobs: list[dict[str, Any]] = field(default_factory=list)
@@ -43,6 +45,7 @@ class ScrapingResult:
 
 class JobSpyError(Exception):
     """Base exception for JobSpy errors."""
+
     pass
 
 
@@ -56,13 +59,15 @@ class JobSpyClient:
         self._circuit_breaker_state: dict[str, dict] = {}
 
     def _parse_sources(self) -> list[str]:
-        if not getattr(self.settings, 'jobspy_enabled', True):
+        if not getattr(self.settings, "jobspy_enabled", True):
             return []
-        sources_str = getattr(self.settings, 'jobspy_sources', 'indeed,linkedin,zip_recruiter,glassdoor')
+        sources_str = getattr(
+            self.settings, "jobspy_sources", "indeed,linkedin,zip_recruiter,glassdoor"
+        )
         return [s.strip().lower() for s in sources_str.split(",") if s.strip()]
 
     def _parse_proxies(self) -> list[str]:
-        proxies_str = getattr(self.settings, 'jobspy_proxies', '')
+        proxies_str = getattr(self.settings, "jobspy_proxies", "")
         if not proxies_str:
             return []
         return [p.strip() for p in proxies_str.split(",") if p.strip()]
@@ -85,7 +90,11 @@ class JobSpyClient:
 
     def _record_failure(self, source: str):
         if source not in self._circuit_breaker_state:
-            self._circuit_breaker_state[source] = {"failures": 0, "status": "closed", "opened_at": 0}
+            self._circuit_breaker_state[source] = {
+                "failures": 0,
+                "status": "closed",
+                "opened_at": 0,
+            }
         self._circuit_breaker_state[source]["failures"] += 1
         if self._circuit_breaker_state[source]["failures"] >= 5:
             self._circuit_breaker_state[source]["status"] = "open"
@@ -108,8 +117,10 @@ class JobSpyClient:
         """
         Fetch jobs from multiple sources asynchronously.
         """
-        results_wanted = results_wanted or getattr(self.settings, 'jobspy_results_per_source', 50)
-        hours_old = hours_old or getattr(self.settings, 'jobspy_hours_old', 168)
+        results_wanted = results_wanted or getattr(
+            self.settings, "jobspy_results_per_source", 50
+        )
+        hours_old = hours_old or getattr(self.settings, "jobspy_hours_old", 168)
         sources = [s for s in (sources or self.sources) if not self._is_circuit_open(s)]
 
         if not sources:
@@ -127,7 +138,9 @@ class JobSpyClient:
             results_wanted=results_wanted,
             hours_old=hours_old,
             proxies=self._get_proxy(),
-            linkedin_fetch_description=getattr(self.settings, 'jobspy_linkedin_fetch_description', True),
+            linkedin_fetch_description=getattr(
+                self.settings, "jobspy_linkedin_fetch_description", True
+            ),
         )
 
         start_time = time.time()
@@ -135,30 +148,31 @@ class JobSpyClient:
             df = await loop.run_in_executor(executor, func)
             jobs = self._normalize_jobs(df)
             duration_ms = int((time.time() - start_time) * 1000)
-            
+
             incr("jobspy.jobs_fetched", len(jobs))
             observe("jobspy.fetch_duration_ms", duration_ms)
-            
+
             for source in sources:
                 self._record_success(source)
-            
+
             return jobs
-            
+
         except Exception as e:
             error_msg = str(e)
             logger.error(f"JobSpy fetch failed: {error_msg}")
-            
+
             if "429" in error_msg or "rate" in error_msg.lower():
                 for source in sources:
                     self._record_failure(source)
                 incr("jobspy.rate_limited")
-            
+
             incr("jobspy.fetch_failed")
             raise JobSpyError(f"Failed to fetch jobs: {error_msg}")
 
     def _scrape_sync(self, **kwargs) -> Any:
         """Synchronous scrape call (runs in thread pool)."""
         from jobspy import scrape_jobs
+
         return scrape_jobs(**kwargs)
 
     def _normalize_jobs(self, df) -> list[dict[str, Any]]:
@@ -180,30 +194,30 @@ class JobSpyClient:
     def _normalize_job(self, row) -> dict[str, Any] | None:
         """Normalize a single job row to database schema."""
         import math
-        
+
         def clean_val(v):
             """Clean a value, handling NaN."""
             if v is None:
                 return None
             if isinstance(v, float) and math.isnan(v):
                 return None
-            if str(v).lower() == 'nan':
+            if str(v).lower() == "nan":
                 return None
             return v
-        
+
         source = str(clean_val(row.get("site")) or "unknown").lower()
         if source == "zip_recruiter":
             source = "zip_recruiter"
-        
+
         job_url = str(clean_val(row.get("job_url")) or "")
         if not job_url:
             return None
-        
+
         external_id = self._generate_external_id(source, job_url, row)
         location = self._build_location(row)
         salary_min, salary_max = self._parse_salary(row)
-        
-        max_desc_len = getattr(self.settings, 'jobspy_description_max_length', 50000)
+
+        max_desc_len = getattr(self.settings, "jobspy_description_max_length", 50000)
         description = str(clean_val(row.get("description")) or "")[:max_desc_len]
 
         raw_data = {}
@@ -217,7 +231,7 @@ class JobSpyClient:
                         raw_data[k] = cleaned
                     else:
                         raw_data[k] = str(cleaned)
-        except:
+        except Exception:
             pass
 
         return {
@@ -234,7 +248,8 @@ class JobSpyClient:
             "source": source,
             "date_posted": clean_val(row.get("date_posted")),
             "job_level": str(clean_val(row.get("job_level")) or "")[:50] or None,
-            "company_industry": str(clean_val(row.get("company_industry")) or "")[:100] or None,
+            "company_industry": str(clean_val(row.get("company_industry")) or "")[:100]
+            or None,
             "company_logo_url": clean_val(row.get("company_logo")),
             "emails": list(clean_val(row.get("emails")) or []),
             "raw_data": raw_data,
@@ -243,9 +258,9 @@ class JobSpyClient:
     def _generate_external_id(self, source: str, job_url: str, row) -> str:
         """Generate a unique external ID for the job."""
         import re
-        
+
         if source == "linkedin":
-            match = re.search(r'/jobs/view/(\d+)', job_url)
+            match = re.search(r"/jobs/view/(\d+)", job_url)
             if match:
                 return f"linkedin:{match.group(1)}"
         elif source == "indeed":
@@ -253,7 +268,7 @@ class JobSpyClient:
             job_id = row.get("id")
             if job_id:
                 return f"indeed:{job_id}"
-        
+
         url_hash = hashlib.sha256(job_url.encode()).hexdigest()[:16]
         return f"{source}:{url_hash}"
 
@@ -268,16 +283,16 @@ class JobSpyClient:
     def _parse_salary(self, row) -> tuple[int | None, int | None]:
         """Parse and normalize salary from row."""
         import math
-        
+
         def clean_num(v):
             if v is None:
                 return None
             if isinstance(v, float) and math.isnan(v):
                 return None
-            if str(v).lower() == 'nan':
+            if str(v).lower() == "nan":
                 return None
             return v
-        
+
         salary_min = clean_num(row.get("min_amount"))
         salary_max = clean_num(row.get("max_amount"))
         interval = clean_num(row.get("interval")) or "yearly"

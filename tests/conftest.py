@@ -34,7 +34,7 @@ async def clean_db(db_pool):
     if db_pool is None:
         yield
         return
-    
+
     async with db_pool.acquire() as conn:
         await conn.execute("TRUNCATE TABLE public.application_events CASCADE")
         await conn.execute("TRUNCATE TABLE public.application_inputs CASCADE")
@@ -47,9 +47,9 @@ async def clean_db(db_pool):
         await conn.execute("TRUNCATE TABLE public.tenants CASCADE")
         await conn.execute("TRUNCATE TABLE public.job_match_cache CASCADE")
         await conn.execute("TRUNCATE TABLE public.billing_customers CASCADE")
-    
+
     yield
-    
+
     async with db_pool.acquire() as conn:
         await conn.execute("TRUNCATE TABLE public.application_events CASCADE")
         await conn.execute("TRUNCATE TABLE public.application_inputs CASCADE")

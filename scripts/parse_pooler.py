@@ -2,13 +2,15 @@ import json
 
 PASSWORD = "ravhuv-gitqec-nixvY4"
 
+
 def load_json(path):
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         with open(path, "r", encoding="utf-16") as f:
             return json.load(f)
+
 
 try:
     data = load_json("pooler_config.json")

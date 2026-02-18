@@ -45,7 +45,7 @@ class KeyboardShortcut:
 class KeyboardShortcutsService:
     """
     Centralized keyboard shortcuts management.
-    
+
     Features:
     - Register shortcuts with default bindings
     - Override bindings per user

@@ -89,7 +89,7 @@ def cached(
 ):
     """
     Decorator for caching async function results.
-    
+
     Usage:
         @cached("user_profile", ttl=PROFILE_TTL)
         async def get_user_profile(user_id: str) -> dict:

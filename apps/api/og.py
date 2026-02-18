@@ -89,7 +89,7 @@ async def generate_og_image(
     # We'll simulate a gradient by drawing multiple lines or circles
     # Background swipe trail
     for i in range(200):
-        alpha = int(255 * (1 - i/200))
+        int(255 * (1 - i/200))
         color = (255, 107, 53) # RGB for #FF6B35
         # Interpolate towards blue
         if i > 100:
@@ -106,7 +106,7 @@ async def generate_og_image(
     # Main "Card" Area (White Box)
     margin = 60
     card_width = WIDTH - (margin * 2)
-    card_height = HEIGHT - (margin * 2)
+    HEIGHT - (margin * 2)
     draw.rounded_rectangle(
         [margin, margin, WIDTH - margin, HEIGHT - margin],
         radius=40,

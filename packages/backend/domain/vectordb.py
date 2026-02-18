@@ -73,7 +73,7 @@ class VectorDBBackend(ABC):
     ) -> list[dict[str, Any]]:
         """
         Search for similar vectors.
-        
+
         Returns list of dicts with:
         - id: str
         - score: float (similarity score)
@@ -117,7 +117,7 @@ class VectorDBBackend(ABC):
 class PgVectorBackend(VectorDBBackend):
     """
     PostgreSQL pgvector backend.
-    
+
     Uses the pgvector extension for efficient vector similarity search.
     Falls back to JSON storage with Python similarity if pgvector not available.
     """
@@ -412,7 +412,7 @@ class PgVectorBackend(VectorDBBackend):
 class PineconeBackend(VectorDBBackend):
     """
     Pinecone vector database backend.
-    
+
     Requires pinecone-client package and PINECONE_API_KEY env var.
     """
 
@@ -550,7 +550,7 @@ class PineconeBackend(VectorDBBackend):
 class InMemoryBackend(VectorDBBackend):
     """
     In-memory vector database for development/testing.
-    
+
     NOT suitable for production - data is lost on restart.
     """
 
@@ -682,7 +682,7 @@ class InMemoryBackend(VectorDBBackend):
 class VectorDB:
     """
     Main vector database interface.
-    
+
     Provides a unified interface to different backends.
     """
 
@@ -697,7 +697,7 @@ class VectorDB:
     ) -> "VectorDB":
         """
         Create a VectorDB instance based on settings.
-        
+
         Priority:
         1. Pinecone if PINECONE_API_KEY is set
         2. pgvector if connection provided

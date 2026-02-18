@@ -4,7 +4,7 @@ from jobspy import scrape_jobs
 
 def test_jobspy_direct():
     print("Testing JobSpy direct call...")
-    
+
     df = scrape_jobs(
         site_name=["indeed"],
         search_term="software engineer",
@@ -12,10 +12,10 @@ def test_jobspy_direct():
         results_wanted=5,
         hours_old=168,
     )
-    
+
     print(f"Fetched {len(df)} jobs")
     print(f"Columns: {list(df.columns)}")
-    
+
     if not df.empty:
         for idx, row in df.head(3).iterrows():
             print(f"\n--- Job {idx + 1} ---")

@@ -12,7 +12,7 @@ for sub in SUBDOMAINS:
         try:
             ip = socket.gethostbyname(host)
             print(f"FOUND: {host} -> {ip}")
-        except:
+        except Exception:
             pass
 
 # Also try the project ref as subdomain directly
@@ -21,5 +21,5 @@ for dom in DOMAINS:
     try:
         ip = socket.gethostbyname(host)
         print(f"FOUND: {host} -> {ip}")
-    except:
+    except Exception:
         pass

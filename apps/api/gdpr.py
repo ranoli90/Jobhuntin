@@ -192,7 +192,7 @@ async def export_user_data(
                     extra={"table": table, "error": str(e)},
                 )
 
-    export_json = json.dumps(export_data, indent=2, default=str)
+    json.dumps(export_data, indent=2, default=str)
 
     incr("gdpr.export_completed", {"tenant_id": tenant_id})
 

@@ -12,13 +12,14 @@ import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Any
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class ContentCategory(str, Enum):
     """Categories of moderated content."""
+
     TOXIC = "toxic"
     PROFANITY = "profanity"
     PII = "pii"
@@ -33,6 +34,7 @@ class ContentCategory(str, Enum):
 
 class ModerationAction(str, Enum):
     """Actions to take on moderated content."""
+
     ALLOW = "allow"
     FLAG = "flag"
     REDACT = "redact"
@@ -42,6 +44,7 @@ class ModerationAction(str, Enum):
 @dataclass
 class ModerationResult:
     """Result of content moderation."""
+
     is_safe: bool
     action: ModerationAction
     categories: list[ContentCategory] = field(default_factory=list)
@@ -64,23 +67,33 @@ class ModerationResult:
 
 # Common profanity patterns (basic list - extend as needed)
 PROFANITY_PATTERNS = [
-    r'\b(damn|hell|crap|ass|bastard)\b',
+    r"\b(damn|hell|crap|ass|bastard)\b",
     # Add more patterns as needed - keeping this minimal for production
 ]
 
 # PII patterns
 PII_PATTERNS = {
-    "email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-    "phone_us": r'\b(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b',
-    "ssn": r'\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b',
-    "credit_card": r'\b(?:\d{4}[-.\s]?){3}\d{4}\b',
-    "ip_address": r'\b(?:\d{1,3}\.){3}\d{1,3}\b',
+    "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+    "phone_us": r"\b(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b",
+    "ssn": r"\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b",
+    "credit_card": r"\b(?:\d{4}[-.\s]?){3}\d{4}\b",
+    "ip_address": r"\b(?:\d{1,3}\.){3}\d{1,3}\b",
 }
 
 # Toxicity indicators (simplified - in production use ML model)
 TOXICITY_INDICATORS = [
-    "hate", "kill", "die", "stupid", "idiot", "dumb", "loser",
-    "worthless", "pathetic", "disgusting", "awful", "terrible",
+    "hate",
+    "kill",
+    "die",
+    "stupid",
+    "idiot",
+    "dumb",
+    "loser",
+    "worthless",
+    "pathetic",
+    "disgusting",
+    "awful",
+    "terrible",
 ]
 
 
@@ -116,8 +129,7 @@ class ContentModerator:
             re.compile(p, re.IGNORECASE) for p in PROFANITY_PATTERNS
         ]
         self._pii_regex = {
-            name: re.compile(pattern)
-            for name, pattern in PII_PATTERNS.items()
+            name: re.compile(pattern) for name, pattern in PII_PATTERNS.items()
         }
 
     def moderate(self, text: str) -> ModerationResult:
@@ -181,7 +193,8 @@ class ContentModerator:
             action = ModerationAction.ALLOW
 
         return ModerationResult(
-            is_safe=action == ModerationAction.ALLOW or action == ModerationAction.REDACT,
+            is_safe=action == ModerationAction.ALLOW
+            or action == ModerationAction.REDACT,
             action=action,
             categories=categories,
             confidence=confidence,
@@ -217,7 +230,9 @@ class ContentModerator:
                 found = True
                 for match in matches:
                     # Replace with asterisks except first letter
-                    censored = censored.replace(match, match[0] + "*" * (len(match) - 1))
+                    censored = censored.replace(
+                        match, match[0] + "*" * (len(match) - 1)
+                    )
 
         return found, censored
 
@@ -240,9 +255,7 @@ class ContentModerator:
         return score
 
     def _get_reason(
-        self,
-        categories: list[ContentCategory],
-        action: ModerationAction
+        self, categories: list[ContentCategory], action: ModerationAction
     ) -> str:
         """Get human-readable reason for moderation action."""
         if action == ModerationAction.ALLOW:
@@ -323,9 +336,9 @@ class LLMModerator:
                     return llm_result
 
                 # Merge categories
-                all_categories = list(set(
-                    pattern_result.categories + llm_result.categories
-                ))
+                all_categories = list(
+                    set(pattern_result.categories + llm_result.categories)
+                )
 
                 # Take more restrictive action
                 actions = [pattern_result.action, llm_result.action]
@@ -385,6 +398,7 @@ Respond in JSON format:
 
             # Parse response
             import json
+
             result = json.loads(response)
 
             categories = [
@@ -404,7 +418,11 @@ Respond in JSON format:
                     reason=result.get("reason", "LLM check passed"),
                 )
             else:
-                action = ModerationAction.BLOCK if confidence > 0.8 else ModerationAction.FLAG
+                action = (
+                    ModerationAction.BLOCK
+                    if confidence > 0.8
+                    else ModerationAction.FLAG
+                )
                 return ModerationResult(
                     is_safe=False,
                     action=action,

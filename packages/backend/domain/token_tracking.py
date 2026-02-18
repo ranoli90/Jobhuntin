@@ -126,7 +126,7 @@ class TokenTracker:
     def check_limit(self, tenant_id: str, tier: str) -> tuple[bool, int, int]:
         """
         Check if tenant is within token limit.
-        
+
         Returns: (is_within_limit, current_usage, limit)
         """
         limit = self._limits.get(tier, 10_000)

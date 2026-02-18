@@ -339,7 +339,7 @@ class AntiDetection:
     Object.defineProperty(navigator, 'webdriver', {
         get: () => undefined,
     });
-    
+
     // Override navigator.plugins
     Object.defineProperty(navigator, 'plugins', {
         get: () => {
@@ -354,12 +354,12 @@ class AntiDetection:
             return plugins;
         }
     });
-    
+
     // Override navigator.languages
     Object.defineProperty(navigator, 'languages', {
         get: () => ['en-US', 'en']
     });
-    
+
     // Override permissions API
     const originalQuery = window.navigator.permissions?.query;
     if (originalQuery) {
@@ -370,7 +370,7 @@ class AntiDetection:
             return originalQuery.call(window.navigator.permissions, parameters);
         };
     }
-    
+
     // Randomize canvas fingerprint
     const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
     HTMLCanvasElement.prototype.toDataURL = function(type) {
@@ -388,7 +388,7 @@ class AntiDetection:
         }
         return originalToDataURL.apply(this, arguments);
     };
-    
+
     // Override WebGL fingerprint
     const getParameter = WebGLRenderingContext.prototype.getParameter;
     WebGLRenderingContext.prototype.getParameter = function(parameter) {
@@ -400,12 +400,12 @@ class AntiDetection:
         }
         return getParameter.apply(this, arguments);
     };
-    
+
     // Mask automation indicators
     window.chrome = {
         runtime: {}
     };
-    
+
     // Override notification permission
     if (window.Notification) {
         Object.defineProperty(Notification, 'permission', {

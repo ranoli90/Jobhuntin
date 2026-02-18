@@ -11,7 +11,6 @@ import asyncio
 from typing import Any
 
 import asyncpg
-from shared.ai_validation import validate_and_sanitize_ai_input
 from shared.logging_config import get_logger
 from shared.redis_client import get_redis
 
@@ -24,20 +23,21 @@ from backend.llm.contracts import (
     RoleSuggestionResponse_V1,
     SalarySuggestionResponse_V1,
 )
+from shared.ai_validation import validate_and_sanitize_ai_input
 
 logger = get_logger("sorce.api.ai_services")
 
 
 class AIService:
     """Service class for AI-powered features."""
-    
+
     def __init__(self, db: asyncpg.Connection):
         self.db = db
         self.llm_client = LLMClient()
         self.redis = get_redis()
         self.profile_repo = ProfileRepo(db)
         self.cache_repo = JobMatchCacheRepo(db)
-    
+
     async def get_role_suggestions(
         self,
         resume_text: str,
@@ -49,16 +49,16 @@ class AIService:
         try:
             # Generate cache key
             cache_key = self._generate_role_cache_key(resume_text, skills, experience_years, education_level)
-            
+
             # Check cache first
             cached_result = await self._get_cached_result(cache_key)
             if cached_result:
                 return RoleSuggestionResponse_V1.parse_raw(cached_result)
-            
+
             # Validate and sanitize input
             sanitized_text = validate_and_sanitize_ai_input(resume_text)
             sanitized_skills = [validate_and_sanitize_ai_input(skill) for skill in skills]
-            
+
             # Get AI response
             prompt = self._build_role_suggestion_prompt(
                 resume_text=sanitized_text,
@@ -66,18 +66,18 @@ class AIService:
                 experience_years=experience_years,
                 education_level=education_level,
             )
-            
+
             result = await self.llm_client.call(prompt=prompt, response_format=RoleSuggestionResponse_V1)
-            
+
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=3600)
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error in role suggestions: {e}")
             raise
-    
+
     async def get_salary_suggestions(
         self,
         role: str,
@@ -90,17 +90,17 @@ class AIService:
         try:
             # Generate cache key
             cache_key = self._generate_salary_cache_key(role, location, skills, experience_years, education_level)
-            
+
             # Check cache first
             cached_result = await self._get_cached_result(cache_key)
             if cached_result:
                 return SalarySuggestionResponse_V1.parse_raw(cached_result)
-            
+
             # Validate and sanitize input
             sanitized_role = validate_and_sanitize_ai_input(role)
             sanitized_location = validate_and_sanitize_ai_input(location)
             sanitized_skills = [validate_and_sanitize_ai_input(skill) for skill in skills]
-            
+
             # Get AI response
             prompt = self._build_salary_suggestion_prompt(
                 role=sanitized_role,
@@ -109,18 +109,18 @@ class AIService:
                 experience_years=experience_years,
                 education_level=education_level,
             )
-            
+
             result = await self.llm_client.call(prompt=prompt, response_format=SalarySuggestionResponse_V1)
-            
+
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=7200)  # 2 hours cache
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error in salary suggestions: {e}")
             raise
-    
+
     async def get_location_suggestions(
         self,
         skills: list[str],
@@ -132,16 +132,16 @@ class AIService:
         try:
             # Generate cache key
             cache_key = self._generate_location_cache_key(skills, role, experience_years, remote_preference)
-            
+
             # Check cache first
             cached_result = await self._get_cached_result(cache_key)
             if cached_result:
                 return LocationSuggestionResponse_V1.parse_raw(cached_result)
-            
+
             # Validate and sanitize input
             sanitized_skills = [validate_and_sanitize_ai_input(skill) for skill in skills]
             sanitized_role = validate_and_sanitize_ai_input(role)
-            
+
             # Get AI response
             prompt = self._build_location_suggestion_prompt(
                 skills=sanitized_skills,
@@ -149,18 +149,18 @@ class AIService:
                 experience_years=experience_years,
                 remote_preference=remote_preference,
             )
-            
+
             result = await self.llm_client.call(prompt=prompt, response_format=LocationSuggestionResponse_V1)
-            
+
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=3600)
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error in location suggestions: {e}")
             raise
-    
+
     async def get_job_matches(
         self,
         profile_id: str,
@@ -173,37 +173,37 @@ class AIService:
             profile = await self.profile_repo.get_by_id(profile_id)
             if not profile:
                 raise ValueError(f"Profile {profile_id} not found")
-            
+
             # Check cache first
             cache_key = self._generate_job_match_cache_key(profile_id, job_ids)
             cached_result = await self._get_cached_result(cache_key)
             if cached_result:
                 return JobMatchScore_V1.parse_raw(cached_result)
-            
+
             # Process jobs in batches
             matches = []
             batch_size = 5  # Process 5 jobs at a time
-            
+
             for i in range(0, min(len(job_ids), limit), batch_size):
                 batch_job_ids = job_ids[i:i + batch_size]
                 batch_matches = await self._process_job_batch(profile, batch_job_ids)
                 matches.extend(batch_matches)
-                
+
                 # Small delay between batches to avoid rate limiting
                 if i + batch_size < min(len(job_ids), limit):
                     await asyncio.sleep(0.1)
-            
+
             result = JobMatchScore_V1(matches=matches)
-            
+
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=1800)  # 30 minutes cache
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error in job matching: {e}")
             raise
-    
+
     async def get_onboarding_questions(
         self,
         resume_text: str,
@@ -213,37 +213,37 @@ class AIService:
         try:
             # Generate cache key
             cache_key = self._generate_onboarding_cache_key(resume_text, current_step)
-            
+
             # Check cache first
             cached_result = await self._get_cached_result(cache_key)
             if cached_result:
                 return OnboardingQuestionsResponse_V1.parse_raw(cached_result)
-            
+
             # Validate and sanitize input
             sanitized_text = validate_and_sanitize_ai_input(resume_text)
             sanitized_step = validate_and_sanitize_ai_input(current_step)
-            
+
             # Get AI response
             prompt = self._build_onboarding_questions_prompt(
                 resume_text=sanitized_text,
                 current_step=sanitized_step,
             )
-            
+
             result = await self.llm_client.call(prompt=prompt, response_format=OnboardingQuestionsResponse_V1)
-            
+
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=1800)
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error in onboarding questions: {e}")
             raise
-    
+
     # ---------------------------------------------------------------------------
     # Private Helper Methods
     # ---------------------------------------------------------------------------
-    
+
     async def _process_job_batch(
         self,
         profile: dict[str, Any],
@@ -251,27 +251,27 @@ class AIService:
     ) -> list[JobMatchScore_V1]:
         """Process a batch of jobs for matching."""
         matches = []
-        
+
         for job_id in job_ids:
             try:
                 # Get job details
                 job_details = await self._get_job_details(job_id)
                 if not job_details:
                     continue
-                
+
                 # Build prompt
                 prompt = self._build_job_match_prompt(profile, job_details)
-                
+
                 # Get AI response
                 match_score = await self.llm_client.call(prompt=prompt, response_format=JobMatchScore_V1)
                 matches.append(match_score)
-                
+
             except Exception as e:
                 logger.warning(f"Error processing job {job_id}: {e}")
                 continue
-        
+
         return matches
-    
+
     async def _get_job_details(self, job_id: str) -> dict[str, Any] | None:
         """Get job details from database."""
         try:
@@ -287,13 +287,13 @@ class AIService:
         except Exception as e:
             logger.error(f"Error fetching job details for {job_id}: {e}")
         return None
-    
+
     def _generate_cache_key(self, *args) -> str:
         """Generate a cache key from arguments."""
         import hashlib
         content = ":".join(str(arg) for arg in args)
         return hashlib.md5(content.encode()).hexdigest()
-    
+
     def _generate_role_cache_key(
         self,
         resume_text: str,
@@ -309,7 +309,7 @@ class AIService:
             experience_years,
             education_level,
         )
-    
+
     def _generate_salary_cache_key(
         self,
         role: str,
@@ -327,7 +327,7 @@ class AIService:
             experience_years,
             education_level,
         )
-    
+
     def _generate_location_cache_key(
         self,
         skills: list[str],
@@ -343,7 +343,7 @@ class AIService:
             experience_years,
             str(remote_preference),
         )
-    
+
     def _generate_job_match_cache_key(self, profile_id: str, job_ids: list[str]) -> str:
         """Generate cache key for job matching."""
         return self._generate_cache_key(
@@ -351,7 +351,7 @@ class AIService:
             profile_id,
             ",".join(sorted(job_ids)),
         )
-    
+
     def _generate_onboarding_cache_key(self, resume_text: str, current_step: str) -> str:
         """Generate cache key for onboarding questions."""
         return self._generate_cache_key(
@@ -359,7 +359,7 @@ class AIService:
             hash(resume_text[:100]),
             current_step.lower(),
         )
-    
+
     async def _get_cached_result(self, cache_key: str) -> str | None:
         """Get cached result from Redis."""
         try:
@@ -368,18 +368,18 @@ class AIService:
         except Exception as e:
             logger.warning(f"Error getting cached result for {cache_key}: {e}")
             return None
-    
+
     async def _cache_result(self, cache_key: str, result: str, ttl: int) -> None:
         """Cache result in Redis."""
         try:
             await self.redis.setex(cache_key, ttl, result)
         except Exception as e:
             logger.warning(f"Error caching result for {cache_key}: {e}")
-    
+
     # ---------------------------------------------------------------------------
     # Prompt Building Methods (moved from contracts)
     # ---------------------------------------------------------------------------
-    
+
     def _build_role_suggestion_prompt(
         self,
         resume_text: str,
@@ -408,7 +408,7 @@ Please suggest roles that match the candidate's profile. For each role, provide:
 
 Format as JSON according to the RoleSuggestionResponse schema.
 """
-    
+
     def _build_salary_suggestion_prompt(
         self,
         role: str,
@@ -443,7 +443,7 @@ Provide:
 
 Format as JSON according to the SalarySuggestionResponse schema.
 """
-    
+
     def _build_location_suggestion_prompt(
         self,
         skills: list[str],
@@ -477,7 +477,7 @@ For each location, provide:
 
 Format as JSON according to the LocationSuggestionResponse schema.
 """
-    
+
     def _build_job_match_prompt(
         self,
         profile: dict[str, Any],
@@ -520,7 +520,7 @@ Provide:
 
 Format as JSON according to the JobMatchScore schema.
 """
-    
+
     def _build_onboarding_questions_prompt(
         self,
         resume_text: str,

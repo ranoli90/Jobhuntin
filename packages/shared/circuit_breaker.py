@@ -62,14 +62,14 @@ class CircuitBreakerOpen(Exception):
 class CircuitBreaker:
     """
     Circuit Breaker for protecting external service calls.
-    
+
     Usage:
         cb = CircuitBreaker(CircuitBreakerConfig(name="llm"))
-        
+
         async def call_llm():
             async with cb:
                 return await make_llm_request()
-    
+
     Or as a decorator:
         @cb.protect
         async def call_llm():

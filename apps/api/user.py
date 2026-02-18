@@ -919,7 +919,7 @@ async def get_job_sync_status(
     if not ctx.is_admin:
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Admin access required")
-    
+
     from backend.domain.job_search import get_sync_status
     return await get_sync_status(db)
 
@@ -934,10 +934,10 @@ async def trigger_job_sync(
     if not ctx.is_admin:
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Admin access required")
-    
+
     from backend.domain.job_sync_service import JobSyncService
-    
+
     sync_service = JobSyncService(db)
     background_tasks.add_task(sync_service.sync_all_sources, None, 2)
-    
+
     return {"status": "sync_started", "message": "Job sync triggered in background"}

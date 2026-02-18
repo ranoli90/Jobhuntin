@@ -2,6 +2,7 @@
 Background job synchronization service.
 Fetches jobs from JobSpy on schedule and syncs to database.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -43,6 +44,7 @@ DEFAULT_SEARCH_QUERIES = [
 @dataclass
 class SyncResult:
     """Result of a sync operation."""
+
     source: str
     search_term: str
     location: str | None
@@ -72,7 +74,7 @@ class JobSyncService:
     ) -> list[SyncResult]:
         """
         Sync jobs from all configured sources.
-        
+
         Args:
             search_queries: List of (search_term, location) tuples.
             max_concurrent: Max number of concurrent source scrapes.
@@ -86,18 +88,20 @@ class JobSyncService:
         results: list[SyncResult] = []
 
         try:
-            logger.info(f"Starting sync for {len(queries)} queries across {len(self.jobspy.sources)} sources")
-            
+            logger.info(
+                f"Starting sync for {len(queries)} queries across {len(self.jobspy.sources)} sources"
+            )
+
             # Process queries with limited concurrency
             semaphore = asyncio.Semaphore(max_concurrent)
-            
+
             async def process_query(search_term: str, location: str | None):
                 async with semaphore:
                     return await self._sync_query(search_term, location)
 
             tasks = [process_query(term, loc) for term, loc in queries]
             query_results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             for i, result in enumerate(query_results):
                 if isinstance(result, Exception):
                     logger.error(f"Query {i} failed: {result}")
@@ -112,10 +116,12 @@ class JobSyncService:
             total_new = sum(r.jobs_new for r in results)
             total_updated = sum(r.jobs_updated for r in results)
             total_failed = sum(1 for r in results if r.status == "failed")
-            
-            logger.info(f"Sync complete: {total_new} new, {total_updated} updated, {total_failed} failed")
+
+            logger.info(
+                f"Sync complete: {total_new} new, {total_updated} updated, {total_failed} failed"
+            )
             incr("jobspy.sync_complete", 1)
-            
+
         finally:
             self._running = False
 
@@ -128,7 +134,7 @@ class JobSyncService:
     ) -> list[SyncResult]:
         """Sync jobs for a single search query across all sources."""
         results = []
-        
+
         for source in self.jobspy.sources:
             try:
                 result = await self._sync_single_source(
@@ -139,17 +145,19 @@ class JobSyncService:
                 results.append(result)
             except Exception as e:
                 logger.error(f"Sync failed for {source}/{search_term}: {e}")
-                results.append(SyncResult(
-                    source=source,
-                    search_term=search_term,
-                    location=location,
-                    status="failed",
-                    jobs_fetched=0,
-                    jobs_new=0,
-                    jobs_updated=0,
-                    jobs_skipped=0,
-                    error=str(e),
-                ))
+                results.append(
+                    SyncResult(
+                        source=source,
+                        search_term=search_term,
+                        location=location,
+                        status="failed",
+                        jobs_fetched=0,
+                        jobs_new=0,
+                        jobs_updated=0,
+                        jobs_skipped=0,
+                        error=str(e),
+                    )
+                )
 
         return results
 
@@ -162,10 +170,10 @@ class JobSyncService:
         """Sync jobs from a single source."""
         start_time = time.time()
         sync_run_id = None
-        
+
         # Record sync start
         sync_run_id = await self._record_sync_start(source, search_term, location)
-        
+
         try:
             # Fetch jobs from JobSpy
             jobs = await self.jobspy.fetch_jobs(
@@ -173,12 +181,12 @@ class JobSyncService:
                 location=location,
                 sources=[source],
             )
-            
+
             # Sync to database
             new_count, updated_count, skipped_count = await self._sync_jobs_to_db(jobs)
-            
+
             duration_ms = int((time.time() - start_time) * 1000)
-            
+
             # Update sync run
             await self._record_sync_complete(
                 sync_run_id=sync_run_id,
@@ -189,12 +197,12 @@ class JobSyncService:
                 jobs_skipped=skipped_count,
                 duration_ms=duration_ms,
             )
-            
+
             # Update source config
             await self._update_source_config(source, success=True, jobs_count=len(jobs))
-            
+
             incr("jobspy.sync_success", 1, {"source": source})
-            
+
             return SyncResult(
                 source=source,
                 search_term=search_term,
@@ -207,19 +215,19 @@ class JobSyncService:
                 duration_ms=duration_ms,
                 sync_run_id=sync_run_id,
             )
-            
+
         except JobSpyError as e:
             duration_ms = int((time.time() - start_time) * 1000)
-            
+
             await self._record_sync_complete(
                 sync_run_id=sync_run_id,
                 status="failed",
                 error_message=str(e),
                 duration_ms=duration_ms,
             )
-            
+
             await self._update_source_config(source, success=False, error=str(e))
-            
+
             return SyncResult(
                 source=source,
                 search_term=search_term,
@@ -242,18 +250,18 @@ class JobSyncService:
         new_count = 0
         updated_count = 0
         skipped_count = 0
-        
+
         async with self.db_pool.acquire() as conn:
             for job in jobs:
                 if not self._is_quality_job(job):
                     skipped_count += 1
                     continue
-                
+
                 existing = await conn.fetchrow(
                     "SELECT id FROM public.jobs WHERE external_id = $1",
                     job["external_id"],
                 )
-                
+
                 try:
                     if existing:
                         await conn.execute(
@@ -324,7 +332,7 @@ class JobSyncService:
                 except Exception as e:
                     logger.warning(f"Failed to upsert job {job['external_id']}: {e}")
                     skipped_count += 1
-        
+
         return new_count, updated_count, skipped_count
 
     def _is_quality_job(self, job: dict[str, Any]) -> bool:
@@ -334,7 +342,7 @@ class JobSyncService:
         if not job.get("application_url"):
             return False
         desc = job.get("description", "")
-        min_len = getattr(self.settings, 'jobspy_quality_min_desc_length', 50)
+        min_len = getattr(self.settings, "jobspy_quality_min_desc_length", 50)
         if len(desc) < min_len:
             return False
         return True
@@ -353,12 +361,12 @@ class JobSyncService:
                     LIMIT 15
                     """
                 )
-            
+
             if rows:
                 return [(r["search_term"], r["location"]) for r in rows]
         except Exception as e:
             logger.warning(f"Failed to get popular searches: {e}")
-        
+
         return DEFAULT_SEARCH_QUERIES
 
     async def _record_sync_start(
@@ -455,7 +463,7 @@ class JobSyncService:
 
     async def cleanup_expired_jobs(self) -> int:
         """Remove jobs older than TTL."""
-        ttl_days = getattr(self.settings, 'jobspy_job_ttl_days', 7)
+        ttl_days = getattr(self.settings, "jobspy_job_ttl_days", 7)
         async with self.db_pool.acquire() as conn:
             result = await conn.execute(
                 "SELECT public.cleanup_expired_jobs($1)",
@@ -467,7 +475,7 @@ class JobSyncService:
                     deleted = int(result.split()[-1])
                     incr("jobspy.jobs_expired", deleted)
                     return deleted
-                except:
+                except Exception:
                     return 0
         return 0
 
@@ -485,10 +493,8 @@ class JobSyncService:
                 ORDER BY started_at DESC
                 """
             )
-            job_stats = await conn.fetch(
-                "SELECT * FROM public.job_source_stats"
-            )
-        
+            job_stats = await conn.fetch("SELECT * FROM public.job_source_stats")
+
         return {
             "sources": [dict(c) for c in configs],
             "recent_runs": [dict(r) for r in recent_runs],

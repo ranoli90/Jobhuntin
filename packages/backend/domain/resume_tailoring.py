@@ -224,7 +224,7 @@ Return ONLY the summary text, no additional formatting or labels."""
         def experience_relevance(exp: dict[str, Any]) -> int:
             score = 0
             title = (exp.get("title") or "").lower()
-            company = (exp.get("company") or "").lower()
+            (exp.get("company") or "").lower()
             responsibilities = " ".join(exp.get("responsibilities", [])).lower()
 
             if title and title in job_lower:

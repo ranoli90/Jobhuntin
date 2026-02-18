@@ -9,18 +9,32 @@ PASSWORD = "ravhuv-gitqec-nixvY4"
 DATABASE = "postgres"
 
 REGIONS = [
-    "us-east-1", "us-east-2", "us-west-1", "us-west-2",
-    "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ap-northeast-2", "ap-south-1",
-    "eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3", "eu-north-1",
-    "sa-east-1", "ca-central-1", "me-central-1", "af-south-1"
+    "us-east-1",
+    "us-east-2",
+    "us-west-1",
+    "us-west-2",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-northeast-1",
+    "ap-northeast-2",
+    "ap-south-1",
+    "eu-central-1",
+    "eu-west-1",
+    "eu-west-2",
+    "eu-west-3",
+    "eu-north-1",
+    "sa-east-1",
+    "ca-central-1",
+    "me-central-1",
+    "af-south-1",
 ]
+
 
 async def test_region(region):
     host = f"aws-0-{region}.pooler.supabase.com"
     try:
-        # Check DNS first
         socket.gethostbyname(host)
-    except:
+    except Exception:
         return None
 
     print(f"Testing {region}...")
@@ -32,7 +46,7 @@ async def test_region(region):
             host=host,
             port=6543,
             timeout=5,
-            ssl="require"
+            ssl="require",
         )
         print(f"SUCCESS: Connected to {region}!")
         await conn.close()
@@ -42,6 +56,7 @@ async def test_region(region):
         pass
     return None
 
+
 async def main():
     tasks = [test_region(r) for r in REGIONS]
     results = await asyncio.gather(*tasks)
@@ -50,6 +65,7 @@ async def main():
         print(f"\nMatch found in region(s): {found}")
     else:
         print("\nNo matching region found.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

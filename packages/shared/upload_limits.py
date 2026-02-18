@@ -125,7 +125,7 @@ def validate_upload(
 ) -> tuple[bool, str]:
     """
     Validate a file upload against tier limits.
-    
+
     Returns:
         tuple of (is_valid, error_message)
     """
@@ -198,7 +198,7 @@ def get_content_type(filename: str) -> str:
 async def scan_file_for_malware(file: BinaryIO) -> tuple[bool, str]:
     """
     Scan uploaded file for malware.
-    
+
     This is a placeholder - integrate with ClamAV or similar.
     """
     # TODO: Integrate with actual malware scanner

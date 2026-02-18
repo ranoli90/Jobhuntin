@@ -216,7 +216,7 @@ async def staffing_bulk_submit(
 
         # Queue individual applications per candidate
         for candidate in body.candidates:
-            candidate_name = candidate.get("full_name", candidate.get("name", "Candidate"))
+            candidate.get("full_name", candidate.get("name", "Candidate"))
             await conn.execute(
                 """INSERT INTO public.applications
                        (user_id, tenant_id, blueprint_key, status, priority_score)

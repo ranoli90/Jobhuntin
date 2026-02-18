@@ -94,7 +94,7 @@ class CalendarAuth:
 class CalendarService:
     """
     Calendar integration service.
-    
+
     Supports:
     - Google Calendar API
     - Microsoft Graph API (Outlook)
@@ -111,11 +111,11 @@ class CalendarService:
     ) -> str:
         """
         Create a calendar event.
-        
+
         Args:
             event: Interview event details
             provider: Calendar provider (uses auth provider if not specified)
-            
+
         Returns:
             Event ID or iCal content
         """
@@ -244,7 +244,7 @@ class CalendarService:
     ) -> list[dict]:
         """
         Get free/busy times from calendar.
-        
+
         Returns list of busy periods with start and end times.
         """
         provider = provider or (self.auth.provider if self.auth else None)
@@ -345,7 +345,7 @@ class CalendarService:
     def generate_ical_download(self, event: InterviewEvent) -> tuple[str, str]:
         """
         Generate iCal content for download.
-        
+
         Returns:
             Tuple of (content, filename)
         """
@@ -367,7 +367,7 @@ async def create_interview_event(
 ) -> str:
     """
     Convenience function to create an interview event.
-    
+
     Args:
         title: Interview title
         start_time: Interview start time
@@ -378,7 +378,7 @@ async def create_interview_event(
         attendees: List of attendee emails
         provider: Calendar provider
         auth: Calendar authentication
-        
+
     Returns:
         Event ID or iCal content
     """
@@ -458,15 +458,15 @@ async def refresh_google_token(
 ) -> dict:
     """
     Refresh Google OAuth access token.
-    
+
     Args:
         refresh_token: Google refresh token
         client_id: Google OAuth client ID
         client_secret: Google OAuth client secret
-        
+
     Returns:
         Dict with new access_token and optionally refresh_token
-        
+
     Raises:
         Exception: If token refresh fails
     """
@@ -505,16 +505,16 @@ async def refresh_microsoft_token(
 ) -> dict:
     """
     Refresh Microsoft OAuth access token.
-    
+
     Args:
         refresh_token: Microsoft refresh token
         client_id: Microsoft OAuth client ID
         client_secret: Microsoft OAuth client secret
         tenant_id: Microsoft tenant ID
-        
+
     Returns:
         Dict with new access_token and optionally refresh_token
-        
+
     Raises:
         Exception: If token refresh fails
     """
@@ -552,14 +552,14 @@ async def ensure_valid_token(
 ) -> CalendarAuth:
     """
     Ensure the calendar auth has a valid access token, refreshing if necessary.
-    
+
     Args:
         auth: Current calendar authentication
         token_expires_at: When the current token expires (if known)
-        
+
     Returns:
         Updated CalendarAuth with valid access_token
-        
+
     Raises:
         ValueError: If refresh is not possible (missing refresh_token or credentials)
     """

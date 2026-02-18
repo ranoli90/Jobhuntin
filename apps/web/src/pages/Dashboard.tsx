@@ -30,9 +30,9 @@ function statusVariant(status: string): 'success' | 'warning' | 'error' | 'defau
 
 // N-8: Tier pricing extracted to a constant so it isn't recreated every render
 const BILLING_TIERS = [
-  { name: "FREE" as const, price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null },
+  { name: "FREE" as const, price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null, recommended: false },
   { name: "PRO" as const, price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, actionKey: "upgrade" as const },
-  { name: "TEAM" as const, price: "$49", features: ["10 team seats", "API access", "White-label reports"], actionKey: "addSeats" as const },
+  { name: "TEAM" as const, price: "$49", features: ["10 team seats", "API access", "White-label reports"], actionKey: "addSeats" as const, recommended: false },
 ] as const;
 
 // N-2: Shared locale helper – used by all sub-views
