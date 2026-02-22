@@ -325,7 +325,7 @@ async function main() {
         console.log("📥 Loaded", urls.length, "URLs from file");
     } else {
         urls = parseSitemap();
-        console.log(`📄 Parsed ${urls.length} URLs from sitemap`);
+        console.log("📄 Parsed", urls.length, "URLs from sitemap");
     }
     
     const sortedUrls = urls.sort((a, b) => {
@@ -334,10 +334,10 @@ async function main() {
     });
     
     console.log(`\n📊 URL Distribution:`);
-    console.log(`   Critical: ${urls.filter(u => u.priority === 'critical').length}`);
-    console.log(`   High: ${urls.filter(u => u.priority === 'high').length}`);
-    console.log(`   Medium: ${urls.filter(u => u.priority === 'medium').length}`);
-    console.log(`   Low: ${urls.filter(u => u.priority === 'low').length}`);
+    console.log("   Critical:", urls.filter((u) => u.priority === "critical").length);
+    console.log("   High:", urls.filter((u) => u.priority === "high").length);
+    console.log("   Medium:", urls.filter((u) => u.priority === "medium").length);
+    console.log("   Low:", urls.filter((u) => u.priority === "low").length);
     
     const allUrls = sortedUrls.map(u => u.url);
     
@@ -346,7 +346,7 @@ async function main() {
         console.log(`\n📋 Top 20 URLs to submit:`);
         allUrls.slice(0, 20).forEach((url, i) => {
             const info = sortedUrls[i];
-            console.log(`   ${i + 1}. [${info.priority}] ${url}`);
+            console.log("   ", i + 1 + ". [" + info.priority + "]", url);
         });
     }
     
@@ -367,7 +367,7 @@ async function main() {
     
     console.log(`\n📊 FINAL RESULTS:`);
     results.forEach(r => {
-        console.log(`   ${r.success ? '✅' : '❌'} ${r.method}`);
+        console.log("   ", r.success ? "✅" : "❌", r.method);
     });
     
     console.log(`\n🎯 NEXT STEPS FOR FASTEST INDEXING:`);

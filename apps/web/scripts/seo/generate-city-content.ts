@@ -195,19 +195,19 @@ async function generateAggressiveLocalContent(
   }
 
   // Fetch real market data
-  console.log(`📊 Fetching real job market data for ${roleName} in ${cityName}...`);
+  console.log("📊 Fetching real job market data for", roleName, "in", cityName, "...");
   const marketStats = await getCityJobStats(cityName, roleName);
   const injectedContext = formatStatsForPrompt(marketStats, cityName, roleName);
 
   if (marketStats) {
-    console.log(`✅ Found ${marketStats.totalJobs} active jobs. Injecting context.`);
+    console.log("✅ Found", marketStats.totalJobs, "active jobs. Injecting context.");
   } else {
     console.log(`⚠️ No specific job data found. Proceeding with general knowledge.`);
   }
 
   // Randomly select an archetype ("The Chameleon Engine")
   const archetype = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
-  console.log(`🦎 Chameleon Engine: Selected Archetype -> ${archetype.name}`);
+  console.log("🦎 Chameleon Engine: Selected Archetype ->", archetype.name);
   
   // Random unique angle for this generation
   const uniqueAngles = [
@@ -239,18 +239,18 @@ Return JSON only:
 {"location":{"name":"${cityName}","seoTitle":"<60 chars","seoDescription":"<155 chars","h1":"headline","h2s":["8 headings"],"contentSections":[{"heading":"","content":"150 words","keywords":[]}],"localKeywords":["10"],"majorEmployers":[],"medianIncome":0},"role":{"name":"${roleName}","avgSalary":0,"demandLevel":"High","skills":["10"]}}
 Real companies, realistic salaries, natural writing.`;
 
-  console.log(`📝 Prompt length: ${aggressivePrompt.length} characters`);
+  console.log("📝 Prompt length:", aggressivePrompt.length, "characters");
 
   // Try each model with detailed logging
 
-  console.log(`🤖 Generating aggressive local content for: ${roleName} in ${cityName}`);
+  console.log("🤖 Generating aggressive local content for:", roleName, "in", cityName);
   console.log(`🎯 Using semantic triples and entity relationships for maximum SEO impact`);
   console.log(`🛡️  Google compliant - no blackhat techniques detected`);
 
   // Try multiple free models with enhanced error handling
   for (let i = 0; i < modelsToTry.length; i++) {
     const model = modelsToTry[i];
-    console.log(`\n🔄 Attempting with model: ${model} (${i + 1}/${modelsToTry.length})`);
+    console.log("\n🔄 Attempting with model:", model, "(" + (i + 1) + "/" + modelsToTry.length + ")");
 
     // Add delay between models to avoid rate limiting
     if (i > 0) {
@@ -291,15 +291,15 @@ Real companies, realistic salaries, natural writing.`;
       clearTimeout(timeoutId);
 
       // DETAILED LOGGING
-      console.log(`\n${'='.repeat(60)}`);
-      console.log(`📤 REQUEST: ${roleName} jobs in ${cityName}`);
-      console.log(`🤖 MODEL: ${model}`);
-      console.log(`${'='.repeat(60)}`);
+      console.log("\n" + "=".repeat(60));
+      console.log("📤 REQUEST:", roleName, "jobs in", cityName);
+      console.log("🤖 MODEL:", model);
+      console.log("=".repeat(60));
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(`❌ HTTP ERROR: ${response.status}`);
-        console.log(`❌ ERROR DETAILS: ${errorText}`);
+        console.log("❌ HTTP ERROR:", response.status);
+        console.log("❌ ERROR DETAILS:", errorText);
         continue;
       }
 
@@ -308,8 +308,8 @@ Real companies, realistic salaries, natural writing.`;
       const finishReason = data.choices?.[0]?.finish_reason;
       const tokensUsed = data.usage?.total_tokens || 0;
 
-      console.log(`📊 TOKENS USED: ${tokensUsed}`);
-      console.log(`🏁 FINISH REASON: ${finishReason}`);
+      console.log("📊 TOKENS USED:", tokensUsed);
+      console.log("🏁 FINISH REASON:", finishReason);
 
       // Check if response was truncated
       if (finishReason === 'length') {
@@ -319,13 +319,13 @@ Real companies, realistic salaries, natural writing.`;
       }
 
       if (!content) {
-        console.log(`❌ EMPTY CONTENT from ${model}`);
+        console.log("❌ EMPTY CONTENT from", model);
         continue;
       }
 
-      console.log(`✅ CONTENT LENGTH: ${content.length} characters`);
-      console.log(`✅ SUCCESS with ${model}`);
-      console.log(`${'='.repeat(60)}\n`);
+      console.log("✅ CONTENT LENGTH:", content.length, "characters");
+      console.log("✅ SUCCESS with", model);
+      console.log("=".repeat(60) + "\n");
 
       // Improved JSON extraction
       let jsonString = content.replace(/```json\n?/g, '').replace(/\n?```/g, '').trim();
@@ -342,25 +342,25 @@ Real companies, realistic salaries, natural writing.`;
       try {
         parsedContent = JSON.parse(jsonString);
       } catch (parseError: any) {
-        console.log(`⚠️  Model ${model} returned invalid JSON: ${parseError.message}`);
-        console.log(`   Raw content preview: ${content.substring(0, 200)}...`);
+        console.log("⚠️  Model", model, "returned invalid JSON:", parseError.message);
+        console.log("   Raw content preview:", content.substring(0, 200) + "...");
         continue;
       }
 
       // Validate content quality and compliance
       if (validateContentQuality(parsedContent)) {
-        console.log(`✅ Successfully generated content with model: ${model}`);
-        console.log(`📊 Content quality score: ${parsedContent.location?.contentQuality || 'N/A'}`);
-        console.log(`🎯 Semantic density: ${parsedContent.location?.entityDensity || 'N/A'}%`);
-        console.log(`🧠 Entity count: ${parsedContent.location?.entityMentions?.length || 0}`);
+        console.log("✅ Successfully generated content with model:", model);
+        console.log("📊 Content quality score:", parsedContent.location?.contentQuality || "N/A");
+        console.log("🎯 Semantic density:", parsedContent.location?.entityDensity || "N/A", "%");
+        console.log("🧠 Entity count:", parsedContent.location?.entityMentions?.length || 0);
         return parsedContent;
       } else {
-        console.log(`⚠️  Content quality validation failed for model: ${model}`);
+        console.log("⚠️  Content quality validation failed for model:", model);
         continue;
       }
 
     } catch (error: any) {
-      console.log(`⚠️  Model ${model} error: ${error.message}`);
+      console.log("⚠️  Model", model, "error:", error.message);
 
       // Log additional error context for debugging
       if (error.name === 'AbortError') {
@@ -393,7 +393,7 @@ function validateContentQuality(content: any): boolean {
 
     // Check minimum content requirements
     if (!location.contentSections || location.contentSections.length < 3) {
-      console.log(`❌ Insufficient content sections: ${location.contentSections?.length || 0} (minimum 3)`);
+      console.log("❌ Insufficient content sections:", location.contentSections?.length || 0, "(minimum 3)");
       return false;
     }
 
@@ -405,7 +405,7 @@ function validateContentQuality(content: any): boolean {
     }, 0);
 
     if (totalWords < 1000) {
-      console.log(`❌ Insufficient word count: ${totalWords} (minimum 1000)`);
+      console.log("❌ Insufficient word count:", totalWords, "(minimum 1000)");
       return false;
     }
 
@@ -415,13 +415,13 @@ function validateContentQuality(content: any): boolean {
     }, 0) / location.contentSections.length;
 
     if (avgDensity > 4.0) { // Increased threshold for flexibility
-      console.log(`❌ Semantic density too high: ${avgDensity.toFixed(2)}% (maximum 4.0%)`);
+      console.log("❌ Semantic density too high:", avgDensity.toFixed(2) + "% (maximum 4.0%)");
       return false;
     }
 
     // Check content quality score
     if (location.contentQuality < 65) { // Lowered threshold slightly
-      console.log(`❌ Content quality too low: ${location.contentQuality} (minimum 65)`);
+      console.log("❌ Content quality too low:", location.contentQuality, "(minimum 65)");
       return false;
     }
 
@@ -433,19 +433,19 @@ function validateContentQuality(content: any): boolean {
 
     // Check for entity mentions
     if (!location.entityMentions || location.entityMentions.length < 3) { // Reduced requirement
-      console.log(`❌ Insufficient entity mentions: ${location.entityMentions?.length || 0} (minimum 3)`);
+      console.log("❌ Insufficient entity mentions:", location.entityMentions?.length || 0, "(minimum 3)");
       return false;
     }
 
     console.log(`✅ Content quality validation passed`);
-    console.log(`📊 Word count: ${totalWords}`);
-    console.log(`🎯 Semantic density: ${avgDensity.toFixed(1)}%`);
-    console.log(`🏆 Quality score: ${location.contentQuality}`);
-    console.log(`🧠 Entity count: ${location.entityMentions?.length || 0}`);
+    console.log("📊 Word count:", totalWords);
+    console.log("🎯 Semantic density:", avgDensity.toFixed(1) + "%");
+    console.log("🏆 Quality score:", location.contentQuality);
+    console.log("🧠 Entity count:", location.entityMentions?.length || 0);
 
     return true;
   } catch (error: any) {
-    console.log(`❌ Content validation error: ${error.message}`);
+    console.log("❌ Content validation error:", error.message);
     return false;
   }
 }
@@ -471,7 +471,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
         fs.copyFileSync(ROLES_FILE, path.join(backupDir, `roles-${timestamp}.json`));
       }
     } catch (backupError: any) {
-      console.log(`⚠️  Could not create backup: ${backupError.message}`);
+      console.log("⚠️  Could not create backup:", backupError.message);
     }
 
     // Load existing data
@@ -485,9 +485,9 @@ async function saveContent(cityName: string, roleName: string, content: { locati
 
     if (locationIndex !== -1) {
       locations[locationIndex] = { ...locations[locationIndex], ...content.location };
-      console.log(`✅ Updated location data for ${cityName} (${locations[locationIndex].contentQuality}/100 quality)`);
+      console.log("✅ Updated location data for", cityName, "(" + locations[locationIndex].contentQuality + "/100 quality)");
     } else {
-      console.log(`⚠️  Location ${cityName} not found in database - adding new location`);
+      console.log("⚠️  Location", cityName, "not found in database - adding new location");
       // Add new location if not found
       locations.push({ ...content.location, name: cityName });
     }
@@ -499,9 +499,9 @@ async function saveContent(cityName: string, roleName: string, content: { locati
 
     if (roleIndex !== -1) {
       roles[roleIndex] = { ...roles[roleIndex], ...content.role };
-      console.log(`✅ Updated role data for ${roleName} (${roles[roleIndex].contentQuality}/100 quality)`);
+      console.log("✅ Updated role data for", roleName, "(" + roles[roleIndex].contentQuality + "/100 quality)");
     } else {
-      console.log(`⚠️  Role ${roleName} not found in database - adding new role`);
+      console.log("⚠️  Role", roleName, "not found in database - adding new role");
       // Add new role if not found
       roles.push({ ...content.role, name: roleName });
     }
@@ -521,12 +521,12 @@ async function saveContent(cityName: string, roleName: string, content: { locati
         console.log(`✅ Files validated successfully`);
       }
     } catch (saveError: any) {
-      console.error(`❌ Error saving files: ${saveError.message}`);
+      console.error("❌ Error saving files:", saveError.message);
       throw saveError;
     }
 
     console.log(`💾 Content saved successfully`);
-    console.log(`📊 Updated ${locations.length} locations and ${roles.length} roles`);
+    console.log("📊 Updated", locations.length, "locations and", roles.length, "roles");
 
     // AUTO-REGENERATE SITEMAP
     console.log(`🗺️  Regenerating sitemap...`);
@@ -538,7 +538,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
       });
       console.log(`✅ Sitemap updated with new pages`);
     } catch (sitemapError: any) {
-      console.log(`⚠️  Sitemap regeneration failed: ${sitemapError.message}`);
+      console.log("⚠️  Sitemap regeneration failed:", sitemapError.message);
     }
 
     // LOG THE NEW URL
@@ -547,13 +547,13 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     const newUrl = `https://jobhuntin.com/jobs/${roleSlug}/${citySlug}`;
     console.log(`\n${'='.repeat(60)}`);
     console.log(`*** NEW PAGE CREATED ***`);
-    console.log(`URL: ${newUrl}`);
-    console.log(`Title: ${content.location?.seoTitle || 'Generated'}`);
-    console.log(`Quality Score: ${content.location?.contentQuality || 'N/A'}/100`);
-    console.log(`${'='.repeat(60)}\n`);
+    console.log("URL:", newUrl);
+    console.log("Title:", content.location?.seoTitle || "Generated");
+    console.log("Quality Score:", content.location?.contentQuality || "N/A", "/100");
+    console.log("=".repeat(60) + "\n");
 
   } catch (error: any) {
-    console.error(`❌ Error saving content: ${error.message}`);
+    console.error("❌ Error saving content:", error.message);
     throw error;
   }
 }
@@ -590,12 +590,12 @@ Examples:
   const urlIndex = args.indexOf('--url');
   const customUrl = urlIndex !== -1 ? args[urlIndex + 1] : null;
 
-  console.log(`🚀 Generating content for: ${roleName} jobs in ${cityName}`);
-  console.log(`🎯 Mode: ${aggressive ? 'Aggressive' : 'Standard'}`);
+  console.log("🚀 Generating content for:", roleName, "jobs in", cityName);
+  console.log("🎯 Mode:", aggressive ? "Aggressive" : "Standard");
   console.log(`🛡️  Google compliant: Yes`);
   console.log(`💰 Using free models only: Yes`);
-  console.log(`📋 Backup enabled: ${backup ? 'Yes' : 'No'}`);
-  console.log(`🔍 Dry run: ${dryRun ? 'Yes' : 'No'}`);
+  console.log("📋 Backup enabled:", backup ? "Yes" : "No");
+  console.log("🔍 Dry run:", dryRun ? "Yes" : "No");
 
   try {
     // Generate content
@@ -603,27 +603,27 @@ Examples:
 
     if (dryRun) {
       console.log(`\n🔍 DRY RUN: Content preview:`);
-      console.log(`📊 Location quality: ${content.location.contentQuality}`);
-      console.log(`📊 Role quality: ${content.role.contentQuality}`);
-      console.log(`🎯 SEO Title: ${content.location.seoTitle}`);
-      console.log(`🎯 H1: ${content.location.h1}`);
-      console.log(`📈 Content sections: ${content.location.contentSections?.length || 0}`);
-      console.log(`🧠 Entities: ${content.location.entityMentions?.length || 0}`);
+      console.log("📊 Location quality:", content.location.contentQuality);
+      console.log("📊 Role quality:", content.role.contentQuality);
+      console.log("🎯 SEO Title:", content.location.seoTitle);
+      console.log("🎯 H1:", content.location.h1);
+      console.log("📈 Content sections:", content.location.contentSections?.length || 0);
+      console.log("🧠 Entities:", content.location.entityMentions?.length || 0);
       console.log(`\n✅ Content generation successful (dry run)`);
     } else {
       // Save content
       await saveContent(cityName, roleName, content);
       console.log(`\n✅ Content generation and saving completed successfully`);
       console.log(`📊 Quality metrics:`);
-      console.log(`   Location: ${content.location.contentQuality}/100`);
-      console.log(`   Role: ${content.role.contentQuality}/100`);
+      console.log("   Location:", content.location.contentQuality + "/100");
+      console.log("   Role:", content.role.contentQuality + "/100");
       console.log(`🎯 SEO optimization complete`);
       console.log(`🛡️  Google compliance verified`);
       console.log(`📈 Ready for Google submission`);
     }
 
   } catch (error: any) {
-    console.error(`❌ Error: ${error.message}`);
+    console.error("❌ Error:", error.message);
     console.error(`🔧 Troubleshooting tips:`);
     console.error(`   - Check your LLM_API_KEY environment variable`);
     console.error(`   - Verify internet connection`);

@@ -69,7 +69,7 @@ export async function getCityJobStats(city: string, roleKeyword: string): Promis
 
         // If no jobs found, return null so the caller knows we have no data
         if (!stats || parseInt(stats.total_jobs) === 0) {
-            console.log(`⚠️ No real job data found for ${roleKeyword} in ${city}. Content may be generic.`);
+            console.log("⚠️ No real job data found for", roleKeyword, "in", city, ". Content may be generic.");
             return null;
         }
 
