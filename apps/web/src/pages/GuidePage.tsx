@@ -269,7 +269,9 @@ export default function GuidePage() {
 
         <article
           className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-primary-600 mb-20 prose-strong:text-slate-900"
-          dangerouslySetInnerHTML={{ __html: guide.content.replace(/<h3>/g, '<h3 id="heading-0">').replace(/<h4>/g, '<h4 id="heading-1">') }}
+          dangerouslySetInnerHTML={{
+            __html: XSSProtection.sanitizeHTML(guide.content.replace(/<h3>/g, '<h3 id="heading-0">').replace(/<h4>/g, '<h4 id="heading-1">')),
+          }}
         />
 
         <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 lg:p-10 border border-slate-100 shadow-sm mb-20">

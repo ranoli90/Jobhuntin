@@ -34,7 +34,7 @@ async function checkUpdates() {
     // Example of how we'd log an update
     // if (updatesFound > 0) {
     //   fs.writeFileSync(competitorsPath, JSON.stringify(competitors, null, 2));
-    //   console.log(`✅ Updated ${updatesFound} competitors.`);
+    //   console.log("✅ Updated", updatesFound, "competitors.");
     // }
 }
 
