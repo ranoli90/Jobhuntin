@@ -107,6 +107,10 @@ scripts/setup/
 **/client_secret*.json
 **/*.pfx
 
+# Sonar
+sonar-report.json
+.scannerwork/
+
 # Misc temporary files
 *.tmp
 *.temp

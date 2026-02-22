@@ -47,7 +47,7 @@ Snapshot of results from tools run so far (no code changes applied). Pending too
 - Output (pending): `analysis_output/radon_cc.json`
 
 ## Blocked/Skipped
-- SonarQube CE: Skipped (no Docker/virtualization available)
+- SonarQube CE: **Configured** — Use `npm run sonar` with SonarCloud token (see docs/SONARQUBE_SETUP.md) or `docker compose -f docker/sonarqube.yml up` for local server
 - Trivy / Gitleaks / Grype / Syft: Not installed on PATH; not run
 - Infer: Not installed; not run
 

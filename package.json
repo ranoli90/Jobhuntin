@@ -9,9 +9,12 @@
     "build": "npm run build --workspaces",
     "dev": "npm run dev --workspaces",
     "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "sonar": "sonar-scanner",
+    "sonar:dry": "sonar-scanner -Dsonar.scanner.dumpToFile=sonar-report.json"
   },
   "devDependencies": {
+    "@sonar/scan": "^4.3.4",
     "turbo": "^1.10.0"
   },
   "overrides": {
