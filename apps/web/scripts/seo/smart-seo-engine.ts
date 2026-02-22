@@ -186,8 +186,8 @@ async function generateCompetitorComparison(
   const timestamp = new Date().toISOString();
   console.log('\n' + '='.repeat(80));
   console.log(`📊 CONTENT TYPE: Competitor Comparison`);
-  console.log(`🎯 TARGET: ${competitor.name} (${competitor.volume.toLocaleString()} searches/mo)`);
-  console.log(`⏰ Started: ${timestamp}`);
+  console.log("🎯 TARGET:", competitor.name, "(" + competitor.volume.toLocaleString() + " searches/mo)");
+  console.log("⏰ Started:", timestamp);
   console.log('='.repeat(80));
 
   return new Promise((resolve) => {
@@ -221,11 +221,11 @@ async function generateCompetitorComparison(
 
       console.log('\n' + '-'.repeat(80));
       if (code === 0) {
-        console.log(`✅ SUCCESS: ${competitor.name} comparison completed in ${duration}s`);
+        console.log("✅ SUCCESS:", competitor.name, "comparison completed in", duration, "s");
         const url = `https://jobhuntin.com/vs/${competitor.name.toLowerCase()}`;
         resolve({ url, title: `${competitor.name} vs JobHuntin`, success: true });
       } else {
-        console.log(`❌ FAILED: ${competitor.name} comparison (exit ${code}) after ${duration}s`);
+        console.log("❌ FAILED:", competitor.name, "comparison (exit", code, ") after", duration, "s");
         resolve({ url: '', title: '', success: false });
       }
       console.log('-'.repeat(80) + '\n');
@@ -243,8 +243,8 @@ async function generateTrendingContent(
   const timestamp = new Date().toISOString();
   console.log('\n' + '='.repeat(80));
   console.log(`📰 CONTENT TYPE: Industry Trends & News`);
-  console.log(`🎯 TOPIC: ${topic}`);
-  console.log(`⏰ Started: ${timestamp}`);
+  console.log("🎯 TOPIC:", topic);
+  console.log("⏰ Started:", timestamp);
   console.log('='.repeat(80));
 
   return new Promise((resolve) => {
@@ -276,11 +276,11 @@ async function generateTrendingContent(
 
       console.log('\n' + '-'.repeat(80));
       if (code === 0) {
-        console.log(`✅ SUCCESS: Trending content for "${topic}" completed in ${duration}s`);
+        console.log("✅ SUCCESS: Trending content for", topic, "completed in", duration, "s");
         const url = `https://jobhuntin.com/news/${topic.toLowerCase().replace(/\s+/g, '-')}`;
         resolve({ url, title: topic, success: true });
       } else {
-        console.log(`❌ FAILED: Trending content (exit ${code}) after ${duration}s`);
+        console.log("❌ FAILED: Trending content (exit", code, ") after", duration, "s");
         resolve({ url: '', title: '', success: false });
       }
       console.log('-'.repeat(80) + '\n');
@@ -299,8 +299,8 @@ async function generateLocationContent(
   const timestamp = new Date().toISOString();
   console.log('\n' + '='.repeat(80));
   console.log(`📍 CONTENT TYPE: Location Deep Dive`);
-  console.log(`🎯 TARGET: ${role} jobs in ${location}`);
-  console.log(`⏰ Started: ${timestamp}`);
+  console.log("🎯 TARGET:", role, "jobs in", location);
+  console.log("⏰ Started:", timestamp);
   console.log('='.repeat(80));
 
   return new Promise((resolve) => {
@@ -333,11 +333,11 @@ async function generateLocationContent(
 
       console.log('\n' + '-'.repeat(80));
       if (code === 0) {
-        console.log(`✅ SUCCESS: ${role} in ${location} completed in ${duration}s`);
+        console.log("✅ SUCCESS:", role, "in", location, "completed in", duration, "s");
         const url = `https://jobhuntin.com/jobs/${role.toLowerCase().replace(/\s+/g, '-')}/${location.toLowerCase().replace(/\s+/g, '-')}`;
         resolve({ url, title: `${role} Jobs in ${location}`, success: true });
       } else {
-        console.log(`❌ FAILED: ${role} in ${location} (exit ${code}) after ${duration}s`);
+        console.log("❌ FAILED:", role, "in", location, "(exit", code, ") after", duration, "s");
         resolve({ url: '', title: '', success: false });
       }
       console.log('-'.repeat(80) + '\n');
@@ -476,9 +476,9 @@ async function runAutomation(): Promise<void> {
   console.log('█'.repeat(80));
   console.log('█  🤖 SMART SEO ENGINE - DIVERSIFIED CONTENT GENERATION              █');
   console.log('█'.repeat(80));
-  console.log(`📅 Run started: ${new Date().toISOString()}`);
-  console.log(`🧠 Model: ${CONFIG.MODEL} via OpenRouter`);
-  console.log(`📊 Daily limit: ${CONFIG.DAILY_GENERATION_LIMIT} pages`);
+  console.log("📅 Run started:", new Date().toISOString());
+  console.log("🧠 Model:", CONFIG.MODEL, "via OpenRouter");
+  console.log("📊 Daily limit:", CONFIG.DAILY_GENERATION_LIMIT, "pages");
   console.log('');
 
   // Load state
@@ -510,7 +510,7 @@ async function runAutomation(): Promise<void> {
   }
 
   const remainingQuota = CONFIG.DAILY_GENERATION_LIMIT - state.dailyQuotaUsed;
-  console.log(`📊 Quota remaining: ${remainingQuota}/${CONFIG.DAILY_GENERATION_LIMIT}`);
+  console.log("📊 Quota remaining:", remainingQuota + "/" + CONFIG.DAILY_GENERATION_LIMIT);
   console.log('');
 
   let generatedThisRun = 0;
@@ -519,7 +519,7 @@ async function runAutomation(): Promise<void> {
   // Generate content based on rotation
   for (let i = 0; i < CONFIG.BATCH_SIZE && state.dailyQuotaUsed < CONFIG.DAILY_GENERATION_LIMIT; i++) {
     const contentType = getNextContentType(state);
-    console.log(`\n📋 Content type: ${contentType.name} (${contentType.description})`);
+    console.log("\n📋 Content type:", contentType.name, "(" + contentType.description + ")");
 
     let result: { url: string; title: string; success: boolean };
 
@@ -634,7 +634,7 @@ async function runAutomation(): Promise<void> {
       }
 
       default:
-        console.log(`⚠️ Unknown content type: ${contentType.id}`);
+        console.log("⚠️ Unknown content type:", contentType.id);
         continue;
     }
 
@@ -651,7 +651,7 @@ async function runAutomation(): Promise<void> {
 
     // Delay between generations
     if (i < CONFIG.BATCH_SIZE - 1 && state.dailyQuotaUsed < CONFIG.DAILY_GENERATION_LIMIT) {
-      console.log(`\n⏳ Waiting ${CONFIG.BATCH_DELAY_MS / 1000}s before next generation...`);
+      console.log("\n⏳ Waiting", CONFIG.BATCH_DELAY_MS / 1000, "s before next generation...");
       await new Promise(resolve => setTimeout(resolve, CONFIG.BATCH_DELAY_MS));
     }
   }
@@ -819,7 +819,7 @@ async function runFastIndex(): Promise<void> {
  */
 function log(category: string, message: string): void {
   const ts = new Date().toISOString();
-  console.log(`[${ts}] [${category}] ${message}`);
+  console.log("[" + ts + "] [" + category + "]", message);
 }
 
 /**

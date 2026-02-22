@@ -545,7 +545,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     const roleSlug = content.role?.slug || roleName.toLowerCase().replace(/\s+/g, '-');
     const citySlug = content.location?.slug || cityName.toLowerCase().replace(/\s+/g, '-');
     const newUrl = `https://jobhuntin.com/jobs/${roleSlug}/${citySlug}`;
-    console.log(`\n${'='.repeat(60)}`);
+    console.log("\n" + "=".repeat(60));
     console.log(`*** NEW PAGE CREATED ***`);
     console.log("URL:", newUrl);
     console.log("Title:", content.location?.seoTitle || "Generated");

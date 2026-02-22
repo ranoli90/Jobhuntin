@@ -67,14 +67,14 @@ export const logger = {
 export const telemetry = {
   track: (event: string, data?: Record<string, unknown>) => {
     if (isDev) {
-      console.log(`[Telemetry] ${event}`, data);
+      console.log("[Telemetry]", event, data);
     }
     // In production, this would send to an analytics service
   },
   
   identify: (userId: string, traits?: Record<string, unknown>) => {
     if (isDev) {
-      console.log(`[Telemetry] Identify: ${userId}`, traits);
+      console.log("[Telemetry] Identify:", userId, traits);
     }
   },
 };

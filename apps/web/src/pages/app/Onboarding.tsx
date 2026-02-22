@@ -517,7 +517,7 @@ export default function Onboarding() {
         const nextDelay = delay * Math.pow(2, i);
 
         if (import.meta.env.DEV) {
-          console.log(`[Onboarding] Retry ${i + 1}/${maxRetries} after ${nextDelay}ms:`, error);
+          console.log("[Onboarding] Retry", i + 1 + "/" + maxRetries, "after", nextDelay, "ms:", error);
         }
 
         if (isNetworkError) {

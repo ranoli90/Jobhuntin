@@ -3,7 +3,7 @@ export const telemetry = {
   track: (event: string, properties?: Record<string, any>) => {
     // In development, log to console
     if (import.meta.env.DEV) {
-      console.log(`[Telemetry] ${event}:`, properties);
+      console.log("[Telemetry]", event + ":", properties);
       return;
     }
     

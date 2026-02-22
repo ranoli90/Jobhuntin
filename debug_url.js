@@ -2,9 +2,9 @@
 const https = require('https');
 
 function checkUrl(url) {
-  console.log(`Checking ${url}...`);
+  console.log("Checking", url, "...");
   https.get(url, (res) => {
-    console.log(`Status: ${res.statusCode}`);
+    console.log("Status:", res.statusCode);
     console.log('Headers:', JSON.stringify(res.headers, null, 2));
     
     let data = '';
@@ -16,7 +16,7 @@ function checkUrl(url) {
       console.log('Body Preview:', data.substring(0, 500));
     });
   }).on('error', (e) => {
-    console.error(`Error: ${e.message}`);
+    console.error("Error:", e.message);
   });
 }
 

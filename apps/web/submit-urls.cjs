@@ -9,7 +9,7 @@ const content = fs.readFileSync(SITEMAP, 'utf-8');
 const matches = content.match(/<loc>(.*?)<\/loc>/g) || [];
 const urls = matches.map(m => m.replace(/<\/?loc>/g, ''));
 
-console.log(`Found ${urls.length} URLs to submit`);
+console.log("Found", urls.length, "URLs to submit");
 
 const batchSize = 100;
 let submitted = 0;
@@ -47,7 +47,7 @@ async function submitBatch(batch) {
 }
 
 async function main() {
-    console.log(`\n🚀 Submitting ${urls.length} URLs via IndexNow...`);
+    console.log("\n🚀 Submitting", urls.length, "URLs via IndexNow...");
     
     for (let i = 0; i < urls.length; i += batchSize) {
         const batch = urls.slice(i, i + batchSize);
@@ -55,19 +55,19 @@ async function main() {
         
         if (success) {
             submitted += batch.length;
-            console.log(`✅ Batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(urls.length/batchSize)}: ${batch.length} URLs submitted`);
+            console.log("✅ Batch", Math.floor(i / batchSize) + 1 + "/" + Math.ceil(urls.length / batchSize) + ":", batch.length, "URLs submitted");
         } else {
             errors += batch.length;
-            console.log(`❌ Batch ${Math.floor(i/batchSize) + 1} failed`);
+            console.log("❌ Batch", Math.floor(i / batchSize) + 1, "failed");
         }
         
         await new Promise(r => setTimeout(r, 200));
     }
     
     console.log(`\n📊 Complete!`);
-    console.log(`   ✅ Submitted: ${submitted}`);
-    console.log(`   ❌ Errors: ${errors}`);
-    console.log(`   📈 Success Rate: ${((submitted/urls.length)*100).toFixed(1)}%`);
+    console.log("   ✅ Submitted:", submitted);
+    console.log("   ❌ Errors:", errors);
+    console.log("   📈 Success Rate:", ((submitted / urls.length) * 100).toFixed(1) + "%");
 }
 
 main();

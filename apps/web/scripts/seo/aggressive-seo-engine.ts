@@ -296,15 +296,15 @@ async function main() {
     
     console.log('🔴 CRITICAL (' + critical.length + '):');
     critical.forEach((s, i) => {
-        console.log(`   ${i + 1}. ${s.action}`);
-        console.log(`      Impact: ${s.impact}`);
-        console.log(`      Timeline: ${s.timeline}\n`);
+        console.log("   ", i + 1 + ".", s.action);
+        console.log("      Impact:", s.impact);
+        console.log("      Timeline:", s.timeline + "\n");
     });
     
     console.log('🟠 HIGH PRIORITY (' + high.length + '):');
     high.forEach((s, i) => {
-        console.log(`   ${i + 1}. ${s.action}`);
-        console.log(`      Impact: ${s.impact}\n`);
+        console.log("   ", i + 1 + ".", s.action);
+        console.log("      Impact:", s.impact + "\n");
     });
     
     const sitemapPath = path.resolve(__dirname, '../../public/sitemap.xml');
@@ -315,7 +315,7 @@ async function main() {
     
     console.log('\n🎯 TOP 20 PRIORITY URLs FOR IMMEDIATE INDEXING:');
     prioritized.slice(0, 20).forEach((url, i) => {
-        console.log(`   ${i + 1}. ${url}`);
+        console.log("   ", i + 1 + ".", url);
     });
     
     console.log('\n📈 COMPETITOR KEYWORD OPPORTUNITIES:');
@@ -323,7 +323,7 @@ async function main() {
         .sort((a, b) => b[1].volume - a[1].volume);
     
     sortedCompetitors.slice(0, 10).forEach(([name, data], i) => {
-        console.log(`   ${i + 1}. ${name}: ${data.volume.toLocaleString()} searches/mo (diff: ${data.difficulty})`);
+        console.log("   ", i + 1 + ".", name + ":", data.volume.toLocaleString(), "searches/mo (diff:", data.difficulty + ")");
     });
     
     const reportPath = path.resolve(__dirname, '../../logs/aggressive-seo-report.json');
@@ -343,7 +343,7 @@ async function main() {
     }, null, 2));
     
     console.log(`\n✅ Report saved to logs/aggressive-seo-report.json`);
-    console.log(`📊 Total URLs: ${urls.length}`);
+    console.log("📊 Total URLs:", urls.length);
     console.log(`🔥 Ready for aggressive indexing campaign`);
 }
 
