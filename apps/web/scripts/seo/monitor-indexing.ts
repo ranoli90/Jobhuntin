@@ -47,7 +47,7 @@ async function getAuthClient() {
 }
 
 async function parseSitemap(url: string): Promise<string[]> {
-    console.log(`Fetching sitemap from ${url}...`);
+    console.log("Fetching sitemap from", url, "...");
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch sitemap: ${response.statusText}`);
@@ -59,7 +59,7 @@ async function parseSitemap(url: string): Promise<string[]> {
 
         return matches.map(m => m.replace(/<\/?loc>/g, ''));
     } catch (error) {
-        console.warn(`⚠️ Could not fetch sitemap (is the site live?). Using local simulation if needed.`);
+        console.warn("⚠️ Could not fetch sitemap (is the site live?). Using local simulation if needed.");
         return [];
     }
 }
@@ -75,7 +75,7 @@ async function checkIndexingStatus() {
         return;
     }
 
-    console.log(`Checking status for ${sitemapUrls.length} URLs...`);
+    console.log("Checking status for", sitemapUrls.length, "URLs...");
 
     // Allow --submit-missing flag
     const shouldSubmitMissing = process.argv.includes('--submit-missing');
@@ -106,31 +106,31 @@ async function checkIndexingStatus() {
         const missing = sitemapUrls.filter(url => !activeUrls.has(url));
         const indexedCount = activeUrls.size;
 
-        console.log(`\n📊 Indexing Report for ${SITE_URL}`);
-        console.log(`-----------------------------------`);
-        console.log(`Total URLs in Sitemap: ${sitemapUrls.length}`);
-        console.log(`Active in Search (last 90d): ${indexedCount}`);
-        console.log(`Potentially Missing/Inactive: ${missing.length}`);
+        console.log("\n📊 Indexing Report for", SITE_URL);
+        console.log("-----------------------------------");
+        console.log("Total URLs in Sitemap:", sitemapUrls.length);
+        console.log("Active in Search (last 90d):", indexedCount);
+        console.log("Potentially Missing/Inactive:", missing.length);
 
         if (missing.length > 0) {
-            console.log(`\nTop 5 Missing URLs:`);
-            missing.slice(0, 5).forEach(url => console.log(` - ${url}`));
+            console.log("\nTop 5 Missing URLs:");
+            missing.slice(0, 5).forEach((url) => console.log(" -", url));
 
             if (shouldSubmitMissing) {
-                console.log(`\n🚀 Submitting ${missing.length} missing URLs to Indexing API...`);
+                console.log("\n🚀 Submitting", missing.length, "missing URLs to Indexing API...");
                 for (const url of missing) {
                     try {
                         await indexing.urlNotifications.publish({
                             requestBody: {
                                 url: url,
-                                type: 'URL_UPDATED',
+                                type: "URL_UPDATED",
                             },
                         });
-                        console.log(`   Submitted: ${url}`);
+                        console.log("   Submitted:", url);
                         // Rate limit generic
-                        await new Promise(r => setTimeout(r, 600));
+                        await new Promise((r) => setTimeout(r, 600));
                     } catch (e: any) {
-                        console.error(`   Failed to submit ${url}: ${e.message}`);
+                        console.error("   Failed to submit", url, ":", e.message);
                     }
                 }
             } else {
@@ -141,7 +141,7 @@ async function checkIndexingStatus() {
         }
 
     } catch (error: any) {
-        console.error(`Error querying Search Console: ${error.message}`);
+        console.error("Error querying Search Console:", error.message);
         console.log('Ensure the Service Account has "Owner" or "Full" permissions in Search Console settings.');
     }
 }

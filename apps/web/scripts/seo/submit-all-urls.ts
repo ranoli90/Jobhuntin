@@ -16,8 +16,8 @@ const BASE_URL = process.env.GOOGLE_SEARCH_CONSOLE_SITE || 'https://jobhuntin.co
 async function main() {
   console.log('🚀 SUBMITTING ALL EXISTING URLS TO GOOGLE');
   console.log('='.repeat(60));
-  console.log(`📍 Site: ${BASE_URL}`);
-  console.log(`⏰ Started: ${new Date().toISOString()}`);
+  console.log("📍 Site:", BASE_URL);
+  console.log("⏰ Started:", new Date().toISOString());
   console.log('');
 
   // Extract URLs from all sitemaps
@@ -31,14 +31,14 @@ async function main() {
     const matches = content.match(/<loc>(.*?)<\/loc>/g) || [];
     const urls = matches.map(m => m.replace(/<\/?loc>/g, ''));
     allUrls.push(...urls);
-    console.log(`📄 ${file}: ${urls.length} URLs`);
+    console.log("📄", file + ":", urls.length, "URLs");
   }
   
-  console.log(`\n📊 Total URLs found: ${allUrls.length}`);
-  
+  console.log("\n📊 Total URLs found:", allUrls.length);
+
   // Dedupe
   const uniqueUrls = [...new Set(allUrls)];
-  console.log(`📊 Unique URLs: ${uniqueUrls.length}`);
+  console.log("📊 Unique URLs:", uniqueUrls.length);
   
   // Check for Google credentials
   const keyEnv = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -51,12 +51,12 @@ async function main() {
   let keyContent;
   try {
     keyContent = JSON.parse(keyEnv);
-    console.log(`✅ Service account: ${keyContent.client_email}`);
+    console.log("✅ Service account:", keyContent.client_email);
   } catch {
     // Try as file path
     try {
-      keyContent = JSON.parse(fs.readFileSync(keyEnv, 'utf8'));
-      console.log(`✅ Service account: ${keyContent.client_email}`);
+      keyContent = JSON.parse(fs.readFileSync(keyEnv, "utf8"));
+      console.log("✅ Service account:", keyContent.client_email);
     } catch (e) {
       console.error('❌ Could not parse GOOGLE_SERVICE_ACCOUNT_KEY');
       process.exit(1);
@@ -80,7 +80,7 @@ async function main() {
   const dailyLimit = 200;
   const urlsToSubmit = uniqueUrls.slice(0, dailyLimit);
   
-  console.log(`\n📤 Submitting ${urlsToSubmit.length} URLs (daily limit: ${dailyLimit})`);
+  console.log("\n📤 Submitting", urlsToSubmit.length, "URLs (daily limit:", dailyLimit + ")");
   console.log('='.repeat(60));
 
   let successCount = 0;
@@ -110,7 +110,7 @@ async function main() {
       }
       
     } catch (error: any) {
-      console.log(`❌ ${error.message}`);
+      console.log("❌", error.message);
       errorCount++;
       results.push({ url, status: 'error', error: error.message, timestamp: new Date().toISOString() });
     }
@@ -134,11 +134,11 @@ async function main() {
   console.log('\n' + '='.repeat(60));
   console.log('📊 SUBMISSION COMPLETE');
   console.log('='.repeat(60));
-  console.log(`✅ Success: ${successCount}`);
-  console.log(`❌ Errors: ${errorCount}`);
-  console.log(`📝 Log: ${logPath}`);
-  console.log(`\n⏰ URLs will be indexed within 24-48 hours.`);
-  console.log(`📈 Check status at: https://search.google.com/search-console`);
+  console.log("✅ Success:", successCount);
+  console.log("❌ Errors:", errorCount);
+  console.log("📝 Log:", logPath);
+  console.log("\n⏰ URLs will be indexed within 24-48 hours.");
+  console.log("📈 Check status at: https://search.google.com/search-console");
 }
 
 main().catch(console.error);
