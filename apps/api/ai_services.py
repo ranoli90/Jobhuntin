@@ -292,7 +292,7 @@ class AIService:
         """Generate a cache key from arguments."""
         import hashlib
         content = ":".join(str(arg) for arg in args)
-        return hashlib.md5(content.encode()).hexdigest()
+        return hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
 
     def _generate_role_cache_key(
         self,

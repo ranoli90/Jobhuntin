@@ -368,6 +368,7 @@ async def get_performance_trends(
     interval_map.get(interval, "5 minutes")
 
     async with db.acquire() as conn:
+        # nosec B608 - duration from time_range_map constant, not user input
         rows = await conn.fetch(f"""
             SELECT
                 date_trunc('minute', created_at) -

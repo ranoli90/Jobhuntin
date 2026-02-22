@@ -337,7 +337,7 @@ class PasswordValidator:
         password: str,
         http_client: Any = None,
     ) -> tuple[bool, int]:
-        sha1_hash = hashlib.sha1(password.encode()).hexdigest().upper()
+        sha1_hash = hashlib.sha1(password.encode(), usedforsecurity=False).hexdigest().upper()
         prefix = sha1_hash[:5]
         suffix = sha1_hash[5:]
 

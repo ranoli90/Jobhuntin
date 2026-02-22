@@ -6,7 +6,7 @@ Mounted at /sso prefix by api/main.py.
 
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -42,12 +42,14 @@ router = APIRouter(prefix="/sso", tags=["sso"])
 
 def _get_pool() -> asyncpg.Pool:
     return (_ for _ in ()).throw(
-    NotImplementedError("Pool not injected")
-)
+        NotImplementedError("Pool not injected")
+    )
+
+
 def _get_tenant_ctx() -> TenantContext:
     return (_ for _ in ()).throw(
-    NotImplementedError("Tenant ctx not injected")
-)
+        NotImplementedError("Tenant ctx not injected")
+    )
 
 # ---------------------------------------------------------------------------
 # Models
@@ -151,7 +153,8 @@ async def saml_acs(
             import uuid
             user_id = str(uuid.uuid4())
             await conn.execute(
-                "INSERT INTO public.users (id, email, full_name, created_at, updated_at) VALUES ($1, $2, '', now(), now())",
+                "INSERT INTO public.users (id, email, full_name, created_at, updated_at) "
+                "VALUES ($1, $2, '', now(), now())",
                 user_id, email
             )
             await conn.execute(

@@ -10,15 +10,16 @@ import signal
 import sys
 import time
 
-# Add project paths
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "packages"))
+# Add project paths before imports (E402: import not at top - required for worker)
+_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, _root)
+sys.path.insert(0, os.path.join(_root, "packages"))
 
-import asyncpg
-from shared.config import get_settings
-from shared.logging_config import get_logger
+import asyncpg  # noqa: E402
+from shared.config import get_settings  # noqa: E402
+from shared.logging_config import get_logger  # noqa: E402
 
-from backend.domain.job_sync_service import JobSyncService
+from backend.domain.job_sync_service import JobSyncService  # noqa: E402
 
 logger = get_logger("sorce.job_sync_worker")
 
@@ -47,8 +48,6 @@ async def create_db_pool():
 
 async def run_sync_loop():
     """Main sync loop - runs every 4 hours."""
-    global _shutdown
-
     settings = get_settings()
     db_pool = await create_db_pool()
     sync_service = JobSyncService(db_pool, settings)

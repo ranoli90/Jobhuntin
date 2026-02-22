@@ -826,7 +826,7 @@ async def upload_resume(
         logger.error("Resume upload failed: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Resume processing failed. Please try again."
+            detail="Resume processing failed. Please try again."
         )
 
     from shared.metrics import incr

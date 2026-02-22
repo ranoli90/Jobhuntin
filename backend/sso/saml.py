@@ -13,7 +13,7 @@ import hmac
 import json
 import time
 from typing import Any
-from xml.etree import ElementTree as ET
+from xml.etree import ElementTree as ET  # nosec B405 - SAML verified via signxml when cert present
 
 import asyncpg
 from shared.config import Environment, get_settings
@@ -118,7 +118,7 @@ def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[s
                 "SAML signature verification SKIPPED (no certificate) — "
                 "this is only permitted in local development"
             )
-            root = ET.fromstring(xml_bytes)
+            root = ET.fromstring(xml_bytes)  # nosec B405 - local dev only, prod requires cert+signxml
 
     # -- Claim extraction ------------------------------------------------------
     try:

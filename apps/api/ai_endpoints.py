@@ -363,7 +363,7 @@ def _generate_cache_key(profile_id: str, job_ids: list[str]) -> str:
     """Generate a cache key for job matching results."""
     job_ids_str = ",".join(sorted(job_ids))
     content = f"{profile_id}:{job_ids_str}"
-    return hashlib.md5(content.encode()).hexdigest()
+    return hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
 
 
 async def _get_job_details(db: asyncpg.Connection, job_id: str) -> dict[str, Any]:
