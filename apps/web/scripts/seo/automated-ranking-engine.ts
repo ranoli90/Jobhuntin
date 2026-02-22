@@ -164,10 +164,10 @@ function generatePriorityMatrix(): PriorityMatrix[] {
  * Generate content for a specific city/role combination
  */
 async function generateContent(city: string, role: string): Promise<boolean> {
-  console.log(`\n${'='.repeat(70)}`);
-  console.log(`🚀 GENERATING: ${role} jobs in ${city}`);
-  console.log(`⏰ Started at: ${new Date().toLocaleTimeString()}`);
-  console.log(`${'='.repeat(70)}`);
+  console.log("\n" + "=".repeat(70));
+  console.log("🚀 GENERATING:", role, "jobs in", city);
+  console.log("⏰ Started at:", new Date().toLocaleTimeString());
+  console.log("=".repeat(70));
 
   return new Promise((resolve) => {
     // Pass arguments as an array to spawn correctly
@@ -180,7 +180,7 @@ async function generateContent(city: string, role: string): Promise<boolean> {
     const timeoutMs = 10 * 60 * 1000; // kill if >10 minutes
 
     const timeout = setTimeout(() => {
-      console.warn(`\n⏱️ TIMEOUT after 10 minutes. Killing process...`);
+      console.warn("\n⏱️ TIMEOUT after 10 minutes. Killing process...");
       childProcess.kill('SIGKILL');
     }, timeoutMs);
 
@@ -188,14 +188,16 @@ async function generateContent(city: string, role: string): Promise<boolean> {
       clearTimeout(timeout);
       const duration = ((Date.now() - start) / 1000).toFixed(1);
       
-      console.log(`\n${'='.repeat(70)}`);
+      console.log("\n" + "=".repeat(70));
       if (code === 0) {
-        console.log(`✅ SUCCESS: ${role} in ${city} completed in ${duration}s`);
-        console.log(`🔗 URL: https://jobhuntin.com/jobs/${role.toLowerCase().replace(/\s+/g, '-')}/${city.toLowerCase().replace(/\s+/g, '-')}`);
+        console.log("✅ SUCCESS:", role, "in", city, "completed in", duration, "s");
+        const roleSlug = role.toLowerCase().replace(/\s+/g, "-");
+        const citySlug = city.toLowerCase().replace(/\s+/g, "-");
+        console.log("🔗 URL: https://jobhuntin.com/jobs/" + roleSlug + "/" + citySlug);
       } else {
-        console.log(`❌ FAILED: ${role} in ${city} (exit code ${code}) after ${duration}s`);
+        console.log("❌ FAILED:", role, "in", city, "(exit code", code, ") after", duration, "s");
       }
-      console.log(`${'='.repeat(70)}\n`);
+      console.log("=".repeat(70) + "\n");
       
       resolve(code === 0);
     });
@@ -219,7 +221,7 @@ async function submitToGoogle(urls: string[], allowSubmission: boolean): Promise
     const tmpFile = path.join(tmpDir, `urls-${Date.now()}.txt`);
     fs.writeFileSync(tmpFile, urls.join('\n'));
 
-    console.log(`📊 Submitting ${urls.length} URLs to Google...`);
+    console.log("📊 Submitting", urls.length, "URLs to Google...");
 
     // Pass arguments as an array to spawn correctly
     const childProcess = spawn('npx', ['tsx', 'scripts/seo/submit-to-google-enhanced.ts', '--priority', '--urls-file', tmpFile], {
@@ -235,7 +237,7 @@ async function submitToGoogle(urls: string[], allowSubmission: boolean): Promise
     const start = Date.now();
     const timeoutMs = 5 * 60 * 1000; // 5 minutes
     const timeout = setTimeout(() => {
-      console.warn(`⏱️ Google submission timeout for batch of ${urls.length}. Killing process...`);
+      console.warn("⏱️ Google submission timeout for batch of", urls.length, ". Killing process...");
       childProcess.kill('SIGKILL');
     }, timeoutMs);
 
@@ -248,9 +250,9 @@ async function submitToGoogle(urls: string[], allowSubmission: boolean): Promise
       const duration = ((Date.now() - start) / 1000).toFixed(1);
       const success = code === 0;
       if (success) {
-        console.log(`✅ Submitted ${urls.length} URLs to Google in ${duration}s`);
+        console.log("✅ Submitted", urls.length, "URLs to Google in", duration, "s");
       } else {
-        console.error(`❌ Google submission failed after ${duration}s`);
+        console.error("❌ Google submission failed after", duration, "s");
         console.error(output);
       }
       // Log to Supabase
@@ -290,7 +292,7 @@ async function runAutomation(): Promise<void> {
     });
     
     if (staleCombinations.length > 0) {
-      console.log(`📅 Found ${staleCombinations.length} pages to refresh`);
+      console.log("📅 Found", staleCombinations.length, "pages to refresh");
       priorityMatrix.push(...staleCombinations);
     } else {
       console.log('🎉 No pages need refreshing. Engine will check again in 24 hours.');
@@ -306,10 +308,11 @@ async function runAutomation(): Promise<void> {
   const { used: dailyQuotaUsed, reset: dailyQuotaReset } = await getQuotaState();
   let remainingDailyQuota = Math.max(0, DAILY_SUBMISSION_LIMIT - dailyQuotaUsed);
 
-  console.log(`📊 Total combinations: ${totalAll}`);
-  console.log(`🆕 Need content: ${totalCombinations}`);
-  console.log(`🏆 Top priority: ${priorityMatrix[0]?.role?.name || 'N/A'} in ${priorityMatrix[0]?.location?.name || 'N/A'} (Score: ${priorityMatrix[0]?.potential || 0})`);
-  console.log(`📦 Daily quota remaining: ${remainingDailyQuota}/${DAILY_SUBMISSION_LIMIT}`);
+  console.log("📊 Total combinations:", totalAll);
+  console.log("🆕 Need content:", totalCombinations);
+  const top = priorityMatrix[0];
+  console.log("🏆 Top priority:", top?.role?.name || "N/A", "in", top?.location?.name || "N/A", "(Score:", top?.potential || 0, ")");
+  console.log("📦 Daily quota remaining:", remainingDailyQuota, "/", DAILY_SUBMISSION_LIMIT);
 
   let generatedCount = 0;
   let submittedCount = 0;
@@ -319,7 +322,9 @@ async function runAutomation(): Promise<void> {
   for (let i = startIndex; i < priorityMatrix.length; i += BATCH_GENERATION_SIZE) {
     const batch = priorityMatrix.slice(i, i + BATCH_GENERATION_SIZE);
 
-    console.log(`\n🔄 Processing batch ${Math.floor(i / BATCH_GENERATION_SIZE) + 1}/${Math.ceil(priorityMatrix.length / BATCH_GENERATION_SIZE)}`);
+    const batchNum = Math.floor(i / BATCH_GENERATION_SIZE) + 1;
+    const totalBatches = Math.ceil(priorityMatrix.length / BATCH_GENERATION_SIZE);
+    console.log("\n🔄 Processing batch", batchNum + "/" + totalBatches);
 
     // Generate content for this batch
     const results = await Promise.allSettled(
@@ -328,7 +333,7 @@ async function runAutomation(): Promise<void> {
     const successful = results.filter(r => r.status === 'fulfilled' && r.value).length;
     generatedCount += successful;
 
-    console.log(`✅ Generated ${successful}/${BATCH_GENERATION_SIZE} pages`);
+    console.log("✅ Generated", successful + "/" + BATCH_GENERATION_SIZE, "pages");
 
     // Add URLs to submission queue
     for (const item of batch) {
@@ -352,7 +357,7 @@ async function runAutomation(): Promise<void> {
         break;
       }
       if (remainingDailyQuota <= 0) {
-        console.log(`🚦 Reached daily submission quota (${DAILY_SUBMISSION_LIMIT}). Remaining URLs will be sent next run.`);
+        console.log("🚦 Reached daily submission quota (" + DAILY_SUBMISSION_LIMIT + "). Remaining URLs will be sent next run.");
         break;
       }
     }
@@ -384,10 +389,10 @@ async function runAutomation(): Promise<void> {
   const quotaUsedToday = DAILY_SUBMISSION_LIMIT - remainingDailyQuota;
   await saveProgress(nextIndex, quotaUsedToday, dailyQuotaReset);
 
-  console.log('\n🎉 AUTOMATION COMPLETE!');
-  console.log(`📄 Generated: ${generatedCount} pages`);
-  console.log(`🚀 Submitted to Google: ${submittedCount} URLs`);
-  console.log(`💰 Estimated monthly traffic potential: ${Math.round(generatedCount * 50)} visitors`);
+  console.log("\n🎉 AUTOMATION COMPLETE!");
+  console.log("📄 Generated:", generatedCount, "pages");
+  console.log("🚀 Submitted to Google:", submittedCount, "URLs");
+  console.log("💰 Estimated monthly traffic potential:", Math.round(generatedCount * 50), "visitors");
 }
 
 /**
@@ -463,21 +468,21 @@ async function main(): Promise<void> {
     runInProgress = false;
     // Schedule next run (daily) after completion to avoid overlap
     const nextRunTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    console.log(`⏰ Scheduling next run in 24 hours (${nextRunTime})...`);
+    console.log("⏰ Scheduling next run in 24 hours (" + nextRunTime + ")...");
     setTimeout(() => { void main(); }, 24 * 60 * 60 * 1000);
   }
 }
 
 // Error handling with enhanced logging
-process.on('unhandledRejection', (error) => {
+process.on("unhandledRejection", (error) => {
   const timestamp = new Date().toISOString();
-  console.error(`❌ Unhandled rejection at ${timestamp}:`, error);
+  console.error("❌ Unhandled rejection at", timestamp, ":", error);
   // Continue running - don't let errors stop the automation
 });
 
-process.on('uncaughtException', (error) => {
+process.on("uncaughtException", (error) => {
   const timestamp = new Date().toISOString();
-  console.error(`❌ Uncaught exception at ${timestamp}:`, error);
+  console.error("❌ Uncaught exception at", timestamp, ":", error);
   // Continue running - don't let errors stop the automation
 });
 

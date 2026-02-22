@@ -10,7 +10,7 @@ const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.jso
 async function scrapeCompetitor(browser: any, competitor: any) {
     const page = await browser.newPage();
     const targetUrl = competitor.domain.startsWith('http') ? competitor.domain : `https://${competitor.domain}`;
-    console.log(`🔍 Checking ${competitor.name} (${targetUrl})...`);
+    console.log("🔍 Checking", competitor.name, "(" + targetUrl + ")...");
 
     try {
         // Try homepage first, then pricing
@@ -22,18 +22,18 @@ async function scrapeCompetitor(browser: any, competitor: any) {
 
         if (priceMatches) {
             const lowestPrice = Math.min(...priceMatches.map((m: string) => parseFloat(m.replace(/\$/g, ''))));
-            console.log(`   Found potential prices: ${priceMatches.slice(0, 3).join(', ')} (Lowest: $${lowestPrice})`);
+            console.log("   Found potential prices:", priceMatches.slice(0, 3).join(", "), "(Lowest: $" + lowestPrice + ")");
 
             // Check if it differs significantly from competitors.json
             const currentStartsAt = competitor.pricing?.starts_at || "0";
             const currentPrice = parseFloat(currentStartsAt.replace(/[^0-9.]/g, '')) || 0;
             if (lowestPrice > 0 && Math.abs(lowestPrice - currentPrice) > 1) {
-                console.log(`   ⚠️ Price change detected! Old: ${currentStartsAt}, New: ~$${lowestPrice}`);
+                console.log("   ⚠️ Price change detected! Old:", currentStartsAt, ", New: ~$" + lowestPrice);
                 return { ...competitor, pricing: { ...competitor.pricing, starts_at: `$${lowestPrice}/mo` }, updatedAt: new Date().toISOString() };
             }
         }
     } catch (e: any) {
-        console.warn(`   ❌ Failed to scrape ${competitor.name}: ${e.message}`);
+        console.warn("   ❌ Failed to scrape", competitor.name, ":", e.message);
     } finally {
         await page.close();
     }
@@ -54,7 +54,7 @@ async function main() {
     // Limit to first 5 for testing/demonstration to avoid long execution
     const activeCompetitors = process.argv.includes('--all') ? competitors : competitors.slice(0, 5);
 
-    console.log(`🚀 Starting competitive intelligence scrape for ${activeCompetitors.length} brands...`);
+    console.log("🚀 Starting competitive intelligence scrape for", activeCompetitors.length, "brands...");
 
     for (const competitor of activeCompetitors) {
         const updated = await scrapeCompetitor(browser, competitor);
@@ -73,9 +73,9 @@ async function main() {
             return up || c;
         });
         fs.writeFileSync(COMPETITORS_FILE, JSON.stringify(fullCompetitors, null, 2));
-        console.log(`\n✅ Intelligence capture complete. Updated ${changedCount} competitors.`);
+        console.log("\n✅ Intelligence capture complete. Updated", changedCount, "competitors.");
     } else {
-        console.log(`\n🏁 Sweep complete. ${changedCount} potential updates found. (Run with --write to save)`);
+        console.log("\n🏁 Sweep complete.", changedCount, "potential updates found. (Run with --write to save)");
     }
 
     await browser.close();

@@ -64,11 +64,11 @@ export function FAQAccordion({ items, competitorName }: FAQAccordionProps) {
                 ))}
             </div>
 
-            {/* Inject FAQPage schema */}
+            {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml - JSON-LD schema; JSON.stringify+replace prevents XSS */}
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
-                    __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')
+                    __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c").replace(/>/g, "\\u003e"),
                 }}
             />
         </section>
