@@ -24,7 +24,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-console.log(`🚀 Starting SEO Backend Integration...`);
+console.log("🚀 Starting SEO Backend Integration...");
 
 // Configuration
 const CONFIG = {
@@ -53,7 +53,7 @@ const CONFIG = {
 function ensureLogDirectory() {
     if (!fs.existsSync(CONFIG.LOG_DIR)) {
         fs.mkdirSync(CONFIG.LOG_DIR, { recursive: true });
-        console.log(`📁 Created log directory: ${CONFIG.LOG_DIR}`);
+        console.log("📁 Created log directory:", CONFIG.LOG_DIR);
     }
 }
 
@@ -62,13 +62,13 @@ function checkEnvironment() {
     const missing = CONFIG.REQUIRED_ENV_VARS.filter(env => !process.env[env]);
     
     if (missing.length > 0) {
-        console.log(`⚠️  Missing environment variables: ${missing.join(', ')}`);
-        console.log(`   The SEO engine will start but won't be able to submit to Google.`);
-        console.log(`   Set these in your Render environment variables.`);
+        console.log("⚠️  Missing environment variables:", missing.join(", "));
+        console.log("   The SEO engine will start but won't be able to submit to Google.");
+        console.log("   Set these in your Render environment variables.");
         return false;
     }
     
-    console.log(`✅ All required environment variables are set`);
+    console.log("✅ All required environment variables are set");
     return true;
 }
 
@@ -81,16 +81,16 @@ function isEngineRunning(): boolean {
             // Check if process exists (cross-platform)
             try {
                 process.kill(pid, 0); // Signal 0 just checks if process exists
-                console.log(`⚠️  SEO engine is already running (PID: ${pid})`);
+                console.log("⚠️  SEO engine is already running (PID:", pid + ")");
                 return true;
             } catch {
                 // Process doesn't exist, remove stale PID file
                 fs.unlinkSync(CONFIG.PID_FILE);
-                console.log(`🧹 Removed stale PID file`);
+                console.log("🧹 Removed stale PID file");
             }
         }
     } catch (error) {
-        console.log(`⚠️  Could not check if engine is running: ${error.message}`);
+        console.log("⚠️  Could not check if engine is running:", error.message);
     }
     
     return false;
@@ -100,15 +100,15 @@ function isEngineRunning(): boolean {
 function savePid(pid: number) {
     try {
         fs.writeFileSync(CONFIG.PID_FILE, pid.toString());
-        console.log(`💾 Saved PID: ${pid}`);
+        console.log("💾 Saved PID:", pid);
     } catch (error) {
-        console.log(`⚠️  Could not save PID: ${error.message}`);
+        console.log("⚠️  Could not save PID:", error.message);
     }
 }
 
 // Start the SEO engine
 function startSEngine(): ChildProcess {
-    console.log(`🎯 Starting SEO Ranking Engine...`);
+    console.log("🎯 Starting SEO Ranking Engine...");
     
     const enginePath = path.resolve(__dirname, 'automated-ranking-engine.ts');
     
@@ -133,13 +133,13 @@ function startSEngine(): ChildProcess {
     engineProcess.stdout?.on('data', (data) => {
         const output = data.toString();
         const timestamp = new Date().toISOString();
-        console.log(`[SEO Engine ${timestamp}] ${output.trim()}`);
+        console.log("[SEO Engine", timestamp + "]", output.trim());
         
         // Append to log file with timestamp
         try {
             fs.appendFileSync(CONFIG.ENGINE_LOG, `[${timestamp}] ${output}`);
         } catch (error) {
-            console.log(`⚠️  Could not write to log file: ${error.message}`);
+            console.log("⚠️  Could not write to log file:", error.message);
         }
     });
     
@@ -147,49 +147,49 @@ function startSEngine(): ChildProcess {
     engineProcess.stderr?.on('data', (data) => {
         const error = data.toString();
         const timestamp = new Date().toISOString();
-        console.error(`[SEO Engine Error ${timestamp}] ${error.trim()}`);
+        console.error("[SEO Engine Error", timestamp + "]", error.trim());
         
         // Append error to log file with timestamp
         try {
             fs.appendFileSync(CONFIG.ENGINE_LOG, `[${timestamp}] ERROR: ${error}`);
         } catch (logError) {
-            console.log(`⚠️  Could not write error to log file: ${logError.message}`);
+            console.log("⚠️  Could not write error to log file:", logError.message);
         }
     });
     
     // Handle process exit with enhanced logging
     engineProcess.on('exit', (code, signal) => {
         const timestamp = new Date().toISOString();
-        console.log(`🛑 SEO engine stopped (code: ${code}, signal: ${signal}) at ${timestamp}`);
+        console.log("🛑 SEO engine stopped (code:", code, ", signal:", signal, ") at", timestamp);
         
         // Log to file for debugging
         try {
             fs.appendFileSync(CONFIG.ENGINE_LOG, `[${timestamp}] ENGINE STOPPED (code: ${code}, signal: ${signal})`);
         } catch (error) {
-            console.log(`⚠️  Could not log engine stop: ${error.message}`);
+            console.log("⚠️  Could not log engine stop:", error.message);
         }
         
         // Clean up PID file
         try {
             if (fs.existsSync(CONFIG.PID_FILE)) {
                 fs.unlinkSync(CONFIG.PID_FILE);
-                console.log(`🧹 Cleaned up PID file`);
+                console.log("🧹 Cleaned up PID file");
             }
         } catch (error) {
-            console.log(`⚠️  Could not clean up PID file: ${error.message}`);
+            console.log("⚠️  Could not clean up PID file:", error.message);
         }
         
         // Restart engine if it wasn't killed intentionally (with backoff)
         if (signal !== 'SIGTERM' && signal !== 'SIGKILL') {
             const backoffTime = Math.min(30000 * Math.pow(2, Math.floor(Math.random() * 3)), 300000); // 30s-5min with jitter
-            console.log(`🔄 Restarting SEO engine in ${backoffTime/1000}s...`);
+            console.log("🔄 Restarting SEO engine in", backoffTime / 1000, "s...");
             setTimeout(() => {
                 if (!isEngineRunning()) {
-                    console.log(`🚀 Starting SEO engine restart...`);
+                    console.log("🚀 Starting SEO engine restart...");
                     const newProcess = startSEngine();
                     savePid(newProcess.pid!);
                 } else {
-                    console.log(`✅ SEO engine already running, skipping restart`);
+                    console.log("✅ SEO engine already running, skipping restart");
                 }
             }, backoffTime);
         }
@@ -198,17 +198,17 @@ function startSEngine(): ChildProcess {
     // Handle process errors with enhanced logging
     engineProcess.on('error', (error) => {
         const timestamp = new Date().toISOString();
-        console.error(`❌ SEO engine error at ${timestamp}: ${error.message}`);
+        console.error("❌ SEO engine error at", timestamp, ":", error.message);
         
         try {
             fs.appendFileSync(CONFIG.ENGINE_LOG, `[${timestamp}] FATAL ERROR: ${error.message}\n`);
         } catch (logError) {
-            console.log(`⚠️  Could not write fatal error to log file: ${logError.message}`);
+            console.log("⚠️  Could not write fatal error to log file:", logError.message);
         }
         
         // Attempt restart on fatal errors
         if (!isEngineRunning()) {
-            console.log(`🔄 Attempting restart due to fatal error...`);
+            console.log("🔄 Attempting restart due to fatal error...");
             setTimeout(() => {
                 const newProcess = startSEngine();
                 savePid(newProcess.pid!);
@@ -228,22 +228,22 @@ function monitorSubmissions() {
             
             if (recentLog) {
                 const successRate = ((recentLog.successCount / (recentLog.successCount + recentLog.errorCount)) * 100).toFixed(1);
-                console.log(`\n📊 Recent Submission Status (${new Date().toISOString()}):`);
-                console.log(`   📅 Last submission: ${recentLog.timestamp}`);
-                console.log(`   ✅ Successful: ${recentLog.successCount}`);
-                console.log(`   ❌ Failed: ${recentLog.errorCount}`);
-                console.log(`   📈 Success rate: ${successRate}%`);
+                console.log("\n📊 Recent Submission Status (" + new Date().toISOString() + "):");
+                console.log("   📅 Last submission:", recentLog.timestamp);
+                console.log("   ✅ Successful:", recentLog.successCount);
+                console.log("   ❌ Failed:", recentLog.errorCount);
+                console.log("   📈 Success rate:", successRate + "%");
                 
                 // Log to engine log for persistence
                 try {
                     fs.appendFileSync(CONFIG.ENGINE_LOG, `[${new Date().toISOString()}] SUBMISSION MONITOR: Success rate ${successRate}%\n`);
                 } catch (error) {
-                    console.log(`⚠️  Could not log submission monitor: ${error.message}`);
+                    console.log("⚠️  Could not log submission monitor:", error.message);
                 }
             }
         }
     } catch (error) {
-        console.log(`⚠️  Could not read submission log: ${error.message}`);
+        console.log("⚠️  Could not read submission log:", error.message);
     }
 }
 
@@ -266,7 +266,7 @@ export function getSEOHealth() {
             }
         }
     } catch (error) {
-        console.log(`⚠️  Could not read health data: ${error.message}`);
+        console.log("⚠️  Could not read health data:", error.message);
     }
     
     // Check log file sizes for diagnostics
@@ -365,7 +365,7 @@ export function setupSEOHealthEndpoint(app: any) {
 // Main integration function with enhanced startup logging
 export function startSEOIntegration() {
     const startupTime = new Date().toISOString();
-    console.log(`\n🚀 SEO Backend Integration Starting at ${startupTime}...`);
+    console.log("\n🚀 SEO Backend Integration Starting at", startupTime, "...");
     
     // Setup
     ensureLogDirectory();
@@ -375,18 +375,18 @@ export function startSEOIntegration() {
     try {
         fs.appendFileSync(CONFIG.ENGINE_LOG, `[${startupTime}] SEO INTEGRATION STARTING\n`);
     } catch (error) {
-        console.log(`⚠️  Could not log startup: ${error.message}`);
+        console.log("⚠️  Could not log startup:", error.message);
     }
     
     // Check if already running
     if (isEngineRunning()) {
-        console.log(`✅ SEO engine is already running`);
+        console.log("✅ SEO engine is already running");
         monitorSubmissions();
         return null;
     }
     
     // Start the engine
-    console.log(`🎯 Starting SEO Ranking Engine...`);
+    console.log("🎯 Starting SEO Ranking Engine...");
     const engineProcess = startSEngine();
     
     // Save PID for tracking
@@ -396,7 +396,7 @@ export function startSEOIntegration() {
     
     // Initial monitoring with logging
     setTimeout(() => {
-        console.log(`🔍 Running initial monitoring check...`);
+        console.log("🔍 Running initial monitoring check...");
         monitorSubmissions();
     }, 5000);
     
@@ -411,21 +411,21 @@ export function startSEOIntegration() {
         monitorSubmissions();
     }, CONFIG.CHECK_INTERVAL * 60 * 1000);
     
-    console.log(`\n✅ SEO Backend Integration Complete!`);
-    console.log(`\n📋 Integration Summary:`);
-    console.log(`   🔄 SEO engine: ${engineProcess.pid ? 'Running (PID: ' + engineProcess.pid + ')' : 'Failed to start'}`);
-    console.log(`   📊 Environment: ${envReady ? 'Ready' : 'Missing config'}`);
-    console.log(`   📝 Logs: ${CONFIG.LOG_DIR}`);
-    console.log(`   ⏰ Check interval: ${CONFIG.CHECK_INTERVAL} minutes`);
-    console.log(`   🕐 Started at: ${startupTime}`);
-    console.log(`\n🎯 The SEO engine will now run 24/7 with your backend!`);
-    console.log(`🔗 Health endpoint: /api/seo-health`);
-    console.log(`🔗 Diagnostics endpoint: /api/seo-diagnostics`);
+    console.log("\n✅ SEO Backend Integration Complete!");
+    console.log("\n📋 Integration Summary:");
+    console.log("   🔄 SEO engine:", engineProcess.pid ? "Running (PID: " + engineProcess.pid + ")" : "Failed to start");
+    console.log("   📊 Environment:", envReady ? "Ready" : "Missing config");
+    console.log("   📝 Logs:", CONFIG.LOG_DIR);
+    console.log("   ⏰ Check interval:", CONFIG.CHECK_INTERVAL, "minutes");
+    console.log("   🕐 Started at:", startupTime);
+    console.log("\n🎯 The SEO engine will now run 24/7 with your backend!");
+    console.log("🔗 Health endpoint: /api/seo-health");
+    console.log("🔗 Diagnostics endpoint: /api/seo-diagnostics");
     
     // Handle graceful shutdown with enhanced logging
     process.on('SIGTERM', () => {
         const timestamp = new Date().toISOString();
-        console.log(`🛑 Received SIGTERM, shutting down SEO engine at ${timestamp}...`);
+        console.log("🛑 Received SIGTERM, shutting down SEO engine at", timestamp, "...");
         try {
             fs.appendFileSync(CONFIG.ENGINE_LOG, `[${timestamp}] SIGTERM RECEIVED - SHUTTING DOWN\n`);
         } catch (error) {
@@ -439,7 +439,7 @@ export function startSEOIntegration() {
     
     process.on('SIGINT', () => {
         const timestamp = new Date().toISOString();
-        console.log(`🛑 Received SIGINT, shutting down SEO engine at ${timestamp}...`);
+        console.log("🛑 Received SIGINT, shutting down SEO engine at", timestamp, "...");
         try {
             fs.appendFileSync(CONFIG.ENGINE_LOG, `[${timestamp}] SIGINT RECEIVED - SHUTTING DOWN\n`);
         } catch (error) {

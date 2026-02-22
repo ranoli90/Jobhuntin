@@ -97,8 +97,8 @@ function getAllUrls(): string[] {
     const jobPostingUrls = urls.filter(u => u.includes('/jobs/'));
 
     if (urls.length !== jobPostingUrls.length) {
-        console.warn(`⚠️  Filtered out ${urls.length - jobPostingUrls.length} non-job URLs from Indexing API submission (Safety Protocol).`);
-        console.warn(`   Only /jobs/... URLs are valid for this API.`);
+        console.warn("⚠️  Filtered out", urls.length - jobPostingUrls.length, "non-job URLs from Indexing API submission (Safety Protocol).");
+        console.warn("   Only /jobs/... URLs are valid for this API.");
     }
 
     return jobPostingUrls;
@@ -198,8 +198,8 @@ async function submitBatch(urls: string[], accessToken: string): Promise<void> {
     const BATCH_SIZE = 10; // Google rate limit: ~200/day, ~600/minute for batch
     const DELAY_MS = 2000; // Increased to 2 seconds for safety
 
-    console.log(`\n📤 Submitting ${urls.length} URLs to Google Indexing API...`);
-    console.log(`⚠️  Safety Protocol Active: JobPostings ONLY. Slow-rolling submission.`);
+    console.log("\n📤 Submitting", urls.length, "URLs to Google Indexing API...");
+    console.log("⚠️  Safety Protocol Active: JobPostings ONLY. Slow-rolling submission.");
 
     let success = 0;
     let errors = 0;
@@ -212,10 +212,10 @@ async function submitBatch(urls: string[], accessToken: string): Promise<void> {
 
         for (const result of results) {
             if (result.status === 'success') {
-                console.log(`  ✅ ${result.url}`);
+                console.log("  ✅", result.url);
                 success++;
             } else {
-                console.log(`  ❌ ${result.url} — ${result.error}`);
+                console.log("  ❌", result.url, "—", result.error);
                 errors++;
             }
         }
@@ -226,7 +226,7 @@ async function submitBatch(urls: string[], accessToken: string): Promise<void> {
         }
     }
 
-    console.log(`\n📊 Results: ${success} submitted, ${errors} errors, ${urls.length} total`);
+    console.log("\n📊 Results:", success, "submitted,", errors, "errors,", urls.length, "total");
 }
 
 // Main
@@ -234,15 +234,15 @@ async function main() {
     const urls = getAllUrls();
 
     console.log('🔍 Google Indexing API — URL Submission Tool');
-    console.log(`   URLs to submit: ${urls.length}`);
-    if (slugFilter) console.log(`   Filter: ${slugFilter}`);
-    if (dryRun) console.log(`   Mode: DRY RUN (no submissions)`);
+    console.log("   URLs to submit:", urls.length);
+    if (slugFilter) console.log("   Filter:", slugFilter);
+    if (dryRun) console.log("   Mode: DRY RUN (no submissions)");
     console.log('');
 
     if (dryRun) {
         console.log('📋 URLs that would be submitted:\n');
-        urls.forEach((url, i) => console.log(`  ${i + 1}. ${url}`));
-        console.log(`\n✅ Dry run complete. ${urls.length} URLs listed.`);
+        urls.forEach((url, i) => console.log("  ", i + 1 + ".", url));
+        console.log("\n✅ Dry run complete.", urls.length, "URLs listed.");
         return;
     }
 
@@ -261,8 +261,8 @@ async function main() {
         console.log('');
         console.log('For now, running in dry-run mode:');
         console.log('');
-        urls.forEach((url, i) => console.log(`  ${i + 1}. ${url}`));
-        console.log(`\n📋 ${urls.length} URLs ready for submission once API is configured.`);
+        urls.forEach((url, i) => console.log("  ", i + 1 + ".", url));
+        console.log("\n📋", urls.length, "URLs ready for submission once API is configured.");
         return;
     }
 
@@ -272,11 +272,11 @@ async function main() {
         console.log('✅ Authenticated.\n');
         await submitBatch(urls, accessToken);
     } catch (error: any) {
-        console.error(`❌ Authentication failed: ${error.message}`);
+        console.error("❌ Authentication failed:", error.message);
         // Do NOT exit(1) if it's just a key mismatch in dev, but here we want to alert the user
         // We will fallback to dry run logic so they see what would happen
         console.log('\n⚠️ Falling back to dry-run mode due to authentication failure.\n');
-        urls.forEach((url, i) => console.log(`  ${i + 1}. ${url}`));
+        urls.forEach((url, i) => console.log("  ", i + 1 + ".", url));
     }
 }
 

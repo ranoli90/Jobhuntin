@@ -23,9 +23,9 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`📊 Key length: ${keyEnv.length}`);
-  console.log(`📊 First 100 chars: ${keyEnv.substring(0, 100)}...`);
-  console.log(`📊 Last 50 chars: ...${keyEnv.substring(keyEnv.length - 50)}`);
+  console.log("📊 Key length:", keyEnv.length);
+  console.log("📊 First 100 chars:", keyEnv.substring(0, 100) + "...");
+  console.log("📊 Last 50 chars: ..." + keyEnv.substring(keyEnv.length - 50));
   
   // Try to parse
   let keyContent;
@@ -34,7 +34,7 @@ async function main() {
     console.log('\n✅ Successfully parsed as JSON');
   } catch (e) {
     console.log('\n❌ Could not parse as JSON string');
-    console.log(`Error: ${e}`);
+    console.log("Error:", e);
     
     // Try as file path
     try {
@@ -42,11 +42,11 @@ async function main() {
         keyContent = JSON.parse(fs.readFileSync(keyEnv, 'utf8'));
         console.log('✅ Loaded from file');
       } else {
-        console.log(`❌ File not found: ${keyEnv}`);
+        console.log("❌ File not found:", keyEnv);
         process.exit(1);
       }
     } catch (e2) {
-      console.log(`❌ Could not load from file: ${e2}`);
+      console.log("❌ Could not load from file:", e2);
       process.exit(1);
     }
   }
@@ -57,12 +57,12 @@ async function main() {
   for (const field of requiredFields) {
     if (keyContent[field]) {
       if (field === 'private_key') {
-        console.log(`   ✅ ${field}: ${keyContent[field].substring(0, 30)}...`);
+        console.log("   ✅", field + ":", keyContent[field].substring(0, 30) + "...");
       } else {
-        console.log(`   ✅ ${field}: ${keyContent[field]}`);
+        console.log("   ✅", field + ":", keyContent[field]);
       }
     } else {
-      console.log(`   ❌ ${field}: MISSING`);
+      console.log("   ❌", field + ": MISSING");
     }
   }
 
@@ -83,7 +83,7 @@ async function main() {
     const indexing = google.indexing({ version: 'v3', auth: jwtClient });
     
     const testUrl = 'https://jobhuntin.com/';
-    console.log(`\n📤 Testing submission of: ${testUrl}`);
+    console.log("\n📤 Testing submission of:", testUrl);
     
     const response = await indexing.urlNotifications.publish({
       requestBody: {
@@ -93,12 +93,12 @@ async function main() {
     });
     
     console.log('✅ Test submission successful!');
-    console.log(`📡 Response: ${JSON.stringify(response.data)}`);
+    console.log("📡 Response:", JSON.stringify(response.data));
     
   } catch (e: any) {
-    console.log(`\n❌ Authentication failed: ${e.message}`);
+    console.log("\n❌ Authentication failed:", e.message);
     if (e.response?.data) {
-      console.log(`📡 Error details: ${JSON.stringify(e.response.data)}`);
+      console.log("📡 Error details:", JSON.stringify(e.response.data));
     }
     process.exit(1);
   }

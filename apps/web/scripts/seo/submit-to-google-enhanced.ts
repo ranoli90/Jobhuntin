@@ -49,8 +49,8 @@ import { google } from 'googleapis';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE_URL = process.env.GOOGLE_SEARCH_CONSOLE_SITE || 'https://jobhuntin.com';
 
-console.log(`🚀 Starting enhanced Google Search Indexing submission...`);
-console.log(`📍 Base URL: ${BASE_URL}`);
+console.log("🚀 Starting enhanced Google Search Indexing submission...");
+console.log("📍 Base URL:", BASE_URL);
 
 // Load data with enhanced SEO metadata
 try {
@@ -67,11 +67,11 @@ try {
         fs.readFileSync(path.resolve(__dirname, '../../src/data/locations.json'), 'utf-8')
     );
 
-    console.log(`✅ Loaded data files:`);
-    console.log(`   Competitors: ${competitors.length}`);
-    console.log(`   Categories: ${categories.length}`);
-    console.log(`   Roles: ${roles.length}`);
-    console.log(`   Locations: ${locations.length}`);
+    console.log("✅ Loaded data files:");
+    console.log("   Competitors:", competitors.length);
+    console.log("   Categories:", categories.length);
+    console.log("   Roles:", roles.length);
+    console.log("   Locations:", locations.length);
 
     // Parse CLI args
     const args = process.argv.slice(2);
@@ -280,7 +280,7 @@ try {
     if (urlsFile) {
         const filePath = path.resolve(process.cwd(), urlsFile);
         if (!fs.existsSync(filePath)) {
-            console.error(`❌ URLs file not found: ${filePath}`);
+            console.error("❌ URLs file not found:", filePath);
             process.exit(1);
         }
         const fileUrls = fs.readFileSync(filePath, 'utf8')
@@ -296,17 +296,17 @@ try {
             contentQuality: 80,
             lastModified: new Date().toISOString()
         }));
-        console.log(`📥 Loaded ${urlsToSubmit.length} URLs from file: ${filePath}`);
+        console.log("📥 Loaded", urlsToSubmit.length, "URLs from file:", filePath);
     } else {
         const allUrls = generateAllUrls();
         const filteredUrls = filterUrls(allUrls);
         
-        console.log(`📊 Total URLs found: ${allUrls.length}`);
-        console.log(`📊 Filtered URLs: ${filteredUrls.length}`);
+        console.log("📊 Total URLs found:", allUrls.length);
+        console.log("📊 Filtered URLs:", filteredUrls.length);
         console.log(`📊 Priority breakdown:`);
-        console.log(`   High: ${filteredUrls.filter(u => u.priority === 'High').length}`);
-        console.log(`   Medium: ${filteredUrls.filter(u => u.priority === 'Medium').length}`);
-        console.log(`   Low: ${filteredUrls.filter(u => u.priority === 'Low').length}`);
+        console.log("   High:", filteredUrls.filter((u) => u.priority === "High").length);
+        console.log("   Medium:", filteredUrls.filter((u) => u.priority === "Medium").length);
+        console.log("   Low:", filteredUrls.filter((u) => u.priority === "Low").length);
         
         if (filteredUrls.length === 0) {
             console.log(`⚠️  No URLs to submit after filtering`);
@@ -319,17 +319,17 @@ try {
     const dailyLimit = 200;
     urlsToSubmit = urlsToSubmit.slice(0, dailyLimit);
     
-    console.log(`📈 Estimated daily traffic potential: ${urlsToSubmit.reduce((sum, u) => sum + u.estimatedTraffic, 0)} visits`);
+    console.log("📈 Estimated daily traffic potential:", urlsToSubmit.reduce((sum, u) => sum + u.estimatedTraffic, 0), "visits");
     console.log(`🏆 Top 5 URLs by priority:`);
     urlsToSubmit.slice(0, 5).forEach((url, i) => {
-        console.log(`   ${i + 1}. ${url.url} (${url.priority}, ${url.estimatedTraffic} est. traffic)`);
+        console.log("   ", i + 1 + ".", url.url, "(" + url.priority + ",", url.estimatedTraffic, "est. traffic)");
     });
 
     if (dryRun) {
-        console.log(`🔍 DRY RUN: Would submit ${urlsToSubmit.length} URLs`);
+        console.log("🔍 DRY RUN: Would submit", urlsToSubmit.length, "URLs");
         console.log(`📋 Full URL list with priorities:`);
         urlsToSubmit.forEach((url, i) => {
-            console.log(`   ${i + 1}. ${url.url} (${url.priority}, Quality: ${url.contentQuality}, Traffic: ${url.estimatedTraffic})`);
+            console.log("   ", i + 1 + ".", url.url, "(" + url.priority + ", Quality:", url.contentQuality + ", Traffic:", url.estimatedTraffic + ")");
         });
         console.log(`\n✅ Dry run complete! The site submitter is working correctly.`);
         console.log(`\n🔄 Next steps to activate real indexing:`);
@@ -340,7 +340,7 @@ try {
     }
 
     console.log(`\n⚠️  REAL SUBMISSION MODE`);
-    console.log(`This will attempt to submit ${urlsToSubmit.length} URLs to Google Indexing API.`);
+    console.log("This will attempt to submit", urlsToSubmit.length, "URLs to Google Indexing API.");
     console.log(`Make sure you have set up your Google service account properly.`);
     
     // Check for Google credentials
@@ -392,7 +392,7 @@ try {
             const url = urlsToSubmit[i];
             
             try {
-                console.log(`   Submitting ${i + 1}/${urlsToSubmit.length}: ${url.url}`);
+                console.log("   Submitting", i + 1 + "/" + urlsToSubmit.length + ":", url.url);
                 
                 // Make the actual API call to Google
                 const response = await indexing.urlNotifications.publish({
@@ -402,8 +402,8 @@ try {
                     }
                 });
                 
-                console.log(`   ✅ SUCCESS: ${url.url}`);
-                console.log(`      📡 API Response: ${JSON.stringify(response.data)}`);
+                console.log("   ✅ SUCCESS:", url.url);
+                console.log("      📡 API Response:", JSON.stringify(response.data));
                 
                 submissionResults.push({
                     url: url.url,
@@ -420,8 +420,8 @@ try {
                 }
                 
             } catch (error) {
-                console.log(`   ❌ FAILED: ${url.url} - ${error.message}`);
-                console.log(`      🔍 Error details: ${JSON.stringify(error.response?.data || error.message)}`);
+                console.log("   ❌ FAILED:", url.url, "-", error.message);
+                console.log("      🔍 Error details:", JSON.stringify(error.response?.data || error.message));
                 
                 submissionResults.push({
                     url: url.url,
@@ -458,28 +458,28 @@ try {
                 existingLogs = JSON.parse(fs.readFileSync(logPath, 'utf8'));
             }
         } catch (e) {
-            console.log(`   ⚠️  Could not load existing logs: ${e.message}`);
+            console.log("   ⚠️  Could not load existing logs:", e.message);
         }
         
         existingLogs.push(submissionLog);
         fs.writeFileSync(logPath, JSON.stringify(existingLogs, null, 2));
         
-        console.log(`\n📝 Detailed submission log saved to: ${logPath}`);
+        console.log("\n📝 Detailed submission log saved to:", logPath);
         console.log(`   This log contains the actual API responses from Google for verification.`);
         
         console.log(`\n🎯 Submission Results:`);
-        console.log(`   ✅ Successfully submitted: ${successCount} URLs`);
-        console.log(`   ❌ Failed: ${errorCount} URLs`);
-        console.log(`   📊 Success rate: ${((successCount / urlsToSubmit.length) * 100).toFixed(1)}%`);
+        console.log("   ✅ Successfully submitted:", successCount, "URLs");
+        console.log("   ❌ Failed:", errorCount, "URLs");
+        console.log("   📊 Success rate:", ((successCount / urlsToSubmit.length) * 100).toFixed(1) + "%");
         
         if (successCount > 0) {
             console.log(`\n🚀 Google indexing initiated! URLs should be processed within 24-48 hours.`);
             console.log(`📈 Monitor your Google Search Console for indexing status.`);
-            console.log(`⏰ Next submission window: ${new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()}`);
+            console.log("⏰ Next submission window:", new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString());
         }
         
     } catch (error) {
-        console.error(`\n❌ Google Indexing API Error: ${error.message}`);
+        console.error("\n❌ Google Indexing API Error:", error.message);
         console.log(`🔧 Troubleshooting tips:`);
         console.log(`   - Verify your service account has Indexing API access`);
         console.log(`   - Check that your site is verified in Search Console`);
@@ -489,6 +489,6 @@ try {
     }
     
 } catch (error) {
-    console.error(`❌ Error: ${error.message}`);
+    console.error("❌ Error:", error.message);
     process.exit(1);
 }

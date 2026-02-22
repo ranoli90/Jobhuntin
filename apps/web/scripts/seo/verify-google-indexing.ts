@@ -26,8 +26,8 @@ const execAsync = promisify(exec);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE_URL = process.env.GOOGLE_SEARCH_CONSOLE_SITE || 'https://jobhuntin.com';
 
-console.log(`🔍 Verifying Google Indexing API submissions...`);
-console.log(`📍 Site: ${BASE_URL}`);
+console.log("🔍 Verifying Google Indexing API submissions...");
+console.log("📍 Site:", BASE_URL);
 
 // Load submission log
 interface SubmissionLog {
@@ -49,7 +49,7 @@ function loadSubmissionLog(): SubmissionLog[] {
             return JSON.parse(fs.readFileSync(logPath, 'utf8'));
         }
     } catch (error) {
-        console.log(`⚠️  Could not load submission log: ${error.message}`);
+        console.log("⚠️  Could not load submission log:", error.message);
     }
     return [];
 }
@@ -69,7 +69,7 @@ function saveSubmissionLog(log: SubmissionLog[]) {
 async function checkIndexingStatus(urls: string[]) {
     const keyPath = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
     if (!keyPath) {
-        console.log(`❌ GOOGLE_SERVICE_ACCOUNT_KEY not set`);
+        console.log("❌ GOOGLE_SERVICE_ACCOUNT_KEY not set");
         return null;
     }
 
@@ -91,18 +91,18 @@ async function checkIndexingStatus(urls: string[]) {
         
         // Note: Google doesn't provide a direct API to check if a URL is indexed
         // But we can use the URL Inspection API if available
-        console.log(`✅ Google API authentication successful`);
+        console.log("✅ Google API authentication successful");
         
         return true;
     } catch (error) {
-        console.log(`❌ Google API error: ${error.message}`);
+        console.log("❌ Google API error:", error.message);
         return null;
     }
 }
 
 // Check if URLs are actually indexed using site: search
 async function verifyWithSiteSearch(urls: string[]) {
-    console.log(`\n🔍 Verifying indexing with site: searches...`);
+    console.log("\n🔍 Verifying indexing with site: searches...");
     
     const verificationResults = [];
     
@@ -118,11 +118,11 @@ async function verifyWithSiteSearch(urls: string[]) {
                 manualCheck: `Search Google for: site:${url}`
             });
             
-            console.log(`   🔗 ${url}`);
-            console.log(`   🔍 Manual check: site:${url}`);
+            console.log("   🔗", url);
+            console.log("   🔍 Manual check: site:" + url);
             
         } catch (error) {
-            console.log(`   ❌ Error checking ${url}: ${error.message}`);
+            console.log("   ❌ Error checking", url, ":", error.message);
         }
     }
     
@@ -131,12 +131,12 @@ async function verifyWithSiteSearch(urls: string[]) {
 
 // Generate verification report
 function generateVerificationReport(logs: SubmissionLog[], recentUrls: string[]) {
-    console.log(`\n📊 GOOGLE INDEXING VERIFICATION REPORT`);
-    console.log(`========================================`);
-    
+    console.log("\n📊 GOOGLE INDEXING VERIFICATION REPORT");
+    console.log("========================================");
+
     if (logs.length === 0) {
-        console.log(`⚠️  No submission logs found`);
-        console.log(`   Run the submitter first to create logs`);
+        console.log("⚠️  No submission logs found");
+        console.log("   Run the submitter first to create logs");
         return;
     }
     
@@ -145,23 +145,24 @@ function generateVerificationReport(logs: SubmissionLog[], recentUrls: string[])
         new Date(log.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
     );
     
-    console.log(`\n📈 Submission Statistics:`);
-    console.log(`   Total submissions ever: ${logs.reduce((sum, log) => sum + log.successCount, 0)}`);
-    console.log(`   Submissions last 24h: ${last24Hours.reduce((sum, log) => sum + log.successCount, 0)}`);
-    console.log(`   Most recent submission: ${recentLog.timestamp}`);
-    console.log(`   Last batch success rate: ${((recentLog.successCount / (recentLog.successCount + recentLog.errorCount)) * 100).toFixed(1)}%`);
-    
-    console.log(`\n🔍 Verification Methods:`);
-    console.log(`   1. Check Google Search Console (most reliable)`);
-    console.log(`   2. Use site: searches in Google (manual)`);
-    console.log(`   3. Monitor Google Analytics for new traffic`);
-    console.log(`   4. Check server logs for Googlebot visits`);
-    
+    console.log("\n📈 Submission Statistics:");
+    console.log("   Total submissions ever:", logs.reduce((sum, log) => sum + log.successCount, 0));
+    console.log("   Submissions last 24h:", last24Hours.reduce((sum, log) => sum + log.successCount, 0));
+    console.log("   Most recent submission:", recentLog.timestamp);
+    const rate = ((recentLog.successCount / (recentLog.successCount + recentLog.errorCount)) * 100).toFixed(1);
+    console.log("   Last batch success rate:", rate + "%");
+
+    console.log("\n🔍 Verification Methods:");
+    console.log("   1. Check Google Search Console (most reliable)");
+    console.log("   2. Use site: searches in Google (manual)");
+    console.log("   3. Monitor Google Analytics for new traffic");
+    console.log("   4. Check server logs for Googlebot visits");
+
     if (recentUrls.length > 0) {
-        console.log(`\n🎯 Recent URLs to verify:`);
+        console.log("\n🎯 Recent URLs to verify:");
         recentUrls.slice(0, 5).forEach((url, i) => {
-            console.log(`   ${i + 1}. ${url}`);
-            console.log(`      Check: site:${url}`);
+            console.log("   ", i + 1 + ".", url);
+            console.log("      Check: site:" + url);
         });
     }
 }

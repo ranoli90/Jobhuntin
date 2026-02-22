@@ -29,7 +29,7 @@ async function checkUpdates() {
     // Placeholder logic: Check a few URLs (simulated)
     // In real implementation, we would fetch URLs and diff content
 
-    console.log(`checked ${competitors.length} competitors. No significant updates detected.`);
+    console.log("checked", competitors.length, "competitors. No significant updates detected.");
 
     // Example of how we'd log an update
     // if (updatesFound > 0) {
