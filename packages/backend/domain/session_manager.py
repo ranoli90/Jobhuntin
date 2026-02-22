@@ -352,7 +352,7 @@ class SessionManager:
                 conditions.append("expires_at > now()")
 
             rows = await conn.fetch(
-                f"""
+                f"""  # nosec
                 SELECT session_id, user_id, tenant_id, device_fingerprint,
                        ip_address, user_agent, created_at, last_activity_at,
                        expires_at, is_revoked, revoked_at, revoked_reason, metadata

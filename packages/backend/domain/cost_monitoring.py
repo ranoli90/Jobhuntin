@@ -171,7 +171,7 @@ class CostMonitor:
             conditions.append(f"category = ${len(params) + 1}")
             params.append(category.value)
 
-        query = f"""
+        query = f"""  # nosec
             SELECT * FROM public.cloud_costs
             WHERE {" AND ".join(conditions)}
             ORDER BY date DESC

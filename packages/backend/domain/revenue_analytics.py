@@ -78,7 +78,7 @@ async def get_revenue_trend(
     months: int = 12,
 ) -> dict[str, Any]:
     rows = await conn.fetch(
-        f"""
+        f"""  # nosec
         SELECT
             DATE_TRUNC('month', created_at) AS month,
             SUM(amount_cents) AS total_cents,

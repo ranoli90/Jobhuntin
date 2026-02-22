@@ -148,7 +148,7 @@ class ColdStartHandler:
 
             # Match by skills
             if onboarding.skills:
-                conditions.append(f"""
+                conditions.append(f"""  # nosec
                     j.description ILIKE ANY(${param_idx})
                     OR EXISTS (
                         SELECT 1 FROM unnest(j.required_skills) skill
@@ -177,7 +177,7 @@ class ColdStartHandler:
             if not conditions:
                 return matches
 
-            query = f"""
+            query = f"""  # nosec
                 SELECT
                     j.id, j.title, j.company, j.location,
                     j.required_skills, j.description

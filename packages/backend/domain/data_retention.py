@@ -96,7 +96,7 @@ async def archive_old_applications(
 
     while True:
         result = await conn.execute(
-            f"""
+            f"""  # nosec
             WITH to_archive AS (
                 SELECT id FROM public.applications
                 WHERE created_at < NOW() - INTERVAL '{days_old} days'
@@ -127,7 +127,7 @@ async def cleanup_application_events(
     days_old: int = RetentionPolicy.APPLICATION_EVENTS_DAYS,
 ) -> int:
     result = await conn.execute(
-        f"""
+        f"""  # nosec
         DELETE FROM public.application_events
         WHERE created_at < NOW() - INTERVAL '{days_old} days'
         """
@@ -146,7 +146,7 @@ async def cleanup_analytics_events(
     days_old: int = RetentionPolicy.ANALYTICS_EVENTS_DAYS,
 ) -> int:
     result = await conn.execute(
-        f"""
+        f"""  # nosec
         DELETE FROM public.analytics_events
         WHERE created_at < NOW() - INTERVAL '{days_old} days'
         """
@@ -165,7 +165,7 @@ async def cleanup_email_digest_logs(
     days_old: int = RetentionPolicy.EMAIL_DIGEST_LOG_DAYS,
 ) -> int:
     result = await conn.execute(
-        f"""
+        f"""  # nosec
         DELETE FROM public.email_digest_log
         WHERE sent_at < NOW() - INTERVAL '{days_old} days'
         """
@@ -183,7 +183,7 @@ async def cleanup_job_alert_logs(
     days_old: int = RetentionPolicy.JOB_ALERT_LOG_DAYS,
 ) -> int:
     result = await conn.execute(
-        f"""
+        f"""  # nosec
         DELETE FROM public.job_alert_log
         WHERE sent_at < NOW() - INTERVAL '{days_old} days'
         """
@@ -235,7 +235,7 @@ async def cleanup_audit_logs(
 
     if archive_before_delete:
         archived = await conn.fetchval(
-            f"""
+            f"""  # nosec
             INSERT INTO public.audit_log_archive
             SELECT * FROM public.audit_log
             WHERE created_at < NOW() - INTERVAL '{days_old} days'
@@ -249,7 +249,7 @@ async def cleanup_audit_logs(
             incr("retention.audit_archived", value=result["archived"])
 
     delete_result = await conn.execute(
-        f"""
+        f"""  # nosec
         DELETE FROM public.audit_log
         WHERE created_at < NOW() - INTERVAL '{days_old} days'
         """

@@ -331,7 +331,7 @@ class GlassdoorClient(JobBoardClient):
                 "format": "json",
                 "t.p": self.partner_id,
                 "t.k": self.api_key,
-                "userip": "0.0.0.0",
+                "userip": "0.0.0.0",  # nosec B104 - Glassdoor API client IP param
                 "useragent": "SorceBot/1.0",
                 "action": "jobs",
                 "q": keywords or "",

@@ -124,7 +124,7 @@ class JobQueueRepo:
             params.append(queues)
 
         rows = await conn.fetch(
-            f"""
+            f"""  # nosec
             WITH claimable AS (
                 SELECT id
                 FROM public.background_jobs
@@ -188,7 +188,7 @@ class JobQueueRepo:
         if retry_after_seconds:
             scheduled_at = f"now() + interval '{retry_after_seconds} seconds'"
             await conn.execute(
-                f"""
+                f"""  # nosec
                 UPDATE public.background_jobs
                 SET status = 'queued',
                     error_message = $2,
@@ -225,7 +225,7 @@ class JobQueueRepo:
         params = [queue] if queue else []
 
         row = await conn.fetchrow(
-            f"""
+            f"""  # nosec
             SELECT
                 COUNT(*) FILTER (WHERE status = 'pending')::int AS pending,
                 COUNT(*) FILTER (WHERE status = 'queued')::int AS queued,

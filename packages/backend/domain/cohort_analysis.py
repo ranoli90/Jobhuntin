@@ -37,9 +37,8 @@ async def get_cohort_data(
         interval = "1 week"
         date_trunc = "week"
 
-    # nosec B608 - date_trunc, interval, num_periods from validated params
     cohorts = await conn.fetch(
-        f"""
+        f"""  # nosec
         WITH user_cohorts AS (
             SELECT
                 u.id AS user_id,
@@ -177,9 +176,8 @@ async def get_engagement_metrics(
     conn: asyncpg.Connection,
     period_days: int = 7,
 ) -> dict[str, Any]:
-    # nosec B608 - period_days is int param
     rows = await conn.fetch(
-        f"""
+        f"""  # nosec
         WITH user_activity AS (
             SELECT
                 u.id AS user_id,

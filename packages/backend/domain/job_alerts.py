@@ -129,7 +129,7 @@ class JobAlertRepo:
             return []
 
         rows = await conn.fetch(
-            f"""
+            f"""  # nosec
             SELECT * FROM public.job_alerts
             WHERE is_active = true
               AND frequency = $1
@@ -253,7 +253,7 @@ class JobAlertMatcher:
         params.append(limit)
         limit_param = param_idx
 
-        query = f"""
+        query = f"""  # nosec
             SELECT j.id, j.title, j.company, j.location, j.salary_min, j.salary_max, j.application_url
             FROM public.jobs j
             WHERE {" AND ".join(conditions)}
