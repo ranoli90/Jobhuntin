@@ -4,6 +4,7 @@ import { Bot, ArrowLeft, BookOpen, Clock, Calendar, Share2, ChevronRight, Zap, S
 import { SEO } from '../components/marketing/SEO';
 import { motion, useReducedMotion } from 'framer-motion';
 import { config } from '../config';
+import { XSSProtection } from '../lib/validation';
 
 const GUIDE_CONTENT: Record<string, any> = {
   'how-to-beat-ats-with-ai': {
@@ -75,11 +76,11 @@ export default function GuidePage() {
   const [headings, setHeadings] = useState<Array<{id: string, text: string, level: number}>>([]);
   const shouldReduceMotion = useReducedMotion();
 
-  // Extract headings for navigation
+  // Extract headings for navigation (sanitize to prevent XSS from CMS content)
   useEffect(() => {
     if (guide) {
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = guide.content;
+      tempDiv.innerHTML = XSSProtection.sanitizeHTML(guide.content);
       const headingElements = tempDiv.querySelectorAll('h3, h4');
       const extractedHeadings = Array.from(headingElements).map((heading, index) => ({
         id: `heading-${index}`,

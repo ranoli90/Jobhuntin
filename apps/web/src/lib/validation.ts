@@ -40,9 +40,10 @@ export class XSSProtection {
     
     let sanitized = input.toLowerCase();
     
-    // Remove dangerous CSS keywords
+    // Remove dangerous CSS keywords (escape regex special chars for safety)
     this.CSS_KEYWORDS.forEach(keyword => {
-      sanitized = sanitized.replace(new RegExp(keyword, 'gi'), '');
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      sanitized = sanitized.replace(new RegExp(escaped, 'gi'), '');
     });
     
     // Remove url() functions that could contain javascript

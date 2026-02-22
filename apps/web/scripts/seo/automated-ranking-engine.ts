@@ -51,7 +51,7 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3, baseDelayMs = 200
     try {
       return await fn();
     } catch (error) {
-      console.error(`Attempt ${attempt} failed:`, error);
+      console.error("Attempt", attempt, "failed:", error);
       if (attempt === retries) break;
       const delay = baseDelayMs * Math.pow(2, attempt - 1);
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -404,7 +404,7 @@ function startContinuousMonitoring(): void {
     const trendingCombinations = await findTrendingOpportunities();
 
     if (trendingCombinations.length > 0) {
-      console.log(`🚀 Found ${trendingCombinations.length} trending opportunities`);
+      console.log("🚀 Found", trendingCombinations.length, "trending opportunities");
 
       // Generate content for trending opportunities
       for (const combo of trendingCombinations.slice(0, 5)) {

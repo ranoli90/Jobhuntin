@@ -78,8 +78,10 @@ jobs:
           NODE_ENV: production
 
       - name: Commit updated sitemap
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-          cd "${{ github.workspace }}"
+          cd "$GITHUB_WORKSPACE"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add apps/web/public/sitemap.xml
@@ -96,13 +98,16 @@ jobs:
           branch: ${{ github.ref }}
 
       - name: Summary
+        env:
+          REFRESH_MODE_DISPLAY: ${{ github.event.inputs.mode || 'scheduled' }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: |
           echo "## 🔍 SEO Refresh Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Date | $(date -u +%Y-%m-%d) |" >> $GITHUB_STEP_SUMMARY
-          echo "| Mode | ${{ github.event.inputs.mode || 'scheduled' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mode | $REFRESH_MODE_DISPLAY |" >> $GITHUB_STEP_SUMMARY
           echo "| Sitemap | ✅ Regenerated |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ✅ Verified |" >> $GITHUB_STEP_SUMMARY
-          echo "| Trigger | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | $GITHUB_EVENT_NAME |" >> $GITHUB_STEP_SUMMARY

@@ -103,7 +103,7 @@ export async function crawlSite(options: Partial<CrawlerOptions> = {}): Promise<
 
       if (opts.delayMs) await page.waitForTimeout(opts.delayMs);
     } catch (err) {
-      console.warn(`Crawl error on ${current.url}:`, err);
+      console.warn("Crawl error on", current.url, ":", err);
     }
   }
 

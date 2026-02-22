@@ -80,7 +80,7 @@ async function prerender() {
             fs.writeFileSync(filePath, finalHtml);
             successCount++;
         } catch (e) {
-            console.error(`❌ Failed to prerender ${route}:`, e);
+            console.error("❌ Failed to prerender", route, ":", e);
             errorCount++;
         }
     }
