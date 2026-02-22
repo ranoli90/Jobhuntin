@@ -116,7 +116,7 @@ function generateSitemaps() {
   const indexEntries = sections.map(({ name, routes }) => {
     const filename = `sitemap-${name}.xml`;
     const filepath = writeSitemap(filename, routes);
-    console.log(`✅ ${filename} written (${routes.length} URLs) -> ${filepath}`);
+    console.log("✅", filename, "written (" + routes.length + " URLs) ->", filepath);
     return { filename, count: routes.length };
   });
 
@@ -135,10 +135,10 @@ ${indexEntries
   const indexPath = path.resolve(__dirname, '../public/sitemap.xml');
   fs.writeFileSync(indexPath, indexXml);
   console.log('📄 Sitemap index written ->', indexPath);
-  console.log(`   - ${staticRoutes.length} static routes`);
-  console.log(`   - ${competitorRoutes.length} competitor routes (${competitors.length} brands × 5 page types)`);
-  console.log(`   - ${categoryRoutes.length} category hub routes`);
-  console.log(`   - ${localRoutes.length} job routes`);
+  console.log("   -", staticRoutes.length, "static routes");
+  console.log("   -", competitorRoutes.length, "competitor routes (" + competitors.length, "brands × 5 page types)");
+  console.log("   -", categoryRoutes.length, "category hub routes");
+  console.log("   -", localRoutes.length, "job routes");
 }
 
 generateSitemaps();

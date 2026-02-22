@@ -94,11 +94,11 @@ Be objective. Highlight gaps vs JobHuntin AI.`;
       try {
         if (retry > 0) {
           const delayMs = 5000 * retry; // 5s, then 10s
-          console.log(`⏳ Rate limited, waiting ${delayMs/1000}s before retry...`);
+          console.log("⏳ Rate limited, waiting", delayMs / 1000, "s before retry...");
           await new Promise(r => setTimeout(r, delayMs));
         }
         
-        console.log(`🤖 Attempting research with model: ${model}...`);
+        console.log("🤖 Attempting research with model:", model, "...");
         if (triedModels[triedModels.length - 1] !== model) {
           triedModels.push(model);
         }
@@ -136,7 +136,7 @@ Be objective. Highlight gaps vs JobHuntin AI.`;
           // For 404/400, try next model
           if (response.status === 404 || response.status === 400) {
             const msg = `Model ${model} not found: ${errText}`;
-            console.warn(`⚠️  ${msg}`);
+            console.warn("⚠️ ", msg);
             lastError = new Error(msg);
             break; // Exit retry loop, go to next model
           }
@@ -145,14 +145,14 @@ Be objective. Highlight gaps vs JobHuntin AI.`;
 
         const data = await response.json();
         if (data.error) {
-          console.warn(`⚠️  Model ${model} returned error: ${JSON.stringify(data.error)}`);
+          console.warn("⚠️  Model", model, "returned error:", JSON.stringify(data.error));
           lastError = new Error(JSON.stringify(data.error));
           break; // Exit retry loop
         }
 
         const content = data.choices[0].message?.content;
         if (!content) {
-          console.warn(`⚠️  Model ${model} returned empty content.`);
+          console.warn("⚠️  Model", model, "returned empty content.");
           break; // Exit retry loop
         }
 
@@ -173,9 +173,9 @@ Be objective. Highlight gaps vs JobHuntin AI.`;
       } catch (e: any) {
         lastError = e;
         if (e.name === 'AbortError') {
-          console.warn(`⚠️  Model ${model} timed out`);
+          console.warn("⚠️  Model", model, "timed out");
         } else {
-          console.warn(`⚠️  Error with model ${model}: ${e.message}`);
+          console.warn("⚠️  Error with model", model, ":", e.message);
         }
         break; // Exit retry loop
       }
@@ -220,7 +220,7 @@ async function main() {
 
   // Check properly
   if (competitors.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-    console.log(`⚠️  Competitor "${name}" already exists. Skipping.`);
+    console.log("⚠️  Competitor", name, "already exists. Skipping.");
     return;
   }
 
@@ -238,9 +238,9 @@ async function main() {
     competitors.sort((a, b) => a.name.localeCompare(b.name));
 
     fs.writeFileSync(COMPETITORS_FILE, JSON.stringify(competitors, null, 2));
-    console.log(`✅ Added "${newCompetitor.name}" to data/competitors.json`);
-    console.log(`   Slug: ${newCompetitor.slug}`);
-    console.log(`   Verdict: ${newCompetitor.verdict}`);
+    console.log("✅ Added", newCompetitor.name, "to data/competitors.json");
+    console.log("   Slug:", newCompetitor.slug);
+    console.log("   Verdict:", newCompetitor.verdict);
 
   } catch (error: any) {
     console.error('❌ Error:', error.message);

@@ -32,8 +32,8 @@ const sitemapPingOnly = args.includes('--sitemap-ping');
 const urlsFile = args.includes('--urls-file') ? args[args.indexOf('--urls-file') + 1] : null;
 
 console.log(`🚀 Ultimate Google Indexing Submission System`);
-console.log(`📍 Site: ${BASE_URL}`);
-console.log(`📅 ${new Date().toISOString()}`);
+console.log("📍 Site:", BASE_URL);
+console.log("📅", new Date().toISOString());
 
 interface UrlInfo {
     url: string;
@@ -101,7 +101,7 @@ async function submitViaSitemapPing(): Promise<boolean> {
     const pingUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
     
     if (dryRun) {
-        console.log(`   🔍 DRY RUN: Would ping ${pingUrl}`);
+        console.log("   🔍 DRY RUN: Would ping", pingUrl);
         return true;
     }
     
@@ -111,11 +111,11 @@ async function submitViaSitemapPing(): Promise<boolean> {
             console.log(`   ✅ Sitemap pinged successfully to Google`);
             return true;
         } else {
-            console.log(`   ⚠️  Ping returned status ${response.status}`);
+            console.log("   ⚠️  Ping returned status", response.status);
             return false;
         }
     } catch (error: any) {
-        console.log(`   ❌ Ping failed: ${error.message}`);
+        console.log("   ❌ Ping failed:", error.message);
         return false;
     }
 }
@@ -127,8 +127,8 @@ async function submitViaIndexNow(urls: string[]): Promise<boolean> {
     const keyFile = `${indexNowKey}.txt`;
     
     if (dryRun) {
-        console.log(`   🔍 DRY RUN: Would submit ${urls.length} URLs via IndexNow`);
-        console.log(`   📝 Key file needed: /.well-known/${keyFile}`);
+        console.log("   🔍 DRY RUN: Would submit", urls.length, "URLs via IndexNow");
+        console.log("   📝 Key file needed: /.well-known/" + keyFile);
         return true;
     }
     
@@ -140,7 +140,7 @@ async function submitViaIndexNow(urls: string[]): Promise<boolean> {
     }
     if (!fs.existsSync(keyFilePath)) {
         fs.writeFileSync(keyFilePath, indexNowKey);
-        console.log(`   📝 Created IndexNow key file at /.well-known/${keyFile}`);
+        console.log("   📝 Created IndexNow key file at /.well-known/" + keyFile);
     }
     
     const batchSize = 10000;
@@ -171,7 +171,7 @@ async function submitViaIndexNow(urls: string[]): Promise<boolean> {
                 });
                 
                 if (response.ok || response.status === 202) {
-                    console.log(`   ✅ Submitted ${batch.length} URLs to ${endpoint.split('/')[2]}`);
+                    console.log("   ✅ Submitted", batch.length, "URLs to", endpoint.split("/")[2]);
                     successCount += batch.length;
                     break;
                 }
@@ -179,11 +179,11 @@ async function submitViaIndexNow(urls: string[]): Promise<boolean> {
             
             await new Promise(r => setTimeout(r, 100));
         } catch (error: any) {
-            console.log(`   ⚠️  Batch ${i}-${i + batch.length} error: ${error.message}`);
+            console.log("   ⚠️  Batch", i + "-" + (i + batch.length), "error:", error.message);
         }
     }
     
-    console.log(`   📊 IndexNow: ${successCount}/${urls.length} URLs submitted`);
+    console.log("   📊 IndexNow:", successCount + "/" + urls.length, "URLs submitted");
     return successCount > 0;
 }
 
@@ -209,7 +209,7 @@ async function submitViaGoogleIndexingAPI(urls: string[]): Promise<boolean> {
     }
     
     if (dryRun) {
-        console.log(`   🔍 DRY RUN: Would submit ${urls.length} URLs via Indexing API`);
+        console.log("   🔍 DRY RUN: Would submit", urls.length, "URLs via Indexing API");
         return true;
     }
     
@@ -263,21 +263,21 @@ async function submitViaGoogleIndexingAPI(urls: string[]): Promise<boolean> {
                 if (response.ok) {
                     successCount++;
                     if (i % 50 === 0) {
-                        console.log(`   📤 Progress: ${successCount}/${urlsToSubmit.length}`);
+                        console.log("   📤 Progress:", successCount + "/" + urlsToSubmit.length);
                     }
                 }
                 
                 await new Promise(r => setTimeout(r, 150));
             } catch (error: any) {
-                console.log(`   ⚠️  Error on ${url}: ${error.message}`);
+                console.log("   ⚠️  Error on", url, ":", error.message);
             }
         }
         
-        console.log(`   📊 Indexing API: ${successCount}/${urlsToSubmit.length} URLs submitted`);
+        console.log("   📊 Indexing API:", successCount + "/" + urlsToSubmit.length, "URLs submitted");
         return successCount > 0;
         
     } catch (error: any) {
-        console.log(`   ❌ Indexing API error: ${error.message}`);
+        console.log("   ❌ Indexing API error:", error.message);
         return false;
     }
 }
@@ -295,15 +295,15 @@ async function submitToSearchEngines(urls: string[]): Promise<void> {
     
     for (const endpoint of endpoints) {
         if (dryRun) {
-            console.log(`   🔍 DRY RUN: Would ping ${endpoint.name}`);
+            console.log("   🔍 DRY RUN: Would ping", endpoint.name);
             continue;
         }
         
         try {
             const response = await fetch(endpoint.url);
-            console.log(`   ${response.ok ? '✅' : '⚠️ '} ${endpoint.name}: ${response.status}`);
+            console.log("   ", response.ok ? "✅" : "⚠️ ", endpoint.name + ":", response.status);
         } catch (error: any) {
-            console.log(`   ❌ ${endpoint.name}: ${error.message}`);
+            console.log("   ❌", endpoint.name + ":", error.message);
         }
     }
 }
@@ -322,7 +322,7 @@ async function main() {
             changefreq: 'daily' as const,
             estimatedTraffic: 100
         }));
-        console.log(`📥 Loaded ${urls.length} URLs from file`);
+        console.log("📥 Loaded", urls.length, "URLs from file");
     } else {
         urls = parseSitemap();
         console.log(`📄 Parsed ${urls.length} URLs from sitemap`);

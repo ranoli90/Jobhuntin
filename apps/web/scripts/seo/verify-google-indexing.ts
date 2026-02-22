@@ -199,7 +199,7 @@ async function main() {
             await execAsync(`start ${consoleUrl}`);
             console.log(`✅ Opened Google Search Console`);
         } catch (error) {
-            console.log(`📋 Manual URL: ${consoleUrl}`);
+            console.log("📋 Manual URL:", consoleUrl);
         }
     }
     

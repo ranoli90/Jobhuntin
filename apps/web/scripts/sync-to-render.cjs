@@ -16,14 +16,14 @@ const newVars = [
 ];
 
 async function updateService(serviceId, vars) {
-    console.log(`Updating service ${serviceId}...`);
+    console.log("Updating service", serviceId, "...");
 
     const currentResp = await fetch(`https://api.render.com/v1/services/${serviceId}/env-vars`, {
         headers: { 'Authorization': `Bearer ${API_KEY}` }
     });
 
     if (!currentResp.ok) {
-        console.error(`Failed to fetch env vars for ${serviceId}`);
+        console.error("Failed to fetch env vars for", serviceId);
         return;
     }
 
@@ -52,9 +52,9 @@ async function updateService(serviceId, vars) {
 
     if (!putResp.ok) {
         const err = await putResp.text();
-        console.error(`Failed to PUT env vars for ${serviceId}: ${putResp.status} ${err}`);
+        console.error("Failed to PUT env vars for", serviceId, ":", putResp.status, err);
     } else {
-        console.log(`Successfully updated all env vars for ${serviceId}`);
+        console.log("Successfully updated all env vars for", serviceId);
     }
 }
 

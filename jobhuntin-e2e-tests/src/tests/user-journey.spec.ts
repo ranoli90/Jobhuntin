@@ -140,7 +140,7 @@ test.describe('User Journey: Landing to Job Search', () => {
       const content = page.locator('h1, h2, main').first();
       await expect(content).toBeVisible({ timeout: 10000 });
       
-      console.log(`✓ ${pageInfo.name} page loaded`);
+      console.log("✓", pageInfo.name, "page loaded");
     }
   });
 
@@ -174,7 +174,7 @@ test.describe('User Journey: Landing to Job Search', () => {
     // Should load within 10 seconds
     expect(loadTime).toBeLessThan(10000);
     
-    console.log(`Homepage load time: ${loadTime}ms`);
+    console.log("Homepage load time:", loadTime, "ms");
     
     // Check Core Web Vitals
     const metrics = await page.evaluate(() => {
@@ -203,7 +203,7 @@ test.describe('User Journey: Landing to Job Search', () => {
     }).catch(() => null);
     
     if (response) {
-      console.log(`API health status: ${response.status()}`);
+      console.log("API health status:", response.status());
     } else {
       console.log('API health check skipped (CORS or not available)');
     }

@@ -74,7 +74,7 @@ async function fetchNewsForCity(city: string, topic: string): Promise<NewsTrigge
             topic
         }));
     } catch (error) {
-        console.warn(`⚠️ Failed to fetch news for ${city}:`, error);
+        console.warn("⚠️ Failed to fetch news for", city, ":", error);
         return [];
     }
 }
@@ -84,8 +84,8 @@ async function fetchNewsForCity(city: string, topic: string): Promise<NewsTrigge
  */
 async function saveTrigger(trigger: NewsTrigger) {
     // Console log independently of DB success
-    console.log(`📰 TRIGGER FOUND: [${trigger.city}] ${trigger.headline}`);
-    console.log(`   URL: ${trigger.url}`);
+    console.log("📰 TRIGGER FOUND:", trigger.city, trigger.headline);
+    console.log("   URL:", trigger.url);
 
     if (!process.env.DATABASE_URL) {
         console.log('   (Skipping DB save: DATABASE_URL not set)');
@@ -110,7 +110,7 @@ async function saveTrigger(trigger: NewsTrigger) {
 }
 
 async function main() {
-    console.log(`🌍 Starting Global News Monitor for ${monitoredCities.length} cities...`);
+    console.log("🌍 Starting Global News Monitor for", monitoredCities.length, "cities...");
 
     // Initialize DB table once
     if (process.env.DATABASE_URL) {
@@ -138,7 +138,7 @@ async function main() {
 
     for (const city of monitoredCities) {
         for (const query of SEARCH_QUERIES) {
-            console.log(`🔍 Scanning: ${query} in ${city}...`);
+            console.log("🔍 Scanning:", query, "in", city, "...");
             const news = await fetchNewsForCity(city, query);
 
             for (const item of news) {
