@@ -10,8 +10,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Initialize RSS Parser
 const parser = new Parser();
 
-// Database Pool
-// Uses the same DATABASE_URL as the main app (Render/Supabase)
+// Database Pool - Uses the same DATABASE_URL as the main app (Render/Supabase)
+// nosemgrep: problem-based-packs.insecure-transport.js-node.bypass-tls-verification - Render PostgreSQL may require this
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : undefined

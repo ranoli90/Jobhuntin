@@ -43,6 +43,7 @@ export class XSSProtection {
     // Remove dangerous CSS keywords (escape regex special chars for safety)
     this.CSS_KEYWORDS.forEach(keyword => {
       const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp - keywords from constant array, escaped for ReDoS safety
       sanitized = sanitized.replace(new RegExp(escaped, 'gi'), '');
     });
     
