@@ -186,33 +186,33 @@ async function main() {
     generateVerificationReport(logs, recentUrls);
     
     if (checkStatus && recentUrls.length > 0) {
-        console.log(`\n🔍 Checking indexing status...`);
+        console.log('\n🔍 Checking indexing status...');
         await checkIndexingStatus(recentUrls);
         await verifyWithSiteSearch(recentUrls);
     }
     
     if (openConsole) {
-        console.log(`\n🌐 Opening Google Search Console...`);
+        console.log('\n🌐 Opening Google Search Console...');
         const consoleUrl = `https://search.google.com/search-console?resource_id=${encodeURIComponent(BASE_URL)}`;
         
         try {
             await execAsync(`start ${consoleUrl}`);
-            console.log(`✅ Opened Google Search Console`);
+            console.log('✅ Opened Google Search Console');
         } catch (error) {
             console.log("📋 Manual URL:", consoleUrl);
         }
     }
     
-    console.log(`\n✅ Verification complete!`);
-    console.log(`\n🎯 NEXT STEPS:`);
-    console.log(`   1. Check Google Search Console for indexing status`);
-    console.log(`   2. Use site: searches to verify individual URLs`);
-    console.log(`   3. Monitor analytics for new organic traffic`);
-    console.log(`   4. Run this script regularly to track progress`);
+    console.log('\n✅ Verification complete!');
+    console.log('\n🎯 NEXT STEPS:');
+    console.log('   1. Check Google Search Console for indexing status');
+    console.log('   2. Use site: searches to verify individual URLs');
+    console.log('   3. Monitor analytics for new organic traffic');
+    console.log('   4. Run this script regularly to track progress');
     
     if (recentUrls.length === 0) {
-        console.log(`\n⚠️  No recent submissions found`);
-        console.log(`   Run: npm run seo:submit-enhanced`);
+        console.log('\n⚠️  No recent submissions found');
+        console.log('   Run: npm run seo:submit-enhanced');
     }
 }
 

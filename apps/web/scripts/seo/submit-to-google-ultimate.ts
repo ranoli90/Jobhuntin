@@ -31,7 +31,7 @@ const indexNowOnly = args.includes('--indexnow');
 const sitemapPingOnly = args.includes('--sitemap-ping');
 const urlsFile = args.includes('--urls-file') ? args[args.indexOf('--urls-file') + 1] : null;
 
-console.log(`🚀 Ultimate Google Indexing Submission System`);
+console.log('🚀 Ultimate Google Indexing Submission System');
 console.log("📍 Site:", BASE_URL);
 console.log("📅", new Date().toISOString());
 
@@ -108,7 +108,7 @@ async function submitViaSitemapPing(): Promise<boolean> {
     try {
         const response = await fetch(pingUrl);
         if (response.ok) {
-            console.log(`   ✅ Sitemap pinged successfully to Google`);
+            console.log('   ✅ Sitemap pinged successfully to Google');
             return true;
         } else {
             console.log("   ⚠️  Ping returned status", response.status);
@@ -241,7 +241,7 @@ async function submitViaGoogleIndexingAPI(urls: string[]): Promise<boolean> {
             return false;
         }
         
-        console.log(`   ✅ Authenticated successfully`);
+        console.log('   ✅ Authenticated successfully');
         
         let successCount = 0;
         const dailyLimit = 200;
@@ -333,7 +333,7 @@ async function main() {
         return order[a.priority] - order[b.priority];
     });
     
-    console.log(`\n📊 URL Distribution:`);
+    console.log('\n📊 URL Distribution:');
     console.log("   Critical:", urls.filter((u) => u.priority === "critical").length);
     console.log("   High:", urls.filter((u) => u.priority === "high").length);
     console.log("   Medium:", urls.filter((u) => u.priority === "medium").length);
@@ -342,8 +342,8 @@ async function main() {
     const allUrls = sortedUrls.map(u => u.url);
     
     if (dryRun) {
-        console.log(`\n🔍 DRY RUN MODE - No actual submissions`);
-        console.log(`\n📋 Top 20 URLs to submit:`);
+        console.log('\n🔍 DRY RUN MODE - No actual submissions');
+        console.log('\n📋 Top 20 URLs to submit:');
         allUrls.slice(0, 20).forEach((url, i) => {
             const info = sortedUrls[i];
             console.log("   ", i + 1 + ". [" + info.priority + "]", url);
@@ -365,17 +365,17 @@ async function main() {
         await submitToSearchEngines(allUrls);
     }
     
-    console.log(`\n📊 FINAL RESULTS:`);
+    console.log('\n📊 FINAL RESULTS:');
     results.forEach(r => {
         console.log("   ", r.success ? "✅" : "❌", r.method);
     });
     
-    console.log(`\n🎯 NEXT STEPS FOR FASTEST INDEXING:`);
-    console.log(`   1. ✅ Sitemap is being pinged to Google/Bing`);
-    console.log(`   2. ⚡ IndexNow provides instant notification to Google/Bing/Yandex`);
-    console.log(`   3. 🔐 Set up Google Service Account for direct Indexing API access`);
-    console.log(`   4. 📱 Share key URLs on social media for quick discovery`);
-    console.log(`   5. 🔗 Build internal links to priority pages`);
+    console.log('\n🎯 NEXT STEPS FOR FASTEST INDEXING:');
+    console.log('   1. ✅ Sitemap is being pinged to Google/Bing');
+    console.log('   2. ⚡ IndexNow provides instant notification to Google/Bing/Yandex');
+    console.log('   3. 🔐 Set up Google Service Account for direct Indexing API access');
+    console.log('   4. 📱 Share key URLs on social media for quick discovery');
+    console.log('   5. 🔗 Build internal links to priority pages');
     
     const logDir = path.resolve(__dirname, '../../logs');
     if (!fs.existsSync(logDir)) {
@@ -395,7 +395,7 @@ async function main() {
         JSON.stringify(log, null, 2)
     );
     
-    console.log(`\n📝 Log saved to logs/indexing-submission.json`);
+    console.log('\n📝 Log saved to logs/indexing-submission.json');
 }
 
 main().catch(console.error);

@@ -130,7 +130,7 @@ Be objective. Highlight gaps vs JobHuntin AI.`;
           // For rate limits, retry
           if (response.status === 429) {
             lastError = new Error(`Model ${model} rate limited: ${errText}`);
-            console.warn(`⚠️  Rate limited, will retry...`);
+            console.warn('⚠️  Rate limited, will retry...');
             continue; // Retry this model
           }
           // For 404/400, try next model

@@ -134,10 +134,10 @@ async function checkIndexingStatus() {
                     }
                 }
             } else {
-                console.log(`\nRun with --submit-missing to automatically submit these to Google.`);
+                console.log('\nRun with --submit-missing to automatically submit these to Google.');
             }
         } else {
-            console.log(`\n✅ Great job! All sitemap URLs are receiving search traffic.`);
+            console.log('\n✅ Great job! All sitemap URLs are receiving search traffic.');
         }
 
     } catch (error: any) {

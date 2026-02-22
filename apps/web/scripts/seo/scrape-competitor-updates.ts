@@ -21,6 +21,7 @@ async function scrapeCompetitor(browser: any, competitor: any) {
         const priceMatches = bodyText.match(/\$\d+(\.\d{2})?/g);
 
         if (priceMatches) {
+            // nosemgrep: javascript.lang.security.audit.incomplete-sanitization - replace(/\$/g,'') replaces all via regex g flag
             const lowestPrice = Math.min(...priceMatches.map((m: string) => parseFloat(m.replace(/\$/g, ''))));
             console.log("   Found potential prices:", priceMatches.slice(0, 3).join(", "), "(Lowest: $" + lowestPrice + ")");
 

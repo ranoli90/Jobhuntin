@@ -101,9 +101,9 @@ async function saveTrigger(trigger: NewsTrigger) {
       ON CONFLICT (url) DO NOTHING
     `, [trigger.city, trigger.headline, trigger.url, trigger.summary, trigger.topic, trigger.publishedAt]);
 
-        console.log(`   ✅ Saved to database`);
+        console.log('   ✅ Saved to database');
     } catch (error) {
-        console.warn(`   ⚠️  DB Save Failed (Authentication/Connection error). Continuing...`);
+        console.warn('   ⚠️  DB Save Failed (Authentication/Connection error). Continuing...');
     } finally {
         client.release();
     }

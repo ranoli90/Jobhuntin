@@ -202,7 +202,7 @@ async function generateAggressiveLocalContent(
   if (marketStats) {
     console.log("✅ Found", marketStats.totalJobs, "active jobs. Injecting context.");
   } else {
-    console.log(`⚠️ No specific job data found. Proceeding with general knowledge.`);
+    console.log('⚠️ No specific job data found. Proceeding with general knowledge.');
   }
 
   // Randomly select an archetype ("The Chameleon Engine")
@@ -244,8 +244,8 @@ Real companies, realistic salaries, natural writing.`;
   // Try each model with detailed logging
 
   console.log("🤖 Generating aggressive local content for:", roleName, "in", cityName);
-  console.log(`🎯 Using semantic triples and entity relationships for maximum SEO impact`);
-  console.log(`🛡️  Google compliant - no blackhat techniques detected`);
+  console.log('🎯 Using semantic triples and entity relationships for maximum SEO impact');
+  console.log('🛡️  Google compliant - no blackhat techniques detected');
 
   // Try multiple free models with enhanced error handling
   for (let i = 0; i < modelsToTry.length; i++) {
@@ -313,8 +313,8 @@ Real companies, realistic salaries, natural writing.`;
 
       // Check if response was truncated
       if (finishReason === 'length') {
-        console.log(`⚠️  OUTPUT TRUNCATED - model hit token limit`);
-        console.log(`⚠️  Trying next model...`);
+        console.log('⚠️  OUTPUT TRUNCATED - model hit token limit');
+        console.log('⚠️  Trying next model...');
         continue;
       }
 
@@ -364,11 +364,11 @@ Real companies, realistic salaries, natural writing.`;
 
       // Log additional error context for debugging
       if (error.name === 'AbortError') {
-        console.log(`   Request timed out after 90s - model may be overloaded`);
+        console.log('   Request timed out after 90s - model may be overloaded');
       } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        console.log(`   Network error - check internet connection`);
+        console.log('   Network error - check internet connection');
       } else if (error.message.includes('timeout')) {
-        console.log(`   Request timeout - model may be overloaded`);
+        console.log('   Request timeout - model may be overloaded');
       }
 
       continue; // Try next model
@@ -387,7 +387,7 @@ function validateContentQuality(content: any): boolean {
     const role = content.role;
 
     if (!location || !role) {
-      console.log(`❌ Missing location or role data`);
+      console.log('❌ Missing location or role data');
       return false;
     }
 
@@ -427,7 +427,7 @@ function validateContentQuality(content: any): boolean {
 
     // Check for required fields
     if (!location.seoTitle || !location.seoDescription || !location.h1) {
-      console.log(`❌ Missing required SEO fields`);
+      console.log('❌ Missing required SEO fields');
       return false;
     }
 
@@ -437,7 +437,7 @@ function validateContentQuality(content: any): boolean {
       return false;
     }
 
-    console.log(`✅ Content quality validation passed`);
+    console.log('✅ Content quality validation passed');
     console.log("📊 Word count:", totalWords);
     console.log("🎯 Semantic density:", avgDensity.toFixed(1) + "%");
     console.log("🏆 Quality score:", location.contentQuality);
@@ -516,27 +516,27 @@ async function saveContent(cityName: string, roleName: string, content: { locati
       const savedRoles = JSON.parse(fs.readFileSync(ROLES_FILE, 'utf-8'));
 
       if (savedLocations.length !== locations.length || savedRoles.length !== roles.length) {
-        console.log(`⚠️  File validation warning - data may not have been saved correctly`);
+        console.log('⚠️  File validation warning - data may not have been saved correctly');
       } else {
-        console.log(`✅ Files validated successfully`);
+        console.log('✅ Files validated successfully');
       }
     } catch (saveError: any) {
       console.error("❌ Error saving files:", saveError.message);
       throw saveError;
     }
 
-    console.log(`💾 Content saved successfully`);
+    console.log('💾 Content saved successfully');
     console.log("📊 Updated", locations.length, "locations and", roles.length, "roles");
 
     // AUTO-REGENERATE SITEMAP
-    console.log(`🗺️  Regenerating sitemap...`);
+    console.log('🗺️  Regenerating sitemap...');
     try {
       const { execSync } = require('child_process');
       execSync('node scripts/generate-sitemap.cjs', { 
         cwd: path.resolve(__dirname, '../..'),
         stdio: 'pipe'
       });
-      console.log(`✅ Sitemap updated with new pages`);
+      console.log('✅ Sitemap updated with new pages');
     } catch (sitemapError: any) {
       console.log("⚠️  Sitemap regeneration failed:", sitemapError.message);
     }
@@ -546,7 +546,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     const citySlug = content.location?.slug || cityName.toLowerCase().replace(/\s+/g, '-');
     const newUrl = `https://jobhuntin.com/jobs/${roleSlug}/${citySlug}`;
     console.log("\n" + "=".repeat(60));
-    console.log(`*** NEW PAGE CREATED ***`);
+    console.log('*** NEW PAGE CREATED ***');
     console.log("URL:", newUrl);
     console.log("Title:", content.location?.seoTitle || "Generated");
     console.log("Quality Score:", content.location?.contentQuality || "N/A", "/100");
@@ -592,8 +592,8 @@ Examples:
 
   console.log("🚀 Generating content for:", roleName, "jobs in", cityName);
   console.log("🎯 Mode:", aggressive ? "Aggressive" : "Standard");
-  console.log(`🛡️  Google compliant: Yes`);
-  console.log(`💰 Using free models only: Yes`);
+  console.log('🛡️  Google compliant: Yes');
+  console.log('💰 Using free models only: Yes');
   console.log("📋 Backup enabled:", backup ? "Yes" : "No");
   console.log("🔍 Dry run:", dryRun ? "Yes" : "No");
 
@@ -602,33 +602,33 @@ Examples:
     const content = await generateAggressiveLocalContent(cityName, roleName, aggressive);
 
     if (dryRun) {
-      console.log(`\n🔍 DRY RUN: Content preview:`);
+      console.log('\n🔍 DRY RUN: Content preview:');
       console.log("📊 Location quality:", content.location.contentQuality);
       console.log("📊 Role quality:", content.role.contentQuality);
       console.log("🎯 SEO Title:", content.location.seoTitle);
       console.log("🎯 H1:", content.location.h1);
       console.log("📈 Content sections:", content.location.contentSections?.length || 0);
       console.log("🧠 Entities:", content.location.entityMentions?.length || 0);
-      console.log(`\n✅ Content generation successful (dry run)`);
+      console.log('\n✅ Content generation successful (dry run)');
     } else {
       // Save content
       await saveContent(cityName, roleName, content);
-      console.log(`\n✅ Content generation and saving completed successfully`);
-      console.log(`📊 Quality metrics:`);
+      console.log('\n✅ Content generation and saving completed successfully');
+      console.log('📊 Quality metrics:');
       console.log("   Location:", content.location.contentQuality + "/100");
       console.log("   Role:", content.role.contentQuality + "/100");
-      console.log(`🎯 SEO optimization complete`);
-      console.log(`🛡️  Google compliance verified`);
-      console.log(`📈 Ready for Google submission`);
+      console.log('🎯 SEO optimization complete');
+      console.log('🛡️  Google compliance verified');
+      console.log('📈 Ready for Google submission');
     }
 
   } catch (error: any) {
     console.error("❌ Error:", error.message);
-    console.error(`🔧 Troubleshooting tips:`);
-    console.error(`   - Check your LLM_API_KEY environment variable`);
-    console.error(`   - Verify internet connection`);
-    console.error(`   - Try with --aggressive flag for more model options`);
-    console.error(`   - Use --dry-run to test without saving`);
+    console.error('🔧 Troubleshooting tips:');
+    console.error('   - Check your LLM_API_KEY environment variable');
+    console.error('   - Verify internet connection');
+    console.error('   - Try with --aggressive flag for more model options');
+    console.error('   - Use --dry-run to test without saving');
     process.exit(1);
   }
 }

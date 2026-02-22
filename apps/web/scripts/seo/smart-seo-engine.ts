@@ -185,7 +185,7 @@ async function generateCompetitorComparison(
 ): Promise<{ url: string; title: string; success: boolean }> {
   const timestamp = new Date().toISOString();
   console.log('\n' + '='.repeat(80));
-  console.log(`📊 CONTENT TYPE: Competitor Comparison`);
+  console.log('📊 CONTENT TYPE: Competitor Comparison');
   console.log("🎯 TARGET:", competitor.name, "(" + competitor.volume.toLocaleString() + " searches/mo)");
   console.log("⏰ Started:", timestamp);
   console.log('='.repeat(80));
@@ -211,7 +211,7 @@ async function generateCompetitorComparison(
     const timeoutMs = 5 * 60 * 1000;
 
     const timeout = setTimeout(() => {
-      console.warn(`⏱️ TIMEOUT after 5 minutes`);
+      console.warn('⏱️ TIMEOUT after 5 minutes');
       childProcess.kill('SIGKILL');
     }, timeoutMs);
 
@@ -242,7 +242,7 @@ async function generateTrendingContent(
 ): Promise<{ url: string; title: string; success: boolean }> {
   const timestamp = new Date().toISOString();
   console.log('\n' + '='.repeat(80));
-  console.log(`📰 CONTENT TYPE: Industry Trends & News`);
+  console.log('📰 CONTENT TYPE: Industry Trends & News');
   console.log("🎯 TOPIC:", topic);
   console.log("⏰ Started:", timestamp);
   console.log('='.repeat(80));
@@ -298,7 +298,7 @@ async function generateLocationContent(
 ): Promise<{ url: string; title: string; success: boolean }> {
   const timestamp = new Date().toISOString();
   console.log('\n' + '='.repeat(80));
-  console.log(`📍 CONTENT TYPE: Location Deep Dive`);
+  console.log('📍 CONTENT TYPE: Location Deep Dive');
   console.log("🎯 TARGET:", role, "jobs in", location);
   console.log("⏰ Started:", timestamp);
   console.log('='.repeat(80));

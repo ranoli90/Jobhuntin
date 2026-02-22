@@ -135,6 +135,7 @@ async def seed_jobs(conn: asyncpg.Connection, count: int = 50) -> int:
         template = SAMPLE_JOBS[i % len(SAMPLE_JOBS)]
         suffix = f" #{i + 1}" if i >= len(SAMPLE_JOBS) else ""
         job_id = str(uuid.uuid4())
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli - fully parameterized $1..$8
         await conn.execute(
             """
             INSERT INTO public.jobs (id, title, company, location, application_url, description, salary_min, salary_max, source)

@@ -17,6 +17,7 @@
 version: "3.9"
 
 services:
+  # nosemgrep: yaml.docker-compose.security - postgres needs writable data dir; no-new-privileges mitigates escalation
   db:
     image: postgres:16-alpine
     security_opt:

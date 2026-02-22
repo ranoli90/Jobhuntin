@@ -124,6 +124,7 @@ class SEOMonitoringDashboard {
 
   private displayDashboard(): void {
     console.clear();
+    // nosemgrep: javascript.lang.security.audit.unsafe-formatstring - internal metrics display, no user input
     console.log(`
 🚀 SEO RANKING ENGINE - LIVE MONITORING DASHBOARD
 ${'='.repeat(60)}
@@ -259,6 +260,7 @@ const dashboard = new SEOMonitoringDashboard();
 if (args.includes('--verify')) {
   dashboard.verifySubmissions();
 } else if (args.includes('--help')) {
+  // nosemgrep: javascript.lang.security.audit.unsafe-formatstring - static help text
   console.log(`
 🚀 SEO Monitoring Dashboard
 

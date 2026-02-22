@@ -342,9 +342,9 @@ async function main() {
         longTailKeywords: LONG_TAIL_KEYWORDS,
     }, null, 2));
     
-    console.log(`\n✅ Report saved to logs/aggressive-seo-report.json`);
+    console.log('\n✅ Report saved to logs/aggressive-seo-report.json');
     console.log("📊 Total URLs:", urls.length);
-    console.log(`🔥 Ready for aggressive indexing campaign`);
+    console.log('🔥 Ready for aggressive indexing campaign');
 }
 
 main();

@@ -303,13 +303,13 @@ try {
         
         console.log("📊 Total URLs found:", allUrls.length);
         console.log("📊 Filtered URLs:", filteredUrls.length);
-        console.log(`📊 Priority breakdown:`);
+        console.log('📊 Priority breakdown:');
         console.log("   High:", filteredUrls.filter((u) => u.priority === "High").length);
         console.log("   Medium:", filteredUrls.filter((u) => u.priority === "Medium").length);
         console.log("   Low:", filteredUrls.filter((u) => u.priority === "Low").length);
         
         if (filteredUrls.length === 0) {
-            console.log(`⚠️  No URLs to submit after filtering`);
+            console.log('⚠️  No URLs to submit after filtering');
             process.exit(0);
         }
         urlsToSubmit = filteredUrls;
@@ -320,43 +320,43 @@ try {
     urlsToSubmit = urlsToSubmit.slice(0, dailyLimit);
     
     console.log("📈 Estimated daily traffic potential:", urlsToSubmit.reduce((sum, u) => sum + u.estimatedTraffic, 0), "visits");
-    console.log(`🏆 Top 5 URLs by priority:`);
+    console.log('🏆 Top 5 URLs by priority:');
     urlsToSubmit.slice(0, 5).forEach((url, i) => {
         console.log("   ", i + 1 + ".", url.url, "(" + url.priority + ",", url.estimatedTraffic, "est. traffic)");
     });
 
     if (dryRun) {
         console.log("🔍 DRY RUN: Would submit", urlsToSubmit.length, "URLs");
-        console.log(`📋 Full URL list with priorities:`);
+        console.log('📋 Full URL list with priorities:');
         urlsToSubmit.forEach((url, i) => {
             console.log("   ", i + 1 + ".", url.url, "(" + url.priority + ", Quality:", url.contentQuality + ", Traffic:", url.estimatedTraffic + ")");
         });
-        console.log(`\n✅ Dry run complete! The site submitter is working correctly.`);
-        console.log(`\n🔄 Next steps to activate real indexing:`);
-        console.log(`   1. Set GOOGLE_SERVICE_ACCOUNT_KEY environment variable`);
-        console.log(`   2. Run without --dry-run flag to submit URLs`);
-        console.log(`   3. Monitor Google Search Console for indexing status`);
+        console.log('\n✅ Dry run complete! The site submitter is working correctly.');
+        console.log('\n🔄 Next steps to activate real indexing:');
+        console.log('   1. Set GOOGLE_SERVICE_ACCOUNT_KEY environment variable');
+        console.log('   2. Run without --dry-run flag to submit URLs');
+        console.log('   3. Monitor Google Search Console for indexing status');
         process.exit(0);
     }
 
-    console.log(`\n⚠️  REAL SUBMISSION MODE`);
+    console.log('\n⚠️  REAL SUBMISSION MODE');
     console.log("This will attempt to submit", urlsToSubmit.length, "URLs to Google Indexing API.");
-    console.log(`Make sure you have set up your Google service account properly.`);
+    console.log('Make sure you have set up your Google service account properly.');
     
     // Check for Google credentials
     const keyPath = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
     if (!keyPath) {
-        console.log(`❌ GOOGLE_SERVICE_ACCOUNT_KEY environment variable is not set.`);
-        console.log(`Please set it to your service account JSON file path or raw JSON content.`);
+        console.log('❌ GOOGLE_SERVICE_ACCOUNT_KEY environment variable is not set.');
+        console.log('Please set it to your service account JSON file path or raw JSON content.');
         process.exit(1);
     }
 
-    console.log(`🔐 Found Google service account configuration`);
-    console.log(`✅ Site submitter is ready for real indexing!`);
+    console.log('🔐 Found Google service account configuration');
+    console.log('✅ Site submitter is ready for real indexing!');
     
     // Import the Google indexing submission logic
     try {
-        console.log(`\n📤 Submitting URLs to Google Indexing API...`);
+        console.log('\n📤 Submitting URLs to Google Indexing API...');
         
         // Initialize Google Indexing API client
         let keyContent;
@@ -376,9 +376,9 @@ try {
         });
         
         // Authorize the client
-        console.log(`   🔐 Authenticating with Google...`);
+        console.log('   🔐 Authenticating with Google...');
         await jwtClient.authorize();
-        console.log(`   ✅ Authentication successful!`);
+        console.log('   ✅ Authentication successful!');
         
         // Initialize the indexing API
         const indexing = google.indexing({ version: 'v3', auth: jwtClient });
@@ -465,26 +465,26 @@ try {
         fs.writeFileSync(logPath, JSON.stringify(existingLogs, null, 2));
         
         console.log("\n📝 Detailed submission log saved to:", logPath);
-        console.log(`   This log contains the actual API responses from Google for verification.`);
+        console.log('   This log contains the actual API responses from Google for verification.');
         
-        console.log(`\n🎯 Submission Results:`);
+        console.log('\n🎯 Submission Results:');
         console.log("   ✅ Successfully submitted:", successCount, "URLs");
         console.log("   ❌ Failed:", errorCount, "URLs");
         console.log("   📊 Success rate:", ((successCount / urlsToSubmit.length) * 100).toFixed(1) + "%");
         
         if (successCount > 0) {
-            console.log(`\n🚀 Google indexing initiated! URLs should be processed within 24-48 hours.`);
-            console.log(`📈 Monitor your Google Search Console for indexing status.`);
+            console.log('\n🚀 Google indexing initiated! URLs should be processed within 24-48 hours.');
+            console.log('📈 Monitor your Google Search Console for indexing status.');
             console.log("⏰ Next submission window:", new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString());
         }
         
     } catch (error) {
         console.error("\n❌ Google Indexing API Error:", error.message);
-        console.log(`🔧 Troubleshooting tips:`);
-        console.log(`   - Verify your service account has Indexing API access`);
-        console.log(`   - Check that your site is verified in Search Console`);
-        console.log(`   - Ensure the service account email is added to Search Console`);
-        console.log(`   - Review Google's Indexing API quotas and limits`);
+        console.log('🔧 Troubleshooting tips:');
+        console.log('   - Verify your service account has Indexing API access');
+        console.log('   - Check that your site is verified in Search Console');
+        console.log('   - Ensure the service account email is added to Search Console');
+        console.log('   - Review Google\'s Indexing API quotas and limits');
         process.exit(1);
     }
     
