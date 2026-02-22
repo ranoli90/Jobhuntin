@@ -15,6 +15,7 @@ headers = {
 def get_env_vars(service_id, service_name):
     print(f"\nChecking {service_name} ({service_id})...")
     try:
+        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected - service_id from SERVICES dict
         req = urllib.request.Request(f"https://api.render.com/v1/services/{service_id}/env-vars", headers=headers)
         with urllib.request.urlopen(req, timeout=30) as response:
             env_vars = json.loads(response.read().decode())

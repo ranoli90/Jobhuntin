@@ -10,6 +10,7 @@ headers = {
 
 print("Fetching services...")
 try:
+    # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected - static URL
     req = urllib.request.Request("https://api.render.com/v1/services", headers=headers)
     with urllib.request.urlopen(req, timeout=30) as response:
         services = json.loads(response.read().decode())

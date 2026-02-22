@@ -109,14 +109,16 @@ async def get_success_metrics(
     conn: asyncpg.Connection, interval: str, min_samples: int = 10
 ) -> dict[str, Any] | None:
     """Calculate success rate metrics over a time interval."""
-    row = await conn.fetchrow(f"""
-        SELECT
-            COUNT(*)::int AS total,
-            COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED'))::int AS succeeded
-        FROM public.applications
-        WHERE created_at >= now() - interval '{interval}'
-          AND status NOT IN ('QUEUED', 'PROCESSING')
-    """)
+    allowed = ("24 hours", "7 days", "30 days")
+    if interval not in allowed:
+        raise ValueError(f"interval must be one of {allowed}")
+    row = await conn.fetchrow(
+        "SELECT COUNT(*)::int AS total, "
+        "COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED'))::int AS succeeded "
+        "FROM public.applications "
+        "WHERE created_at >= now() - $1::interval AND status NOT IN ('QUEUED', 'PROCESSING')",
+        interval,
+    )
     if not row or (row["total"] or 0) < min_samples:
         return None
 

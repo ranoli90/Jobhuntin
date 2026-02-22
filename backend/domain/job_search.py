@@ -98,9 +98,11 @@ def _build_job_search_query(
         params.append(job_type.lower())
 
     # Filter out expired jobs using last_synced_at
-    ttl_days = getattr(settings, 'jobspy_job_ttl_days', 7)
+    ttl_days = getattr(settings, "jobspy_job_ttl_days", 7)
     if ttl_days > 0:
-        query += f" AND (last_synced_at IS NULL OR last_synced_at >= now() - interval '{ttl_days} days')"
+        n += 1
+        query += f" AND (last_synced_at IS NULL OR last_synced_at >= now() - ${n}::interval)"
+        params.append(f"{ttl_days} days")
 
     query += " ORDER BY date_posted DESC NULLS LAST, created_at DESC LIMIT $%d OFFSET $%d" % (n + 1, n + 2)
     params.extend([limit, offset])
@@ -183,6 +185,7 @@ async def get_job_sources(db_pool: asyncpg.Pool) -> list[dict[str, Any]]:
 
 async def get_sync_status(db_pool: asyncpg.Pool) -> dict[str, Any]:
     """Get current sync status for monitoring."""
+    # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - static queries only
     async with db_pool.acquire() as conn:
         config = await conn.fetch("SELECT * FROM public.job_sync_config ORDER BY source")
         recent = await conn.fetch(

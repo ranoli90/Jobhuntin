@@ -24,6 +24,7 @@ async def scan_upcoming_renewals(conn: asyncpg.Connection) -> list[dict[str, Any
     d90 = now + timedelta(days=90)
 
     # Find tenants with contract_end within 90 days that don't have a renewal record
+    # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1
     rows = await conn.fetch("""
         SELECT t.id AS tenant_id, t.name, t.plan::text, t.contract_end,
                t.contract_value_cents, t.billing_interval

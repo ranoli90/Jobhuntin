@@ -298,6 +298,7 @@ async def create_webhook(
         if count >= 10:
             raise HTTPException(status_code=400, detail="Maximum 10 webhook endpoints")
 
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1..$4
         row = await conn.fetchrow(
             """INSERT INTO public.webhook_endpoints (tenant_id, url, secret, events)
                VALUES ($1, $2, $3, $4) RETURNING id, url, events, is_active""",

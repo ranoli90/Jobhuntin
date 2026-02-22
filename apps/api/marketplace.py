@@ -84,6 +84,7 @@ async def list_blueprints(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Browse marketplace blueprints (public — no auth required)."""
+    # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - order from whitelist, values in params
     base = """
         SELECT id, slug, name, description, category, author_name, version,
                install_count, rating_avg, rating_count, price_cents, is_featured,

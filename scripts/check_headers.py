@@ -1,5 +1,6 @@
 import urllib.request
 
+# nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
 PROJECT_REF = "zglovpfwyobbbaaocawz"
 URL = f"https://{PROJECT_REF}.supabase.co/rest/v1/"
 # Try both keys

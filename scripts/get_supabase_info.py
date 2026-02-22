@@ -1,6 +1,7 @@
 import json
 import urllib.request
 
+# nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected - PROJECT_REF constant
 PROJECT_REF = "zglovpfwyobbbaaocawz"
 # User provided sb_secret_... which might be a management token
 TOKEN = "sb_secret_3RfgVxidbpUJ8xRpmIygtA_7SRKmbVk"

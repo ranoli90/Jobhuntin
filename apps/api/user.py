@@ -281,6 +281,7 @@ async def undo_application(
             raise HTTPException(status_code=400, detail="Undo window has expired")
 
         # Delete the application record
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1,$2
         await conn.execute(
             """
             DELETE FROM public.applications

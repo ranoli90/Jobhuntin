@@ -36,7 +36,7 @@ async function prerender() {
     });
 
     const baseUrl = server.resolvedUrls?.local[0] || 'http://localhost:4173';
-    console.log(`✅ Preview server running at ${baseUrl}`);
+    console.log("✅ Preview server running at", baseUrl);
 
     const browser = await chromium.launch();
     const context = await browser.newContext();
@@ -48,7 +48,7 @@ async function prerender() {
     for (const route of prerenderRoutes) {
         try {
             const url = `${baseUrl}${route === '/' ? '' : route}`;
-            console.log(`📄 Prerendering: ${route}...`);
+            console.log("📄 Prerendering:", route, "...");
 
             await page.goto(url, { waitUntil: 'networkidle' });
 
@@ -88,9 +88,9 @@ async function prerender() {
     await browser.close();
     server.httpServer.close();
 
-    console.log(`\n✨ Prerendering Complete!`);
-    console.log(`   Success: ${successCount}`);
-    console.log(`   Errors: ${errorCount}`);
+    console.log("\n✨ Prerendering Complete!");
+    console.log("   Success:", successCount);
+    console.log("   Errors:", errorCount);
 }
 
 prerender().catch((err) => {

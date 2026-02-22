@@ -189,5 +189,6 @@ async def _cleanup_expired_adzuna_jobs(conn: asyncpg.Connection, ttl_days: int) 
     if ttl_days <= 0:
         return
     await conn.execute(
-        f"DELETE FROM public.jobs WHERE source = 'adzuna' AND created_at < now() - interval '{ttl_days} days'"
+        "DELETE FROM public.jobs WHERE source = 'adzuna' AND created_at < now() - $1::interval",
+        f"{ttl_days} days",
     )

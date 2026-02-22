@@ -99,6 +99,7 @@ async def resolve_tenant_context(
     tenant_id = str(uuid.uuid4())
     slug = f"user-{user_id[:8]}-{uuid.uuid4().hex[:6]}"
 
+    # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1..$3
     await conn.execute(
         """
         INSERT INTO public.tenants (id, name, slug, plan)
