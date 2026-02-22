@@ -79,7 +79,8 @@ export default function GuidePage() {
   // Extract headings for navigation (sanitize to prevent XSS from CMS content)
   useEffect(() => {
     if (guide) {
-      const tempDiv = document.createElement('div');
+      const tempDiv = document.createElement("div");
+      // nosemgrep: javascript.browser.security.insecure-document-method - content sanitized via XSSProtection
       tempDiv.innerHTML = XSSProtection.sanitizeHTML(guide.content);
       const headingElements = tempDiv.querySelectorAll('h3, h4');
       const extractedHeadings = Array.from(headingElements).map((heading, index) => ({
