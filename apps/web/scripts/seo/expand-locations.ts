@@ -442,10 +442,10 @@ function expandLocations() {
   });
   
   fs.writeFileSync(locationsPath, JSON.stringify(expandedLocations, null, 2));
-  console.log(`✅ Expanded ${expandedLocations.length} locations with SEO data`);
-  
-  const citiesWithRichData = expandedLocations.filter(l => cityData[l.id!]).length;
-  console.log(`   - ${citiesWithRichData} cities with rich employer/industry data`);
+  console.log("✅ Expanded", expandedLocations.length, "locations with SEO data");
+
+  const citiesWithRichData = expandedLocations.filter((l) => cityData[l.id!]).length;
+  console.log("   -", citiesWithRichData, "cities with rich employer/industry data");
 }
 
 expandLocations();

@@ -34,7 +34,7 @@ const ROUTES_TO_TEST = [
 ];
 
 const simulateCrawl = () => {
-  console.log(`--- Starting Discovery Modeling: ${CRAWLER_CONFIG.name} ---`);
+  console.log("--- Starting Discovery Modeling:", CRAWLER_CONFIG.name, "---");
   
   const report = {
     timestamp: new Date().toISOString(),
@@ -106,8 +106,8 @@ const simulateCrawl = () => {
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   
   console.log('\n--- Simulation Complete ---');
-  console.log(`Accessible Routes: ${report.summary.accessibleRoutes}/${report.summary.totalRoutes}`);
-  console.log(`Report generated at: ${reportPath}`);
+  console.log("Accessible Routes:", report.summary.accessibleRoutes + "/" + report.summary.totalRoutes);
+  console.log("Report generated at:", reportPath);
 };
 
 simulateCrawl();

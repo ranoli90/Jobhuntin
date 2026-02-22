@@ -46,7 +46,7 @@ const simulateTraffic = () => {
   console.log('--- Starting Synthetic Traffic Simulation ---');
   
   const simulationResults = TRAFFIC_MODELS.map(model => {
-    console.log(`Simulating segment: ${model.segment}...`);
+    console.log("Simulating segment:", model.segment, "...");
     
     // Simulate some randomness in metrics
     const variance = () => (Math.random() * 0.2) - 0.1; // +/- 10%
@@ -66,10 +66,10 @@ const simulateTraffic = () => {
   fs.writeFileSync(reportPath, JSON.stringify(simulationResults, null, 2));
   
   console.log('\n--- Simulation Complete ---');
-  simulationResults.forEach(res => {
-    console.log(`- ${res.segment}: Est. Rank Boost: ${res.simulatedMetrics.estimatedSearchRankBoost}`);
+  simulationResults.forEach((res) => {
+    console.log("-", res.segment + ": Est. Rank Boost:", res.simulatedMetrics.estimatedSearchRankBoost);
   });
-  console.log(`Detailed report saved to: ${reportPath}`);
+  console.log("Detailed report saved to:", reportPath);
 };
 
 simulateTraffic();

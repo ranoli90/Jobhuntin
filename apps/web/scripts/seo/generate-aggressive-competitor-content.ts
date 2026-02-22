@@ -248,7 +248,7 @@ async function generateAggressiveSEOContent(
 
   for (const model of modelsToTry) {
     try {
-      console.log(`🤖 Generating aggressive SEO content with ${model}...`);
+      console.log("🤖 Generating aggressive SEO content with", model, "...");
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -269,7 +269,7 @@ async function generateAggressiveSEOContent(
       if (!response.ok) {
         const errText = await response.text();
         if (response.status === 404 || response.status === 400 || response.status === 429) {
-          console.warn(`⚠️  Model ${model} failed: ${response.status} - ${errText}`);
+          console.warn("⚠️  Model", model, "failed:", response.status, "-", errText);
           lastError = new Error(errText);
           continue;
         }
@@ -278,7 +278,7 @@ async function generateAggressiveSEOContent(
 
       const data = await response.json();
       if (data.error) {
-        console.warn(`⚠️  Model ${model} returned error: ${JSON.stringify(data.error)}`);
+        console.warn("⚠️  Model", model, "returned error:", JSON.stringify(data.error));
         lastError = new Error(JSON.stringify(data.error));
         continue;
       }
@@ -288,12 +288,12 @@ async function generateAggressiveSEOContent(
       
       // Check if response was truncated
       if (finishReason === 'length') {
-        console.warn(`⚠️  Model ${model} hit token limit, response truncated. Trying next model...`);
+        console.warn("⚠️  Model", model, "hit token limit, response truncated. Trying next model...");
         continue;
       }
       
       if (!content) {
-        console.warn(`⚠️  Model ${model} returned empty content.`);
+        console.warn("⚠️  Model", model, "returned empty content.");
         continue;
       }
 
@@ -308,7 +308,7 @@ async function generateAggressiveSEOContent(
 
       try {
         const result = JSON.parse(cleanJson);
-        console.log(`✅ Successfully generated aggressive SEO content with ${model}`);
+        console.log("✅ Successfully generated aggressive SEO content with", model);
         return result;
       } catch (e) {
         console.error('Failed to parse JSON from model:', model);
@@ -317,7 +317,7 @@ async function generateAggressiveSEOContent(
 
     } catch (e: any) {
       lastError = e;
-      console.warn(`⚠️  Error with model ${model}: ${e.message}`);
+      console.warn("⚠️  Error with model", model, ":", e.message);
     }
   }
 
@@ -350,7 +350,7 @@ async function main() {
     }
   }
 
-  console.log(`🚀 Starting aggressive SEO content generation for: ${name}`);
+  console.log("🚀 Starting aggressive SEO content generation for:", name);
   if (aggressive) console.log('🔥 AGGRESSIVE MODE ACTIVATED - Using premium models');
 
   try {
@@ -362,7 +362,7 @@ async function main() {
 
     // Check for duplicates
     if (competitors.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-      console.log(`⚠️  Competitor "${name}" already exists. Updating with aggressive SEO...`);
+      console.log("⚠️  Competitor", name, "already exists. Updating with aggressive SEO...");
 
       // Update existing competitor with aggressive SEO
       const existingIndex = competitors.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
@@ -393,16 +393,16 @@ async function main() {
     // Save updated data
     fs.writeFileSync(COMPETITORS_FILE, JSON.stringify(competitors, null, 2));
 
-    console.log(`✅ Successfully updated competitor data with aggressive SEO`);
-    console.log(`📊 Total competitors: ${competitors.length}`);
+    console.log("✅ Successfully updated competitor data with aggressive SEO");
+    console.log("📊 Total competitors:", competitors.length);
 
     if (aggressive) {
-      console.log(`🔥 Aggressive SEO features added:`);
-      console.log(`   - Enhanced title tags`);
-      console.log(`   - Advanced schema markup`);
-      console.log(`   - Semantic keyword optimization`);
-      console.log(`   - Entity-based content`);
-      console.log(`   - Comprehensive content sections`);
+      console.log("🔥 Aggressive SEO features added:");
+      console.log("   - Enhanced title tags");
+      console.log("   - Advanced schema markup");
+      console.log("   - Semantic keyword optimization");
+      console.log("   - Entity-based content");
+      console.log("   - Comprehensive content sections");
     }
 
   } catch (error: any) {

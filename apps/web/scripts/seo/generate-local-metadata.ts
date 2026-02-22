@@ -83,9 +83,9 @@ const MAJOR_CITIES = [
 ];
 
 function main() {
-    console.log(`Generating data for ${MAJOR_CITIES.length} cities...`);
+    console.log("Generating data for", MAJOR_CITIES.length, "cities...");
     fs.writeFileSync(LOCATIONS_FILE, JSON.stringify(MAJOR_CITIES, null, 2));
-    console.log(`✅ Success! Metadata saved to ${LOCATIONS_FILE}`);
+    console.log("✅ Success! Metadata saved to", LOCATIONS_FILE);
 }
 
 main();

@@ -197,8 +197,8 @@ function generatePageHTML(content: GeneratedContent, topic: string): string {
 }
 
 async function main() {
-  console.log(`\n📰 Generating trending content for: "${TOPIC}"`);
-  console.log(`🧠 Model: ${MODEL}`);
+  console.log("\n📰 Generating trending content for:", TOPIC);
+  console.log("🧠 Model:", MODEL);
   
   if (!API_KEY) {
     console.error('❌ LLM_API_KEY not set');
@@ -207,9 +207,9 @@ async function main() {
 
   try {
     const content = await generateTrendingContent(TOPIC);
-    console.log(`\n✅ Content generated!`);
-    console.log(`📝 Title: ${content.title}`);
-    console.log(`📊 Keywords: ${content.keywords.slice(0, 5).join(', ')}...`);
+    console.log("\n✅ Content generated!");
+    console.log("📝 Title:", content.title);
+    console.log("📊 Keywords:", content.keywords.slice(0, 5).join(", "), "...");
     
     // Generate HTML
     const html = generatePageHTML(content, TOPIC);
@@ -224,8 +224,8 @@ async function main() {
     const outputPath = path.join(outputDir, `${slug}.html`);
     fs.writeFileSync(outputPath, html);
     
-    console.log(`\n💾 Saved to: ${outputPath}`);
-    console.log(`🔗 URL: https://jobhuntin.com/news/${slug}`);
+    console.log("\n💾 Saved to:", outputPath);
+    console.log("🔗 URL: https://jobhuntin.com/news/" + slug);
     
     // Also save metadata
     const metaPath = path.join(outputDir, `${slug}.json`);

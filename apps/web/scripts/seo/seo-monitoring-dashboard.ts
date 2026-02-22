@@ -82,7 +82,7 @@ class SEOMonitoringDashboard {
         };
       }
     } catch (error) {
-      console.log(`⚠️  Could not load metrics: ${error.message}`);
+      console.log("⚠️  Could not load metrics:", error.message);
     }
 
     return defaultMetrics;
@@ -205,7 +205,7 @@ ${'-'.repeat(60)}
         lines.forEach(line => {
           const timestamp = line.match(/\[(.*?)\]/)?.[1] || '';
           const message = line.replace(/\[.*?\]\s*/, '');
-          console.log(`   ${timestamp} ${message}`);
+          console.log("  ", timestamp, message);
         });
       } else {
         console.log('   No engine logs found yet...');

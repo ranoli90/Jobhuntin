@@ -86,7 +86,7 @@ async function auditUrl(url: string): Promise<AuditResult> {
 
     for (let i = 0; i < PAID_MODELS.length; i++) {
         const model = PAID_MODELS[i];
-        console.log(`  🔄 Trying model: ${model} (${i + 1}/${PAID_MODELS.length})`);
+        console.log("  🔄 Trying model:", model, "(" + (i + 1) + "/" + PAID_MODELS.length + ")");
 
         try {
             const controller = new AbortController();
@@ -112,7 +112,7 @@ async function auditUrl(url: string): Promise<AuditResult> {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.log(`  ⚠️ Model ${model} failed: ${response.status}`);
+                console.log("  ⚠️ Model", model, "failed:", response.status);
                 lastError = new Error(`OpenRouter error: ${response.status} - ${errorText}`);
 
                 if (response.status === 429 || response.status === 404 || response.status === 400) {
@@ -137,7 +137,7 @@ async function auditUrl(url: string): Promise<AuditResult> {
                 result = JSON.parse(clean);
             }
 
-            console.log(`  ✅ Success with model: ${model}`);
+            console.log("  ✅ Success with model:", model);
             return {
                 url,
                 seoScore: result.seoScore || 0,
@@ -150,15 +150,15 @@ async function auditUrl(url: string): Promise<AuditResult> {
         } catch (error: any) {
             lastError = error;
             if (error.name === 'AbortError') {
-                console.log(`  ⏱️ Model ${model} timed out`);
+                console.log("  ⏱️ Model", model, "timed out");
             } else {
-                console.log(`  ⚠️ Model ${model} error: ${error.message}`);
+                console.log("  ⚠️ Model", model, "error:", error.message);
             }
             continue;
         }
     }
 
-    console.error(`❌ All models failed for ${url}:`, lastError?.message);
+    console.error("❌ All models failed for", url, ":", lastError?.message);
     return {
         url,
         seoScore: 0,
@@ -171,14 +171,14 @@ async function auditUrl(url: string): Promise<AuditResult> {
 
 async function main() {
     const urls = getUrlsFromSitemap();
-    console.log(`🔍 Found ${urls.length} URLs in sitemap.`);
+    console.log("🔍 Found", urls.length, "URLs in sitemap.");
 
     // CLI args for limit
     const args = process.argv.slice(2);
     const limitIdx = args.indexOf('--limit');
     let limit = limitIdx !== -1 ? parseInt(args[limitIdx + 1]) : urls.length;
 
-    console.log(`🚀 Starting audit for ${limit} URLs using ${PAID_MODELS[0]}...`);
+    console.log("🚀 Starting audit for", limit, "URLs using", PAID_MODELS[0], "...");
 
     const results: AuditResult[] = [];
     const BATCH_SIZE = 3; // Small batch to be safe with free tier
@@ -188,7 +188,7 @@ async function main() {
         const batch = urls.slice(i, i + BATCH_SIZE);
         if (batch.length === 0) break;
 
-        console.log(`Processing batch ${i + 1}-${Math.min(i + BATCH_SIZE, limit)}...`);
+        console.log("Processing batch", (i + 1) + "-" + Math.min(i + BATCH_SIZE, limit), "...");
 
         const promises = batch.map(url => auditUrl(url));
         const batchResults = await Promise.all(promises);
@@ -205,20 +205,20 @@ async function main() {
     // Use a pretty print
     fs.writeFileSync(REPORT_FILE, JSON.stringify(results, null, 2));
 
-    console.log(`\n✅ Audit Complete!`);
-    console.log(`📄 Report saved to: ${REPORT_FILE}`);
+    console.log("\n✅ Audit Complete!");
+    console.log("📄 Report saved to:", REPORT_FILE);
 
     // Summary
     const avgScore = results.reduce((acc, r) => acc + r.seoScore, 0) / results.length;
-    const spamCount = results.filter(r => r.isSpam).length;
+    const spamCount = results.filter((r) => r.isSpam).length;
 
-    console.log(`📊 Summary:`);
-    console.log(`   - URLs Audited: ${results.length}`);
-    console.log(`   - Average SEO Score: ${avgScore.toFixed(1)}/100`);
-    console.log(`   - Spam Flags: ${spamCount}`);
+    console.log("📊 Summary:");
+    console.log("   - URLs Audited:", results.length);
+    console.log("   - Average SEO Score:", avgScore.toFixed(1) + "/100");
+    console.log("   - Spam Flags:", spamCount);
     if (spamCount > 0) {
-        console.log(`   ⚠️  SPAM DETECTED in:`);
-        results.filter(r => r.isSpam).forEach(r => console.log(`      - ${r.url} (${r.spamReason})`));
+        console.log("   ⚠️  SPAM DETECTED in:");
+        results.filter((r) => r.isSpam).forEach((r) => console.log("      -", r.url, "(" + r.spamReason + ")"));
     }
 }
 

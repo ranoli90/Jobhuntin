@@ -37,7 +37,7 @@ const RESET = args.includes('--reset');
 // ─── Structured Logger ───────────────────────────────────────────────────────
 function log(category: string, message: string): void {
   const ts = new Date().toISOString();
-  console.log(`[${ts}] [FAST-INDEX:${category}] ${message}`);
+  console.log("[" + ts + "] [FAST-INDEX:" + category + "]", message);
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
