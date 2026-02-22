@@ -565,6 +565,7 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
+    // nosemgrep: javascript.lang.security.audit.unsafe-formatstring - static usage text
     console.error(`
 Usage: npx tsx scripts/seo/generate-city-content.ts <city> <role> [options]
 
