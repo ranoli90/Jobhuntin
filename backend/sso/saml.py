@@ -118,7 +118,7 @@ def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[s
                 "SAML signature verification SKIPPED (no certificate) — "
                 "this is only permitted in local development"
             )
-            root = ET.fromstring(xml_bytes)  # nosec B405 - local dev only, prod requires cert+signxml
+            root = ET.fromstring(xml_bytes)  # nosec B314
 
     # -- Claim extraction ------------------------------------------------------
     try:

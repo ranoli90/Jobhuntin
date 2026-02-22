@@ -179,9 +179,8 @@ async def export_user_data(
                 continue
 
             try:
-                # nosec B608 - table, user_col from TABLES_WITH_USER_DATA constant
-                rows = await conn.fetch(
-                    f"SELECT * FROM {table} WHERE {user_col} = $1",
+                rows = await conn.fetch(  # nosec
+                    f"SELECT * FROM {table} WHERE {user_col} = $1",  # nosec
                     user_id,
                 )
                 if rows:
@@ -245,9 +244,8 @@ async def delete_user_data(
         try:
             for table, user_col in TABLES_FOR_DELETION:
                 try:
-                    # nosec B608 - table, user_col from TABLES_FOR_DELETION constant
-                    result = await conn.execute(
-                        f"DELETE FROM {table} WHERE {user_col} = $1",
+                    result = await conn.execute(  # nosec
+                        f"DELETE FROM {table} WHERE {user_col} = $1",  # nosec
                         user_id,
                     )
                     deleted_counts[table] = int(result.split()[-1]) if result else 0

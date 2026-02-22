@@ -367,9 +367,10 @@ async def get_performance_trends(
     duration = time_range_map.get(time_range, timedelta(hours=1))
     interval_map.get(interval, "5 minutes")
 
+    interval_hours = duration.total_seconds() / 3600
     async with db.acquire() as conn:
-        # nosec B608 - duration from time_range_map constant, not user input
-        rows = await conn.fetch(f"""
+        rows = await conn.fetch(
+            """
             SELECT
                 date_trunc('minute', created_at) -
                 (EXTRACT(minute FROM created_at)::int % 5) * interval '1 minute' as bucket,
@@ -377,11 +378,13 @@ async def get_performance_trends(
                 AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) * 1000) as avg_latency_ms,
                 COUNT(*) FILTER (WHERE status = 'FAILED')::float / NULLIF(COUNT(*), 0) * 100 as error_rate_pct
             FROM public.applications
-            WHERE created_at > now() - interval '{duration.total_seconds() / 3600} hours'
+            WHERE created_at > now() - interval '1 hour' * $1
             GROUP BY bucket
             ORDER BY bucket DESC
             LIMIT 60
-        """)
+            """,
+            interval_hours,
+        )
 
     return [
         PerformanceTrend(
