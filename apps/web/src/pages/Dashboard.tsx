@@ -15,7 +15,7 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { useJobs } from "../hooks/useJobs";
 import type { JobFilters } from "../hooks/useJobs";
 import { formatCurrency, formatDate } from "../lib/format";
-import { t, isRTL, getLocale } from "../lib/i18n";
+import { t, formatT, isRTL, getLocale } from "../lib/i18n";
 import { useSessionMilestone } from "../hooks/useCelebrations";
 import { telemetry } from "../lib/telemetry";
 
@@ -1040,13 +1040,13 @@ export function ApplicationsView() {
             <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
               <Radar className="w-8 h-8 text-slate-500 animate-pulse" />
             </div>
-            <h3 className="text-lg font-black text-slate-900 mb-2">No Results</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-2">{t("applications.noResults", locale)}</h3>
             <p className="text-slate-500 font-medium mb-6 max-w-xs">
-              {searchTerm ? "No applications found matching your search." : "Your agent hasn't found any opportunities yet."}
+              {searchTerm ? t("applications.searchNoResults", locale) : t("applications.emptyDescription", locale)}
             </p>
             {!searchTerm && (
               <Button onClick={() => navigate('/app/jobs')} className="font-bold text-xs uppercase rounded-xl">
-                Start Searching <Rocket className="ml-2 w-4 h-4" />
+                {t("applications.startSearching", locale)} <Rocket className="ml-2 w-4 h-4" />
               </Button>
             )}
           </Card>
@@ -1109,13 +1109,13 @@ export function ApplicationsView() {
                         <Radar className="w-10 h-10 text-slate-300" />
                         <div className="absolute inset-0 rounded-full border border-slate-100 animate-ping opacity-20" />
                       </div>
-                      <h3 className="text-xl font-black text-slate-900 mb-2">No Active Applications</h3>
+                      <h3 className="text-xl font-black text-slate-900 mb-2">{t("applications.noActiveApplications", locale)}</h3>
                       <p className="text-slate-500 font-medium mb-8 max-w-sm">
-                        {searchTerm ? "We couldn't find any applications matching your search." : "No applications yet. Start searching to find job opportunities."}
+                        {searchTerm ? t("applications.searchNoResultsDesktop", locale) : t("applications.emptyDesktopDescription", locale)}
                       </p>
                       {!searchTerm && (
                         <Button onClick={() => navigate('/app/jobs')} variant="primary" className="font-bold uppercase rounded-xl shadow-lg shadow-primary-500/20">
-                          Start Searching <Rocket className="ml-2 w-4 h-4" />
+                          {t("applications.startSearching", locale)} <Rocket className="ml-2 w-4 h-4" />
                         </Button>
                       )}
                     </div>
@@ -1180,7 +1180,7 @@ export function ApplicationsView() {
       {filteredApps.length > 0 && (
         <div className="flex items-center justify-between flex-wrap gap-3">
           <p className="text-xs text-slate-500 font-medium" aria-live="polite">
-            Showing {loadMoreApps.length} of {filteredApps.length} applications
+            {formatT("dashboard.showingApplications", { count: loadMoreApps.length, total: filteredApps.length }, locale)}
           </p>
           {hasMoreToLoad ? (
             <Button
@@ -1189,7 +1189,7 @@ export function ApplicationsView() {
               onClick={() => setDisplayedCount(c => Math.min(c + APPLICATIONS_PAGE_SIZE, filteredApps.length))}
               className="text-xs font-bold"
             >
-              Load more
+              {t("applications.loadMore", locale)}
             </Button>
           ) : null}
         </div>

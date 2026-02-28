@@ -2,6 +2,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { Rocket, Sparkles, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
+import { t, getLocale } from "../../../../lib/i18n";
 
 interface WelcomeStepProps {
     onNext: () => void;
@@ -26,7 +27,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
                     Find Your <span className="text-primary-600 italic">Dream Job.</span>
                 </h1>
                 <p className="mb-4 md:mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-sm md:text-base">
-                    We'll help you apply to jobs automatically. Setup takes about 2 minutes.
+                    {t("onboarding.welcomeSubtitle", getLocale())}
                 </p>
                 <div className="grid gap-2 md:gap-3 mb-6 md:mb-8 text-left">
                     {[
@@ -53,8 +54,8 @@ export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
                 </div>
             </div>
 
-            <Button type="button" onClick={onNext} className="w-full h-11 md:h-12 rounded-xl font-bold text-base md:text-lg shadow-lg shadow-primary-500/20 bg-primary-600 hover:bg-primary-500 group" aria-label="Start setup" data-onboarding-next>
-                Start setup
+            <Button type="button" onClick={onNext} className="w-full h-11 md:h-12 rounded-xl font-bold text-base md:text-lg shadow-lg shadow-primary-500/20 bg-primary-600 hover:bg-primary-500 group" aria-label={t("onboarding.startSetup", getLocale())} data-onboarding-next>
+                {t("onboarding.startSetup", getLocale())}
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
         </div>

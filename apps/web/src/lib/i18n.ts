@@ -16,6 +16,20 @@ const dictionaries: Dict = {
     "dashboard.aiAgentMonitoringNewListings": "new job listings",
     "dashboard.aiAgentMonitoringSource": "across LinkedIn and Wellfound. New matches will appear in your dashboard shortly.",
     "dashboard.jobsRemaining": "jobs remaining",
+    "dashboard.showingApplications": "Showing {count} of {total} applications",
+
+    "applications.emptyTitle": "No applications yet",
+    "applications.emptyDescription": "Your agent hasn't found any opportunities yet. Start swiping on jobs to get matches.",
+    "applications.noResults": "No Results",
+    "applications.noActiveApplications": "No Active Applications",
+    "applications.searchNoResults": "No applications found matching your search.",
+    "applications.searchNoResultsDesktop": "We couldn't find any applications matching your search.",
+    "applications.emptyDesktopDescription": "No applications yet. Start searching to find job opportunities.",
+    "applications.startSearching": "Start Searching",
+    "applications.loadMore": "Load more",
+
+    "onboarding.welcomeSubtitle": "We'll help you apply to jobs automatically. Setup takes about 2–3 minutes.",
+    "onboarding.startSetup": "Start setup",
 
     "holds.responseRequired": "RESPONSE REQUIRED",
 
@@ -61,6 +75,20 @@ const dictionaries: Dict = {
     "dashboard.aiAgentMonitoringNewListings": "nouvelles offres d'emploi",
     "dashboard.aiAgentMonitoringSource": "sur LinkedIn et Wellfound. Les nouveaux matchs apparaîtront bientôt sur votre tableau de bord.",
     "dashboard.jobsRemaining": "offres restantes",
+    "dashboard.showingApplications": "{count} sur {total} candidatures affichées",
+
+    "applications.emptyTitle": "Aucune candidature",
+    "applications.emptyDescription": "Votre agent n'a pas encore trouvé d'opportunités. Commencez à swiper sur des offres pour obtenir des matchs.",
+    "applications.noResults": "Aucun résultat",
+    "applications.noActiveApplications": "Aucune candidature active",
+    "applications.searchNoResults": "Aucune candidature ne correspond à votre recherche.",
+    "applications.searchNoResultsDesktop": "Aucune candidature ne correspond à votre recherche.",
+    "applications.emptyDesktopDescription": "Aucune candidature pour l'instant. Commencez à rechercher pour trouver des opportunités.",
+    "applications.startSearching": "Commencer la recherche",
+    "applications.loadMore": "Charger plus",
+
+    "onboarding.welcomeSubtitle": "Nous vous aiderons à postuler automatiquement. La configuration prend environ 2–3 minutes.",
+    "onboarding.startSetup": "Commencer",
 
     "holds.responseRequired": "RÉPONSE REQUISE",
 
@@ -111,4 +139,13 @@ export function t(key: string, locale?: string): string {
   const lang = (locale || getLocale()).split("-")[0].toLowerCase();
   const dict = dictionaries[lang] || dictionaries.en;
   return dict[key] || dictionaries.en[key] || key;
+}
+
+/** Format a translation with {param} placeholders */
+export function formatT(key: string, params: Record<string, string | number>, locale?: string): string {
+  let str = t(key, locale);
+  for (const [k, v] of Object.entries(params)) {
+    str = str.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+  }
+  return str;
 }
