@@ -12,6 +12,7 @@ import { Logo } from "../components/brand/Logo";
 import { cn } from "../lib/utils";
 import {
   Menu,
+  MoreHorizontal,
   LayoutDashboard,
   Briefcase,
   FileText,
@@ -147,8 +148,8 @@ export default function AppLayout() {
             </button>
             <div className="flex items-center gap-2">
               <div className="hidden lg:block">
-                <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400 font-black">Environment</p>
-                <p className="text-sm font-black text-slate-900">Production Console</p>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400 font-black">Dashboard</p>
+                <p className="text-sm font-black text-slate-900">Application Console</p>
               </div>
               <div className="lg:hidden">
                 <Logo iconOnly size="sm" />
@@ -178,9 +179,9 @@ export default function AppLayout() {
           </AnimatePresence>
         </main>
 
-        {/* Mobile bottom navigation for app-like feel */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-xl px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)]">
-          <div className="grid grid-cols-4 gap-2">
+        {/* Mobile bottom navigation: 4 main + More (opens full menu) */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-xl px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)]" aria-label="Main navigation">
+          <div className="grid grid-cols-5 gap-1">
             {NAV_ITEMS.slice(0, 4).map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname.startsWith(item.to);
@@ -190,16 +191,30 @@ export default function AppLayout() {
                   to={item.to}
                   onClick={closeMobile}
                   className={cn(
-                    "flex flex-col items-center justify-center rounded-xl px-2 py-3 text-[11px] font-bold transition-all",
+                    "flex flex-col items-center justify-center rounded-xl px-1 py-3 text-[10px] font-bold transition-all min-h-[44px]",
                     isActive ? "bg-primary-50 text-primary-700 ring-1 ring-primary-100" : "text-slate-500 hover:text-slate-900"
                   )}
                   aria-label={item.label}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5" aria-hidden />
                   <span className="mt-1 leading-none">{item.label}</span>
                 </NavLink>
               );
             })}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className={cn(
+                "flex flex-col items-center justify-center rounded-xl px-1 py-3 text-[10px] font-bold transition-all min-h-[44px]",
+                NAV_ITEMS.slice(4).some((i) => location.pathname.startsWith(i.to))
+                  ? "bg-primary-50 text-primary-700 ring-1 ring-primary-100"
+                  : "text-slate-500 hover:text-slate-900"
+              )}
+              aria-label="More menu (Team, Billing, Sources, Settings)"
+            >
+              <MoreHorizontal className="h-5 w-5" aria-hidden />
+              <span className="mt-1 leading-none">More</span>
+            </button>
           </div>
         </nav>
         <ToastShelf />

@@ -15,20 +15,40 @@ export function useGoogleAnalytics() {
     if (!gaId) return;
     const initialized = useRef(false);
 
+    // Grant consent on mount if user previously accepted (so initial pageview can fire)
+    useEffect(() => {
+        if (!window.gtag) return;
+        const consent = localStorage.getItem('jobhuntin-cookie-consent');
+        if (consent) {
+            try {
+                const parsed = JSON.parse(consent);
+                if (parsed.analytics !== false) {
+                    window.gtag!('consent', 'update', { analytics_storage: 'granted' });
+                }
+            } catch {
+                // No valid consent = keep denied
+            }
+        }
+    }, []);
+
     useEffect(() => {
         // If we can't find gtag, don't do anything
         if (!window.gtag) return;
 
-        // Respect cookie consent
+        // Respect cookie consent - only send pageviews if user accepted
         const consent = localStorage.getItem('jobhuntin-cookie-consent');
         if (consent) {
             try {
                 const parsed = JSON.parse(consent);
                 if (parsed.analytics === false) return;
-            } catch {}
+            } catch {
+                return; // No valid consent = don't track
+            }
+        } else {
+            return; // No consent yet = don't track (GDPR)
         }
 
-        // Skip the first execution because index.html already sent the initial pageview
+        // Skip the first execution because index.html config handles initial load
         if (!initialized.current) {
             initialized.current = true;
             return;

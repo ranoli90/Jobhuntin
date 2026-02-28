@@ -1,10 +1,16 @@
+import os
 import requests
 
-RENDER_API_KEY = "rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
-HEADERS = {"Authorization": f"Bearer {RENDER_API_KEY}", "Accept": "application/json"}
+RENDER_API_KEY = os.environ.get("RENDER_API_KEY", "")
+HEADERS = {"Authorization": f"Bearer {RENDER_API_KEY}", "Accept": "application/json"} if RENDER_API_KEY else {}
 SERVICE_ID = "srv-d66aadsr85hc73dastfg" # jobhuntin-seo-engine
 
 def check_seo_env():
+    if not RENDER_API_KEY:
+        print("❌ RENDER_API_KEY environment variable is not set.")
+        print("   Set it with: export RENDER_API_KEY=your-key")
+        return
+
     print(f"Checking Env Vars for Service: {SERVICE_ID}")
     url = f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars?limit=50"
 

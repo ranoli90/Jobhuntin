@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth" suppressHydrationWarning>
 
 <head>
   <meta charset="UTF-8" />
@@ -8,13 +8,17 @@
   <meta name="description"
     content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily. Built for high-volume, high-quality hunting." />
 
-  <!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) - consent mode: analytics denied until user accepts -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-P1QLYH3M13"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
+    // Default: deny analytics until cookie consent is given (GDPR)
+    gtag('consent', 'default', {
+      'analytics_storage': 'denied',
+      'ad_storage': 'denied'
+    });
     gtag('config', 'G-P1QLYH3M13');
   </script>
 
@@ -32,6 +36,13 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
 
+  <!-- Dark mode: apply class based on system preference -->
+  <script>
+    (function() {
+      const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', dark);
+    })();
+  </script>
   <!-- Security headers -->
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">

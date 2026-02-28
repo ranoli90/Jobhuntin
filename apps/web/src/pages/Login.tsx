@@ -116,9 +116,12 @@ export default function Login() {
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 mb-3 tracking-tight">
               Check your email
             </h1>
-            <p className="text-slate-500 leading-relaxed">
+              <p className="text-slate-500 leading-relaxed">
               We sent a magic link to<br />
               <span className="font-semibold text-slate-900">{successState.email}</span>
+            </p>
+            <p className="text-xs text-slate-400 mt-2">
+              Didn't receive it? Check your spam folder.
             </p>
           </div>
 
@@ -173,10 +176,10 @@ export default function Login() {
               disabled={resendLoading || !!rateLimitCountdown}
               className="w-full text-blue-600 hover:bg-blue-50"
             >
-              {resendLoading ? "Sending..." : rateLimitCountdown ? `Wait ${rateLimitCountdown}s` : "Resend link"}
+              {resendLoading ? "Sending..." : rateLimitCountdown ? `Resend in ${rateLimitCountdown}s` : "Resend link"}
             </Button>
             <Button variant="outline" onClick={() => setSuccessState(null)} className="w-full">
-              Use different email
+              Use a different email
             </Button>
           </div>
         </motion.div>
@@ -270,7 +273,7 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="relative">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-2">
                   Email address
                 </label>
                 <div className={cn(
@@ -284,6 +287,8 @@ export default function Login() {
                   <input
                     type="email"
                     placeholder="you@example.com"
+                    id="login-email"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
@@ -294,8 +299,8 @@ export default function Login() {
                     className={cn(
                       "w-full pl-12 pr-4 py-4 rounded-xl bg-slate-50 border transition-all",
                       "text-slate-900 placeholder:text-slate-400",
-                      "focus:outline-none",
-                      formError ? "border-red-300 bg-red-50/50" : "border-slate-200 focus:border-blue-400"
+                      "focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
+                      formError ? "border-red-300 bg-red-50/50" : "border-slate-200"
                     )}
                     required
                   />

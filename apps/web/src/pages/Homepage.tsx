@@ -25,7 +25,7 @@ function useEmailCapture() {
     setIsSubmitting(true);
     setSentEmail(null);
     try {
-      const result = await magicLinkService.sendMagicLink(email, "/app/dashboard");
+      const result = await magicLinkService.sendMagicLink(email, "/app/onboarding");
       if (!result.success) throw new Error(result.error || "Failed");
       pushToast({ title: "Check your inbox", description: "Magic link sent!", tone: "success" });
       setSentEmail(result.email);

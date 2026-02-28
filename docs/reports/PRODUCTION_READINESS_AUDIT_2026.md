@@ -532,3 +532,38 @@ The onboarding flow is thoughtfully designed with 7 steps, A/B testing, offline 
 **End of Audit**
 
 *Total distinct findings: 220+*
+
+---
+
+## 8. Remediation Status (Post-Fix)
+
+*Updated after implementing fixes.*
+
+### Fixed (Critical/High)
+- [x] S1: RENDER_API_KEY now from env var
+- [x] S2: .env.example uses placeholder
+- [x] S3: Consumed tokens use Redis when available
+- [x] S4: (JWT in localStorage — documented; CSP hardening recommended)
+- [x] S5: return_to whitelist expanded
+- [x] O1: Homepage sends to /app/onboarding
+- [x] O2: Post-onboarding "Your first 3 steps" modal
+- [x] D1: Mobile nav has "More" tab
+- [x] A1: Login input has focus ring
+- [x] A2: CookieConsent has focus trap
+- [x] X1/X2: 404 copy updated
+- [x] U1: Dark mode enabled (class-based)
+- [x] L1/L2: Cookie consent "Reject all" / "Accept all"; GA blocked until consent
+- [x] T1: GA consent mode default denied
+
+### Fixed (Medium/Low)
+- [x] D2: Error retry uses refetch
+- [x] D3: JobsView loading has aria-busy
+- [x] D4: Filter input has focus ring
+- [x] D10: Jobs remaining badge has aria-live
+- [x] U7: Button touch targets ≥44px on mobile
+- [x] U8: EmptyState has role="status"
+- [x] X3: Login success has spam hint
+- [x] X4: Resend shows exact seconds
+- [x] S7: PII masked in auth logs
+- [x] O6-O8: Onboarding copy/step indicator
+- [x] E1: Connection error copy improved

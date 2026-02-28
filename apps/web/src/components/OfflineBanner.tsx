@@ -19,8 +19,8 @@ export function OfflineBanner() {
 
   return (
     <div role="alert" className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
-      <WifiOff className="w-4 h-4" />
-      You're offline. Some features may be unavailable.
+      <WifiOff className="w-4 h-4" aria-hidden />
+      You&apos;re offline. Some features may be unavailable.
     </div>
   );
 }

@@ -84,6 +84,11 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+html.dark body {
+  background-color: #0f0f0f;
+  color: #fafaf9;
+}
+
 .font-display {
   font-family: var(--font-display);
 }
@@ -101,6 +106,11 @@ body {
 ::selection {
   background-color: rgba(28, 25, 23, 0.12);
   color: #1c1917;
+}
+
+html.dark ::selection {
+  background-color: rgba(250, 250, 249, 0.2);
+  color: #fafaf9;
 }
 
 /* Focus visible styles for accessibility */

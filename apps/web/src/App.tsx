@@ -87,12 +87,12 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
         <div className="rounded-full bg-destructive/10 p-4">
           <AlertCircle className="h-8 w-8 text-destructive" />
         </div>
-        <h2 className="text-xl font-semibold">Connection Failed</h2>
+        <h2 className="text-xl font-semibold">We couldn&apos;t connect</h2>
         <p className="text-muted-foreground max-w-sm">
-          We couldn't load your profile. Please check your internet connection and try again.
+          We couldn&apos;t load your profile. Please check your internet connection and try again.
         </p>
         <Button variant="outline" onClick={() => window.location.reload()}>
-          Retry Connection
+          Try again
         </Button>
       </div>
     );

@@ -309,7 +309,7 @@ export default function Onboarding() {
       if (!hasWelcomed) {
         pushToast({
           title: "Welcome back!",
-          description: `Picking up where you left off at step ${currentStep + 1}.`,
+          description: `Picking up at ${currentStepData.title}.`,
           tone: "info"
         });
         sessionStorage.setItem("has_welcomed_back", "true");
@@ -729,6 +729,7 @@ export default function Onboarding() {
       setIsCompleting(true);
       await completeOnboarding();
       resetOnboarding();
+      sessionStorage.setItem("onboarding_just_completed", "true");
       pushToast({ title: "You're all set! Let's job hunt! 🚀", tone: "success" });
       navigate("/app/jobs");
     } catch (err: any) {
@@ -781,7 +782,7 @@ export default function Onboarding() {
             <div className="mb-4 md:mb-6">
               <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Setup Progress — {(progress).toFixed(0)}%
+                  Step {currentStep + 1} of {steps.length} — {(progress).toFixed(0)}%
                 </span>
                 <span className="text-[10px] md:text-xs font-bold text-primary-600 uppercase tracking-wider">{currentStepData.title}</span>
               </div>

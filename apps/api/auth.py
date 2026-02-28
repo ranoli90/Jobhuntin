@@ -56,15 +56,28 @@ _LIMITER_CACHE_MAX_SIZE = 10_000
 _LIMITER_CACHE_TTL = 7200  # 2 hours
 
 # Consumed magic link tokens (jti values) to prevent replay.
-# In production, use Redis instead of in-memory set.
+# Uses Redis when available (multi-worker safe); falls back to in-memory for local dev.
 _consumed_tokens: dict[str, float] = {}
 _CONSUMED_TOKEN_TTL = 3700  # slightly longer than magic link TTL
+_REDIS_KEY_PREFIX = "auth:consumed_jti:"
 
 
-def _mark_token_consumed(jti: str) -> bool:
-    """Mark a token as consumed. Returns False if already consumed."""
+async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
+    """Mark a token as consumed. Returns False if already consumed. Uses Redis when available."""
+    if settings.redis_url:
+        try:
+            from shared.redis_client import get_redis
+
+            r = await get_redis()
+            key = f"{_REDIS_KEY_PREFIX}{jti}"
+            # SET NX with TTL: only set if not exists, return True; if exists return False
+            ok = await r.set(key, "1", nx=True, ex=_CONSUMED_TOKEN_TTL)
+            return bool(ok)
+        except Exception as e:
+            logger.warning("Redis consumed-token check failed, falling back to in-memory: %s", e)
+
+    # In-memory fallback (single-instance only)
     now = time.monotonic()
-    # Evict expired entries
     expired = [k for k, ts in _consumed_tokens.items() if now - ts > _CONSUMED_TOKEN_TTL]
     for k in expired:
         _consumed_tokens.pop(k, None)
@@ -120,6 +133,13 @@ def _sanitize_return_to(value: str | None) -> str | None:
         "/app/billing",
         "/app/settings",
         "/app/team",
+        "/app/matches",
+        "/app/tailor",
+        "/app/ats-score",
+        "/app/admin/usage",
+        "/app/admin/matches",
+        "/app/admin/alerts",
+        "/app/admin/sources",
     }
 
     if path_only not in allowed:
@@ -184,12 +204,12 @@ async def _generate_magic_link(
             )
             logger.info(
                 "[MAGIC_LINK] User created",
-                extra={"user_id": str(user_id), "email": email},
+                extra={"user_id": str(user_id), "email": _mask_email(email)},
             )
         else:
             logger.info(
                 "[MAGIC_LINK] Found existing user",
-                extra={"user_id": str(user_id), "email": email},
+                extra={"user_id": str(user_id), "email": _mask_email(email)},
             )
 
         # Create empty profile if not exists
@@ -228,7 +248,7 @@ async def _generate_magic_link(
     token = jwt.encode(payload, secret, algorithm="HS256")
     logger.info(
         "[MAGIC_LINK] Token generated",
-        extra={"user_id": str(user_id), "email": email, "token_length": len(token)},
+        extra={"user_id": str(user_id), "email": _mask_email(email), "token_length": len(token)},
     )
 
     # Append token to redirect URL
@@ -236,7 +256,7 @@ async def _generate_magic_link(
     magic_link = f"{redirect_to}{separator}token={token}"
     logger.info(
         "[MAGIC_LINK] Magic link generated successfully",
-        extra={"user_id": str(user_id), "email": email},
+        extra={"user_id": str(user_id), "email": _mask_email(email)},
     )
     return magic_link
 
@@ -256,6 +276,13 @@ def _render_email_html(
         "/app/billing": "Billing",
         "/app/settings": "Settings",
         "/app/team": "Team Workspace",
+        "/app/matches": "AI Matches",
+        "/app/tailor": "AI Tailor",
+        "/app/ats-score": "ATS Score",
+        "/app/admin/usage": "Usage",
+        "/app/admin/matches": "Admin Matches",
+        "/app/admin/alerts": "Admin Alerts",
+        "/app/admin/sources": "Admin Sources",
     }
     destination_label = destination_labels.get(
         destination_path, destination_path.replace("/app/", "").title()
@@ -327,6 +354,13 @@ async def _send_magic_link_email(
         "/app/billing": "Billing",
         "/app/settings": "Settings",
         "/app/team": "Team Workspace",
+        "/app/matches": "AI Matches",
+        "/app/tailor": "AI Tailor",
+        "/app/ats-score": "ATS Score",
+        "/app/admin/usage": "Usage",
+        "/app/admin/matches": "Admin Matches",
+        "/app/admin/alerts": "Admin Alerts",
+        "/app/admin/sources": "Admin Sources",
     }.get(destination, destination.replace("/app/", "").title())
 
     text_content = f"""Hey there!

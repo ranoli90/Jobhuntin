@@ -710,7 +710,7 @@ async def get_current_user_id(authorization: str = Header(...)) -> str:
         jti = payload.get("jti")
         if jti:
             from api.auth import _mark_token_consumed
-            if not _mark_token_consumed(jti):
+            if not await _mark_token_consumed(jti, s):
                 logger.warning("Replay attempt for token jti=%s", jti)
                 raise HTTPException(status_code=401, detail="Token has already been used")
 

@@ -165,7 +165,7 @@ const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; du
 export default function Dashboard() {
   const navigate = useNavigate();
   const { status } = useBilling();
-  const { applications, holdApplications, byStatus, stats, isLoading, error } = useApplications();
+  const { applications, holdApplications, byStatus, stats, isLoading, error, refetch } = useApplications();
 
   const shouldReduceMotion = useReducedMotion();
 
@@ -233,14 +233,14 @@ export default function Dashboard() {
     >
       {/* M-5: Error banner when data fetch fails */}
       {error && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800">
-          <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800" role="alert">
+          <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" aria-hidden />
           <div className="flex-1">
             <p className="font-bold text-sm">Unable to load dashboard data</p>
             <p className="text-xs text-red-600 mt-0.5">{error}</p>
           </div>
-          <Button variant="ghost" size="sm" className="text-red-600 font-bold text-xs" onClick={() => window.location.reload()}>
-            Retry
+          <Button variant="ghost" size="sm" className="text-red-600 font-bold text-xs" onClick={() => refetch()} aria-label="Retry loading dashboard">
+            Try again
           </Button>
         </div>
       )}
@@ -514,7 +514,16 @@ export function JobsView() {
   const swipeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldReduceMotion = useReducedMotion();
   const [statusMessage, setStatusMessage] = useState("");
+  const [showFirstStepsModal, setShowFirstStepsModal] = useState(false);
   const { celebrate: celebrateSession } = useSessionMilestone();
+
+  // Post-onboarding: show "Your first 3 steps" modal once
+  useEffect(() => {
+    if (sessionStorage.getItem("onboarding_just_completed") === "true") {
+      sessionStorage.removeItem("onboarding_just_completed");
+      setShowFirstStepsModal(true);
+    }
+  }, []);
   // N-2: Use shared locale
   const locale = sharedLocale;
   const rtl = sharedRtl;
@@ -686,7 +695,7 @@ export function JobsView() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
+      <div className="flex h-[60vh] items-center justify-center" aria-busy="true" aria-label="Loading jobs">
         <div className="space-y-4 w-full max-w-md">
           {[1, 2, 3].map((i) => (
             <div key={i} className="animate-pulse rounded-3xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm">
@@ -736,6 +745,23 @@ export function JobsView() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-6" dir={rtl ? "rtl" : undefined}>
+      {showFirstStepsModal && (
+        <Card className="mb-6 border-primary-200 bg-primary-50/50" role="dialog" aria-label="Your first steps">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-slate-900 mb-2">Your first 3 steps</h3>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-slate-600">
+                <li>Swipe right on jobs you like — our AI will apply for you</li>
+                <li>Check Applications to track status</li>
+                <li>Answer any HOLD questions to keep applications moving</li>
+              </ol>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setShowFirstStepsModal(false)} aria-label="Dismiss">
+              ✕
+            </Button>
+          </div>
+        </Card>
+      )}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t("dashboard.activeRadar", locale)}</h2>
@@ -746,11 +772,11 @@ export function JobsView() {
             type="text"
             placeholder={t("dashboard.filterPlaceholder", locale)}
             aria-label="Filter jobs by location"
-            className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none bg-white font-medium"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white font-medium"
             value={localLocation}
             onChange={(e) => handleLocationChange(e.target.value)}
           />
-          <Badge variant="primary" className="py-2 px-4 rounded-xl">
+          <Badge variant="primary" className="py-2 px-4 rounded-xl" aria-live="polite" aria-atomic="true">
             {jobs.length - currentIndex} jobs remaining
           </Badge>
         </div>

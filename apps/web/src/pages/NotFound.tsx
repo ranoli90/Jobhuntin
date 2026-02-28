@@ -6,8 +6,6 @@ import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
 
 export default function NotFound() {
-  const appCount = '10,000+';
-
   const trendingSearches = [
     { label: "Software Engineer in NYC", path: "/jobs/software-engineer/new-york" },
     { label: "Product Manager in SF", path: "/jobs/product-manager/san-francisco" },
@@ -44,7 +42,7 @@ export default function NotFound() {
           >
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold text-slate-600">
-              <span className="text-emerald-600 font-black">{appCount}</span> applications sent this week
+              Join thousands finding jobs with AI
             </span>
           </motion.div>
           
