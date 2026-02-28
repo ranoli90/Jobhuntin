@@ -52,6 +52,7 @@ const AITailorPage = React.lazy(() => import("./pages/app/ai-tailor"));
 const ATSScorePage = React.lazy(() => import("./pages/app/ats-score"));
 
 // Admin Pages
+const ApplicationDetailPage = React.lazy(() => import("./pages/app/ApplicationDetailPage"));
 const AdminUsagePage = React.lazy(() => import("./pages/admin/usage"));
 const AdminMatchesPage = React.lazy(() => import("./pages/admin/matches"));
 const AdminAlertsPage = React.lazy(() => import("./pages/admin/alerts"));
@@ -132,7 +133,7 @@ function CompletedOnboardingRedirect({ children }: { children: React.ReactNode }
 
 // Loading Fallback
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950" role="status" aria-label="Loading page">
+  <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 dark:text-slate-100" role="status" aria-label="Loading page">
     <LoadingSpinner label="Loading..." />
   </div>
 );
@@ -206,6 +207,7 @@ export default function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="jobs" element={<React.Suspense fallback={<PageLoader />}><JobsViewWrapper /></React.Suspense>} />
               <Route path="applications" element={<React.Suspense fallback={<PageLoader />}><ApplicationsViewWrapper /></React.Suspense>} />
+              <Route path="applications/:id" element={<React.Suspense fallback={<PageLoader />}><ApplicationDetailPage /></React.Suspense>} />
               <Route path="holds" element={<React.Suspense fallback={<PageLoader />}><HoldsViewWrapper /></React.Suspense>} />
               <Route path="team" element={<React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense>} />
               <Route path="billing" element={<React.Suspense fallback={<PageLoader />}><BillingViewWrapper /></React.Suspense>} />

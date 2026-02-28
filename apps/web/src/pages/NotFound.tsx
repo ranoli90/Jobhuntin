@@ -70,11 +70,11 @@ export default function NotFound() {
             </Link>
           </div>
 
-          {/* Trending job searches */}
+          {/* Popular job searches - links to valid /jobs/:role/:city routes */}
           <div className="text-left">
             <div className="flex items-center gap-2 mb-4 justify-center">
               <TrendingUp className="w-4 h-4 text-primary-500" aria-hidden />
-              <span className="text-sm font-bold text-slate-600 uppercase tracking-wider">Trending right now</span>
+              <span className="text-sm font-bold text-slate-600 uppercase tracking-wider">Popular job searches</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trendingSearches.map((search) => (

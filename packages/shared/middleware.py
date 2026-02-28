@@ -186,15 +186,19 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        # NOTE: unsafe-inline required for inline scripts (e.g. gtag). Consider nonce-based CSP for stricter XSS protection.
+        # NOTE: unsafe-inline required for gtag inline scripts. For stricter XSS protection,
+        # implement nonce-based CSP (Vite can inject nonces). Hash-based CSP is an alternative.
+        # Restrict script-src to minimal set of trusted origins.
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' https://fonts.gstatic.com; "
-            "img-src 'self' data: https:; "
-            "connect-src 'self' https://api.resend.com https://www.google-analytics.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
+            "img-src 'self' data: https: blob:; "
+            "connect-src 'self' https://api.resend.com https://www.google-analytics.com https://www.googletagmanager.com; "
             "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'; "
             "object-src 'none'"
         )
 

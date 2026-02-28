@@ -1,3 +1,4 @@
+import { FocusTrap } from "focus-trap-react";
 import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle, Radar } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
@@ -750,21 +751,26 @@ export function JobsView() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-6" dir={rtl ? "rtl" : undefined}>
       {showFirstStepsModal && (
-        <Card className="mb-6 border-primary-200 bg-primary-50/50" role="dialog" aria-label="Your first steps">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="font-bold text-slate-900 mb-2">Your first 3 steps</h3>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-slate-600">
-                <li>Swipe right on jobs you like — our AI will apply for you</li>
-                <li>Check Applications to track status</li>
-                <li>Answer any HOLD questions to keep applications moving</li>
-              </ol>
+        <FocusTrap
+          active={showFirstStepsModal}
+          focusTrapOptions={{ allowOutsideClick: true, escapeDeactivates: true }}
+        >
+          <Card className="mb-6 border-primary-200 bg-primary-50/50" role="dialog" aria-label="Your first steps">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-bold text-slate-900 mb-2">Your first 3 steps</h3>
+                <ol className="list-decimal list-inside space-y-1 text-sm text-slate-600">
+                  <li>Swipe right on jobs you like — our AI will apply for you</li>
+                  <li>Check Applications to track status</li>
+                  <li>Answer any HOLD questions to keep applications moving</li>
+                </ol>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setShowFirstStepsModal(false)} aria-label="Dismiss first steps">
+                Dismiss
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setShowFirstStepsModal(false)} aria-label="Dismiss">
-              ✕
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        </FocusTrap>
       )}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
@@ -1077,10 +1083,10 @@ export function ApplicationsView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Company/Role</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Activity</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
+                <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Company & Role</th>
+                <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Activity</th>
+                <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">

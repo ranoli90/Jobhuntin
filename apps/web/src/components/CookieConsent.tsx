@@ -33,11 +33,18 @@ export function CookieConsent() {
 
   if (!visible) return null;
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      decline();
+    }
+  }, [decline]);
+
   return (
     <FocusTrap
       active={visible}
       focusTrapOptions={{
-        initialFocus: () => containerRef.current?.querySelector<HTMLElement>('button') ?? false,
+        initialFocus: () => containerRef.current?.querySelector<HTMLElement>('[data-consent-reject]') ?? containerRef.current?.querySelector<HTMLElement>('button') ?? false,
         allowOutsideClick: false,
         escapeDeactivates: false,
       }}
@@ -49,18 +56,19 @@ export function CookieConsent() {
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-description"
       className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 shadow-lg md:flex md:items-center md:justify-between md:px-8"
+      onKeyDown={handleKeyDown}
     >
       <p id="cookie-consent-title" className="sr-only">Cookie consent</p>
       <p id="cookie-consent-description" className="text-sm text-slate-600 dark:text-slate-400 mb-3 md:mb-0 md:mr-6">
         We use cookies for analytics to improve your experience. By clicking &quot;Accept analytics&quot;, you consent
-        to analytics cookies. &quot;Reject all&quot; uses only essential cookies. See our{' '}
-        <a href="/privacy" className="underline text-brand-accent hover:text-brand-ink">
+        to analytics cookies. &quot;Reject all&quot; uses only essential cookies. Press Escape to reject. See our{' '}
+        <a href="/privacy#cookies" className="underline text-brand-accent hover:text-brand-ink">
           Privacy Policy
         </a>{' '}
         for details.
       </p>
       <div className="flex gap-3 shrink-0">
-        <Button variant="outline" size="sm" onClick={decline} aria-label="Reject all non-essential cookies">
+        <Button variant="outline" size="sm" onClick={decline} data-consent-reject aria-label="Reject all non-essential cookies">
           Reject all
         </Button>
         <Button variant="primary" size="sm" onClick={accept} aria-label="Accept analytics cookies">

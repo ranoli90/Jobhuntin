@@ -9,8 +9,11 @@
  */
 
 // Token storage key
-// SECURITY NOTE: JWT in localStorage is vulnerable to XSS. Mitigations: strict CSP, no user-generated HTML.
-// Consider httpOnly cookie storage for production (requires backend session endpoint).
+// SECURITY NOTE: JWT in localStorage is vulnerable to XSS. Mitigations in place:
+// - Strict CSP (script-src restricted; see packages/shared/middleware.py)
+// - No dangerouslySetInnerHTML or user-generated HTML rendering
+// - CSRF protection on state-changing requests
+// TODO: Migrate to httpOnly cookie storage for production (requires backend session endpoint).
 const AUTH_TOKEN_KEY = "auth_token";
 
 // Prefer explicit API base; fall back to same-origin /api to avoid empty base

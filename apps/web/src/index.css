@@ -164,6 +164,18 @@ select {
   background: #a8a29e;
 }
 
+html.dark ::-webkit-scrollbar-track {
+  background: #0f0f0f;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 /* Utility classes */
 @layer utilities {
   .text-balance {

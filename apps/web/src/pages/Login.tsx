@@ -22,12 +22,12 @@ export default function Login() {
   const returnTo = searchParams.get("returnTo");
 
   const safeReturnTo = useMemo(() => {
-    if (!returnTo) return "/app/dashboard";
+    if (!returnTo) return "/app/onboarding";
     // Check if it's a relative path (starts with /) and NOT protocol-relative (starts with //)
     if (returnTo.startsWith("/") && !returnTo.startsWith("//")) {
       return returnTo;
     }
-    return "/app/dashboard";
+    return "/app/onboarding";
   }, [returnTo]);
 
   const [email, setEmail] = useState("");
@@ -104,8 +104,8 @@ export default function Login() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}>
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center" role="status" aria-label="Checking sign-in">
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} aria-hidden>
           <Sparkles className="w-8 h-8 text-blue-500" />
         </motion.div>
       </div>
@@ -292,6 +292,7 @@ export default function Login() {
                 </label>
                 <div className={cn(
                   "relative rounded-xl transition-all duration-200",
+                  "focus-within:ring-2 focus-within:ring-primary-500/30 focus-within:ring-offset-2",
                   focused && "ring-2 ring-primary-500/20"
                 )}>
                   <Mail className={cn(

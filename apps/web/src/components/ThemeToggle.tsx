@@ -5,39 +5,52 @@ import { cn } from '../lib/utils';
 
 const THEME_KEY = 'jobhuntin-theme';
 
+type ThemeMode = 'light' | 'dark' | 'system';
+
 export function ThemeToggle({ className }: { className?: string }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window === 'undefined') return 'light';
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    if (typeof window === 'undefined') return 'system';
     const stored = localStorage.getItem(THEME_KEY);
-    if (stored === 'dark' || stored === 'light') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (stored === 'dark' || stored === 'light' || stored === 'system') return stored as ThemeMode;
+    return 'system';
   });
+
+  const resolvedDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem(THEME_KEY, theme);
-  }, [theme]);
+    root.classList.toggle('dark', resolvedDark);
+    if (theme !== 'system') {
+      localStorage.setItem(THEME_KEY, theme);
+    } else {
+      localStorage.removeItem(THEME_KEY);
+    }
+  }, [theme, resolvedDark]);
 
   useEffect(() => {
+    if (theme !== 'system') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem(THEME_KEY)) {
-        setTheme(e.matches ? 'dark' : 'light');
-      }
+    const handleChange = () => {
+      root.classList.toggle('dark', mq.matches);
     };
+    const root = document.documentElement;
     mq.addEventListener('change', handleChange);
     return () => mq.removeEventListener('change', handleChange);
-  }, []);
+  }, [theme]);
 
-  const toggle = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+  const cycleTheme = () => {
+    setTheme((t) => (t === 'light' ? 'dark' : t === 'dark' ? 'system' : 'light'));
+  };
+
+  const ariaLabel = theme === 'dark' ? 'Switch to light mode' : theme === 'light' ? 'Switch to dark mode' : 'Switch to system theme';
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={toggle}
-      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      onClick={cycleTheme}
+      aria-label={ariaLabel}
+      title={`Theme: ${theme} (click to cycle)`}
       className={cn('relative shrink-0', className)}
     >
       <span className="relative flex h-4 w-4">

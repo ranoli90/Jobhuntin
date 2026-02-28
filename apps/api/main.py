@@ -54,6 +54,7 @@ from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
+    JobRepo,
     db_transaction,
 )
 from backend.domain.resume import process_resume_upload
@@ -118,6 +119,16 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Redis connection failed: {e}")
     else:
+        if _settings.env == Environment.PROD:
+            logger.critical(
+                "REDIS_URL not set in production. Magic-link token replay prevention "
+                "uses in-memory store which is unsafe for multi-instance deployments. "
+                "Set REDIS_URL for production."
+            )
+            raise RuntimeError(
+                "REDIS_URL must be set in production for secure magic-link auth. "
+                "In-memory token replay prevention is not safe across multiple workers."
+            )
         logger.info("Redis disabled (REDIS_URL not set)")
 
     yield
@@ -1244,10 +1255,24 @@ async def get_application_detail(
         detail = await ApplicationRepo.get_detail(
             conn, application_id, tenant_id=ctx.tenant_id
         )
-    if detail is None:
-        raise HTTPException(status_code=404, detail="Application not found")
+        if detail is None:
+            raise HTTPException(status_code=404, detail="Application not found")
 
-    serialized = detail.to_serializable()
+        serialized = detail.to_serializable()
+        app_dict = serialized["application"]
+
+        job = await JobRepo.get_by_id(conn, app_dict["job_id"]) if app_dict.get("job_id") else None
+        if job:
+            app_dict["company"] = job.get("company") or ""
+            app_dict["job_title"] = job.get("title") or ""
+
+        unresolved = next((inp for inp in detail.inputs if not inp.resolved), None)
+        if unresolved:
+            app_dict["hold_question"] = unresolved.question
+
+        if app_dict.get("updated_at"):
+            app_dict["last_activity"] = app_dict["updated_at"]
+
     return ApplicationDetailResponse(**serialized)
 
 

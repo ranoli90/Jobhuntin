@@ -206,15 +206,18 @@ export default function AppLayout() {
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               className={cn(
-                "flex flex-col items-center justify-center rounded-xl px-1 py-3 text-[10px] font-bold transition-all min-h-[44px]",
+                "relative flex flex-col items-center justify-center rounded-xl px-1 py-3 text-[10px] font-bold transition-all min-h-[44px]",
                 NAV_ITEMS.slice(4).some((i) => location.pathname.startsWith(i.to))
                   ? "bg-primary-50 text-primary-700 ring-1 ring-primary-100"
                   : "text-slate-500 hover:text-slate-900"
               )}
-              aria-label="More menu (Team, Billing, Sources, Settings)"
+              aria-label="More menu: Team, Billing, Sources, Settings"
             >
               <MoreHorizontal className="h-5 w-5" aria-hidden />
               <span className="mt-1 leading-none">More</span>
+              <span className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-primary-500 text-[9px] font-black text-white px-1" aria-hidden>
+                {NAV_ITEMS.slice(4).length}
+              </span>
             </button>
           </div>
         </nav>
