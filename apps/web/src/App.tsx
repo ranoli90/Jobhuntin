@@ -12,6 +12,8 @@ import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { config } from "./config";
 import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
 import { CookieConsent } from './components/CookieConsent';
+import { OfflineBanner } from './components/OfflineBanner';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Lazy Load Pages for Performance
 const Homepage = React.lazy(() => import("./pages/Homepage"));
@@ -141,6 +143,7 @@ export default function App() {
 
   return (
     <>
+      <OfflineBanner />
       <Helmet>
         <title>JobHuntin | AI Job Search Automation & Auto-Apply</title>
         <meta name="description" content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily. Built for high-volume, high-quality hunting." />
@@ -157,6 +160,7 @@ export default function App() {
         <link rel="canonical" href={`${config.urls.homepage}${location.pathname === "/" ? "" : location.pathname}`} />
       </Helmet>
       <ScrollToTop />
+      <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Marketing Pages & Auth */}
@@ -217,6 +221,7 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
+      </ErrorBoundary>
       <CookieConsent />
     </>
   );

@@ -81,7 +81,7 @@ const NAV_LINKS: NavLink[] = [
   { to: "/developer/webhooks", label: "Webhooks", icon: "🔔", section: "Developer" },
 ];
 
-function Sidebar() {
+function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const loc = useLocation();
   let lastSection = "";
 
@@ -91,8 +91,15 @@ function Sidebar() {
   };
 
   return (
-    <aside className="w-56 bg-card border-r border-border min-h-screen p-4 flex flex-col gap-0.5">
-      <div className="text-xl font-bold text-primary mb-6 px-2">Sorce Admin</div>
+    <aside className={`bg-card border-r border-border min-h-screen p-4 flex flex-col gap-0.5 ${open ? 'fixed inset-0 z-50 w-64' : 'hidden'} md:relative md:block md:w-56`}>
+      <div className="flex items-center justify-between mb-6 px-2">
+        <div className="text-xl font-bold text-primary">Sorce Admin</div>
+        {onClose && (
+          <button className="md:hidden p-1 text-muted-foreground hover:text-foreground" onClick={onClose} aria-label="Close menu">
+            ✕
+          </button>
+        )}
+      </div>
       {NAV_LINKS.map((l) => {
         const sectionHeader = l.section && l.section !== lastSection;
         if (l.section) lastSection = l.section;
@@ -187,9 +194,18 @@ export default function App() {
     );
   }
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <button
+        className="md:hidden fixed top-4 left-4 z-40 p-2 bg-card border border-border rounded-md shadow-sm"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle sidebar"
+      >
+        <span className="text-lg">☰</span>
+      </button>
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="flex-1 p-6 overflow-auto">
         <Routes>
           <Route path="/" element={<DashboardPage />} />

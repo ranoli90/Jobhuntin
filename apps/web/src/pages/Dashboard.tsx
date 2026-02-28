@@ -203,7 +203,7 @@ export default function Dashboard() {
       progress: successProgress,
     },
     {
-      label: "Pending HOLDs",
+      label: "Needs Your Input",
       value: byStatus.HOLD,
       icon: Inbox,
       color: 'from-amber-500 to-amber-600',
@@ -252,7 +252,7 @@ export default function Dashboard() {
         >
           <p className="text-[10px] font-medium uppercase tracking-[0.4em] text-slate-500">Dashboard</p>
           <h1 className="font-display text-xl md:text-2xl font-bold text-slate-900">
-            Your Command Center
+            Your Dashboard
           </h1>
         </motion.div>
         <motion.div
@@ -339,7 +339,7 @@ export default function Dashboard() {
                       <Inbox className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-amber-900/60">HOLD QUEUE</p>
+                      <p className="text-sm font-medium text-amber-900/60">ITEMS NEEDING YOUR INPUT</p>
                       <p className="text-2xl font-bold text-slate-900">
                         {isLoading ? (
                           <span className="inline-block h-7 w-24 bg-slate-100 rounded animate-pulse"></span>
@@ -424,7 +424,7 @@ export default function Dashboard() {
                     className="w-full mt-3 border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 transition-colors"
                     onClick={() => navigate("/app/applications")}
                   >
-                    View all {holdApplications.length} holds
+                    View all {holdApplications.length} items
                   </Button>
                 )}
               </div>
@@ -547,7 +547,7 @@ export function JobsView() {
         streakToasted.current.add(m);
         pushToast({
           title: m === 1 ? "First swipe logged" : `🔥 ${m} swipes`,
-          description: m === 1 ? "Matchmaker engaged—keep going for tailored leads." : "Momentum unlocked. Radar will adapt to your preferences.",
+          description: m === 1 ? "Keep going for more tailored leads." : "Great momentum! Results will adapt to your preferences.",
           tone: "success",
         });
       }
@@ -866,8 +866,8 @@ export function JobsView() {
       <div className="text-center">
         <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] mb-2">Instructions</p>
         <p className="text-sm text-slate-500 font-medium italic">
-          Swipe RIGHT <Rocket className="inline w-3 h-3 mx-1" /> to initialize AI Application Engine. <br />
-          Swipe LEFT <Zap className="inline w-3 h-3 mx-1 rotate-180" /> to discard match and move to next signal.
+          Swipe RIGHT <Rocket className="inline w-3 h-3 mx-1" /> to apply with AI assistance. <br />
+          Swipe LEFT <Zap className="inline w-3 h-3 mx-1 rotate-180" /> to skip and move to the next job.
         </p>
       </div>
 
@@ -915,7 +915,7 @@ export function ApplicationsView() {
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner label="Decrypting application signals..." />
+        <LoadingSpinner label="Loading applications..." />
       </div>
     );
   }
@@ -924,8 +924,8 @@ export function ApplicationsView() {
     <div className="space-y-6 max-w-6xl mx-auto pb-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Active Transmissions</h2>
-          <p className="text-slate-500 font-medium">Monitoring {applications.length} automated application threads.</p>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Active Applications</h2>
+          <p className="text-slate-500 font-medium">Tracking {applications.length} automated application threads.</p>
         </div>
         <div className="relative w-full md:w-72">
           <input
@@ -946,13 +946,13 @@ export function ApplicationsView() {
             <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
               <Radar className="w-8 h-8 text-slate-500 animate-pulse" />
             </div>
-            <h3 className="text-lg font-black text-slate-900 mb-2">Signal Silence</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-2">No Results</h3>
             <p className="text-slate-500 font-medium mb-6 max-w-xs">
-              {searchTerm ? "No transmissions found matching your encryption key." : "Your agent hasn't intercepted any opportunities yet."}
+              {searchTerm ? "No applications found matching your search." : "Your agent hasn't found any opportunities yet."}
             </p>
             {!searchTerm && (
               <Button onClick={() => navigate('/app/jobs')} className="font-bold text-xs uppercase rounded-xl">
-                Start Hunting <Rocket className="ml-2 w-4 h-4" />
+                Start Searching <Rocket className="ml-2 w-4 h-4" />
               </Button>
             )}
           </Card>
@@ -1000,9 +1000,9 @@ export function ApplicationsView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Candidate/Target</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Company/Role</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Signal</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Activity</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
               </tr>
             </thead>
@@ -1015,13 +1015,13 @@ export function ApplicationsView() {
                         <Radar className="w-10 h-10 text-slate-300" />
                         <div className="absolute inset-0 rounded-full border border-slate-100 animate-ping opacity-20" />
                       </div>
-                      <h3 className="text-xl font-black text-slate-900 mb-2">No Active Transmissions</h3>
+                      <h3 className="text-xl font-black text-slate-900 mb-2">No Active Applications</h3>
                       <p className="text-slate-500 font-medium mb-8 max-w-sm">
-                        {searchTerm ? "We couldn't locate any signals matching your search parameters." : "Your frequency is clear. Initialize a hunt to start intercepting job signals."}
+                        {searchTerm ? "We couldn't find any applications matching your search." : "No applications yet. Start searching to find job opportunities."}
                       </p>
                       {!searchTerm && (
                         <Button onClick={() => navigate('/app/jobs')} variant="primary" className="font-bold uppercase rounded-xl shadow-lg shadow-primary-500/20">
-                          Initialize Hunt <Rocket className="ml-2 w-4 h-4" />
+                          Start Searching <Rocket className="ml-2 w-4 h-4" />
                         </Button>
                       )}
                     </div>
@@ -1108,7 +1108,7 @@ export function ApplicationsView() {
           <Zap className="h-5 w-5" />
         </div>
         <p className="text-sm text-primary-900 font-medium font-display leading-tight">
-          Your AI agent is actively monitoring <span className="font-black">new job signals</span> across LinkedIn and Wellfound. New matches will appear in your Radar shortly.
+          Your AI agent is actively monitoring <span className="font-black">new job listings</span> across LinkedIn and Wellfound. New matches will appear in your dashboard shortly.
         </p>
       </div>
     </div>
@@ -1124,7 +1124,7 @@ export function HoldsView() {
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner label="Opening communication channels..." />
+        <LoadingSpinner label="Loading items needing your input..." />
       </div>
     );
   }
@@ -1135,9 +1135,9 @@ export function HoldsView() {
         <div className="h-20 w-20 rounded-full bg-lagoon-100 flex items-center justify-center mb-6">
           <CheckCircle className="h-10 w-10 text-lagoon-600" />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 mb-4">Command Clear</h2>
+        <h2 className="text-3xl font-black text-slate-900 mb-4">All Caught Up</h2>
         <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
-          The AI engine has 100% of the information it needs to continue all active hunts.
+          The AI engine has all the information it needs to continue your active applications.
         </p>
       </Card>
     );
@@ -1146,7 +1146,7 @@ export function HoldsView() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-6 px-4 lg:px-0">
       <div>
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">HOLD Inbox</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Items Needing Your Input</h2>
         <p className="text-slate-500 font-medium">Your AI agent needs clarification on these {holdApplications.length} threads.</p>
       </div>
 
@@ -1228,7 +1228,7 @@ export function TeamView() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">Workspace</h2>
-          <p className="text-slate-500 font-medium">Collaborate and manage shared hunting pipelines.</p>
+          <p className="text-slate-500 font-medium">Collaborate and manage shared job search pipelines.</p>
         </div>
         <Button
           variant="outline"
@@ -1272,11 +1272,11 @@ export function TeamView() {
 
         <div className="space-y-6">
           <Card className="p-8 border-slate-100 bg-primary-50/30" shadow="sm">
-            <h3 className="text-lg font-black text-slate-900 mb-4 font-display">Shared Intelligence</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-4 font-display">Shared Features</h3>
             <ul className="space-y-4">
               {[
-                "Unified Job Radar",
-                "Shared Hold Inbox",
+                "Unified Job Feed",
+                "Shared Input Inbox",
                 "Collaborative Tailoring",
                 "Centralized Billing"
               ].map(feat => (
@@ -1319,7 +1319,7 @@ export function BillingView() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">Billing & Quota</h2>
-          <p className="text-slate-500 font-medium">Manage your subscription and usage telemetry.</p>
+          <p className="text-slate-500 font-medium">Manage your subscription and usage.</p>
         </div>
         <Badge variant="primary" className="py-2 px-4 rounded-xl font-bold">
           Plan: {plan || "FREE"}

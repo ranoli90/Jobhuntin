@@ -6,9 +6,9 @@ import { cn } from "../../lib/utils";
 
 const STATUS_LABEL: Record<ApplicationRecord["status"], string> = {
   APPLYING: "Applying",
-  APPLIED: "✅ Applied",
-  HOLD: "⏳ HOLD",
-  FAILED: "❌ Failed",
+  APPLIED: "Applied",
+  HOLD: "Needs Input",
+  FAILED: "Failed",
 };
 
 const STATUS_TONE: Record<ApplicationRecord["status"], string> = {

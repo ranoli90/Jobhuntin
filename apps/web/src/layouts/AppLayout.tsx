@@ -58,7 +58,7 @@ export default function AppLayout() {
       <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
         <div className="border-b border-slate-200 px-8 py-6">
           <Logo to="/app/dashboard" size="md" />
-          <p className="text-[10px] text-slate-400 mt-2 font-black uppercase tracking-[0.2em] ml-1">Intelligence Console</p>
+          <p className="text-[10px] text-slate-400 mt-2 font-black uppercase tracking-[0.2em] ml-1">Application Console</p>
         </div>
         <nav className="flex-1 space-y-1 px-4 py-8">
           {NAV_ITEMS.map((item) => {
@@ -190,7 +190,7 @@ export default function AppLayout() {
                   to={item.to}
                   onClick={closeMobile}
                   className={cn(
-                    "flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-bold transition-all",
+                    "flex flex-col items-center justify-center rounded-xl px-2 py-3 text-[11px] font-bold transition-all",
                     isActive ? "bg-primary-50 text-primary-700 ring-1 ring-primary-100" : "text-slate-500 hover:text-slate-900"
                   )}
                   aria-label={item.label}
