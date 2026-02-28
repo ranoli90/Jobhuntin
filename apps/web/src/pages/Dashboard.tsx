@@ -589,7 +589,7 @@ export function JobsView() {
 
   // A20: Announce new card to screen readers when card changes
   useEffect(() => {
-    if (currentJob) {
+    if (currentJob?.id) {
       setStatusMessage(`Showing ${currentJob.title} at ${currentJob.company}. Swipe right to accept, left to reject.`);
     }
   }, [currentJob?.id]);
@@ -732,8 +732,8 @@ export function JobsView() {
   if (currentIndex >= jobs.length) {
     return (
       <Card tone="lagoon" className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2">
-        <div className="h-20 w-20 rounded-full bg-lagoon-100 flex items-center justify-center mb-6">
-          <CheckCircle className="h-10 w-10 text-lagoon-600" />
+        <div className="h-20 w-20 rounded-full bg-brand-lagoon/20 flex items-center justify-center mb-6">
+          <CheckCircle className="h-10 w-10 text-brand-lagoon" />
         </div>
         <h2 className="text-3xl font-black text-slate-900 mb-4">{t("dashboard.sweepComplete", locale)}</h2>
         <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
@@ -1247,8 +1247,8 @@ export function HoldsView() {
   if (holdApplications.length === 0) {
     return (
       <Card tone="lagoon" className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2">
-        <div className="h-20 w-20 rounded-full bg-lagoon-100 flex items-center justify-center mb-6">
-          <CheckCircle className="h-10 w-10 text-lagoon-600" />
+        <div className="h-20 w-20 rounded-full bg-brand-lagoon/20 flex items-center justify-center mb-6">
+          <CheckCircle className="h-10 w-10 text-brand-lagoon" />
         </div>
         <h2 className="text-3xl font-black text-slate-900 mb-4">All Caught Up</h2>
         <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">

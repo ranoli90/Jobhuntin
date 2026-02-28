@@ -70,6 +70,7 @@ export default function Settings() {
           visa_sponsorship: preferences.visa_sponsorship,
         },
       });
+      telemetry.track("preferences_saved", {});
       pushToast({ title: "Preferences saved", tone: "success" });
     } catch (err) {
       pushToast({ title: "Could not save", description: (err as Error).message, tone: "error" });
@@ -87,6 +88,7 @@ export default function Settings() {
         headline: contactForm.headline || undefined,
         bio: contactForm.bio || undefined,
       });
+      telemetry.track("profile_updated", {});
       pushToast({ title: "Profile updated", tone: "success" });
     } catch (err) {
       pushToast({ title: "Could not update profile", description: (err as Error).message, tone: "error" });
