@@ -330,12 +330,11 @@ export default function Onboarding() {
     return () => clearTimeout(timer);
   }, [contactInfo.email]);
 
-  // Keyboard Shortcuts
+  // O4: Keyboard shortcuts — use ref to step container for robust button lookup
+  const stepContainerRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if inside an input/textarea to avoid conflict
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
-        // Allow Ctrl+Enter even in inputs to submit
         if (!(e.ctrlKey && e.key === 'Enter')) return;
       }
 
@@ -343,14 +342,14 @@ export default function Onboarding() {
         if (isLastStep) {
           window.dispatchEvent(new CustomEvent('onboarding:complete'));
         } else {
-          const nextBtn = document.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
+          const nextBtn = stepContainerRef.current?.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
           if (nextBtn) nextBtn.click();
           else window.dispatchEvent(new CustomEvent('onboarding:next'));
         }
       } else if (e.altKey && e.key === 'ArrowLeft') {
         if (!isFirstStep) window.dispatchEvent(new CustomEvent('onboarding:prev'));
       } else if (e.altKey && e.key === 'ArrowRight') {
-        const nextBtn = document.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
+        const nextBtn = stepContainerRef.current?.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
         if (nextBtn) nextBtn.click();
       }
     };
@@ -811,6 +810,7 @@ export default function Onboarding() {
 
             <AnimatePresence mode="wait">
               <motion.div
+                ref={stepContainerRef}
                 key={currentStep}
                 initial={shouldReduceMotion ? undefined : { opacity: 0 }}
                 animate={{ opacity: 1 }}
