@@ -38,11 +38,11 @@ export default function NotFound() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm mb-6 border border-emerald-100"
+            className="inline-flex items-center gap-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm mb-6 border border-emerald-100 dark:border-emerald-900/50"
           >
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-bold text-slate-600">
-              Join thousands finding jobs with AI
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+              Find your next role with AI
             </span>
           </motion.div>
           

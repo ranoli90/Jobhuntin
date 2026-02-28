@@ -769,7 +769,7 @@ export default function Onboarding() {
               <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" aria-hidden />
               <span className="text-[9px] font-black text-primary-700 uppercase tracking-wider">Setup</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100">
+            <Button variant="ghost" size="sm" onClick={() => { if (window.confirm('Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100 dark:hover:bg-slate-800">
               Restart
             </Button>
           </div>

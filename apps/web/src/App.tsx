@@ -41,6 +41,7 @@ const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const Onboarding = React.lazy(() => import("./pages/app/Onboarding"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
+const Maintenance = React.lazy(() => import("./pages/Maintenance"));
 const About = React.lazy(() => import("./pages/About"));
 const Locations = React.lazy(() => import("./pages/Locations"));
 
@@ -190,6 +191,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/locations" element={<Locations />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/maintenance" element={<Maintenance />} />
             <Route path="*" element={<NotFound />} />
           </Route>
 

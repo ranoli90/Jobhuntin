@@ -23,6 +23,7 @@ import {
   LogOut,
   Globe,
 } from "lucide-react";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 const NAV_ITEMS = [
   { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
@@ -157,6 +158,7 @@ export default function AppLayout() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle className="text-slate-600 dark:text-slate-400" />
             <Badge variant="primary" size="sm" className="font-black px-3">
               {plan ?? "Free"}
             </Badge>

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ArrowRight, LayoutDashboard } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Logo } from '../brand/Logo';
+import { ThemeToggle } from '../ThemeToggle';
 import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from '../navigation/MobileDrawer';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -67,6 +68,7 @@ export function MarketingNavbar() {
 
         {/* CTA Buttons */}
         <div className="hidden lg:flex items-center gap-5">
+          <ThemeToggle />
           {isLoggedIn ? (
             <>
               <Link to="/app/dashboard" className="text-[15px] font-medium text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-2">

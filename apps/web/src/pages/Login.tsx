@@ -9,6 +9,7 @@ import {
   Briefcase, Send, Zap
 } from 'lucide-react';
 import { Logo } from '../components/brand/Logo';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { magicLinkService } from '../services/magicLinkService';
@@ -249,7 +250,10 @@ export default function Login() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 relative">
+        <div className="absolute top-6 right-6">
+          <ThemeToggle />
+        </div>
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-10">

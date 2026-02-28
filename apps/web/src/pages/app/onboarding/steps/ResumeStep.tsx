@@ -141,7 +141,15 @@ export function ResumeStep({
                 <input
                     type="file"
                     accept=".pdf"
-                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && file.size > 15 * 1024 * 1024) {
+                        setResumeError("File must be under 15MB");
+                        e.target.value = "";
+                        return;
+                      }
+                      handleFileChange(file || null);
+                    }}
                     className="hidden"
                     id="resume-upload"
                     disabled={isUploading}
@@ -169,7 +177,7 @@ export function ResumeStep({
                         <p className={`text-base md:text-lg font-bold ${resumeFile ? 'text-primary-700' : 'text-slate-700'}`}>
                             {resumeFile ? resumeFile.name : "Click to upload your resume"}
                         </p>
-                        <p className="text-xs text-slate-400 font-medium">PDF format - Max 15MB</p>
+                        <p className="text-xs text-slate-400 font-medium">PDF format — Max 15MB</p>
                     </div>
                 </label>
                 {resumeFile && !isUploading && (

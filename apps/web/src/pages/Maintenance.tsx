@@ -1,29 +1,32 @@
-import { Helmet } from 'react-helmet-async';
+import React from 'react';
+import { Wrench, Mail } from 'lucide-react';
+import { SEO } from '../components/marketing/SEO';
 
 export default function Maintenance() {
   return (
-    <>
-      <Helmet>
-        <title>JobHuntin — Maintenance</title>
-        <meta name="robots" content="noindex" />
-      </Helmet>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-brand-accent/10 flex items-center justify-center mb-6">
-          <svg className="w-8 h-8 text-brand-accent" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17l-5.82-3.36a1.5 1.5 0 010-2.58l5.82-3.36a1.5 1.5 0 011.16 0l5.82 3.36a1.5 1.5 0 010 2.58l-5.82 3.36a1.5 1.5 0 01-1.16 0z" />
-          </svg>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center px-6">
+      <SEO
+        title="Maintenance | JobHuntin"
+        description="JobHuntin is temporarily unavailable for maintenance. We'll be back shortly."
+      />
+      <div className="max-w-md text-center">
+        <div className="w-20 h-20 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-6">
+          <Wrench className="w-10 h-10 text-amber-600 dark:text-amber-400" aria-hidden />
         </div>
-        <h1 className="text-2xl font-bold text-brand-ink mb-3">We'll be right back</h1>
-        <p className="text-slate-500 max-w-md mb-8">
-          JobHuntin is currently undergoing scheduled maintenance. We're making things better and will be back shortly.
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+          We&apos;re making things better
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          JobHuntin is temporarily unavailable for scheduled maintenance. We&apos;ll be back shortly.
         </p>
-        <p className="text-sm text-slate-400">
-          Questions? Email us at{' '}
-          <a href="mailto:support@jobhuntin.com" className="text-brand-accent hover:underline">
-            support@jobhuntin.com
-          </a>
-        </p>
+        <a
+          href="mailto:support@jobhuntin.com"
+          className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline"
+        >
+          <Mail className="w-4 h-4" aria-hidden />
+          Contact support
+        </a>
       </div>
-    </>
+    </div>
   );
 }
