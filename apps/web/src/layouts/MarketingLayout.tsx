@@ -8,7 +8,7 @@ export default function MarketingLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-purple-600/10 selection:text-gray-900 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-slate-950 font-sans text-gray-900 dark:text-slate-100 selection:bg-purple-600/10 selection:text-gray-900 dark:selection:text-slate-100 flex flex-col">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-brand-ink focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-accent">
         Skip to content
       </a>
