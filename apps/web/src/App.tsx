@@ -130,7 +130,7 @@ function CompletedOnboardingRedirect({ children }: { children: React.ReactNode }
 
 // Loading Fallback
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-50">
+  <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
     <LoadingSpinner label="Loading..." />
   </div>
 );

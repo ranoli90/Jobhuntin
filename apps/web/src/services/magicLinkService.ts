@@ -226,6 +226,13 @@ class MagicLinkService {
       '/app/billing',
       '/app/settings',
       '/app/team',
+      '/app/matches',
+      '/app/tailor',
+      '/app/ats-score',
+      '/app/admin/usage',
+      '/app/admin/matches',
+      '/app/admin/alerts',
+      '/app/admin/sources',
     ]);
 
     if (allowedPaths.has(pathOnly)) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { magicLinkService } from '../services/magicLinkService';
+import { telemetry } from '../lib/telemetry';
 import {
   ArrowRight, MailCheck, Target, Sparkles, Activity,
   Upload, SlidersHorizontal, Send, Trophy,
@@ -27,6 +28,7 @@ function useEmailCapture() {
     try {
       const result = await magicLinkService.sendMagicLink(email, "/app/onboarding");
       if (!result.success) throw new Error(result.error || "Failed");
+      telemetry.track("login_magic_link_requested", { source: "homepage" });
       pushToast({ title: "Check your inbox", description: "Magic link sent!", tone: "success" });
       setSentEmail(result.email);
       setEmail("");

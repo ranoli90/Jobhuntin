@@ -135,7 +135,7 @@ export interface ApiRequestOptions extends Omit<RequestInit, "headers"> {
 function friendlyMessage(status: number, body: string): string {
   switch (status) {
     case 400:
-      return tryParseMessage(body) || "The request was invalid. Please check your input.";
+      return tryParseMessage(body) || "Please check your input and try again.";
     case 401:
       return "Session expired. Please sign in again.";
     case 403:

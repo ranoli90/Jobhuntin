@@ -99,6 +99,11 @@ export default function Settings() {
       pushToast({ title: "Please upload an image", tone: "error" });
       return;
     }
+    const MAX_AVATAR_SIZE_MB = 5;
+    if (file.size > MAX_AVATAR_SIZE_MB * 1024 * 1024) {
+      pushToast({ title: `Image must be under ${MAX_AVATAR_SIZE_MB}MB`, tone: "error" });
+      return;
+    }
     setIsAvatarUploading(true);
     try {
       await uploadAvatar(file);

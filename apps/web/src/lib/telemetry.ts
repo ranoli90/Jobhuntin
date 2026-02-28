@@ -1,4 +1,18 @@
-// Telemetry tracking utility
+// Telemetry tracking utility - respects cookie consent
+const CONSENT_KEY = 'jobhuntin-cookie-consent';
+
+function hasAnalyticsConsent(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const consent = localStorage.getItem(CONSENT_KEY);
+    if (!consent) return false;
+    const parsed = JSON.parse(consent);
+    return parsed.analytics !== false;
+  } catch {
+    return false;
+  }
+}
+
 export const telemetry = {
   track: (event: string, properties?: Record<string, any>) => {
     // In development, log to console
@@ -6,11 +20,11 @@ export const telemetry = {
       console.log("[Telemetry]", event + ":", properties);
       return;
     }
-    
-    // In production, send to analytics service
-    // This is a placeholder implementation
+
+    // Only send to analytics if user has consented (GDPR)
+    if (!hasAnalyticsConsent()) return;
+
     try {
-      // Send to analytics service
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', event, properties);
       }

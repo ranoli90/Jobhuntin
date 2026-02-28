@@ -945,8 +945,47 @@ export function ApplicationsView() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner label="Loading applications..." />
+      <div className="space-y-6 max-w-6xl mx-auto pb-4" aria-busy="true" aria-label="Loading applications">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
+            <div className="h-4 w-64 bg-slate-100 rounded animate-pulse" />
+          </div>
+          <div className="h-12 w-full md:w-72 bg-slate-100 rounded-2xl animate-pulse" />
+        </div>
+        <div className="grid gap-3 md:hidden">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="p-4 rounded-2xl border border-slate-200 bg-white animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-slate-200" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-24 bg-slate-200 rounded" />
+                  <div className="h-3 w-16 bg-slate-100 rounded" />
+                </div>
+                <div className="h-6 w-16 bg-slate-100 rounded" />
+              </div>
+              <div className="mt-3 h-4 w-20 bg-slate-100 rounded" />
+            </div>
+          ))}
+        </div>
+        <div className="hidden md:block p-0 overflow-hidden border border-slate-200 rounded-2xl">
+          <div className="bg-slate-50 border-b border-slate-200 px-6 py-4">
+            <div className="h-4 w-32 bg-slate-200 rounded" />
+          </div>
+          <div className="divide-y divide-slate-100">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="px-6 py-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-slate-200 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-32 bg-slate-200 rounded" />
+                  <div className="h-3 w-24 bg-slate-100 rounded" />
+                </div>
+                <div className="h-6 w-20 bg-slate-100 rounded" />
+                <div className="h-4 w-16 bg-slate-100 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -962,7 +1001,8 @@ export function ApplicationsView() {
           <input
             type="text"
             placeholder="Search company or title..."
-            className="w-full px-10 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none bg-white font-medium shadow-sm"
+            aria-label="Search applications by company or title"
+            className="w-full px-10 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -1154,8 +1194,31 @@ export function HoldsView() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner label="Loading items needing your input..." />
+      <div className="max-w-4xl mx-auto space-y-6 pb-6 px-4 lg:px-0" aria-busy="true" aria-label="Loading items needing your input">
+        <div className="space-y-2">
+          <div className="h-8 w-56 bg-slate-200 rounded animate-pulse" />
+          <div className="h-4 w-72 bg-slate-100 rounded animate-pulse" />
+        </div>
+        <div className="space-y-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-0 overflow-hidden border border-slate-200 rounded-2xl animate-pulse">
+              <div className="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-slate-200" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-24 bg-slate-200 rounded" />
+                    <div className="h-3 w-32 bg-slate-100 rounded" />
+                  </div>
+                </div>
+                <div className="h-6 w-24 bg-amber-100 rounded" />
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="h-16 bg-amber-50 rounded-2xl" />
+                <div className="h-24 bg-slate-100 rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -1213,7 +1276,7 @@ export function HoldsView() {
 
                 <div className="space-y-4">
                   <textarea
-                    className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none bg-white font-medium min-h-[100px]"
+                    className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium min-h-[100px]"
                     maxLength={5000}
                     placeholder="Type your response here... (e.g. Yes, I have 5 years experience with Kubernetes)"
                     value={answers[app.id] || ""}
@@ -1328,8 +1391,49 @@ export function TeamView() {
 
 
 export function BillingView() {
-  const { status, plan, usage, upgrade, addSeats, manageBilling } = useBilling();
+  const { status, plan, usage, upgrade, addSeats, manageBilling, loading: isLoading } = useBilling();
   const shouldReduceMotion = useReducedMotion();
+
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6 pb-6 px-4 lg:px-0" aria-busy="true" aria-label="Loading billing">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
+            <div className="h-4 w-64 bg-slate-100 rounded animate-pulse" />
+          </div>
+          <div className="h-8 w-24 bg-slate-100 rounded-xl animate-pulse" />
+        </div>
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="p-6 lg:p-8 border border-slate-200 rounded-2xl animate-pulse">
+              <div className="h-6 w-40 bg-slate-200 rounded mb-6" />
+              <div className="space-y-4">
+                <div className="h-4 w-full bg-slate-100 rounded" />
+                <div className="h-3 w-full bg-slate-100 rounded-full" />
+              </div>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-6 border border-slate-200 rounded-2xl animate-pulse">
+                  <div className="h-6 w-24 bg-slate-200 rounded mb-4" />
+                  <div className="h-8 w-16 bg-slate-100 rounded mb-2" />
+                  <div className="h-4 w-full bg-slate-100 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-6">
+            <div className="p-6 border border-slate-200 rounded-2xl animate-pulse">
+              <div className="h-6 w-32 bg-slate-200 rounded mb-4" />
+              <div className="h-4 w-full bg-slate-100 rounded mb-2" />
+              <div className="h-4 w-3/4 bg-slate-100 rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const usageUsed = usage?.monthly_used ?? 0;
   const usageLimit = usage?.monthly_limit ?? 100;

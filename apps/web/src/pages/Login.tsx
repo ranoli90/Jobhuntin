@@ -12,6 +12,7 @@ import { Logo } from '../components/brand/Logo';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { magicLinkService } from '../services/magicLinkService';
+import { telemetry } from '../lib/telemetry';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -82,6 +83,7 @@ export default function Login() {
     try {
       const normalized = await requestMagicLink(email, safeReturnTo);
       setSuccessState({ email: normalized });
+      telemetry.track("login_magic_link_requested", {});
       pushToast({ title: "Check your inbox", tone: "success" });
     } catch (err: any) {
       const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";

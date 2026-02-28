@@ -70,7 +70,7 @@ export function CookieConsent() {
       aria-modal="true"
       aria-label="Cookie consent"
       aria-describedby="cookie-consent-description"
-      className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white border-t border-slate-200 shadow-lg md:flex md:items-center md:justify-between md:px-8"
+      className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 shadow-lg md:flex md:items-center md:justify-between md:px-8"
     >
       <p id="cookie-consent-description" className="text-sm text-slate-600 mb-3 md:mb-0 md:mr-6">
         We use cookies for analytics to improve your experience. By clicking &quot;Accept all&quot;, you consent
