@@ -140,6 +140,29 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
 
+  // Session timeout - 30 minutes of inactivity
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+
+    const resetTimeout = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        sessionStorage.removeItem('admin-token');
+        window.location.href = '/';
+      }, TIMEOUT_MS);
+    };
+
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach(event => document.addEventListener(event, resetTimeout));
+    resetTimeout();
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => document.removeEventListener(event, resetTimeout));
+    };
+  }, []);
+
   useEffect(() => {
     getSession().then((s) => {
       setSession(s);

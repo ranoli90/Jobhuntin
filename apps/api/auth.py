@@ -352,7 +352,10 @@ https://jobhuntin.com
         "subject": "Sign in to JobHuntin",
         "html": html,
         "text": text_content,
-        "headers": {},
+        "headers": {
+            "List-Unsubscribe": f"<{settings.app_base_url.rstrip('/')}/app/settings#notifications>",
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
     }
 
     headers = {

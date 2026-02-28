@@ -618,9 +618,11 @@ class DatabasePoolManager:
 
     @staticmethod
     def _get_ssl_config(settings: Any) -> Any:
-        """Get SSL config for database connection"""
-        # Render databases use SSL by default; our DSN resolver enforces sslmode=require
-        # No special SSL context needed; asyncpg handles it when sslmode is in DSN
+        """Get SSL config for database connection."""
+        if settings.db_ssl_ca_cert_path:
+            import ssl
+            ctx = ssl.create_default_context(cafile=settings.db_ssl_ca_cert_path)
+            return ctx
         return None
 
     async def close(self) -> None:

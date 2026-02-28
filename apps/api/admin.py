@@ -398,6 +398,7 @@ async def get_tenant_audit_log(
                 )
             require_role(ctx, "OWNER", "ADMIN", "COMPLIANCE_OFFICER")
 
+        escaped_action = action.replace("%", "\\%").replace("_", "\\_") if action else None
         rows = await conn.fetch(
             """
             SELECT id, user_id, action, resource, resource_id, details,
@@ -413,7 +414,7 @@ async def get_tenant_audit_log(
             LIMIT $7 OFFSET $8
             """,
             tenant_id,
-            f"%{action}%" if action else None,
+            f"%{escaped_action}%" if escaped_action else None,
             resource,
             user_filter,
             datetime.fromisoformat(start_date) if start_date else None,
@@ -434,7 +435,7 @@ async def get_tenant_audit_log(
               AND ($6::timestamptz IS NULL OR created_at <= $6)
             """,
             tenant_id,
-            f"%{action}%" if action else None,
+            f"%{escaped_action}%" if escaped_action else None,
             resource,
             user_filter,
             datetime.fromisoformat(start_date) if start_date else None,

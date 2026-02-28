@@ -158,6 +158,8 @@ export default function App() {
         <meta name="twitter:image" content={`${config.urls.og}/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global`} />
         {location.pathname.startsWith("/app") && <meta name="robots" content="noindex, nofollow" />}
         <link rel="canonical" href={`${config.urls.homepage}${location.pathname === "/" ? "" : location.pathname}`} />
+        <link rel="alternate" hreflang="en" href={`${config.urls.homepage}${location.pathname}`} />
+        <link rel="alternate" hreflang="x-default" href={`${config.urls.homepage}${location.pathname}`} />
       </Helmet>
       <ScrollToTop />
       <ErrorBoundary>

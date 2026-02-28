@@ -397,11 +397,13 @@ class SnoozeBody(BaseModel):
 @router.post("/applications/{application_id}/snooze")
 async def snooze_application(
     application_id: str = FastAPIPath(...),
-    body: SnoozeBody = SnoozeBody(),
+    body: SnoozeBody | None = None,
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Snooze an application for N hours."""
+    if body is None:
+        body = SnoozeBody()
     from shared.validators import validate_uuid
 
     validate_uuid(application_id, "application_id")

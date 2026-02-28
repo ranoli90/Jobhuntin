@@ -101,7 +101,7 @@ async function handleJobDetected(jobData: any, sender: chrome.runtime.MessageSen
           type: 'basic',
           iconUrl: 'icon-128.png',
           title: 'Job Saved Locally',
-          message: `Saved offline. Will sync when online.`
+          message: `Saved locally as backup.`
         });
       }
     } else {

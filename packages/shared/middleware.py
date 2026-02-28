@@ -186,10 +186,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        # Basic CSP; can be expanded with nonces if needed for inline scripts
-        response.headers.setdefault(
-            "Content-Security-Policy",
-            "default-src 'self'; frame-ancestors 'none'; object-src 'none'",
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://api.resend.com https://www.google-analytics.com; "
+            "frame-ancestors 'none'; "
+            "object-src 'none'"
         )
 
         # HSTS (Strict-Transport-Security)

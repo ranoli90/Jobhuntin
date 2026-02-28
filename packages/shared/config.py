@@ -348,12 +348,9 @@ class Settings(BaseSettings):
                         self.llm_model,
                     )
             if missing:
-                logger.critical(
-                    "FATAL: Missing critical env vars for %s: %s",
-                    self.env.value,
-                    ", ".join(missing),
-                )
-                sys.exit(1)
+                msg = f"Missing critical env vars for {self.env.value}: {', '.join(missing)}"
+                logger.critical("FATAL: %s", msg)
+                raise RuntimeError(msg)
 
     # ── Environment-specific overrides applied after load ────────
     def apply_env_defaults(self) -> Settings:
