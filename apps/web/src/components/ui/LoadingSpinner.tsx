@@ -21,7 +21,7 @@ export function LoadingSpinner({ label = "Loading", className, size = "lg" }: Lo
       className={cn("flex flex-col items-center gap-3 text-brand-ink/70", className)}
       role="status"
       aria-live="polite"
-      aria-label={label} aria-live="polite"
+      aria-label={label}
     >
       <div
         className={cn("animate-spin rounded-full border-brand-sunrise/40 border-t-brand-sunrise", spinnerSize)}

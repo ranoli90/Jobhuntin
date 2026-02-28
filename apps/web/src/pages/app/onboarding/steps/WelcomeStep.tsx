@@ -53,7 +53,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
                 </div>
             </div>
 
-            <Button type="button" onClick={onNext} className="w-full h-11 md:h-12 rounded-xl font-bold text-base md:text-lg shadow-lg shadow-primary-500/20 bg-primary-600 hover:bg-primary-500 group" aria-label="Start setup">
+            <Button type="button" onClick={onNext} className="w-full h-11 md:h-12 rounded-xl font-bold text-base md:text-lg shadow-lg shadow-primary-500/20 bg-primary-600 hover:bg-primary-500 group" aria-label="Start setup" data-onboarding-next>
                 Start setup
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
