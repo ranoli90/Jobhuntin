@@ -929,8 +929,8 @@ export function ApplicationsView() {
   const { applications, isLoading } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const locale = sharedLocale; // N-2: shared locale
-  // M-12: Client-side pagination
-  const [page, setPage] = useState(0);
+  // M-12: Client-side Load more (D16)
+  const [displayedCount, setDisplayedCount] = useState(APPLICATIONS_PAGE_SIZE);
 
   const filteredApps = useMemo(
     () => applications.filter(app =>
@@ -940,11 +940,12 @@ export function ApplicationsView() {
     [applications, searchTerm]
   );
 
-  const totalPages = Math.max(1, Math.ceil(filteredApps.length / APPLICATIONS_PAGE_SIZE));
-  const pagedApps = filteredApps.slice(page * APPLICATIONS_PAGE_SIZE, (page + 1) * APPLICATIONS_PAGE_SIZE);
+  // D16: Load more — show first N items, "Load more" appends next page
+  const loadMoreApps = filteredApps.slice(0, displayedCount);
+  const hasMoreToLoad = displayedCount < filteredApps.length;
 
-  // Reset page when search changes
-  useEffect(() => { setPage(0); }, [searchTerm]);
+  // Reset when search changes
+  useEffect(() => { setDisplayedCount(APPLICATIONS_PAGE_SIZE); }, [searchTerm]);
 
   if (isLoading) {
     return (
@@ -1015,7 +1016,7 @@ export function ApplicationsView() {
 
       {/* Mobile Card List */}
       <div className="grid gap-3 md:hidden">
-        {pagedApps.length === 0 ? (
+        {loadMoreApps.length === 0 ? (
           <Card className="flex flex-col items-center justify-center p-8 text-center" shadow="sm">
             <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
               <Radar className="w-8 h-8 text-slate-500 animate-pulse" />
@@ -1031,7 +1032,7 @@ export function ApplicationsView() {
             )}
           </Card>
         ) : (
-          pagedApps.map((app) => (
+          loadMoreApps.map((app) => (
             <Card key={app.id} className="p-4 border-slate-200" shadow="sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
@@ -1081,7 +1082,7 @@ export function ApplicationsView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {pagedApps.length === 0 ? (
+              {loadMoreApps.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center justify-center">
@@ -1140,7 +1141,7 @@ export function ApplicationsView() {
                         Details <ArrowUpRight className="ml-1 w-3 h-3" />
                       </Button>
                     </td>
-                  </tr>
+                    </tr>
                 ))
               )}
             </tbody>
@@ -1148,32 +1149,22 @@ export function ApplicationsView() {
         </div>
       </Card>
 
-      {/* M-12: Pagination controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-500 font-medium">
-            Showing {page * APPLICATIONS_PAGE_SIZE + 1}–{Math.min((page + 1) * APPLICATIONS_PAGE_SIZE, filteredApps.length)} of {filteredApps.length}
+      {/* D16: Load more controls */}
+      {filteredApps.length > 0 && (
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <p className="text-xs text-slate-500 font-medium" aria-live="polite">
+            Showing {loadMoreApps.length} of {filteredApps.length} applications
           </p>
-          <div className="flex gap-2">
+          {hasMoreToLoad ? (
             <Button
               variant="outline"
               size="sm"
-              disabled={page === 0}
-              onClick={() => setPage(p => Math.max(0, p - 1))}
+              onClick={() => setDisplayedCount(c => Math.min(c + APPLICATIONS_PAGE_SIZE, filteredApps.length))}
               className="text-xs font-bold"
             >
-              Previous
+              Load more
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage(p => p + 1)}
-              className="text-xs font-bold"
-            >
-              Next
-            </Button>
-          </div>
+          ) : null}
         </div>
       )}
 
