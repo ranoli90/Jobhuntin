@@ -14,6 +14,7 @@ import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
 import { CookieConsent } from './components/CookieConsent';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastShelf } from './components/ui/ToastShelf';
 
 // Lazy Load Pages for Performance
 const Homepage = React.lazy(() => import("./pages/Homepage"));
@@ -163,6 +164,7 @@ export default function App() {
         <link rel="alternate" hreflang="x-default" href={`${config.urls.homepage}${location.pathname}`} />
       </Helmet>
       <ScrollToTop />
+      <ToastShelf />
       <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>

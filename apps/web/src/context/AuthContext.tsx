@@ -119,6 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             clearAuthToken();
             setUser(null);
             localStorage.removeItem('jobhuntin-session');
+            sessionStorage.setItem('session_expired', 'true');
             const returnTo = detail?.returnTo ?? encodeURIComponent(window.location.pathname + window.location.search);
             window.location.href = `/login?returnTo=${returnTo}`;
         };

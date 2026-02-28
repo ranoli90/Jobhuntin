@@ -42,7 +42,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
         role="dialog"
         aria-modal="true"
         aria-label="Job details"
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white shadow-2xl"
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white dark:bg-slate-900 shadow-2xl"
       >
         <div className="p-8">
           {/* Header */}
@@ -56,8 +56,8 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
                 </div>
               )}
               <div>
-                <h2 className="font-display text-2xl text-brand-ink">{job.title}</h2>
-                <p className="text-sm font-semibold">{job.company}</p>
+                <h2 className="font-display text-2xl text-brand-ink dark:text-slate-100">{job.title}</h2>
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{job.company}</p>
               </div>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close job details">
@@ -136,7 +136,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
 
             <Button
               variant="outline"
-              className="w-full gap-2 border-dashed border-slate-300 text-slate-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50"
+              className="w-full gap-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 dark:hover:border-primary-700"
               onClick={() => setShowGenerator(true)}
             >
               <Wand2 className="h-4 w-4" />

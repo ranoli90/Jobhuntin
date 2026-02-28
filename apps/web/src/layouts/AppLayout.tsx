@@ -4,7 +4,6 @@ import { useAuth } from "../hooks/useAuth";
 import { useBilling } from "../hooks/useBilling";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
-import { ToastShelf } from "../components/ui/ToastShelf";
 import { PageTransition } from "../components/navigation/PageTransition";
 import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from "../components/navigation/MobileDrawer";
 import { AnimatePresence } from "framer-motion";
@@ -219,7 +218,6 @@ export default function AppLayout() {
             </button>
           </div>
         </nav>
-        <ToastShelf />
       </div>
     </div>
   );

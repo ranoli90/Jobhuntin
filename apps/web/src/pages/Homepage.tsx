@@ -10,6 +10,7 @@ import {
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
 import { cn } from '../lib/utils';
+import { ValidationUtils } from '../lib/validation';
 
 /* ─── Email capture hook ─── */
 function useEmailCapture() {
@@ -17,7 +18,7 @@ function useEmailCapture() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
-  const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  const validateEmail = (e: string) => ValidationUtils.validate.email(e.trim()).isValid;
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;

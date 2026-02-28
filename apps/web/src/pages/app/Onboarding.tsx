@@ -635,13 +635,13 @@ export default function Onboarding() {
     if (!preferences.location?.trim()) errors.location = "Required";
     if (!preferences.role_type?.trim()) errors.role_type = "Required";
 
-    // Salary validation - must be a positive number if provided
+    const SALARY_CAP = 10_000_000;
     if (preferences.salary_min?.trim()) {
       const salaryNum = parseInt(preferences.salary_min.trim());
       if (isNaN(salaryNum) || salaryNum < 0) {
         errors.salary_min = "Must be a valid number";
-      } else if (salaryNum > 10000000) {
-        errors.salary_min = "Please enter a reasonable value";
+      } else if (salaryNum > SALARY_CAP) {
+        errors.salary_min = `Min salary cannot exceed $${(SALARY_CAP / 1_000_000).toFixed(0)}M`;
       }
     }
     if (preferences.salary_max?.trim()) {
@@ -649,6 +649,8 @@ export default function Onboarding() {
       const minNum = preferences.salary_min?.trim() ? parseInt(preferences.salary_min.trim()) : 0;
       if (isNaN(maxNum) || maxNum < 0) {
         errors.salary_max = "Must be a valid number";
+      } else if (maxNum > SALARY_CAP) {
+        errors.salary_max = `Max salary cannot exceed $${(SALARY_CAP / 1_000_000).toFixed(0)}M`;
       } else if (minNum > 0 && maxNum < minNum) {
         errors.salary_max = "Max must be ≥ min";
       }

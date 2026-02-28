@@ -45,6 +45,14 @@ export default function Login() {
     }
   }, [authLoading, user, navigate, safeReturnTo]);
 
+  // Show session expired toast when redirected from 401
+  useEffect(() => {
+    if (sessionStorage.getItem('session_expired') === 'true') {
+      sessionStorage.removeItem('session_expired');
+      pushToast({ title: "Session expired", description: "Please sign in again.", tone: "info" });
+    }
+  }, []);
+
   const emailIsValid = useMemo(() => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }, [email]);
