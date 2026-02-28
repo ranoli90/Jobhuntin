@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
+from backend.domain.repositories import db_transaction
 from shared.metrics import incr
 
 logger = get_logger("sorce.gdpr")
@@ -42,6 +43,7 @@ class DataExportResponse(BaseModel):
     download_url: str | None = None
     expires_at: str | None = None
     data_categories: list[str] = Field(default_factory=list)
+    data: dict[str, Any] | None = None
 
 
 class DeletionRequest(BaseModel):
@@ -107,6 +109,9 @@ TABLES_FOR_DELETION = [
     ("public.analytics_events", "user_id"),
     ("public.applications", "user_id"),
     ("public.profiles", "user_id"),
+    ("public.billing_customers", "user_id"),
+    ("public.tenant_members", "user_id"),
+    ("public.users", "id"),
 ]
 
 # SECURITY: Whitelist of allowed table names for SQL queries
@@ -122,6 +127,9 @@ ALLOWED_USER_COLUMNS = {
     "public.profile_embeddings": "user_id",
     "public.user_preferences": "user_id",
     "public.analytics_events": "user_id",
+    "public.billing_customers": "user_id",
+    "public.tenant_members": "user_id",
+    "public.users": "id",
 }
 
 
@@ -199,8 +207,8 @@ async def export_user_data(
     return DataExportResponse(
         export_id=export_id,
         status="completed",
-        download_url=f"/gdpr/download/{export_id}",
-        expires_at=datetime.now(UTC).isoformat(),
+        download_url=None,
+        data=export_data,
         data_categories=data_categories,
     )
 
@@ -238,10 +246,8 @@ async def delete_user_data(
 
     deleted_counts: dict[str, int] = {}
 
-    async with pool.acquire() as conn:
-        await conn.execute("BEGIN")
-
-        try:
+    try:
+        async with db_transaction(pool) as conn:
             for table, user_col in TABLES_FOR_DELETION:
                 try:
                     result = await conn.execute(  # nosec
@@ -255,17 +261,11 @@ async def delete_user_data(
                         extra={"table": table, "error": str(e)},
                     )
                     retention_exceptions.append(f"{table}: {str(e)}")
-
-            await conn.execute("COMMIT")
-
-        except Exception as e:
-            await conn.execute("ROLLBACK")
-            logger.error(
-                "GDPR deletion failed",
-                extra={"user_id": user_id, "error": str(e)},
-                exc_info=True,
-            )
-            raise HTTPException(status_code=500, detail=f"Deletion failed: {e}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("GDPR deletion failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Data deletion failed. Please contact support.")
 
     logger.info(
         "GDPR data deletion completed",

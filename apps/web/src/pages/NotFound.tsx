@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Bot, ArrowRight, Zap, TrendingUp, MapPin, Briefcase, Sparkles } from 'lucide-react';
@@ -6,14 +6,7 @@ import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
 
 export default function NotFound() {
-  const [appCount, setAppCount] = useState(12_847);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setAppCount(prev => prev + Math.floor(Math.random() * 3) + 1);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
+  const appCount = '10,000+';
 
   const trendingSearches = [
     { label: "Software Engineer in NYC", path: "/jobs/software-engineer/new-york" },
@@ -51,7 +44,7 @@ export default function NotFound() {
           >
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold text-slate-600">
-              <span className="text-emerald-600 font-black">{appCount.toLocaleString()}</span> applications sent this week
+              <span className="text-emerald-600 font-black">{appCount}</span> applications sent this week
             </span>
           </motion.div>
           

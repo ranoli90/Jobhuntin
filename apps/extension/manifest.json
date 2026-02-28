@@ -6,14 +6,12 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting",
     "notifications"
   ],
   "host_permissions": [
     "https://*.linkedin.com/*",
     "https://*.indeed.com/*",
     "https://*.glassdoor.com/*",
-    "http://localhost:8000/*",
     "https://api.sorce.app/*"
   ],
   "action": {
@@ -22,7 +20,7 @@
   "content_scripts": [
     {
       "js": [
-        "src/content/index.ts"
+        "src/content/index.js"
       ],
       "matches": [
         "https://*.linkedin.com/jobs/*",
@@ -31,10 +29,9 @@
     },
     {
       "js": [
-        "src/content/auth.ts"
+        "src/content/auth.js"
       ],
       "matches": [
-        "http://localhost:5173/*",
         "https://jobhuntin.com/*",
         "https://sorce-web.onrender.com/*"
       ]
@@ -43,6 +40,9 @@
   "background": {
     "service_worker": "src/background/index.ts",
     "type": "module"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "web_accessible_resources": [
     {
@@ -53,7 +53,6 @@
         "https://*.linkedin.com/*",
         "https://*.indeed.com/*",
         "https://*.glassdoor.com/*",
-        "http://localhost:5173/*",
         "https://jobhuntin.com/*",
         "https://sorce-web.onrender.com/*"
       ]

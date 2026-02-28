@@ -24,7 +24,7 @@ export default function LoginPage() {
         return;
       }
       const data = await resp.json();
-      localStorage.setItem("auth_token", data.token);
+      sessionStorage.setItem("auth_token", data.token);
       window.location.reload();
     } catch (err) {
       setError("Network error");

@@ -22,7 +22,7 @@ export function ToastShelf() {
   if (!items.length) return null;
 
   return (
-    <div className="fixed right-6 top-6 z-[60] flex w-80 flex-col gap-3">
+    <div role="status" aria-live="polite" className="fixed right-6 top-6 z-[60] flex w-80 flex-col gap-3">
       {items.map((toast) => (
         <div
           key={toast.id}
@@ -38,7 +38,7 @@ export function ToastShelf() {
               <p className="font-semibold text-brand-ink">{toast.title}</p>
               {toast.description ? <p className="text-xs text-brand-ink/70">{toast.description}</p> : null}
             </div>
-            <button onClick={() => dismiss(toast.id)} className="text-brand-ink/60 hover:text-brand-ink">
+            <button aria-label="Dismiss notification" onClick={() => dismiss(toast.id)} className="text-brand-ink/60 hover:text-brand-ink">
               <X className="h-4 w-4" />
             </button>
           </div>

@@ -47,7 +47,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
                 <p className="text-sm font-semibold">{job.company}</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close job details">
               <X className="h-5 w-5" />
             </Button>
           </div>

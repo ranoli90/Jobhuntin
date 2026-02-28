@@ -321,8 +321,11 @@ class Settings(BaseSettings):
                 missing.append(
                     "STRIPE_WEBHOOK_SECRET (required when STRIPE_SECRET_KEY is set)"
                 )
-            if not self.webhook_signing_secret:
-                missing.append("WEBHOOK_SIGNING_SECRET")
+            if self.stripe_webhook_secret in ("", "dev-placeholder-webhook-secret"):
+                if self.stripe_secret_key:
+                    missing.append("STRIPE_WEBHOOK_SECRET (placeholder value not allowed in production)")
+            if self.webhook_signing_secret in ("", "dev-placeholder-webhook-signing"):
+                missing.append("WEBHOOK_SIGNING_SECRET (placeholder value not allowed in production)")
             # Warn (non-fatal) if using a free-tier LLM model in production
             # Auto-upgrade to production model if enabled (recommendation #126)
             if ":free" in self.llm_model:

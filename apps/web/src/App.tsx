@@ -11,6 +11,7 @@ import { useProfile } from "./hooks/useProfile";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { config } from "./config";
 import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
+import { CookieConsent } from './components/CookieConsent';
 
 // Lazy Load Pages for Performance
 const Homepage = React.lazy(() => import("./pages/Homepage"));
@@ -216,6 +217,7 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
+      <CookieConsent />
     </>
   );
 }

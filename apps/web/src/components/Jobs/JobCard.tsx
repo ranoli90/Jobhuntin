@@ -52,7 +52,7 @@ function DealbreakerIndicator({
 }) {
   return (
     <div
-      className="flex items-center gap-1 text-amber-600"
+      className="flex items-center gap-1 text-amber-800"
       title={tooltip}
     >
       <AlertTriangle className="w-3.5 h-3.5" />
@@ -225,7 +225,7 @@ export function JobCard({
         </div>
 
         {job.source && (
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="capitalize">{job.source.replace("_", " ")}</span>
             {job.date_posted && (
               <>
@@ -237,7 +237,7 @@ export function JobCard({
         )}
 
         {dealbreakers?.visaIssue && (
-          <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
+          <div className="flex items-center gap-2 text-amber-800 bg-amber-50 px-3 py-1.5 rounded-lg">
             <AlertTriangle className="w-4 h-4" />
             <span className="text-xs font-medium">
               May require visa sponsorship
@@ -301,7 +301,7 @@ export function JobCard({
 
         {matchExplanation && (
           <div className="group/explain relative ml-auto">
-            <button className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 transition-colors">
+            <button className="text-xs text-slate-500 hover:text-slate-600 flex items-center gap-1 transition-colors">
               <Sparkles className="w-3 h-3" />
               Why this match?
             </button>

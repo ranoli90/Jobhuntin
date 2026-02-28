@@ -28,27 +28,27 @@ interface Session {
 }
 
 async function getSession(): Promise<Session | null> {
-  const token = localStorage.getItem("auth_token");
+  const token = sessionStorage.getItem("auth_token");
   if (!token) return null;
   try {
     const resp = await fetch(`${API_BASE}/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!resp.ok) {
-      localStorage.removeItem("auth_token");
+      sessionStorage.removeItem("auth_token");
       return null;
     }
     const user = await resp.json();
     return { user };
   } catch {
-    localStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_token");
     return null;
   }
 }
 
 async function checkAdminAccess(user: User): Promise<boolean> {
   try {
-    const token = localStorage.getItem("auth_token");
+    const token = sessionStorage.getItem("auth_token");
     if (!token) return false;
     const resp = await fetch(`${API_BASE}/profile`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -86,7 +86,7 @@ function Sidebar() {
   let lastSection = "";
 
   const handleSignOut = () => {
-    localStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_token");
     window.location.reload();
   };
 
@@ -154,7 +154,7 @@ export default function App() {
   }, [session]);
 
   const handleSignOut = () => {
-    localStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_token");
     window.location.reload();
   };
 

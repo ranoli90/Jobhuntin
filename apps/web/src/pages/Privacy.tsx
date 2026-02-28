@@ -4,7 +4,7 @@ import { Bot, ArrowLeft, Shield, Lock, Eye, FileText, Database, Globe } from 'lu
 import { SEO } from '../components/marketing/SEO';
 
 export default function Privacy() {
-  const lastUpdated = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const lastUpdated = "February 28, 2026";
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
@@ -46,7 +46,7 @@ export default function Privacy() {
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3 mb-3">
                   <Database className="w-5 h-5 text-primary-500" />
-                  <h4 className="font-bold text-slate-900 m-0">Core Profile Data (<code>public.profiles</code>)</h4>
+                  <h4 className="font-bold text-slate-900 m-0">Core Profile Data (<code>Profile Data</code>)</h4>
                 </div>
                 <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
                   <li><strong>Collected:</strong> Full Name, Resume (PDF), Experience, Education, Skills.</li>
@@ -59,7 +59,7 @@ export default function Privacy() {
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3 mb-3">
                   <Bot className="w-5 h-5 text-indigo-500" />
-                  <h4 className="font-bold text-slate-900 m-0">"Smart Pre-Fill" Memory (<code>public.answer_memory</code>)</h4>
+                  <h4 className="font-bold text-slate-900 m-0">"Smart Pre-Fill" Memory (<code>Application Memory</code>)</h4>
                 </div>
                 <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
                   <li><strong>Collected:</strong> Answers you provide to specific job application questions (e.g., "Do you require sponsorship?", "Years of Python experience").</li>
@@ -71,7 +71,7 @@ export default function Privacy() {
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3 mb-3">
                   <FileText className="w-5 h-5 text-emerald-500" />
-                  <h4 className="font-bold text-slate-900 m-0">Application History (<code>public.applications</code>)</h4>
+                  <h4 className="font-bold text-slate-900 m-0">Application History (<code>Application History</code>)</h4>
                 </div>
                 <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
                   <li><strong>Collected:</strong> Job descriptions, application status, and timestamps.</li>
@@ -121,7 +121,7 @@ export default function Privacy() {
             <h3>4.1 Scoring & Ranking (<code>match-job</code>)</h3>
             <ul>
               <li><strong>Usage:</strong> We use an algorithm to assign a "Match Score" (0-100) to job postings.</li>
-              <li><strong>Logic:</strong> The score is based on keyword overlap between your <code>public.profiles</code> data and the job description.</li>
+              <li><strong>Logic:</strong> The score is based on keyword overlap between your <code>Profile Data</code> and the job description.</li>
               <li><strong>Your Right:</strong> You have the right to request the specific logic used for any score.</li>
             </ul>
 
@@ -148,7 +148,7 @@ export default function Privacy() {
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">1</div>
                 <div>
                   <h4 className="font-bold text-slate-900">Right to Know</h4>
-                  <p className="text-sm text-slate-600 m-0">You may request a dump of your <code>public.profiles</code> and <code>public.application_inputs</code> data.</p>
+                  <p className="text-sm text-slate-600 m-0">You may request a dump of your <code>Profile Data</code> and <code>Application History</code> data.</p>
                 </div>
               </div>
               <div className="flex gap-4">

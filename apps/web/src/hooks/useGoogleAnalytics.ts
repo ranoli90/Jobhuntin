@@ -11,12 +11,22 @@ declare global {
 
 export function useGoogleAnalytics() {
     const location = useLocation();
-    const gaId = config.analytics.gaId || 'G-P1QLYH3M13';
+    const gaId = config.analytics.gaId;
+    if (!gaId) return;
     const initialized = useRef(false);
 
     useEffect(() => {
         // If we can't find gtag, don't do anything
         if (!window.gtag) return;
+
+        // Respect cookie consent
+        const consent = localStorage.getItem('jobhuntin-cookie-consent');
+        if (consent) {
+            try {
+                const parsed = JSON.parse(consent);
+                if (parsed.analytics === false) return;
+            } catch {}
+        }
 
         // Skip the first execution because index.html already sent the initial pageview
         if (!initialized.current) {

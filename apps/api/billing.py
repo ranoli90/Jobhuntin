@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import time
+
 import asyncpg
+import stripe
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 from shared.config import Settings, settings_dependency
@@ -185,11 +188,13 @@ async def create_checkout_session(
                 "plan": "PRO",
                 "billing_period": body.billing_period,
             },
+            subscription_data={"trial_period_days": 7},
+            idempotency_key=f"checkout_{ctx.tenant_id}_{ctx.user_id}_{int(time.time()//60)}",
         )
         return CheckoutResponse(checkout_url=session.url, session_id=session.id)
     except Exception as e:
         logger.error("Stripe checkout failed: %s", e)
-        raise HTTPException(status_code=502, detail=f"Payment provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail="Payment processing failed. Please try again.")
 
 @router.post("/team-checkout", response_model=CheckoutResponse)
 async def create_team_checkout_session(
@@ -226,7 +231,7 @@ async def create_team_checkout_session(
         return CheckoutResponse(checkout_url=session.url, session_id=session.id)
     except Exception as e:
         logger.error("Stripe checkout failed: %s", e)
-        raise HTTPException(status_code=502, detail=f"Payment provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail="Payment processing failed. Please try again.")
 
 @router.post("/portal", response_model=PortalResponse)
 async def create_portal_session(
@@ -248,12 +253,12 @@ async def create_portal_session(
         return PortalResponse(portal_url=session.url)
     except Exception as e:
         logger.error("Stripe portal failed: %s", e)
-        raise HTTPException(status_code=502, detail=f"Payment provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail="Payment processing failed. Please try again.")
 
 @router.post("/webhook")
 async def stripe_webhook(
     request: Request,
-    stripe_signature: str = Header(None),
+    stripe_signature: str = Header(...),
     db: asyncpg.Pool = Depends(_get_pool),
     settings: Settings = Depends(settings_dependency),
 ):
@@ -265,13 +270,10 @@ async def stripe_webhook(
         event = stripe.Webhook.construct_event(
             payload, stripe_signature, settings.stripe_webhook_secret
         )
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
-    except Exception as e:
-        # Check if it's a signature verification error (handle both stripe.error and stripe namespaces)
-        if "signature" in str(e).lower():
-            raise HTTPException(status_code=400, detail="Invalid signature")
-        raise
 
     data = event["data"]["object"]
     event_type = event["type"]

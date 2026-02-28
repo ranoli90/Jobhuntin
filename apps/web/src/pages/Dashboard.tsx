@@ -469,7 +469,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Next Billing</span>
                     <div className="flex items-center text-slate-900">
-                      <Clock className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                      <Clock className="h-3.5 w-3.5 mr-1 text-slate-500" />
                       <span>{status?.current_period_end ? formatDate(status.current_period_end, locale) : "No upcoming bill"}</span>
                     </div>
                   </div>
@@ -805,7 +805,7 @@ export function JobsView() {
                   </div>
 
                   <div className="p-8 flex-1 bg-white overflow-y-auto no-scrollbar">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Role Analysis</h4>
+                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Role Analysis</h4>
                     <p className="text-slate-600 font-medium leading-relaxed mb-6">
                       {job.description || "No description provided."}
                     </p>
@@ -842,7 +842,7 @@ export function JobsView() {
                       onClick={() => handleSwipe("REJECT")}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSwipe("REJECT"); } }}
                       aria-label="Reject job"
-                      className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-200"
+                      className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-200"
                     >
                       <Zap className="w-6 h-6 transform rotate-180" />
                     </button>
@@ -864,7 +864,7 @@ export function JobsView() {
       </div>
 
       <div className="text-center">
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em] mb-2">Instructions</p>
+        <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] mb-2">Instructions</p>
         <p className="text-sm text-slate-500 font-medium italic">
           Swipe RIGHT <Rocket className="inline w-3 h-3 mx-1" /> to initialize AI Application Engine. <br />
           Swipe LEFT <Zap className="inline w-3 h-3 mx-1 rotate-180" /> to discard match and move to next signal.
@@ -935,7 +935,7 @@ export function ApplicationsView() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
         </div>
       </div>
 
@@ -944,7 +944,7 @@ export function ApplicationsView() {
         {pagedApps.length === 0 ? (
           <Card className="flex flex-col items-center justify-center p-8 text-center" shadow="sm">
             <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-              <Radar className="w-8 h-8 text-slate-400 animate-pulse" />
+              <Radar className="w-8 h-8 text-slate-500 animate-pulse" />
             </div>
             <h3 className="text-lg font-black text-slate-900 mb-2">Signal Silence</h3>
             <p className="text-slate-500 font-medium mb-6 max-w-xs">
@@ -977,13 +977,13 @@ export function ApplicationsView() {
               </div>
               <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-400" />
+                  <Clock className="w-4 h-4 text-slate-500" />
                   {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600"
+                  className="font-bold text-xs uppercase text-slate-500 hover:text-primary-600"
                   onClick={() => navigate(`/app/applications/${app.id}`)}
                 >
                   Details <ArrowUpRight className="ml-1 w-3 h-3" />
@@ -1000,10 +1000,10 @@ export function ApplicationsView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidate/Target</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Signal</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Candidate/Target</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Signal</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -1052,7 +1052,7 @@ export function ApplicationsView() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                        <Clock className="w-4 h-4 text-slate-400" />
+                        <Clock className="w-4 h-4 text-slate-500" />
                         {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
                       </div>
                     </td>
@@ -1060,7 +1060,7 @@ export function ApplicationsView() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600"
+                        className="font-bold text-xs uppercase text-slate-500 hover:text-primary-600"
                         onClick={() => navigate(`/app/applications/${app.id}`)}
                       >
                         Details <ArrowUpRight className="ml-1 w-3 h-3" />
@@ -1077,7 +1077,7 @@ export function ApplicationsView() {
       {/* M-12: Pagination controls */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-400 font-medium">
+          <p className="text-xs text-slate-500 font-medium">
             Showing {page * APPLICATIONS_PAGE_SIZE + 1}–{Math.min((page + 1) * APPLICATIONS_PAGE_SIZE, filteredApps.length)} of {filteredApps.length}
           </p>
           <div className="flex gap-2">
@@ -1192,7 +1192,7 @@ export function HoldsView() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-slate-400 hover:text-slate-600 font-bold text-xs uppercase"
+                      className="text-slate-500 hover:text-slate-600 font-bold text-xs uppercase"
                       disabled={isSubmitting(`snooze-${app.id}`)}
                       onClick={() => snoozeApplication(app.id)}
                     >
@@ -1243,7 +1243,7 @@ export function TeamView() {
         <div className="lg:col-span-2">
           <Card className="p-0 overflow-hidden border-slate-200" shadow="sm">
             <div className="bg-slate-50 border-b border-slate-200 px-8 py-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Members</p>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Members</p>
             </div>
             <div className="divide-y divide-slate-100 italic">
               <div className="px-8 py-6 flex items-center justify-between bg-white">
@@ -1342,7 +1342,7 @@ export function BillingView() {
                   className="h-full bg-primary-500"
                 />
               </div>
-              <div className="flex justify-between text-xs text-slate-400 font-medium">
+              <div className="flex justify-between text-xs text-slate-500 font-medium">
                 <span>{usage?.monthly_remaining ?? usageLimit - usageUsed} remaining</span>
                 {periodEnd && <span>Resets {periodEnd}</span>}
               </div>

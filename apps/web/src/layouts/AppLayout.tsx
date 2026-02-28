@@ -51,6 +51,9 @@ export default function AppLayout() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-brand-ink focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-accent">
+        Skip to content
+      </a>
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
         <div className="border-b border-slate-200 px-8 py-6">
@@ -167,7 +170,7 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto bg-slate-50/50 pb-20">
+        <main id="main-content" className="flex-1 overflow-y-auto bg-slate-50/50 pb-20">
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname} className="h-full">
               <Outlet />
