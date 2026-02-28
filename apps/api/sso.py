@@ -119,10 +119,13 @@ async def saml_acs(
         # If no tenant from RelayState, do a soft parse to discover domain then re-parse with cert
         claims = None
         if not tenant_id:
-            claims = parse_saml_response(str(saml_response), "")
-            if claims and claims.get("email"):
-                domain = claims["email"].split("@")[-1]
-                tenant_id = await find_tenant_by_sso_domain(conn, domain)
+            # Do NOT parse SAML without certificate verification.
+            # Instead, use RelayState or reject the request.
+            raise HTTPException(
+                status_code=400,
+                detail="SSO login requires RelayState with tenant identifier. "
+                "Please initiate SSO from the correct login URL.",
+            )
 
         if not tenant_id:
             raise HTTPException(status_code=400, detail="Cannot determine tenant for SSO login")

@@ -61,7 +61,6 @@ from backend.domain.tenant import (
     TenantContext,
     resolve_tenant_context,
 )
-from shared.metrics import dump as metrics_dump
 from shared.metrics import incr
 
 # ---------------------------------------------------------------------------
@@ -185,13 +184,13 @@ app.state.cors_origins = CORS_ORIGINS
 async def ensure_cors_on_all_responses(request: Request, call_next):
     origin = request.headers.get("origin", "")
     is_allowed_origin = origin in CORS_ORIGINS
-    
+
     response = await call_next(request)
-    
+
     if is_allowed_origin:
         response.headers.setdefault("Access-Control-Allow-Origin", origin)
         response.headers.setdefault("Access-Control-Allow-Credentials", "true")
-    
+
     return response
 
 # ---------------------------------------------------------------------------
@@ -618,9 +617,11 @@ class DatabasePoolManager:
 
     @staticmethod
     def _get_ssl_config(settings: Any) -> Any:
-        """Get SSL config for database connection"""
-        # Render databases use SSL by default; our DSN resolver enforces sslmode=require
-        # No special SSL context needed; asyncpg handles it when sslmode is in DSN
+        """Get SSL config for database connection."""
+        if settings.db_ssl_ca_cert_path:
+            import ssl
+            ctx = ssl.create_default_context(cafile=settings.db_ssl_ca_cert_path)
+            return ctx
         return None
 
     async def close(self) -> None:
@@ -704,11 +705,22 @@ async def get_current_user_id(authorization: str = Header(...)) -> str:
             token, s.jwt_secret, algorithms=["HS256"], audience="authenticated"
         )
         user_id: str = payload["sub"]
+
+        # Enforce single-use for magic link tokens (they have jti)
+        jti = payload.get("jti")
+        if jti:
+            from api.auth import _mark_token_consumed
+            if not _mark_token_consumed(jti):
+                logger.warning("Replay attempt for token jti=%s", jti)
+                raise HTTPException(status_code=401, detail="Token has already been used")
+
         return user_id
     except pyjwt.PyJWTError as exc:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {exc}")
+        logger.warning("JWT validation failed: %s", exc)
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
     except Exception as exc:
-        raise HTTPException(status_code=401, detail=f"Token error: {exc}")
+        logger.warning("Token processing error: %s", exc)
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
 async def get_pool() -> asyncpg.Pool:
@@ -1259,9 +1271,11 @@ async def csrf_prepare() -> dict[str, str]:
 async def healthz(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
-    """Deep health check: pings DB and returns env + metrics summary."""
-    from shared.circuit_breaker import get_all_circuit_breaker_statuses
+    """Deep health check: pings DB and returns env + basic status.
 
+    NOTE: circuit_breakers and metrics removed to avoid exposing internal
+    operational data to unauthenticated callers (S-40).
+    """
     s = get_settings()
     db_ok = False
     try:
@@ -1271,18 +1285,11 @@ async def healthz(
     except Exception:
         pass
 
-    # Get circuit breaker statuses
-    circuit_breakers = get_all_circuit_breaker_statuses()
-    cb_status = {cb["name"]: cb["state"] for cb in circuit_breakers}
-    any_open = any(cb["state"] == "open" for cb in circuit_breakers)
-
-    status = "ok" if db_ok and not any_open else "degraded"
+    status = "ok" if db_ok else "degraded"
     return {
         "status": status,
         "env": s.env.value,
         "db": "ok" if db_ok else "unreachable",
-        "circuit_breakers": cb_status,
-        "metrics": metrics_dump(),
     }
 
 
@@ -1293,8 +1300,15 @@ async def healthz(
 async def serve_storage_file(
     bucket: str,
     path: str,
+    user_id: str = Depends(get_current_user_id),
 ):
     """Serve files from storage (e.g., resumes, avatars)."""
+    # Prevent path traversal
+    if ".." in bucket or ".." in path or "//" in bucket or "//" in path:
+        raise HTTPException(status_code=400, detail="Invalid path")
+    if bucket.startswith("/") or path.startswith("/"):
+        raise HTTPException(status_code=400, detail="Invalid path")
+
     from shared.storage import get_storage_service
 
     storage = get_storage_service()

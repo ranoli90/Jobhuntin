@@ -6,9 +6,9 @@ import { cn } from "../../lib/utils";
 
 const STATUS_LABEL: Record<ApplicationRecord["status"], string> = {
   APPLYING: "Applying",
-  APPLIED: "✅ Applied",
-  HOLD: "⏳ HOLD",
-  FAILED: "❌ Failed",
+  APPLIED: "Applied",
+  HOLD: "Needs Input",
+  FAILED: "Failed",
 };
 
 const STATUS_TONE: Record<ApplicationRecord["status"], string> = {
@@ -49,7 +49,7 @@ export function AppCard({ application, onAnswerHold, className }: AppCardProps) 
         </div>
       ) : null}
       <div className="mt-4 text-xs uppercase tracking-[0.3em] text-brand-ink/50">
-        Updated {application.last_activity ? new Date(application.last_activity).toLocaleDateString() : "today"}
+        Updated {application.last_activity ? new Date(application.last_activity).toLocaleDateString(navigator.language || 'en-US') : "today"}
       </div>
     </div>
   );

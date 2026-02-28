@@ -32,6 +32,10 @@ def _get_tenant_ctx():
     raise NotImplementedError("Tenant context dependency not injected")
 
 
+def _get_user_id():
+    raise NotImplementedError("User ID dependency not injected")
+
+
 class SessionResponse(BaseModel):
     session_id: str
     device_fingerprint: str
@@ -111,6 +115,7 @@ async def revoke_session(
         session_id,
         reason="USER_REVOKED",
         revoked_by_user_id=ctx.user_id,
+        user_id=ctx.user_id,
     )
 
     if not success:
@@ -170,8 +175,17 @@ async def check_security(
 
 @router.post("/cleanup", response_model=RevokeResponse)
 async def cleanup_expired_sessions(
+    user_id: str = Depends(_get_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> RevokeResponse:
+    # Require admin role for cleanup
+    async with db.acquire() as conn:
+        role = await conn.fetchval(
+            "SELECT role FROM public.tenant_members WHERE user_id = $1 LIMIT 1",
+            user_id,
+        )
+        if role not in ("ADMIN", "OWNER"):
+            raise HTTPException(status_code=403, detail="Admin access required")
 
     manager = SessionManager(db)
     count = await manager.cleanup_expired_sessions()

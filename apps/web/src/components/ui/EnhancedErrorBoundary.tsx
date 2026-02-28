@@ -5,6 +5,13 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Bug, Send } from 'lucide-react';
+import { pushToast } from '../../lib/toast';
+
+declare global {
+  interface Window {
+    __USER_ID__?: string;
+  }
+}
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -146,7 +153,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
     try {
       // Try to get user ID from various sources
       return (
-        (window as any).__USER_ID__ ||
+        window.__USER_ID__ ||
         localStorage.getItem('userId') ||
         sessionStorage.getItem('userId')
       );
@@ -216,32 +223,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
     try {
       await this.sendErrorReport(error, errorInfo, errorId || 'manual');
 
-      // Show success message
-      if (typeof window !== 'undefined') {
-        const message = document.createElement('div');
-        message.innerHTML = `
-          <div style="
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 9999;
-            font-family: system-ui;
-            font-size: 14px;
-          ">
-            ✓ Error report sent successfully
-          </div>
-        `;
-        document.body.appendChild(message);
-
-        setTimeout(() => {
-          document.body.removeChild(message);
-        }, 3000);
-      }
+      pushToast({ title: 'Report sent', description: 'Thank you for your feedback.', tone: 'success' });
     } catch (err) {
       console.error('Failed to send manual report:', err);
     }

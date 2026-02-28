@@ -54,7 +54,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
   return (
     <div>
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
-        <input type="email" placeholder="name@company.com"
+        <input type="email" placeholder="you@example.com" aria-label="Email address"
           className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all outline-none", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-white/40 focus:border-purple-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-purple-400 shadow-sm", emailError && "border-red-400")}
           value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />

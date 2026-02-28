@@ -55,7 +55,7 @@
       "favicon": "./assets/favicon.png"
     },
     "updates": {
-      "url": "https://u.expo.dev/YOUR_EAS_PROJECT_ID",
+      "url": "",
       "fallbackToCacheTimeout": 3000
     },
     "runtimeVersion": {
@@ -75,7 +75,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": ""
       }
     },
     "owner": "sorce-team"

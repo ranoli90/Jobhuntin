@@ -51,11 +51,14 @@ export default function AppLayout() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-brand-ink focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-accent">
+        Skip to content
+      </a>
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
         <div className="border-b border-slate-200 px-8 py-6">
           <Logo to="/app/dashboard" size="md" />
-          <p className="text-[10px] text-slate-400 mt-2 font-black uppercase tracking-[0.2em] ml-1">Intelligence Console</p>
+          <p className="text-[10px] text-slate-400 mt-2 font-black uppercase tracking-[0.2em] ml-1">Application Console</p>
         </div>
         <nav className="flex-1 space-y-1 px-4 py-8">
           {NAV_ITEMS.map((item) => {
@@ -167,7 +170,7 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto bg-slate-50/50 pb-20">
+        <main id="main-content" className="flex-1 overflow-y-auto bg-slate-50/50 pb-20">
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname} className="h-full">
               <Outlet />
@@ -187,7 +190,7 @@ export default function AppLayout() {
                   to={item.to}
                   onClick={closeMobile}
                   className={cn(
-                    "flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-bold transition-all",
+                    "flex flex-col items-center justify-center rounded-xl px-2 py-3 text-[11px] font-bold transition-all",
                     isActive ? "bg-primary-50 text-primary-700 ring-1 ring-primary-100" : "text-slate-500 hover:text-slate-900"
                   )}
                   aria-label={item.label}

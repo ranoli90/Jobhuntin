@@ -80,12 +80,6 @@ class CSRFMiddleware:
         "/billing/webhook",
         "/sso/saml/acs",
         "/og/",
-        "/profile",
-        "/profile/resume",
-        "/profile/avatar",
-        "/me/skills",
-        "/me/work-style",
-        "/ai/",
     ]
 
     @classmethod
@@ -160,21 +154,15 @@ def setup_request_id_middleware(app) -> None:
 
 
 def get_client_ip(request: Request) -> str:
-    """
-    Extract real client IP, respecting proxy headers (X-Forwarded-For).
-
-    Falls back to X-Real-IP, then request.client.host.
-    """
+    """Extract client IP, using rightmost XFF entry to prevent spoofing."""
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        # X-Forwarded-For: client, proxy1, proxy2
-        # Leftmost is the original client
-        return forwarded.split(",")[0].strip()
-
+        # Use rightmost (most trustworthy) entry — the one added by our reverse proxy
+        parts = [p.strip() for p in forwarded.split(",")]
+        return parts[-1] if parts else request.client.host or "unknown"
     real_ip = request.headers.get("x-real-ip")
     if real_ip:
         return real_ip.strip()
-
     return request.client.host if request.client else "unknown"
 
 
@@ -198,10 +186,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        # Basic CSP; can be expanded with nonces if needed for inline scripts
-        response.headers.setdefault(
-            "Content-Security-Policy",
-            "default-src 'self'; frame-ancestors 'none'; object-src 'none'",
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://api.resend.com https://www.google-analytics.com; "
+            "frame-ancestors 'none'; "
+            "object-src 'none'"
         )
 
         # HSTS (Strict-Transport-Security)

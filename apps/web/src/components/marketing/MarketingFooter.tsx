@@ -42,6 +42,7 @@ export function MarketingFooter() {
         { name: "About Us", path: "/about" },
         { name: "Privacy Policy", path: "/privacy" },
         { name: "Terms of Service", path: "/terms" },
+        { name: "Do Not Sell My Info", path: "/privacy#ccpa" },
         { name: "Contact", path: "mailto:support@jobhuntin.com" },
       ]
     },
@@ -72,13 +73,13 @@ export function MarketingFooter() {
               The AI agent that applies to jobs while you sleep.
             </p>
             <div className="flex gap-2.5">
-              <a href="#" className="w-9 h-9 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-purple-600 hover:border-purple-200 hover:bg-purple-50 transition-all">
+              <a href="#" aria-label="Follow us on Twitter" className="w-11 h-11 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-purple-600 hover:border-purple-200 hover:bg-purple-50 transition-all">
                 <Twitter className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-purple-600 hover:border-purple-200 hover:bg-purple-50 transition-all">
+              <a href="#" aria-label="Follow us on LinkedIn" className="w-11 h-11 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-purple-600 hover:border-purple-200 hover:bg-purple-50 transition-all">
                 <Linkedin className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-purple-600 hover:border-purple-200 hover:bg-purple-50 transition-all">
+              <a href="#" aria-label="View our GitHub" className="w-11 h-11 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-purple-600 hover:border-purple-200 hover:bg-purple-50 transition-all">
                 <Github className="w-4 h-4" />
               </a>
             </div>

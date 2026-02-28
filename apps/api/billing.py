@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import time
+
 import asyncpg
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
 
@@ -18,6 +20,9 @@ from backend.domain.repositories import TenantRepo
 from backend.domain.tenant import TenantContext
 
 logger = get_logger("sorce.api.billing")
+
+_processed_webhook_events: dict[str, float] = {}
+_WEBHOOK_EVENT_TTL = 86400  # 24 hours
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -39,6 +44,17 @@ class CheckoutRequest(BaseModel):
     success_url: str
     cancel_url: str
     billing_period: str = "monthly"  # "monthly" or "annual"
+
+    @field_validator("success_url", "cancel_url")
+    @classmethod
+    def validate_url_domain(cls, v: str) -> str:
+        """Only allow URLs from trusted domains."""
+        from urllib.parse import urlparse
+        parsed = urlparse(v)
+        allowed_domains = {"jobhuntin.com", "www.jobhuntin.com", "app.jobhuntin.com", "localhost"}
+        if parsed.hostname not in allowed_domains:
+            raise ValueError("URL must be on an allowed domain")
+        return v
 
 class CheckoutResponse(BaseModel):
     checkout_url: str
@@ -185,11 +201,13 @@ async def create_checkout_session(
                 "plan": "PRO",
                 "billing_period": body.billing_period,
             },
+            subscription_data={"trial_period_days": 7},
+            idempotency_key=f"checkout_{ctx.tenant_id}_{ctx.user_id}_{int(time.time()//60)}",
         )
         return CheckoutResponse(checkout_url=session.url, session_id=session.id)
     except Exception as e:
         logger.error("Stripe checkout failed: %s", e)
-        raise HTTPException(status_code=502, detail=f"Payment provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail="Payment processing failed. Please try again.")
 
 @router.post("/team-checkout", response_model=CheckoutResponse)
 async def create_team_checkout_session(
@@ -226,7 +244,7 @@ async def create_team_checkout_session(
         return CheckoutResponse(checkout_url=session.url, session_id=session.id)
     except Exception as e:
         logger.error("Stripe checkout failed: %s", e)
-        raise HTTPException(status_code=502, detail=f"Payment provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail="Payment processing failed. Please try again.")
 
 @router.post("/portal", response_model=PortalResponse)
 async def create_portal_session(
@@ -248,12 +266,12 @@ async def create_portal_session(
         return PortalResponse(portal_url=session.url)
     except Exception as e:
         logger.error("Stripe portal failed: %s", e)
-        raise HTTPException(status_code=502, detail=f"Payment provider error: {str(e)}")
+        raise HTTPException(status_code=502, detail="Payment processing failed. Please try again.")
 
 @router.post("/webhook")
 async def stripe_webhook(
     request: Request,
-    stripe_signature: str = Header(None),
+    stripe_signature: str = Header(...),
     db: asyncpg.Pool = Depends(_get_pool),
     settings: Settings = Depends(settings_dependency),
 ):
@@ -265,13 +283,22 @@ async def stripe_webhook(
         event = stripe.Webhook.construct_event(
             payload, stripe_signature, settings.stripe_webhook_secret
         )
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
-    except Exception as e:
-        # Check if it's a signature verification error (handle both stripe.error and stripe namespaces)
-        if "signature" in str(e).lower():
-            raise HTTPException(status_code=400, detail="Invalid signature")
-        raise
+
+    event_id = event.get("id", "")
+    now = time.time()
+    # Evict old entries
+    expired = [k for k, ts in _processed_webhook_events.items() if now - ts > _WEBHOOK_EVENT_TTL]
+    for k in expired:
+        _processed_webhook_events.pop(k, None)
+    # Check for duplicate
+    if event_id in _processed_webhook_events:
+        logger.info("Skipping duplicate webhook event: %s", event_id)
+        return {"status": "already_processed"}
+    _processed_webhook_events[event_id] = now
 
     data = event["data"]["object"]
     event_type = event["type"]

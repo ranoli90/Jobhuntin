@@ -18,7 +18,7 @@ logger = get_logger("sorce.billing")
 SUBSCRIPTION_STATUS_MAP: dict[str, str] = {
     "active": "PRO",
     "trialing": "PRO",
-    "past_due": "PRO",
+    "past_due": "PRO",  # Grace period — retains PRO access until Stripe marks as canceled
     "canceled": "FREE",
     "unpaid": "FREE",
     "incomplete_expired": "FREE",

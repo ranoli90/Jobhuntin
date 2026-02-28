@@ -217,11 +217,20 @@ async def get_opt_out_status(
 async def process_ccpa_request(
     request_id: str,
     db: asyncpg.Pool = Depends(_get_pool),
-    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+    user_id: str = Depends(_get_user_id),
 ) -> dict[str, Any]:
-    # SECURITY: This endpoint should be admin-only in production
-    # For now, we require authentication but allow any authenticated user
-    # TODO: Add admin role check for production
+    # SECURITY: Admin-only endpoint
+    async with db.acquire() as conn:
+        is_admin = await conn.fetchval(
+            """SELECT EXISTS(
+                SELECT 1 FROM public.tenant_members tm
+                WHERE tm.user_id = $1 AND tm.role IN ('OWNER', 'ADMIN')
+            )""",
+            user_id,
+        )
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
     manager = CCPAComplianceManager(db)
 
     request = await manager.process_request(request_id)

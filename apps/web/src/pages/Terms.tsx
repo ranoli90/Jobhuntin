@@ -4,7 +4,7 @@ import { Bot, FileText, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-re
 import { SEO } from '../components/marketing/SEO';
 
 export default function Terms() {
-  const lastUpdated = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const lastUpdated = "February 28, 2026";
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
@@ -35,9 +35,9 @@ export default function Terms() {
               <strong>Sorce</strong> (the "Service") is an Autonomous Job Application Platform that uses Artificial Intelligence to:
             </p>
             <ol>
-              <li>Parse and normalize your resume (<code>/webhook/resume_parse</code>).</li>
-              <li>Search and score job listings (<code>/match-job</code>).</li>
-              <li>Autonomously fill and submit applications (<code>/claim_next</code>).</li>
+              <li>Parse and normalize your resume (<code>resume parsing service</code>).</li>
+              <li>Search and score job listings (<code>job matching algorithm</code>).</li>
+              <li>Autonomously fill and submit applications (<code>application submission engine</code>).</li>
             </ol>
           </section>
 
@@ -54,7 +54,7 @@ export default function Terms() {
             </p>
             <ul>
               <li><strong>You must review</strong> your "Canonical Profile" after the initial Resume Parse to ensure accuracy.</li>
-              <li><strong>You assume full liability</strong> for any misrepresentation (e.g., incorrect dates, phantom degrees) submitted by the Agent if you failed to correct the data in your <code>public.profiles</code> record or the <code>Pending Review</code> queue.</li>
+              <li><strong>You assume full liability</strong> for any misrepresentation (e.g., incorrect dates, phantom degrees) submitted by the Agent if you failed to correct the data in your <code>Profile Data</code> record or the <code>Pending Review</code> queue.</li>
             </ul>
           </section>
 

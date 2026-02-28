@@ -1,3 +1,7 @@
+/**
+ * NOTE: This module is used by SEO build scripts (server-side only via tsx/node).
+ * It should NOT be imported by any browser-side React component.
+ */
 import { createClient } from 'redis';
 
 // SECURITY: This module must ONLY run server-side. Never import in browser bundles.

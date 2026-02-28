@@ -236,15 +236,26 @@ class MFAManager:
         self,
         enrollment_id: str,
         code: str,
+        user_id: str | None = None,
     ) -> bool:
         async with self._pool.acquire() as conn:
-            row = await conn.fetchrow(
-                """
-                SELECT config, user_id FROM public.user_mfa_enrollments
-                WHERE id = $1 AND mfa_type = 'totp' AND is_verified = false
-                """,
-                enrollment_id,
-            )
+            if user_id:
+                row = await conn.fetchrow(
+                    """
+                    SELECT config, user_id FROM public.user_mfa_enrollments
+                    WHERE id = $1 AND mfa_type = 'totp' AND is_verified = false AND user_id = $2
+                    """,
+                    enrollment_id,
+                    user_id,
+                )
+            else:
+                row = await conn.fetchrow(
+                    """
+                    SELECT config, user_id FROM public.user_mfa_enrollments
+                    WHERE id = $1 AND mfa_type = 'totp' AND is_verified = false
+                    """,
+                    enrollment_id,
+                )
 
             if not row:
                 return False

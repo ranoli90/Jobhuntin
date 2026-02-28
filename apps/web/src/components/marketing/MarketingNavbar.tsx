@@ -39,6 +39,7 @@ export function MarketingNavbar() {
 
   return (
     <nav
+      aria-label="Main navigation"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen
         ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200/60 shadow-sm'
         : 'bg-white/80 backdrop-blur-sm'
@@ -72,10 +73,8 @@ export function MarketingNavbar() {
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </Link>
-              <Link to="/app/jobs">
-                <button className="h-10 px-6 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+              <Link to="/app/jobs" className="h-10 px-6 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center gap-2">
                   View Jobs <ArrowRight className="w-4 h-4" />
-                </button>
               </Link>
             </>
           ) : (
@@ -83,10 +82,8 @@ export function MarketingNavbar() {
               <Link to="/login?mode=login" className="text-[15px] font-medium text-gray-500 hover:text-gray-900 transition-colors">
                 Log in
               </Link>
-              <Link to="/login">
-                <button className="h-10 px-6 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+              <Link to="/login" className="h-10 px-6 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center gap-2">
                   Get Started Free <ArrowRight className="w-3.5 h-3.5" />
-                </button>
               </Link>
             </>
           )}
@@ -149,31 +146,25 @@ export function MarketingNavbar() {
               <Link
                 to="/app/jobs"
                 onClick={closeMenu}
-                className="block w-full"
+                className="block w-full h-12 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-all flex items-center justify-center"
               >
-                <button className="w-full h-12 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-all">
                   View Jobs
-                </button>
               </Link>
             ) : (
               <>
                 <Link
                   to="/login?mode=login"
                   onClick={closeMenu}
-                  className="block w-full"
+                  className="block w-full h-12 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center"
                 >
-                  <button className="w-full h-12 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all">
                     Log in
-                  </button>
                 </Link>
                 <Link
                   to="/login"
                   onClick={closeMenu}
-                  className="block w-full"
+                  className="block w-full h-12 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-all flex items-center justify-center"
                 >
-                  <button className="w-full h-12 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-all">
                     Get Started Free
-                  </button>
                 </Link>
               </>
             )}

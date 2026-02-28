@@ -284,8 +284,8 @@ async def generate_onboarding_questions(
         logger.info("Onboarding questions generated")
         return result
     except Exception as exc:
-        logger.error("Onboarding question generation failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {exc}")
+        logger.error("Onboarding question generation failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 @router.post("/suggest-roles", response_model=RoleSuggestionResponse_V1)
@@ -480,8 +480,8 @@ async def match_job(
 
         return result
     except Exception as exc:
-        logger.error("Job match scoring failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"AI scoring failed: {exc}")
+        logger.error("Job match scoring failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 @router.post("/match-jobs-batch", response_model=BatchJobMatchResponse)
@@ -544,7 +544,7 @@ async def match_jobs_batch(
 
         except Exception as exc:
             job_label = job_id or f"job_{i}"
-            errors.append(f"{job_label}: {exc}")
+            errors.append(f"{job_label}: matching failed")
             logger.warning("Batch job match failed for %s: %s", job_label, exc)
 
     logger.info(
@@ -675,10 +675,10 @@ async def semantic_match_job(
             dealbreaker_reasons=result.dealbreaker_reasons,
         )
     except Exception as exc:
-        logger.error("Semantic matching failed: %s", exc)
+        logger.error("Semantic matching failed: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Semantic matching failed: {exc}",
+            detail="AI service temporarily unavailable. Please try again.",
         )
 
 
@@ -781,11 +781,11 @@ async def semantic_match_batch(
                     job_id=str(job.get("id", "")),
                     score=0.0,
                     explanation={
-                        "reasoning": f"Matching failed: {exc}",
+                        "reasoning": "Matching temporarily unavailable",
                         "confidence": "low",
                     },
                     passed_dealbreakers=False,
-                    dealbreaker_reasons=[f"Matching error: {exc}"],
+                    dealbreaker_reasons=["Matching temporarily unavailable"],
                 )
             )
 
@@ -1044,8 +1044,8 @@ Make it specific to the job and company. Keep it professional and concise."""
             is_bookmarked=saved["is_bookmarked"],
         )
     except Exception as exc:
-        logger.error("Enhanced cover letter generation failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {exc}")
+        logger.error("Enhanced cover letter generation failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 # ---------------------------------------------------------------------------
@@ -1095,8 +1095,8 @@ async def generate_cover_letter(
         logger.info("Cover letter generated")
         return result
     except Exception as exc:
-        logger.error("Cover letter generation failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {exc}")
+        logger.error("Cover letter generation failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 class TailorResumeRequest(BaseModel):
@@ -1159,8 +1159,8 @@ async def tailor_resume(
             tailoring_confidence=result.tailoring_confidence,
         )
     except Exception as exc:
-        logger.error("Resume tailoring failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Resume tailoring failed: {exc}")
+        logger.error("Resume tailoring failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 class ATSScoreRequest(BaseModel):
@@ -1213,8 +1213,8 @@ async def compute_ats_score(
             recommendations=recommendations,
         )
     except Exception as exc:
-        logger.error("ATS scoring failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"ATS scoring failed: {exc}")
+        logger.error("ATS scoring failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 # ---------------------------------------------------------------------------
@@ -1430,8 +1430,8 @@ async def submit_match_feedback(
             created_at=result.created_at,
         )
     except Exception as exc:
-        logger.error("Failed to submit match feedback: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Failed to submit feedback: {exc}")
+        logger.error("Failed to submit match feedback: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 @router.get("/match-feedback/summary", response_model=MatchFeedbackSummaryResponse)
@@ -1457,8 +1457,8 @@ async def get_match_feedback_summary(
 
         return MatchFeedbackSummaryResponse(**summary)
     except Exception as exc:
-        logger.error("Failed to get feedback summary: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Failed to get summary: {exc}")
+        logger.error("Failed to get feedback summary: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 @router.get("/match-feedback/job/{job_id}/stats")
@@ -1482,8 +1482,8 @@ async def get_job_feedback_stats(
 
         return stats.model_dump()
     except Exception as exc:
-        logger.error("Failed to get job feedback stats: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Failed to get stats: {exc}")
+        logger.error("Failed to get job feedback stats: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 # ---------------------------------------------------------------------------
@@ -1507,8 +1507,8 @@ async def get_llm_metrics(
         monitor = get_llm_monitor()
         return monitor.get_all_metrics()
     except Exception as exc:
-        logger.error("Failed to get LLM metrics: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {exc}")
+        logger.error("Failed to get LLM metrics: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 @router.get("/llm/metrics/{model}")
@@ -1525,8 +1525,8 @@ async def get_llm_model_metrics(
         monitor = get_llm_monitor()
         return monitor.get_model_metrics(model)
     except Exception as exc:
-        logger.error("Failed to get model metrics: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {exc}")
+        logger.error("Failed to get model metrics: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 @router.get("/llm/health")
@@ -1544,8 +1544,8 @@ async def get_llm_health(
         monitor = get_llm_monitor()
         return monitor.get_health_status()
     except Exception as exc:
-        logger.error("Failed to get LLM health: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Failed to get health: {exc}")
+        logger.error("Failed to get LLM health: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
 
 
 @router.get("/llm/semantic-cache/stats")
@@ -1563,5 +1563,5 @@ async def get_semantic_cache_stats(
         cache = get_semantic_cache()
         return cache.stats()
     except Exception as exc:
-        logger.error("Failed to get semantic cache stats: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Failed to get stats: {exc}")
+        logger.error("Failed to get semantic cache stats: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")

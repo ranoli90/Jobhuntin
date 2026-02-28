@@ -5,7 +5,7 @@ import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import type { JobPosting } from "../../hooks/useJobs";
 import { CoverLetterGenerator } from "./CoverLetterGenerator";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface JobDetailDrawerProps {
   job: JobPosting | null;
@@ -19,6 +19,14 @@ interface JobDetailDrawerProps {
 export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved }: JobDetailDrawerProps) {
   const [showGenerator, setShowGenerator] = useState(false);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   if (!isOpen || !job) return null;
 
   return (
@@ -30,7 +38,12 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white shadow-2xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Job details"
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white shadow-2xl"
+      >
         <div className="p-8">
           {/* Header */}
           <div className="flex items-start justify-between">
@@ -47,7 +60,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
                 <p className="text-sm font-semibold">{job.company}</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close job details">
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -110,7 +123,6 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
           <div className="mt-8 space-y-3">
             <Button
               variant="lagoon"
-              wobble
               size="lg"
               className="w-full gap-2"
               onClick={() => {

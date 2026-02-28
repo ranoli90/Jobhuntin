@@ -21,6 +21,17 @@ from shared.metrics import RateLimiter, incr
 
 logger = get_logger("sorce.api.auth")
 
+
+def _mask_email(email: str) -> str:
+    """Mask email for logging to avoid PII exposure."""
+    parts = email.split("@")
+    if len(parts) != 2:
+        return "***"
+    local = parts[0]
+    masked_local = local[:2] + "***" if len(local) > 2 else "***"
+    return f"{masked_local}@{parts[1]}"
+
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -43,6 +54,24 @@ except FileNotFoundError:
 _magic_link_limiters: dict[str, tuple[RateLimiter, float]] = {}
 _LIMITER_CACHE_MAX_SIZE = 10_000
 _LIMITER_CACHE_TTL = 7200  # 2 hours
+
+# Consumed magic link tokens (jti values) to prevent replay.
+# In production, use Redis instead of in-memory set.
+_consumed_tokens: dict[str, float] = {}
+_CONSUMED_TOKEN_TTL = 3700  # slightly longer than magic link TTL
+
+
+def _mark_token_consumed(jti: str) -> bool:
+    """Mark a token as consumed. Returns False if already consumed."""
+    now = time.monotonic()
+    # Evict expired entries
+    expired = [k for k, ts in _consumed_tokens.items() if now - ts > _CONSUMED_TOKEN_TTL]
+    for k in expired:
+        _consumed_tokens.pop(k, None)
+    if jti in _consumed_tokens:
+        return False
+    _consumed_tokens[jti] = now
+    return True
 
 
 class MagicLinkRequest(BaseModel):
@@ -132,7 +161,7 @@ async def _generate_magic_link(
 
     logger.info(
         "[MAGIC_LINK] Starting generation",
-        extra={"email": email, "redirect_to": redirect_to},
+        extra={"email": _mask_email(email), "redirect_to": redirect_to},
     )
 
     # Find or create user
@@ -143,7 +172,7 @@ async def _generate_magic_link(
         )
         if not user_id:
             # Create new user
-            logger.info("[MAGIC_LINK] Creating new user", extra={"email": email})
+            logger.info("[MAGIC_LINK] Creating new user", extra={"email": _mask_email(email)})
             user_id = await conn.fetchval(
                 """
                 INSERT INTO public.users (id, email, created_at, updated_at)
@@ -176,11 +205,16 @@ async def _generate_magic_link(
 
     # Generate token
     ttl_seconds = getattr(settings, "magic_link_token_ttl_seconds", 3600)
+    token_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),
         "email": email,
         "aud": "authenticated",
-        "exp": datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds),
+        "jti": token_id,
+        "iat": now,
+        "nbf": now,
+        "exp": now + timedelta(seconds=ttl_seconds),
     }
 
     if not settings.jwt_secret:
@@ -319,8 +353,8 @@ https://jobhuntin.com
         "html": html,
         "text": text_content,
         "headers": {
-            "X-Priority": "1",
-            "X-MSMail-Priority": "High",
+            "List-Unsubscribe": f"<{settings.app_base_url.rstrip('/')}/app/settings#notifications>",
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         },
     }
 
@@ -331,7 +365,7 @@ https://jobhuntin.com
 
     logger.info(
         "[MAGIC_LINK] Sending email",
-        extra={"email": email, "destination": destination_name},
+        extra={"email": _mask_email(email), "destination": destination_name},
     )
 
     async with httpx.AsyncClient(timeout=10) as client:

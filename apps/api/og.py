@@ -1,8 +1,11 @@
 import io
 
 import httpx
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from PIL import Image, ImageDraw, ImageFont
+from shared.middleware import get_client_ip
+
+from shared.metrics import get_rate_limiter
 
 router = APIRouter()
 
@@ -73,6 +76,7 @@ def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[s
 
 @router.get("/api/og")
 async def generate_og_image(
+    request: Request,
     job: str = Query(..., description="Job Title", max_length=100),
     company: str = Query("Top Company", description="Company Name", max_length=50),
     score: int = Query(90, description="Match Score (0-100)"),
@@ -81,6 +85,12 @@ async def generate_og_image(
     """
     Generate a dynamic Open Graph image for a job posting.
     """
+    # Rate limit OG image generation per IP
+    client_ip = get_client_ip(request)
+    limiter = get_rate_limiter(f"og:{client_ip}", max_calls=30, window_seconds=60)
+    if not await limiter.acquire():
+        raise HTTPException(status_code=429, detail="Too many requests")
+
     # 1. Create Canvas
     im = Image.new("RGB", (WIDTH, HEIGHT), BG_COLOR)
     draw = ImageDraw.Draw(im)

@@ -38,6 +38,7 @@ async def create_invite(
     role: str = "MEMBER",
 ) -> dict[str, Any]:
     """Create a team invite. Returns the invite row."""
+    email = email.strip().lower()
     # Check seat capacity
     tenant = await conn.fetchrow(
         "SELECT seat_count, max_seats, plan FROM public.tenants WHERE id = $1",
@@ -111,6 +112,12 @@ async def accept_invite(
     tenant_id = str(invite["tenant_id"])
     role = invite["role"]
 
+    # Lock tenant row to prevent race condition on seat count
+    await conn.fetchrow(
+        "SELECT seat_count, max_seats FROM public.tenants WHERE id = $1 FOR UPDATE",
+        tenant_id,
+    )
+
     # Check not already a member
     already = await conn.fetchval(
         "SELECT COUNT(*) FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
@@ -135,10 +142,18 @@ async def accept_invite(
     )
 
     # Update seat count
-    await conn.execute(
-        "UPDATE public.tenants SET seat_count = seat_count + 1 WHERE id = $1",
+    new_seat_count_row = await conn.fetchrow(
+        "UPDATE public.tenants SET seat_count = seat_count + 1 WHERE id = $1 RETURNING seat_count",
         tenant_id,
     )
+    new_seat_count = new_seat_count_row["seat_count"] if new_seat_count_row else None
+
+    # Sync seat count with Stripe billing
+    try:
+        if new_seat_count is not None:
+            await update_stripe_seat_quantity(conn, tenant_id, new_seat_count)
+    except Exception as e:
+        logger.warning("Failed to sync seat count with Stripe: %s", e)
 
     # Mark invite accepted
     await conn.execute(
@@ -235,10 +250,19 @@ async def remove_member(
         "DELETE FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
         tenant_id, user_id,
     )
-    await conn.execute(
-        "UPDATE public.tenants SET seat_count = GREATEST(seat_count - 1, 1) WHERE id = $1",
+    new_seat_count_row = await conn.fetchrow(
+        "UPDATE public.tenants SET seat_count = GREATEST(seat_count - 1, 1) WHERE id = $1 RETURNING seat_count",
         tenant_id,
     )
+    new_seat_count = new_seat_count_row["seat_count"] if new_seat_count_row else None
+
+    # Sync seat count with Stripe billing
+    try:
+        if new_seat_count is not None:
+            await update_stripe_seat_quantity(conn, tenant_id, new_seat_count)
+    except Exception as e:
+        logger.warning("Failed to sync seat count with Stripe: %s", e)
+
     return True
 
 
@@ -247,10 +271,19 @@ async def update_member_role(
     tenant_id: str,
     user_id: str,
     new_role: str,
+    caller_user_id: str | None = None,
 ) -> bool:
     """Update a member's role."""
     if new_role not in ("MEMBER", "ADMIN"):
         raise ValueError("Invalid role; must be MEMBER or ADMIN")
+    # Only OWNER can change roles
+    if caller_user_id is not None:
+        caller_role = await conn.fetchval(
+            "SELECT role FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
+            tenant_id, caller_user_id,
+        )
+        if caller_role != "OWNER":
+            raise ValueError("Only team owner can change member roles")
     result = await conn.execute(
         "UPDATE public.tenant_members SET role = $3 WHERE tenant_id = $1 AND user_id = $2",
         tenant_id, user_id, new_role,

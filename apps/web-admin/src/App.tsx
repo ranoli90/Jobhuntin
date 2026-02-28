@@ -28,27 +28,27 @@ interface Session {
 }
 
 async function getSession(): Promise<Session | null> {
-  const token = localStorage.getItem("auth_token");
+  const token = sessionStorage.getItem("auth_token");
   if (!token) return null;
   try {
     const resp = await fetch(`${API_BASE}/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!resp.ok) {
-      localStorage.removeItem("auth_token");
+      sessionStorage.removeItem("auth_token");
       return null;
     }
     const user = await resp.json();
     return { user };
   } catch {
-    localStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_token");
     return null;
   }
 }
 
 async function checkAdminAccess(user: User): Promise<boolean> {
   try {
-    const token = localStorage.getItem("auth_token");
+    const token = sessionStorage.getItem("auth_token");
     if (!token) return false;
     const resp = await fetch(`${API_BASE}/profile`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -81,18 +81,25 @@ const NAV_LINKS: NavLink[] = [
   { to: "/developer/webhooks", label: "Webhooks", icon: "🔔", section: "Developer" },
 ];
 
-function Sidebar() {
+function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const loc = useLocation();
   let lastSection = "";
 
   const handleSignOut = () => {
-    localStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_token");
     window.location.reload();
   };
 
   return (
-    <aside className="w-56 bg-card border-r border-border min-h-screen p-4 flex flex-col gap-0.5">
-      <div className="text-xl font-bold text-primary mb-6 px-2">Sorce Admin</div>
+    <aside role="navigation" aria-label="Admin navigation" className={`bg-card border-r border-border min-h-screen p-4 flex flex-col gap-0.5 ${open ? 'fixed inset-0 z-50 w-64' : 'hidden'} md:relative md:block md:w-56`}>
+      <div className="flex items-center justify-between mb-6 px-2">
+        <div className="text-xl font-bold text-primary">Sorce Admin</div>
+        {onClose && (
+          <button className="md:hidden p-1 text-muted-foreground hover:text-foreground" onClick={onClose} aria-label="Close menu">
+            ✕
+          </button>
+        )}
+      </div>
       {NAV_LINKS.map((l) => {
         const sectionHeader = l.section && l.section !== lastSection;
         if (l.section) lastSection = l.section;
@@ -111,7 +118,7 @@ function Sidebar() {
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <span>{l.icon}</span> {l.label}
+              <span aria-hidden="true">{l.icon}</span> {l.label}
             </Link>
           </div>
         );
@@ -132,6 +139,29 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
+
+  // Session timeout - 30 minutes of inactivity
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+
+    const resetTimeout = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        sessionStorage.removeItem('admin-token');
+        window.location.href = '/';
+      }, TIMEOUT_MS);
+    };
+
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach(event => document.addEventListener(event, resetTimeout));
+    resetTimeout();
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => document.removeEventListener(event, resetTimeout));
+    };
+  }, []);
 
   useEffect(() => {
     getSession().then((s) => {
@@ -154,14 +184,15 @@ export default function App() {
   }, [session]);
 
   const handleSignOut = () => {
-    localStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_token");
     window.location.reload();
   };
 
   if (loading || checkingAdmin) {
     return (
       <div className="flex items-center justify-center h-screen text-muted-foreground">
-        Verifying access...
+        <h1 className="sr-only">Sorce Admin</h1>
+        <p>Verifying access...</p>
       </div>
     );
   }
@@ -187,9 +218,18 @@ export default function App() {
     );
   }
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <button
+        className="md:hidden fixed top-4 left-4 z-40 p-2 bg-card border border-border rounded-md shadow-sm"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle sidebar"
+      >
+        <span className="text-lg">☰</span>
+      </button>
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="flex-1 p-6 overflow-auto">
         <Routes>
           <Route path="/" element={<DashboardPage />} />

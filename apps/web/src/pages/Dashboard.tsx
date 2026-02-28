@@ -122,7 +122,7 @@ function JobCard({
   );
 }
 
-const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; duration?: number }) => {
+const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
   const prevValueRef = useRef(0);
 
@@ -142,21 +142,21 @@ const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; dur
       return;
     }
 
-    const diff = end - start;
-    const increment = diff / (duration * 60); // 60fps
-    let current = start;
+    const startTime = performance.now();
+    let rafId: number;
 
-    const timer = setInterval(() => {
-      current += increment;
-      if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-        setDisplayValue(end);
-        clearInterval(timer);
-      } else {
-        setDisplayValue(Math.floor(current));
+    function animate(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      setDisplayValue(Math.round(start + (end - start) * eased));
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate);
       }
-    }, 1000 / 60);
+    }
 
-    return () => clearInterval(timer);
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
   }, [value, duration]);
 
   return <span>{typeof value === 'string' ? value : displayValue}</span>;
@@ -203,7 +203,7 @@ export default function Dashboard() {
       progress: successProgress,
     },
     {
-      label: "Pending HOLDs",
+      label: "Needs Your Input",
       value: byStatus.HOLD,
       icon: Inbox,
       color: 'from-amber-500 to-amber-600',
@@ -252,7 +252,7 @@ export default function Dashboard() {
         >
           <p className="text-[10px] font-medium uppercase tracking-[0.4em] text-slate-500">Dashboard</p>
           <h1 className="font-display text-xl md:text-2xl font-bold text-slate-900">
-            Your Command Center
+            Your Dashboard
           </h1>
         </motion.div>
         <motion.div
@@ -339,7 +339,7 @@ export default function Dashboard() {
                       <Inbox className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-amber-900/60">HOLD QUEUE</p>
+                      <p className="text-sm font-medium text-amber-900/60">ITEMS NEEDING YOUR INPUT</p>
                       <p className="text-2xl font-bold text-slate-900">
                         {isLoading ? (
                           <span className="inline-block h-7 w-24 bg-slate-100 rounded animate-pulse"></span>
@@ -424,7 +424,7 @@ export default function Dashboard() {
                     className="w-full mt-3 border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 transition-colors"
                     onClick={() => navigate("/app/applications")}
                   >
-                    View all {holdApplications.length} holds
+                    View all {holdApplications.length} items
                   </Button>
                 )}
               </div>
@@ -469,7 +469,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Next Billing</span>
                     <div className="flex items-center text-slate-900">
-                      <Clock className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                      <Clock className="h-3.5 w-3.5 mr-1 text-slate-500" />
                       <span>{status?.current_period_end ? formatDate(status.current_period_end, locale) : "No upcoming bill"}</span>
                     </div>
                   </div>
@@ -547,7 +547,7 @@ export function JobsView() {
         streakToasted.current.add(m);
         pushToast({
           title: m === 1 ? "First swipe logged" : `🔥 ${m} swipes`,
-          description: m === 1 ? "Matchmaker engaged—keep going for tailored leads." : "Momentum unlocked. Radar will adapt to your preferences.",
+          description: m === 1 ? "Keep going for more tailored leads." : "Great momentum! Results will adapt to your preferences.",
           tone: "success",
         });
       }
@@ -759,7 +759,12 @@ export function JobsView() {
       <div
         className="relative h-[clamp(420px,60vh,640px)] w-full max-w-md mx-auto perspective-1000"
         role="region"
-        aria-label="Job swipe deck"
+        aria-label="Job card. Use left arrow to reject, right arrow to accept."
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') handleSwipe('REJECT');
+          if (e.key === 'ArrowRight') handleSwipe('ACCEPT');
+        }}
       >
         <div className="sr-only" aria-live="polite">{statusMessage}</div>
         <AnimatePresence>
@@ -805,7 +810,7 @@ export function JobsView() {
                   </div>
 
                   <div className="p-8 flex-1 bg-white overflow-y-auto no-scrollbar">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Role Analysis</h4>
+                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Role Analysis</h4>
                     <p className="text-slate-600 font-medium leading-relaxed mb-6">
                       {job.description || "No description provided."}
                     </p>
@@ -842,7 +847,7 @@ export function JobsView() {
                       onClick={() => handleSwipe("REJECT")}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSwipe("REJECT"); } }}
                       aria-label="Reject job"
-                      className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-200"
+                      className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-200"
                     >
                       <Zap className="w-6 h-6 transform rotate-180" />
                     </button>
@@ -864,10 +869,10 @@ export function JobsView() {
       </div>
 
       <div className="text-center">
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em] mb-2">Instructions</p>
+        <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] mb-2">Instructions</p>
         <p className="text-sm text-slate-500 font-medium italic">
-          Swipe RIGHT <Rocket className="inline w-3 h-3 mx-1" /> to initialize AI Application Engine. <br />
-          Swipe LEFT <Zap className="inline w-3 h-3 mx-1 rotate-180" /> to discard match and move to next signal.
+          Swipe RIGHT <Rocket className="inline w-3 h-3 mx-1" /> to apply with AI assistance. <br />
+          Swipe LEFT <Zap className="inline w-3 h-3 mx-1 rotate-180" /> to skip and move to the next job.
         </p>
       </div>
 
@@ -915,7 +920,7 @@ export function ApplicationsView() {
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner label="Decrypting application signals..." />
+        <LoadingSpinner label="Loading applications..." />
       </div>
     );
   }
@@ -924,8 +929,8 @@ export function ApplicationsView() {
     <div className="space-y-6 max-w-6xl mx-auto pb-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Active Transmissions</h2>
-          <p className="text-slate-500 font-medium">Monitoring {applications.length} automated application threads.</p>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Active Applications</h2>
+          <p className="text-slate-500 font-medium">Tracking {applications.length} automated application threads.</p>
         </div>
         <div className="relative w-full md:w-72">
           <input
@@ -935,7 +940,7 @@ export function ApplicationsView() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
         </div>
       </div>
 
@@ -944,15 +949,15 @@ export function ApplicationsView() {
         {pagedApps.length === 0 ? (
           <Card className="flex flex-col items-center justify-center p-8 text-center" shadow="sm">
             <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-              <Radar className="w-8 h-8 text-slate-400 animate-pulse" />
+              <Radar className="w-8 h-8 text-slate-500 animate-pulse" />
             </div>
-            <h3 className="text-lg font-black text-slate-900 mb-2">Signal Silence</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-2">No Results</h3>
             <p className="text-slate-500 font-medium mb-6 max-w-xs">
-              {searchTerm ? "No transmissions found matching your encryption key." : "Your agent hasn't intercepted any opportunities yet."}
+              {searchTerm ? "No applications found matching your search." : "Your agent hasn't found any opportunities yet."}
             </p>
             {!searchTerm && (
               <Button onClick={() => navigate('/app/jobs')} className="font-bold text-xs uppercase rounded-xl">
-                Start Hunting <Rocket className="ml-2 w-4 h-4" />
+                Start Searching <Rocket className="ml-2 w-4 h-4" />
               </Button>
             )}
           </Card>
@@ -977,13 +982,13 @@ export function ApplicationsView() {
               </div>
               <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-400" />
+                  <Clock className="w-4 h-4 text-slate-500" />
                   {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600"
+                  className="font-bold text-xs uppercase text-slate-500 hover:text-primary-600"
                   onClick={() => navigate(`/app/applications/${app.id}`)}
                 >
                   Details <ArrowUpRight className="ml-1 w-3 h-3" />
@@ -1000,10 +1005,10 @@ export function ApplicationsView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidate/Target</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Signal</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Company/Role</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Activity</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -1015,13 +1020,13 @@ export function ApplicationsView() {
                         <Radar className="w-10 h-10 text-slate-300" />
                         <div className="absolute inset-0 rounded-full border border-slate-100 animate-ping opacity-20" />
                       </div>
-                      <h3 className="text-xl font-black text-slate-900 mb-2">No Active Transmissions</h3>
+                      <h3 className="text-xl font-black text-slate-900 mb-2">No Active Applications</h3>
                       <p className="text-slate-500 font-medium mb-8 max-w-sm">
-                        {searchTerm ? "We couldn't locate any signals matching your search parameters." : "Your frequency is clear. Initialize a hunt to start intercepting job signals."}
+                        {searchTerm ? "We couldn't find any applications matching your search." : "No applications yet. Start searching to find job opportunities."}
                       </p>
                       {!searchTerm && (
                         <Button onClick={() => navigate('/app/jobs')} variant="primary" className="font-bold uppercase rounded-xl shadow-lg shadow-primary-500/20">
-                          Initialize Hunt <Rocket className="ml-2 w-4 h-4" />
+                          Start Searching <Rocket className="ml-2 w-4 h-4" />
                         </Button>
                       )}
                     </div>
@@ -1052,7 +1057,7 @@ export function ApplicationsView() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                        <Clock className="w-4 h-4 text-slate-400" />
+                        <Clock className="w-4 h-4 text-slate-500" />
                         {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
                       </div>
                     </td>
@@ -1060,7 +1065,7 @@ export function ApplicationsView() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="font-bold text-xs uppercase text-slate-400 hover:text-primary-600"
+                        className="font-bold text-xs uppercase text-slate-500 hover:text-primary-600"
                         onClick={() => navigate(`/app/applications/${app.id}`)}
                       >
                         Details <ArrowUpRight className="ml-1 w-3 h-3" />
@@ -1077,7 +1082,7 @@ export function ApplicationsView() {
       {/* M-12: Pagination controls */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-400 font-medium">
+          <p className="text-xs text-slate-500 font-medium">
             Showing {page * APPLICATIONS_PAGE_SIZE + 1}–{Math.min((page + 1) * APPLICATIONS_PAGE_SIZE, filteredApps.length)} of {filteredApps.length}
           </p>
           <div className="flex gap-2">
@@ -1108,7 +1113,7 @@ export function ApplicationsView() {
           <Zap className="h-5 w-5" />
         </div>
         <p className="text-sm text-primary-900 font-medium font-display leading-tight">
-          Your AI agent is actively monitoring <span className="font-black">new job signals</span> across LinkedIn and Wellfound. New matches will appear in your Radar shortly.
+          Your AI agent is actively monitoring <span className="font-black">new job listings</span> across LinkedIn and Wellfound. New matches will appear in your dashboard shortly.
         </p>
       </div>
     </div>
@@ -1124,7 +1129,7 @@ export function HoldsView() {
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <LoadingSpinner label="Opening communication channels..." />
+        <LoadingSpinner label="Loading items needing your input..." />
       </div>
     );
   }
@@ -1135,9 +1140,9 @@ export function HoldsView() {
         <div className="h-20 w-20 rounded-full bg-lagoon-100 flex items-center justify-center mb-6">
           <CheckCircle className="h-10 w-10 text-lagoon-600" />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 mb-4">Command Clear</h2>
+        <h2 className="text-3xl font-black text-slate-900 mb-4">All Caught Up</h2>
         <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
-          The AI engine has 100% of the information it needs to continue all active hunts.
+          The AI engine has all the information it needs to continue your active applications.
         </p>
       </Card>
     );
@@ -1146,7 +1151,7 @@ export function HoldsView() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-6 px-4 lg:px-0">
       <div>
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">HOLD Inbox</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Items Needing Your Input</h2>
         <p className="text-slate-500 font-medium">Your AI agent needs clarification on these {holdApplications.length} threads.</p>
       </div>
 
@@ -1192,7 +1197,7 @@ export function HoldsView() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-slate-400 hover:text-slate-600 font-bold text-xs uppercase"
+                      className="text-slate-500 hover:text-slate-600 font-bold text-xs uppercase"
                       disabled={isSubmitting(`snooze-${app.id}`)}
                       onClick={() => snoozeApplication(app.id)}
                     >
@@ -1228,7 +1233,7 @@ export function TeamView() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">Workspace</h2>
-          <p className="text-slate-500 font-medium">Collaborate and manage shared hunting pipelines.</p>
+          <p className="text-slate-500 font-medium">Collaborate and manage shared job search pipelines.</p>
         </div>
         <Button
           variant="outline"
@@ -1243,7 +1248,7 @@ export function TeamView() {
         <div className="lg:col-span-2">
           <Card className="p-0 overflow-hidden border-slate-200" shadow="sm">
             <div className="bg-slate-50 border-b border-slate-200 px-8 py-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Members</p>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Members</p>
             </div>
             <div className="divide-y divide-slate-100 italic">
               <div className="px-8 py-6 flex items-center justify-between bg-white">
@@ -1272,11 +1277,11 @@ export function TeamView() {
 
         <div className="space-y-6">
           <Card className="p-8 border-slate-100 bg-primary-50/30" shadow="sm">
-            <h3 className="text-lg font-black text-slate-900 mb-4 font-display">Shared Intelligence</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-4 font-display">Shared Features</h3>
             <ul className="space-y-4">
               {[
-                "Unified Job Radar",
-                "Shared Hold Inbox",
+                "Unified Job Feed",
+                "Shared Input Inbox",
                 "Collaborative Tailoring",
                 "Centralized Billing"
               ].map(feat => (
@@ -1319,7 +1324,7 @@ export function BillingView() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">Billing & Quota</h2>
-          <p className="text-slate-500 font-medium">Manage your subscription and usage telemetry.</p>
+          <p className="text-slate-500 font-medium">Manage your subscription and usage.</p>
         </div>
         <Badge variant="primary" className="py-2 px-4 rounded-xl font-bold">
           Plan: {plan || "FREE"}
@@ -1342,7 +1347,7 @@ export function BillingView() {
                   className="h-full bg-primary-500"
                 />
               </div>
-              <div className="flex justify-between text-xs text-slate-400 font-medium">
+              <div className="flex justify-between text-xs text-slate-500 font-medium">
                 <span>{usage?.monthly_remaining ?? usageLimit - usageUsed} remaining</span>
                 {periodEnd && <span>Resets {periodEnd}</span>}
               </div>

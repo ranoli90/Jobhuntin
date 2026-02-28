@@ -50,12 +50,12 @@ export function UpgradeCard({ currentPlan, onUpgrade, onAddSeats, className }: U
 
       <div className="mt-6 flex flex-wrap gap-3">
         {!isPro && !isTeam && (
-          <Button variant="primary" wobble onClick={onUpgrade}>
+          <Button variant="primary" onClick={onUpgrade}>
             Upgrade to Pro
           </Button>
         )}
         {isPro && onAddSeats && (
-          <Button variant="lagoon" wobble onClick={onAddSeats}>
+          <Button variant="lagoon" onClick={onAddSeats}>
             <Users className="mr-2 h-4 w-4" />
             Add team seats
           </Button>

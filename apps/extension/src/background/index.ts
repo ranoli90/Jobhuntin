@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       last_sync: Date.now()
     };
 
-    chrome.storage.local.set(storageUpdate, () => {
+    chrome.storage.session.set(storageUpdate, () => {
       sendResponse({ success: true });
 
       // Notify user
@@ -36,7 +36,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function getAuthToken(): Promise<string | null> {
-  const data = await chrome.storage.local.get(['auth_token']);
+  const data = await chrome.storage.session.get(['auth_token']);
   return (data.auth_token as string) || null;
 }
 
@@ -101,7 +101,7 @@ async function handleJobDetected(jobData: any, sender: chrome.runtime.MessageSen
           type: 'basic',
           iconUrl: 'icon-128.png',
           title: 'Job Saved Locally',
-          message: `Saved offline. Will sync when online.`
+          message: `Saved locally as backup.`
         });
       }
     } else {

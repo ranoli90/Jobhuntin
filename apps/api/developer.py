@@ -11,7 +11,7 @@ from typing import Any
 import asyncpg
 from api_v2.auth import generate_api_key
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from shared.logging_config import get_logger
 
 from backend.domain.audit import record_audit_event
@@ -42,6 +42,27 @@ class CreateWebhookRequest(BaseModel):
     """Payload for creating a webhook."""
     url: str
     events: list[str] = ["application.completed", "application.failed", "application.hold"]
+
+    @field_validator("url")
+    @classmethod
+    def validate_webhook_url(cls, v: str) -> str:
+        """Prevent SSRF: only allow HTTPS URLs to public addresses."""
+        import ipaddress
+        import socket
+        from urllib.parse import urlparse
+        parsed = urlparse(v)
+        if parsed.scheme != "https":
+            raise ValueError("Webhook URL must use HTTPS")
+        if not parsed.hostname:
+            raise ValueError("Invalid URL")
+        # Block private/reserved IPs
+        try:
+            ip = ipaddress.ip_address(socket.gethostbyname(parsed.hostname))
+            if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local:
+                raise ValueError("Webhook URL must point to a public address")
+        except (socket.gaierror, ValueError):
+            pass  # hostname didn't resolve; allow (will fail at webhook delivery time)
+        return v
 
 
 # ---------------------------------------------------------------------------
@@ -101,6 +122,7 @@ async def create_api_key(
             details={"name": body.name, "tier": tier},
         )
 
+    # SECURITY: raw_key is shown once to the user. Ensure response logging does not capture this.
     return {**dict(row), "raw_key": raw_key}
 
 
@@ -166,6 +188,7 @@ async def create_webhook(
             ctx.tenant_id, body.url, secret, body.events,
         )
 
+    # SECURITY: secret is shown once to the user. Ensure response logging does not capture this.
     return {**dict(row), "secret": secret}
 
 

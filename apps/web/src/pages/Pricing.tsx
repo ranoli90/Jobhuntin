@@ -99,12 +99,17 @@ export default function Pricing() {
         schema={[
           {
             "@context": "https://schema.org",
-            "@type": "PriceSpecification",
-            "name": "JobHuntin Pricing",
-            "description": "Free to start, $19/mo Pro for unlimited AI job applications",
-            "price": "19",
-            "priceCurrency": "USD",
-            "priceRange": "$0 - $199"
+            "@type": "Product",
+            "name": "JobHuntin Pro",
+            "description": "AI-powered job application automation — unlimited applications, resume tailoring, and interview coaching.",
+            "offers": {
+              "@type": "Offer",
+              "url": "https://jobhuntin.com/pricing",
+              "priceCurrency": "USD",
+              "price": "29",
+              "priceValidUntil": "2026-12-31",
+              "availability": "https://schema.org/InStock"
+            }
           },
           {
             "@context": "https://schema.org",
