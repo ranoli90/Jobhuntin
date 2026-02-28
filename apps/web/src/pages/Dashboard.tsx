@@ -449,7 +449,7 @@ export default function Dashboard() {
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-primary-900/60">CURRENT PLAN</p>
+                    <p className="text-sm font-medium text-primary-900/60">Your plan</p>
                     <p className="text-2xl font-bold text-slate-900">{status?.plan ?? "FREE"}</p>
                   </div>
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
@@ -555,7 +555,7 @@ export function JobsView() {
       if (swipeCount >= m && !streakToasted.current.has(m)) {
         streakToasted.current.add(m);
         pushToast({
-          title: m === 1 ? "First swipe logged" : `🔥 ${m} swipes`,
+          title: m === 1 ? "First swipe! 🎯" : `🔥 ${m} swipes`,
           description: m === 1 ? "Keep going for more tailored leads." : "Great momentum! Results will adapt to your preferences.",
           tone: "success",
         });
@@ -786,6 +786,7 @@ export function JobsView() {
         className="relative h-[clamp(420px,60vh,640px)] w-full max-w-md mx-auto perspective-1000"
         role="region"
         aria-label="Job card. Use left arrow to reject, right arrow to accept."
+        aria-roledescription="Swipeable job card"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'ArrowLeft') handleSwipe('REJECT');
@@ -1466,7 +1467,7 @@ export function BillingView() {
           <Card className="p-6 lg:p-8 border-slate-200" shadow="sm">
             <h3 className="text-xl font-black text-slate-900 mb-6 font-display">Current Allocation</h3>
             <div className="space-y-4">
-              <div className="flex justify-between items-end">
+                <div className="flex justify-between items-end">
                 <p className="text-sm font-bold text-slate-500 uppercase">Monthly Volume</p>
                 <p className="text-sm font-black text-slate-900">{usageUsed} / {usageLimit}</p>
               </div>

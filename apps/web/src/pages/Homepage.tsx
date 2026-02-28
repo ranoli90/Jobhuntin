@@ -63,7 +63,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
         <button type="submit" disabled={isSubmitting}
           className="h-14 px-8 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 active:translate-y-0"
         >
-          {isSubmitting ? "Sending…" : "Get Started Free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
+          {isSubmitting ? "Sending…" : "Start free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
         </button>
       </form>
       {emailError && <p className="mt-2 text-xs text-red-500 pl-6">{emailError}</p>}
@@ -89,7 +89,7 @@ function FadeIn({ children, className = "", delay = 0 }: { children: React.React
   );
 }
 
-/* ─── Live Activity Feed ─── */
+/* ─── Live Activity Feed (sample data for demo) ─── */
 function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   const activities = [
     { role: "Senior Frontend Engineer", company: "Stripe", time: "2s ago", type: "applied" },
@@ -111,6 +111,7 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   for (let i = 0; i < count; i++) visibleItems.push(activities[(currentIdx + i) % activities.length]);
   return (
     <div className="space-y-2">
+      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Sample activity</p>
       {visibleItems.map((item, idx) => (
         <div key={`${item.role}-${idx}-${currentIdx}`} className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-500" style={{ opacity: 1 - idx * 0.15 }}>
           <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-400" : "bg-purple-400")} />

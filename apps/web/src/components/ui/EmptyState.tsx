@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "./Button";
 import { cn } from "../../lib/utils";
 
@@ -13,6 +13,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ title, description, actionLabel, onAction, icon, className }: EmptyStateProps) {
+  const shouldReduceMotion = useReducedMotion();
   return (
     <motion.div
       role="status"
@@ -39,7 +40,7 @@ export function EmptyState({ title, description, actionLabel, onAction, icon, cl
       <p className="font-display text-xl font-bold text-slate-900">{title}</p>
       {description ? <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto font-medium">{description}</p> : null}
       {actionLabel ? (
-        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+        <motion.div whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}>
           <Button className="mt-6 shadow-lg shadow-primary-500/10" onClick={onAction}>
             {actionLabel}
           </Button>

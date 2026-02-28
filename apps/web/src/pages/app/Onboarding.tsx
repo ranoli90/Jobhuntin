@@ -659,6 +659,15 @@ export default function Onboarding() {
         errors.salary_min = "Please enter a reasonable value";
       }
     }
+    if (preferences.salary_max?.trim()) {
+      const maxNum = parseInt(preferences.salary_max.trim());
+      const minNum = preferences.salary_min?.trim() ? parseInt(preferences.salary_min.trim()) : 0;
+      if (isNaN(maxNum) || maxNum < 0) {
+        errors.salary_max = "Must be a valid number";
+      } else if (minNum > 0 && maxNum < minNum) {
+        errors.salary_max = "Max must be ≥ min";
+      }
+    }
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -768,8 +777,12 @@ export default function Onboarding() {
           <Logo to="/app/onboarding" size="sm" />
           <div className="flex items-center gap-2 md:gap-4">
             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
-              <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-              <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">Setting Up Your Profile</span>
+              <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" aria-hidden />
+              <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">Setting up your profile</span>
+            </div>
+            <div className="lg:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary-50 border border-primary-100">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" aria-hidden />
+              <span className="text-[9px] font-black text-primary-700 uppercase tracking-wider">Setup</span>
             </div>
             <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100">
               Restart
@@ -780,7 +793,7 @@ export default function Onboarding() {
         <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8 bg-grid-premium">
           <div className="w-full max-w-xl lg:max-w-4xl xl:max-w-5xl">
             {/* Progress bar */}
-            <div className="mb-4 md:mb-6">
+            <div className="mb-4 md:mb-6" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`Setup progress: step ${currentStep + 1} of ${steps.length}`}>
               <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
                   Step {currentStep + 1} of {steps.length} — {(progress).toFixed(0)}%

@@ -280,8 +280,14 @@ export function PreferencesStep({
                                 max="10000000"
                                 placeholder="e.g., 300000"
                                 value={preferences.salary_max || ""}
-                                onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value || "" }))}
-                                onClear={() => setPreferences((p) => ({ ...p, salary_max: "" }))}
+                                onChange={(e) => {
+                                  setPreferences((p) => ({ ...p, salary_max: e.target.value || "" }));
+                                  if (formErrors.salary_max && onClearError) onClearError("salary_max");
+                                }}
+                                onClear={() => {
+                                  setPreferences((p) => ({ ...p, salary_max: "" }));
+                                  if (onClearError) onClearError("salary_max");
+                                }}
                                 className="bg-white"
                             />
                         </div>

@@ -269,7 +269,7 @@ export default function Login() {
                 Sign in to JobHuntin
               </h1>
               <p className="text-slate-500">
-                We'll send you a magic link for passwordless sign in.
+                We&apos;ll send you a magic link. No password needed.
               </p>
             </div>
 
