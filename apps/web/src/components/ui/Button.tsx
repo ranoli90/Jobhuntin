@@ -9,12 +9,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-stone-900 text-white shadow-sm hover:bg-stone-800 hover:shadow-md",
+          "bg-primary-600 text-white shadow-sm hover:bg-primary-500 hover:shadow-md dark:bg-primary-600 dark:hover:bg-primary-500",
         secondary:
-          "bg-stone-800 text-white shadow-sm hover:bg-stone-700 hover:shadow-md",
+          "bg-primary-700 text-white shadow-sm hover:bg-primary-600 hover:shadow-md dark:bg-primary-700 dark:hover:bg-primary-600",
         outline:
-          "border border-stone-300 bg-white text-stone-700 hover:bg-stone-50 hover:border-stone-400",
-        ghost: "text-stone-600 hover:bg-stone-100 hover:text-stone-900",
+          "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800",
+        ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
         danger: "bg-error-600 text-white shadow-sm hover:bg-error-700",
         success: "bg-success-600 text-white shadow-sm hover:bg-success-700",
         lagoon: "bg-cyan-600 text-white shadow-sm hover:bg-cyan-700 hover:shadow-md",

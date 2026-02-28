@@ -162,6 +162,8 @@ function AddSkillForm({ onAdd, onCancel }: AddSkillFormProps) {
                     min="0"
                     max="50"
                     step="0.5"
+                    aria-label="Years of experience"
+                    aria-valuetext={years ? `${years} years` : undefined}
                 />
                 <Input
                     type="text"

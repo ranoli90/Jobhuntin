@@ -15,6 +15,15 @@ export function CookieConsent() {
     }
   }, []);
 
+  useEffect(() => {
+    if (visible) {
+      document.body.classList.add('cookie-consent-visible');
+    } else {
+      document.body.classList.remove('cookie-consent-visible');
+    }
+    return () => document.body.classList.remove('cookie-consent-visible');
+  }, [visible]);
+
   const accept = useCallback(() => {
     localStorage.setItem(CONSENT_KEY, JSON.stringify({ analytics: true, marketing: false, ts: Date.now() }));
     setVisible(false);
@@ -67,10 +76,17 @@ export function CookieConsent() {
         </a>{' '}
         for details.
       </p>
-      <div className="flex gap-3 shrink-0">
+      <div className="flex flex-wrap gap-2 shrink-0">
         <Button variant="outline" size="sm" onClick={decline} data-consent-reject aria-label="Reject all non-essential cookies">
           Reject all
         </Button>
+        <a
+          href="/privacy#cookies"
+          className="inline-flex items-center justify-center h-9 min-h-[36px] px-3 text-sm font-medium rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          aria-label="Manage cookie preferences"
+        >
+          Manage preferences
+        </a>
         <Button variant="primary" size="sm" onClick={accept} aria-label="Accept analytics cookies">
           Accept analytics
         </Button>

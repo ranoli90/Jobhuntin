@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { useAuth } from '../hooks/useAuth';
 import { useBilling } from '../hooks/useBilling';
+import { telemetry } from '../lib/telemetry';
 
 // FAQ Item Component for collapsible behavior
 const FAQItem = ({ question, answer }: { question: string; answer: string }) => {
@@ -73,6 +74,7 @@ export default function Pricing() {
       navigate('/app/billing');
       return;
     }
+    telemetry.track("upgrade_clicked", { source: "pricing", period: annual ? "annual" : "monthly" });
     try {
       await upgrade(annual ? "annual" : "monthly");
     } catch (err) {

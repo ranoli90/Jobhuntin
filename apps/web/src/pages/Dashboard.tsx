@@ -587,6 +587,13 @@ export function JobsView() {
     }
   }, [currentJob, locale]);
 
+  // A20: Announce new card to screen readers when card changes
+  useEffect(() => {
+    if (currentJob) {
+      setStatusMessage(`Showing ${currentJob.title} at ${currentJob.company}. Swipe right to accept, left to reject.`);
+    }
+  }, [currentJob?.id]);
+
   // Prefetch next page when near end
   useEffect(() => {
     if (hasNextPage && currentIndex >= jobs.length - 3 && !isFetchingNextPage) {
@@ -1561,7 +1568,10 @@ export function BillingView() {
                   variant={tier.recommended ? "primary" : "outline"}
                   className="w-full font-bold text-xs uppercase rounded-xl"
                   disabled={tier.name === plan}
-                  onClick={tier.action ? async () => { try { await tier.action!(); } catch (e) { pushToast({ title: "Checkout failed", description: (e as Error).message, tone: "error" }); } } : undefined}
+                  onClick={tier.action ? async () => {
+                    if (tier.actionKey === "upgrade") telemetry.track("upgrade_clicked", { tier: tier.name });
+                    try { await tier.action!(); } catch (e) { pushToast({ title: "Checkout failed", description: (e as Error).message, tone: "error" }); }
+                  } : undefined}
                 >
                   {tier.name === plan ? "Current" : "Upgrade"}
                 </Button>
