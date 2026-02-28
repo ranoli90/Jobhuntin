@@ -166,7 +166,7 @@ export default function App() {
       </Helmet>
       <ScrollToTop />
       <ToastShelf />
-      <ErrorBoundary>
+      <ErrorBoundary showToast reportError>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Marketing Pages & Auth */}

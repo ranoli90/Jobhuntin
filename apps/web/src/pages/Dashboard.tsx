@@ -1575,6 +1575,7 @@ export function BillingView() {
                   disabled={tier.name === plan}
                   onClick={tier.action ? async () => {
                     if (tier.actionKey === "upgrade") telemetry.track("upgrade_clicked", { tier: tier.name });
+                    if (tier.actionKey === "addSeats") telemetry.track("add_seats_clicked", { tier: tier.name });
                     try { await tier.action!(); } catch (e) { pushToast({ title: "Checkout failed", description: (e as Error).message, tone: "error" }); }
                   } : undefined}
                 >
