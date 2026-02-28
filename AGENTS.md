@@ -60,3 +60,6 @@ Required env vars: `DATABASE_URL`, `ENV=local`, `CSRF_SECRET`, `JWT_SECRET`. Cop
 - Root `/workspace/shared/` directory shadows `packages/shared/` when running from workspace root — always put `packages` first in PYTHONPATH or sys.path.
 - Migration `026_complete_tenant_isolation.sql` references role `authenticated` (Supabase-specific) — errors are expected locally.
 - `conftest.py` references `job_match_cache` table that doesn't exist in current schema — 1 test error in `test_failure_drills.py`.
+- The magic-link auth endpoint (`POST /auth/magic-link`) will produce an FK error locally unless the randomly-generated user UUID is pre-inserted into `auth.users`. This is expected; the endpoint is otherwise functional.
+- Docker daemon must be started with `dockerd &>/tmp/dockerd.log &` before running any containers. Use `sudo` for docker commands since the default user is not in the `docker` group.
+- The `.env` file is pre-configured with local dev defaults. If missing, copy from `.env.example` and set `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/sorce`.
