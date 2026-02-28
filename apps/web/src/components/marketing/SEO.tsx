@@ -130,10 +130,12 @@ export const SEO = ({
       <meta name="twitter:image" content={ogImage} />
       <meta name="twitter:image:alt" content={ogTitle || displayTitle} />
 
-      {/* JSON-LD Structured Data */}
-      <script type="application/ld+json">
-        {JSON.stringify(finalSchema)}
-      </script>
+      {/* JSON-LD Structured Data — one script per schema object for SEO best practice */}
+      {finalSchema.map((schemaObj, idx) => (
+        <script key={idx} type="application/ld+json">
+          {JSON.stringify(schemaObj)}
+        </script>
+      ))}
     </Helmet>
   );
 };

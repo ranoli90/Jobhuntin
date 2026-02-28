@@ -122,6 +122,7 @@ async def create_api_key(
             details={"name": body.name, "tier": tier},
         )
 
+    # SECURITY: raw_key is shown once to the user. Ensure response logging does not capture this.
     return {**dict(row), "raw_key": raw_key}
 
 
@@ -187,6 +188,7 @@ async def create_webhook(
             ctx.tenant_id, body.url, secret, body.events,
         )
 
+    # SECURITY: secret is shown once to the user. Ensure response logging does not capture this.
     return {**dict(row), "secret": secret}
 
 

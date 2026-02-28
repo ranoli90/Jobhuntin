@@ -191,7 +191,8 @@ export default function App() {
   if (loading || checkingAdmin) {
     return (
       <div className="flex items-center justify-center h-screen text-muted-foreground">
-        Verifying access...
+        <h1 className="sr-only">Sorce Admin</h1>
+        <p>Verifying access...</p>
       </div>
     );
   }

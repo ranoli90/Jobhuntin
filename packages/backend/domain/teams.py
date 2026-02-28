@@ -38,6 +38,7 @@ async def create_invite(
     role: str = "MEMBER",
 ) -> dict[str, Any]:
     """Create a team invite. Returns the invite row."""
+    email = email.strip().lower()
     # Check seat capacity
     tenant = await conn.fetchrow(
         "SELECT seat_count, max_seats, plan FROM public.tenants WHERE id = $1",
@@ -270,10 +271,19 @@ async def update_member_role(
     tenant_id: str,
     user_id: str,
     new_role: str,
+    caller_user_id: str | None = None,
 ) -> bool:
     """Update a member's role."""
     if new_role not in ("MEMBER", "ADMIN"):
         raise ValueError("Invalid role; must be MEMBER or ADMIN")
+    # Only OWNER can change roles
+    if caller_user_id is not None:
+        caller_role = await conn.fetchval(
+            "SELECT role FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
+            tenant_id, caller_user_id,
+        )
+        if caller_role != "OWNER":
+            raise ValueError("Only team owner can change member roles")
     result = await conn.execute(
         "UPDATE public.tenant_members SET role = $3 WHERE tenant_id = $1 AND user_id = $2",
         tenant_id, user_id, new_role,
