@@ -104,8 +104,13 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   ];
   const [currentIdx, setCurrentIdx] = useState(0);
   useEffect(() => {
-    const interval = setInterval(() => setCurrentIdx((prev) => (prev + 1) % activities.length), 3000);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const start = () => { interval = setInterval(() => setCurrentIdx((prev) => (prev + 1) % activities.length), 3000); };
+    const stop = () => { if (interval) clearInterval(interval); interval = null; };
+    const onVisibility = () => (document.hidden ? stop() : start());
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
   const count = compact ? 3 : 4;
   const visibleItems = [];

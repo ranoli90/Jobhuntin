@@ -684,7 +684,7 @@ export default function Onboarding() {
         salary_min: parseInt(trimmedPrefs.salary_min) || 0,
         salary_max: trimmedPrefs.salary_max?.trim() ? parseInt(trimmedPrefs.salary_max.trim()) : undefined,
         remote_only: trimmedPrefs.remote_only,
-        onsite_only: trimmedPrefs.onsite_acceptable,
+        onsite_only: trimmedPrefs.onsite_only,
         work_authorized: trimmedPrefs.work_authorized,
         visa_sponsorship: trimmedPrefs.visa_sponsorship,
         excluded_companies: trimmedPrefs.excluded_companies,
