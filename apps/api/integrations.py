@@ -8,8 +8,6 @@ import base64
 import hashlib
 from typing import Any
 
-from cryptography.fernet import Fernet
-
 import asyncpg
 from backend.domain.google_drive_integration import GoogleDriveIntegrationManager
 from backend.domain.notion_integration import (
@@ -38,6 +36,7 @@ def _encrypt_token(token: str) -> str:
     """Encrypt an OAuth token before database storage."""
     if not token:
         return token
+    from cryptography.fernet import Fernet
     f = Fernet(_get_encryption_key())
     return f.encrypt(token.encode()).decode()
 
@@ -47,6 +46,7 @@ def _decrypt_token(encrypted: str) -> str:
     if not encrypted:
         return encrypted
     try:
+        from cryptography.fernet import Fernet
         f = Fernet(_get_encryption_key())
         return f.decrypt(encrypted.encode()).decode()
     except Exception:

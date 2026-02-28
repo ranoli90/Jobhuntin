@@ -112,7 +112,7 @@ async def accept_invite(
     role = invite["role"]
 
     # Lock tenant row to prevent race condition on seat count
-    tenant = await conn.fetchrow(
+    await conn.fetchrow(
         "SELECT seat_count, max_seats FROM public.tenants WHERE id = $1 FOR UPDATE",
         tenant_id,
     )

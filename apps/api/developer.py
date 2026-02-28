@@ -47,9 +47,9 @@ class CreateWebhookRequest(BaseModel):
     @classmethod
     def validate_webhook_url(cls, v: str) -> str:
         """Prevent SSRF: only allow HTTPS URLs to public addresses."""
-        from urllib.parse import urlparse
         import ipaddress
         import socket
+        from urllib.parse import urlparse
         parsed = urlparse(v)
         if parsed.scheme != "https":
             raise ValueError("Webhook URL must use HTTPS")

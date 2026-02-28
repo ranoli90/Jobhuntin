@@ -54,7 +54,7 @@ class CheckoutRequest(BaseModel):
         parsed = urlparse(v)
         allowed_domains = {"jobhuntin.com", "www.jobhuntin.com", "app.jobhuntin.com", "localhost"}
         if parsed.hostname not in allowed_domains:
-            raise ValueError(f"URL must be on an allowed domain")
+            raise ValueError("URL must be on an allowed domain")
         return v
 
 class CheckoutResponse(BaseModel):
