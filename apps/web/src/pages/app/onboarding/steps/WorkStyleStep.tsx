@@ -291,6 +291,17 @@ export function WorkStyleStep({
                     <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
                     PREV
                 </Button>
+                {!isComplete && (
+                    <Button
+                        variant="outline"
+                        onClick={onNext}
+                        disabled={isSaving}
+                        className="h-12 sm:h-9 md:h-12 rounded-[1.25rem] font-black border-2 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all text-[10px] md:text-sm px-4 touch-manipulation"
+                        aria-label="Skip work style questions"
+                    >
+                        Skip
+                    </Button>
+                )}
                 <Button
                     onClick={onNext}
                     disabled={!isComplete || isSaving}

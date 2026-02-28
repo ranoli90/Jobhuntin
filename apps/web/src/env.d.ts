@@ -17,3 +17,26 @@ declare interface ImportMetaEnv {
 declare interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// Network Information API (draft)
+interface NetworkInformation {
+  readonly saveData?: boolean;
+}
+
+// Battery Status API (draft)
+interface BatteryManager {
+  readonly level: number;
+  readonly charging: boolean;
+  addEventListener(type: string, listener: EventListener): void;
+  removeEventListener(type: string, listener: EventListener): void;
+}
+
+interface Navigator {
+  connection?: NetworkInformation;
+  getBattery?(): Promise<BatteryManager>;
+}
+
+// Google Analytics gtag
+interface Window {
+  gtag?: (command: string, ...args: unknown[]) => void;
+}

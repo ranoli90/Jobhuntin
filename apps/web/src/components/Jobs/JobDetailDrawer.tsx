@@ -1,11 +1,12 @@
 import * as React from "react";
+import { FocusTrap } from "focus-trap-react";
 import { X, MapPin, DollarSign, ExternalLink, Bookmark, Share2, CheckCircle, Briefcase, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import type { JobPosting } from "../../hooks/useJobs";
 import { CoverLetterGenerator } from "./CoverLetterGenerator";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface JobDetailDrawerProps {
   job: JobPosting | null;
@@ -18,6 +19,7 @@ interface JobDetailDrawerProps {
 
 export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved }: JobDetailDrawerProps) {
   const [showGenerator, setShowGenerator] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -38,12 +40,22 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
       />
 
       {/* Drawer */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Job details"
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white dark:bg-slate-900 shadow-2xl"
+      <FocusTrap
+        active={isOpen}
+        focusTrapOptions={{
+          initialFocus: () => drawerRef.current?.querySelector<HTMLElement>('button, [href]') ?? false,
+          allowOutsideClick: true,
+          escapeDeactivates: true,
+          returnFocusOnDeactivate: true,
+        }}
       >
+        <div
+          ref={drawerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Job details"
+          className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white dark:bg-slate-900 shadow-2xl"
+        >
         <div className="p-8">
           {/* Header */}
           <div className="flex items-start justify-between">
@@ -184,6 +196,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
           </div>
         </div>
       </div>
+      </FocusTrap>
 
       <CoverLetterGenerator
         job={job}

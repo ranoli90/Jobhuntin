@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { FocusTrap } from "focus-trap-react";
 import { X, Copy, RefreshCw, Wand2, Check, AlertCircle } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
@@ -55,6 +56,7 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
         }
     };
 
+    const cardRef = useRef<HTMLDivElement>(null);
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
             <div
@@ -62,7 +64,16 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
                 onClick={onClose}
             />
 
+            <FocusTrap
+                focusTrapOptions={{
+                    initialFocus: () => cardRef.current?.querySelector<HTMLElement>('button, [href]') ?? false,
+                    allowOutsideClick: true,
+                    escapeDeactivates: true,
+                    returnFocusOnDeactivate: true,
+                }}
+            >
             <Card
+                ref={cardRef}
                 tone="glass"
                 role="dialog"
                 aria-modal="true"
@@ -193,6 +204,7 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
                     )}
                 </div>
             </Card>
+            </FocusTrap>
         </div>
     );
 }

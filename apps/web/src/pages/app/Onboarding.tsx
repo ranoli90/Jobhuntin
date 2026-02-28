@@ -54,16 +54,16 @@ export default function Onboarding() {
 
   React.useEffect(() => {
     // Check for save-data preference
-    if ('connection' in navigator && (navigator as any).connection.saveData) {
+    if (navigator.connection?.saveData) {
       setIsLowPowerMode(true);
     }
 
     // Check battery status if available
-    let batteryObj: any = null;
+    let batteryObj: BatteryManager | null = null;
     let handleBatteryChange: (() => void) | null = null;
 
-    if ('getBattery' in navigator) {
-      (navigator as any).getBattery().then((battery: any) => {
+    if (navigator.getBattery) {
+      navigator.getBattery().then((battery) => {
         batteryObj = battery;
         handleBatteryChange = () => {
           setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
@@ -317,14 +317,17 @@ export default function Onboarding() {
     }
   }, [profile, currentStep]);
 
-  // Handle email typo check
+  // Handle email typo check (FV1: debounce to avoid flicker while typing)
   React.useEffect(() => {
-    if (contactInfo.email) {
+    if (!contactInfo.email) {
+      setEmailTypoSuggestion(null);
+      return;
+    }
+    const timer = setTimeout(() => {
       const suggestion = checkEmailTypo(contactInfo.email);
       setEmailTypoSuggestion(suggestion);
-    } else {
-      setEmailTypoSuggestion(null);
-    }
+    }, 400);
+    return () => clearTimeout(timer);
   }, [contactInfo.email]);
 
   // Keyboard Shortcuts
@@ -676,10 +679,19 @@ export default function Onboarding() {
       // Cache preferences data
       await cacheService.cacheUserPreferences(profile?.id || 'anonymous', trimmedPrefs);
 
-      await savePreferences({
-        ...trimmedPrefs,
-        salary_min: parseInt(trimmedPrefs.salary_min) || 0
-      } as any);
+      const prefs: import("../../hooks/useProfile").Preferences = {
+        location: trimmedPrefs.location,
+        role_type: trimmedPrefs.role_type,
+        salary_min: parseInt(trimmedPrefs.salary_min) || 0,
+        salary_max: trimmedPrefs.salary_max?.trim() ? parseInt(trimmedPrefs.salary_max.trim()) : undefined,
+        remote_only: trimmedPrefs.remote_only,
+        onsite_only: trimmedPrefs.onsite_acceptable,
+        work_authorized: trimmedPrefs.work_authorized,
+        visa_sponsorship: trimmedPrefs.visa_sponsorship,
+        excluded_companies: trimmedPrefs.excluded_companies,
+        excluded_keywords: trimmedPrefs.excluded_keywords,
+      };
+      await savePreferences(prefs);
 
       // Update contact info separately if LinkedIn URL is provided
       if (linkedinUrl) {

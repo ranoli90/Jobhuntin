@@ -127,10 +127,26 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
 /* ━━━ HOMEPAGE ━━━ */
 export default function Homepage() {
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [footerInView, setFooterInView] = useState(false);
+  const footerSentinelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const h = () => setStickyVisible(window.scrollY > 600);
+    const h = () => setStickyVisible(!footerInView && window.scrollY > 600);
+    h(); // initial
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
+  }, [footerInView]);
+
+  // X19: Hide sticky CTA when footer is in view
+  useEffect(() => {
+    const sentinel = footerSentinelRef.current;
+    if (!sentinel) return;
+    const io = new IntersectionObserver(
+      ([e]) => setFooterInView(e.isIntersecting),
+      { rootMargin: '-100px 0px 0px 0px', threshold: 0 }
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
   }, []);
 
   return (
@@ -840,6 +856,9 @@ export default function Homepage() {
           </FadeIn>
         </div>
       </section>
+
+      {/* Sentinel for X19: hide sticky CTA when footer approaches */}
+      <div ref={footerSentinelRef} className="h-px w-full" aria-hidden />
 
       {/* ── Sticky mobile CTA ── */}
       {stickyVisible && (
