@@ -479,7 +479,7 @@ export default function Dashboard() {
                   className="w-full mt-2 bg-slate-900 hover:bg-black text-white hover:shadow-lg transition-all"
                   onClick={() => navigate("/app/billing")}
                 >
-                  Upgrade Plan
+                  View plans
                 </Button>
               </div>
             </Card>

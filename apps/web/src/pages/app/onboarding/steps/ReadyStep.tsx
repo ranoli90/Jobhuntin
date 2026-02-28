@@ -135,7 +135,7 @@ export function ReadyStep({
             </div>
 
             <div className="pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
-                <Button size="lg" variant="primary" onClick={onNext} className="w-full h-10 md:h-16 rounded-[1.25rem] md:rounded-[2rem] text-base md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting} aria-label="Finalize setup and launch command center">
+                <Button size="lg" variant="primary" onClick={onNext} className="w-full h-10 md:h-16 rounded-[1.25rem] md:rounded-[2rem] text-base md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting} aria-label="Complete setup and go to jobs" data-onboarding-next>
                     <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">
                         {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
                         <Rocket className="h-5 w-5 md:h-8 md:w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />

@@ -337,30 +337,18 @@ export default function Onboarding() {
       }
 
       if (e.ctrlKey && e.key === 'Enter') {
-        // Specific completion logic or generic next
         if (isLastStep) {
-          // Use a custom event to trigger completion to avoid stale closure
           window.dispatchEvent(new CustomEvent('onboarding:complete'));
-        } else if (!isLastStep) {
-          // Trigger next button click
-          const nextBtn = document.querySelector('button[aria-label="Confirm identity and proceed"], button[aria-label="Save preferences and deploy hunter engine"], button[aria-label="Save answers and continue"], button[aria-label="Finalize setup and launch command center"]');
-          if (nextBtn && !(nextBtn as HTMLButtonElement).disabled) {
-            (nextBtn as HTMLElement).click();
-          } else {
-            // Fallback for simple steps
-            window.dispatchEvent(new CustomEvent('onboarding:next'));
-          }
+        } else {
+          const nextBtn = document.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
+          if (nextBtn) nextBtn.click();
+          else window.dispatchEvent(new CustomEvent('onboarding:next'));
         }
-      } else if (e.key === 'Escape') {
-        // Maybe unrelated, but handy
       } else if (e.altKey && e.key === 'ArrowLeft') {
         if (!isFirstStep) window.dispatchEvent(new CustomEvent('onboarding:prev'));
       } else if (e.altKey && e.key === 'ArrowRight') {
-        // Same logic as Ctrl+Enter for next
-        const nextBtn = document.querySelector('button[aria-label*="proceed"], button[aria-label*="deploy"], button[aria-label*="continue"]');
-        if (nextBtn && !(nextBtn as HTMLButtonElement).disabled) {
-          (nextBtn as HTMLElement).click();
-        }
+        const nextBtn = document.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
+        if (nextBtn) nextBtn.click();
       }
     };
 
@@ -375,10 +363,7 @@ export default function Onboarding() {
     }
 
     // Asset Pre-loading
-    const preloadImages = [
-      "/favicon.svg",
-    ];
-    preloadImages.forEach((src) => {
+    ["/favicon.svg"].forEach((src) => {
       const img = new Image();
       img.src = src;
     });

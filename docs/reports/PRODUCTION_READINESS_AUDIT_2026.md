@@ -567,3 +567,21 @@ The onboarding flow is thoughtfully designed with 7 steps, A/B testing, offline 
 - [x] S7: PII masked in auth logs
 - [x] O6-O8: Onboarding copy/step indicator
 - [x] E1: Connection error copy improved
+- [x] O4: Keyboard shortcuts use data-onboarding-next
+- [x] U4: Login CTA uses primary (not blue/violet gradient)
+- [x] P4: Font preload (Inter + Instrument Serif in stylesheet)
+- [x] C2: Offline queue retry on reconnect
+- [x] AP27: Matches loading has aria-busy/aria-label
+- [x] B2: "Upgrade Plan" → "View plans"
+- [x] E6: LoadingSpinner has aria-live
+- [x] A4: MobileDrawer focus on open (already present)
+- [x] AP39: ToastShelf has role="status"
+- [x] AP42: MobileDrawer close has aria-label
+- [x] AP45: NotFound links have aria-label
+- [x] A10: Decorative icons have aria-hidden (Login, NotFound, ToastShelf, MobileDrawer)
+- [x] Dark mode: MobileDrawer, NotFound, ToastShelf
+
+### Remaining (require backend/architectural changes)
+- [ ] S4: JWT in localStorage (XSS risk) — needs httpOnly cookies + backend
+- [ ] S6: CSP unsafe-inline — needs nonce-based script loading
+- [ ] O3: A/B variant in localStorage — persist in user profile via API

@@ -311,7 +311,7 @@ export default function MatchesPage() {
           </div>
 
           {match.loading && (
-            <Card className="p-12 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-xl">
+            <Card className="p-12 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-xl" aria-busy="true" aria-label="Loading match analysis">
               <div className="text-center space-y-6">
                 <div className="w-20 h-20 mx-auto">
                   <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-2xl animate-pulse">

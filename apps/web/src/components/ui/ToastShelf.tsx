@@ -28,18 +28,18 @@ export function ToastShelf() {
           key={toast.id}
           className={cn(
             "rounded-2xl border px-4 py-3 shadow-lg backdrop-blur text-sm",
-            toast.tone === "success" && "bg-brand-lagoon/20 border-brand-lagoon/40",
-            toast.tone === "error" && "bg-red-100 border-red-300 text-red-900",
-            toast.tone === "info" && "bg-brand-shell border-brand-shell/80",
+            toast.tone === "success" && "bg-brand-lagoon/20 dark:bg-emerald-500/20 border-brand-lagoon/40 dark:border-emerald-500/40",
+            toast.tone === "error" && "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700 text-red-900 dark:text-red-100",
+            toast.tone === "info" && "bg-brand-shell dark:bg-slate-800 border-brand-shell/80 dark:border-slate-600",
           )}
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="font-semibold text-brand-ink">{toast.title}</p>
-              {toast.description ? <p className="text-xs text-brand-ink/70">{toast.description}</p> : null}
+              <p className="font-semibold text-brand-ink dark:text-slate-100">{toast.title}</p>
+              {toast.description ? <p className="text-xs text-brand-ink/70 dark:text-slate-300">{toast.description}</p> : null}
             </div>
-            <button aria-label="Dismiss notification" onClick={() => dismiss(toast.id)} className="text-brand-ink/60 hover:text-brand-ink">
-              <X className="h-4 w-4" />
+            <button aria-label="Dismiss notification" onClick={() => dismiss(toast.id)} className="text-brand-ink/60 hover:text-brand-ink dark:text-slate-400 dark:hover:text-slate-100">
+              <X className="h-4 w-4" aria-hidden />
             </button>
           </div>
         </div>

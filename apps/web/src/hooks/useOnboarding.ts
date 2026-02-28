@@ -169,33 +169,39 @@ export function useOnboarding() {
     }
   }, []);
 
-  // Offline Queue Processing
+  // Offline Queue Processing: retry on reconnect
   useEffect(() => {
     const processQueue = async () => {
-      if (navigator.onLine) {
+      if (!navigator.onLine) return;
+      try {
+        const raw = localStorage.getItem("offline_queue");
+        if (!raw) return;
+        const queue = JSON.parse(raw);
+        if (queue.length === 0) return;
+
+        const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
+        const valid = queue.filter((a: { timestamp?: number }) => !a.timestamp || Date.now() - a.timestamp < MAX_AGE_MS);
+        if (valid.length === 0) {
+          localStorage.removeItem("offline_queue");
+          return;
+        }
+
+        // Retry: dispatch custom event so onboarding steps can re-submit; clear queue after attempt
+        window.dispatchEvent(new CustomEvent("offline_queue:retry", { detail: valid }));
+        localStorage.removeItem("offline_queue");
+      } catch (error) {
+        console.error("[useOnboarding] Failed to process offline queue:", error);
         try {
-          const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
-          if (queue.length > 0) {
-            // We would iterate and retry here, but since our API is not fully set up for generic replay
-            // we will just log for now or clear it if it's too old. 
-            if (import.meta.env.DEV) console.log("Processing offline queue:", queue);
-            // For this demo, let's just clear it after 'processing'
-            localStorage.removeItem("offline_queue");
-          }
-        } catch (error) {
-          console.error('[useOnboarding] Failed to process offline queue:', error);
-          // Clear corrupted queue
-          try {
-            localStorage.removeItem("offline_queue");
-          } catch (clearError) {
-            console.error('[useOnboarding] Failed to clear corrupted queue:', clearError);
-          }
+          localStorage.removeItem("offline_queue");
+        } catch {
+          /* ignore */
         }
       }
     };
 
-    window.addEventListener('online', processQueue);
-    return () => window.removeEventListener('online', processQueue);
+    window.addEventListener("online", processQueue);
+    processQueue(); // Run once if already online (e.g. page load after reconnect)
+    return () => window.removeEventListener("online", processQueue);
   }, []);
 
   const queueOfflineAction = useCallback((action: any) => {

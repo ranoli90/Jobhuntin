@@ -317,7 +317,7 @@ export function ResumeStep({
                                     variant="primary"
                                     className="w-full h-12 sm:h-11 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 touch-manipulation"
                                     onClick={onConfirmParsing}
-                                    aria-label="Confirm parsed resume and continue"
+                                    aria-label="Confirm parsed resume and continue" data-onboarding-next
                                 >
                                     Looks Good, Continue
                                 </Button>
@@ -342,7 +342,7 @@ export function ResumeStep({
                         onClick={() => onUpload(resumeFile)}
                         disabled={isUploading}
                         className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation"
-                        aria-label="Parse resume"
+                        aria-label="Parse resume" data-onboarding-next
                     >
                         {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "Re-upload Resume" : "Parse Resume"}
                         {!isUploading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />}
@@ -352,7 +352,7 @@ export function ResumeStep({
                         variant="ghost"
                         onClick={() => (resumeFile || parsedResume) ? setShowSkipConfirm(true) : onNext()}
                         className="flex-1 h-12 sm:h-11 rounded-xl font-bold text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 text-sm touch-manipulation"
-                        aria-label={resumeError ? "Skip upload and continue" : "Skip for now and continue"}
+                        aria-label={resumeError ? "Skip upload and continue" : "Skip for now and continue"} data-onboarding-next
                     >
                         {resumeError ? "Skip Upload" : "Skip for Now"}
                         <ArrowRight className="ml-2 h-4 w-4" />

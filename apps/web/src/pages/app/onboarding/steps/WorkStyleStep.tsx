@@ -295,7 +295,7 @@ export function WorkStyleStep({
                     onClick={onNext}
                     disabled={!isComplete || isSaving}
                     className="flex-[2] h-12 sm:h-9 md:h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-xs md:text-lg disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
-                    aria-label="Save work style and continue"
+                    aria-label="Save work style and continue" data-onboarding-next
                 >
                     {isSaving ? <LoadingSpinner size="sm" /> : (
                         <>

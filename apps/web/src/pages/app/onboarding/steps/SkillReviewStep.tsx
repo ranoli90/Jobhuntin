@@ -393,7 +393,7 @@ export function SkillReviewStep({
                     onClick={onNext}
                     disabled={isSaving}
                     className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
-                    aria-label={richSkills.length === 0 ? "Skip skills and continue" : "Save skills and continue"}
+                    aria-label={richSkills.length === 0 ? "Skip skills and continue" : "Save skills and continue"} data-onboarding-next
                 >
                     {isSaving ? <LoadingSpinner size="sm" /> : (
                         <>

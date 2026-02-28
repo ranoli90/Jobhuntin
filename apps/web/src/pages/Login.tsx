@@ -280,12 +280,12 @@ export default function Login() {
                 </label>
                 <div className={cn(
                   "relative rounded-xl transition-all duration-200",
-                  focused && "ring-2 ring-blue-500/20"
+                  focused && "ring-2 ring-primary-500/20"
                 )}>
                   <Mail className={cn(
                     "absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors",
-                    focused ? "text-blue-500" : "text-slate-400"
-                  )} />
+                    focused ? "text-primary-500" : "text-slate-400"
+                  )} aria-hidden />
                   <input
                     type="email"
                     placeholder="you@example.com"
@@ -301,7 +301,7 @@ export default function Login() {
                     className={cn(
                       "w-full pl-12 pr-4 py-4 rounded-xl bg-slate-50 border transition-all",
                       "text-slate-900 placeholder:text-slate-400",
-                      "focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
+                      "focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400",
                       formError ? "border-red-300 bg-red-50/50" : "border-slate-200"
                     )}
                     required
@@ -315,7 +315,7 @@ export default function Login() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg"
                 >
-                  <AlertCircle className="w-4 h-4" />
+                  <AlertCircle className="w-4 h-4" aria-hidden />
                   {formError}
                 </motion.div>
               )}
@@ -323,7 +323,7 @@ export default function Login() {
               <Button
                 type="submit"
                 disabled={isLoading || !emailIsValid}
-                className="w-full h-12 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 rounded-xl font-semibold text-white bg-primary-600 hover:bg-primary-500 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>

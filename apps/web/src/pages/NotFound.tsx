@@ -14,7 +14,7 @@ export default function NotFound() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO 
         title="404 — This Page Doesn't Exist, But Your Dream Job Does | JobHuntin"
         description="Wrong turn? While you're here, JobHuntin's AI agent is applying to jobs for thousands of people. Start free and never miss a role again."
@@ -57,14 +57,14 @@ export default function NotFound() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
-            <Link to="/login">
+            <Link to="/login" aria-label="Start free with 10 applications">
               <Button size="lg" className="rounded-xl px-8 shadow-xl shadow-primary-500/20 font-bold">
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4 mr-2" aria-hidden />
                 Start free — 10 applications on us
               </Button>
             </Link>
-            <Link to="/">
-              <Button variant="outline" size="lg" className="rounded-xl px-8 bg-white hover:bg-slate-50 font-bold">
+            <Link to="/" aria-label="Back to home page">
+              <Button variant="outline" size="lg" className="rounded-xl px-8 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold">
                 Back to home
               </Button>
             </Link>
@@ -73,7 +73,7 @@ export default function NotFound() {
           {/* Trending job searches */}
           <div className="text-left">
             <div className="flex items-center gap-2 mb-4 justify-center">
-              <TrendingUp className="w-4 h-4 text-primary-500" />
+              <TrendingUp className="w-4 h-4 text-primary-500" aria-hidden />
               <span className="text-sm font-bold text-slate-600 uppercase tracking-wider">Trending right now</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -81,16 +81,17 @@ export default function NotFound() {
                 <Link
                   key={search.path}
                   to={search.path}
-                  className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-100 hover:border-primary-200 hover:shadow-md transition-all group"
+                  aria-label={`Browse ${search.label}`}
+                  className="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-primary-200 dark:hover:border-primary-600 hover:shadow-md transition-all group"
                 >
-                  <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-colors shrink-0">
-                    <Briefcase className="w-4 h-4" />
+                  <div className="w-9 h-9 bg-primary-50 dark:bg-primary-900/30 rounded-lg flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-colors shrink-0">
+                    <Briefcase className="w-4 h-4" aria-hidden />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-900 truncate">{search.label}</p>
                     <p className="text-[10px] text-slate-400 font-medium">Apply with AI</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary-500 transition-colors shrink-0" />
+                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary-500 transition-colors shrink-0" aria-hidden />
                 </Link>
               ))}
             </div>
