@@ -18,9 +18,9 @@ export function EmptyState({ title, description, actionLabel, onAction, icon, cl
     <motion.div
       role="status"
       aria-live="polite"
-      initial={{ opacity: 0, y: 16 }}
+      initial={shouldReduceMotion ? undefined : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={shouldReduceMotion ? undefined : { duration: 0.4, ease: "easeOut" }}
       className={cn(
         "rounded-3xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-white to-slate-50 px-8 py-14 text-center relative overflow-hidden",
         className
@@ -29,9 +29,9 @@ export function EmptyState({ title, description, actionLabel, onAction, icon, cl
       <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl pointer-events-none" />
       {icon && (
         <motion.div
-          initial={{ scale: 0.8 }}
+          initial={shouldReduceMotion ? undefined : { scale: 0.8 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.15, type: "spring", stiffness: 200 }}
           className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 shadow-inner"
         >
           {icon}

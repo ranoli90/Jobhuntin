@@ -268,7 +268,7 @@ export default function Dashboard() {
             onClick={() => navigate("/app/jobs")}
           >
             <span className="relative z-10 flex items-center gap-2">
-              <Rocket className="h-5 w-5 transition-transform group-hover:rotate-12" />
+              <Rocket className="h-5 w-5 transition-transform group-hover:rotate-12" aria-hidden />
               <span className="font-medium">Find Jobs</span>
             </span>
           </Button>

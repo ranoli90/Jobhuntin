@@ -267,11 +267,11 @@ export function PreferencesStep({
                         <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
-                                    <DollarSign className="h-4 w-4" />
+                                    <DollarSign className="h-4 w-4" aria-hidden />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-slate-900">Salary Cap</p>
-                                    <p className="text-[10px] text-slate-500">Your target upper range</p>
+                                    <p className="text-[10px] text-slate-500">Your target upper range. Max $10M.</p>
                                 </div>
                             </div>
                             <Input
@@ -295,7 +295,7 @@ export function PreferencesStep({
                         <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
-                                    <Ban className="h-4 w-4" />
+                                    <Ban className="h-4 w-4" aria-hidden />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-slate-900">Exclude Companies</p>
