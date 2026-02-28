@@ -3,7 +3,6 @@ from __future__ import annotations
 import time
 
 import asyncpg
-import stripe
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, field_validator
 from shared.config import Settings, settings_dependency
