@@ -73,6 +73,8 @@ function JobCard({
 
   return (
     <motion.div
+      role="article"
+      aria-label={`Job card. Swipe right to accept, left to reject.`}
       style={{
         zIndex: idx,
         position: 'absolute',
@@ -122,7 +124,7 @@ function JobCard({
   );
 }
 
-const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; duration?: number }) => {
+const AnimatedNumber = ({ value, duration = 1000, shouldReduceMotion = false }: { value: number | string; duration?: number; shouldReduceMotion?: boolean }) => {
   const [displayValue, setDisplayValue] = useState(0);
   const prevValueRef = useRef(0);
 
@@ -137,7 +139,7 @@ const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; du
     const end = numValue;
     prevValueRef.current = end;
 
-    if (start === end) {
+    if (start === end || shouldReduceMotion) {
       setDisplayValue(end);
       return;
     }
@@ -157,7 +159,7 @@ const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; du
 
     rafId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafId);
-  }, [value, duration]);
+  }, [value, duration, shouldReduceMotion]);
 
   return <span>{typeof value === 'string' ? value : displayValue}</span>;
 };
@@ -298,7 +300,7 @@ export default function Dashboard() {
                       ) : typeof metric.value === 'string' ? (
                         metric.value
                       ) : (
-                        <AnimatedNumber value={metric.value} />
+                        <AnimatedNumber value={metric.value} shouldReduceMotion={!!shouldReduceMotion} />
                       )}
                     </p>
                   </div>
@@ -622,7 +624,7 @@ export function JobsView() {
       setSwipeCount(prev => prev + 1);
 
       if (direction === "ACCEPT") {
-        fireSuccessConfetti();
+        if (!shouldReduceMotion) fireSuccessConfetti();
         pushToast({
           title: "Match queued! 🚀",
           description: `AI is now tailoring your resume for ${swipedJob.company}. Undo available for 10s.`,

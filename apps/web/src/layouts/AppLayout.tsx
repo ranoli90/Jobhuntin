@@ -150,7 +150,7 @@ export default function AppLayout() {
             <div className="flex items-center gap-2">
               <div className="hidden lg:block">
                 <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400 font-black">Dashboard</p>
-                <p className="text-sm font-black text-slate-900">Application Console</p>
+                <p className="text-sm font-black text-slate-900 dark:text-slate-100">Dashboard</p>
               </div>
               <div className="lg:hidden">
                 <Logo iconOnly size="sm" />
