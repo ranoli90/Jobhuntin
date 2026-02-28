@@ -704,11 +704,22 @@ async def get_current_user_id(authorization: str = Header(...)) -> str:
             token, s.jwt_secret, algorithms=["HS256"], audience="authenticated"
         )
         user_id: str = payload["sub"]
+
+        # Enforce single-use for magic link tokens (they have jti)
+        jti = payload.get("jti")
+        if jti:
+            from api.auth import _mark_token_consumed
+            if not _mark_token_consumed(jti):
+                logger.warning("Replay attempt for token jti=%s", jti)
+                raise HTTPException(status_code=401, detail="Token has already been used")
+
         return user_id
     except pyjwt.PyJWTError as exc:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {exc}")
+        logger.warning("JWT validation failed: %s", exc)
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
     except Exception as exc:
-        raise HTTPException(status_code=401, detail=f"Token error: {exc}")
+        logger.warning("Token processing error: %s", exc)
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
 async def get_pool() -> asyncpg.Pool:
@@ -1293,8 +1304,15 @@ async def healthz(
 async def serve_storage_file(
     bucket: str,
     path: str,
+    user_id: str = Depends(get_current_user_id),
 ):
     """Serve files from storage (e.g., resumes, avatars)."""
+    # Prevent path traversal
+    if ".." in bucket or ".." in path or "//" in bucket or "//" in path:
+        raise HTTPException(status_code=400, detail="Invalid path")
+    if bucket.startswith("/") or path.startswith("/"):
+        raise HTTPException(status_code=400, detail="Invalid path")
+
     from shared.storage import get_storage_service
 
     storage = get_storage_service()
