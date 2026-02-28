@@ -47,6 +47,8 @@ Required env vars: `DATABASE_URL`, `ENV=local`, `CSRF_SECRET`, `JWT_SECRET`. Cop
 
 **Web frontend**: `cd apps/web && npx vite --host 0.0.0.0 --port 5173`
 
+**Web-admin frontend**: `cd apps/web-admin && npx vite --host 0.0.0.0 --port 5174` (may auto-increment to 5175 if 5174 is taken by Vite HMR)
+
 ### Lint, test, build
 
 - **Python lint**: `source .venv/bin/activate && ruff check . --select E,W,F,I` (pre-existing warnings exist)
