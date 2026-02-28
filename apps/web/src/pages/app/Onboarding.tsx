@@ -364,13 +364,23 @@ export default function Onboarding() {
       navigate("/app/jobs");
     }
 
-    // Asset Pre-loading
+  }, [profile, navigate, resetOnboarding]);
+
+  // O14: Asset preloading (favicon + critical fonts for LCP)
+  React.useEffect(() => {
     ["/favicon.svg"].forEach((src) => {
       const img = new Image();
       img.src = src;
     });
-
-  }, [profile, navigate, resetOnboarding]);
+    const fontUrl = "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&display=swap";
+    if (!document.querySelector('link[rel="preload"][as="style"][href*="fonts.googleapis.com"]')) {
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "style";
+      link.href = fontUrl;
+      document.head.appendChild(link);
+    }
+  }, []);
 
   const handleResumeUpload = async () => {
     if (!resumeFile) return;
@@ -819,10 +829,11 @@ export default function Onboarding() {
                 className="w-full"
               >
                 <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
-                  {/* Profile completeness indicator - Desktop: horizontal, Mobile: compact */}
+                  {/* Profile completeness indicator - O22: tooltip explains calculation */}
                   <div
                     className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg"
                     title="Resume 20%, Contact 15%, Location 10%, Role 10%, Salary 5%, Work auth 5%, Skills up to 15%, Work style up to 15%"
+                    aria-describedby="profile-strength-hint"
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2 md:gap-3">
@@ -831,6 +842,7 @@ export default function Onboarding() {
                         </div>
                         <div>
                           <span className="block text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Profile Strength</span>
+                          <span id="profile-strength-hint" className="sr-only">Resume 20%, Contact 15%, Location 10%, Role 10%, Salary 5%, Work auth 5%, Skills up to 15%, Work style up to 15%</span>
                           <span className="text-xs md:text-sm font-bold text-white">Setup Progress</span>
                         </div>
                       </div>

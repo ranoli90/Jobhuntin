@@ -33,6 +33,14 @@ const dictionaries: Dict = {
     "status.failed": "Failed",
     "status.queued": "Queued",
     "status.processing": "Processing",
+
+    "cookies.description": "We use cookies for analytics to improve your experience. By clicking \"Accept analytics\", you consent to analytics cookies. \"Reject all\" uses only essential cookies. Press Escape to reject. See our",
+    "cookies.privacyPolicy": "Privacy Policy",
+    "cookies.forDetails": "for details.",
+    "cookies.rejectAll": "Reject all",
+    "cookies.managePreferences": "Manage preferences",
+    "cookies.acceptAnalytics": "Accept analytics",
+    "cookies.title": "Cookie consent",
   },
   fr: {
     "dashboard.activeRadar": "Radar actif",
@@ -66,6 +74,14 @@ const dictionaries: Dict = {
     "status.failed": "Échoué",
     "status.queued": "En file d'attente",
     "status.processing": "En cours",
+
+    "cookies.description": "Nous utilisons des cookies pour l'analyse afin d'améliorer votre expérience. En cliquant sur \"Accepter l'analyse\", vous consentez aux cookies d'analyse. \"Tout refuser\" n'utilise que les cookies essentiels. Appuyez sur Échap pour refuser. Consultez notre",
+    "cookies.privacyPolicy": "Politique de confidentialité",
+    "cookies.forDetails": "pour plus de détails.",
+    "cookies.rejectAll": "Tout refuser",
+    "cookies.managePreferences": "Gérer les préférences",
+    "cookies.acceptAnalytics": "Accepter l'analyse",
+    "cookies.title": "Consentement aux cookies",
   },
 };
 

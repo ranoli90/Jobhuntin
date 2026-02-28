@@ -1,16 +1,32 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FocusTrap } from 'focus-trap-react';
 import { Button } from './ui/Button';
+import { t, getLocale } from '../lib/i18n';
 
 const CONSENT_KEY = 'jobhuntin-cookie-consent';
+const CONSENT_EXPIRY_MONTHS = 12; // L4: GDPR - re-prompt after 12 months
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const consent = localStorage.getItem(CONSENT_KEY);
-    if (!consent) {
+    const raw = localStorage.getItem(CONSENT_KEY);
+    if (!raw) {
+      setVisible(true);
+      return;
+    }
+    try {
+      const consent = JSON.parse(raw);
+      const ts = consent?.ts;
+      if (ts && typeof ts === 'number') {
+        const expiry = ts + CONSENT_EXPIRY_MONTHS * 30 * 24 * 60 * 60 * 1000;
+        if (Date.now() > expiry) {
+          localStorage.removeItem(CONSENT_KEY);
+          setVisible(true);
+        }
+      }
+    } catch {
       setVisible(true);
     }
   }, []);
@@ -67,28 +83,27 @@ export function CookieConsent() {
       className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 shadow-lg md:flex md:items-center md:justify-between md:px-8"
       onKeyDown={handleKeyDown}
     >
-      <p id="cookie-consent-title" className="sr-only">Cookie consent</p>
+      <p id="cookie-consent-title" className="sr-only">{t("cookies.title", getLocale())}</p>
       <p id="cookie-consent-description" className="text-sm text-slate-600 dark:text-slate-400 mb-3 md:mb-0 md:mr-6">
-        We use cookies for analytics to improve your experience. By clicking &quot;Accept analytics&quot;, you consent
-        to analytics cookies. &quot;Reject all&quot; uses only essential cookies. Press Escape to reject. See our{' '}
+        {t("cookies.description", getLocale())}{' '}
         <a href="/privacy#cookies" className="underline text-brand-accent hover:text-brand-ink">
-          Privacy Policy
+          {t("cookies.privacyPolicy", getLocale())}
         </a>{' '}
-        for details.
+        {t("cookies.forDetails", getLocale())}
       </p>
       <div className="flex flex-wrap gap-2 shrink-0">
-        <Button variant="outline" size="sm" onClick={decline} data-consent-reject aria-label="Reject all non-essential cookies">
-          Reject all
+        <Button variant="outline" size="sm" onClick={decline} data-consent-reject aria-label={t("cookies.rejectAll", getLocale())}>
+          {t("cookies.rejectAll", getLocale())}
         </Button>
         <a
           href="/privacy#cookies"
           className="inline-flex items-center justify-center h-9 min-h-[36px] px-3 text-sm font-medium rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-          aria-label="Manage cookie preferences"
+          aria-label={t("cookies.managePreferences", getLocale())}
         >
-          Manage preferences
+          {t("cookies.managePreferences", getLocale())}
         </a>
-        <Button variant="primary" size="sm" onClick={accept} aria-label="Accept analytics cookies">
-          Accept analytics
+        <Button variant="primary" size="sm" onClick={accept} aria-label={t("cookies.acceptAnalytics", getLocale())}>
+          {t("cookies.acceptAnalytics", getLocale())}
         </Button>
       </div>
     </div>
