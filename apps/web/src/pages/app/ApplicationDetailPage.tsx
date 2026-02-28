@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "../../lib/api";
@@ -8,6 +9,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { ArrowLeft, Briefcase, Clock } from "lucide-react";
 import { formatDate } from "../../lib/format";
 import { getLocale } from "../../lib/i18n";
+import { telemetry } from "../../lib/telemetry";
 
 interface ApplicationDetail {
   application: {
@@ -71,6 +73,9 @@ export default function ApplicationDetailPage() {
   }
 
   const app = data.application;
+  React.useEffect(() => {
+    if (app?.id) telemetry.track("application_viewed", { application_id: app.id, company: app.company, status: app.status });
+  }, [app?.id, app?.company, app?.status]);
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">

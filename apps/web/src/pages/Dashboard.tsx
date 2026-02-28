@@ -787,12 +787,12 @@ export function JobsView() {
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t("dashboard.activeRadar", locale)}</h2>
           <p className="text-slate-500 font-medium">{t("dashboard.swipeRight", locale)}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <input
             type="text"
             placeholder={t("dashboard.filterPlaceholder", locale)}
             aria-label="Filter jobs by location"
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white font-medium"
+            className="flex-1 min-w-0 px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white font-medium"
             value={localLocation}
             onChange={(e) => handleLocationChange(e.target.value)}
           />
@@ -803,7 +803,7 @@ export function JobsView() {
       </div>
 
       <div
-        className="relative h-[clamp(420px,60vh,640px)] w-full max-w-md mx-auto perspective-1000"
+        className="relative h-[clamp(360px,55vh,640px)] sm:h-[clamp(420px,60vh,640px)] w-full max-w-md mx-auto perspective-1000"
         role="region"
         aria-label="Job card. Use left arrow to reject, right arrow to accept."
         aria-roledescription="Swipeable job card"
