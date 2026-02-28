@@ -1288,7 +1288,7 @@ export function HoldsView() {
               </div>
 
               <div className="p-4 sm:p-6 space-y-6">
-                <div className="bg-amber-50 rounded-2xl p-4 sm:p-6 border border-amber-100 relative">
+                <div id={`hold-question-${app.id}`} className="bg-amber-50 rounded-2xl p-4 sm:p-6 border border-amber-100 relative">
                   <Quote className="absolute top-4 left-4 w-12 h-12 text-amber-200/50 -z-0" />
                   <p className="text-amber-900 font-medium leading-relaxed relative z-10">
                     "I've encountered a specific question on the portal: <span className="font-black italic">'{app.hold_question}'</span>. How should I proceed?"
@@ -1296,12 +1296,17 @@ export function HoldsView() {
                 </div>
 
                 <div className="space-y-4">
+                  <label htmlFor={`hold-answer-${app.id}`} className="sr-only">
+                    Your response for {app.company} — {app.job_title}
+                  </label>
                   <textarea
+                    id={`hold-answer-${app.id}`}
                     className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium min-h-[100px]"
                     maxLength={5000}
                     placeholder="Type your response here... (e.g. Yes, I have 5 years experience with Kubernetes)"
                     value={answers[app.id] || ""}
                     onChange={(e) => setAnswers(prev => ({ ...prev, [app.id]: e.target.value }))}
+                    aria-describedby={`hold-question-${app.id}`}
                   />
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 sticky bottom-0 bg-white/90 backdrop-blur p-2 rounded-xl border border-slate-100">
                     <Button

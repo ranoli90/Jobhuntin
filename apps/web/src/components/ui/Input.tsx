@@ -27,7 +27,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={inputType}
           value={value}
           className={cn(
-            "flex w-full rounded-2xl border border-gray-100 bg-white/50 px-4 py-4 text-base ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-100 transition-all duration-200 font-medium text-slate-900",
+            "flex w-full rounded-2xl border border-gray-100 bg-white/50 px-4 py-4 text-base ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-2 focus-visible:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-100 transition-all duration-200 font-medium text-slate-900",
             icon && "pl-12",
             (onClear || isPassword) && "pr-12",
             error && "border-red-500 focus-visible:ring-red-500/10 focus-visible:border-red-500 bg-red-50/50",
