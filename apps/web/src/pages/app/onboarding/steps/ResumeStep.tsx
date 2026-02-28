@@ -30,7 +30,7 @@ function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () =
                     <h3 id="skip-confirm-title" className="font-bold text-slate-900 dark:text-slate-100 mb-2 pr-8">Skip resume?</h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Resume improves match quality by ~40%. You can add it later in Settings.</p>
                     <div className="flex gap-3">
-                        <Button variant="outline" onClick={onStay} className="flex-1">Stay</Button>
+                        <Button variant="outline" onClick={onStay} className="flex-1">Go back</Button>
                         <Button variant="primary" onClick={onSkip} className="flex-1">Skip for now</Button>
                     </div>
                 </div>

@@ -17,6 +17,7 @@ import type { JobFilters } from "../hooks/useJobs";
 import { formatCurrency, formatDate } from "../lib/format";
 import { t, isRTL, getLocale } from "../lib/i18n";
 import { useSessionMilestone } from "../hooks/useCelebrations";
+import { telemetry } from "../lib/telemetry";
 
 // N-10: Centralised status → Badge variant mapping
 function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
@@ -344,7 +345,7 @@ export default function Dashboard() {
                       <Inbox className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-amber-900/60">ITEMS NEEDING YOUR INPUT</p>
+                      <p className="text-sm font-medium text-amber-900/60">Items needing your input</p>
                       <p className="text-2xl font-bold text-slate-900">
                         {isLoading ? (
                           <span className="inline-block h-7 w-24 bg-slate-100 rounded animate-pulse"></span>
@@ -625,6 +626,8 @@ export function JobsView() {
 
       setCurrentIndex(prev => prev + 1);
       setSwipeCount(prev => prev + 1);
+
+      telemetry.track("job_swipe", { direction, job_id: swipedJob.id, company: swipedJob.company });
 
       if (direction === "ACCEPT") {
         if (!shouldReduceMotion) fireSuccessConfetti();
