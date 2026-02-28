@@ -80,12 +80,6 @@ class CSRFMiddleware:
         "/billing/webhook",
         "/sso/saml/acs",
         "/og/",
-        "/profile",
-        "/profile/resume",
-        "/profile/avatar",
-        "/me/skills",
-        "/me/work-style",
-        "/ai/",
     ]
 
     @classmethod
@@ -160,21 +154,15 @@ def setup_request_id_middleware(app) -> None:
 
 
 def get_client_ip(request: Request) -> str:
-    """
-    Extract real client IP, respecting proxy headers (X-Forwarded-For).
-
-    Falls back to X-Real-IP, then request.client.host.
-    """
+    """Extract client IP, using rightmost XFF entry to prevent spoofing."""
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        # X-Forwarded-For: client, proxy1, proxy2
-        # Leftmost is the original client
-        return forwarded.split(",")[0].strip()
-
+        # Use rightmost (most trustworthy) entry — the one added by our reverse proxy
+        parts = [p.strip() for p in forwarded.split(",")]
+        return parts[-1] if parts else request.client.host or "unknown"
     real_ip = request.headers.get("x-real-ip")
     if real_ip:
         return real_ip.strip()
-
     return request.client.host if request.client else "unknown"
 
 

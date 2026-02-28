@@ -111,6 +111,12 @@ async def accept_invite(
     tenant_id = str(invite["tenant_id"])
     role = invite["role"]
 
+    # Lock tenant row to prevent race condition on seat count
+    tenant = await conn.fetchrow(
+        "SELECT seat_count, max_seats FROM public.tenants WHERE id = $1 FOR UPDATE",
+        tenant_id,
+    )
+
     # Check not already a member
     already = await conn.fetchval(
         "SELECT COUNT(*) FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
@@ -135,10 +141,18 @@ async def accept_invite(
     )
 
     # Update seat count
-    await conn.execute(
-        "UPDATE public.tenants SET seat_count = seat_count + 1 WHERE id = $1",
+    new_seat_count_row = await conn.fetchrow(
+        "UPDATE public.tenants SET seat_count = seat_count + 1 WHERE id = $1 RETURNING seat_count",
         tenant_id,
     )
+    new_seat_count = new_seat_count_row["seat_count"] if new_seat_count_row else None
+
+    # Sync seat count with Stripe billing
+    try:
+        if new_seat_count is not None:
+            await update_stripe_seat_quantity(conn, tenant_id, new_seat_count)
+    except Exception as e:
+        logger.warning("Failed to sync seat count with Stripe: %s", e)
 
     # Mark invite accepted
     await conn.execute(
@@ -235,10 +249,19 @@ async def remove_member(
         "DELETE FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
         tenant_id, user_id,
     )
-    await conn.execute(
-        "UPDATE public.tenants SET seat_count = GREATEST(seat_count - 1, 1) WHERE id = $1",
+    new_seat_count_row = await conn.fetchrow(
+        "UPDATE public.tenants SET seat_count = GREATEST(seat_count - 1, 1) WHERE id = $1 RETURNING seat_count",
         tenant_id,
     )
+    new_seat_count = new_seat_count_row["seat_count"] if new_seat_count_row else None
+
+    # Sync seat count with Stripe billing
+    try:
+        if new_seat_count is not None:
+            await update_stripe_seat_quantity(conn, tenant_id, new_seat_count)
+    except Exception as e:
+        logger.warning("Failed to sync seat count with Stripe: %s", e)
+
     return True
 
 

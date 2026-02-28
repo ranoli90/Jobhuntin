@@ -5,7 +5,10 @@ Integrations API endpoints — Slack, Notion, Google Drive, Zapier.
 from __future__ import annotations
 
 import base64
+import hashlib
 from typing import Any
+
+from cryptography.fernet import Fernet
 
 import asyncpg
 from backend.domain.google_drive_integration import GoogleDriveIntegrationManager
@@ -21,6 +24,33 @@ from pydantic import BaseModel
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.integrations")
+
+
+def _get_encryption_key() -> bytes:
+    """Derive encryption key from JWT_SECRET for token encryption at rest."""
+    from shared.config import get_settings
+    secret = get_settings().jwt_secret or "dev-fallback-key"
+    key = hashlib.sha256(secret.encode()).digest()
+    return base64.urlsafe_b64encode(key)
+
+
+def _encrypt_token(token: str) -> str:
+    """Encrypt an OAuth token before database storage."""
+    if not token:
+        return token
+    f = Fernet(_get_encryption_key())
+    return f.encrypt(token.encode()).decode()
+
+
+def _decrypt_token(encrypted: str) -> str:
+    """Decrypt an OAuth token from database storage."""
+    if not encrypted:
+        return encrypted
+    try:
+        f = Fernet(_get_encryption_key())
+        return f.decrypt(encrypted.encode()).decode()
+    except Exception:
+        return encrypted  # Return as-is if decryption fails (legacy unencrypted token)
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
@@ -70,7 +100,7 @@ async def connect_slack(
     await manager.register_team(
         tenant_id=tenant_id,
         team_id=body.team_id,
-        access_token=body.access_token,
+        access_token=_encrypt_token(body.access_token),
         bot_user_id=body.bot_user_id,
         default_channel=body.default_channel,
     )
@@ -175,7 +205,7 @@ async def connect_notion(
 
     await manager.configure(
         tenant_id=tenant_id,
-        access_token=body.access_token,
+        access_token=_encrypt_token(body.access_token),
         workspace_id=body.workspace_id,
         database_id=body.database_id,
     )
@@ -233,7 +263,7 @@ async def create_notion_database(
     if not config:
         raise HTTPException(status_code=404, detail="Notion not connected")
 
-    client = NotionClient(config.access_token)
+    client = NotionClient(_decrypt_token(config.access_token))
     result = await client.create_database(
         parent_page_id=body.parent_page_id,
         title=body.title,
@@ -242,7 +272,7 @@ async def create_notion_database(
 
     await manager.configure(
         tenant_id=tenant_id,
-        access_token=config.access_token,
+        access_token=config.access_token,  # already encrypted in storage
         workspace_id=config.workspace_id,
         database_id=result["id"],
     )
@@ -294,8 +324,8 @@ async def connect_google_drive(
     await manager.configure(
         tenant_id=tenant_id,
         user_id=user_id,
-        access_token=body.access_token,
-        refresh_token=body.refresh_token,
+        access_token=_encrypt_token(body.access_token),
+        refresh_token=_encrypt_token(body.refresh_token) if body.refresh_token else None,
     )
 
     return {"status": "connected"}

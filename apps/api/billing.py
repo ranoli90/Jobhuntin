@@ -5,7 +5,7 @@ import time
 import asyncpg
 import stripe
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
 
@@ -21,6 +21,9 @@ from backend.domain.repositories import TenantRepo
 from backend.domain.tenant import TenantContext
 
 logger = get_logger("sorce.api.billing")
+
+_processed_webhook_events: dict[str, float] = {}
+_WEBHOOK_EVENT_TTL = 86400  # 24 hours
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -42,6 +45,17 @@ class CheckoutRequest(BaseModel):
     success_url: str
     cancel_url: str
     billing_period: str = "monthly"  # "monthly" or "annual"
+
+    @field_validator("success_url", "cancel_url")
+    @classmethod
+    def validate_url_domain(cls, v: str) -> str:
+        """Only allow URLs from trusted domains."""
+        from urllib.parse import urlparse
+        parsed = urlparse(v)
+        allowed_domains = {"jobhuntin.com", "www.jobhuntin.com", "app.jobhuntin.com", "localhost"}
+        if parsed.hostname not in allowed_domains:
+            raise ValueError(f"URL must be on an allowed domain")
+        return v
 
 class CheckoutResponse(BaseModel):
     checkout_url: str
@@ -274,6 +288,18 @@ async def stripe_webhook(
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
+
+    event_id = event.get("id", "")
+    now = time.time()
+    # Evict old entries
+    expired = [k for k, ts in _processed_webhook_events.items() if now - ts > _WEBHOOK_EVENT_TTL]
+    for k in expired:
+        _processed_webhook_events.pop(k, None)
+    # Check for duplicate
+    if event_id in _processed_webhook_events:
+        logger.info("Skipping duplicate webhook event: %s", event_id)
+        return {"status": "already_processed"}
+    _processed_webhook_events[event_id] = now
 
     data = event["data"]["object"]
     event_type = event["type"]

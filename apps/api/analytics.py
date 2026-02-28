@@ -145,7 +145,7 @@ async def submit_feedback(
             """
             SELECT id, user_id, tenant_id FROM public.applications
             WHERE id = $1 AND user_id = $2
-              AND ($3::uuid IS NULL OR tenant_id = $3)
+              AND tenant_id = $3
             """,
             application_id,
             ctx.user_id,
