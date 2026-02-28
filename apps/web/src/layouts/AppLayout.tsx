@@ -66,7 +66,7 @@ export default function AppLayout() {
             const Icon = item.icon;
             return (
               <NavLink key={item.to} to={item.to} className={navLinkClass}>
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" aria-hidden />
                 {item.label}
               </NavLink>
             );
@@ -90,7 +90,7 @@ export default function AppLayout() {
             className="mt-4 w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-bold"
             onClick={signOut}
           >
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
+            <LogOut className="mr-2 h-4 w-4" aria-hidden /> Sign out
           </Button>
         </div>
       </aside>
@@ -129,7 +129,7 @@ export default function AppLayout() {
               closeMobile();
             }}
           >
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
+            <LogOut className="mr-2 h-4 w-4" aria-hidden /> Sign out
           </Button>
         </MobileDrawerFooter>
       </MobileDrawer>

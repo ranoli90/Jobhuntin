@@ -119,10 +119,14 @@ html.dark ::selection {
   color: #fafaf9;
 }
 
-/* Focus visible styles for accessibility */
+/* Focus visible styles for accessibility (A6: contrast ≥ 3:1) */
 :focus-visible {
   outline: 2px solid #1c1917;
   outline-offset: 2px;
+}
+
+html.dark :focus-visible {
+  outline-color: #fafaf9;
 }
 
 /* Prevent iOS auto-zoom on inputs */

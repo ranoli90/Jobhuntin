@@ -28,7 +28,7 @@ function statusVariant(status: string): 'success' | 'warning' | 'error' | 'defau
   }
 }
 
-// N-8: Tier pricing extracted to a constant so it isn't recreated every render
+// N-8: Tier pricing extracted to a constant. D14: Consider fetching from /billing/tiers API when available.
 const BILLING_TIERS = [
   { name: "FREE" as const, price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null, recommended: false },
   { name: "PRO" as const, price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, actionKey: "upgrade" as const },

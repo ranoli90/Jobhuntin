@@ -20,7 +20,7 @@ const buttonVariants = cva(
         lagoon: "bg-cyan-600 text-white shadow-sm hover:bg-cyan-700 hover:shadow-md",
       },
       size: {
-        sm: "h-9 min-h-[36px] px-3 text-sm rounded-md md:min-h-0",
+        sm: "h-9 min-h-[44px] px-3 text-sm rounded-md md:min-h-[36px] md:h-9",
         md: "h-11 min-h-[44px] px-4 text-sm rounded-lg md:min-h-0",
         lg: "h-12 min-h-[44px] px-6 text-base rounded-lg",
         icon: "h-11 min-h-[44px] min-w-[44px] p-0 rounded-lg md:min-h-0 md:min-w-0 md:h-10 md:w-10",
