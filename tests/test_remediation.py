@@ -27,14 +27,14 @@ class TestGetClientIp:
         assert get_client_ip(req) == "10.0.0.1"
 
     def test_x_forwarded_for_chain(self):
-        """Leftmost IP is the client."""
+        """Rightmost IP is the most trustworthy (added by our reverse proxy)."""
         req = MagicMock()
         def get_header(key):
             if key == "x-forwarded-for":
                 return "203.0.113.195, 70.41.3.18, 150.172.238.178"
             return None
         req.headers.get.side_effect = get_header
-        assert get_client_ip(req) == "203.0.113.195"
+        assert get_client_ip(req) == "150.172.238.178"
 
     def test_x_real_ip_fallback(self):
         """Fallback to X-Real-IP if no XFF."""
