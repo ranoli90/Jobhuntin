@@ -117,16 +117,24 @@ export function AutoCompleteInput({
         className={cn(className)}
         error={error}
         autoComplete="off"
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-autocomplete="list"
+        aria-controls="autocomplete-listbox"
         {...props}
       />
       {isOpen && filteredSuggestions.length > 0 && (
         <ul
           ref={listRef}
+          id="autocomplete-listbox"
+          role="listbox"
           className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
         >
           {filteredSuggestions.map((suggestion, index) => (
             <li
               key={suggestion}
+              role="option"
+              aria-selected={index === highlightedIndex}
               className={cn(
                 "px-3 py-2 text-sm cursor-pointer hover:bg-slate-50",
                 index === highlightedIndex && "bg-slate-50"

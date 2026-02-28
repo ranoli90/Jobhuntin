@@ -28,6 +28,14 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
         }
     }, [isOpen, reset]);
 
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose?.();
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [onClose]);
+
     if (!isOpen) return null;
 
     const handleGenerate = async () => {
@@ -54,7 +62,13 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
                 onClick={onClose}
             />
 
-            <Card tone="glass" className="relative w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 bg-white">
+            <Card
+                tone="glass"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Cover letter generator"
+                className="relative w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 bg-white"
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100">
                     <div className="flex items-center gap-3">
@@ -144,7 +158,6 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
                         <Button
                             variant="lagoon"
                             size="lg"
-                            wobble
                             className="w-full gap-2"
                             onClick={handleGenerate}
                             disabled={loading || !profile}
@@ -162,7 +175,7 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
                                     <RefreshCw className="h-4 w-4 mr-2" />
                                     Regenerate
                                 </Button>
-                                <Button variant="lagoon" wobble onClick={handleCopy}>
+                                <Button variant="lagoon" onClick={handleCopy}>
                                     {copied ? (
                                         <>
                                             <Check className="h-4 w-4 mr-2" />

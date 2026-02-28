@@ -122,7 +122,7 @@ function JobCard({
   );
 }
 
-const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; duration?: number }) => {
+const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
   const prevValueRef = useRef(0);
 
@@ -142,21 +142,21 @@ const AnimatedNumber = ({ value, duration = 1.5 }: { value: number | string; dur
       return;
     }
 
-    const diff = end - start;
-    const increment = diff / (duration * 60); // 60fps
-    let current = start;
+    const startTime = performance.now();
+    let rafId: number;
 
-    const timer = setInterval(() => {
-      current += increment;
-      if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-        setDisplayValue(end);
-        clearInterval(timer);
-      } else {
-        setDisplayValue(Math.floor(current));
+    function animate(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      setDisplayValue(Math.round(start + (end - start) * eased));
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate);
       }
-    }, 1000 / 60);
+    }
 
-    return () => clearInterval(timer);
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
   }, [value, duration]);
 
   return <span>{typeof value === 'string' ? value : displayValue}</span>;
@@ -759,7 +759,12 @@ export function JobsView() {
       <div
         className="relative h-[clamp(420px,60vh,640px)] w-full max-w-md mx-auto perspective-1000"
         role="region"
-        aria-label="Job swipe deck"
+        aria-label="Job card. Use left arrow to reject, right arrow to accept."
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') handleSwipe('REJECT');
+          if (e.key === 'ArrowRight') handleSwipe('ACCEPT');
+        }}
       >
         <div className="sr-only" aria-live="polite">{statusMessage}</div>
         <AnimatePresence>

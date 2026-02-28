@@ -279,7 +279,7 @@ export function SalarySuggestionCard({
     className,
 }: SalarySuggestionCardProps) {
     const formatSalary = (amount: number) => {
-        return new Intl.NumberFormat("en-US", {
+        return new Intl.NumberFormat(navigator.language || "en-US", {
             style: "currency",
             currency,
             maximumFractionDigits: 0,

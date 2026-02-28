@@ -91,7 +91,7 @@ function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   };
 
   return (
-    <aside className={`bg-card border-r border-border min-h-screen p-4 flex flex-col gap-0.5 ${open ? 'fixed inset-0 z-50 w-64' : 'hidden'} md:relative md:block md:w-56`}>
+    <aside role="navigation" aria-label="Admin navigation" className={`bg-card border-r border-border min-h-screen p-4 flex flex-col gap-0.5 ${open ? 'fixed inset-0 z-50 w-64' : 'hidden'} md:relative md:block md:w-56`}>
       <div className="flex items-center justify-between mb-6 px-2">
         <div className="text-xl font-bold text-primary">Sorce Admin</div>
         {onClose && (
@@ -118,7 +118,7 @@ function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <span>{l.icon}</span> {l.label}
+              <span aria-hidden="true">{l.icon}</span> {l.label}
             </Link>
           </div>
         );

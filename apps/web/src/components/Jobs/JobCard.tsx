@@ -267,7 +267,6 @@ export function JobCard({
         <Button
           size="lg"
           variant="lagoon"
-          wobble
           onClick={() => onQuickApply?.() ?? onSwipe("ACCEPT", job)}
           disabled={isApplying}
           className="gap-2"

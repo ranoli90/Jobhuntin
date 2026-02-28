@@ -6,6 +6,12 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Bug, Send } from 'lucide-react';
 
+declare global {
+  interface Window {
+    __USER_ID__?: string;
+  }
+}
+
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
@@ -146,7 +152,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
     try {
       // Try to get user ID from various sources
       return (
-        (window as any).__USER_ID__ ||
+        window.__USER_ID__ ||
         localStorage.getItem('userId') ||
         sessionStorage.getItem('userId')
       );

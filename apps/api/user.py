@@ -16,7 +16,7 @@ import json
 import uuid
 from datetime import UTC
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import asyncpg
 from fastapi import (
@@ -30,7 +30,7 @@ from fastapi import (
 from fastapi import (
     Path as FastAPIPath,
 )
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.storage import get_storage_service
@@ -53,27 +53,46 @@ logger = get_logger("sorce.user")
 router = APIRouter(tags=["user"])
 
 # Per-user rate limiters to prevent abuse on profile writes/uploads
-_profile_limiters: dict[str, RateLimiter] = {}
-_upload_limiters: dict[str, RateLimiter] = {}
+_profile_limiters: dict[str, tuple[RateLimiter, float]] = {}
+_upload_limiters: dict[str, tuple[RateLimiter, float]] = {}
+_LIMITER_TTL = 3600  # 1 hour
 
 
 def _get_profile_limiter(user_id: str) -> RateLimiter:
-    limiter = _profile_limiters.get(user_id)
-    if limiter is None:
-        limiter = RateLimiter(
-            max_calls=30, window_seconds=300.0, name=f"profile:{user_id}"
-        )
-        _profile_limiters[user_id] = limiter
+    import time as _time
+
+    now = _time.monotonic()
+    entry = _profile_limiters.get(user_id)
+    if entry and now - entry[1] < _LIMITER_TTL:
+        _profile_limiters[user_id] = (entry[0], now)
+        return entry[0]
+    # Evict stale entries
+    expired = [k for k, (_, ts) in _profile_limiters.items() if now - ts > _LIMITER_TTL]
+    for k in expired:
+        _profile_limiters.pop(k, None)
+    limiter = RateLimiter(
+        max_calls=30, window_seconds=300.0, name=f"profile:{user_id}"
+    )
+    _profile_limiters[user_id] = (limiter, now)
     return limiter
 
 
 def _get_upload_limiter(user_id: str) -> RateLimiter:
-    limiter = _upload_limiters.get(user_id)
-    if limiter is None:
-        limiter = RateLimiter(
-            max_calls=10, window_seconds=600.0, name=f"upload:{user_id}"
-        )
-        _upload_limiters[user_id] = limiter
+    import time as _time
+
+    now = _time.monotonic()
+    entry = _upload_limiters.get(user_id)
+    if entry and now - entry[1] < _LIMITER_TTL:
+        _upload_limiters[user_id] = (entry[0], now)
+        return entry[0]
+    # Evict stale entries
+    expired = [k for k, (_, ts) in _upload_limiters.items() if now - ts > _LIMITER_TTL]
+    for k in expired:
+        _upload_limiters.pop(k, None)
+    limiter = RateLimiter(
+        max_calls=10, window_seconds=600.0, name=f"upload:{user_id}"
+    )
+    _upload_limiters[user_id] = (limiter, now)
     return limiter
 
 
@@ -153,7 +172,7 @@ async def list_applications(
 
 class CreateApplicationBody(BaseModel):
     job_id: str
-    decision: str  # ACCEPT | REJECT
+    decision: Literal["ACCEPT", "REJECT"]
 
 
 @router.post("/applications")
@@ -163,6 +182,10 @@ async def create_application(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Create an application when user swipes ACCEPT; record REJECTED for REJECT."""
+    from shared.validators import validate_uuid
+
+    validate_uuid(body.job_id, "job_id")
+
     # N-7: Import at function scope to keep it visible
     from backend.domain.priority import compute_priority_score
 
@@ -368,7 +391,7 @@ async def answer_hold(
 
 
 class SnoozeBody(BaseModel):
-    hours: int = 24
+    hours: int = Field(default=24, ge=1, le=720)
 
 
 @router.post("/applications/{application_id}/snooze")

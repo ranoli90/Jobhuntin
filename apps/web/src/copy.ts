@@ -122,6 +122,18 @@ export const COPY = {
     ],
   },
 
+  // Dashboard
+  dashboard: {
+    title: "Your Dashboard",
+    activeApps: "Active Applications",
+    needsInput: "Needs Your Input",
+    completedToday: "Completed Today",
+    allCaughtUp: "All Caught Up",
+    noResults: "No Results",
+    startSearching: "Start Searching",
+    loading: "Loading applications...",
+  },
+
   // Navigation labels
   nav: {
     dashboard: "Dashboard",

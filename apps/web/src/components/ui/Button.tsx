@@ -25,15 +25,10 @@ const buttonVariants = cva(
         lg: "h-12 px-6 text-base rounded-lg",
         icon: "h-10 w-10 p-0 rounded-lg",
       },
-      wobble: {
-        true: "",
-        false: "",
-      },
     },
     defaultVariants: {
       variant: "primary",
       size: "md",
-      wobble: false,
     },
   },
 );
@@ -44,11 +39,11 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, wobble, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, wobble }), className)}
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
         {...props}
       />

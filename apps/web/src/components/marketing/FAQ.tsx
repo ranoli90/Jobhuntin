@@ -78,6 +78,8 @@ function FAQItem({ faq, index, isOpen, onToggle }: {
 
       <button
         onClick={onToggle}
+        aria-expanded={isOpen}
+        aria-controls={`faq-panel-${index}`}
         className="relative w-full flex items-center gap-4 p-6 text-left"
       >
         {/* Icon with gradient background */}
@@ -126,6 +128,8 @@ function FAQItem({ faq, index, isOpen, onToggle }: {
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
+            id={`faq-panel-${index}`}
+            role="region"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

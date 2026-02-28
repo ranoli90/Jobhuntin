@@ -1270,9 +1270,11 @@ async def csrf_prepare() -> dict[str, str]:
 async def healthz(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
-    """Deep health check: pings DB and returns env + metrics summary."""
-    from shared.circuit_breaker import get_all_circuit_breaker_statuses
+    """Deep health check: pings DB and returns env + basic status.
 
+    NOTE: circuit_breakers and metrics removed to avoid exposing internal
+    operational data to unauthenticated callers (S-40).
+    """
     s = get_settings()
     db_ok = False
     try:
@@ -1282,18 +1284,11 @@ async def healthz(
     except Exception:
         pass
 
-    # Get circuit breaker statuses
-    circuit_breakers = get_all_circuit_breaker_statuses()
-    cb_status = {cb["name"]: cb["state"] for cb in circuit_breakers}
-    any_open = any(cb["state"] == "open" for cb in circuit_breakers)
-
-    status = "ok" if db_ok and not any_open else "degraded"
+    status = "ok" if db_ok else "degraded"
     return {
         "status": status,
         "env": s.env.value,
         "db": "ok" if db_ok else "unreachable",
-        "circuit_breakers": cb_status,
-        "metrics": metrics_dump(),
     }
 
 
