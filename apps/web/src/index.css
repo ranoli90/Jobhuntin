@@ -72,6 +72,12 @@ html {
   min-height: 100svh;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   font-family: var(--font-body);
   background-color: #fafaf9;
@@ -113,10 +119,14 @@ html.dark ::selection {
   color: #fafaf9;
 }
 
-/* Focus visible styles for accessibility */
+/* Focus visible styles for accessibility (A6: contrast ≥ 3:1) */
 :focus-visible {
   outline: 2px solid #1c1917;
   outline-offset: 2px;
+}
+
+html.dark :focus-visible {
+  outline-color: #fafaf9;
 }
 
 /* Prevent iOS auto-zoom on inputs */

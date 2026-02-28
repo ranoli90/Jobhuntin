@@ -76,7 +76,13 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
         except Exception as e:
             logger.warning("Redis consumed-token check failed, falling back to in-memory: %s", e)
 
-    # In-memory fallback (single-instance only)
+    # In-memory fallback (single-instance only) - NOT safe for multi-worker deployments
+    if settings.env.value == "prod" and not hasattr(_mark_token_consumed, "_warned_no_redis"):
+        logger.warning(
+            "Redis not available in production - magic link token replay prevention uses in-memory store. "
+            "Set REDIS_URL for multi-instance deployments."
+        )
+        _mark_token_consumed._warned_no_redis = True  # type: ignore
     now = time.monotonic()
     expired = [k for k, ts in _consumed_tokens.items() if now - ts > _CONSUMED_TOKEN_TTL]
     for k in expired:

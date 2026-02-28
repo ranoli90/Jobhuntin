@@ -68,16 +68,24 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               </svg>
             </div>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">Something went wrong</h2>
+          <p className="text-gray-600 dark:text-slate-400 mb-4">
             {this.state.error?.message || 'An unexpected error occurred'}
           </p>
-          <button
-            onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try again
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+            >
+              Try again
+            </button>
+            <a
+              href="mailto:support@jobhuntin.com?subject=Error%20Report"
+              className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium text-center"
+            >
+              Report issue
+            </a>
+          </div>
         </div>
       );
     }

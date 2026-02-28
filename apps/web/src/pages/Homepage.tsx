@@ -10,6 +10,7 @@ import {
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
 import { cn } from '../lib/utils';
+import { ValidationUtils } from '../lib/validation';
 
 /* ─── Email capture hook ─── */
 function useEmailCapture() {
@@ -17,7 +18,7 @@ function useEmailCapture() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
-  const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  const validateEmail = (e: string) => ValidationUtils.validate.email(e.trim()).isValid;
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -103,15 +104,20 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   ];
   const [currentIdx, setCurrentIdx] = useState(0);
   useEffect(() => {
-    const interval = setInterval(() => setCurrentIdx((prev) => (prev + 1) % activities.length), 3000);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const start = () => { interval = setInterval(() => setCurrentIdx((prev) => (prev + 1) % activities.length), 3000); };
+    const stop = () => { if (interval) clearInterval(interval); interval = null; };
+    const onVisibility = () => (document.hidden ? stop() : start());
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
   const count = compact ? 3 : 4;
   const visibleItems = [];
   for (let i = 0; i < count; i++) visibleItems.push(activities[(currentIdx + i) % activities.length]);
   return (
     <div className="space-y-2">
-      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Sample activity</p>
+      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Demo activity</p>
       {visibleItems.map((item, idx) => (
         <div key={`${item.role}-${idx}-${currentIdx}`} className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-500" style={{ opacity: 1 - idx * 0.15 }}>
           <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-400" : "bg-purple-400")} />
@@ -126,10 +132,26 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
 /* ━━━ HOMEPAGE ━━━ */
 export default function Homepage() {
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [footerInView, setFooterInView] = useState(false);
+  const footerSentinelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const h = () => setStickyVisible(window.scrollY > 600);
+    const h = () => setStickyVisible(!footerInView && window.scrollY > 600);
+    h(); // initial
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
+  }, [footerInView]);
+
+  // X19: Hide sticky CTA when footer is in view
+  useEffect(() => {
+    const sentinel = footerSentinelRef.current;
+    if (!sentinel) return;
+    const io = new IntersectionObserver(
+      ([e]) => setFooterInView(e.isIntersecting),
+      { rootMargin: '-100px 0px 0px 0px', threshold: 0 }
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
   }, []);
 
   return (
@@ -839,6 +861,9 @@ export default function Homepage() {
           </FadeIn>
         </div>
       </section>
+
+      {/* Sentinel for X19: hide sticky CTA when footer approaches */}
+      <div ref={footerSentinelRef} className="h-px w-full" aria-hidden />
 
       {/* ── Sticky mobile CTA ── */}
       {stickyVisible && (

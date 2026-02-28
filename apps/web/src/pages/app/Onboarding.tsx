@@ -54,16 +54,16 @@ export default function Onboarding() {
 
   React.useEffect(() => {
     // Check for save-data preference
-    if ('connection' in navigator && (navigator as any).connection.saveData) {
+    if (navigator.connection?.saveData) {
       setIsLowPowerMode(true);
     }
 
     // Check battery status if available
-    let batteryObj: any = null;
+    let batteryObj: BatteryManager | null = null;
     let handleBatteryChange: (() => void) | null = null;
 
-    if ('getBattery' in navigator) {
-      (navigator as any).getBattery().then((battery: any) => {
+    if (navigator.getBattery) {
+      navigator.getBattery().then((battery) => {
         batteryObj = battery;
         handleBatteryChange = () => {
           setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
@@ -317,22 +317,24 @@ export default function Onboarding() {
     }
   }, [profile, currentStep]);
 
-  // Handle email typo check
+  // Handle email typo check (FV1: debounce to avoid flicker while typing)
   React.useEffect(() => {
-    if (contactInfo.email) {
+    if (!contactInfo.email) {
+      setEmailTypoSuggestion(null);
+      return;
+    }
+    const timer = setTimeout(() => {
       const suggestion = checkEmailTypo(contactInfo.email);
       setEmailTypoSuggestion(suggestion);
-    } else {
-      setEmailTypoSuggestion(null);
-    }
+    }, 400);
+    return () => clearTimeout(timer);
   }, [contactInfo.email]);
 
-  // Keyboard Shortcuts
+  // O4: Keyboard shortcuts — use ref to step container for robust button lookup
+  const stepContainerRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if inside an input/textarea to avoid conflict
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
-        // Allow Ctrl+Enter even in inputs to submit
         if (!(e.ctrlKey && e.key === 'Enter')) return;
       }
 
@@ -340,14 +342,14 @@ export default function Onboarding() {
         if (isLastStep) {
           window.dispatchEvent(new CustomEvent('onboarding:complete'));
         } else {
-          const nextBtn = document.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
+          const nextBtn = stepContainerRef.current?.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
           if (nextBtn) nextBtn.click();
           else window.dispatchEvent(new CustomEvent('onboarding:next'));
         }
       } else if (e.altKey && e.key === 'ArrowLeft') {
         if (!isFirstStep) window.dispatchEvent(new CustomEvent('onboarding:prev'));
       } else if (e.altKey && e.key === 'ArrowRight') {
-        const nextBtn = document.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
+        const nextBtn = stepContainerRef.current?.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
         if (nextBtn) nextBtn.click();
       }
     };
@@ -635,13 +637,13 @@ export default function Onboarding() {
     if (!preferences.location?.trim()) errors.location = "Required";
     if (!preferences.role_type?.trim()) errors.role_type = "Required";
 
-    // Salary validation - must be a positive number if provided
+    const SALARY_CAP = 10_000_000;
     if (preferences.salary_min?.trim()) {
       const salaryNum = parseInt(preferences.salary_min.trim());
       if (isNaN(salaryNum) || salaryNum < 0) {
         errors.salary_min = "Must be a valid number";
-      } else if (salaryNum > 10000000) {
-        errors.salary_min = "Please enter a reasonable value";
+      } else if (salaryNum > SALARY_CAP) {
+        errors.salary_min = `Min salary cannot exceed $${(SALARY_CAP / 1_000_000).toFixed(0)}M`;
       }
     }
     if (preferences.salary_max?.trim()) {
@@ -649,6 +651,8 @@ export default function Onboarding() {
       const minNum = preferences.salary_min?.trim() ? parseInt(preferences.salary_min.trim()) : 0;
       if (isNaN(maxNum) || maxNum < 0) {
         errors.salary_max = "Must be a valid number";
+      } else if (maxNum > SALARY_CAP) {
+        errors.salary_max = `Max salary cannot exceed $${(SALARY_CAP / 1_000_000).toFixed(0)}M`;
       } else if (minNum > 0 && maxNum < minNum) {
         errors.salary_max = "Max must be ≥ min";
       }
@@ -674,10 +678,19 @@ export default function Onboarding() {
       // Cache preferences data
       await cacheService.cacheUserPreferences(profile?.id || 'anonymous', trimmedPrefs);
 
-      await savePreferences({
-        ...trimmedPrefs,
-        salary_min: parseInt(trimmedPrefs.salary_min) || 0
-      } as any);
+      const prefs: import("../../hooks/useProfile").Preferences = {
+        location: trimmedPrefs.location,
+        role_type: trimmedPrefs.role_type,
+        salary_min: parseInt(trimmedPrefs.salary_min) || 0,
+        salary_max: trimmedPrefs.salary_max?.trim() ? parseInt(trimmedPrefs.salary_max.trim()) : undefined,
+        remote_only: trimmedPrefs.remote_only,
+        onsite_only: trimmedPrefs.onsite_only,
+        work_authorized: trimmedPrefs.work_authorized,
+        visa_sponsorship: trimmedPrefs.visa_sponsorship,
+        excluded_companies: trimmedPrefs.excluded_companies,
+        excluded_keywords: trimmedPrefs.excluded_keywords,
+      };
+      await savePreferences(prefs);
 
       // Update contact info separately if LinkedIn URL is provided
       if (linkedinUrl) {
@@ -769,7 +782,7 @@ export default function Onboarding() {
               <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" aria-hidden />
               <span className="text-[9px] font-black text-primary-700 uppercase tracking-wider">Setup</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => resetOnboarding()} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100">
+            <Button variant="ghost" size="sm" onClick={() => { if (window.confirm('Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100 dark:hover:bg-slate-800">
               Restart
             </Button>
           </div>
@@ -797,6 +810,7 @@ export default function Onboarding() {
 
             <AnimatePresence mode="wait">
               <motion.div
+                ref={stepContainerRef}
                 key={currentStep}
                 initial={shouldReduceMotion ? undefined : { opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -806,11 +820,14 @@ export default function Onboarding() {
               >
                 <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
                   {/* Profile completeness indicator - Desktop: horizontal, Mobile: compact */}
-                  <div className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg">
+                  <div
+                    className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg"
+                    title="Resume 20%, Contact 15%, Location 10%, Role 10%, Salary 5%, Work auth 5%, Skills up to 15%, Work style up to 15%"
+                  >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2 md:gap-3">
                         <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                          <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" />
+                          <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" aria-hidden />
                         </div>
                         <div>
                           <span className="block text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Profile Strength</span>
@@ -833,19 +850,19 @@ export default function Onboarding() {
                     <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
                       {(profile?.resume_url || resumeFile) && (
                         <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
                           Resume Added
                         </Badge>
                       )}
                       {preferences.location && (
                         <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
                           Location Set
                         </Badge>
                       )}
                       {preferences.role_type && (
                         <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
                           Job Title Set
                         </Badge>
                       )}

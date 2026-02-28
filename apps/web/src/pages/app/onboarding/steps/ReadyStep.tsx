@@ -71,7 +71,7 @@ export function ReadyStep({
                             className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl"
                         />
                         <div className="relative mx-auto flex h-14 w-14 md:h-28 md:w-28 items-center justify-center rounded-[1.5rem] md:rounded-[3rem] bg-emerald-500 shadow-2xl shadow-emerald-200">
-                            <CheckCircle2 className="h-7 w-7 md:h-12 md:w-16 text-white" />
+                            <CheckCircle2 className="h-7 w-7 md:h-12 md:w-16 text-white" aria-hidden />
                         </div>
                     </div>
 
@@ -90,7 +90,7 @@ export function ReadyStep({
                             <div className="relative z-10">
                                 <div className="flex items-center gap-3 mb-4 md:mb-8 border-b border-white/5 pb-2 md:pb-4">
                                     <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-primary-400">
-                                        <Rocket className="h-3 w-3 md:h-4 md:w-4" />
+                                        <Rocket className="h-3 w-3 md:h-4 md:w-4" aria-hidden />
                                     </div>
                                     <h3 className="font-black text-white/50 text-[8px] md:text-[10px] uppercase tracking-[0.3em]">Operational Directives</h3>
                                 </div>
@@ -101,21 +101,21 @@ export function ReadyStep({
                                             <p className="font-black text-sm md:text-lg text-white group-hover:text-emerald-400 transition-colors uppercase">{contactInfo.first_name} {contactInfo.last_name}</p>
                                             <p className="text-[10px] md:text-xs text-white/40 font-medium mt-0.5 max-w-[150px] truncate">{contactInfo.email}</p>
                                         </div>
-                                        <User className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-emerald-500 transition-colors" />
+                                        <User className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-emerald-500 transition-colors" aria-hidden />
                                     </div>
                                     <div className="flex items-start justify-between group">
                                         <div>
                                             <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">AOI GEOLOCATION</p>
                                             <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.location || "Global Priority"}</p>
                                         </div>
-                                        <MapPin className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
+                                        <MapPin className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" aria-hidden />
                                     </div>
                                     <div className="flex items-start justify-between group">
                                         <div>
                                             <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">TARGET CLASSIFICATION</p>
                                             <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.role_type || "Senior Impact Role"}</p>
                                         </div>
-                                        <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" />
+                                        <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" aria-hidden />
                                     </div>
                                 </div>
                                 <div className="mt-6 md:mt-10 pt-4 md:pt-8 border-t border-white/5 grid grid-cols-2 gap-3 md:gap-6">
@@ -134,11 +134,11 @@ export function ReadyStep({
                 </div>
             </div>
 
-            <div className="pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur">
+            <div className="pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-slate-950 dark:via-slate-950/95 backdrop-blur">
                 <Button size="lg" variant="primary" onClick={onNext} className="w-full h-10 md:h-16 rounded-[1.25rem] md:rounded-[2rem] text-base md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting} aria-label="Complete setup and go to jobs" data-onboarding-next>
                     <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">
                         {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
-                        <Rocket className="h-5 w-5 md:h-8 md:w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
+                        <Rocket className="h-5 w-5 md:h-8 md:w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" aria-hidden />
                     </span>
                     <motion.div
                         animate={shouldReduceMotion ? undefined : { x: ['-100%', '200%'] }}
@@ -153,7 +153,7 @@ export function ReadyStep({
                         onClick={handleShareArchetype}
                         className="text-[10px] md:text-xs font-bold text-primary-600 hover:text-primary-700 underline decoration-dotted underline-offset-4 flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity"
                     >
-                        <User className="w-3 h-3" />
+                        <User className="w-3 h-3" aria-hidden />
                         SHARE YOUR ARCHETYPE
                     </button>
                     <div className="w-[1px] h-3 bg-slate-300 mx-3 opacity-50"></div>

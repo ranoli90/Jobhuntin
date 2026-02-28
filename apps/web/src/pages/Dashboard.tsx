@@ -28,7 +28,7 @@ function statusVariant(status: string): 'success' | 'warning' | 'error' | 'defau
   }
 }
 
-// N-8: Tier pricing extracted to a constant so it isn't recreated every render
+// N-8: Tier pricing extracted to a constant. D14: Consider fetching from /billing/tiers API when available.
 const BILLING_TIERS = [
   { name: "FREE" as const, price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null, recommended: false },
   { name: "PRO" as const, price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, actionKey: "upgrade" as const },
@@ -73,6 +73,8 @@ function JobCard({
 
   return (
     <motion.div
+      role="article"
+      aria-label={`Job card. Swipe right to accept, left to reject.`}
       style={{
         zIndex: idx,
         position: 'absolute',
@@ -107,6 +109,7 @@ function JobCard({
       <motion.div
         className="absolute inset-0 rounded-2xl bg-emerald-500 z-20 pointer-events-none flex items-center justify-center"
         style={{ opacity: acceptOpacity }}
+        aria-hidden
       >
         <span className="text-6xl text-white font-black">✓</span>
       </motion.div>
@@ -114,6 +117,7 @@ function JobCard({
       <motion.div
         className="absolute inset-0 rounded-2xl bg-red-500 z-20 pointer-events-none flex items-center justify-center"
         style={{ opacity: rejectOpacity }}
+        aria-hidden
       >
         <span className="text-6xl text-white font-black">✕</span>
       </motion.div>
@@ -122,7 +126,7 @@ function JobCard({
   );
 }
 
-const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; duration?: number }) => {
+const AnimatedNumber = ({ value, duration = 1000, shouldReduceMotion = false }: { value: number | string; duration?: number; shouldReduceMotion?: boolean }) => {
   const [displayValue, setDisplayValue] = useState(0);
   const prevValueRef = useRef(0);
 
@@ -137,7 +141,7 @@ const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; du
     const end = numValue;
     prevValueRef.current = end;
 
-    if (start === end) {
+    if (start === end || shouldReduceMotion) {
       setDisplayValue(end);
       return;
     }
@@ -157,7 +161,7 @@ const AnimatedNumber = ({ value, duration = 1000 }: { value: number | string; du
 
     rafId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafId);
-  }, [value, duration]);
+  }, [value, duration, shouldReduceMotion]);
 
   return <span>{typeof value === 'string' ? value : displayValue}</span>;
 };
@@ -264,7 +268,7 @@ export default function Dashboard() {
             onClick={() => navigate("/app/jobs")}
           >
             <span className="relative z-10 flex items-center gap-2">
-              <Rocket className="h-5 w-5 transition-transform group-hover:rotate-12" />
+              <Rocket className="h-5 w-5 transition-transform group-hover:rotate-12" aria-hidden />
               <span className="font-medium">Find Jobs</span>
             </span>
           </Button>
@@ -298,7 +302,7 @@ export default function Dashboard() {
                       ) : typeof metric.value === 'string' ? (
                         metric.value
                       ) : (
-                        <AnimatedNumber value={metric.value} />
+                        <AnimatedNumber value={metric.value} shouldReduceMotion={!!shouldReduceMotion} />
                       )}
                     </p>
                   </div>
@@ -622,7 +626,7 @@ export function JobsView() {
       setSwipeCount(prev => prev + 1);
 
       if (direction === "ACCEPT") {
-        fireSuccessConfetti();
+        if (!shouldReduceMotion) fireSuccessConfetti();
         pushToast({
           title: "Match queued! 🚀",
           description: `AI is now tailoring your resume for ${swipedJob.company}. Undo available for 10s.`,
@@ -927,8 +931,8 @@ export function ApplicationsView() {
   const { applications, isLoading } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const locale = sharedLocale; // N-2: shared locale
-  // M-12: Client-side pagination
-  const [page, setPage] = useState(0);
+  // M-12: Client-side Load more (D16)
+  const [displayedCount, setDisplayedCount] = useState(APPLICATIONS_PAGE_SIZE);
 
   const filteredApps = useMemo(
     () => applications.filter(app =>
@@ -938,11 +942,12 @@ export function ApplicationsView() {
     [applications, searchTerm]
   );
 
-  const totalPages = Math.max(1, Math.ceil(filteredApps.length / APPLICATIONS_PAGE_SIZE));
-  const pagedApps = filteredApps.slice(page * APPLICATIONS_PAGE_SIZE, (page + 1) * APPLICATIONS_PAGE_SIZE);
+  // D16: Load more — show first N items, "Load more" appends next page
+  const loadMoreApps = filteredApps.slice(0, displayedCount);
+  const hasMoreToLoad = displayedCount < filteredApps.length;
 
-  // Reset page when search changes
-  useEffect(() => { setPage(0); }, [searchTerm]);
+  // Reset when search changes
+  useEffect(() => { setDisplayedCount(APPLICATIONS_PAGE_SIZE); }, [searchTerm]);
 
   if (isLoading) {
     return (
@@ -1013,7 +1018,7 @@ export function ApplicationsView() {
 
       {/* Mobile Card List */}
       <div className="grid gap-3 md:hidden">
-        {pagedApps.length === 0 ? (
+        {loadMoreApps.length === 0 ? (
           <Card className="flex flex-col items-center justify-center p-8 text-center" shadow="sm">
             <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
               <Radar className="w-8 h-8 text-slate-500 animate-pulse" />
@@ -1029,7 +1034,7 @@ export function ApplicationsView() {
             )}
           </Card>
         ) : (
-          pagedApps.map((app) => (
+          loadMoreApps.map((app) => (
             <Card key={app.id} className="p-4 border-slate-200" shadow="sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
@@ -1079,7 +1084,7 @@ export function ApplicationsView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {pagedApps.length === 0 ? (
+              {loadMoreApps.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center justify-center">
@@ -1138,7 +1143,7 @@ export function ApplicationsView() {
                         Details <ArrowUpRight className="ml-1 w-3 h-3" />
                       </Button>
                     </td>
-                  </tr>
+                    </tr>
                 ))
               )}
             </tbody>
@@ -1146,32 +1151,22 @@ export function ApplicationsView() {
         </div>
       </Card>
 
-      {/* M-12: Pagination controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-500 font-medium">
-            Showing {page * APPLICATIONS_PAGE_SIZE + 1}–{Math.min((page + 1) * APPLICATIONS_PAGE_SIZE, filteredApps.length)} of {filteredApps.length}
+      {/* D16: Load more controls */}
+      {filteredApps.length > 0 && (
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <p className="text-xs text-slate-500 font-medium" aria-live="polite">
+            Showing {loadMoreApps.length} of {filteredApps.length} applications
           </p>
-          <div className="flex gap-2">
+          {hasMoreToLoad ? (
             <Button
               variant="outline"
               size="sm"
-              disabled={page === 0}
-              onClick={() => setPage(p => Math.max(0, p - 1))}
+              onClick={() => setDisplayedCount(c => Math.min(c + APPLICATIONS_PAGE_SIZE, filteredApps.length))}
               className="text-xs font-bold"
             >
-              Previous
+              Load more
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage(p => p + 1)}
-              className="text-xs font-bold"
-            >
-              Next
-            </Button>
-          </div>
+          ) : null}
         </div>
       )}
 
@@ -1315,8 +1310,51 @@ export function HoldsView() {
 
 export function TeamView() {
   const navigate = useNavigate();
-  const { status, plan } = useBilling();
+  const { status, plan, loading: isLoading } = useBilling();
   const isSolo = plan !== "TEAM";
+
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6 pb-6 px-4 lg:px-0" aria-busy="true" aria-label="Loading workspace">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
+            <div className="h-4 w-64 bg-slate-100 rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-28 bg-slate-100 rounded-xl animate-pulse" />
+        </div>
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="lg:col-span-2 p-0 overflow-hidden border border-slate-200 rounded-2xl animate-pulse">
+            <div className="bg-slate-50 border-b border-slate-200 px-8 py-4">
+              <div className="h-4 w-32 bg-slate-200 rounded" />
+            </div>
+            <div className="divide-y divide-slate-100">
+              {[1, 2].map((i) => (
+                <div key={i} className="px-8 py-6 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-slate-200" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-24 bg-slate-200 rounded" />
+                      <div className="h-3 w-16 bg-slate-100 rounded" />
+                    </div>
+                  </div>
+                  <div className="h-6 w-16 bg-slate-100 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="p-8 border border-slate-200 rounded-2xl animate-pulse">
+            <div className="h-6 w-40 bg-slate-200 rounded mb-4" />
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-4 w-full bg-slate-100 rounded" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-6 px-4 lg:px-0">

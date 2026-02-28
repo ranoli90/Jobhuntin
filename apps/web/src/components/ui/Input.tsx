@@ -27,7 +27,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={inputType}
           value={value}
           className={cn(
-            "flex w-full rounded-2xl border border-gray-100 bg-white/50 px-4 py-4 text-base ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/10 focus-visible:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-100 transition-all duration-200 font-medium text-slate-900",
+            "flex w-full rounded-2xl border border-gray-100 bg-white/50 px-4 py-4 text-base ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-100 transition-all duration-200 font-medium text-slate-900",
             icon && "pl-12",
             (onClear || isPassword) && "pr-12",
             error && "border-red-500 focus-visible:ring-red-500/10 focus-visible:border-red-500 bg-red-50/50",
@@ -44,9 +44,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
-              <EyeOff className="h-4 w-4" />
+              <EyeOff className="h-4 w-4" aria-hidden />
             ) : (
-              <Eye className="h-4 w-4" />
+              <Eye className="h-4 w-4" aria-hidden />
             )}
           </button>
         )}
@@ -57,7 +57,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 p-1 rounded-full hover:bg-red-50 transition-all duration-200"
             aria-label="Clear input"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden />
           </button>
         )}
       </div>

@@ -175,6 +175,7 @@ export function ConfirmContactStep({
                         className="bg-white shadow-sm"
                         error={!!formErrors.phone}
                     />
+                    <p className="mt-1 text-[10px] text-slate-400">Optional. Include country code (e.g. +1 for US).</p>
                     {formErrors.phone && (
                         <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.phone}</p>
                     )}

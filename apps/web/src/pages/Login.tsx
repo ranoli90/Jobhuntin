@@ -9,6 +9,7 @@ import {
   Briefcase, Send, Zap
 } from 'lucide-react';
 import { Logo } from '../components/brand/Logo';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { magicLinkService } from '../services/magicLinkService';
@@ -43,6 +44,14 @@ export default function Login() {
       navigate(safeReturnTo, { replace: true });
     }
   }, [authLoading, user, navigate, safeReturnTo]);
+
+  // Show session expired toast when redirected from 401
+  useEffect(() => {
+    if (sessionStorage.getItem('session_expired') === 'true') {
+      sessionStorage.removeItem('session_expired');
+      pushToast({ title: "Session expired", description: "Please sign in again.", tone: "info" });
+    }
+  }, []);
 
   const emailIsValid = useMemo(() => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -249,7 +258,10 @@ export default function Login() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 relative">
+        <div className="absolute top-6 right-6">
+          <ThemeToggle />
+        </div>
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-10">
@@ -331,7 +343,7 @@ export default function Login() {
                   </motion.div>
                 ) : (
                   <span className="flex items-center gap-2">
-                    Continue <ArrowRight className="w-4 h-4" />
+                    Continue <ArrowRight className="w-4 h-4" aria-hidden />
                   </span>
                 )}
               </Button>
@@ -346,7 +358,7 @@ export default function Login() {
               </p>
 
               <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <ShieldCheck className="w-4 h-4 text-emerald-500" aria-hidden />
                 <span>Secure • Encrypted • No passwords stored</span>
               </div>
             </div>

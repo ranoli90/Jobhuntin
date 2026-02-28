@@ -1,6 +1,5 @@
-import confetti from 'canvas-confetti';
-
-export function fireSuccessConfetti() {
+export async function fireSuccessConfetti() {
+  const confetti = (await import('canvas-confetti')).default;
   confetti({
     particleCount: 80,
     spread: 70,
@@ -12,7 +11,8 @@ export function fireSuccessConfetti() {
   });
 }
 
-export function fireUpgradeConfetti(): () => void {
+export async function fireUpgradeConfetti(): Promise<() => void> {
+  const confetti = (await import('canvas-confetti')).default;
   const end = Date.now() + 600;
   let cancelled = false;
   const frame = () => {

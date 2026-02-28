@@ -28,6 +28,7 @@
   <link rel="preconnect" href="https://www.googletagmanager.com">
 
   <!-- Fonts - preload for LCP -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&display=swap" as="style">
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&display=swap"
     rel="stylesheet">
@@ -36,16 +37,16 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
 
-  <!-- Dark mode: apply class based on system preference -->
+  <!-- Dark mode: apply class based on system preference; user override in localStorage -->
   <script>
     (function() {
-      const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const stored = localStorage.getItem('jobhuntin-theme');
+      const dark = stored === 'dark' || (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.classList.toggle('dark', dark);
     })();
   </script>
-  <!-- Security headers -->
+  <!-- Security: upgrade-insecure-requests. HSTS must be set by server (not meta). -->
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-  <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
 </head>
 
 <body class="bg-white text-gray-900">

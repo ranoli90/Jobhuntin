@@ -1,10 +1,43 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FocusTrap } from "focus-trap-react";
 import { Upload, FileText, X, Sparkles, User, ArrowLeft, ArrowRight, Briefcase } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { ParsedResume } from "../../../../types/onboarding";
+
+function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () => void }) {
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="skip-confirm-title" onClick={(e) => e.target === e.currentTarget && onStay()}>
+            <FocusTrap
+                focusTrapOptions={{
+                    initialFocus: () => containerRef.current?.querySelector<HTMLElement>('button') ?? false,
+                    allowOutsideClick: true,
+                    escapeDeactivates: true,
+                }}
+            >
+                <div ref={containerRef} className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm shadow-xl border border-slate-200 dark:border-slate-700 relative" onClick={(e) => e.stopPropagation()}>
+                    <button
+                        type="button"
+                        onClick={onStay}
+                        aria-label="Cancel and stay"
+                        className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        <X className="h-5 w-5" aria-hidden />
+                    </button>
+                    <h3 id="skip-confirm-title" className="font-bold text-slate-900 dark:text-slate-100 mb-2 pr-8">Skip resume?</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Resume improves match quality by ~40%. You can add it later in Settings.</p>
+                    <div className="flex gap-3">
+                        <Button variant="outline" onClick={onStay} className="flex-1">Stay</Button>
+                        <Button variant="primary" onClick={onSkip} className="flex-1">Skip for now</Button>
+                    </div>
+                </div>
+            </FocusTrap>
+        </div>
+    );
+}
 
 interface ResumeStepProps {
     onNext: () => void;
@@ -141,7 +174,15 @@ export function ResumeStep({
                 <input
                     type="file"
                     accept=".pdf"
-                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && file.size > 15 * 1024 * 1024) {
+                        setResumeError("File must be under 15MB");
+                        e.target.value = "";
+                        return;
+                      }
+                      handleFileChange(file || null);
+                    }}
                     className="hidden"
                     id="resume-upload"
                     disabled={isUploading}
@@ -169,7 +210,7 @@ export function ResumeStep({
                         <p className={`text-base md:text-lg font-bold ${resumeFile ? 'text-primary-700' : 'text-slate-700'}`}>
                             {resumeFile ? resumeFile.name : "Click to upload your resume"}
                         </p>
-                        <p className="text-xs text-slate-400 font-medium">PDF format - Max 15MB</p>
+                        <p className="text-xs text-slate-400 font-medium">PDF format — Max 15MB</p>
                     </div>
                 </label>
                 {resumeFile && !isUploading && (
@@ -361,16 +402,10 @@ export function ResumeStep({
             </div>
 
             {showSkipConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="skip-confirm-title">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm shadow-xl border border-slate-200 dark:border-slate-700">
-                        <h3 id="skip-confirm-title" className="font-bold text-slate-900 dark:text-slate-100 mb-2">Skip resume?</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Resume improves match quality by ~40%. You can add it later in Settings.</p>
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={() => setShowSkipConfirm(false)} className="flex-1">Stay</Button>
-                            <Button variant="primary" onClick={() => { setShowSkipConfirm(false); onNext(); }} className="flex-1">Skip for now</Button>
-                        </div>
-                    </div>
-                </div>
+                <SkipConfirmModal
+                    onStay={() => setShowSkipConfirm(false)}
+                    onSkip={() => { setShowSkipConfirm(false); onNext(); }}
+                />
             )}
         </div>
     );

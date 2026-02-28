@@ -1,10 +1,11 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2 } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download } from "lucide-react";
 import { useProfile } from "../hooks/useProfile";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { pushToast } from "../lib/toast";
+import { getApiBase, getAuthHeaders } from "../lib/api";
 
 export default function Settings() {
   const { profile, loading, updateProfile, uploadResume, uploadAvatar } = useProfile();
@@ -28,6 +29,7 @@ export default function Settings() {
   const [isAvatarUploading, setIsAvatarUploading] = React.useState(false);
   const [resumeError, setResumeError] = React.useState<string | null>(null);
   const [resumeSuccess, setResumeSuccess] = React.useState<string | null>(null);
+  const [isExporting, setIsExporting] = React.useState(false);
 
   React.useEffect(() => {
     if (profile?.preferences) {
@@ -139,6 +141,28 @@ export default function Settings() {
     } finally {
       setIsUploading(false);
       e.target.value = "";
+    }
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    try {
+      const base = getApiBase();
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${base.replace(/\/$/, "")}/me/export`, { headers, credentials: "include" });
+      if (!res.ok) throw new Error(res.statusText || "Export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `jobhuntin-data-export-${new Date().toISOString().slice(0, 10)}.ndjson`;
+      a.click();
+      URL.revokeObjectURL(url);
+      pushToast({ title: "Data exported", tone: "success" });
+    } catch (err) {
+      pushToast({ title: "Export failed", description: (err as Error).message, tone: "error" });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -393,6 +417,18 @@ export default function Settings() {
               {isSaving ? "Saving…" : "Save preferences"}
             </Button>
           </form>
+        </Card>
+
+        <Card tone="shell" shadow="lift" className="p-6">
+          <h2 className="font-display text-xl mb-2">Data & privacy</h2>
+          <p className="text-sm text-brand-ink/60 mb-4">
+            Export your data (profile, applications, events) for portability. See our{" "}
+            <a href="/privacy" className="underline hover:text-brand-ink">Privacy Policy</a> for details.
+          </p>
+          <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {isExporting ? "Exporting…" : "Export my data"}
+          </Button>
         </Card>
       </div>
     </div>

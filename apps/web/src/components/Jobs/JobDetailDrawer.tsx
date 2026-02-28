@@ -1,11 +1,12 @@
 import * as React from "react";
+import { FocusTrap } from "focus-trap-react";
 import { X, MapPin, DollarSign, ExternalLink, Bookmark, Share2, CheckCircle, Briefcase, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import type { JobPosting } from "../../hooks/useJobs";
 import { CoverLetterGenerator } from "./CoverLetterGenerator";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface JobDetailDrawerProps {
   job: JobPosting | null;
@@ -18,6 +19,7 @@ interface JobDetailDrawerProps {
 
 export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved }: JobDetailDrawerProps) {
   const [showGenerator, setShowGenerator] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -38,12 +40,22 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
       />
 
       {/* Drawer */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Job details"
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white shadow-2xl"
+      <FocusTrap
+        active={isOpen}
+        focusTrapOptions={{
+          initialFocus: () => drawerRef.current?.querySelector<HTMLElement>('button, [href]') ?? false,
+          allowOutsideClick: true,
+          escapeDeactivates: true,
+          returnFocusOnDeactivate: true,
+        }}
       >
+        <div
+          ref={drawerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Job details"
+          className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-white dark:bg-slate-900 shadow-2xl"
+        >
         <div className="p-8">
           {/* Header */}
           <div className="flex items-start justify-between">
@@ -56,8 +68,8 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
                 </div>
               )}
               <div>
-                <h2 className="font-display text-2xl text-brand-ink">{job.title}</h2>
-                <p className="text-sm font-semibold">{job.company}</p>
+                <h2 className="font-display text-2xl text-brand-ink dark:text-slate-100">{job.title}</h2>
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{job.company}</p>
               </div>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close job details">
@@ -136,7 +148,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
 
             <Button
               variant="outline"
-              className="w-full gap-2 border-dashed border-slate-300 text-slate-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50"
+              className="w-full gap-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 dark:hover:border-primary-700"
               onClick={() => setShowGenerator(true)}
             >
               <Wand2 className="h-4 w-4" />
@@ -184,6 +196,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
           </div>
         </div>
       </div>
+      </FocusTrap>
 
       <CoverLetterGenerator
         job={job}

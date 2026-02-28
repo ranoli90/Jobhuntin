@@ -186,6 +186,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # NOTE: unsafe-inline required for inline scripts (e.g. gtag). Consider nonce-based CSP for stricter XSS protection.
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; "

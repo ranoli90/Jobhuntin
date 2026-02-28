@@ -14,6 +14,7 @@ import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
 import { CookieConsent } from './components/CookieConsent';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastShelf } from './components/ui/ToastShelf';
 
 // Lazy Load Pages for Performance
 const Homepage = React.lazy(() => import("./pages/Homepage"));
@@ -41,6 +42,7 @@ const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const Onboarding = React.lazy(() => import("./pages/app/Onboarding"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
+const Maintenance = React.lazy(() => import("./pages/Maintenance"));
 const About = React.lazy(() => import("./pages/About"));
 const Locations = React.lazy(() => import("./pages/Locations"));
 
@@ -130,7 +132,7 @@ function CompletedOnboardingRedirect({ children }: { children: React.ReactNode }
 
 // Loading Fallback
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+  <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950" role="status" aria-label="Loading page">
     <LoadingSpinner label="Loading..." />
   </div>
 );
@@ -162,6 +164,7 @@ export default function App() {
         <link rel="alternate" hreflang="x-default" href={`${config.urls.homepage}${location.pathname}`} />
       </Helmet>
       <ScrollToTop />
+      <ToastShelf />
       <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -190,6 +193,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/locations" element={<Locations />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/maintenance" element={<Maintenance />} />
             <Route path="*" element={<NotFound />} />
           </Route>
 

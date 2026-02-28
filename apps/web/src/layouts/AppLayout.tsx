@@ -4,7 +4,6 @@ import { useAuth } from "../hooks/useAuth";
 import { useBilling } from "../hooks/useBilling";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
-import { ToastShelf } from "../components/ui/ToastShelf";
 import { PageTransition } from "../components/navigation/PageTransition";
 import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from "../components/navigation/MobileDrawer";
 import { AnimatePresence } from "framer-motion";
@@ -23,6 +22,7 @@ import {
   LogOut,
   Globe,
 } from "lucide-react";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 const NAV_ITEMS = [
   { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
@@ -66,7 +66,7 @@ export default function AppLayout() {
             const Icon = item.icon;
             return (
               <NavLink key={item.to} to={item.to} className={navLinkClass}>
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" aria-hidden />
                 {item.label}
               </NavLink>
             );
@@ -90,7 +90,7 @@ export default function AppLayout() {
             className="mt-4 w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-bold"
             onClick={signOut}
           >
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
+            <LogOut className="mr-2 h-4 w-4" aria-hidden /> Sign out
           </Button>
         </div>
       </aside>
@@ -129,7 +129,7 @@ export default function AppLayout() {
               closeMobile();
             }}
           >
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
+            <LogOut className="mr-2 h-4 w-4" aria-hidden /> Sign out
           </Button>
         </MobileDrawerFooter>
       </MobileDrawer>
@@ -149,7 +149,7 @@ export default function AppLayout() {
             <div className="flex items-center gap-2">
               <div className="hidden lg:block">
                 <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400 font-black">Dashboard</p>
-                <p className="text-sm font-black text-slate-900">Application Console</p>
+                <p className="text-sm font-black text-slate-900 dark:text-slate-100">Dashboard</p>
               </div>
               <div className="lg:hidden">
                 <Logo iconOnly size="sm" />
@@ -157,6 +157,7 @@ export default function AppLayout() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle className="text-slate-600 dark:text-slate-400" />
             <Badge variant="primary" size="sm" className="font-black px-3">
               {plan ?? "Free"}
             </Badge>
@@ -217,7 +218,6 @@ export default function AppLayout() {
             </button>
           </div>
         </nav>
-        <ToastShelf />
       </div>
     </div>
   );
