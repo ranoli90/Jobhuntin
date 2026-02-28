@@ -820,11 +820,14 @@ export default function Onboarding() {
               >
                 <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
                   {/* Profile completeness indicator - Desktop: horizontal, Mobile: compact */}
-                  <div className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg">
+                  <div
+                    className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg"
+                    title="Resume 20%, Contact 15%, Location 10%, Role 10%, Salary 5%, Work auth 5%, Skills up to 15%, Work style up to 15%"
+                  >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2 md:gap-3">
                         <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                          <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" />
+                          <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" aria-hidden />
                         </div>
                         <div>
                           <span className="block text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Profile Strength</span>
@@ -847,19 +850,19 @@ export default function Onboarding() {
                     <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
                       {(profile?.resume_url || resumeFile) && (
                         <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
                           Resume Added
                         </Badge>
                       )}
                       {preferences.location && (
                         <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
                           Location Set
                         </Badge>
                       )}
                       {preferences.role_type && (
                         <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
                           Job Title Set
                         </Badge>
                       )}

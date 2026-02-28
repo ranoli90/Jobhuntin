@@ -18,8 +18,16 @@ function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () =
                     escapeDeactivates: true,
                 }}
             >
-                <div ref={containerRef} className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm shadow-xl border border-slate-200 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
-                    <h3 id="skip-confirm-title" className="font-bold text-slate-900 dark:text-slate-100 mb-2">Skip resume?</h3>
+                <div ref={containerRef} className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm shadow-xl border border-slate-200 dark:border-slate-700 relative" onClick={(e) => e.stopPropagation()}>
+                    <button
+                        type="button"
+                        onClick={onStay}
+                        aria-label="Cancel and stay"
+                        className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        <X className="h-5 w-5" aria-hidden />
+                    </button>
+                    <h3 id="skip-confirm-title" className="font-bold text-slate-900 dark:text-slate-100 mb-2 pr-8">Skip resume?</h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Resume improves match quality by ~40%. You can add it later in Settings.</p>
                     <div className="flex gap-3">
                         <Button variant="outline" onClick={onStay} className="flex-1">Stay</Button>

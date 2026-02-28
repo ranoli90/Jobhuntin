@@ -109,6 +109,7 @@ function JobCard({
       <motion.div
         className="absolute inset-0 rounded-2xl bg-emerald-500 z-20 pointer-events-none flex items-center justify-center"
         style={{ opacity: acceptOpacity }}
+        aria-hidden
       >
         <span className="text-6xl text-white font-black">✓</span>
       </motion.div>
@@ -116,6 +117,7 @@ function JobCard({
       <motion.div
         className="absolute inset-0 rounded-2xl bg-red-500 z-20 pointer-events-none flex items-center justify-center"
         style={{ opacity: rejectOpacity }}
+        aria-hidden
       >
         <span className="text-6xl text-white font-black">✕</span>
       </motion.div>

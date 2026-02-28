@@ -343,7 +343,7 @@ export default function Login() {
                   </motion.div>
                 ) : (
                   <span className="flex items-center gap-2">
-                    Continue <ArrowRight className="w-4 h-4" />
+                    Continue <ArrowRight className="w-4 h-4" aria-hidden />
                   </span>
                 )}
               </Button>
@@ -358,7 +358,7 @@ export default function Login() {
               </p>
 
               <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <ShieldCheck className="w-4 h-4 text-emerald-500" aria-hidden />
                 <span>Secure • Encrypted • No passwords stored</span>
               </div>
             </div>
