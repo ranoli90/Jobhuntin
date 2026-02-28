@@ -51,7 +51,7 @@ export function Logo({
                     : "bg-purple-600 shadow-lg shadow-purple-600/20 transition-all duration-300 group-hover:bg-purple-700",
                 currentSize.iconBox
             )}>
-                <Bot className={cn("text-white", currentSize.bot)} />
+                <Bot className={cn("text-white", currentSize.bot)} aria-hidden />
             </div>
             {!iconOnly && (
                 <span className={cn(
@@ -69,7 +69,7 @@ export function Logo({
 
     if (to) {
         return (
-            <Link to={to} onClick={onClick} className="inline-block">
+            <Link to={to} onClick={onClick} className="inline-block" aria-label={iconOnly ? "JobHuntin home" : undefined}>
                 {content}
             </Link>
         );
