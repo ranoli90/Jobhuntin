@@ -6,6 +6,7 @@ import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { pushToast } from "../lib/toast";
 import { getApiBase, getAuthHeaders } from "../lib/api";
+import { telemetry } from "../lib/telemetry";
 
 export default function Settings() {
   const { profile, loading, updateProfile, uploadResume, uploadAvatar } = useProfile();
@@ -158,6 +159,7 @@ export default function Settings() {
       a.download = `jobhuntin-data-export-${new Date().toISOString().slice(0, 10)}.ndjson`;
       a.click();
       URL.revokeObjectURL(url);
+      telemetry.track("data_exported", {});
       pushToast({ title: "Data exported", tone: "success" });
     } catch (err) {
       pushToast({ title: "Export failed", description: (err as Error).message, tone: "error" });

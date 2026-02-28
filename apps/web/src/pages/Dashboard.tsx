@@ -1010,13 +1010,14 @@ export function ApplicationsView() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
         <div>
           <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Active Applications</h2>
-          <p className="text-slate-500 font-medium">Tracking {applications.length} automated application threads.</p>
+          <p id="applications-search-hint" className="text-slate-500 font-medium">Tracking {applications.length} automated application threads.</p>
         </div>
         <div className="relative w-full md:w-72">
           <input
             type="text"
             placeholder="Search company or title..."
             aria-label="Search applications by company or title"
+            aria-describedby="applications-search-hint"
             className="w-full px-10 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -1115,7 +1116,20 @@ export function ApplicationsView() {
                 </tr>
               ) : (
                 loadMoreApps.map((app) => (
-                  <tr key={app.id} className="group hover:bg-slate-50/50 transition-colors">
+                  <tr
+                    key={app.id}
+                    className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View details for ${app.company} - ${app.job_title}`}
+                    onClick={() => navigate(`/app/applications/${app.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/app/applications/${app.id}`);
+                      }
+                    }}
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
@@ -1143,14 +1157,9 @@ export function ApplicationsView() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="font-bold text-xs uppercase text-slate-500 hover:text-primary-600"
-                        onClick={() => navigate(`/app/applications/${app.id}`)}
-                      >
-                        Details <ArrowUpRight className="ml-1 w-3 h-3" />
-                      </Button>
+                      <span className="inline-flex items-center gap-1 text-xs font-bold uppercase text-slate-500 group-hover:text-primary-600">
+                        Details <ArrowUpRight className="w-3 h-3" />
+                      </span>
                     </td>
                     </tr>
                 ))

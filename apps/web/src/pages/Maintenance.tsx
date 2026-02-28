@@ -19,6 +19,9 @@ export default function Maintenance() {
         <p className="text-slate-600 dark:text-slate-400 mb-6">
           JobHuntin is temporarily unavailable for scheduled maintenance. We&apos;ll be back shortly.
         </p>
+        <p className="text-sm text-slate-500 dark:text-slate-500 mb-6">
+          Expected back soon. Check back in a few minutes or contact support for updates.
+        </p>
         <a
           href="mailto:support@jobhuntin.com"
           className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline"
