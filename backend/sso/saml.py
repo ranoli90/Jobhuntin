@@ -13,7 +13,9 @@ import hmac
 import json
 import time
 from typing import Any
-from xml.etree import ElementTree as ET  # nosec B405 - SAML verified via signxml when cert present
+from xml.etree import (
+    ElementTree as ET,  # nosec B405 - SAML verified via signxml when cert present
+)
 
 import asyncpg
 from shared.config import Environment, get_settings

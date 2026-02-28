@@ -19,7 +19,6 @@ from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 try:
     from backend.sso.saml import (
         create_sso_session_token,
-        find_tenant_by_sso_domain,
         generate_sp_metadata,
         get_sso_config,
         parse_saml_response,

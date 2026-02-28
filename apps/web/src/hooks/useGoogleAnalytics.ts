@@ -2,13 +2,6 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { config } from '../config';
 
-declare global {
-    interface Window {
-        gtag?: (command: string, targetId: string, config?: Record<string, any>) => void;
-        dataLayer?: any[];
-    }
-}
-
 export function useGoogleAnalytics() {
     const location = useLocation();
     const gaId = config.analytics.gaId;

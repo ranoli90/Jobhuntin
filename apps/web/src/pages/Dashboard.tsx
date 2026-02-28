@@ -1105,7 +1105,7 @@ export function ApplicationsView() {
                   </td>
                 </tr>
               ) : (
-                pagedApps.map((app) => (
+                loadMoreApps.map((app) => (
                   <tr key={app.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">

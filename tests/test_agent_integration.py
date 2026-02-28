@@ -398,7 +398,7 @@ async def test_validate_critical_rejects_missing_secrets():
         sso_session_secret="",  # Missing!
     )
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(RuntimeError, match="Missing critical env vars"):
         settings.validate_critical()
 
 

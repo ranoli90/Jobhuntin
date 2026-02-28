@@ -155,7 +155,8 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
       return (
         window.__USER_ID__ ||
         localStorage.getItem('userId') ||
-        sessionStorage.getItem('userId')
+        sessionStorage.getItem('userId') ||
+        undefined
       );
     } catch {
       return undefined;
