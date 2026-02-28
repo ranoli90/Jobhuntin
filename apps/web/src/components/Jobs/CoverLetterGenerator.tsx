@@ -66,7 +66,7 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
                             <p className="text-sm text-slate-500 font-medium">Drafting for {job.company}</p>
                         </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={onClose}>
+                    <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close cover letter generator">
                         <X className="h-5 w-5" />
                     </Button>
                 </div>
