@@ -61,7 +61,6 @@ from backend.domain.tenant import (
     TenantContext,
     resolve_tenant_context,
 )
-from shared.metrics import dump as metrics_dump
 from shared.metrics import incr
 
 # ---------------------------------------------------------------------------
@@ -185,13 +184,13 @@ app.state.cors_origins = CORS_ORIGINS
 async def ensure_cors_on_all_responses(request: Request, call_next):
     origin = request.headers.get("origin", "")
     is_allowed_origin = origin in CORS_ORIGINS
-    
+
     response = await call_next(request)
-    
+
     if is_allowed_origin:
         response.headers.setdefault("Access-Control-Allow-Origin", origin)
         response.headers.setdefault("Access-Control-Allow-Credentials", "true")
-    
+
     return response
 
 # ---------------------------------------------------------------------------

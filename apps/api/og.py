@@ -3,9 +3,9 @@ import io
 import httpx
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from PIL import Image, ImageDraw, ImageFont
+from shared.middleware import get_client_ip
 
 from shared.metrics import get_rate_limiter
-from shared.middleware import get_client_ip
 
 router = APIRouter()
 
