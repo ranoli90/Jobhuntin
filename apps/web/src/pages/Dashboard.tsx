@@ -797,7 +797,7 @@ export function JobsView() {
             onChange={(e) => handleLocationChange(e.target.value)}
           />
           <Badge variant="primary" className="py-2 px-4 rounded-xl" aria-live="polite" aria-atomic="true">
-            {jobs.length - currentIndex} jobs remaining
+            {jobs.length - currentIndex} {t("dashboard.jobsRemaining", locale)}
           </Badge>
         </div>
       </div>
@@ -1200,7 +1200,7 @@ export function ApplicationsView() {
           <Zap className="h-5 w-5" />
         </div>
         <p className="text-sm text-primary-900 font-medium font-display leading-tight">
-          Your AI agent is actively monitoring <span className="font-black">new job listings</span> across LinkedIn and Wellfound. New matches will appear in your dashboard shortly.
+          {t("dashboard.aiAgentMonitoring", locale)} <span className="font-black">{t("dashboard.aiAgentMonitoringNewListings", locale)}</span> {t("dashboard.aiAgentMonitoringSource", locale)}
         </p>
       </div>
     </div>

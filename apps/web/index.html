@@ -38,6 +38,13 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
 
+  <!-- I5: Set lang from locale (en, fr, etc.) -->
+  <script>
+    (function() {
+      const lang = (navigator.language || navigator.userLanguage || 'en').split('-')[0];
+      document.documentElement.lang = ['en','fr'].includes(lang) ? lang : 'en';
+    })();
+  </script>
   <!-- Dark mode: apply class based on system preference; user override in localStorage -->
   <script>
     (function() {

@@ -12,6 +12,10 @@ const dictionaries: Dict = {
     "dashboard.filterPlaceholder": "Filter location...",
     "dashboard.matchAlert": "Match Alert! High-fit role detected.",
     "dashboard.sweepComplete": "Radar Sweep Complete",
+    "dashboard.aiAgentMonitoring": "Your AI agent is actively monitoring",
+    "dashboard.aiAgentMonitoringNewListings": "new job listings",
+    "dashboard.aiAgentMonitoringSource": "across LinkedIn and Wellfound. New matches will appear in your dashboard shortly.",
+    "dashboard.jobsRemaining": "jobs remaining",
 
     "holds.responseRequired": "RESPONSE REQUIRED",
 
@@ -53,6 +57,10 @@ const dictionaries: Dict = {
     "dashboard.filterPlaceholder": "Filtrer par localisation...",
     "dashboard.matchAlert": "Alerte match ! Offre très adaptée détectée.",
     "dashboard.sweepComplete": "Balayage terminé",
+    "dashboard.aiAgentMonitoring": "Votre agent IA surveille activement les",
+    "dashboard.aiAgentMonitoringNewListings": "nouvelles offres d'emploi",
+    "dashboard.aiAgentMonitoringSource": "sur LinkedIn et Wellfound. Les nouveaux matchs apparaîtront bientôt sur votre tableau de bord.",
+    "dashboard.jobsRemaining": "offres restantes",
 
     "holds.responseRequired": "RÉPONSE REQUISE",
 
