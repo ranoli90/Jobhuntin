@@ -218,7 +218,7 @@ export default function Login() {
             <div>
               <h2 className="font-display text-4xl xl:text-5xl font-bold text-white leading-tight mb-4 tracking-tight">
                 Your AI agent<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">
+                <span className="text-primary-600 dark:text-primary-400">
                   is ready to hunt
                 </span>
               </h2>
