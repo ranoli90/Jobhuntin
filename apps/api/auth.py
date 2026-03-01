@@ -11,13 +11,14 @@ from typing import Any
 from urllib.parse import quote
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
+from shared.middleware import get_client_ip
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
 from shared.repo_root import find_repo_root
 
-from shared.metrics import RateLimiter, incr
+from shared.metrics import RateLimiter, get_rate_limiter, incr
 
 logger = get_logger("sorce.api.auth")
 
@@ -417,17 +418,18 @@ https://jobhuntin.com
         logger.error(
             "[MAGIC_LINK] Resend email failed",
             extra={
-                "email": email,
+                "email": _mask_email(email),
                 "status": resp.status_code,
                 "response": resp.text[:200],
             },
         )
         raise HTTPException(status_code=502, detail="Failed to send magic link email")
 
+    # S18: Never log resend_api_key; resend_response contains only email id/metadata
     logger.info(
         "[MAGIC_LINK] Email sent successfully",
         extra={
-            "email": email,
+            "email": _mask_email(email),
             "destination": destination_name,
             "resend_response": resp.json() if resp.text else None,
         },
@@ -437,11 +439,32 @@ https://jobhuntin.com
 
 @router.post("/magic-link", response_model=MagicLinkResponse)
 async def request_magic_link(
+    request: Request,
     body: MagicLinkRequest,
     settings: Settings = Depends(settings_dependency),
     db: Any = Depends(_get_pool),
 ) -> MagicLinkResponse:
     """Generate a magic link and email it via Resend."""
+
+    # S6: Global IP rate limit to prevent mass enumeration from a single IP
+    client_ip = get_client_ip(request)
+    ip_limiter = get_rate_limiter(
+        f"magic_link_ip:{client_ip}",
+        max_calls=60,
+        window_seconds=3600,
+    )
+    if not await ip_limiter.acquire():
+        retry_after = ip_limiter.next_available_in()
+        logger.warning(
+            "Magic link IP rate limit hit",
+            extra={"retry_after": retry_after},
+        )
+        incr("auth.magic_link.ip_rate_limited", {})
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please wait before requesting another magic link.",
+            headers={"Retry-After": str(int(math.ceil(retry_after)))},
+        )
 
     limiter = _get_rate_limiter(settings, body.email)
     if not await limiter.acquire():

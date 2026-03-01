@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Bot, ArrowRight, Zap, TrendingUp, MapPin, Briefcase, Sparkles } from 'lucide-react';
+import { ArrowRight, TrendingUp, Briefcase, Sparkles } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
+import { t, getLocale } from '../lib/i18n';
 
 export default function NotFound() {
   const trendingSearches = [
@@ -42,39 +43,39 @@ export default function NotFound() {
           >
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
-              Find your next role with AI
+              {t("404.findNextRole", getLocale())}
             </span>
           </motion.div>
           
           <h1 className="text-7xl sm:text-8xl font-black font-display text-slate-900 mb-4 tracking-tighter">
             404
           </h1>
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-slate-800">
-            This page doesn't exist. But your dream job does.
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-slate-800 dark:text-slate-200">
+            {t("404.heading", getLocale())}
           </h2>
           <p className="text-lg text-slate-500 mb-8 leading-relaxed max-w-lg mx-auto">
-            While you were looking for this page, someone else landed an interview. Don't let that be your story.
+            {t("404.description", getLocale())}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
-            <Link to="/login" aria-label="Start free with 10 applications">
+            <Link to="/login" aria-label={t("404.startFree", getLocale())}>
               <Button size="lg" className="rounded-xl px-8 shadow-xl shadow-primary-500/20 font-bold">
                 <Sparkles className="w-4 h-4 mr-2" aria-hidden />
-                Start free — 10 applications on us
+                {t("404.startFree", getLocale())}
               </Button>
             </Link>
-            <Link to="/" aria-label="Back to home page">
+            <Link to="/" aria-label={t("404.backHome", getLocale())}>
               <Button variant="outline" size="lg" className="rounded-xl px-8 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold">
-                Back to home
+                {t("404.backHome", getLocale())}
               </Button>
             </Link>
           </div>
 
-          {/* Popular job searches - links to valid /jobs/:role/:city routes */}
+          {/* Popular job searches - links to valid /jobs/:role/:city routes (X16: 10 applications matches FREE tier) */}
           <div className="text-left">
             <div className="flex items-center gap-2 mb-4 justify-center">
               <TrendingUp className="w-4 h-4 text-primary-500" aria-hidden />
-              <span className="text-sm font-bold text-slate-600 uppercase tracking-wider">Popular job searches</span>
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t("404.popularSearches", getLocale())}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trendingSearches.map((search) => (
@@ -89,7 +90,7 @@ export default function NotFound() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-900 truncate">{search.label}</p>
-                    <p className="text-[10px] text-slate-400 font-medium">Apply with AI</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{t("404.applyWithAI", getLocale())}</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary-500 transition-colors shrink-0" aria-hidden />
                 </Link>

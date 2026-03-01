@@ -750,7 +750,7 @@ export default function Onboarding() {
       resetOnboarding();
       sessionStorage.setItem("onboarding_just_completed", "true");
       telemetry.track("onboarding_completed", { step: "ready" });
-      pushToast({ title: "You're all set! Let's job hunt! 🚀", tone: "success" });
+      pushToast({ title: "You're all set! Let's job hunt!", tone: "success" });
       navigate("/app/jobs");
     } catch (err: any) {
       console.error('[Onboarding] Failed to complete:', err);

@@ -85,6 +85,15 @@ const dictionaries: Dict = {
     "login.feature1": "100+ tailored applications daily",
     "login.feature2": "Matches from 50+ job boards",
     "login.feature3": "One-click apply everywhere",
+
+    "404.title": "404",
+    "404.heading": "This page doesn't exist. But your dream job does.",
+    "404.description": "While you were looking for this page, someone else landed an interview. Don't let that be your story.",
+    "404.startFree": "Start free — 10 applications on us",
+    "404.backHome": "Back to home",
+    "404.popularSearches": "Popular job searches",
+    "404.findNextRole": "Find your next role with AI",
+    "404.applyWithAI": "Apply with AI",
   },
   fr: {
     "dashboard.activeRadar": "Radar actif",
@@ -170,6 +179,15 @@ const dictionaries: Dict = {
     "login.feature1": "100+ candidatures personnalisées par jour",
     "login.feature2": "Offres de 50+ plateformes",
     "login.feature3": "Postuler en un clic partout",
+
+    "404.title": "404",
+    "404.heading": "Cette page n'existe pas. Mais votre emploi idéal, oui.",
+    "404.description": "Pendant que vous cherchiez cette page, quelqu'un d'autre a décroché un entretien. Ne laissez pas ça vous arriver.",
+    "404.startFree": "Commencer gratuitement — 10 candidatures offertes",
+    "404.backHome": "Retour à l'accueil",
+    "404.popularSearches": "Recherches populaires",
+    "404.findNextRole": "Trouvez votre prochain poste avec l'IA",
+    "404.applyWithAI": "Postuler avec l'IA",
   },
 };
 
