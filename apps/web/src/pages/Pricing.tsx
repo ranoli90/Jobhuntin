@@ -47,6 +47,7 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
   );
 };
 
+// B3: Verify plan IDs (FREE, PRO, TEAM) match backend /billing/checkout and Stripe products
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const navigate = useNavigate();

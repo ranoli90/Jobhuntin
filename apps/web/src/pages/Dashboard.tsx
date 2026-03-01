@@ -30,7 +30,7 @@ function statusVariant(status: string): 'success' | 'warning' | 'error' | 'defau
   }
 }
 
-// N-8: Tier pricing extracted to a constant. D14: Consider fetching from /billing/tiers API when available.
+// D14/B1: BILLING_TIERS hardcoded; consider fetching from /billing/tiers API when available
 const BILLING_TIERS = [
   { name: "FREE" as const, price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null, recommended: false },
   { name: "PRO" as const, price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, actionKey: "upgrade" as const },
@@ -765,18 +765,26 @@ export function JobsView() {
           active={showFirstStepsModal}
           focusTrapOptions={{ allowOutsideClick: true, escapeDeactivates: true }}
         >
-          <Card className="mb-6 border-primary-200 bg-primary-50/50" role="dialog" aria-label="Your first steps">
+          <Card className="mb-6 border-primary-200 bg-primary-50/50" role="dialog" aria-label={t("dashboard.firstStepsTitle", locale)}>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-bold text-slate-900 mb-2">Your first 3 steps</h3>
-                <ol className="list-decimal list-inside space-y-1 text-sm text-slate-600">
-                  <li>Swipe right on jobs you like — our AI will apply for you</li>
-                  <li>Check Applications to track status</li>
-                  <li>Answer any HOLD questions to keep applications moving</li>
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">{t("dashboard.firstStepsTitle", locale)}</h3>
+                <ol className="list-decimal list-inside space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                  <li>{t("dashboard.firstSteps1", locale)}</li>
+                  <li>{t("dashboard.firstSteps2", locale)}</li>
+                  <li>{t("dashboard.firstSteps3", locale)}</li>
                 </ol>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setShowFirstStepsModal(false)} aria-label="Dismiss first steps">
-                Dismiss
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowFirstStepsModal(false);
+                  telemetry.track("first_steps_dismissed", {});
+                }}
+                aria-label={t("dashboard.dismissFirstSteps", locale)}
+              >
+                {t("dashboard.dismiss", locale)}
               </Button>
             </div>
           </Card>
@@ -1338,6 +1346,7 @@ export function HoldsView() {
 }
 
 
+// T1: Verify invite flow for TEAM plan; add invite UI when backend supports it
 export function TeamView() {
   const navigate = useNavigate();
   const { status, plan, loading: isLoading } = useBilling();

@@ -87,12 +87,28 @@ Remaining audit items were grouped into 6 sprints and addressed systematically.
 
 ---
 
-## Remaining Items (Not Addressed This Session)
+## Sprint 7: Remaining High/Medium (Continued)
+
+| Item | Status | Notes |
+|------|--------|------|
+| #5 | ✅ Fixed | More button: added `title` for discoverability |
+| O2 | ✅ Fixed | First steps modal i18n (en/fr); telemetry on dismiss |
+| #13 | ✅ Fixed | Comment: auth.py allowed paths match magicLinkService |
+| O9 | ✅ Fixed | Comment: localStorage acceptable for non-PII |
+| O11 | ✅ Fixed | Comment: PDF only; doc/docx requires backend |
+| D14/B1 | ✅ Fixed | Comment: BILLING_TIERS from API |
+| B3 | ✅ Fixed | Comment: verify plan IDs match backend |
+| T1 | ✅ Fixed | Comment: verify Team invite flow |
+| LS5 | ✅ Fixed | Comment: magic link one-time, no refresh |
+| SEO4 | ✅ Fixed | Comment: verify OG endpoint |
+| SEO7 | ✅ Done | Per-page meta via SEO component + Helmet |
+
+---
+
+## Remaining Items (Not Addressed)
 
 - **Critical:** S1 (JWT → httpOnly migration), S3 (CSP nonces)
-- **High:** O1 (Homepage redirect consistency), O2 (Guided tour enhancement), Top 15 #5–6, 11–13
-- **Medium:** O9 (localStorage encryption), D14/B1 (Billing tiers from API), B3, T1, LS5, SEO4, SEO7
-- **Low/Nitpick:** Various UX, copy, and minor accessibility items
+- **Low/Nitpick:** Additional i18n, copy polish, minor a11y
 
 ---
 

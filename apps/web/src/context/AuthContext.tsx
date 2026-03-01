@@ -4,6 +4,8 @@ import { pushToast } from "../lib/toast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+// LS5: Magic link tokens are one-time; no refresh flow. User re-authenticates via new magic link when session expires.
+
 export interface User {
     id: string;
     email: string;

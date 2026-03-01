@@ -212,6 +212,7 @@ export default function AppLayout() {
                   : "text-slate-500 hover:text-slate-900"
               )}
               aria-label="More menu: Team, Billing, Sources, Settings"
+              title="Team, Billing, Sources, Settings"
             >
               <MoreHorizontal className="h-5 w-5" aria-hidden />
               <span className="mt-1 leading-none">More</span>

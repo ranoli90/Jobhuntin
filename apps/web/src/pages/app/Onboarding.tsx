@@ -163,8 +163,8 @@ export default function Onboarding() {
   const [emailTypoSuggestion, setEmailTypoSuggestion] = React.useState<string | null>(null);
   const [richSkills, setRichSkills] = React.useState<RichSkill[]>([]);
   const [isSavingSkills, setIsSavingSkills] = React.useState(false);
+  // O9: onboarding_state in localStorage; no encryption — acceptable for non-PII (preferences, step index)
   const [workStyleAnswers, setWorkStyleAnswers] = React.useState<Record<string, string>>(() => {
-    // Initialize from formData if available (page refresh persistence)
     try {
       const stored = localStorage.getItem("onboarding_state");
       if (stored) {

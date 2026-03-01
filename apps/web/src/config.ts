@@ -31,7 +31,7 @@ export const config = {
     enableDebugMode: import.meta.env.DEV,
   },
 
-  // URLs
+  // URLs (SEO4: config.urls.og used for OG images; verify /api/og endpoint exists and responds quickly)
   urls: {
     homepage: import.meta.env.VITE_APP_BASE_URL || "https://jobhuntin.com",
     pricing: "/pricing",

@@ -170,6 +170,7 @@ export function ResumeStep({
                 </div>
             </div>
 
+            {/* O11: Backend process_resume_upload accepts PDF only; .doc/.docx would require API change */}
             <div className="mb-4 md:mb-6 relative group">
                 <input
                     type="file"

@@ -131,6 +131,7 @@ def _sanitize_return_to(value: str | None) -> str | None:
     if "../" in path_only or "..\\" in path_only:
         return None
 
+    # S13: Must match magicLinkService.ts allowedPaths exactly
     allowed = {
         "/app/onboarding",
         "/app/dashboard",
