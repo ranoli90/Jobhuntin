@@ -14,6 +14,7 @@ import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
+import { t, formatT, getLocale } from '../lib/i18n';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function Login() {
   useEffect(() => {
     if (sessionStorage.getItem('session_expired') === 'true') {
       sessionStorage.removeItem('session_expired');
-      pushToast({ title: "Session expired", description: "Please sign in again.", tone: "info" });
+      pushToast({ title: t("login.sessionExpired", getLocale()), description: t("login.signInAgain", getLocale()), tone: "info" });
     }
   }, []);
 
@@ -114,7 +115,7 @@ export default function Login() {
 
   if (successState) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-5">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center p-5">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -124,24 +125,24 @@ export default function Login() {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
               <MailCheck className="w-8 h-8 text-white" />
             </div>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 mb-3 tracking-tight">
-              Check your email
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3 tracking-tight">
+              {t("login.checkInbox", getLocale())}
             </h1>
               <p className="text-slate-500 leading-relaxed">
-              We sent a magic link to<br />
-              <span className="font-semibold text-slate-900">{successState.email}</span>
+              {t("login.sentTo", getLocale())}<br />
+              <span className="font-semibold text-slate-900 dark:text-slate-100">{successState.email}</span>
             </p>
             <p className="text-xs text-slate-400 mt-2">
-              Didn't receive it? Check your spam folder.
+              {t("login.checkSpam", getLocale())}
             </p>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-6 mb-6">
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 mb-6">
             <ol className="space-y-4">
               {[
-                "Open your inbox (check spam too)",
-                "Find the email from JobHuntin",
-                "Click the magic link to sign in"
+                t("login.step1", getLocale()),
+                t("login.step2", getLocale()),
+                t("login.step3", getLocale()),
               ].map((step, i) => (
                 <motion.li
                   key={i}
@@ -153,7 +154,7 @@ export default function Login() {
                   <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {i + 1}
                   </div>
-                  <span className="text-slate-600 text-sm">{step}</span>
+                  <span className="text-slate-600 dark:text-slate-300 text-sm">{step}</span>
                 </motion.li>
               ))}
             </ol>
@@ -187,10 +188,10 @@ export default function Login() {
               disabled={resendLoading || !!rateLimitCountdown}
               className="w-full text-blue-600 hover:bg-blue-50"
             >
-              {resendLoading ? "Sending..." : rateLimitCountdown ? `Resend in ${rateLimitCountdown}s` : "Resend link"}
+              {resendLoading ? t("login.sending", getLocale()) : rateLimitCountdown ? formatT("login.resendIn", { seconds: String(rateLimitCountdown) }, getLocale()) : t("login.resendLink", getLocale())}
             </Button>
             <Button variant="outline" onClick={() => setSuccessState(null)} className="w-full">
-              Use a different email
+              {t("login.useDifferentEmail", getLocale())}
             </Button>
           </div>
         </motion.div>
@@ -217,21 +218,21 @@ export default function Login() {
           <div className="space-y-8">
             <div>
               <h2 className="font-display text-4xl xl:text-5xl font-bold text-white leading-tight mb-4 tracking-tight">
-                Your AI agent<br />
+                {t("login.sidebarTitleLine1", getLocale())}<br />
                 <span className="text-primary-600 dark:text-primary-400">
-                  is ready to hunt
+                  {t("login.sidebarTitleLine2", getLocale())}
                 </span>
               </h2>
               <p className="text-slate-400 text-lg leading-relaxed max-w-md">
-                Sign in to access your dashboard, track applications, and land more interviews.
+                {t("login.sidebarSubtitle", getLocale())}
               </p>
             </div>
 
             <div className="space-y-4">
               {[
-                { icon: Zap, text: "100+ tailored applications daily" },
-                { icon: Briefcase, text: "Matches from 50+ job boards" },
-                { icon: Send, text: "One-click apply everywhere" },
+                { icon: Zap, text: t("login.feature1", getLocale()) },
+                { icon: Briefcase, text: t("login.feature2", getLocale()) },
+                { icon: Send, text: t("login.feature3", getLocale()) },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -266,8 +267,8 @@ export default function Login() {
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-10">
             <Logo className="mx-auto mb-4" />
-            <h1 className="font-display text-2xl font-bold text-slate-900 tracking-tight">
-              Welcome back
+            <h1 className="font-display text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              {t("login.welcomeBack", getLocale())}
             </h1>
           </div>
 
@@ -277,18 +278,18 @@ export default function Login() {
             className="space-y-8"
           >
             <div className="hidden lg:block">
-              <h1 className="font-display text-3xl font-bold text-slate-900 mb-2 tracking-tight">
-                Sign in to JobHuntin
+              <h1 className="font-display text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
+                {t("login.signInTitle", getLocale())}
               </h1>
-              <p className="text-slate-500">
-                We&apos;ll send you a magic link. No password needed.
+              <p className="text-slate-500 dark:text-slate-400">
+                {t("login.magicLinkHint", getLocale())}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="relative">
-                <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-2">
-                  Email address
+                <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {t("login.email", getLocale())}
                 </label>
                 <div className={cn(
                   "relative rounded-xl transition-all duration-200",
@@ -301,7 +302,7 @@ export default function Login() {
                   )} aria-hidden />
                   <input
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t("login.emailPlaceholder", getLocale())}
                     id="login-email"
                     autoComplete="email"
                     value={email}
@@ -344,7 +345,7 @@ export default function Login() {
                   </motion.div>
                 ) : (
                   <span className="flex items-center gap-2">
-                    Continue <ArrowRight className="w-4 h-4" aria-hidden />
+                    {t("login.continue", getLocale())} <ArrowRight className="w-4 h-4" aria-hidden />
                   </span>
                 )}
               </Button>
@@ -360,7 +361,7 @@ export default function Login() {
 
               <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" aria-hidden />
-                <span>Secure • Encrypted • No passwords stored</span>
+                <span>{t("login.secure", getLocale())}</span>
               </div>
             </div>
 

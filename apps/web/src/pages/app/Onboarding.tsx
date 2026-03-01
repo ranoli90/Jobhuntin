@@ -262,6 +262,7 @@ export default function Onboarding() {
     }
   };
 
+  // O17: Profile API returns onsite_acceptable; we map to onsite_only for internal state (API expects onsite_only)
   React.useEffect(() => {
     if (profile?.preferences) {
       const p = profile.preferences;
@@ -366,6 +367,7 @@ export default function Onboarding() {
 
   }, [profile, navigate, resetOnboarding]);
 
+  // O25: Backend rate limits magic-link (auth.py), profile writes (user.py), and AI endpoints (ai_rate_limiting.py)
   // O14: Asset preloading (favicon + critical fonts for LCP)
   React.useEffect(() => {
     ["/favicon.svg"].forEach((src) => {
