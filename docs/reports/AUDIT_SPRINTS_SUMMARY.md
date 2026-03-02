@@ -113,10 +113,18 @@ Remaining audit items were grouped into 6 sprints and addressed systematically.
 
 ---
 
+## Sprint 9: Settings i18n
+
+| Item | Status | Notes |
+|------|--------|------|
+| Settings i18n | ✅ Fixed | All Settings copy wired to i18n (en/fr): profile, resume, preferences, data export |
+
+---
+
 ## Remaining Items (Not Addressed)
 
 - **Critical:** S1 (JWT → httpOnly migration), S3 (CSP nonces)
-- **Low/Nitpick:** Additional i18n for Settings, copy polish
+- **Low/Nitpick:** Copy polish on other pages
 
 ---
 

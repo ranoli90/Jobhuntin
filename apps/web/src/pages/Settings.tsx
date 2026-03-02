@@ -1,6 +1,7 @@
 import * as React from "react";
 import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download } from "lucide-react";
 import { useProfile } from "../hooks/useProfile";
+import { t, getLocale } from "../lib/i18n";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
@@ -216,11 +217,12 @@ export default function Settings() {
   const avatarUrl = profile?.contact?.avatar_url;
   const initials = (profile?.contact?.full_name || profile?.email || "JH").slice(0, 2).toUpperCase();
 
+  const locale = getLocale();
   return (
     <div className="space-y-8 px-4 lg:px-0 pb-8">
       <div>
-        <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">Settings</p>
-        <h1 className="font-display text-4xl">Profile & preferences</h1>
+        <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">{t("settings.title", locale)}</p>
+        <h1 className="font-display text-4xl">{t("settings.profilePreferences", locale)}</h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -229,7 +231,7 @@ export default function Settings() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-brand-ink" />
-                <h2 className="font-display text-xl">Profile details</h2>
+                <h2 className="font-display text-xl">{t("settings.profileDetails", locale)}</h2>
               </div>
               <span className="text-sm text-brand-ink/60">{profile?.email}</span>
             </div>
@@ -248,14 +250,14 @@ export default function Settings() {
                 </label>
               </div>
               <div>
-                <p className="text-lg font-semibold text-brand-ink">{profile?.contact?.full_name || "Add your name"}</p>
-                <p className="text-sm text-brand-ink/60">Make it easier for recruiters to recognize you.</p>
+                <p className="text-lg font-semibold text-brand-ink">{profile?.contact?.full_name || t("settings.addYourName", locale)}</p>
+                <p className="text-sm text-brand-ink/60">{t("settings.recruiterHint", locale)}</p>
               </div>
             </div>
 
             <form onSubmit={handleProfileSave} className="space-y-4">
               <div>
-                <label htmlFor="settings-full-name" className="mb-1 block text-sm font-medium text-brand-ink">Full name</label>
+                <label htmlFor="settings-full-name" className="mb-1 block text-sm font-medium text-brand-ink">{t("settings.fullName", locale)}</label>
                 <input
                   id="settings-full-name"
                   type="text"
@@ -265,29 +267,29 @@ export default function Settings() {
                 />
               </div>
               <div>
-                <label htmlFor="settings-headline" className="mb-1 block text-sm font-medium text-brand-ink">Headline</label>
+                <label htmlFor="settings-headline" className="mb-1 block text-sm font-medium text-brand-ink">{t("settings.headline", locale)}</label>
                 <input
                   id="settings-headline"
                   type="text"
-                  placeholder="e.g., Product Designer @ Stripe"
+                  placeholder={t("settings.headlinePlaceholder", locale)}
                   value={contactForm.headline}
                   onChange={(e) => setContactForm((prev) => ({ ...prev, headline: e.target.value }))}
                   className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
                 />
               </div>
               <div>
-                <label htmlFor="settings-bio" className="mb-1 block text-sm font-medium text-brand-ink">Bio</label>
+                <label htmlFor="settings-bio" className="mb-1 block text-sm font-medium text-brand-ink">{t("settings.bio", locale)}</label>
                 <textarea
                   id="settings-bio"
                   rows={4}
                   value={contactForm.bio}
                   onChange={(e) => setContactForm((prev) => ({ ...prev, bio: e.target.value }))}
                   className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
-                  placeholder="Tell companies what makes you a standout candidate"
+                  placeholder={t("settings.bioPlaceholder", locale)}
                 />
               </div>
               <Button type="submit" disabled={isProfileSaving} className="w-full">
-                {isProfileSaving ? "Saving…" : "Save profile"}
+                {isProfileSaving ? t("settings.saving", locale) : t("settings.saveProfile", locale)}
               </Button>
             </form>
           </Card>
@@ -295,21 +297,21 @@ export default function Settings() {
           <Card tone="shell" shadow="lift" className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <FileText className="h-5 w-5 text-brand-ink" />
-              <h2 className="font-display text-xl">Resume</h2>
+              <h2 className="font-display text-xl">{t("settings.resume", locale)}</h2>
             </div>
             {profile?.resume_url ? (
               <p className="text-sm text-brand-ink/70 mb-4">
-                You have a resume on file. Upload a new one to replace it or keep building your profile.
+                {t("settings.resumeOnFile", locale)}
               </p>
             ) : (
               <p className="text-sm text-brand-ink/70 mb-4">
-                Upload your resume so we can personalize applications.
+                {t("settings.resumeUploadHint", locale)}
               </p>
             )}
             <div className="flex flex-col gap-3">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-brand-ink/20 bg-white px-4 py-3 text-sm font-medium text-brand-ink hover:bg-brand-shell/50" aria-label="Upload new resume (PDF, max 15MB)">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-brand-ink/20 bg-white px-4 py-3 text-sm font-medium text-brand-ink hover:bg-brand-shell/50" aria-label={t("settings.uploadNewResume", locale) + " (PDF, max 15MB)"}>
                 <Upload className="h-4 w-4" aria-hidden />
-                {isUploading ? "Uploading…" : "Upload new resume"}
+                {isUploading ? t("settings.uploading", locale) : t("settings.uploadNewResume", locale)}
                 <input
                   type="file"
                   accept=".pdf"
@@ -327,17 +329,17 @@ export default function Settings() {
         <Card tone="shell" shadow="lift" className="p-6 space-y-4">
           <div className="flex items-center gap-2 mb-6">
             <Briefcase className="h-5 w-5 text-brand-ink" />
-            <h2 className="font-display text-xl">Job preferences</h2>
+            <h2 className="font-display text-xl">{t("settings.jobPreferences", locale)}</h2>
           </div>
           <form onSubmit={handleSavePreferences} className="space-y-4">
             <div>
               <label htmlFor="settings-location" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <MapPin className="h-4 w-4" aria-hidden /> Location
+                <MapPin className="h-4 w-4" aria-hidden /> {t("settings.location", locale)}
               </label>
               <input
                 id="settings-location"
                 type="text"
-                placeholder="e.g. Remote, San Francisco"
+                placeholder={t("settings.locationPlaceholder", locale)}
                 value={preferences.location}
                 onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
@@ -345,12 +347,12 @@ export default function Settings() {
             </div>
             <div>
               <label htmlFor="settings-role-type" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <Briefcase className="h-4 w-4" aria-hidden /> Role type
+                <Briefcase className="h-4 w-4" aria-hidden /> {t("settings.roleType", locale)}
               </label>
               <input
                 id="settings-role-type"
                 type="text"
-                placeholder="e.g. Product Designer, Software Engineer"
+                placeholder={t("settings.rolePlaceholder", locale)}
                 value={preferences.role_type}
                 onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
@@ -358,7 +360,7 @@ export default function Settings() {
             </div>
             <div>
               <label htmlFor="settings-salary-min" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <DollarSign className="h-4 w-4" aria-hidden /> Min salary (optional)
+                <DollarSign className="h-4 w-4" aria-hidden /> {t("settings.minSalary", locale)}
               </label>
               <input
                 id="settings-salary-min"
@@ -371,11 +373,11 @@ export default function Settings() {
                 onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
-              <p className="text-xs text-brand-ink/50 mt-1">Annual salary in USD</p>
+              <p className="text-xs text-brand-ink/50 mt-1">{t("settings.salaryHint", locale)}</p>
             </div>
             <div>
               <label htmlFor="settings-salary-max" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <DollarSign className="h-4 w-4" aria-hidden /> Max salary (optional)
+                <DollarSign className="h-4 w-4" aria-hidden /> {t("settings.maxSalary", locale)}
               </label>
               <input
                 id="settings-salary-max"
@@ -388,20 +390,20 @@ export default function Settings() {
                 onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value }))}
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
-              <p className="text-xs text-brand-ink/50 mt-1">Annual salary in USD</p>
+              <p className="text-xs text-brand-ink/50 mt-1">{t("settings.salaryHint", locale)}</p>
             </div>
             <div className="space-y-3">
               {[
-                { key: 'remote_only' as const, label: 'Remote only', desc: 'Prioritize remote-first roles' },
-                { key: 'work_authorized' as const, label: 'Work authorized', desc: 'I am authorized to work in my target location' },
-                { key: 'visa_sponsorship' as const, label: 'Need visa sponsorship', desc: 'Only show roles offering visa sponsorship' },
-              ].map(({ key, label, desc }) => (
+                { key: 'remote_only' as const, labelKey: 'settings.remoteOnly' as const, descKey: 'settings.remoteOnlyDesc' as const },
+                { key: 'work_authorized' as const, labelKey: 'settings.workAuthorized' as const, descKey: 'settings.workAuthorizedDesc' as const },
+                { key: 'visa_sponsorship' as const, labelKey: 'settings.visaSponsorship' as const, descKey: 'settings.visaSponsorshipDesc' as const },
+              ].map(({ key, labelKey, descKey }) => (
                 <div key={key} className="space-y-1">
                   <button
                     type="button"
                     role="switch"
                     aria-checked={preferences[key]}
-                    aria-label={`${label}: ${desc}. ${preferences[key] ? "On" : "Off"}`}
+                    aria-label={`${t(labelKey, locale)}: ${t(descKey, locale)}. ${preferences[key] ? "On" : "Off"}`}
                     onClick={() => setPreferences((p) => ({ ...p, [key]: !p[key] }))}
                     className={`flex items-center justify-between w-full rounded-2xl border px-4 py-3 transition-all ${preferences[key]
                       ? "bg-primary-50 border-primary-200 text-primary-700"
@@ -409,8 +411,8 @@ export default function Settings() {
                       }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold">{label}</span>
-                      <span className="text-xs text-brand-ink/60">{desc}</span>
+                      <span className="text-sm font-semibold">{t(labelKey, locale)}</span>
+                      <span className="text-xs text-brand-ink/60">{t(descKey, locale)}</span>
                     </div>
                     <span
                       className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-all ${preferences[key] ? "bg-primary-500" : "bg-slate-200"
@@ -426,20 +428,20 @@ export default function Settings() {
               ))}
             </div>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving…" : "Save preferences"}
+              {isSaving ? t("settings.saving", locale) : t("settings.savePreferences", locale)}
             </Button>
           </form>
         </Card>
 
         <Card tone="shell" shadow="lift" className="p-6">
-          <h2 className="font-display text-xl mb-2">Data & privacy</h2>
+          <h2 className="font-display text-xl mb-2">{t("settings.dataPrivacy", locale)}</h2>
           <p className="text-sm text-brand-ink/60 mb-4">
-            Export your data (profile, applications, events) for portability. See our{" "}
-            <a href="/privacy" className="underline hover:text-brand-ink">Privacy Policy</a> for details.
+            {t("settings.exportDescription", locale)}{" "}
+            <a href="/privacy" className="underline hover:text-brand-ink">{t("cookies.privacyPolicy", locale)}</a> {t("settings.exportForDetails", locale)}
           </p>
           <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
-            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            {isExporting ? "Exporting…" : "Export my data"}
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Download className="h-4 w-4" aria-hidden />}
+            {isExporting ? t("settings.exporting", locale) : t("settings.exportData", locale)}
           </Button>
         </Card>
       </div>
