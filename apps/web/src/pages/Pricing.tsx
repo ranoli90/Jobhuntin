@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bot, ArrowLeft, CheckCircle, Zap, Crown, Receipt, CreditCard, ChevronDown } from 'lucide-react';
+import { CheckCircle, Zap, Crown, CreditCard, ChevronDown } from 'lucide-react';
+import { t, getLocale } from '../lib/i18n';
 import { motion, useReducedMotion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { useAuth } from '../hooks/useAuth';
@@ -54,6 +55,7 @@ export default function Pricing() {
   const { user, loading: authLoading } = useAuth();
   const { plan, loading: billingLoading, upgrade } = useBilling();
   const shouldReduceMotion = useReducedMotion();
+  const locale = getLocale();
 
   const isLoggedIn = !!user;
   const isProOrHigher = plan === 'PRO' || plan === 'TEAM';
@@ -84,14 +86,14 @@ export default function Pricing() {
   };
 
   const getProCtaLabel = () => {
-    if (authLoading || billingLoading) return 'Loading...';
-    if (!isLoggedIn) return 'Start Free 7-Day Trial';
-    if (isProOrHigher) return 'Current Plan';
-    return 'Start Free 7-Day Trial';
+    if (authLoading || billingLoading) return t("app.loading", locale);
+    if (!isLoggedIn) return t("pricing.startTrial", locale);
+    if (isProOrHigher) return t("pricing.currentPlan", locale);
+    return t("pricing.startTrial", locale);
   };
 
     return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700 pb-20">
       <SEO
         title="Pricing | JobHuntin AI — Free to Start, $19/mo Pro for Unlimited Auto-Apply"
         description="JobHuntin pricing: Free tier to start, Pro at $19/month for unlimited AI job applications, resume tailoring, and stealth mode. One interview pays for a lifetime."
@@ -156,14 +158,14 @@ export default function Pricing() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-xl text-gray-600 max-w-2xl mx-auto mb-10"
+            className="text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto mb-10"
           >
-            One interview from JobHuntin covers this cost forever. People who wait lose roles to people who don't.
+            {t("pricing.subtitle", locale)}
           </motion.p>
 
           {/* Toggle */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-12">
-            <span className={`text-sm font-bold ${!annual ? 'text-gray-900' : 'text-gray-400'}`}>Monthly</span>
+            <span className={`text-sm font-bold ${!annual ? 'text-gray-900 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>{t("pricing.monthly", locale)}</span>
             <button
               onClick={() => setAnnual(!annual)}
               className="w-16 h-8 bg-gray-200 rounded-full p-1 relative transition-colors duration-300 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -176,8 +178,8 @@ export default function Pricing() {
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </button>
-            <span className={`text-sm font-bold ${annual ? 'text-slate-900' : 'text-slate-400'}`}>
-              Annual <span className="text-white text-xs ml-1 bg-primary-600 px-2 py-0.5 rounded-full shadow-sm" aria-label="Save 20% with annual billing">-20%</span>
+            <span className={`text-sm font-bold ${annual ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}>
+              {t("pricing.annual", locale)} <span className="text-white text-xs ml-1 bg-primary-600 px-2 py-0.5 rounded-full shadow-sm" aria-label={t("pricing.save20", locale)}>-20%</span>
             </span>
           </div>
         </div>
@@ -190,8 +192,8 @@ export default function Pricing() {
           >
             <div className="h-full flex flex-col">
               <div>
-                <h3 className="text-2xl font-bold mb-2 text-slate-900">Starter</h3>
-                <div className="text-4xl font-bold mb-6 text-slate-900">$0<span className="text-lg text-slate-500 font-normal">/mo</span></div>
+                <h3 className="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">{t("pricing.starter", locale)}</h3>
+                <div className="text-4xl font-bold mb-6 text-slate-900 dark:text-slate-100">$0<span className="text-lg text-slate-500 dark:text-slate-400 font-normal">{t("pricing.perMonth", locale)}</span></div>
               </div>
 
               <div className="space-y-4 mb-8">
@@ -214,9 +216,9 @@ export default function Pricing() {
                 <button
                   onClick={handleFreeCta}
                   className="block w-full py-3 border-2 border-slate-200 text-center font-bold rounded-xl hover:border-slate-900 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
-                  aria-label={isLoggedIn ? 'Go to dashboard' : 'Start free plan'}
+                  aria-label={isLoggedIn ? t("pricing.goToDashboard", locale) : t("pricing.startFree", locale)}
                 >
-                  {isLoggedIn ? 'Go to Dashboard' : 'Start Free'}
+                  {isLoggedIn ? t("pricing.goToDashboard", locale) : t("pricing.startFree", locale)}
                 </button>
               </div>
             </div>
@@ -234,7 +236,7 @@ export default function Pricing() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
 
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-2xl font-bold">Pro Hunter</h3>
+                <h3 className="text-2xl font-bold">{t("pricing.proHunter", locale)}</h3>
                 <Crown className="text-primary-500 w-6 h-6" aria-hidden="true" />
               </div>
 
@@ -242,7 +244,7 @@ export default function Pricing() {
                 ${annual ? '24' : '29'}
                 <span className="text-lg text-gray-400 font-normal">/mo</span>
               </div>
-              <p className="text-gray-400 text-sm mb-8">Billed {annual ? 'annually' : 'monthly'}</p>
+              <p className="text-gray-400 text-sm mb-8">{annual ? t("pricing.billedAnnually", locale) : t("pricing.billedMonthly", locale)}</p>
 
               <div className="mb-8">
                 <button
@@ -285,8 +287,8 @@ export default function Pricing() {
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-blue-400"></div>
             <div className="h-full flex flex-col">
               <div>
-                <h3 className="text-2xl font-bold mb-2 text-slate-900">Agency</h3>
-                <div className="text-4xl font-bold mb-6 text-slate-900">$199<span className="text-lg text-slate-500 font-normal">/mo</span></div>
+                <h3 className="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">{t("pricing.agency", locale)}</h3>
+                <div className="text-4xl font-bold mb-6 text-slate-900 dark:text-slate-100">$199<span className="text-lg text-slate-500 dark:text-slate-400 font-normal">{t("pricing.perMonth", locale)}</span></div>
               </div>
 
               <div className="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-100">
@@ -301,9 +303,9 @@ export default function Pricing() {
                 <a
                   href="mailto:sales@jobhuntin.com"
                   className="block w-full py-3 border-2 border-slate-200 text-center font-bold rounded-xl hover:border-primary-500 hover:text-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                  aria-label="Contact sales for agency plan"
+                  aria-label={t("pricing.contactSales", locale)}
                 >
-                  Contact Sales
+                  {t("pricing.contactSales", locale)}
                 </a>
               </div>
 
@@ -319,14 +321,14 @@ export default function Pricing() {
         </div>
 
         {/* FAQ Section */}
-        <div className="mt-32 border-t border-gray-200 pt-20">
-          <h2 className="text-3xl font-black text-center mb-16 tracking-tight">Questions? We've got answers.</h2>
+        <div className="mt-32 border-t border-gray-200 dark:border-slate-700 pt-20">
+          <h2 className="text-3xl font-black text-center mb-16 tracking-tight text-slate-900 dark:text-slate-100">{t("pricing.faqTitle", locale)}</h2>
           <div className="grid md:grid-cols-2 gap-12 max-w-4xl mx-auto">
             {[
-              { q: "Can I cancel anytime?", a: "Yes. One click in your dashboard. No awkward phone calls." },
-              { q: "Does this actually work?", a: "We've sent over 1M applications. Our users interview at Google, Amazon, and startups daily." },
-              { q: "Is my data safe?", a: "We use bank-level encryption. Your resume is only shared with employers you apply to." },
-              { q: "What if I get hired?", a: "Then we did our job! Cancel your sub and pop the champagne. 🍾" }
+              { q: t("pricing.faqCancel", locale), a: t("pricing.faqCancelA", locale) },
+              { q: t("pricing.faqWork", locale), a: t("pricing.faqWorkA", locale) },
+              { q: t("pricing.faqSafe", locale), a: t("pricing.faqSafeA", locale) },
+              { q: t("pricing.faqHired", locale), a: t("pricing.faqHiredA", locale) },
             ].map((item, i) => (
               <FAQItem key={i} question={item.q} answer={item.a} />
             ))}

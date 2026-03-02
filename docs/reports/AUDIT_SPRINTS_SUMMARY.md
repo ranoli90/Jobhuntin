@@ -133,10 +133,18 @@ Remaining audit items were grouped into 6 sprints and addressed systematically.
 
 ---
 
+## Sprint 11: Pricing i18n
+
+| Item | Status | Notes |
+|------|--------|------|
+| Pricing i18n | ✅ Fixed | Subtitle, toggle, tier names, CTAs, FAQ (en/fr); dark mode |
+
+---
+
 ## Remaining Items (Not Addressed)
 
 - **Critical (architectural):** S1 httpOnly migration, S3 nonce-based CSP — require backend/frontend coordination
-- **Low/Nitpick:** Copy polish on Pricing, other marketing pages
+- **Low/Nitpick:** Copy polish on other marketing pages (Success Stories, Chrome Extension, etc.)
 
 ---
 
