@@ -1050,7 +1050,7 @@ export default function Onboarding() {
                         )}
 
                         {currentStepData.id === "skill-review" && (
-                    <SkillReviewStep
+                          <SkillReviewStep
                       onNext={handleSaveSkills}
                       onPrev={prevStep}
                       richSkills={richSkills}
@@ -1128,14 +1128,14 @@ export default function Onboarding() {
                       shouldReduceMotion={!!shouldReduceMotion}
                     />
                   )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Card>
-              </motion.div>
-          </div>
-        </main>
-      </ErrorBoundary>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Card>
+        </motion.div>
+      </div>
+    </main>
+    </ErrorBoundary>
     </div>
   );
 }
