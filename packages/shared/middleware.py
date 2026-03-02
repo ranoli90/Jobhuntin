@@ -186,12 +186,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        # S3 (Audit): Removed 'unsafe-inline' from script-src for stricter XSS protection.
-        # API serves JSON; no inline scripts. Frontend CSP is separate (Vite/static).
+        # S3 (Audit): Removed 'unsafe-inline' from style-src for stricter XSS protection.
+        # Use nonces or hashes for any inline styles in frontend.
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "style-src 'self' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: https: blob:; "
             "connect-src 'self' https://api.resend.com https://www.google-analytics.com https://www.googletagmanager.com; "

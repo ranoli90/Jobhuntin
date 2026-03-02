@@ -8,10 +8,10 @@ import { t, getLocale } from '../lib/i18n';
 
 export default function NotFound() {
   const trendingSearches = [
-    { label: "Software Engineer in NYC", path: "/jobs/software-engineer/new-york" },
-    { label: "Product Manager in SF", path: "/jobs/product-manager/san-francisco" },
-    { label: "Data Scientist in Austin", path: "/jobs/data-scientist/austin" },
-    { label: "Marketing Manager in London", path: "/jobs/marketing-manager/london" },
+    { label: "Software Engineer Jobs", path: "/app/jobs" },
+    { label: "Product Manager Jobs", path: "/app/jobs" },
+    { label: "Data Scientist Jobs", path: "/app/jobs" },
+    { label: "Marketing Manager Jobs", path: "/app/jobs" },
   ];
 
   return (

@@ -323,6 +323,93 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
         }
       },
       'description': `Comprehensive analysis of the ${role} job market in ${location}, including salary data, hiring trends, and career opportunities.`
+    },
+    // JobPosting Schema - Rich snippets for job listings
+    {
+      '@context': 'https://schema.org',
+      '@type': 'JobPosting',
+      'title': `${role} Jobs in ${location}`,
+      'description': `Find ${role} job opportunities in ${location}. Competitive salaries, remote options, and growth opportunities. Apply today through JobHuntin's AI-powered platform.`,
+      'datePosted': currentDate,
+      'validThrough': new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      'employmentType': 'FULL_TIME',
+      'hiringOrganization': {
+        '@type': 'Organization',
+        'name': 'JobHuntin',
+        'sameAs': 'https://jobhuntin.com',
+        'logo': 'https://jobhuntin.com/logo.png'
+      },
+      'jobLocation': {
+        '@type': 'Place',
+        'address': {
+          '@type': 'PostalAddress',
+          'addressLocality': location.split(',')[0] || location,
+          'addressRegion': location.split(',')[1]?.trim() || (locationData?.state) || 'US',
+          'addressCountry': locationData?.country || 'US'
+        }
+      },
+      'baseSalary': {
+        '@type': 'MonetaryRange',
+        'currency': 'USD',
+        'minValue': salaryMin * 100,
+        'maxValue': salaryMax * 100,
+        'unitText': 'YEAR'
+      },
+      'estimatedSalary': {
+        '@type': 'MonetaryAmount',
+        'currency': 'USD',
+        'value': {
+          '@type': 'QuantitativeValue',
+          'minValue': salaryMin,
+          'maxValue': salaryMax,
+          'unitText': 'YEAR'
+        }
+      },
+      'jobLocationType': locationData?.remotePercentage > 50 ? 'TELECOMMUTE' : 'OFFER',
+      'directApply': true,
+      'applicantLocationRequirements': {
+        '@type': 'Country',
+        'name': 'US'
+      }
+    },
+    // FAQ Schema - FAQ rich snippets
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      'mainEntity': [
+        {
+          '@type': 'Question',
+          'name': `How much do ${role} jobs pay in ${location}?`,
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': `Entry-level ${role} positions in ${location} typically pay between $${salaryMin.toLocaleString()} and $${Math.round(salaryMin * 1.5).toLocaleString()} annually, while senior roles can earn $${salaryMax.toLocaleString()}+.`
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': `Are there remote ${role} jobs in ${location}?`,
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': `Yes, approximately ${locationData?.remotePercentage || 35}% of ${role} jobs in ${location} offer remote or hybrid work arrangements.`
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': `What companies are hiring ${role} in ${location}?`,
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': `Top companies hiring ${role} professionals in ${location} include tech startups, Fortune 500 companies, and remote-first organizations. Browse current openings on JobHuntin.`
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': `How do I find ${role} jobs in ${location}?`,
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': `Use JobHuntin's AI-powered job search to find ${role} opportunities in ${location}. Our platform matches your skills with relevant positions and auto-applies on your behalf.`
+          }
+        }
+      ]
     }
   ];
 }

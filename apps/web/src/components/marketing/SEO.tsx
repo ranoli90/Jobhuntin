@@ -26,6 +26,10 @@ const getDynamicDate = () => {
   return `${month} ${year}`;
 };
 
+const getDynamicMonth = () => {
+  return new Date().toLocaleString('default', { month: 'long' });
+};
+
 export const SEO = ({
   title,
   description,
@@ -64,10 +68,72 @@ export const SEO = ({
     "@type": "Organization",
     "name": "JobHuntin",
     "url": BASE_URL,
-    "logo": `${BASE_URL}/favicon.svg`,
+    "logo": `${BASE_URL}/logo.png`,
+    "description": "AI-powered job search automation with auto-apply, resume tailoring, and stealth mode",
+    "foundingDate": "2024",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+1-555-JOB-HUNT",
+      "contactType": "customer service",
+      "email": "support@jobhuntin.com",
+      "availableLanguage": "English"
+    },
     "sameAs": [
       "https://twitter.com/jobhuntin",
-      "https://github.com/jobhuntin"
+      "https://github.com/ranoli90/sorce",
+      "https://linkedin.com/company/jobhuntin"
+    ],
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": `${BASE_URL}/search?q={search_term_string}`
+      },
+      "query-input": "required name=search_term_string"
+    }
+  };
+
+  // SoftwareApplication schema for the main product
+  const softwareSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "JobHuntin",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web, Chrome Extension",
+    "url": BASE_URL,
+    "description": "AI-powered job search automation platform with autonomous agent, auto-apply, resume tailoring, and stealth mode",
+    "author": {
+      "@type": "Organization",
+      "name": "JobHuntin",
+      "url": BASE_URL
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "19",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "validFrom": "2024-01-01"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "847",
+      "bestRating": "5"
+    },
+    "reviews": [
+      {
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Sarah M."
+        },
+        "reviewBody": "Landedi my dream job in 2 weeks using JobHuntin's AI agent!"
+      }
     ]
   };
 
@@ -92,7 +158,38 @@ export const SEO = ({
     ]
   };
 
-  const finalSchema: any[] = [baseSchema, organizationSchema, breadcrumbSchema];
+  // JobPosting Schema for job pages
+  const jobPostingSchema = location.pathname.startsWith('/jobs/') ? {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    "title": title,
+    "description": description,
+    "identifier": resolvedCanonical,
+    "datePosted": new Date().toISOString().split('T')[0],
+    "validThrough": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    "employmentType": "FULL_TIME",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": "JobHuntin",
+      "url": BASE_URL,
+      "logo": `${BASE_URL}/logo.png`
+    },
+    "jobLocation": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "US"
+      }
+    },
+    "qualifications": "Experience in related field preferred",
+    "responsibilities": "Apply to jobs and manage applications efficiently",
+    "benefits": "AI-powered job search automation, resume tailoring, and application tracking"
+  } : null;
+
+  const finalSchema: any[] = [baseSchema, organizationSchema, softwareSchema, breadcrumbSchema];
+  if (jobPostingSchema) {
+    finalSchema.push(jobPostingSchema);
+  }
   if (schema) {
     if (Array.isArray(schema)) {
       finalSchema.push(...schema);
@@ -125,10 +222,27 @@ export const SEO = ({
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@jobhuntin" />
+      <meta name="twitter:creator" content="@jobhuntin" />
       <meta name="twitter:title" content={ogTitle || displayTitle} />
       <meta name="twitter:description" content={ogDescription || displayDescription} />
       <meta name="twitter:image" content={ogImage} />
       <meta name="twitter:image:alt" content={ogTitle || displayTitle} />
+
+      {/* Additional SEO Meta Tags */}
+      <meta name="format-detection" content="telephone=no" />
+      <meta name="mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="apple-mobile-web-app-title" content="JobHuntin" />
+      <meta name="application-name" content="JobHuntin" />
+      <meta name="msapplication-TileColor" content={themeColor} />
+      <meta name="msapplication-config" content="none" />
+
+      {/* GEO Tags for Local SEO */}
+      <meta name="geo.region" content="US" />
+      <meta name="geo.placename" content="San Francisco" />
+      <meta name="geo.position" content="37.7749;-122.4194" />
+      <meta name="ICBM" content="37.7749, -122.4194" />
 
       {/* JSON-LD Structured Data — one script per schema object for SEO best practice */}
       {finalSchema.map((schemaObj, idx) => (

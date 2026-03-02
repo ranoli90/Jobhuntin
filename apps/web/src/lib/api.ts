@@ -97,6 +97,22 @@ export function getApiBase(): string {
  */
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
+  
+  // First try to get token from httpOnly cookie (via server-side set cookie)
+  // Note: We can't access httpOnly cookies directly from JavaScript, but we can check
+  // if we have a session by making a test request or checking for a session indicator
+  
+  // For now, check if we have a session indicator cookie that tells us server has auth
+  const hasSession = document.cookie.split(';').some(cookie => 
+    cookie.trim().startsWith('jobhuntin_session=')
+  );
+  
+  if (hasSession) {
+    // Server will handle authentication via httpOnly cookie
+    return null; // Let server handle auth via cookie
+  }
+  
+  // Fallback to localStorage for backward compatibility
   return localStorage.getItem(AUTH_TOKEN_KEY);
 }
 

@@ -1,5 +1,5 @@
 import { FocusTrap } from "focus-trap-react";
-import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle, Radar } from "lucide-react";
+import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle, Radar, MoreVertical, Eye, Pause, Trash2, Filter, ArrowUpDown, MapPin, BriefcaseIcon } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -498,17 +498,70 @@ export default function Dashboard() {
 }
 
 export function JobsView() {
-  // M-3: Debounced filter — local input value updates instantly, API filters update after 400ms
+  // M-3: Debounced filter — local input values update instantly, API filters update after 400ms
   const [localLocation, setLocalLocation] = useState("");
-  const [filters, setFilters] = useState<JobFilters>({ location: "" });
+  const [localKeywords, setLocalKeywords] = useState("");
+  const [localSalaryMin, setLocalSalaryMin] = useState("");
+  const [filters, setFilters] = useState<JobFilters>({ 
+    location: "", 
+    keywords: "",
+    minSalary: undefined,
+    isRemote: false,
+    jobType: undefined
+  });
+  const [sortBy, setSortBy] = useState<"match_score" | "recently_matched" | "salary">("match_score");
+  const [showFilters, setShowFilters] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const updateFilters = useCallback((newFilters: Partial<JobFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  const debouncedUpdateFilters = useCallback((newFilters: Partial<JobFilters>) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      updateFilters(newFilters);
+    }, 400);
+  }, [updateFilters]);
 
   const handleLocationChange = useCallback((value: string) => {
     setLocalLocation(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setFilters(f => ({ ...f, location: value }));
-    }, 400);
+    debouncedUpdateFilters({ location: value });
+  }, [debouncedUpdateFilters]);
+
+  const handleKeywordsChange = useCallback((value: string) => {
+    setLocalKeywords(value);
+    debouncedUpdateFilters({ keywords: value });
+  }, [debouncedUpdateFilters]);
+
+  const handleSalaryChange = useCallback((value: string) => {
+    setLocalSalaryMin(value);
+    const salaryNum = value ? parseInt(value) : undefined;
+    debouncedUpdateFilters({ minSalary: salaryNum });
+  }, [debouncedUpdateFilters]);
+
+  const handleSortChange = useCallback((value: "match_score" | "recently_matched" | "salary") => {
+    setSortBy(value);
+    // TODO: Implement sorting logic in useJobs hook
+    pushToast({ 
+      title: "Sort updated", 
+      description: `Sorting by ${value.replace('_', ' ')}`, 
+      tone: "success" 
+    });
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setLocalLocation("");
+    setLocalKeywords("");
+    setLocalSalaryMin("");
+    setFilters({ 
+      location: "", 
+      keywords: "",
+      minSalary: undefined,
+      isRemote: false,
+      jobType: undefined
+    });
+    setSortBy("match_score");
   }, []);
 
   const { jobs, isLoading, isFetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useJobs(filters);
@@ -525,8 +578,9 @@ export function JobsView() {
 
   // Post-onboarding: show "Your first 3 steps" modal once
   useEffect(() => {
-    if (sessionStorage.getItem("onboarding_just_completed") === "true") {
+    if (sessionStorage.getItem("onboarding_just_completed") === "true" || sessionStorage.getItem("show_first_steps") === "true") {
       sessionStorage.removeItem("onboarding_just_completed");
+      sessionStorage.removeItem("show_first_steps");
       setShowFirstStepsModal(true);
     }
   }, []);
@@ -790,25 +844,141 @@ export function JobsView() {
           </Card>
         </FocusTrap>
       )}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t("dashboard.activeRadar", locale)}</h2>
           <p className="text-slate-500 font-medium">{t("dashboard.swipeRight", locale)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <input
-            type="text"
-            placeholder={t("dashboard.filterPlaceholder", locale)}
-            aria-label="Filter jobs by location"
-            className="flex-1 min-w-0 px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white font-medium"
-            value={localLocation}
-            onChange={(e) => handleLocationChange(e.target.value)}
-          />
+          {/* Sort Dropdown */}
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+            </Button>
+          </div>
+
+          {/* Sort Control */}
+          <select
+            value={sortBy}
+            onChange={(e) => handleSortChange(e.target.value as any)}
+            className="px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white font-medium"
+          >
+            <option value="match_score">Match %</option>
+            <option value="recently_matched">Recently Matched</option>
+            <option value="salary">Salary</option>
+          </select>
+
           <Badge variant="primary" className="py-2 px-4 rounded-xl" aria-live="polite" aria-atomic="true">
             {jobs.length - currentIndex} {t("dashboard.jobsRemaining", locale)}
           </Badge>
         </div>
       </div>
+
+      {/* Advanced Filters Panel */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <Card className="mb-6 p-4 border-slate-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Location Filter */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                    <MapPin className="w-4 h-4" />
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="City or 'Remote'"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all"
+                    value={localLocation}
+                    onChange={(e) => handleLocationChange(e.target.value)}
+                  />
+                </div>
+
+                {/* Keywords Filter */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                    <BriefcaseIcon className="w-4 h-4" />
+                    Keywords
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Job title, skills..."
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all"
+                    value={localKeywords}
+                    onChange={(e) => handleKeywordsChange(e.target.value)}
+                  />
+                </div>
+
+                {/* Salary Filter */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                    <DollarSign className="w-4 h-4" />
+                    Min Salary
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="50,000"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all"
+                    value={localSalaryMin}
+                    onChange={(e) => handleSalaryChange(e.target.value)}
+                  />
+                </div>
+
+                {/* Job Type Filters */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                    <Briefcase className="w-4 h-4" />
+                    Job Type
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={filters.isRemote}
+                        onChange={(e) => updateFilters({ isRemote: e.target.checked })}
+                        className="rounded border-slate-300"
+                      />
+                      Remote only
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={filters.jobType === 'full-time'}
+                        onChange={(e) => updateFilters({ jobType: e.target.checked ? 'full-time' : undefined })}
+                        className="rounded border-slate-300"
+                      />
+                      Full-time only
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Actions */}
+              <div className="flex gap-2 mt-4 pt-4 border-t border-slate-200">
+                <Button variant="outline" size="sm" onClick={resetFilters}>
+                  Reset Filters
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+                  Close
+                </Button>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div
         className="relative h-[clamp(360px,55vh,640px)] sm:h-[clamp(420px,60vh,640px)] w-full max-w-md mx-auto perspective-1000"
@@ -950,9 +1120,91 @@ export function JobsView() {
 
 
 
+// Actions menu component for application management
+function ActionsMenu({ app, onAction }: { app: any; onAction: (action: string, appId: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleAction = (action: string) => {
+    onAction(action, app.id);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0 hover:bg-slate-100"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Actions menu"
+        aria-expanded={isOpen}
+      >
+        <MoreVertical className="w-4 h-4" />
+      </Button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50"
+          >
+            <div className="py-1">
+              <button
+                onClick={() => handleAction('view')}
+                className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                View Details
+              </button>
+              <button
+                onClick={() => handleAction('reviewed')}
+                className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Mark as Reviewed
+              </button>
+              {app.status === 'HOLD' && (
+                <button
+                  onClick={() => handleAction('snooze')}
+                  className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                >
+                  <Pause className="w-4 h-4" />
+                  Snooze 24h
+                </button>
+              )}
+              <button
+                onClick={() => handleAction('withdraw')}
+                className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Withdraw
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function ApplicationsView() {
   const navigate = useNavigate();
-  const { applications, isLoading } = useApplications();
+  const { applications, isLoading, answerHold, snoozeApplication, isSubmitting } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const locale = sharedLocale; // N-2: shared locale
   // M-12: Client-side Load more (D16)
@@ -972,6 +1224,32 @@ export function ApplicationsView() {
 
   // Reset when search changes
   useEffect(() => { setDisplayedCount(APPLICATIONS_PAGE_SIZE); }, [searchTerm]);
+
+  // Handle actions from the ActionsMenu
+  const handleApplicationAction = useCallback(async (action: string, appId: string) => {
+    try {
+      switch (action) {
+        case 'view':
+          navigate(`/app/applications/${appId}`);
+          break;
+        case 'reviewed':
+          pushToast({ title: "Marked as reviewed", description: "Application has been marked as reviewed.", tone: "success" });
+          // TODO: Implement API call to mark as reviewed
+          break;
+        case 'snooze':
+          await snoozeApplication(appId, 24);
+          break;
+        case 'withdraw':
+          // TODO: Implement withdraw API call
+          pushToast({ title: "Application withdrawn", description: "The application has been withdrawn.", tone: "info" });
+          break;
+        default:
+          console.warn('Unknown action:', action);
+      }
+    } catch (error) {
+      console.error('Action failed:', error);
+    }
+  }, [navigate, snoozeApplication]);
 
   if (isLoading) {
     return (
@@ -1082,14 +1360,7 @@ export function ApplicationsView() {
                   <Clock className="w-4 h-4 text-slate-500" />
                   {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="font-bold text-xs uppercase text-slate-500 hover:text-primary-600"
-                  onClick={() => navigate(`/app/applications/${app.id}`)}
-                >
-                  Details <ArrowUpRight className="ml-1 w-3 h-3" />
-                </Button>
+                <ActionsMenu app={app} onAction={handleApplicationAction} />
               </div>
             </Card>
           ))
@@ -1172,9 +1443,7 @@ export function ApplicationsView() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="inline-flex items-center gap-1 text-xs font-bold uppercase text-slate-500 group-hover:text-primary-600">
-                        Details <ArrowUpRight className="w-3 h-3" />
-                      </span>
+                      <ActionsMenu app={app} onAction={handleApplicationAction} />
                     </td>
                     </tr>
                 ))

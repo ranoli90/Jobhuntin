@@ -137,6 +137,19 @@ export default function SwitchFrom() {
                                 }
                             }
                         ]
+                    },
+                    // FAQPage Schema
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "FAQPage",
+                        "mainEntity": faq.map(f => ({
+                            "@type": "Question",
+                            "name": f.question,
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": f.answer
+                            }
+                        }))
                     }
                 ]}
             />

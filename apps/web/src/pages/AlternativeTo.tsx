@@ -88,6 +88,33 @@ export default function AlternativeTo() {
                             },
                         ],
                     },
+                    // FAQPage Schema
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "FAQPage",
+                        "mainEntity": faq.map(f => ({
+                            "@type": "Question",
+                            "name": f.question,
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": f.answer
+                            }
+                        }))
+                    },
+                    // Product Schema
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "Product",
+                        "name": "JobHuntin",
+                        "description": "AI-powered job search automation with auto-apply, resume tailoring, and stealth mode",
+                        "brand": { "@type": "Brand", "name": "JobHuntin" },
+                        "offers": {
+                            "@type": "Offer",
+                            "price": "19",
+                            "priceCurrency": "USD",
+                            "availability": "https://schema.org/InStock"
+                        }
+                    }
                 ]}
             />
 

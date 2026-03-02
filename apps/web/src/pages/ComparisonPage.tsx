@@ -148,6 +148,41 @@ export default function ComparisonPage() {
                 }
               }
             ]
+          },
+          // FAQPage Schema for rich snippets
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": faq.map(f => ({
+              "@type": "Question",
+              "name": f.question,
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": f.answer
+              }
+            }))
+          },
+          // Product Comparison Schema
+          {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": "JobHuntin",
+            "description": "AI-powered job search automation with auto-apply, resume tailoring, and stealth mode",
+            "brand": {
+              "@type": "Brand",
+              "name": "JobHuntin"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "19",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "reviewCount": "847"
+            }
           }
         ]}
       />

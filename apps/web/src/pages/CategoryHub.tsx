@@ -98,7 +98,18 @@ export default function CategoryHub() {
                 description={seoData.description}
                 ogTitle={seoData.title}
                 canonicalUrl={`https://jobhuntin.com/best/${categorySlug}`}
-                schema={[...(Array.isArray(seoData.schema) ? seoData.schema : [seoData.schema]), competitorListSchema]}
+                schema={[...(Array.isArray(seoData.schema) ? seoData.schema : [seoData.schema]), competitorListSchema, {
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": faq.map(f => ({
+                        "@type": "Question",
+                        "name": f.question,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": f.answer
+                        }
+                    }))
+                }]}
             />
 
             <main className="max-w-5xl mx-auto px-6 py-24">

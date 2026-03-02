@@ -4,11 +4,21 @@
 User-agent: *
 Allow: /
 Allow: /api/og
+Allow: /jobs/
+Allow: /vs/
+Allow: /alternative-to/
+Allow: /reviews/
+Allow: /best/
+Allow: /guides/
 Disallow: /api/
 Disallow: /app/
 Disallow: /onboarding
 Disallow: /login
 Disallow: /settings
+Disallow: /admin
+
+# Crawl-delay for rate limiting (optional)
+Crawl-delay: 1
 
 # Sitemaps
 Sitemap: https://jobhuntin.com/sitemap.xml

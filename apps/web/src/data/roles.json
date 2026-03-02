@@ -1803,5 +1803,107 @@
       "Trade jobs"
     ],
     "lastUpdated": "2026-02-15"
+  },
+  {
+    "id": "truck-driver",
+    "name": "Truck Driver",
+    "category": "Transportation",
+    "avgSalary": 95000,
+    "demandLevel": "Very High",
+    "slug": "truck-driver",
+    "skills": [
+      "CDL",
+      "DOT Regulations",
+      "Logistics",
+      "Time Management"
+    ],
+    "seoTitle": "Truck Driving Jobs Near You (2026) - $160K No Degree Required",
+    "seoDescription": "Highest-paying job with no college degree required. Average $95K, top drivers earn $160K. Find local and OTR truck driving jobs.",
+    "roleKeywords": [
+      "Truck Driver",
+      "CDL A",
+      "CDL B",
+      "Owner Operator",
+      " otr trucking",
+      "local driver",
+      "no degree jobs"
+    ],
+    "lastUpdated": "2026-03-02"
+  },
+  {
+    "id": "registered-nurse",
+    "name": "Registered Nurse",
+    "category": "Healthcare",
+    "avgSalary": 125000,
+    "demandLevel": "Very High",
+    "slug": "registered-nurse",
+    "skills": [
+      "Patient Care",
+      "Critical Thinking",
+      "BLS Certification",
+      "Electronic Health Records"
+    ],
+    "seoTitle": "Registered Nurse Jobs (2026) - Best Healthcare Careers",
+    "seoDescription": "#1 Indeed job for 2026. RN jobs average $125K/year with benefits. Find RN positions in hospitals, clinics, and home health.",
+    "roleKeywords": [
+      "RN",
+      "Registered Nurse",
+      "Nursing Jobs",
+      "Hospital Nurse",
+      "ICU Nurse",
+      "ER Nurse",
+      "travel nurse"
+    ],
+    "lastUpdated": "2026-03-02"
+  },
+  {
+    "id": "medical-assistant",
+    "name": "Medical Assistant",
+    "category": "Healthcare",
+    "avgSalary": 48000,
+    "demandLevel": "Very High",
+    "slug": "medical-assistant",
+    "skills": [
+      "Vital Signs",
+      "EHR/EMR",
+      "Phlebotomy",
+      "Insurance Billing"
+    ],
+    "seoTitle": "Medical Assistant Jobs (2026) - No Experience Required",
+    "seoDescription": "Fastest-growing healthcare role. MA jobs pay $48K average, many with on-the-job training. Find certified medical assistant jobs.",
+    "roleKeywords": [
+      "Medical Assistant",
+      "MA",
+      "CMA",
+      "RMA",
+      "healthcare jobs",
+      "no experience needed"
+    ],
+    "lastUpdated": "2026-03-02"
+  },
+  {
+    "id": "hvac-technician",
+    "name": "HVAC Technician",
+    "category": "Skilled Trade",
+    "avgSalary": 62000,
+    "demandLevel": "High",
+    "slug": "hvac-technician",
+    "skills": [
+      "Refrigeration",
+      "Electrical",
+      "Problem Solving",
+      "EPA 608 Certification"
+    ],
+    "seoTitle": "HVAC Jobs Near Me (2026) - Trade School Free",
+    "seoDescription": "No college degree needed. HVAC technicians earn $62K+ with apprenticeship programs. Find HVAC installer, repair, and maintenance jobs.",
+    "roleKeywords": [
+      "HVAC Technician",
+      "HVAC Installer",
+      "AC Repair",
+      " Heating Technician",
+      "apprentice",
+      "skilled trade"
+    ],
+    "lastUpdated": "2026-03-02"
   }
 ]
