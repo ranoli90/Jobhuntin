@@ -166,9 +166,9 @@ All endpoints require Bearer token authentication via the Authorization header.
 - 429: Too Many Requests (rate limited)
 - 500: Internal Server Error
 """,
-    docs_url="/docs" if _settings.env != "prod" else None,
-    redoc_url="/redoc" if _settings.env != "prod" else None,
-    openapi_url="/openapi.json" if _settings.env != "prod" else None,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
 )
 
 # OpenTelemetry instrumentation
