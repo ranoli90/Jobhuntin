@@ -1,5 +1,4 @@
-"""
-Admin API endpoints for internal operators and support engineers.
+"""Admin API endpoints for internal operators and support engineers.
 
 Provides:
   - GET  /admin/tenants                                  – list all tenants (system admin only)
@@ -21,13 +20,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from backend.domain.repositories import (
+from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     TenantRepo,
     db_transaction,
 )
-from backend.domain.tenant import (
+from packages.backend.domain.tenant import (
     TenantScopeError,
     require_role,
     require_system_admin,
@@ -220,8 +219,7 @@ async def get_tenant_application_detail(
     user_id: str = Depends(_get_admin_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> ApplicationDetailAdmin:
-    """
-    Full application detail with inputs and events.
+    """Full application detail with inputs and events.
     PII is masked by default; ?unmask=true requires OWNER role.
     """
     from shared.validators import validate_uuid
@@ -250,7 +248,7 @@ async def get_tenant_application_detail(
 
     # Mask PII using the masking module unless explicitly unmasked
     if not unmask:
-        from backend.domain.masking import (
+        from packages.backend.domain.masking import (
             redact_event_payload,
             redact_profile_for_support,
         )
@@ -281,8 +279,7 @@ async def replay_application(
     user_id: str = Depends(_get_admin_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> ReplayResponse:
-    """
-    Re-queue a FAILED application for another processing attempt.
+    """Re-queue a FAILED application for another processing attempt.
     Resets status to QUEUED and records a RETRY_SCHEDULED event.
     """
     from shared.validators import validate_uuid
@@ -572,7 +569,7 @@ async def export_tenant_audit_log(
     from fastapi.responses import StreamingResponse
     from shared.validators import validate_uuid
 
-    from backend.domain.audit import export_audit_log_csv
+    from packages.backend.domain.audit import export_audit_log_csv
 
     validate_uuid(tenant_id, "tenant_id")
 
@@ -608,11 +605,10 @@ async def get_job_sync_status(
     user_id: str = Depends(_get_admin_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ):
-    """
-    Get current status of JobSpy integration.
+    """Get current status of JobSpy integration.
     Returns configured sources, last run stats, and circuit breaker status.
     """
-    from backend.domain.job_sync_service import JobSyncService
+    from packages.backend.domain.job_sync_service import JobSyncService
 
     async with db.acquire() as conn:
         await require_system_admin(conn, user_id)
@@ -629,10 +625,8 @@ async def trigger_job_sync(
     user_id: str = Depends(_get_admin_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ):
-    """
-    Trigger a manual job sync in the background.
-    """
-    from backend.domain.job_sync_service import JobSyncService
+    """Trigger a manual job sync in the background."""
+    from packages.backend.domain.job_sync_service import JobSyncService
 
     async with db.acquire() as conn:
         await require_system_admin(conn, user_id)

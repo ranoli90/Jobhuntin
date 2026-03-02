@@ -1,5 +1,4 @@
-"""
-Blueprint registry — stores and retrieves AgentBlueprint instances by slug.
+"""Blueprint registry — stores and retrieves AgentBlueprint instances by slug.
 
 Usage:
     from backend.blueprints.registry import get_blueprint, register_blueprint
@@ -32,8 +31,7 @@ def register_blueprint(bp: AgentBlueprint) -> None:
 
 
 def get_blueprint(key: str) -> AgentBlueprint:
-    """
-    Look up a blueprint by key (tenants.blueprint_key or tasks.blueprint_key).
+    """Look up a blueprint by key (tenants.blueprint_key or tasks.blueprint_key).
     Raises KeyError if not found.
     """
     if key not in BLUEPRINTS:

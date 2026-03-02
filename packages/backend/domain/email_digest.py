@@ -1,5 +1,4 @@
-"""
-Weekly email digest — generates and sends a summary of job search activity.
+"""Weekly email digest — generates and sends a summary of job search activity.
 
 Designed to be called by a cron job or scheduled task once per week.
 Uses Resend API for email delivery.
@@ -29,8 +28,7 @@ async def build_digest_for_user(
     user_id: str,
     period_days: int = 7,
 ) -> dict[str, Any] | None:
-    """
-    Build weekly digest stats for a user.
+    """Build weekly digest stats for a user.
 
     Returns None if user had no activity in the period.
     """
@@ -202,8 +200,7 @@ async def send_digest_email(
 # ---------------------------------------------------------------------------
 
 async def run_weekly_digest(pool: asyncpg.Pool) -> dict[str, int]:
-    """
-    Generate and send weekly digests for all active users.
+    """Generate and send weekly digests for all active users.
 
     Returns {"sent": N, "skipped": M, "failed": F}.
     """

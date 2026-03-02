@@ -15,7 +15,7 @@ headers = {
 }
 
 def trigger_deploy():
-    """Trigger a new deploy for the API service"""
+    """Trigger a new deploy for the API service."""
     try:
         # Get services
         response = httpx.get("https://api.render.com/v1/services", headers=headers)

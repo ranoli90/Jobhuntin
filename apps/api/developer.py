@@ -1,5 +1,4 @@
-"""
-Developer Portal API — API key management, webhook config, usage dashboard.
+"""Developer Portal API — API key management, webhook config, usage dashboard.
 
 Mounted at /developer prefix. Uses JWT auth (not API key auth).
 """
@@ -14,8 +13,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 from shared.logging_config import get_logger
 
-from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
 
 logger = get_logger("sorce.api.developer")
 
@@ -40,6 +39,7 @@ class CreateKeyRequest(BaseModel):
 
 class CreateWebhookRequest(BaseModel):
     """Payload for creating a webhook."""
+
     url: str
     events: list[str] = ["application.completed", "application.failed", "application.hold"]
 

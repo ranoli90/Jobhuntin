@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Debug bundle CLI — fetch a comprehensive debug snapshot for a single application.
+"""Debug bundle CLI — fetch a comprehensive debug snapshot for a single application.
 
 Usage:
     python scripts/debug_application.py <application_id>
@@ -27,7 +26,7 @@ from typing import Any
 import asyncpg
 from shared.config import get_settings
 
-from backend.domain.masking import redact_event_payload
+from packages.backend.domain.masking import redact_event_payload
 
 
 def _json_serializer(obj: Any) -> Any:

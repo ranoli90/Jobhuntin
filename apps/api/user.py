@@ -1,13 +1,12 @@
-"""
-User-facing web API — endpoints consumed by the web app (not admin).
+"""User-facing web API — endpoints consumed by the web app (not admin).
 
-  - GET  /applications           — list applications for current user
-  - POST /applications           — create application from swipe (job_id, decision)
-  - POST /applications/{id}/answer — answer a hold question (single answer)
-  - GET  /jobs                   — list jobs with optional filters
-  - GET  /profile                — current user profile + onboarding state
-  - PATCH /profile              — update profile / preferences / onboarding
-  - POST /profile/resume        — upload resume (PDF) and parse
+- GET  /applications           — list applications for current user
+- POST /applications           — create application from swipe (job_id, decision)
+- POST /applications/{id}/answer — answer a hold question (single answer)
+- GET  /jobs                   — list jobs with optional filters
+- GET  /profile                — current user profile + onboarding state
+- PATCH /profile              — update profile / preferences / onboarding
+- POST /profile/resume        — upload resume (PDF) and parse
 """
 
 from __future__ import annotations
@@ -35,8 +34,8 @@ from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.storage import get_storage_service
 
-from backend.domain.quotas import QuotaExceededError, check_can_create_application
-from backend.domain.repositories import (
+from packages.backend.domain.quotas import QuotaExceededError, check_can_create_application
+from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
@@ -44,8 +43,8 @@ from backend.domain.repositories import (
     ProfileRepo,
     db_transaction,
 )
-from backend.domain.resume import process_resume_upload
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.resume import process_resume_upload
+from packages.backend.domain.tenant import TenantContext
 from shared.metrics import RateLimiter
 
 logger = get_logger("sorce.user")
@@ -187,7 +186,7 @@ async def create_application(
     validate_uuid(body.job_id, "job_id")
 
     # N-7: Import at function scope to keep it visible
-    from backend.domain.priority import compute_priority_score
+    from packages.backend.domain.priority import compute_priority_score
 
     if body.decision != "ACCEPT":
         # H-3: Persist rejection with REJECTED status (not FAILED) to avoid
@@ -453,7 +452,7 @@ async def list_jobs(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """List jobs from DB with optional filters. Returns { jobs: [...], next_offset } for web."""
-    from backend.domain.job_search import search_and_list_jobs
+    from packages.backend.domain.job_search import search_and_list_jobs
 
     limit = max(5, min(limit, 100))
     offset = max(0, offset)
@@ -480,7 +479,7 @@ async def get_job_sources(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> list[dict[str, Any]]:
     """Get list of available job sources with stats."""
-    from backend.domain.job_search import get_job_sources
+    from packages.backend.domain.job_search import get_job_sources
     return await get_job_sources(db)
 
 
@@ -729,6 +728,25 @@ async def update_profile(
     }
 
 
+def _merge_contact_fields(contact: dict, body_contact: dict) -> None:
+    """Merge nested contact fields from update body into contact dict."""
+    contact_fields = (
+        "first_name",
+        "last_name",
+        "full_name",
+        "email",
+        "phone",
+        "linkedin_url",
+        "portfolio_url",
+        "location",
+    )
+    for field in contact_fields:
+        if field in body_contact and body_contact[field] is not None:
+            contact[field] = body_contact[field]
+    if "avatar_url" in body_contact and body_contact["avatar_url"]:
+        contact["avatar_url"] = body_contact["avatar_url"]
+
+
 def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
     """Merge update body into profile_data dict in-place."""
     contact = dict(profile_data.get("contact") or {})
@@ -751,24 +769,8 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
     if avatar_url:
         contact["avatar_url"] = avatar_url
 
-    # Merge nested contact fields sent from Onboarding / Settings
     if body.contact is not None:
-        _CONTACT_FIELDS = (
-            "first_name",
-            "last_name",
-            "full_name",
-            "email",
-            "phone",
-            "linkedin_url",
-            "portfolio_url",
-            "location",
-        )
-        for field in _CONTACT_FIELDS:
-            if field in body.contact and body.contact[field] is not None:
-                contact[field] = body.contact[field]
-        # Preserve avatar_url from the existing contact if not in body.contact
-        if "avatar_url" in body.contact and body.contact["avatar_url"]:
-            contact["avatar_url"] = body.contact["avatar_url"]
+        _merge_contact_fields(contact, body.contact)
 
     profile_data["contact"] = contact
 
@@ -778,7 +780,7 @@ async def _hydrate_job_matches(
 ) -> None:
     """Background task to pre-fetch and cache job matches after onboarding."""
     try:
-        from backend.domain.job_search import search_and_list_jobs
+        from packages.backend.domain.job_search import search_and_list_jobs
 
         # Extract basic filters from preferences
         location = preferences.get("location")
@@ -952,7 +954,7 @@ async def get_job_sync_status(
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    from backend.domain.job_search import get_sync_status
+    from packages.backend.domain.job_search import get_sync_status
     return await get_sync_status(db)
 
 
@@ -967,7 +969,7 @@ async def trigger_job_sync(
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    from backend.domain.job_sync_service import JobSyncService
+    from packages.backend.domain.job_sync_service import JobSyncService
 
     sync_service = JobSyncService(db)
     background_tasks.add_task(sync_service.sync_all_sources, None, 2)

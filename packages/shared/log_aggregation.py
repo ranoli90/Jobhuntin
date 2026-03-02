@@ -1,5 +1,4 @@
-"""
-Log aggregation configuration for structured logging.
+"""Log aggregation configuration for structured logging.
 
 Supports multiple backends:
 - Local file (development)

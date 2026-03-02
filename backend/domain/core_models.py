@@ -1,5 +1,4 @@
-"""
-Domain-agnostic core models for the Autonomous Form Agent engine.
+"""Domain-agnostic core models for the Autonomous Form Agent engine.
 
 These models define the generic vocabulary that any vertical (job applications,
 grant applications, vendor onboarding, etc.) maps onto. Sorce's concrete models
@@ -26,8 +25,7 @@ from pydantic import BaseModel, Field
 # ---------------------------------------------------------------------------
 
 class TaskStatus(enum.StrEnum):
-    """
-    Generic status enum for all agent tasks.
+    """Generic status enum for all agent tasks.
 
     State machine:
       QUEUED ──→ PROCESSING ──→ COMPLETED
@@ -40,6 +38,7 @@ class TaskStatus(enum.StrEnum):
     Blueprint-specific completion statuses (e.g., APPLIED for Sorce)
     are stored in the DB as-is; the generic layer treats them as COMPLETED.
     """
+
     QUEUED = "QUEUED"
     PROCESSING = "PROCESSING"
     REQUIRES_INPUT = "REQUIRES_INPUT"
@@ -92,6 +91,7 @@ class TaskEventType(enum.StrEnum):
 
 class ActorIdentity(BaseModel):
     """Core identity fields common to all verticals."""
+
     full_name: str = Field(default="", json_schema_extra={"pii": True})
 
     first_name: str = Field(default="", json_schema_extra={"pii": True})
@@ -103,6 +103,7 @@ class ActorIdentity(BaseModel):
 
 class ActorQualification(BaseModel):
     """A single qualification entry (education, certification, etc.)."""
+
     institution: str = ""
     title: str = ""        # degree, cert name, etc.
     field: str = ""        # field of study, specialization
@@ -113,6 +114,7 @@ class ActorQualification(BaseModel):
 
 class ActorHistoryEntry(BaseModel):
     """A single history entry (employment, project, engagement, etc.)."""
+
     organization: str = ""
     role: str = ""
     start_date: str = ""
@@ -122,8 +124,7 @@ class ActorHistoryEntry(BaseModel):
 
 
 class ActorProfile(BaseModel):
-    """
-    Domain-neutral profile schema. Every blueprint extends this with
+    """Domain-neutral profile schema. Every blueprint extends this with
     vertical-specific fields via the `metadata` dict or by subclassing.
 
     Sections:
@@ -133,6 +134,7 @@ class ActorProfile(BaseModel):
       skills         — categorized skill lists
       metadata       — open-ended extension point (jsonb)
     """
+
     identity: ActorIdentity = Field(default_factory=ActorIdentity)
     qualifications: list[ActorQualification] = Field(default_factory=list)
     history: list[ActorHistoryEntry] = Field(default_factory=list)
@@ -149,6 +151,7 @@ class ActorProfile(BaseModel):
 
 class TargetForm(BaseModel):
     """A form that the agent will fill out. Sorce: a job listing."""
+
     id: str
     tenant_id: str | None = None
     form_url: str = ""
@@ -161,6 +164,7 @@ class TargetForm(BaseModel):
 
 class Task(BaseModel):
     """A queued work item. Sorce: an application row."""
+
     id: str
     user_id: str
     target_form_id: str
@@ -189,6 +193,7 @@ class Task(BaseModel):
 
 class TaskInput(BaseModel):
     """A hold question. Sorce: application_input."""
+
     id: str
     task_id: str
     tenant_id: str | None = None
@@ -206,6 +211,7 @@ class TaskInput(BaseModel):
 
 class TaskEvent(BaseModel):
     """An audit event. Sorce: application_event."""
+
     id: str
     task_id: str
     tenant_id: str | None = None
@@ -241,5 +247,6 @@ class UnresolvedField(BaseModel):
 
 class DomMappingResult(BaseModel):
     """Response schema for the DOM → profile field mapping LLM call."""
+
     field_values: dict[str, str] = Field(default_factory=dict)
     unresolved_required_fields: list[UnresolvedField] = Field(default_factory=list)

@@ -1,5 +1,4 @@
-"""
-Headless Browser Execution Engine with Bot Detection Evasion.
+"""Headless Browser Execution Engine with Bot Detection Evasion.
 
 Implements the "Execution Engine" layer from competitive analysis:
 - Randomized cursor movements and keystroke latency
@@ -18,7 +17,7 @@ import asyncio
 import random
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from playwright.async_api import (
@@ -35,7 +34,7 @@ from shared.metrics import incr
 logger = get_logger("sorce.execution_engine")
 
 
-class InteractionType(str, Enum):
+class InteractionType(StrEnum):
     CLICK = "click"
     TYPE = "type"
     SELECT = "select"
@@ -57,7 +56,7 @@ class InteractionResult:
 @dataclass
 class HumanBehaviorConfig:
     min_typing_delay_ms: int = 30
-    maxTyping_delay_ms: int = 120
+    max_typing_delay_ms: int = 120
     min_click_delay_ms: int = 50
     max_click_delay_ms: int = 200
     scroll_pause_ms: int = 300
@@ -68,8 +67,7 @@ class HumanBehaviorConfig:
 
 
 class HumanBehaviorSimulator:
-    """
-    Simulates human-like browser interactions.
+    """Simulates human-like browser interactions.
 
     Based on competitive analysis recommendations:
     - Randomized cursor movements
@@ -324,8 +322,7 @@ class HumanBehaviorSimulator:
 
 
 class AntiDetection:
-    """
-    Anti-detection and anti-fingerprinting measures.
+    """Anti-detection and anti-fingerprinting measures.
 
     Implements countermeasures against common bot detection:
     - WebDriver flag masking
@@ -443,8 +440,7 @@ class AntiDetection:
 
 
 class ExecutionEngine:
-    """
-    Main execution engine that coordinates browser interactions.
+    """Main execution engine that coordinates browser interactions.
 
     Provides:
     - Form filling with retry logic

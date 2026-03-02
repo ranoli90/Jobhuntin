@@ -1,23 +1,22 @@
-"""
-Auth endpoints for public web clients (magic links, etc.).
-"""
+"""Auth endpoints for public web clients (magic links, etc.)."""
 
 from __future__ import annotations
 
 import math
 import time
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr
-from shared.middleware import get_client_ip
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
+from shared.middleware import get_client_ip
 from shared.repo_root import find_repo_root
 
 from shared.metrics import RateLimiter, get_rate_limiter, incr
@@ -89,14 +88,14 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
         raise RuntimeError(
             "Redis required for production token replay protection. Set REDIS_URL environment variable."
         )
-    
+
     if not hasattr(_mark_token_consumed, "_warned_no_redis"):
         logger.warning(
             "Redis not available - magic link token replay prevention uses in-memory store. "
             "Set REDIS_URL for multi-instance deployments."
         )
         _mark_token_consumed._warned_no_redis = True  # type: ignore
-        
+
     now = time.monotonic()
     expired = [k for k, ts in _consumed_tokens.items() if now - ts > _CONSUMED_TOKEN_TTL]
     for k in expired:
@@ -196,7 +195,7 @@ async def _generate_magic_link(
 ) -> str:
     """Generate a magic link with a signed JWT."""
     import uuid
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     import jwt
 
@@ -247,7 +246,7 @@ async def _generate_magic_link(
     # Generate token
     ttl_seconds = getattr(settings, "magic_link_token_ttl_seconds", 3600)
     token_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "email": email,
@@ -470,18 +469,17 @@ AUTH_COOKIE_NAME = "jobhuntin_auth"
 @router.get("/verify-magic")
 async def verify_magic_link(
     token: str,
-    returnTo: str | None = None,
+    return_to: str | None = None,
     settings: Settings = Depends(settings_dependency),
     db: Any = Depends(_get_pool),
 ) -> RedirectResponse:
-    """
-    S1: Verify magic link token, set httpOnly cookie, redirect to app.
+    """S1: Verify magic link token, set httpOnly cookie, redirect to app.
     User clicks link in email -> hits this endpoint -> cookie set -> redirect.
     """
     if not token or not settings.jwt_secret:
         redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
-        if returnTo:
-            redirect_url += f"?returnTo={quote(returnTo, safe='')}"
+        if return_to:
+            redirect_url += f"?returnTo={quote(return_to, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     try:
@@ -502,7 +500,7 @@ async def verify_magic_link(
         redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=token_used"
         return RedirectResponse(url=redirect_url, status_code=302)
 
-    safe_return = _sanitize_return_to(returnTo)
+    safe_return = _sanitize_return_to(return_to)
     dest = safe_return or "/app/dashboard"
     redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}"
 
@@ -540,7 +538,6 @@ async def request_magic_link(
     db: Any = Depends(_get_pool),
 ) -> MagicLinkResponse:
     """Generate a magic link and email it via Resend."""
-
     # S6: Global IP rate limit to prevent mass enumeration from a single IP
     client_ip = get_client_ip(request)
     ip_limiter = get_rate_limiter(

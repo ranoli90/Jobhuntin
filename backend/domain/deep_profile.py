@@ -1,5 +1,4 @@
-"""
-Deep Profile Aggregation.
+"""Deep Profile Aggregation.
 
 This module aggregates all profile signals into a unified "digital twin"
 for matching: skills, work style, trajectory, preferences, and completeness.
@@ -43,8 +42,7 @@ class DealbreakerConfig(BaseModel):
 
 
 class DeepProfile(BaseModel):
-    """
-    Complete aggregated user profile for matching.
+    """Complete aggregated user profile for matching.
 
     This is the "digital twin" - all signals needed to compute
     a comprehensive match score with any job.
@@ -92,8 +90,7 @@ class DeepProfile(BaseModel):
 
 
 def calculate_completeness(profile: DeepProfile) -> float:
-    """
-    Calculate profile completeness percentage.
+    """Calculate profile completeness percentage.
 
     Weights:
     - Resume uploaded: 20%

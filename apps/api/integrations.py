@@ -1,6 +1,4 @@
-"""
-Integrations API endpoints — Slack, Notion, Google Drive, Zapier.
-"""
+"""Integrations API endpoints — Slack, Notion, Google Drive, Zapier."""
 
 from __future__ import annotations
 
@@ -9,14 +7,14 @@ import hashlib
 from typing import Any
 
 import asyncpg
-from backend.domain.google_drive_integration import GoogleDriveIntegrationManager
-from backend.domain.notion_integration import (
+from packages.backend.domain.google_drive_integration import GoogleDriveIntegrationManager
+from packages.backend.domain.notion_integration import (
     APPLICATION_DATABASE_SCHEMA,
     NotionClient,
     NotionIntegrationManager,
 )
-from backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
-from backend.domain.zapier_integration import ZapierIntegrationManager
+from packages.backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
+from packages.backend.domain.zapier_integration import ZapierIntegrationManager
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from shared.logging_config import get_logger

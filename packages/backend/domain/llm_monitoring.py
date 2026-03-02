@@ -1,5 +1,4 @@
-"""
-LLM Model Monitoring Service.
+"""LLM Model Monitoring Service.
 
 Tracks per-model metrics for:
 - Latency percentiles (p50, p95, p99)
@@ -113,8 +112,7 @@ class ModelMetrics:
 
 
 class LLMModelMonitor:
-    """
-    Singleton service for tracking LLM model performance.
+    """Singleton service for tracking LLM model performance.
 
     Usage:
         monitor = LLMModelMonitor.get_instance()

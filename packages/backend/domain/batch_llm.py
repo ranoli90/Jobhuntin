@@ -1,5 +1,4 @@
-"""
-Batch LLM Processing — optimize LLM calls with batching and parallelization.
+"""Batch LLM Processing — optimize LLM calls with batching and parallelization.
 
 Provides:
 - Parallel LLM calls with rate limiting
@@ -13,7 +12,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from shared.logging_config import get_logger
 
@@ -26,7 +25,7 @@ R = TypeVar("R")
 
 
 @dataclass
-class BatchRequest(Generic[T]):
+class BatchRequest[T]:
     id: str
     payload: T
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -35,7 +34,7 @@ class BatchRequest(Generic[T]):
 
 
 @dataclass
-class BatchResult(Generic[R]):
+class BatchResult[R]:
     request_id: str
     success: bool
     result: R | None = None
@@ -44,7 +43,7 @@ class BatchResult(Generic[R]):
     latency_ms: float = 0.0
 
 
-class BatchProcessor(Generic[T, R]):
+class BatchProcessor[T, R]:
     def __init__(
         self,
         process_fn,

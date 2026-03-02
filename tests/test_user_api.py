@@ -1,5 +1,4 @@
-"""
-Tests for user-facing web API (api.user).
+"""Tests for user-facing web API (api.user).
 
 Covers status mapping and response shapes without requiring a live DB.
 """

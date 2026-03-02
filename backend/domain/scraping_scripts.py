@@ -1,6 +1,4 @@
-"""
-JavaScript snippets for Playwright execution.
-"""
+"""JavaScript snippets for Playwright execution."""
 
 EXTRACT_FORM_FIELDS_JS = """
 () => {

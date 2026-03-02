@@ -1,6 +1,4 @@
-"""
-Calendar Integration API endpoints — interview scheduling and calendar sync.
-"""
+"""Calendar Integration API endpoints — interview scheduling and calendar sync."""
 
 from __future__ import annotations
 
@@ -8,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
-from backend.domain.calendar import (
+from packages.backend.domain.calendar import (
     CalendarProvider,
     GoogleCalendarClient,
     InterviewEvent,

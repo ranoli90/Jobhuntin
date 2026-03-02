@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-End-to-end smoke test for M1 closed beta.
+"""End-to-end smoke test for M1 closed beta.
 
 Validates that all critical paths are working:
   1. API health check

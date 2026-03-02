@@ -1,5 +1,4 @@
-"""
-Vector Database Service for semantic job matching.
+"""Vector Database Service for semantic job matching.
 
 Implements external vector database integration (Pinecone/Weaviate) as recommended
 in competitive analysis - enabling fast similarity search for job matching.
@@ -73,8 +72,7 @@ class VectorDBClient(ABC):
         filter: dict[str, Any] | None = None,
         include_metadata: bool = True,
     ) -> list[dict[str, Any]]:
-        """
-        Query for similar vectors.
+        """Query for similar vectors.
 
         Returns list of dicts with:
         - id: vector id
@@ -117,8 +115,7 @@ class VectorDBClient(ABC):
 
 
 class PineconeClient(VectorDBClient):
-    """
-    Pinecone vector database client.
+    """Pinecone vector database client.
 
     Pinecone is a managed vector database optimized for production use.
     Provides fast similarity search with metadata filtering.
@@ -386,8 +383,7 @@ class PineconeClient(VectorDBClient):
 
 
 class WeaviateClient(VectorDBClient):
-    """
-    Weaviate vector database client.
+    """Weaviate vector database client.
 
     Weaviate is an open-source vector database with semantic search capabilities.
     Can be self-hosted or used via Weaviate Cloud.
@@ -621,8 +617,7 @@ class WeaviateClient(VectorDBClient):
 
 
 class InMemoryVectorDB(VectorDBClient):
-    """
-    In-memory vector database for development and testing.
+    """In-memory vector database for development and testing.
 
     Not suitable for production - vectors are lost on restart.
     Uses in-memory dictionary with brute-force similarity search.
@@ -639,7 +634,7 @@ class InMemoryVectorDB(VectorDBClient):
     def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
         if not a or not b or len(a) != len(b):
             return 0.0
-        dot_product = sum(x * y for x, y in zip(a, b))
+        dot_product = sum(x * y for x, y in zip(a, b, strict=False))
         norm_a = sum(x * x for x in a) ** 0.5
         norm_b = sum(x * x for x in b) ** 0.5
         if norm_a == 0 or norm_b == 0:

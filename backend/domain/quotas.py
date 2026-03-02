@@ -1,5 +1,4 @@
-"""
-Quota enforcement for tenant plan limits.
+"""Quota enforcement for tenant plan limits.
 
 Provides check functions that raise QuotaExceededError when a tenant
 has exhausted their plan allowance.
@@ -10,8 +9,8 @@ from __future__ import annotations
 import asyncpg
 from shared.logging_config import get_logger
 
-from backend.domain.plans import plan_config_for
-from backend.domain.repositories import TenantRepo
+from packages.backend.domain.plans import plan_config_for
+from packages.backend.domain.repositories import TenantRepo
 
 logger = get_logger("sorce.quotas")
 
@@ -31,8 +30,7 @@ async def check_can_create_application(
     plan: str,
     plan_metadata: dict | None = None,
 ) -> None:
-    """
-    Raise QuotaExceededError if the tenant has exceeded their monthly
+    """Raise QuotaExceededError if the tenant has exceeded their monthly
     application creation limit.
 
     Call this before inserting a new application row.
@@ -60,8 +58,7 @@ async def check_concurrent_limit(
     plan: str,
     plan_metadata: dict | None = None,
 ) -> bool:
-    """
-    Check if the tenant has room for another concurrent PROCESSING application.
+    """Check if the tenant has room for another concurrent PROCESSING application.
 
     Returns True if under limit, False if at/over limit.
     Used by the worker to skip tenants that are at their concurrent cap.

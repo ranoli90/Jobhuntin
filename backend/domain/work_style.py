@@ -1,5 +1,4 @@
-"""
-Work style profile and behavioral calibration questions.
+"""Work style profile and behavioral calibration questions.
 
 This module defines:
 1. WorkStyleProfile - The user's behavioral preferences
@@ -9,13 +8,13 @@ This module defines:
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
-class CareerTrajectory(str, Enum):
+class CareerTrajectory(StrEnum):
     """User's desired career direction in 3 years."""
 
     IC = "ic"  # Individual contributor (deep expertise)
@@ -184,14 +183,14 @@ TRAJECTORY_QUESTION: dict = {
 
 
 def compute_work_style_from_answers(answers: dict[str, str]) -> WorkStyleProfile:
-    """
-    Compute a WorkStyleProfile from user's answers to behavioral questions.
+    """Compute a WorkStyleProfile from user's answers to behavioral questions.
 
     Args:
         answers: Dict mapping question_id to selected option text
 
     Returns:
         WorkStyleProfile with computed preferences
+
     """
     profile_data: dict[str, str] = {}
 

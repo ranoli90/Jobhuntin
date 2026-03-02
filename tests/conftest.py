@@ -14,8 +14,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@lo
 
 @pytest_asyncio.fixture(scope="function")
 async def db_pool():
-    """
-    Provides a database connection pool.
+    """Provides a database connection pool.
     Skips the test if the database is unreachable.
     """
     try:
@@ -28,9 +27,7 @@ async def db_pool():
 
 @pytest_asyncio.fixture(scope="function")
 async def clean_db(db_pool):
-    """
-    Cleans test data before/after each test.
-    """
+    """Cleans test data before/after each test."""
     if db_pool is None:
         yield
         return

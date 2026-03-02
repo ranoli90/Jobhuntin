@@ -1,5 +1,4 @@
-"""
-Deep linking service for mobile universal links.
+"""Deep linking service for mobile universal links.
 
 This addresses recommendation #45: Implement universal links for job applications.
 
@@ -25,6 +24,7 @@ logger = get_logger("sorce.deep_links")
 
 class DeepLinkType(StrEnum):
     """Types of deep links."""
+
     JOB_DETAILS = "job"
     APPLICATION_STATUS = "application"
     ONBOARDING = "onboarding"
@@ -37,6 +37,7 @@ class DeepLinkType(StrEnum):
 @dataclass
 class DeepLink:
     """A deep link with all its properties."""
+
     link_type: DeepLinkType
     resource_id: str | None = None
     params: dict[str, str] = field(default_factory=dict)
@@ -51,8 +52,7 @@ class DeepLink:
 
 
 class DeepLinkService:
-    """
-    Service for generating and resolving deep links.
+    """Service for generating and resolving deep links.
 
     Supports:
     - iOS Universal Links
@@ -73,8 +73,7 @@ class DeepLinkService:
         params: dict[str, str] | None = None,
         utm_params: dict[str, str] | None = None,
     ) -> DeepLink:
-        """
-        Generate a universal link that works on both iOS and Android.
+        """Generate a universal link that works on both iOS and Android.
 
         Universal links use the https:// format and are handled by the app
         when installed, or fall back to the web when not.
@@ -124,8 +123,7 @@ class DeepLinkService:
         feature: str = "deep_link",
         tags: list[str] | None = None,
     ) -> str:
-        """
-        Generate a Branch.io short link for attribution.
+        """Generate a Branch.io short link for attribution.
 
         Branch links provide:
         - Attribution tracking
@@ -174,8 +172,7 @@ class DeepLinkService:
             return link.universal_link or ""
 
     def parse_universal_link(self, url: str) -> DeepLink | None:
-        """
-        Parse a universal link URL into a DeepLink object.
+        """Parse a universal link URL into a DeepLink object.
 
         Used by the mobile app to handle incoming links.
         """

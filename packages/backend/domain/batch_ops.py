@@ -1,5 +1,4 @@
-"""
-Batch operations optimization for processing multiple jobs.
+"""Batch operations optimization for processing multiple jobs.
 
 Implements streaming/chunking for large batch operations to avoid
 memory issues and timeouts when processing >20 jobs.
@@ -8,8 +7,9 @@ memory issues and timeouts when processing >20 jobs.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Callable, TypeVar
+from typing import Any, TypeVar
 
 from shared.logging_config import get_logger
 
@@ -22,6 +22,7 @@ R = TypeVar("R")
 @dataclass
 class BatchConfig:
     """Configuration for batch operations."""
+
     chunk_size: int = 20
     max_concurrent: int = 5
     timeout_seconds: float = 30.0
@@ -32,6 +33,7 @@ class BatchConfig:
 @dataclass
 class BatchResult:
     """Result of a batch operation."""
+
     successful: list[Any]
     failed: list[tuple[Any, Exception]]
     total: int
@@ -43,8 +45,7 @@ async def process_in_chunks(
     processor: Callable[[T], Awaitable[R]],
     config: BatchConfig | None = None,
 ) -> BatchResult:
-    """
-    Process items in chunks with controlled concurrency.
+    """Process items in chunks with controlled concurrency.
 
     Args:
         items: List of items to process
@@ -53,6 +54,7 @@ async def process_in_chunks(
 
     Returns:
         BatchResult with successful and failed results
+
     """
     import time
 
@@ -91,7 +93,7 @@ async def process_in_chunks(
         tasks = [process_with_semaphore(item) for item in chunk]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        for item, result in zip(chunk, results):
+        for item, result in zip(chunk, results, strict=False):
             if isinstance(result, Exception):
                 failed.append((item, result))
                 if config.fail_fast:
@@ -119,12 +121,11 @@ async def process_in_chunks(
     )
 
 
-async def stream_items(
+async def stream_items[T](
     items: list[T],
     chunk_size: int = 20,
 ) -> AsyncIterator[list[T]]:
-    """
-    Stream items in chunks for memory-efficient processing.
+    """Stream items in chunks for memory-efficient processing.
 
     Usage:
         async for chunk in stream_items(jobs, chunk_size=10):
@@ -177,8 +178,7 @@ async def batch_match_jobs(
     match_func: Callable[[dict, dict], Awaitable[dict]],
     config: BatchConfig | None = None,
 ) -> list[dict[str, Any]]:
-    """
-    Batch match multiple jobs against a profile.
+    """Batch match multiple jobs against a profile.
 
     Optimized for >20 jobs with streaming and concurrency control.
     """
@@ -201,4 +201,4 @@ async def batch_match_jobs(
 
 
 # Convenience type alias for async callable
-from typing import Awaitable
+from collections.abc import Awaitable

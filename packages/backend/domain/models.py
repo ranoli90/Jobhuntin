@@ -1,5 +1,4 @@
-"""
-Single source of truth for all domain models.
+"""Single source of truth for all domain models.
 
 Both api/main.py and worker/agent.py import from here.
 Pydantic models for API serialization; plain dicts/enums for DB interop.
@@ -101,8 +100,7 @@ class CanonicalSkills(BaseModel):
 
 
 class CanonicalProfile(BaseModel):
-    """
-    Full normalized user profile.
+    """Full normalized user profile.
     Acts as the source of truth for filling job applications.
     """
 
@@ -202,8 +200,7 @@ def normalize_profile(raw: dict) -> CanonicalProfile:
 
 
 class Tenant(BaseModel):
-    """
-    Tenant (Organization/Team) entity.
+    """Tenant (Organization/Team) entity.
     Represents a billing unit and isolation scope.
     """
 
@@ -268,8 +265,7 @@ class Application(BaseModel):
 
 
 class ApplicationInput(BaseModel):
-    """
-    Interactive form field requiring user input.
+    """Interactive form field requiring user input.
     Used when the Agent hits a question it cannot answer automatically.
     """
 
@@ -331,9 +327,7 @@ class FormFieldOption(BaseModel):
 
 
 class FormField(BaseModel):
-    """
-    DOM element representation extracted from the target page.
-    """
+    """DOM element representation extracted from the target page."""
 
     selector: str
     label: str

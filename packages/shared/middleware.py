@@ -1,5 +1,4 @@
-"""
-Middleware implementations for security and observability.
+"""Middleware implementations for security and observability.
 
 Includes:
 - CSRF Protection middleware
@@ -10,7 +9,7 @@ from __future__ import annotations
 
 import re
 import uuid
-from typing import Callable
+from collections.abc import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -23,8 +22,7 @@ logger = get_logger("sorce.middleware")
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    """
-    Adds a unique request ID to each request for distributed tracing.
+    """Adds a unique request ID to each request for distributed tracing.
 
     - Uses existing X-Request-ID header if present (for upstream services)
     - Generates new UUID if not present
@@ -57,8 +55,7 @@ def get_request_id(request: Request) -> str:
 
 
 class CSRFMiddleware:
-    """
-    CSRF protection middleware using starlette-csrf.
+    """CSRF protection middleware using starlette-csrf.
 
     Configuration:
     - Exempts safe methods (GET, HEAD, OPTIONS, TRACE)
@@ -89,8 +86,7 @@ class CSRFMiddleware:
 
 
 def setup_csrf_middleware(app, secret: str) -> None:
-    """
-    Configure CSRF middleware on the FastAPI app.
+    """Configure CSRF middleware on the FastAPI app.
 
     Fail-closed: in staging/prod, refuse to start without a CSRF secret.
     In local/dev, warn but continue (for development convenience).
@@ -167,8 +163,7 @@ def get_client_ip(request: Request) -> str:
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """
-    Adds security headers to every response.
+    """Adds security headers to every response.
 
     Headers:
     - X-Content-Type-Options: nosniff
@@ -194,7 +189,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         else:
             # Fallback to 'unsafe-eval' only when nonce not available (rare)
             csp_script_src += " 'unsafe-eval'"
-        
+
         response.headers["Content-Security-Policy"] = (
             f"default-src 'self'; "
             f"script-src {csp_script_src}; "

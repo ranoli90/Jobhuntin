@@ -1,5 +1,4 @@
-"""
-Part 3: Observability – Lightweight In-Process Metrics & Rate Limiter
+"""Part 3: Observability – Lightweight In-Process Metrics & Rate Limiter.
 
 Provides:
   - incr(name, tags): increment a counter
@@ -104,8 +103,7 @@ def _metric_key(name: str, tags: dict[str, str] | None) -> str:
 
 
 class RateLimiter:
-    """
-    Sliding-window rate limiter with Redis backend support (async) and in-memory fallback.
+    """Sliding-window rate limiter with Redis backend support (async) and in-memory fallback.
 
     Usage:
         limiter = RateLimiter(name="my_limit", max_calls=60, window_seconds=60)
@@ -253,8 +251,7 @@ def get_rate_limiter(
 
 
 def setup_otel_metrics(service_name: str = "sorce") -> None:
-    """
-    Initialize an OpenTelemetry MeterProvider so that incr() and observe()
+    """Initialize an OpenTelemetry MeterProvider so that incr() and observe()
     forward data to an OTLP collector (or Prometheus exporter).
 
     Requires OTEL_EXPORTER_OTLP_ENDPOINT to be set. No-ops silently if

@@ -1,5 +1,4 @@
-"""
-API v2 Platform Router — public API for integrators.
+"""API v2 Platform Router — public API for integrators.
 
 Endpoints:
   - POST /api/v2/applications       — submit a single application
@@ -89,7 +88,7 @@ async def submit_application(
     start = time.time()
     tenant_id = api_key["tenant_id"]
 
-    from backend.domain.priority import compute_priority_score
+    from packages.backend.domain.priority import compute_priority_score
     priority = compute_priority_score(api_key.get("tenant_plan", "PRO"))
 
     async with db.acquire() as conn:
@@ -183,8 +182,7 @@ async def staffing_bulk_submit(
     api_key: dict = Depends(_get_api_key),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """
-    Submit a batch of candidates to a client ATS portal.
+    """Submit a batch of candidates to a client ATS portal.
     Creates a staffing_batch record, then queues individual applications.
     """
     start = time.time()
@@ -196,7 +194,7 @@ async def staffing_bulk_submit(
         raise HTTPException(status_code=400, detail="Maximum 25 candidates per batch")
 
     s = get_settings()
-    from backend.domain.priority import compute_priority_score
+    from packages.backend.domain.priority import compute_priority_score
     priority = compute_priority_score(api_key.get("tenant_plan", "ENTERPRISE"), is_bulk=True)
 
     async with db.acquire() as conn:

@@ -1,5 +1,4 @@
-"""
-Session management API endpoints.
+"""Session management API endpoints.
 
 Endpoints for:
   - GET  /sessions          — list active sessions for current user
@@ -11,12 +10,12 @@ Endpoints for:
 from __future__ import annotations
 
 import asyncpg
-from backend.domain.session_manager import SessionManager
+from packages.backend.domain.session_manager import SessionManager
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.tenant import TenantContext
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.sessions")

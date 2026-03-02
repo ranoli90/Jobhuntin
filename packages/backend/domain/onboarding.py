@@ -1,5 +1,4 @@
-"""
-Adaptive Onboarding and Profiling System.
+"""Adaptive Onboarding and Profiling System.
 
 Implements intelligent onboarding as recommended in competitive analysis:
 - Dynamic questionnaire based on user responses
@@ -13,7 +12,7 @@ Based on JobCopilot's adaptive ML ingestion approach.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -22,7 +21,7 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.onboarding")
 
 
-class QuestionCategory(str, Enum):
+class QuestionCategory(StrEnum):
     BASIC_INFO = "basic_info"
     EXPERIENCE = "experience"
     SKILLS = "skills"
@@ -32,7 +31,7 @@ class QuestionCategory(str, Enum):
     CAREER_GOALS = "career_goals"
 
 
-class QuestionType(str, Enum):
+class QuestionType(StrEnum):
     TEXT = "text"
     TEXTAREA = "textarea"
     SELECT = "select"
@@ -323,8 +322,7 @@ QUESTIONS: list[OnboardingQuestion] = [
 
 
 class OnboardingService:
-    """
-    Adaptive onboarding service that creates personalized questionnaires
+    """Adaptive onboarding service that creates personalized questionnaires
     and learns from user responses.
     """
 

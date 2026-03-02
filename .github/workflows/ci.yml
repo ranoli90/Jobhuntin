@@ -291,11 +291,13 @@ jobs:
     environment: staging
     steps:
       - name: Deploy API to staging
+        env:
+          RENDER_API_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
         run: |
           curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_API_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
+            -H "Authorization: Bearer $RENDER_API_TOKEN" \
             -d '{"clearCache": "clear"}'
       - name: Wait for staging health
         run: |
@@ -333,18 +335,23 @@ jobs:
     environment: production
     steps:
       - name: Deploy API to production
+        env:
+          RENDER_API_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
         run: |
           curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_API_SERVICE_ID }}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
+            -H "Authorization: Bearer ${RENDER_API_TOKEN}" \
             -d '{"clearCache": "clear"}'
       - name: Deploy Worker to production
+        env:
+          RENDER_API_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
+          RENDER_WORKER_SERVICE_ID: ${{ secrets.RENDER_WORKER_SERVICE_ID }}
         run: |
-          curl -sf -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_WORKER_SERVICE_ID }}/deploys" \
+          curl -sf -X POST "https://api.render.com/v1/services/${RENDER_WORKER_SERVICE_ID}/deploys" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_TOKEN }}" \
+            -H "Authorization: Bearer ${RENDER_API_TOKEN}" \
             -d '{"clearCache": "clear"}'
       - name: Wait and smoke test production
         run: |

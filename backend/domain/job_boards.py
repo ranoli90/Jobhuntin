@@ -1,5 +1,4 @@
-"""
-Integration with external job boards.
+"""Integration with external job boards.
 Currently supporting: Adzuna.
 """
 

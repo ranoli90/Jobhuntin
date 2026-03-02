@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test Render database connection"""
+"""Test Render database connection."""
 import asyncio
 
 import asyncpg

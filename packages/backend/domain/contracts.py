@@ -1,5 +1,4 @@
-"""
-Enterprise contract management — self-serve onboarding, annual billing,
+"""Enterprise contract management — self-serve onboarding, annual billing,
 contract lifecycle, churn risk scoring.
 """
 
@@ -43,16 +42,16 @@ async def advance_onboarding(
     details: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Advance onboarding to next step."""
-    STEPS = ["domain", "sso", "contract", "billing", "complete"]
+    steps = ["domain", "sso", "contract", "billing", "complete"]
     row = await conn.fetchrow(
         "SELECT * FROM public.enterprise_onboarding WHERE tenant_id = $1", tenant_id,
     )
     if not row:
         raise ValueError("Onboarding not started")
 
-    current_idx = STEPS.index(row["step"]) if row["step"] in STEPS else 0
-    next_idx = STEPS.index(step) if step in STEPS else current_idx + 1
-    next_step = STEPS[min(next_idx, len(STEPS) - 1)]
+    current_idx = steps.index(row["step"]) if row["step"] in steps else 0
+    next_idx = steps.index(step) if step in steps else current_idx + 1
+    next_step = steps[min(next_idx, len(steps) - 1)]
 
     update_fields: dict[str, Any] = {"step": next_step}
     if details:
@@ -94,8 +93,7 @@ async def get_onboarding_status(
 
 
 async def update_churn_risk_scores(conn: asyncpg.Connection) -> int:
-    """
-    Recompute churn_risk_score for all paying tenants.
+    """Recompute churn_risk_score for all paying tenants.
 
     Score 0-100 based on:
     - Days since last activity (0-40 pts)

@@ -1,5 +1,4 @@
-"""
-Tenant-aware Rate Limiting with Redis
+"""Tenant-aware Rate Limiting with Redis.
 
 Implements tier-based rate limiting:
 - Free: 10 requests/min
@@ -70,8 +69,7 @@ def get_tier_limits(tier: str | TenantTier) -> TierLimits:
 
 
 class TenantRateLimiter:
-    """
-    Tenant-aware rate limiter with Redis backend support.
+    """Tenant-aware rate limiter with Redis backend support.
 
     Uses a sliding window algorithm with Redis for distributed systems.
     Falls back to in-memory when Redis is unavailable.
@@ -120,11 +118,11 @@ class TenantRateLimiter:
         tier: str | TenantTier,
         endpoint: str = "default",
     ) -> tuple[bool, dict[str, Any]]:
-        """
-        Attempt to acquire a rate limit slot for the tenant.
+        """Attempt to acquire a rate limit slot for the tenant.
 
         Returns:
             (allowed: bool, metadata: dict) - whether allowed and metadata about limits
+
         """
         limits = get_tier_limits(tier)
         key = f"rate_limit:tenant:{tenant_id}:{endpoint}"
@@ -202,8 +200,7 @@ class TenantRateLimiter:
         tier: str | TenantTier,
         operation: str = "default",
     ) -> tuple[bool, dict[str, Any]]:
-        """
-        Acquire a concurrent request slot for the tenant.
+        """Acquire a concurrent request slot for the tenant.
 
         Used for long-running operations like AI requests.
         Must be paired with release_concurrent().
@@ -250,8 +247,7 @@ class TenantRateLimiter:
         tenant_context: Any = None,
         plan: str | None = None,
     ) -> TenantTier:
-        """
-        Determine tenant tier from request context or explicit plan.
+        """Determine tenant tier from request context or explicit plan.
 
         Priority:
         1. Explicit plan parameter
@@ -292,8 +288,7 @@ async def check_tenant_rate_limit(
     tier: str | TenantTier,
     endpoint: str = "default",
 ) -> tuple[bool, dict[str, Any]]:
-    """
-    Convenience function to check tenant rate limit.
+    """Convenience function to check tenant rate limit.
 
     Usage:
         allowed, metadata = await check_tenant_rate_limit(
@@ -309,8 +304,7 @@ async def check_tenant_rate_limit(
 
 
 class AIEndpointRateLimiter:
-    """
-    Specialized rate limiter for AI endpoints with stricter limits.
+    """Specialized rate limiter for AI endpoints with stricter limits.
 
     AI endpoints have additional constraints:
     - Lower per-minute limits due to LLM costs

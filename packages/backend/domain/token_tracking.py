@@ -1,6 +1,4 @@
-"""
-Token usage tracking per tenant for LLM calls.
-"""
+"""Token usage tracking per tenant for LLM calls."""
 
 from __future__ import annotations
 
@@ -15,6 +13,7 @@ logger = get_logger("sorce.tokens")
 @dataclass
 class TokenUsage:
     """Token usage record for a single API call."""
+
     tenant_id: str
     model: str
     prompt_tokens: int
@@ -124,8 +123,7 @@ class TokenTracker:
         return by_day
 
     def check_limit(self, tenant_id: str, tier: str) -> tuple[bool, int, int]:
-        """
-        Check if tenant is within token limit.
+        """Check if tenant is within token limit.
 
         Returns: (is_within_limit, current_usage, limit)
         """
@@ -165,8 +163,7 @@ def get_token_tracker() -> TokenTracker:
 
 
 def estimate_tokens(text: str) -> int:
-    """
-    Estimate token count for text.
+    """Estimate token count for text.
     Uses simple heuristic: ~4 characters per token.
     """
     return len(text) // 4

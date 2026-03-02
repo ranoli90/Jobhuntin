@@ -11,10 +11,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const parser = new Parser();
 
 // Database Pool - Uses the same DATABASE_URL as the main app (Render/Supabase)
-// nosemgrep: problem-based-packs.insecure-transport.js-node.bypass-tls-verification - Render PostgreSQL may require this
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : undefined
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: true } : undefined
 });
 
 // Cities to monitor (could be loaded from locations.json)

@@ -1,4 +1,4 @@
-"""Try different Ionos API approaches"""
+"""Try different Ionos API approaches."""
 import base64
 
 import httpx
@@ -11,8 +11,7 @@ IONOS_PUBLIC_PREFIX = "48e1b13910ac4a6aa4e18a32460a1812"
 IONOS_SECRET = "Opgjoy-2ReOiIwd42BcbD1iLFGx1oMOXC9TLx_so1TPkuipLG-X8NvQQz-GSHlpm7RXTxqZ2HhPSTZZMhCRuaw"
 
 def test_ionos_endpoints():
-    """Test various Ionos API endpoints"""
-
+    """Test various Ionos API endpoints."""
     # Prepare basic auth
     credentials = f"{IONOS_PUBLIC_PREFIX}:{IONOS_SECRET}"
     encoded_credentials = base64.b64encode(credentials.encode()).decode()
@@ -115,7 +114,7 @@ def test_ionos_endpoints():
     return working_endpoints
 
 def generate_manual_instructions():
-    """Generate clear manual instructions"""
+    """Generate clear manual instructions."""
     print("\n" + "=" * 70)
     print("MANUAL DNS CONFIGURATION")
     print("=" * 70)

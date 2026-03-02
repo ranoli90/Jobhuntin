@@ -1,5 +1,4 @@
-"""
-Data retention and cleanup routines.
+"""Data retention and cleanup routines.
 
 Provides scheduled-task-compatible functions for:
   - Deleting stale resume PDFs from Supabase Storage
@@ -19,7 +18,7 @@ from typing import Any
 import asyncpg
 from shared.logging_config import get_logger
 
-from backend.domain.masking import redact_event_payload
+from packages.backend.domain.masking import redact_event_payload
 from shared.metrics import incr
 
 logger = get_logger("sorce.retention")
@@ -40,8 +39,7 @@ async def find_stale_resumes(
     conn: asyncpg.Connection,
     retention_days: int = RESUME_RETENTION_DAYS,
 ) -> list[dict[str, Any]]:
-    """
-    Find profiles with resume_url that are older than the retention period.
+    """Find profiles with resume_url that are older than the retention period.
     Returns list of dicts with id, user_id, tenant_id, resume_url, updated_at.
     """
     cutoff = datetime.now(UTC) - timedelta(days=retention_days)
@@ -64,8 +62,7 @@ async def cleanup_old_resumes(
     delete_from_storage_fn: Any = None,
     retention_days: int = RESUME_RETENTION_DAYS,
 ) -> int:
-    """
-    Delete stale resume PDFs from storage and clear resume_url on profiles.
+    """Delete stale resume PDFs from storage and clear resume_url on profiles.
 
     Args:
         pool: Database connection pool.
@@ -75,6 +72,7 @@ async def cleanup_old_resumes(
 
     Returns:
         Number of resumes cleaned up.
+
     """
     count = 0
     async with pool.acquire() as conn:
@@ -149,8 +147,7 @@ async def anonymize_old_events(
     retention_days: int = EVENT_PII_RETENTION_DAYS,
     batch_size: int = 500,
 ) -> int:
-    """
-    Anonymize PII in old event payloads by redacting sensitive fields.
+    """Anonymize PII in old event payloads by redacting sensitive fields.
 
     Returns number of events anonymized.
     """

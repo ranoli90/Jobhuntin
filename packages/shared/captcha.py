@@ -1,5 +1,4 @@
-"""
-Bot Detection — CAPTCHA verification for form protection.
+"""Bot Detection — CAPTCHA verification for form protection.
 
 Supports:
 - hCaptcha (privacy-focused)

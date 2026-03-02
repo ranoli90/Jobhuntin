@@ -1,5 +1,4 @@
-"""
-Job Alerts System — daily/weekly email notifications for new matching jobs.
+"""Job Alerts System — daily/weekly email notifications for new matching jobs.
 
 Users can configure alerts with:
 - Search keywords/titles
@@ -21,7 +20,7 @@ from pydantic import BaseModel, Field
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.metrics import incr
 
 logger = get_logger("sorce.job_alerts")
@@ -204,7 +203,7 @@ class JobAlertMatcher:
         since_hours: int = 24,
         limit: int = 50,
     ) -> list[JobAlertMatch]:
-        conditions = ["j.created_at >= now() - interval '%s hours'" % since_hours]
+        conditions = [f"j.created_at >= now() - interval '{since_hours} hours'"]
         params: list[Any] = []
         param_idx = 1
 
@@ -411,7 +410,7 @@ class JobAlertService:
                         },
                     )
                     return resp.status_code in (200, 201)
-        except CircuitBreakerOpen:
+        except CircuitBreakerOpenError:
             logger.warning("Resend circuit breaker open")
             return False
         except Exception as e:

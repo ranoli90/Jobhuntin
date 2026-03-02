@@ -41,6 +41,8 @@ const Privacy = React.lazy(() => import("./pages/Privacy"));
 const Terms = React.lazy(() => import("./pages/Terms"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const Onboarding = React.lazy(() => import("./pages/app/Onboarding"));
+const Billing = React.lazy(() => import("./pages/app/Billing"));
+const AppNotFound = React.lazy(() => import("./pages/app/NotFound"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Maintenance = React.lazy(() => import("./pages/Maintenance"));
@@ -211,7 +213,7 @@ export default function App() {
               <Route path="applications/:id" element={<React.Suspense fallback={<PageLoader />}><ApplicationDetailPage /></React.Suspense>} />
               <Route path="holds" element={<React.Suspense fallback={<PageLoader />}><HoldsViewWrapper /></React.Suspense>} />
               <Route path="team" element={<React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense>} />
-              <Route path="billing" element={<React.Suspense fallback={<PageLoader />}><BillingViewWrapper /></React.Suspense>} />
+              <Route path="billing" element={<React.Suspense fallback={<PageLoader />}><Billing /></React.Suspense>} />
               <Route path="settings" element={<Settings />} />
 
               {/* AI Feature Routes */}
@@ -227,7 +229,7 @@ export default function App() {
                 <Route path="sources" element={<React.Suspense fallback={<PageLoader />}><AdminSourcesPage /></React.Suspense>} />
               </Route>
 
-              <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+              <Route path="*" element={<React.Suspense fallback={<PageLoader />}><AppNotFound /></React.Suspense>} />
             </Route>
           </Route>
         </Routes>

@@ -1,5 +1,4 @@
-"""
-API v2 authentication — API key validation, rate limiting, usage metering.
+"""API v2 authentication — API key validation, rate limiting, usage metering.
 
 Keys are stored hashed (SHA-256). The raw key is only shown once at creation.
 Format: sk_live_<32 hex chars>
@@ -39,8 +38,7 @@ async def resolve_api_key(
     request: Request,
     pool: asyncpg.Pool,
 ) -> dict[str, Any]:
-    """
-    Validate API key from Authorization header.
+    """Validate API key from Authorization header.
     Returns the api_key row dict or raises 401/403/429.
     """
     auth = request.headers.get("Authorization", "")

@@ -1,15 +1,14 @@
 import functools
 import json
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 from shared.redis_client import get_redis
 
 logger = logging.getLogger(__name__)
 
 def redis_cache(ttl_seconds: int = 300, key_prefix: str = "cache"):
-    """
-    Async decorator to cache function results in Redis.
+    """Async decorator to cache function results in Redis.
     Handles basic types that are JSON serializable.
     Falls back to executing the function if Redis is unavailable.
     """

@@ -1,5 +1,4 @@
-"""
-Data Retention Policy — automated data archiving and cleanup.
+"""Data Retention Policy — automated data archiving and cleanup.
 
 Implements configurable retention periods for different data types:
 - Application data: 2 years (configurable)

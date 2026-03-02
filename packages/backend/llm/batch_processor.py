@@ -1,5 +1,4 @@
-"""
-Batch LLM processing service.
+"""Batch LLM processing service.
 
 Optimizes LLM calls with:
 - Concurrent request batching
@@ -11,8 +10,9 @@ Optimizes LLM calls with:
 import asyncio
 import logging
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Awaitable, Callable, Generic, TypeVar
+from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +21,9 @@ R = TypeVar("R")
 
 
 @dataclass
-class BatchResult(Generic[R]):
+class BatchResult[R]:
     """Result of a batch LLM operation."""
+
     success: bool
     result: R | None = None
     error: str | None = None
@@ -32,8 +33,9 @@ class BatchResult(Generic[R]):
 
 
 @dataclass
-class BatchSummary(Generic[R]):
+class BatchSummary[R]:
     """Summary of a batch processing run."""
+
     total_items: int = 0
     successful: int = 0
     failed: int = 0
@@ -58,6 +60,7 @@ class BatchSummary(Generic[R]):
 @dataclass
 class RateLimitConfig:
     """Rate limit configuration."""
+
     requests_per_minute: int = 60
     tokens_per_minute: int = 150000
     max_concurrent: int = 10
@@ -66,9 +69,8 @@ class RateLimitConfig:
     retry_max_delay_ms: float = 30000.0
 
 
-class BatchLLMProcessor(Generic[T, R]):
-    """
-    Batch processor for LLM operations.
+class BatchLLMProcessor[T, R]:
+    """Batch processor for LLM operations.
 
     Features:
     - Concurrent processing with configurable parallelism
@@ -84,14 +86,14 @@ class BatchLLMProcessor(Generic[T, R]):
         token_counter: "Callable[[T], int] | None" = None,
         cost_calculator: "Callable[[int], float] | None" = None,
     ):
-        """
-        Initialize batch processor.
+        """Initialize batch processor.
 
         Args:
             process_fn: Async function to process each item
             config: Rate limit configuration
             token_counter: Function to estimate tokens for an item
             cost_calculator: Function to calculate cost from tokens
+
         """
         self._process_fn = process_fn
         self._config = config or RateLimitConfig()
@@ -187,8 +189,7 @@ class BatchLLMProcessor(Generic[T, R]):
         items: list[T],
         fail_fast: bool = False,
     ) -> BatchSummary[R]:
-        """
-        Process a batch of items concurrently.
+        """Process a batch of items concurrently.
 
         Args:
             items: List of items to process
@@ -196,6 +197,7 @@ class BatchLLMProcessor(Generic[T, R]):
 
         Returns:
             BatchSummary with results and statistics
+
         """
         summary = BatchSummary[R](total_items=len(items))
 
@@ -231,7 +233,7 @@ class BatchLLMProcessor(Generic[T, R]):
             # Process all items
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            for i, result in enumerate(results):
+            for _i, result in enumerate(results):
                 if isinstance(result, Exception):
                     summary.results.append(BatchResult(
                         success=False,
@@ -260,8 +262,7 @@ class BatchLLMProcessor(Generic[T, R]):
         items: list[T],
         callback: "Callable[[int, BatchResult[R]], Awaitable[None]]",
     ) -> BatchSummary[R]:
-        """
-        Process items and stream results via callback.
+        """Process items and stream results via callback.
 
         Args:
             items: List of items to process
@@ -269,6 +270,7 @@ class BatchLLMProcessor(Generic[T, R]):
 
         Returns:
             BatchSummary with final statistics
+
         """
         summary = BatchSummary[R](total_items=len(items))
 
@@ -330,14 +332,13 @@ def calculate_cost_claude(tokens: int) -> float:
 
 
 # Convenience function for common use case
-async def batch_process_llm_requests(
+async def batch_process_llm_requests[T](
     items: list[T],
     process_fn: "Callable[[T], Awaitable[R]]",
     max_concurrent: int = 10,
     requests_per_minute: int = 60,
 ) -> BatchSummary[R]:
-    """
-    Convenience function for batch LLM processing.
+    """Convenience function for batch LLM processing.
 
     Args:
         items: Items to process
@@ -347,6 +348,7 @@ async def batch_process_llm_requests(
 
     Returns:
         BatchSummary with results
+
     """
     config = RateLimitConfig(
         max_concurrent=max_concurrent,

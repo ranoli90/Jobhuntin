@@ -1,5 +1,4 @@
-"""
-Lightweight experimentation framework.
+"""Lightweight experimentation framework.
 
 Provides deterministic, sticky variant assignment for A/B and canary
 experiments. Assignments are persisted in `experiment_assignments` for
@@ -24,8 +23,7 @@ async def get_variant(
     subject_id: str,
     subject_type: str = "TENANT",
 ) -> str | None:
-    """
-    Return the variant name for a subject in an active experiment.
+    """Return the variant name for a subject in an active experiment.
 
     1. If the experiment doesn't exist or is inactive → return None.
     2. If an assignment already exists → return it (sticky).

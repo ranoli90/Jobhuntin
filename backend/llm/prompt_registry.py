@@ -1,5 +1,4 @@
-"""
-Prompt versioning registry.
+"""Prompt versioning registry.
 
 Centralizes all LLM prompt templates with version keys so that the
 experimentation framework can swap between prompt variants at runtime.
@@ -31,8 +30,7 @@ def register_prompt(prompt_key: str, version: str, template: str, *, default: bo
 
 
 def get_prompt(prompt_key: str, version: str | None = None) -> str:
-    """
-    Retrieve a prompt template by key and optional version.
+    """Retrieve a prompt template by key and optional version.
 
     If version is None, returns the default version.
     Raises KeyError if not found.

@@ -1,5 +1,4 @@
-"""
-Job deduplication utilities.
+"""Job deduplication utilities.
 
 Deduplicates job listings from multiple sources (Adzuna, LinkedIn, Indeed, etc.)
 based on title, company, and location similarity.
@@ -18,6 +17,7 @@ from typing import Any
 @dataclass
 class JobListing:
     """Normalized job listing for deduplication."""
+
     id: str
     title: str
     company: str
@@ -189,11 +189,11 @@ def deduplicate_jobs(
     source: str = "unknown",
     existing_jobs: list[JobListing] | None = None,
 ) -> tuple[list[JobListing], list[JobListing]]:
-    """
-    Deduplicate a list of jobs.
+    """Deduplicate a list of jobs.
 
     Returns:
         tuple of (unique_jobs, duplicate_jobs)
+
     """
     normalized = [normalize_job(job, source) for job in jobs]
 
@@ -230,14 +230,14 @@ def deduplicate_jobs(
 def merge_job_sources(
     sources: list[tuple[list[dict], str]],
 ) -> tuple[list[JobListing], dict[str, int]]:
-    """
-    Merge jobs from multiple sources with deduplication.
+    """Merge jobs from multiple sources with deduplication.
 
     Args:
         sources: List of (jobs_list, source_name) tuples
 
     Returns:
         tuple of (unique_jobs, stats_dict)
+
     """
     all_unique: list[JobListing] = []
     stats: dict[str, int] = {}

@@ -1,5 +1,4 @@
-"""
-Data Residency — region-specific data storage for compliance.
+"""Data Residency — region-specific data storage for compliance.
 
 Features:
   - Region-specific data storage selection
@@ -12,8 +11,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 import asyncpg
@@ -24,7 +23,7 @@ from shared.metrics import incr
 logger = get_logger("sorce.data_residency")
 
 
-class DataRegion(str, Enum):
+class DataRegion(StrEnum):
     US_EAST = "us-east"
     US_WEST = "us-west"
     EU_WEST = "eu-west"
@@ -195,7 +194,7 @@ class DataResidencyManager:
             tenant_id=tenant_id,
             primary_region=primary_region,
             backup_region=backup_region,
-            enforced_at=datetime.now(timezone.utc),
+            enforced_at=datetime.now(UTC),
             data_types=types,
             cross_region_transfer_allowed=cross_region_transfer_allowed,
         )

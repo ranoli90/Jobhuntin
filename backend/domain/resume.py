@@ -1,6 +1,4 @@
-"""
-Resume processing domain logic: PDF upload, text extraction, and LLM parsing.
-"""
+"""Resume processing domain logic: PDF upload, text extraction, and LLM parsing."""
 
 import time
 import uuid
@@ -11,13 +9,13 @@ from fastapi import HTTPException
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from backend.domain.analytics_events import (
+from packages.backend.domain.analytics_events import (
     RESUME_PARSED_FAILED,
     RESUME_PARSED_SUCCESS,
     emit_analytics_event,
 )
-from backend.domain.models import CanonicalProfile, normalize_profile
-from backend.domain.repositories import ProfileRepo
+from packages.backend.domain.models import CanonicalProfile, normalize_profile
+from packages.backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
 from backend.llm.contracts import ResumeParseResponse_V2, build_resume_parse_prompt_v2
 from shared.metrics import incr, observe
@@ -56,8 +54,7 @@ async def upload_to_supabase_storage(
 
 
 async def generate_signed_url(storage_path: str, ttl_seconds: int | None = None) -> str:
-    """
-    Generate a time-limited signed URL for accessing a file in Supabase Storage.
+    """Generate a time-limited signed URL for accessing a file in Supabase Storage.
 
     Args:
         storage_path: The internal storage path returned by upload_to_supabase_storage
@@ -66,6 +63,7 @@ async def generate_signed_url(storage_path: str, ttl_seconds: int | None = None)
 
     Returns:
         A signed URL that expires after ttl_seconds.
+
     """
     s = get_settings()
 
@@ -184,13 +182,12 @@ async def process_resume_upload(
     db_pool,
     storage=None,  # StorageService instance - uses Render Disk when configured
 ) -> tuple[str, CanonicalProfile]:
-    """
-    Orchestrates the full resume upload flow:
+    """Orchestrates the full resume upload flow:
     1. Upload to storage
     2. Extract text
     3. Parse with LLM
     4. Normalize
-    5. DB Upsert
+    5. DB Upsert.
     """
     # 1. Upload to storage (supports Render Disk, S3, or local)
 

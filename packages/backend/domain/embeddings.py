@@ -1,5 +1,4 @@
-"""
-Vector embedding service for semantic job matching.
+"""Vector embedding service for semantic job matching.
 
 Uses OpenAI-compatible embeddings API (via OpenRouter) to generate
 embeddings for job descriptions and candidate profiles.
@@ -20,7 +19,7 @@ import httpx
 from shared.config import Settings
 from shared.logging_config import get_logger
 
-from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.embeddings")
@@ -36,8 +35,7 @@ class EmbeddingError(Exception):
 
 
 class EmbeddingClient:
-    """
-    Client for generating text embeddings via OpenAI-compatible API.
+    """Client for generating text embeddings via OpenAI-compatible API.
 
     Uses OpenRouter to access embedding models (text-embedding-3-small).
     Implements caching, rate limiting, and circuit breaker patterns.
@@ -51,8 +49,7 @@ class EmbeddingClient:
         self._circuit_breaker = get_circuit_breaker("embeddings")
 
     async def embed_text(self, text: str) -> list[float]:
-        """
-        Generate embedding vector for a single text.
+        """Generate embedding vector for a single text.
 
         Args:
             text: Input text to embed (max ~8000 tokens)
@@ -62,6 +59,7 @@ class EmbeddingClient:
 
         Raises:
             EmbeddingError on failure
+
         """
         if not text or not text.strip():
             return [0.0] * EMBEDDING_DIMENSION
@@ -76,7 +74,7 @@ class EmbeddingClient:
                 observe("embeddings.latency_seconds", duration)
                 incr("embeddings.calls.success")
                 return embedding
-        except CircuitBreakerOpen as exc:
+        except CircuitBreakerOpenError as exc:
             incr("embeddings.circuit_breaker.open")
             raise EmbeddingError(
                 f"Embedding service unavailable (circuit breaker open). "
@@ -84,8 +82,7 @@ class EmbeddingClient:
             ) from exc
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        """
-        Generate embeddings for multiple texts in a single API call.
+        """Generate embeddings for multiple texts in a single API call.
 
         More efficient than individual calls for bulk processing.
 
@@ -94,6 +91,7 @@ class EmbeddingClient:
 
         Returns:
             List of embedding vectors
+
         """
         if not texts:
             return []
@@ -167,15 +165,14 @@ class EmbeddingClient:
 
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:
-    """
-    Compute cosine similarity between two vectors.
+    """Compute cosine similarity between two vectors.
 
     Returns value between -1 and 1, where 1 means identical.
     """
     if not a or not b or len(a) != len(b):
         return 0.0
 
-    dot_product = sum(x * y for x, y in zip(a, b))
+    dot_product = sum(x * y for x, y in zip(a, b, strict=False))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(x * x for x in b) ** 0.5
 
@@ -192,8 +189,7 @@ def compute_text_hash(text: str) -> str:
 
 
 def profile_to_searchable_text(profile: dict[str, Any]) -> str:
-    """
-    Convert a CanonicalProfile to searchable text for embedding.
+    """Convert a CanonicalProfile to searchable text for embedding.
 
     This is what gets embedded and compared against job embeddings.
     """
@@ -240,8 +236,7 @@ def profile_to_searchable_text(profile: dict[str, Any]) -> str:
 
 
 def job_to_searchable_text(job: dict[str, Any]) -> str:
-    """
-    Convert a job dict to searchable text for embedding.
+    """Convert a job dict to searchable text for embedding.
 
     This is what gets embedded and compared against profile embeddings.
     """

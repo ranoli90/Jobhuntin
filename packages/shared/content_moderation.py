@@ -1,5 +1,4 @@
-"""
-Content Moderation — LLM output filtering and safety checks.
+"""Content Moderation — LLM output filtering and safety checks.
 
 Provides:
 - PII detection and redaction
@@ -67,7 +66,6 @@ PROFANITY_WORDS = {
     "ass",
     "bastard",
     "bitch",
-    "crap",
 }
 
 HARMFUL_PATTERNS = [

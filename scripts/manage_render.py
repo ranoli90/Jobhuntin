@@ -1,4 +1,5 @@
 import os
+
 import httpx
 from dotenv import load_dotenv
 
@@ -18,7 +19,7 @@ headers = {
 }
 
 def get_services():
-    """Fetch all Render services"""
+    """Fetch all Render services."""
     try:
         response = httpx.get(f"{RENDER_API_BASE}/services", headers=headers, timeout=10)
         response.raise_for_status()
@@ -32,7 +33,7 @@ def get_services():
         return []
 
 def get_service_env(service_id):
-    """Get environment variables for a service"""
+    """Get environment variables for a service."""
     try:
         response = httpx.get(f"{RENDER_API_BASE}/services/{service_id}/env-vars",
                            headers=headers, timeout=10)
@@ -43,7 +44,7 @@ def get_service_env(service_id):
         return []
 
 def get_databases():
-    """Fetch all databases - Render doesn't have a direct endpoint"""
+    """Fetch all databases - Render doesn't have a direct endpoint."""
     # Render doesn't have a /databases endpoint
     # Instead, we'll find databases by checking service configurations
     print("Render API doesn't have a direct databases endpoint. Checking service configurations...")
@@ -59,7 +60,7 @@ def get_databases():
     return databases
 
 def delete_database(service_id):
-    """Delete a database service"""
+    """Delete a database service."""
     try:
         response = httpx.delete(f"{RENDER_API_BASE}/services/{service_id}", headers=headers)
         return response.status_code == 204

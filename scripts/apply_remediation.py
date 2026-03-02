@@ -37,7 +37,7 @@ async def apply_sql():
     try:
         # 1. Apply remediation.sql
         print("Reading remediation.sql...")
-        with open("remediation.sql", "r", encoding="utf-8") as f:
+        with open("remediation.sql", encoding="utf-8") as f:
             sql = f.read()
         await conn.execute(sql)
         print("remediation.sql applied successfully!")
@@ -45,7 +45,7 @@ async def apply_sql():
         # 2. Apply security_hardening.sql
         if os.path.exists("security_hardening.sql"):
             print("Applying security_hardening.sql...")
-            with open("security_hardening.sql", "r") as f:
+            with open("security_hardening.sql") as f:
                 sql2 = f.read()
             await conn.execute(sql2)
             print("security_hardening.sql applied successfully!")

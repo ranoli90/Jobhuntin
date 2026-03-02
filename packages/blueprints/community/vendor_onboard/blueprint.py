@@ -1,5 +1,4 @@
-"""
-Vendor Onboarding Blueprint — automates supplier/vendor registration forms.
+"""Vendor Onboarding Blueprint — automates supplier/vendor registration forms.
 
 Handles W-9, banking info collection, insurance cert uploads, and
 compliance questionnaires across common procurement portals.

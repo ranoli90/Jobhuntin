@@ -5,6 +5,7 @@ from shared.config import get_settings
 
 class RedisManager:
     """Singleton manager for Redis connection pool."""
+
     def __init__(self) -> None:
         self._client: redis.Redis | None = None
 

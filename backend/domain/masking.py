@@ -1,5 +1,4 @@
-"""
-PII masking utilities for admin views and logging.
+"""PII masking utilities for admin views and logging.
 
 Provides helpers to partially redact sensitive fields so support engineers
 can identify records without seeing full PII.
@@ -43,8 +42,7 @@ def mask_name(name: str) -> str:
 
 
 def redact_profile_for_support(profile_data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Return a copy of profile_data with PII fields masked.
+    """Return a copy of profile_data with PII fields masked.
     Safe for support engineer viewing.
     """
     result = _deep_copy_dict(profile_data)
@@ -72,8 +70,7 @@ def redact_profile_for_support(profile_data: dict[str, Any]) -> dict[str, Any]:
 
 
 def redact_profile_for_logging(profile_data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Aggressively redact profile data for log output.
+    """Aggressively redact profile data for log output.
     Strips all PII; keeps only structural info.
     """
     result = _deep_copy_dict(profile_data)
@@ -104,8 +101,7 @@ def redact_event_payload(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def strip_pii_for_llm(profile_data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Strip contact PII from profile data before sending to external LLM providers.
+    """Strip contact PII from profile data before sending to external LLM providers.
 
     Removes email, phone, full address, and URLs. Keeps name (needed for
     cover letters), skills, experience titles/companies, and education —

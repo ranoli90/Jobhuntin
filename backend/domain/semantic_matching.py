@@ -1,5 +1,4 @@
-"""
-Semantic job matching service using vector embeddings.
+"""Semantic job matching service using vector embeddings.
 
 Implements the "Precision Matcher" archetype from competitive analysis:
 - Vector-based semantic matching (like ApplyPass, JobRight)
@@ -19,13 +18,13 @@ import json
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from backend.domain.vectordb import VectorDB
+    from packages.backend.domain.vectordb import VectorDB
 
 import asyncpg
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
-from backend.domain.embeddings import (
+from packages.backend.domain.embeddings import (
     EmbeddingClient,
     cosine_similarity,
     get_embedding_client,
@@ -45,7 +44,7 @@ class MatchWeights(BaseModel):
     work_style_fit: float = Field(default=0.18, ge=0.0, le=1.0)
     trajectory_alignment: float = Field(default=0.12, ge=0.0, le=1.0)
 
-    def normalize(self) -> "MatchWeights":
+    def normalize(self) -> MatchWeights:
         """Normalize weights to sum to 1.0."""
         total = (
             self.semantic_similarity
@@ -65,7 +64,7 @@ class MatchWeights(BaseModel):
         )
 
     @classmethod
-    def default(cls) -> "MatchWeights":
+    def default(cls) -> MatchWeights:
         return cls(
             semantic_similarity=0.30,
             skill_match=0.25,
@@ -119,8 +118,7 @@ class SemanticMatchResult(BaseModel):
 
 
 class SemanticMatchingService:
-    """
-    Service for semantic job-candidate matching.
+    """Service for semantic job-candidate matching.
 
     Uses vector embeddings to compute semantic similarity between
     job descriptions and candidate profiles, then applies dealbreaker
@@ -157,8 +155,7 @@ class SemanticMatchingService:
         weights: MatchWeights | None = None,
         job_signals: dict[str, Any] | None = None,
     ) -> SemanticMatchResult:
-        """
-        Compute semantic match score between profile and job.
+        """Compute semantic match score between profile and job.
 
         This is the core matching function that:
         1. Generates embeddings for profile and job
@@ -178,6 +175,7 @@ class SemanticMatchingService:
 
         Returns:
             SemanticMatchResult with score and explanation
+
         """
         dealbreakers = dealbreakers or Dealbreakers()
         effective_weights = (weights or self._weights).normalize()
@@ -650,20 +648,19 @@ class EmbeddingCacheRepo:
 
 
 class VectorMatchRepo:
-    """
-    Repository for vector-based job matching using pgvector or external vector DB.
+    """Repository for vector-based job matching using pgvector or external vector DB.
 
     This addresses recommendation #15: Use vector database for efficient
     similarity search instead of JSON-based storage.
     """
 
-    def __init__(self, vectordb: "VectorDB | None" = None) -> None:
+    def __init__(self, vectordb: VectorDB | None = None) -> None:
         self._vectordb = vectordb
 
-    async def _get_vectordb(self, conn: asyncpg.Connection | None = None) -> "VectorDB":
+    async def _get_vectordb(self, conn: asyncpg.Connection | None = None) -> VectorDB:
         """Get or initialize the vector database."""
         if self._vectordb is None:
-            from backend.domain.vectordb import get_vectordb
+            from packages.backend.domain.vectordb import get_vectordb
 
             self._vectordb = await get_vectordb(conn=conn)
         return self._vectordb

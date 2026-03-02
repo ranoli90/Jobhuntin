@@ -1,5 +1,4 @@
-"""
-Scholarship Application Blueprint — automates scholarship form submissions.
+"""Scholarship Application Blueprint — automates scholarship form submissions.
 
 Handles personal essays, academic records, financial aid forms, and
 recommendation request workflows across scholarship portals.

@@ -1,5 +1,4 @@
-"""
-Webhook HMAC Signing — secure webhook payload verification.
+"""Webhook HMAC Signing — secure webhook payload verification.
 
 Provides:
 - HMAC-SHA256 signature generation
@@ -47,7 +46,7 @@ class WebhookSigner:
 
         if include_timestamp:
             timestamp = str(int(time.time()))
-            payload_to_sign = f"{timestamp}.{payload.decode('utf-8')}".encode("utf-8")
+            payload_to_sign = f"{timestamp}.{payload.decode('utf-8')}".encode()
         else:
             timestamp = ""
             payload_to_sign = payload
@@ -100,7 +99,7 @@ class WebhookSigner:
                 incr("webhook.verify_failed", {"reason": "expired_timestamp"})
                 return False, "Timestamp expired"
 
-            payload_to_verify = f"{timestamp}.{payload.decode('utf-8')}".encode("utf-8")
+            payload_to_verify = f"{timestamp}.{payload.decode('utf-8')}".encode()
         else:
             payload_to_verify = payload
 
@@ -137,7 +136,7 @@ class WebhookSigner:
         if not expected_signature:
             return False, "Missing signature"
 
-        signed_payload = f"{timestamp}.{payload.decode('utf-8')}".encode("utf-8")
+        signed_payload = f"{timestamp}.{payload.decode('utf-8')}".encode()
 
         computed = hmac.new(
             self.secret,

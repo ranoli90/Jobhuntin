@@ -1,18 +1,18 @@
-"""initial_schema
+"""initial_schema.
 
 Revision ID: edde89a3dcba
 Revises:
 Create Date: 2026-02-09 23:15:44.562182
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from alembic import op
 
 revision: str = 'edde89a3dcba'
-down_revision: Union[str, Sequence[str], None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

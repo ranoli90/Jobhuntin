@@ -1,12 +1,12 @@
-"""Configure Ionos DNS with correct API endpoints"""
+"""Configure Ionos DNS with correct API endpoints."""
 import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Ionos API credentials
-IONOS_PUBLIC_PREFIX = "48e1b13910ac4a6aa4e18a32460a1812"
-IONOS_SECRET = "Opgjoy-2ReOiIwd42BcbD1iLFGx1oMOXC9TLx_so1TPkuipLG-X8NvQQz-GSHlpm7RXTxqZ2HhPSTZZMhCRuaw"
+IONOS_PUBLIC_PREFIX = os.environ.get("IONOS_PUBLIC_PREFIX")
+IONOS_SECRET = os.environ.get("IONOS_SECRET")
 
 # Domain and DNS records from Resend
 DOMAIN = "jobhuntin.com"
@@ -38,7 +38,7 @@ DNS_RECORDS = [
 ]
 
 def get_ionos_token():
-    """Get Ionos API token - try different endpoints"""
+    """Get Ionos API token - try different endpoints."""
     headers = {
         "Content-Type": "application/json",
     }
@@ -81,7 +81,7 @@ def get_ionos_token():
     return None, None
 
 def test_api_access(token, base_url):
-    """Test API access with token"""
+    """Test API access with token."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
@@ -104,7 +104,7 @@ def test_api_access(token, base_url):
         return False
 
 def find_domain(token, base_url):
-    """Find the domain zone"""
+    """Find the domain zone."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
@@ -132,7 +132,7 @@ def find_domain(token, base_url):
         return None
 
 def create_dns_record_manual():
-    """Generate manual DNS configuration instructions"""
+    """Generate manual DNS configuration instructions."""
     print("\n" + "=" * 70)
     print("MANUAL DNS CONFIGURATION INSTRUCTIONS")
     print("=" * 70)

@@ -1,5 +1,4 @@
-"""
-Job-seeker profile model — Sorce's specialization of ActorProfile.
+"""Job-seeker profile model — Sorce's specialization of ActorProfile.
 
 Extends the generic ActorProfile with employment-specific fields
 (current_title, current_company, years_experience) and maps Sorce's
@@ -10,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.domain.core_models import (
+from packages.backend.domain.core_models import (
     ActorHistoryEntry,
     ActorIdentity,
     ActorProfile,
@@ -19,19 +18,18 @@ from backend.domain.core_models import (
 
 
 class JobSeekerProfile(ActorProfile):
-    """
-    Sorce-specific extension of ActorProfile for job seekers.
+    """Sorce-specific extension of ActorProfile for job seekers.
 
     Adds employment-centric fields that don't belong in the generic base.
     """
+
     current_title: str = ""
     current_company: str = ""
     years_experience: int | None = None
 
 
 def from_canonical_profile(canonical: dict) -> JobSeekerProfile:
-    """
-    Convert a raw Sorce CanonicalProfile dict (as stored in profiles.profile_data)
+    """Convert a raw Sorce CanonicalProfile dict (as stored in profiles.profile_data)
     into a JobSeekerProfile instance.
     """
     contact = canonical.get("contact", {})
@@ -93,8 +91,7 @@ def from_canonical_profile(canonical: dict) -> JobSeekerProfile:
 
 
 def to_canonical_dict(profile: JobSeekerProfile) -> dict[str, Any]:
-    """
-    Convert a JobSeekerProfile back to the Sorce CanonicalProfile dict shape
+    """Convert a JobSeekerProfile back to the Sorce CanonicalProfile dict shape
     for backward compatibility with existing DB storage and LLM prompts.
     """
     return {

@@ -1,6 +1,4 @@
-"""
-Webhook delivery with exponential backoff retry logic.
-"""
+"""Webhook delivery with exponential backoff retry logic."""
 
 from __future__ import annotations
 
@@ -8,9 +6,10 @@ import asyncio
 import hashlib
 import hmac
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
 
 import httpx
 from shared.logging_config import get_logger
@@ -21,6 +20,7 @@ logger = get_logger("sorce.webhook")
 @dataclass
 class WebhookConfig:
     """Configuration for webhook delivery."""
+
     max_retries: int = 5
     initial_delay_seconds: float = 1.0
     max_delay_seconds: float = 60.0
@@ -31,6 +31,7 @@ class WebhookConfig:
 @dataclass
 class WebhookAttempt:
     """Record of a webhook delivery attempt."""
+
     webhook_id: str
     attempt_number: int
     timestamp: datetime
@@ -69,8 +70,7 @@ class WebhookDelivery:
         secret: str,
         webhook_id: str,
     ) -> bool:
-        """
-        Deliver webhook with exponential backoff retry.
+        """Deliver webhook with exponential backoff retry.
 
         Returns True if delivery succeeded, False if all retries exhausted.
         """
@@ -204,8 +204,7 @@ async def send_webhook(
     data: dict[str, Any],
     secret: str,
 ) -> bool:
-    """
-    Send a webhook notification.
+    """Send a webhook notification.
 
     Usage:
         await send_webhook(

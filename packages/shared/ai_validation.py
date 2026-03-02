@@ -1,5 +1,4 @@
-"""
-AI Input Validation and Sanitization
+"""AI Input Validation and Sanitization.
 
 Provides comprehensive input validation for AI endpoints:
 - Request size validation
@@ -83,8 +82,7 @@ class AIValidationConfig:
 def sanitize_for_ai(
     text: str, max_length: int = AIValidationConfig.MAX_TEXT_FIELD_SIZE
 ) -> ValidationResult:
-    """
-    Sanitize text input for AI processing.
+    """Sanitize text input for AI processing.
 
     Removes or neutralizes prompt injection attempts and limits length.
     """
@@ -131,9 +129,7 @@ def sanitize_dict_for_ai(
     data: dict[str, Any],
     max_size: int = AIValidationConfig.MAX_PROFILE_SIZE,
 ) -> ValidationResult:
-    """
-    Recursively sanitize all string values in a dictionary for AI processing.
-    """
+    """Recursively sanitize all string values in a dictionary for AI processing."""
     if not isinstance(data, dict):
         return ValidationResult(
             is_valid=False,
@@ -202,9 +198,7 @@ def validate_ai_request_size(
     jobs: list[dict] | None = None,
     additional_text: str | None = None,
 ) -> ValidationResult:
-    """
-    Validate the total size of an AI request.
-    """
+    """Validate the total size of an AI request."""
     import json
 
     total_size = 0
@@ -270,8 +264,7 @@ def validate_ai_request_size(
 
 
 def detect_pii(text: str) -> list[dict[str, Any]]:
-    """
-    Detect potential PII in text.
+    """Detect potential PII in text.
 
     Returns list of detected PII types with locations.
     """
@@ -294,8 +287,7 @@ def detect_pii(text: str) -> list[dict[str, Any]]:
 
 
 def mask_pii(text: str) -> tuple[str, list[str]]:
-    """
-    Mask detected PII in text.
+    """Mask detected PII in text.
 
     Returns masked text and list of masked PII types.
     """
@@ -311,8 +303,7 @@ def mask_pii(text: str) -> tuple[str, list[str]]:
 
 
 class AIRateLimiter:
-    """
-    Per-user rate limiter for AI operations.
+    """Per-user rate limiter for AI operations.
 
     Tracks:
     - Requests per minute
@@ -423,8 +414,7 @@ def validate_and_sanitize_ai_input(
     user_id: str | None = None,
     tier: str = "FREE",
 ) -> ValidationResult:
-    """
-    Comprehensive validation and sanitization for AI inputs.
+    """Comprehensive validation and sanitization for AI inputs.
 
     Performs:
     1. Size validation

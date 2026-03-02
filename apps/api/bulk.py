@@ -1,5 +1,4 @@
-"""
-Bulk Operations API — campaign management for enterprise/team tenants.
+"""Bulk Operations API — campaign management for enterprise/team tenants.
 
 Mounted at /bulk prefix by api/main.py.
 """
@@ -14,9 +13,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from backend.domain.audit import record_audit_event
-from backend.domain.repositories import db_transaction
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.repositories import db_transaction
+from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.bulk")
@@ -165,7 +164,7 @@ async def start_campaign(
             raise HTTPException(status_code=404, detail="No matching jobs found")
 
         # Compute priority score for bulk
-        from backend.domain.priority import compute_priority_score
+        from packages.backend.domain.priority import compute_priority_score
         priority = compute_priority_score(ctx.plan, is_bulk=True)
 
         # Create applications for each job in a transaction (Bulk Insert Optimization)

@@ -1,5 +1,4 @@
-"""
-M2 open-beta metrics — conversion funnel, cohort retention, referral
+"""M2 open-beta metrics — conversion funnel, cohort retention, referral
 performance, and UTM source attribution.
 
 Queries the materialized views from migration 011.
@@ -63,7 +62,7 @@ async def get_signup_sources(conn: asyncpg.Connection) -> list[dict[str, Any]]:
 async def get_m2_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     """Return the complete M2 dashboard payload."""
     # Import M1 dashboard for base metrics
-    from backend.domain.m1_metrics import get_m1_dashboard
+    from packages.backend.domain.m1_metrics import get_m1_dashboard
 
     m1 = await get_m1_dashboard(conn)
     funnel = await get_conversion_funnel(conn)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-CLI scaffolder for new Agent Blueprints.
+"""CLI scaffolder for new Agent Blueprints.
 
 Usage:
     python scripts/create_blueprint.py --name "Vendor Onboarding" --slug vendor-onboard

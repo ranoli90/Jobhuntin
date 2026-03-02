@@ -1,5 +1,4 @@
-"""
-Interview Preparation Simulator.
+"""Interview Preparation Simulator.
 
 Implements the "Pre-Flight Interview Simulator" recommended in competitive analysis:
 - Asynchronous voice-interactive LLM mock interviews
@@ -16,7 +15,7 @@ conducted twenty-four hours before the interview."
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -25,7 +24,7 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.interview_simulator")
 
 
-class InterviewType(str, Enum):
+class InterviewType(StrEnum):
     TECHNICAL = "technical"
     BEHAVIORAL = "behavioral"
     SYSTEM_DESIGN = "system_design"
@@ -35,14 +34,14 @@ class InterviewType(str, Enum):
     GENERAL = "general"
 
 
-class QuestionDifficulty(str, Enum):
+class QuestionDifficulty(StrEnum):
     EASY = "easy"
     MEDIUM = "medium"
     HARD = "hard"
     EXPERT = "expert"
 
 
-class InterviewPhase(str, Enum):
+class InterviewPhase(StrEnum):
     INTRODUCTION = "introduction"
     WARMUP = "warmup"
     CORE_QUESTIONS = "core_questions"
@@ -109,8 +108,7 @@ class InterviewSession(BaseModel):
 
 
 class InterviewSimulator:
-    """
-    AI-powered interview preparation simulator.
+    """AI-powered interview preparation simulator.
 
     Generates realistic interview scenarios based on:
     - Job description and company context
@@ -177,8 +175,7 @@ class InterviewSimulator:
         difficulty: QuestionDifficulty = QuestionDifficulty.MEDIUM,
         question_count: int = 10,
     ) -> InterviewSession:
-        """
-        Create a new interview preparation session.
+        """Create a new interview preparation session.
 
         Generates personalized questions based on the job and user profile.
         """
@@ -338,7 +335,6 @@ class InterviewSimulator:
             "were",
             "said",
             "each",
-            "which",
             "their",
             "time",
             "very",

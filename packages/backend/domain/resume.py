@@ -1,6 +1,4 @@
-"""
-Resume processing domain logic: PDF upload, text extraction, and LLM parsing.
-"""
+"""Resume processing domain logic: PDF upload, text extraction, and LLM parsing."""
 
 import os
 import tempfile
@@ -13,13 +11,13 @@ from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.storage import StorageService
 
-from backend.domain.analytics_events import (
+from packages.backend.domain.analytics_events import (
     RESUME_PARSED_FAILED,
     RESUME_PARSED_SUCCESS,
     emit_analytics_event,
 )
-from backend.domain.models import CanonicalProfile, normalize_profile
-from backend.domain.repositories import ProfileRepo
+from packages.backend.domain.models import CanonicalProfile, normalize_profile
+from packages.backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
 from backend.llm.contracts import ResumeParseResponse_V2, build_resume_parse_prompt_v2
 from shared.metrics import incr, observe
@@ -30,9 +28,7 @@ logger = get_logger("sorce.resume")
 async def download_resume_from_storage(
     storage_path: str, storage: StorageService
 ) -> str:
-    """
-    Download a resume from storage to a temp file. Returns local file path.
-    """
+    """Download a resume from storage to a temp file. Returns local file path."""
     suffix = ".pdf"
     fd, tmp_path = tempfile.mkstemp(suffix=suffix)
     os.close(fd)
@@ -75,13 +71,12 @@ async def parse_resume_to_profile(resume_text: str) -> dict:
 async def process_resume_upload(
     user_id: str, tenant_id: str, pdf_bytes: bytes, db_pool, storage: StorageService
 ) -> tuple[str, CanonicalProfile]:
-    """
-    Orchestrates the full resume upload flow:
+    """Orchestrates the full resume upload flow:
     1. Upload to storage
     2. Extract text
     3. Parse with LLM
     4. Normalize
-    5. DB Upsert
+    5. DB Upsert.
     """
     storage_path = f"{user_id}/{uuid.uuid4()}.pdf"
 

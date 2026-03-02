@@ -1,5 +1,4 @@
-"""
-Referral program logic.
+"""Referral program logic.
 
 Each user gets a unique referral code. When a new user signs up with
 a referral code, both the referrer and referee get bonus application
@@ -63,8 +62,7 @@ async def redeem_referral_code(
     referee_id: str,
     referral_code: str,
 ) -> dict[str, Any] | None:
-    """
-    Redeem a referral code for a new user.
+    """Redeem a referral code for a new user.
 
     Returns the referral row if successful, None if code invalid or already used.
     """

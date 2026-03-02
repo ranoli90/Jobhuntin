@@ -1,5 +1,4 @@
-"""
-JobSpy integration client for multi-source job aggregation.
+"""JobSpy integration client for multi-source job aggregation.
 Wraps the python-jobspy library with async support and error handling.
 """
 
@@ -114,9 +113,7 @@ class JobSpyClient:
         hours_old: int | None = None,
         sources: list[str] | None = None,
     ) -> list[dict[str, Any]]:
-        """
-        Fetch jobs from multiple sources asynchronously.
-        """
+        """Fetch jobs from multiple sources asynchronously."""
         results_wanted = results_wanted or getattr(
             self.settings, "jobspy_results_per_source", 50
         )

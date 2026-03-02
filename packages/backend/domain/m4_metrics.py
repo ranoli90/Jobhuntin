@@ -1,5 +1,4 @@
-"""
-M4 enterprise analytics — scale to $100k MRR.
+"""M4 enterprise analytics — scale to $100k MRR.
 
 Queries materialized views from migration 016 for:
   - MRR cohort analysis
@@ -46,8 +45,7 @@ async def get_enterprise_pipeline(conn: asyncpg.Connection) -> list[dict[str, An
 
 
 async def get_ltv_cac_estimate(conn: asyncpg.Connection) -> dict[str, Any]:
-    """
-    Estimate LTV:CAC ratio from available data.
+    """Estimate LTV:CAC ratio from available data.
 
     LTV = ARPU × gross margin / monthly churn rate
     CAC approximated from marketing spend (hardcoded placeholder).
@@ -100,7 +98,7 @@ async def get_ltv_cac_estimate(conn: asyncpg.Connection) -> dict[str, Any]:
 async def get_m4_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     """Return the complete M4 enterprise analytics dashboard."""
     # Import M3 for base metrics
-    from backend.domain.m3_metrics import get_m3_dashboard
+    from packages.backend.domain.m3_metrics import get_m3_dashboard
 
     m3 = await get_m3_dashboard(conn)
     cohorts = await get_mrr_cohorts(conn)

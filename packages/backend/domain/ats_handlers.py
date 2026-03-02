@@ -1,5 +1,4 @@
-"""
-ATS-specific handlers for common application platforms.
+"""ATS-specific handlers for common application platforms.
 
 Provides specialized form filling and navigation logic for:
 - Greenhouse (greenhouse.io)
@@ -183,8 +182,7 @@ CAPTCHA_CONTENT_INDICATORS = [
 def detect_ats_platform(
     url: str, page_content: str | None = None
 ) -> ATSDetectionResult:
-    """
-    Detect the ATS platform from URL and optional page content.
+    """Detect the ATS platform from URL and optional page content.
 
     Args:
         url: The application URL
@@ -192,6 +190,7 @@ def detect_ats_platform(
 
     Returns:
         ATSDetectionResult with platform and confidence
+
     """
     url_lower = url.lower()
     detected_platform = ATSPlatform.UNKNOWN
@@ -231,14 +230,14 @@ def detect_ats_platform(
 
 
 async def detect_captcha(page: Page) -> CAPTCHADetection:
-    """
-    Detect CAPTCHA on a page using multiple methods.
+    """Detect CAPTCHA on a page using multiple methods.
 
     Args:
         page: Playwright page object
 
     Returns:
         CAPTCHADetection with details
+
     """
     indicators: list[str] = []
     detected_selectors: list[str] = []

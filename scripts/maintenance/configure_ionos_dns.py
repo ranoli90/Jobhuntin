@@ -1,12 +1,12 @@
-"""Configure Ionos DNS for Resend domain verification"""
+"""Configure Ionos DNS for Resend domain verification."""
 import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Ionos API credentials
-IONOS_PUBLIC_PREFIX = "48e1b13910ac4a6aa4e18a32460a1812"
-IONOS_SECRET = "Opgjoy-2ReOiIwd42BcbD1iLFGx1oMOXC9TLx_so1TPkuipLG-X8NvQQz-GSHlpm7RXTxqZ2HhPSTZZMhCRuaw"
+IONOS_PUBLIC_PREFIX = os.environ.get("IONOS_PUBLIC_PREFIX")
+IONOS_SECRET = os.environ.get("IONOS_SECRET")
 
 # Domain and DNS records from Resend
 DOMAIN = "jobhuntin.com"
@@ -38,7 +38,7 @@ DNS_RECORDS = [
 ]
 
 def get_ionos_token():
-    """Get Ionos API token"""
+    """Get Ionos API token."""
     headers = {
         "Content-Type": "application/json",
     }
@@ -70,7 +70,7 @@ def get_ionos_token():
         return None
 
 def list_domains(token):
-    """List domains in Ionos"""
+    """List domains in Ionos."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
@@ -103,7 +103,7 @@ def list_domains(token):
         return None
 
 def get_existing_records(token, zone_id):
-    """Get existing DNS records"""
+    """Get existing DNS records."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
@@ -129,7 +129,7 @@ def get_existing_records(token, zone_id):
         return None
 
 def create_dns_record(token, zone_id, record):
-    """Create a DNS record"""
+    """Create a DNS record."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
@@ -172,7 +172,7 @@ def create_dns_record(token, zone_id, record):
         return False
 
 def update_dns_record(token, zone_id, record_id, record):
-    """Update an existing DNS record"""
+    """Update an existing DNS record."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",

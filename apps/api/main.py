@@ -1,5 +1,4 @@
-"""
-Part 3: API and Worker Coordination (FastAPI)
+"""Part 3: API and Worker Coordination (FastAPI).
 
 Hardened endpoints with:
   - Canonical profile normalization on resume parse
@@ -22,11 +21,9 @@ from typing import Any
 import asyncpg
 from fastapi import (
     BackgroundTasks,
-    Cookie,
     Depends,
     FastAPI,
     File,
-    Header,
     HTTPException,
     Path,
     Request,
@@ -42,24 +39,24 @@ from shared.redis_client import close_redis, get_redis
 from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
 
-from backend.domain.analytics_events import (
+from packages.backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
 )
-from backend.domain.models import (
+from packages.backend.domain.models import (
     CanonicalProfile,
     ErrorDetail,
     ErrorResponse,
 )
-from backend.domain.repositories import (
+from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
     JobRepo,
     db_transaction,
 )
-from backend.domain.resume import process_resume_upload
-from backend.domain.tenant import (
+from packages.backend.domain.resume import process_resume_upload
+from packages.backend.domain.tenant import (
     TenantContext,
     resolve_tenant_context,
 )
@@ -94,6 +91,12 @@ if _settings.sentry_dsn:
         logger.warning("sentry-sdk not installed - error tracking disabled")
 
 from contextlib import asynccontextmanager
+
+from api.dependencies import (
+    _pool_manager,
+    get_current_user_id,
+    get_pool,
+)
 
 
 @asynccontextmanager
@@ -235,51 +238,64 @@ setup_security_headers(app)
 from shared.tenant_rate_limit import TenantTier, get_tenant_rate_limiter
 
 
+def _is_exempt_path(path: str) -> bool:
+    """Check if the request path is exempt from rate limiting."""
+    exempt_paths = ["/health", "/healthz"]
+    return path in exempt_paths or path.startswith("/static")
+
+
+async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
+    """Extract tenant_id and tier from JWT token."""
+    if not auth_header.startswith("Bearer "):
+        return None, TenantTier.FREE
+
+    try:
+        token = auth_header.replace("Bearer ", "")
+        import jwt as pyjwt
+
+        if not _settings.jwt_secret:
+            return None, TenantTier.FREE
+
+        payload = pyjwt.decode(
+            token,
+            _settings.jwt_secret,
+            algorithms=["HS256"],
+            audience="authenticated",
+        )
+        user_id = payload.get("sub")
+        if not user_id:
+            return None, TenantTier.FREE
+
+        try:
+            async with _pool_manager.pool.acquire() as conn:
+                row = await conn.fetchrow(
+                    """SELECT p.tenant_id, t.plan
+                       FROM public.profiles p
+                       LEFT JOIN public.tenants t ON t.id = p.tenant_id
+                       WHERE p.user_id = $1""",
+                    user_id,
+                )
+                if row:
+                    tenant_id = row["tenant_id"]
+                    tier = TenantTier(row["plan"].upper()) if row["plan"] else TenantTier.FREE
+                    return tenant_id, tier
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+    return None, TenantTier.FREE
+
+
 @app.middleware("http")
 async def rate_limiting_middleware(request: Request, call_next):
     """Tenant-aware rate limiting middleware for API endpoints."""
-    if request.url.path in ["/health", "/healthz"] or request.url.path.startswith(
-        "/static"
-    ):
+    if _is_exempt_path(request.url.path):
         return await call_next(request)
 
     client_ip = get_client_ip(request)
-
     auth_header = request.headers.get("Authorization", "")
-    tenant_id = None
-    tenant_tier = TenantTier.FREE
-
-    if auth_header.startswith("Bearer "):
-        try:
-            token = auth_header.replace("Bearer ", "")
-            import jwt as pyjwt
-
-            if _settings.jwt_secret:
-                payload = pyjwt.decode(
-                    token,
-                    _settings.jwt_secret,
-                    algorithms=["HS256"],
-                    audience="authenticated",
-                )
-                user_id = payload.get("sub")
-                if user_id:
-                    try:
-                        async with _pool_manager.pool.acquire() as conn:
-                            row = await conn.fetchrow(
-                                """SELECT p.tenant_id, t.plan
-                                   FROM public.profiles p
-                                   LEFT JOIN public.tenants t ON t.id = p.tenant_id
-                                   WHERE p.user_id = $1""",
-                                user_id,
-                            )
-                            if row:
-                                tenant_id = row["tenant_id"]
-                                if row["plan"]:
-                                    tenant_tier = TenantTier(row["plan"].upper())
-                    except Exception:
-                        pass
-        except Exception:
-            pass
+    tenant_id, tenant_tier = await _get_tenant_info(auth_header)
 
     if tenant_id:
         limiter = get_tenant_rate_limiter()
@@ -334,11 +350,9 @@ def _mount_sub_routers() -> None:
     Uses app.dependency_overrides so that Depends() references captured at
     route-definition time are correctly replaced at request time.
     """
-    import api.billing as billing_mod
+    import backend.domain.billing as billing_mod
 
-    app.dependency_overrides[billing_mod._get_pool] = get_pool
-    app.dependency_overrides[billing_mod._get_tenant_ctx] = get_tenant_context
-    app.include_router(billing_mod.router)
+    app.include_router(billing_mod.router, prefix="/billing", tags=["Billing"])
 
     import api.admin as admin_mod
 
@@ -441,9 +455,6 @@ def _mount_sub_routers() -> None:
     app.include_router(mfa_mod.router)
 
     import api.ccpa as ccpa_mod
-
-    app.dependency_overrides[ccpa_mod._get_pool] = get_pool
-    app.dependency_overrides[ccpa_mod._get_user_id] = get_current_user_id
     app.include_router(ccpa_mod.router)
 
     import api.interviews as interviews_mod
@@ -492,162 +503,7 @@ def _mount_sub_routers() -> None:
 # ---------------------------------------------------------------------------
 # Database pool lifecycle
 # ---------------------------------------------------------------------------
-class DatabasePoolManager:
-    """Manages database pool lifecycle without global state."""
 
-    def __init__(self) -> None:
-        self._pool: asyncpg.Pool | None = None
-        self._read_pool: asyncpg.Pool | None = None
-
-    @property
-    def pool(self) -> asyncpg.Pool:
-        if self._pool is None:
-            raise HTTPException(status_code=503, detail="Database pool not available")
-        return self._pool
-
-    @property
-    def read_pool(self) -> asyncpg.Pool:
-        """Return the read replica pool if available, otherwise the primary pool."""
-        if self._read_pool:
-            return self._read_pool
-        return self.pool
-
-    async def initialize(self) -> None:
-        """Initialize the database pool on startup."""
-        s = get_settings()
-        from backend.blueprints.registry import load_default_blueprints
-
-        enabled = [
-            slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()
-        ]
-        load_default_blueprints(enabled_slugs=enabled or None)
-
-        ssl_arg = self._get_ssl_config(s)
-
-        # Resolve the DB hostname to IPv4 to avoid [Errno 101] on Render (no IPv6).
-        from shared.db import resolve_dsn_ipv4
-
-        db_dsn = resolve_dsn_ipv4(s.database_url)
-
-        for attempt in range(1, 4):
-            try:
-                self._pool = await asyncpg.create_pool(
-                    db_dsn,
-                    min_size=s.db_pool_min,
-                    max_size=s.db_pool_max,
-                    ssl=ssl_arg,
-                    statement_cache_size=0,
-                )
-                logger.info("Database pool created (env=%s)", s.env.value)
-                break
-            except asyncpg.PostgresError as exc:
-                # Provide more helpful error messages for common issues
-                error_msg = str(exc)
-                if (
-                    "Tenant or user not found" in error_msg
-                    or "password authentication failed" in error_msg
-                ):
-                    logger.warning(
-                        "DB pool attempt %d/3 failed: %s. "
-                        "This usually means DATABASE_URL credentials are incorrect. "
-                        "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Render PostgreSQL database.",
-                        attempt,
-                        exc,
-                    )
-                elif (
-                    "connection refused" in error_msg.lower()
-                    or "could not connect" in error_msg.lower()
-                ):
-                    logger.warning(
-                        "DB pool attempt %d/3 failed: %s. "
-                        "Check that the database host is accessible and the port is correct.",
-                        attempt,
-                        exc,
-                    )
-                else:
-                    logger.warning("DB pool attempt %d/3 failed: %s", attempt, exc)
-                if attempt < 3:
-                    import asyncio
-
-                    await asyncio.sleep(3 * attempt)
-            except Exception as exc:
-                logger.error("Unexpected error creating DB pool: %s", exc)
-                raise
-        else:
-            logger.error(
-                "Could not create DB pool after 3 attempts. "
-                "The application will start in degraded mode without database connectivity. "
-                "To fix this, verify your DATABASE_URL environment variable in Render dashboard."
-            )
-            # Do not raise RuntimeError, allow app to start in degraded mode
-            # raise RuntimeError("Failed to initialize database pool")
-
-        await self._run_migrations()
-
-        # Initialize read replica if configured
-        if s.read_replica_url and s.read_replica_url != s.database_url:
-            read_dsn = resolve_dsn_ipv4(s.read_replica_url)
-
-            try:
-                self._read_pool = await asyncpg.create_pool(
-                    read_dsn,
-                    min_size=s.db_pool_min,
-                    max_size=s.db_pool_max,
-                    ssl=ssl_arg,
-                    statement_cache_size=0,
-                )
-                logger.info("Read replica pool initialized")
-            except Exception as exc:
-                logger.warning(
-                    "Failed to initialize read replica (falling back to primary): %s",
-                    exc,
-                )
-
-    async def _run_migrations(self) -> None:
-        """Run auto-migrations if needed."""
-        if self._pool is None:
-            return
-
-        try:
-            async with self._pool.acquire() as conn:
-                has_tenants = await conn.fetchval(
-                    "SELECT EXISTS(SELECT 1 FROM information_schema.tables "
-                    "WHERE table_schema='public' AND table_name='tenants')"
-                )
-                if not has_tenants:
-                    logger.info("Running auto-migration (tenants table missing)...")
-                    import pathlib
-
-                    base = pathlib.Path(__file__).resolve().parent.parent
-                    from backend.domain.migrations import run_migrations
-
-                    await run_migrations(conn, base)
-        except asyncpg.PostgresError as exc:
-            logger.warning("Auto-migration check failed (DB error): %s", exc)
-        except Exception as exc:
-            logger.warning("Auto-migration check failed: %s", exc)
-
-    @staticmethod
-    def _get_ssl_config(settings: Any) -> Any:
-        """Get SSL config for database connection."""
-        if settings.db_ssl_ca_cert_path:
-            import ssl
-            ctx = ssl.create_default_context(cafile=settings.db_ssl_ca_cert_path)
-            return ctx
-        return None
-
-    async def close(self) -> None:
-        """Close the database pool on shutdown."""
-        if self._pool:
-            await self._pool.close()
-            self._pool = None
-        if self._read_pool:
-            await self._read_pool.close()
-            self._read_pool = None
-
-
-# Global pool manager instance
-_pool_manager = DatabasePoolManager()
 
 
 # ---------------------------------------------------------------------------
@@ -701,60 +557,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 # ---------------------------------------------------------------------------
 
 
-async def get_current_user_id(
-    authorization: str | None = Header(None, alias="Authorization"),
-    jobhuntin_auth: str | None = Cookie(None),
-) -> str:
-    """
-    Decode a JWT and return the `sub` claim as user_id.
-    S1: Accepts token from Authorization header OR jobhuntin_auth httpOnly cookie.
-    """
-    import jwt as pyjwt
 
-    s = get_settings()
-    if not s.jwt_secret:
-        raise HTTPException(status_code=500, detail="JWT secret not configured")
-
-    token: str | None = None
-    if jobhuntin_auth:
-        token = jobhuntin_auth
-    elif authorization and authorization.startswith("Bearer "):
-        token = authorization.replace("Bearer ", "")
-
-    if not token:
-        raise HTTPException(status_code=401, detail="Missing authentication")
-
-    try:
-        payload = pyjwt.decode(
-            token, s.jwt_secret, algorithms=["HS256"], audience="authenticated"
-        )
-        user_id: str = payload["sub"]
-
-        # Enforce single-use for magic link tokens (they have jti)
-        jti = payload.get("jti")
-        if jti:
-            from api.auth import _mark_token_consumed
-            if not await _mark_token_consumed(jti, s):
-                logger.warning("Replay attempt for token jti=%s", jti)
-                raise HTTPException(status_code=401, detail="Token has already been used")
-
-        return user_id
-    except pyjwt.PyJWTError as exc:
-        logger.warning("JWT validation failed: %s", exc)
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    except Exception as exc:
-        logger.warning("Token processing error: %s", exc)
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-
-async def get_pool() -> asyncpg.Pool:
-    """Dependency for getting the primary database pool."""
-    return _pool_manager.pool
-
-
-async def get_read_pool() -> asyncpg.Pool:
-    """Dependency for getting a read-replica pool if available."""
-    return _pool_manager.read_pool
 
 
 # ---------------------------------------------------------------------------
@@ -1146,9 +949,7 @@ async def resume_task(
     ctx: TenantContext = Depends(get_tenant_context),
     db: asyncpg.Pool = Depends(get_pool),
 ) -> ResumeTaskResponse:
-    """
-    User answers hold questions → update inputs → emit events → re-queue.
-    """
+    """User answers hold questions → update inputs → emit events → re-queue."""
     incr("api.resume_task.requests", tags={"tenant_id": ctx.tenant_id})
     # Verify ownership + tenant scope
     async with db.acquire() as conn:
@@ -1258,9 +1059,7 @@ async def get_application_detail(
     ctx: TenantContext = Depends(get_tenant_context),
     db: asyncpg.Pool = Depends(get_pool),
 ) -> ApplicationDetailResponse:
-    """
-    Application detail endpoint scoped to the requesting user's tenant.
-    """
+    """Application detail endpoint scoped to the requesting user's tenant."""
     from shared.validators import validate_uuid
 
     validate_uuid(application_id, "application_id")

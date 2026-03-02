@@ -1133,9 +1133,10 @@ export default function Onboarding() {
             </AnimatePresence>
           </Card>
         </motion.div>
-      </div>
-    </main>
-    </ErrorBoundary>
+      </AnimatePresence>
+          </div>
+        </main>
+      </ErrorBoundary>
     </div>
   );
 }

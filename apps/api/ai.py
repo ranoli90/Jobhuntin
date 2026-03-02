@@ -1,5 +1,4 @@
-"""
-AI Suggestion API endpoints for smart onboarding.
+"""AI Suggestion API endpoints for smart onboarding.
 
 These endpoints provide AI-powered suggestions for:
 - Job roles based on resume analysis
@@ -21,7 +20,7 @@ from pydantic import BaseModel, Field
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
+from packages.backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
 from backend.llm.contracts import (
     JobMatchScore_V1,
@@ -55,17 +54,17 @@ def _get_llm_client() -> LLMClient:
 
 
 async def _get_pool() -> asyncpg.Pool:
-    """Dependency override required"""
+    """Dependency override required."""
     raise NotImplementedError
 
 
 async def _get_user_id() -> str:
-    """Dependency override required"""
+    """Dependency override required."""
     raise NotImplementedError
 
 
 async def _get_tenant_id() -> str | None:
-    """Dependency override required"""
+    """Dependency override required."""
     raise NotImplementedError
 
 
@@ -78,8 +77,7 @@ router = APIRouter(prefix="/ai", tags=["AI Suggestions"])
 
 
 def sanitize_input(text: str) -> str:
-    """
-    Sanitize user input to prevent prompt injection attacks.
+    """Sanitize user input to prevent prompt injection attacks.
 
     Removes or escapes potentially dangerous patterns that could manipulate LLM behavior.
     """
@@ -251,9 +249,7 @@ class OnboardingQuestionsRequest(BaseModel):
 async def generate_onboarding_questions(
     request: OnboardingQuestionsRequest, user_id: str = Depends(_get_user_id)
 ) -> OnboardingQuestionsResponse_V1:
-    """
-    Generate strategic calibration questions based on the candidate's profile.
-    """
+    """Generate strategic calibration questions based on the candidate's profile."""
     validation_result = validate_and_sanitize_ai_input(
         profile=request.profile,
         user_id=user_id,
@@ -268,7 +264,7 @@ async def generate_onboarding_questions(
         )
 
     client = _get_llm_client()
-    from backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.masking import strip_pii_for_llm
 
     sanitized_data = validation_result.sanitized_input
     sanitized_profile = strip_pii_for_llm(
@@ -292,8 +288,7 @@ async def generate_onboarding_questions(
 async def suggest_roles(
     request: RoleSuggestionRequest, user_id: str = Depends(_get_user_id)
 ) -> RoleSuggestionResponse_V1:
-    """
-    Get AI-suggested job roles based on parsed resume profile.
+    """Get AI-suggested job roles based on parsed resume profile.
 
     This analyzes the candidate's experience, skills, and career progression
     to suggest the most suitable job titles and experience level.
@@ -307,7 +302,7 @@ async def suggest_roles(
         raise HTTPException(status_code=400, detail=validation_result.error_message)
 
     client = _get_llm_client()
-    from backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.masking import strip_pii_for_llm
 
     sanitized_data = validation_result.sanitized_input
     sanitized_profile = strip_pii_for_llm(
@@ -339,8 +334,7 @@ async def suggest_roles(
 async def suggest_salary(
     request: SalarySuggestionRequest, user_id: str = Depends(_get_user_id)
 ) -> SalarySuggestionResponse_V1:
-    """
-    Get AI-suggested salary range based on role, location, and skills.
+    """Get AI-suggested salary range based on role, location, and skills.
 
     This estimates a competitive salary range by analyzing the candidate's
     experience, skill rarity, and location market rates.
@@ -348,7 +342,7 @@ async def suggest_salary(
     client = _get_llm_client()
 
     # Sanitize inputs and strip PII before sending to external LLM
-    from backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_target_role = sanitize_input(request.target_role)
@@ -390,8 +384,7 @@ async def suggest_salary(
 async def suggest_locations(
     request: LocationSuggestionRequest, user_id: str = Depends(_get_user_id)
 ) -> LocationSuggestionResponse_V1:
-    """
-    Get AI-suggested work locations based on skills and job market.
+    """Get AI-suggested work locations based on skills and job market.
 
     This analyzes where the candidate's skills are most in-demand and
     evaluates remote work viability for their role type.
@@ -399,7 +392,7 @@ async def suggest_locations(
     client = _get_llm_client()
 
     # Strip PII before sending to external LLM
-    from backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
 
@@ -433,14 +426,13 @@ async def match_job(
     user_id: str = Depends(_get_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> JobMatchScore_V1:
-    """
-    Get AI-generated match score between candidate and a single job.
+    """Get AI-generated match score between candidate and a single job.
 
     Returns a 0-100 score with detailed breakdowns for skill match,
     experience match, location compatibility, and any red flags.
     """
     # Sanitize inputs and strip PII before sending to external LLM
-    from backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
@@ -490,8 +482,7 @@ async def match_jobs_batch(
     user_id: str = Depends(_get_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> BatchJobMatchResponse:
-    """
-    Score multiple jobs against a candidate profile in batch.
+    """Score multiple jobs against a candidate profile in batch.
 
     This is more efficient than calling match-job repeatedly.
     Jobs are processed sequentially to avoid rate limits.
@@ -505,7 +496,7 @@ async def match_jobs_batch(
     client = _get_llm_client()
 
     # Sanitize inputs and strip PII before sending to external LLM
-    from backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_jobs = [sanitize_dict_input(job) for job in request.jobs]
@@ -612,8 +603,7 @@ async def semantic_match_job(
     request: SemanticMatchRequest,
     user_id: str = Depends(_get_user_id),
 ) -> SemanticMatchResponse:
-    """
-    Compute semantic match score using vector embeddings.
+    """Compute semantic match score using vector embeddings.
 
     This is the "Precision Matcher" implementation that:
     - Uses text embeddings for semantic similarity
@@ -624,8 +614,8 @@ async def semantic_match_job(
     This endpoint provides higher accuracy than keyword-based
     matching and matches the capabilities of ApplyPass/JobRight.
     """
-    from backend.domain.masking import strip_pii_for_llm
-    from backend.domain.semantic_matching import (
+    from packages.backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.semantic_matching import (
         Dealbreakers,
         get_matching_service,
     )
@@ -715,14 +705,13 @@ async def semantic_match_batch(
     request: BatchSemanticMatchRequest,
     user_id: str = Depends(_get_user_id),
 ) -> BatchSemanticMatchResponse:
-    """
-    Batch semantic matching for multiple jobs.
+    """Batch semantic matching for multiple jobs.
 
     Processes up to 20 jobs in a single request for efficiency.
     Returns match scores with explanations for each job.
     """
-    from backend.domain.masking import strip_pii_for_llm
-    from backend.domain.semantic_matching import (
+    from packages.backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.semantic_matching import (
         Dealbreakers,
         get_matching_service,
     )
@@ -932,7 +921,7 @@ async def generate_cover_letter_enhanced(
     try:
         # Fetch the user's actual profile for personalized cover letter generation
         # Strip PII (email, phone, URLs) before building the LLM prompt
-        from backend.domain.masking import strip_pii_for_llm
+        from packages.backend.domain.masking import strip_pii_for_llm
 
         profile_summary = "No profile available"
         async with db.acquire() as conn:
@@ -1073,13 +1062,11 @@ from backend.llm.contracts import (
 async def generate_cover_letter(
     request: CoverLetterRequest, user_id: str = Depends(_get_user_id)
 ) -> CoverLetterResponse_V1:
-    """
-    Generate a personalized cover letter for a specific job.
-    """
+    """Generate a personalized cover letter for a specific job."""
     client = _get_llm_client()
 
     # Sanitize and strip PII before sending to external LLM
-    from backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
@@ -1125,8 +1112,7 @@ class TailorResumeResponse(BaseModel):
 async def tailor_resume(
     request: TailorResumeRequest, user_id: str = Depends(_get_user_id)
 ) -> TailorResumeResponse:
-    """
-    Dynamically tailor a resume for a specific job application.
+    """Dynamically tailor a resume for a specific job application.
 
     This endpoint:
     1. Analyzes job requirements
@@ -1134,9 +1120,9 @@ async def tailor_resume(
     3. Generates a tailored summary
     4. Computes ATS optimization score
     """
-    from backend.domain.resume_tailoring import get_tailoring_service
+    from packages.backend.domain.resume_tailoring import get_tailoring_service
 
-    from backend.domain.masking import strip_pii_for_llm
+    from packages.backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
@@ -1182,12 +1168,11 @@ class ATSScoreResponse(BaseModel):
 async def compute_ats_score(
     request: ATSScoreRequest, user_id: str = Depends(_get_user_id)
 ) -> ATSScoreResponse:
-    """
-    Compute comprehensive ATS score for a resume against a job description.
+    """Compute comprehensive ATS score for a resume against a job description.
 
     Implements 23 scoring metrics for ATS optimization analysis.
     """
-    from backend.domain.resume_tailoring import ATSScorer
+    from packages.backend.domain.resume_tailoring import ATSScorer
 
     try:
         scores = await ATSScorer.score_resume(
@@ -1247,15 +1232,14 @@ _match_weights_cache: dict[str, MatchWeightsRequest] = {}
 async def get_match_weights(
     tenant_id: str | None = Depends(_get_tenant_id),
 ) -> MatchWeightsResponse:
-    """
-    Get the current match scoring weights.
+    """Get the current match scoring weights.
 
     Weights control how different factors contribute to the overall match score:
     - semantic_similarity: Weight for vector embedding similarity (default 0.5)
     - skill_match: Weight for skill keyword matching (default 0.3)
     - experience_alignment: Weight for experience level alignment (default 0.2)
     """
-    from backend.domain.semantic_matching import MatchWeights
+    from packages.backend.domain.semantic_matching import MatchWeights
 
     key = tenant_id or "default"
     if key in _match_weights_cache:
@@ -1283,13 +1267,12 @@ async def set_match_weights(
     tenant_id: str | None = Depends(_get_tenant_id),
     user_id: str = Depends(_get_user_id),
 ) -> MatchWeightsResponse:
-    """
-    Configure match scoring weights.
+    """Configure match scoring weights.
 
     Weights are automatically normalized to sum to 1.0.
     Requires admin privileges in production.
     """
-    from backend.domain.semantic_matching import MatchWeights, get_matching_service
+    from packages.backend.domain.semantic_matching import MatchWeights, get_matching_service
 
     # Normalize weights
     weights = MatchWeights(
@@ -1372,8 +1355,7 @@ async def submit_match_feedback(
     tenant_id: str | None = Depends(_get_tenant_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> MatchFeedbackResponseAPI:
-    """
-    Submit feedback on a job match result.
+    """Submit feedback on a job match result.
 
     Users can rate matches with thumbs up (1) or thumbs down (-1).
     This feedback is used to improve future match recommendations.
@@ -1386,7 +1368,7 @@ async def submit_match_feedback(
     - remote_friendly, not_remote
     - visa_sponsored, no_visa
     """
-    from backend.domain.match_feedback import (
+    from packages.backend.domain.match_feedback import (
         MatchFeedbackCreate,
         MatchFeedbackRepo,
         validate_feedback_tags,
@@ -1440,12 +1422,11 @@ async def get_match_feedback_summary(
     tenant_id: str | None = Depends(_get_tenant_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> MatchFeedbackSummaryResponse:
-    """
-    Get aggregate feedback summary for analytics.
+    """Get aggregate feedback summary for analytics.
 
     Returns overall satisfaction metrics for the specified time period.
     """
-    from backend.domain.match_feedback import MatchFeedbackRepo
+    from packages.backend.domain.match_feedback import MatchFeedbackRepo
 
     try:
         async with db.acquire() as conn:
@@ -1466,12 +1447,11 @@ async def get_job_feedback_stats(
     job_id: str,
     db: asyncpg.Pool = Depends(_get_pool),
 ):
-    """
-    Get aggregate feedback statistics for a specific job.
+    """Get aggregate feedback statistics for a specific job.
 
     Useful for understanding how users perceive match quality for a job.
     """
-    from backend.domain.match_feedback import MatchFeedbackRepo
+    from packages.backend.domain.match_feedback import MatchFeedbackRepo
 
     try:
         async with db.acquire() as conn:
@@ -1495,13 +1475,12 @@ async def get_job_feedback_stats(
 async def get_llm_metrics(
     user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
 ):
-    """
-    Get LLM model performance metrics.
+    """Get LLM model performance metrics.
 
     Returns latency percentiles, error rates, token usage, and cost estimates
     for all monitored models.
     """
-    from backend.domain.llm_monitoring import get_llm_monitor
+    from packages.backend.domain.llm_monitoring import get_llm_monitor
 
     try:
         monitor = get_llm_monitor()
@@ -1516,10 +1495,8 @@ async def get_llm_model_metrics(
     model: str,
     user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
 ):
-    """
-    Get performance metrics for a specific LLM model.
-    """
-    from backend.domain.llm_monitoring import get_llm_monitor
+    """Get performance metrics for a specific LLM model."""
+    from packages.backend.domain.llm_monitoring import get_llm_monitor
 
     try:
         monitor = get_llm_monitor()
@@ -1533,12 +1510,11 @@ async def get_llm_model_metrics(
 async def get_llm_health(
     user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
 ):
-    """
-    Get health status of all LLM models.
+    """Get health status of all LLM models.
 
     Identifies models with low success rates or recent failures.
     """
-    from backend.domain.llm_monitoring import get_llm_monitor
+    from packages.backend.domain.llm_monitoring import get_llm_monitor
 
     try:
         monitor = get_llm_monitor()
@@ -1552,12 +1528,11 @@ async def get_llm_health(
 async def get_semantic_cache_stats(
     user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
 ):
-    """
-    Get semantic cache statistics.
+    """Get semantic cache statistics.
 
     Returns cache size, hit counts, and configuration.
     """
-    from backend.domain.semantic_cache import get_semantic_cache
+    from packages.backend.domain.semantic_cache import get_semantic_cache
 
     try:
         cache = get_semantic_cache()

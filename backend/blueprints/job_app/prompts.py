@@ -1,5 +1,4 @@
-"""
-Sorce Job Application Blueprint — LLM prompt templates.
+"""Sorce Job Application Blueprint — LLM prompt templates.
 
 Extracted from backend/llm/contracts.py. These are the Sorce-specific
 prompt texts; the generic LLM client and response schemas remain in backend/llm/.

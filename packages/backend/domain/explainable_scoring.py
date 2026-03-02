@@ -1,5 +1,4 @@
-"""
-Explainable Match Scoring with Confidence Intervals.
+"""Explainable Match Scoring with Confidence Intervals.
 
 Implements the "Explainable Match Scoring" feature recommended in competitive analysis:
 - Generates one-sentence cryptographic logs explaining why the bot applied
@@ -16,7 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -25,7 +24,7 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.explainable_scoring")
 
 
-class ConfidenceLevel(str, Enum):
+class ConfidenceLevel(StrEnum):
     VERY_LOW = "very_low"
     LOW = "low"
     MEDIUM = "medium"
@@ -33,7 +32,7 @@ class ConfidenceLevel(str, Enum):
     VERY_HIGH = "very_high"
 
 
-class MatchFactorType(str, Enum):
+class MatchFactorType(StrEnum):
     SEMANTIC_SIMILARITY = "semantic_similarity"
     SKILL_MATCH = "skill_match"
     EXPERIENCE_ALIGNMENT = "experience_alignment"
@@ -93,8 +92,7 @@ class ExplainableMatchScore(BaseModel):
 
 
 class ExplainableScoringEngine:
-    """
-    Engine for generating explainable match scores with confidence intervals.
+    """Engine for generating explainable match scores with confidence intervals.
 
     Provides transparency into why applications are submitted,
     building user trust through detailed reasoning.

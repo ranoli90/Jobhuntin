@@ -1,11 +1,9 @@
-"""
-Shared metrics and rate limiting utilities.
-"""
+"""Shared metrics and rate limiting utilities."""
 
 import logging
 import time
 from collections import defaultdict
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +35,7 @@ class RateLimiter:
 
 
 # Global rate limiters cache
-_rate_limiters: Dict[str, RateLimiter] = defaultdict(lambda: RateLimiter(max_calls=100, window_seconds=60))
+_rate_limiters: dict[str, RateLimiter] = defaultdict(lambda: RateLimiter(max_calls=100, window_seconds=60))
 
 
 def get_rate_limiter(key: str, max_calls: int = 100, window_seconds: float = 60) -> RateLimiter:
@@ -49,7 +47,7 @@ def get_rate_limiter(key: str, max_calls: int = 100, window_seconds: float = 60)
     return limiter
 
 
-def incr(metric: str, value: int = 1, tags: Optional[Dict[str, Any]] = None) -> None:
+def incr(metric: str, value: int = 1, tags: dict[str, Any] | None = None) -> None:
     """Increment a metric counter."""
     # Simple logging-based metrics for now
     # In production, this would send to a metrics service
@@ -60,7 +58,7 @@ def incr(metric: str, value: int = 1, tags: Optional[Dict[str, Any]] = None) -> 
     logger.info(f"METRIC: {metric}={value}{tag_str}")
 
 
-def observe(metric: str, value: float, tags: Optional[Dict[str, Any]] = None) -> None:
+def observe(metric: str, value: float, tags: dict[str, Any] | None = None) -> None:
     """Observe a metric value (histogram/timer)."""
     # Simple logging-based metrics for now
     # In production, this would send to a metrics service
@@ -71,7 +69,7 @@ def observe(metric: str, value: float, tags: Optional[Dict[str, Any]] = None) ->
     logger.info(f"METRIC: {metric}={value}{tag_str}")
 
 
-def dump() -> Dict[str, Any]:
+def dump() -> dict[str, Any]:
     """Dump all metrics data."""
     return {
         "circuit_breakers": get_all_circuit_breaker_statuses(),
@@ -81,10 +79,10 @@ def dump() -> Dict[str, Any]:
 
 
 # Circuit breaker for external service calls
-_circuit_breakers: Dict[str, Dict[str, Any]] = {}
+_circuit_breakers: dict[str, dict[str, Any]] = {}
 
 
-def get_circuit_breaker_status(service_name: str) -> Dict[str, Any]:
+def get_circuit_breaker_status(service_name: str) -> dict[str, Any]:
     """Get circuit breaker status for a service."""
     return _circuit_breakers.get(service_name, {
         "state": "closed",
@@ -129,6 +127,6 @@ def record_circuit_breaker_success(service_name: str) -> None:
         logger.info(f"Circuit breaker closed for {service_name}")
 
 
-def get_all_circuit_breaker_statuses() -> Dict[str, Dict[str, Any]]:
+def get_all_circuit_breaker_statuses() -> dict[str, dict[str, Any]]:
     """Get all circuit breaker statuses."""
     return _circuit_breakers.copy()

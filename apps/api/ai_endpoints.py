@@ -1,5 +1,4 @@
-"""
-AI Suggestion API endpoints for smart onboarding.
+"""AI Suggestion API endpoints for smart onboarding.
 
 These endpoints provide AI-powered suggestions for:
 - Job roles based on resume analysis
@@ -18,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
-from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
+from packages.backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
 from backend.llm.contracts import (
     JobMatchScore_V1,
@@ -65,6 +64,7 @@ async def get_db_connection() -> asyncpg.Connection:
 
 class RoleSuggestionRequest(BaseModel):
     """Request for AI-powered role suggestions."""
+
     resume_text: str = Field(..., min_length=50, max_length=10000)
     skills: list[str] = Field(default_factory=list, max_items=50)
     experience_years: int = Field(default=0, ge=0, le=50)
@@ -73,6 +73,7 @@ class RoleSuggestionRequest(BaseModel):
 
 class SalarySuggestionRequest(BaseModel):
     """Request for AI-powered salary suggestions."""
+
     role: str = Field(..., min_length=2, max_length=100)
     location: str = Field(..., min_length=2, max_length=100)
     skills: list[str] = Field(default_factory=list, max_items=50)
@@ -82,6 +83,7 @@ class SalarySuggestionRequest(BaseModel):
 
 class LocationSuggestionRequest(BaseModel):
     """Request for AI-powered location suggestions."""
+
     skills: list[str] = Field(..., min_items=1, max_items=50)
     role: str = Field(..., min_length=2, max_length=100)
     experience_years: int = Field(default=0, ge=0, le=50)
@@ -90,6 +92,7 @@ class LocationSuggestionRequest(BaseModel):
 
 class JobMatchRequest(BaseModel):
     """Request for AI-powered job matching."""
+
     profile_id: str = Field(..., regex="^[a-zA-Z0-9_-]{1,50}$")
     job_ids: list[str] = Field(..., min_items=1, max_items=100)
     limit: int = Field(default=10, ge=1, le=50)
@@ -97,6 +100,7 @@ class JobMatchRequest(BaseModel):
 
 class OnboardingQuestionsRequest(BaseModel):
     """Request for AI-powered onboarding questions."""
+
     resume_text: str = Field(..., min_length=50, max_length=10000)
     current_step: str = Field(default="initial", regex="^(initial|skills|experience|preferences)$")
 
@@ -310,7 +314,7 @@ async def match_jobs(
 
     except Exception as e:
         logger.error(f"Error in job matching: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate job matches")
+        raise HTTPException(status_code=500, detail="Failed to generate job matches") from e
 
 
 @router.post("/onboarding/questions", response_model=OnboardingQuestionsResponse_V1)
@@ -352,7 +356,7 @@ async def generate_onboarding_questions(
 
     except Exception as e:
         logger.error(f"Error in onboarding questions: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate onboarding questions")
+        raise HTTPException(status_code=500, detail="Failed to generate onboarding questions") from e
 
 
 # ---------------------------------------------------------------------------
@@ -386,7 +390,7 @@ async def _get_job_details(db: asyncpg.Connection, job_id: str) -> dict[str, Any
 async def emit_analytics_event(event_name: str, data: dict[str, Any]) -> None:
     """Emit analytics event."""
     try:
-        from backend.domain.analytics_events import emit_analytics_event
+        from packages.backend.domain.analytics_events import emit_analytics_event
         await emit_analytics_event(event_name, data)
     except Exception as e:
         logger.warning(f"Failed to emit analytics event {event_name}: {e}")

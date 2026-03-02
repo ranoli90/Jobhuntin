@@ -1,5 +1,4 @@
-"""
-Cold start handling for new users.
+"""Cold start handling for new users.
 
 Provides:
 - Default preferences based on user profile
@@ -10,7 +9,7 @@ Provides:
 
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import asyncpg
@@ -25,8 +24,8 @@ class OnboardingProfile:
     job_titles: list[str] = field(default_factory=list)
     skills: list[str] = field(default_factory=list)
     locations: list[str] = field(default_factory=list)
-    experience_years: Optional[int] = None
-    salary_expectation: Optional[int] = None
+    experience_years: int | None = None
+    salary_expectation: int | None = None
     job_types: list[str] = field(
         default_factory=list
     )  # full-time, part-time, contract, remote
@@ -49,8 +48,7 @@ class ColdStartRecommendation:
 
 
 class ColdStartHandler:
-    """
-    Handles cold start problem for new users.
+    """Handles cold start problem for new users.
 
     Strategies:
     1. Popularity-based: Recommend popular jobs in user's area
@@ -74,8 +72,7 @@ class ColdStartHandler:
         user_id: str,
         onboarding: OnboardingProfile,
     ) -> list[ColdStartRecommendation]:
-        """
-        Get initial job recommendations for a new user.
+        """Get initial job recommendations for a new user.
 
         Combines multiple strategies to provide diverse recommendations.
         """

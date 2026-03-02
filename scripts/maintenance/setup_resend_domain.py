@@ -1,17 +1,17 @@
-"""Setup Resend domain and configure DNS with Ionos"""
+"""Setup Resend domain and configure DNS with Ionos."""
 import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Configuration
-RESEND_API_KEY = "re_dXPn2f9H_3aqRCUsoQbzAGVz7Q2gejDBQ"
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 DOMAIN = "jobhuntin.com"
-IONOS_PUBLIC_PREFIX = "48e1b13910ac4a6aa4e18a32460a1812"
-IONOS_SECRET = "Opgjoy-2ReOiIwd42BcbD1iLFGx1oMOXC9TLx_so1TPkuipLG-X8NvQQz-GSHlpm7RXTxqZ2HhPSTZZMhCRuaw"
+IONOS_PUBLIC_PREFIX = os.environ.get("IONOS_PUBLIC_PREFIX")
+IONOS_SECRET = os.environ.get("IONOS_SECRET")
 
 def add_domain_to_resend():
-    """Add domain to Resend via API"""
+    """Add domain to Resend via API."""
     headers = {
         "Authorization": f"Bearer {RESEND_API_KEY}",
         "Content-Type": "application/json"
@@ -52,7 +52,7 @@ def add_domain_to_resend():
         return None
 
 def get_dns_records(domain_id):
-    """Get DNS records needed for domain verification"""
+    """Get DNS records needed for domain verification."""
     headers = {
         "Authorization": f"Bearer {RESEND_API_KEY}",
         "Content-Type": "application/json"
@@ -96,7 +96,7 @@ def get_dns_records(domain_id):
         return None
 
 def list_existing_domains():
-    """List existing domains in Resend"""
+    """List existing domains in Resend."""
     headers = {
         "Authorization": f"Bearer {RESEND_API_KEY}",
         "Content-Type": "application/json"

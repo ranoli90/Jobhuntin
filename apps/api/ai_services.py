@@ -1,5 +1,4 @@
-"""
-AI Service layer - business logic for AI-powered features.
+"""AI Service layer - business logic for AI-powered features.
 
 This module contains the core business logic for AI operations,
 separating it from the API endpoints for better maintainability.
@@ -14,7 +13,7 @@ import asyncpg
 from shared.logging_config import get_logger
 from shared.redis_client import get_redis
 
-from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
+from packages.backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
 from backend.llm.contracts import (
     JobMatchScore_V1,

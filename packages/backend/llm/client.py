@@ -1,5 +1,4 @@
-"""
-Centralized LLM client with retry, timeout, fallback models, and response validation.
+"""Centralized LLM client with retry, timeout, fallback models, and response validation.
 
 Usage:
     from backend.llm import LLMClient
@@ -27,8 +26,8 @@ from pydantic import BaseModel, ValidationError
 from shared.config import Settings
 from shared.logging_config import get_logger
 
-from backend.domain.llm_monitoring import get_llm_monitor
-from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from packages.backend.domain.llm_monitoring import get_llm_monitor
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.llm")
@@ -49,13 +48,12 @@ class LLMValidationError(LLMError):
 
 
 class LLMClient:
-    """
-    Typed LLM client that:
-      - Calls the OpenAI-compatible chat completions API
-      - Retries on transient errors (5xx, timeouts, connection errors)
-      - Falls back to secondary models if primary fails completely
-      - Validates the JSON response against a Pydantic model T
-      - Tracks latency and error metrics
+    """Typed LLM client that:
+    - Calls the OpenAI-compatible chat completions API
+    - Retries on transient errors (5xx, timeouts, connection errors)
+    - Falls back to secondary models if primary fails completely
+    - Validates the JSON response against a Pydantic model T
+    - Tracks latency and error metrics.
     """
 
     def __init__(self, settings: Settings) -> None:
@@ -79,8 +77,7 @@ class LLMClient:
         response_format: type[T] | None = None,
         max_tokens: int | None = None,
     ) -> T:
-        """
-        Send a prompt to the LLM and return a validated response.
+        """Send a prompt to the LLM and return a validated response.
 
         If response_format is provided, the JSON response is parsed into
         that Pydantic model. Otherwise returns a raw dict.
@@ -239,7 +236,7 @@ class LLMClient:
                 content = self._extract_content(data)
                 cleaned_content = self._clean_content(content)
                 return self._parse_json(cleaned_content)
-        except CircuitBreakerOpen as exc:
+        except CircuitBreakerOpenError as exc:
             incr("llm.circuit_breaker.open", {})
             raise LLMError(
                 f"LLM service unavailable (circuit breaker open). Retry in {exc.retry_after:.0f}s"

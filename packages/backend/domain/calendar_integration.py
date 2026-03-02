@@ -1,5 +1,4 @@
-"""
-Calendar integration service for interview scheduling.
+"""Calendar integration service for interview scheduling.
 
 Provides:
 - Google Calendar integration
@@ -12,14 +11,14 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Optional
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class CalendarProvider(str, Enum):
+class CalendarProvider(StrEnum):
     """Supported calendar providers."""
+
     GOOGLE = "google"
     OUTLOOK = "outlook"
     APPLE = "apple"
@@ -29,6 +28,7 @@ class CalendarProvider(str, Enum):
 @dataclass
 class InterviewEvent:
     """An interview event to be added to calendar."""
+
     title: str
     start_time: datetime
     end_time: datetime
@@ -36,7 +36,7 @@ class InterviewEvent:
     description: str
     attendees: list[str] = field(default_factory=list)
     timezone: str = "UTC"
-    conference_url: Optional[str] = None
+    conference_url: str | None = None
     reminder_minutes: list[int] = field(default_factory=lambda: [15, 60])
 
     def to_ical(self) -> str:
@@ -83,17 +83,17 @@ class InterviewEvent:
 @dataclass
 class CalendarAuth:
     """Calendar authentication credentials."""
+
     provider: CalendarProvider
-    access_token: Optional[str] = None
-    refresh_token: Optional[str] = None
-    client_id: Optional[str] = None
-    client_secret: Optional[str] = None
-    tenant_id: Optional[str] = None  # For Microsoft
+    access_token: str | None = None
+    refresh_token: str | None = None
+    client_id: str | None = None
+    client_secret: str | None = None
+    tenant_id: str | None = None  # For Microsoft
 
 
 class CalendarService:
-    """
-    Calendar integration service.
+    """Calendar integration service.
 
     Supports:
     - Google Calendar API
@@ -101,16 +101,15 @@ class CalendarService:
     - iCal export
     """
 
-    def __init__(self, auth: Optional[CalendarAuth] = None):
+    def __init__(self, auth: CalendarAuth | None = None):
         self.auth = auth
 
     async def create_event(
         self,
         event: InterviewEvent,
-        provider: Optional[CalendarProvider] = None,
+        provider: CalendarProvider | None = None,
     ) -> str:
-        """
-        Create a calendar event.
+        """Create a calendar event.
 
         Args:
             event: Interview event details
@@ -118,6 +117,7 @@ class CalendarService:
 
         Returns:
             Event ID or iCal content
+
         """
         provider = provider or (self.auth.provider if self.auth else CalendarProvider.ICAL)
 
@@ -240,10 +240,9 @@ class CalendarService:
         self,
         start_time: datetime,
         end_time: datetime,
-        provider: Optional[CalendarProvider] = None,
+        provider: CalendarProvider | None = None,
     ) -> list[dict]:
-        """
-        Get free/busy times from calendar.
+        """Get free/busy times from calendar.
 
         Returns list of busy periods with start and end times.
         """
@@ -343,11 +342,11 @@ class CalendarService:
         return []
 
     def generate_ical_download(self, event: InterviewEvent) -> tuple[str, str]:
-        """
-        Generate iCal content for download.
+        """Generate iCal content for download.
 
         Returns:
             Tuple of (content, filename)
+
         """
         content = event.to_ical()
         filename = f"interview_{event.start_time.strftime('%Y%m%d')}.ics"
@@ -360,13 +359,12 @@ async def create_interview_event(
     duration_minutes: int = 60,
     location: str = "",
     description: str = "",
-    conference_url: Optional[str] = None,
-    attendees: Optional[list[str]] = None,
+    conference_url: str | None = None,
+    attendees: list[str] | None = None,
     provider: CalendarProvider = CalendarProvider.ICAL,
-    auth: Optional[CalendarAuth] = None,
+    auth: CalendarAuth | None = None,
 ) -> str:
-    """
-    Convenience function to create an interview event.
+    """Convenience function to create an interview event.
 
     Args:
         title: Interview title
@@ -381,6 +379,7 @@ async def create_interview_event(
 
     Returns:
         Event ID or iCal content
+
     """
     event = InterviewEvent(
         title=title,
@@ -456,8 +455,7 @@ async def refresh_google_token(
     client_id: str,
     client_secret: str,
 ) -> dict:
-    """
-    Refresh Google OAuth access token.
+    """Refresh Google OAuth access token.
 
     Args:
         refresh_token: Google refresh token
@@ -469,6 +467,7 @@ async def refresh_google_token(
 
     Raises:
         Exception: If token refresh fails
+
     """
     import httpx
 
@@ -503,8 +502,7 @@ async def refresh_microsoft_token(
     client_secret: str,
     tenant_id: str = "common",
 ) -> dict:
-    """
-    Refresh Microsoft OAuth access token.
+    """Refresh Microsoft OAuth access token.
 
     Args:
         refresh_token: Microsoft refresh token
@@ -517,6 +515,7 @@ async def refresh_microsoft_token(
 
     Raises:
         Exception: If token refresh fails
+
     """
     import httpx
 
@@ -548,10 +547,9 @@ async def refresh_microsoft_token(
 
 async def ensure_valid_token(
     auth: CalendarAuth,
-    token_expires_at: Optional[datetime] = None,
+    token_expires_at: datetime | None = None,
 ) -> CalendarAuth:
-    """
-    Ensure the calendar auth has a valid access token, refreshing if necessary.
+    """Ensure the calendar auth has a valid access token, refreshing if necessary.
 
     Args:
         auth: Current calendar authentication
@@ -562,6 +560,7 @@ async def ensure_valid_token(
 
     Raises:
         ValueError: If refresh is not possible (missing refresh_token or credentials)
+
     """
     # If no expiration info, assume token is valid for 1 hour from now
     if token_expires_at is None:

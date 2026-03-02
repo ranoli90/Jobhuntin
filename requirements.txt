@@ -5,7 +5,7 @@
 # ── Web Framework ────────────────────────────────────────────────
 fastapi>=0.110,<1
 uvicorn[standard]>=0.29,<1
-python-multipart>=0.0.18
+python-multipart>=0.0.22
 starlette-csrf==3.0.0
 
 # ── Database ─────────────────────────────────────────────────────
@@ -21,7 +21,9 @@ pydantic-settings>=2.2,<3
 httpx>=0.27,<1
 
 # ── Authentication & Security ────────────────────────────────────
+defusedxml>=0.7,<0.8
 PyJWT[crypto]>=2.8,<3
+pyotp>=2.6,<3
 signxml>=4.3.1
 # Note: signxml>=4.3 no longer uses pyOpenSSL; it uses cryptography directly
 
@@ -35,7 +37,7 @@ playwright>=1.43,<2
 stripe>=8.0,<12
 
 # ── Image Processing (OG images) ─────────────────────────────────
-Pillow>=10.2,<11
+Pillow>=10.3.0,<11
 
 # ── Caching ──────────────────────────────────────────────────────
 redis>=5.0.0

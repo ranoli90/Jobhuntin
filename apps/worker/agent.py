@@ -1,5 +1,4 @@
-"""
-Part 2: Hardened Agent and DOM Handling
+"""Part 2: Hardened Agent and DOM Handling.
 
 Production-grade single-worker module that:
   - Polls Supabase Postgres for QUEUED applications (and resumable REQUIRES_INPUT)
@@ -29,17 +28,17 @@ from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
 
 from backend.blueprints.registry import get_blueprint, load_default_blueprints
-from backend.domain.evaluations import record_system_evaluation
-from backend.domain.experiments import get_variant_for_tenant
-from backend.domain.models import (
+from packages.backend.domain.evaluations import record_system_evaluation
+from packages.backend.domain.experiments import get_variant_for_tenant
+from packages.backend.domain.models import (
     CanonicalProfile,
     normalize_profile,
 )
-from backend.domain.notifications import (
+from packages.backend.domain.notifications import (
     notify_application_submitted,
     notify_hold_questions,
 )
-from backend.domain.repositories import (
+from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
@@ -47,7 +46,6 @@ from backend.domain.repositories import (
     ProfileRepo,
     db_transaction,
 )
-from backend.domain.resume import download_resume_from_storage
 from backend.llm.client import LLMClient
 from backend.llm.contracts import (
     DomMappingResponse_V1,
@@ -79,16 +77,15 @@ PAGE_TIMEOUT_MS: int = _settings.page_timeout_ms
 # Rate limiters (in-process guardrails)
 # ---------------------------------------------------------------------------
 _llm_limiter = RateLimiter(
-    name="agent_llm", max_calls=_settings.llm_rate_limit_per_minute, window_seconds=60.0
+    max_calls=_settings.llm_rate_limit_per_minute, window_seconds=60.0
 )
 _processing_limiter = RateLimiter(
-    name="agent_processing",
     max_calls=_settings.max_applications_per_minute,
     window_seconds=60.0,
 )
 
 
-# CanonicalProfile, FormField, LLMMapping, normalize_profile imported from backend.domain
+# CanonicalProfile, FormField, LLMMapping, normalize_profile imported from packages.backend.domain
 
 
 # ---------------------------------------------------------------------------
@@ -110,7 +107,7 @@ class FormField(TypedDict):
     options: list[FormFieldOption] | None
 
 
-# record_event imported from backend.domain.repositories
+# record_event imported from packages.backend.domain.repositories
 
 # ---------------------------------------------------------------------------
 # Database helpers
@@ -118,16 +115,21 @@ class FormField(TypedDict):
 
 
 async def create_db_pool():
-    """Create database connection pool"""
+    """Create database connection pool."""
     settings = get_settings()
     import ssl
+
+    ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+    ctx.check_hostname = True
+    # The default CA bundle should be sufficient if the Render cert is trusted
+    # If not, a custom CA bundle can be provided via ssl.load_verify_locations()
 
     return await asyncpg.create_pool(
         settings.database_url,
         min_size=settings.db_pool_min,
         max_size=settings.db_pool_max,
         statement_cache_size=0,
-        ssl=ssl.create_default_context(),
+        ssl=ctx,
     )
 
 
@@ -524,8 +526,7 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
 
 
 class FormAgent:
-    """
-    Generic form-filling agent engine.
+    """Generic form-filling agent engine.
 
     The core loop (claim → navigate → extract → map → fill → submit) is
     domain-agnostic. Vertical-specific behavior (prompts, submit selectors,
@@ -577,7 +578,7 @@ class FormAgent:
                     self.wake_event.wait(), timeout=self.poll_interval
                 )
                 # logger.debug("Woke up by event")
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # logger.debug("Woke up by timeout")
                 pass
 

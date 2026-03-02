@@ -1,5 +1,4 @@
-"""
-Background Job Queue — async task processing with retries and scheduling.
+"""Background Job Queue — async task processing with retries and scheduling.
 
 Uses PostgreSQL as a reliable queue backend (no external dependencies like Redis/Celery).
 Supports:
@@ -14,9 +13,10 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-from typing import Any, Callable, Coroutine
+from typing import Any
 
 import asyncpg
 from pydantic import BaseModel, Field

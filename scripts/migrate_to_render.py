@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""
-Script to migrate data from Supabase to Render PostgreSQL database
-"""
+"""Script to migrate data from Supabase to Render PostgreSQL database."""
 import os
+import re
 
 import asyncpg
 from dotenv import load_dotenv
+
+
+def validate_identifier(identifier: str) -> str:
+    """Validate SQL identifier to prevent injection."""
+    if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', identifier):
+        raise ValueError(f"Invalid SQL identifier: {identifier}")
+    return identifier
 
 
 async def migrate_data():
@@ -38,11 +44,10 @@ async def migrate_data():
             )
 
             for table in tables:
-                table_name = table["table_name"]
+                table_name = validate_identifier(table["table_name"])
                 print(f"Migrating table: {table_name}")
 
                 # Get all data from source table
-                # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - table from information_schema
                 data = await src_conn.fetch(f"SELECT * FROM {table_name}")
 
                 if not data:
@@ -51,22 +56,21 @@ async def migrate_data():
                 # Get column names
                 columns = list(data[0].keys())
 
+                # Validate column names
+                validated_columns = [validate_identifier(col) for col in columns]
+
                 # Create table in destination if not exists
-                # nosemgrep: python.sqlalchemy.security.sqlalchemy-execute-raw-query - table from schema
                 await dst_conn.execute(
                     f"""CREATE TABLE IF NOT EXISTS {table_name} (
-                       {', '.join(f'{col} TEXT' for col in columns)}
+                       {', '.join(f'{col} TEXT' for col in validated_columns)}
                     )"""
                 )
 
                 # Insert data
-                for row in data:
-                    values = [row[col] for col in columns]
-                    # nosemgrep: python.sqlalchemy.security.sqlalchemy-execute-raw-query - migration script
-                    await dst_conn.execute(
-                        f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(f'${i+1}' for i in range(len(values)))})",
-                        *values
-                    )
+                await dst_conn.copy_records_to_table(
+                    table_name,
+                    records=data
+                )
 
             print("Data migration completed successfully!")
 

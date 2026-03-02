@@ -1,5 +1,4 @@
-"""
-Multi-Factor Authentication (MFA) — TOTP and WebAuthn support.
+"""Multi-Factor Authentication (MFA) — TOTP and WebAuthn support.
 
 Features:
   - TOTP (Time-based One-Time Password) via authenticator apps
@@ -19,7 +18,7 @@ import struct
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import asyncpg
@@ -30,7 +29,7 @@ from shared.metrics import incr
 logger = get_logger("sorce.mfa")
 
 
-class MFAType(str, Enum):
+class MFAType(StrEnum):
     TOTP = "totp"
     WEBAUTHN = "webauthn"
     RECOVERY = "recovery"

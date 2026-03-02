@@ -1,5 +1,4 @@
-"""
-Vector database abstraction layer for semantic search.
+"""Vector database abstraction layer for semantic search.
 
 Supports multiple backends:
 1. pgvector - PostgreSQL extension for vector similarity search
@@ -32,6 +31,7 @@ DEFAULT_DIMENSION = 1536
 
 class VectorDBError(Exception):
     """Raised when vector database operations fail."""
+
     pass
 
 
@@ -71,8 +71,7 @@ class VectorDBBackend(ABC):
         filters: dict[str, Any] | None = None,
         namespace: str = "default",
     ) -> list[dict[str, Any]]:
-        """
-        Search for similar vectors.
+        """Search for similar vectors.
 
         Returns list of dicts with:
         - id: str
@@ -115,8 +114,7 @@ class VectorDBBackend(ABC):
 
 
 class PgVectorBackend(VectorDBBackend):
-    """
-    PostgreSQL pgvector backend.
+    """PostgreSQL pgvector backend.
 
     Uses the pgvector extension for efficient vector similarity search.
     Falls back to JSON storage with Python similarity if pgvector not available.
@@ -401,7 +399,7 @@ class PgVectorBackend(VectorDBBackend):
         """Compute cosine similarity between two vectors."""
         if not a or not b or len(a) != len(b):
             return 0.0
-        dot_product = sum(x * y for x, y in zip(a, b))
+        dot_product = sum(x * y for x, y in zip(a, b, strict=False))
         norm_a = sum(x * x for x in a) ** 0.5
         norm_b = sum(x * x for x in b) ** 0.5
         if norm_a == 0 or norm_b == 0:
@@ -410,8 +408,7 @@ class PgVectorBackend(VectorDBBackend):
 
 
 class PineconeBackend(VectorDBBackend):
-    """
-    Pinecone vector database backend.
+    """Pinecone vector database backend.
 
     Requires pinecone-client package and PINECONE_API_KEY env var.
     """
@@ -548,8 +545,7 @@ class PineconeBackend(VectorDBBackend):
 
 
 class InMemoryBackend(VectorDBBackend):
-    """
-    In-memory vector database for development/testing.
+    """In-memory vector database for development/testing.
 
     NOT suitable for production - data is lost on restart.
     """
@@ -671,7 +667,7 @@ class InMemoryBackend(VectorDBBackend):
         """Compute cosine similarity between two vectors."""
         if not a or not b or len(a) != len(b):
             return 0.0
-        dot_product = sum(x * y for x, y in zip(a, b))
+        dot_product = sum(x * y for x, y in zip(a, b, strict=False))
         norm_a = sum(x * x for x in a) ** 0.5
         norm_b = sum(x * x for x in b) ** 0.5
         if norm_a == 0 or norm_b == 0:
@@ -680,8 +676,7 @@ class InMemoryBackend(VectorDBBackend):
 
 
 class VectorDB:
-    """
-    Main vector database interface.
+    """Main vector database interface.
 
     Provides a unified interface to different backends.
     """
@@ -694,9 +689,8 @@ class VectorDB:
         cls,
         settings: Settings,
         conn: asyncpg.Connection | None = None,
-    ) -> "VectorDB":
-        """
-        Create a VectorDB instance based on settings.
+    ) -> VectorDB:
+        """Create a VectorDB instance based on settings.
 
         Priority:
         1. Pinecone if PINECONE_API_KEY is set

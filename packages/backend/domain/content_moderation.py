@@ -1,5 +1,4 @@
-"""
-Content moderation service for LLM outputs.
+"""Content moderation service for LLM outputs.
 
 Provides:
 - Toxicity detection
@@ -11,13 +10,13 @@ Provides:
 import logging
 import re
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Optional
+from enum import StrEnum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class ContentCategory(str, Enum):
+class ContentCategory(StrEnum):
     """Categories of moderated content."""
 
     TOXIC = "toxic"
@@ -32,7 +31,7 @@ class ContentCategory(str, Enum):
     MISINFORMATION = "misinformation"
 
 
-class ModerationAction(str, Enum):
+class ModerationAction(StrEnum):
     """Actions to take on moderated content."""
 
     ALLOW = "allow"
@@ -49,9 +48,9 @@ class ModerationResult:
     action: ModerationAction
     categories: list[ContentCategory] = field(default_factory=list)
     confidence: float = 0.0
-    flagged_text: Optional[str] = None
-    redacted_text: Optional[str] = None
-    reason: Optional[str] = None
+    flagged_text: str | None = None
+    redacted_text: str | None = None
+    reason: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -98,8 +97,7 @@ TOXICITY_INDICATORS = [
 
 
 class ContentModerator:
-    """
-    Content moderation for LLM outputs.
+    """Content moderation for LLM outputs.
 
     Features:
     - Pattern-based detection
@@ -115,7 +113,7 @@ class ContentModerator:
         enable_toxicity_check: bool = True,
         block_threshold: float = 0.8,
         flag_threshold: float = 0.5,
-        custom_patterns: Optional[dict[str, list[str]]] = None,
+        custom_patterns: dict[str, list[str]] | None = None,
     ):
         self.enable_profanity_filter = enable_profanity_filter
         self.enable_pii_filter = enable_pii_filter
@@ -133,14 +131,14 @@ class ContentModerator:
         }
 
     def moderate(self, text: str) -> ModerationResult:
-        """
-        Moderate content and return result.
+        """Moderate content and return result.
 
         Args:
             text: Text to moderate
 
         Returns:
             ModerationResult with action and details
+
         """
         if not text:
             return ModerationResult(
@@ -237,8 +235,7 @@ class ContentModerator:
         return found, censored
 
     def _check_toxicity(self, text: str) -> float:
-        """
-        Check toxicity score (simplified heuristic).
+        """Check toxicity score (simplified heuristic).
 
         In production, use a proper ML model like:
         - Perspective API
@@ -287,8 +284,7 @@ class ContentModerator:
 
 
 class LLMModerator:
-    """
-    Specialized moderator for LLM outputs.
+    """Specialized moderator for LLM outputs.
 
     Uses LLM-based moderation for more accurate detection.
     """
@@ -307,10 +303,9 @@ class LLMModerator:
     async def moderate_output(
         self,
         output: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> ModerationResult:
-        """
-        Moderate LLM output.
+        """Moderate LLM output.
 
         Args:
             output: LLM output to moderate
@@ -318,6 +313,7 @@ class LLMModerator:
 
         Returns:
             ModerationResult
+
         """
         # First, do pattern-based check
         pattern_result = self._pattern_moderator.moderate(output)
@@ -369,7 +365,7 @@ class LLMModerator:
     async def _llm_moderate(
         self,
         text: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> ModerationResult:
         """Use LLM to moderate content."""
         prompt = f"""Analyze the following text for safety issues. Check for:
@@ -442,7 +438,7 @@ Respond in JSON format:
 
 
 # Global moderator instance
-_moderator: Optional[ContentModerator] = None
+_moderator: ContentModerator | None = None
 
 
 def get_moderator() -> ContentModerator:

@@ -10,11 +10,11 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 def read_file_content(path):
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return f.read()
     except UnicodeDecodeError:
         print(f"UTF-8 decode failed for {path}, trying UTF-16...")
-        with open(path, "r", encoding="utf-16") as f:
+        with open(path, encoding="utf-16") as f:
             return f.read()
     except Exception as e:
         print(f"Error reading {path}: {e}")

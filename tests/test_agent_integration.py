@@ -1,5 +1,4 @@
-"""
-Integration tests for the FormAgent critical path.
+"""Integration tests for the FormAgent critical path.
 
 Tests the core revenue-generating flow:
   claim task → navigate → extract fields → fill form → submit → verify status
@@ -253,8 +252,7 @@ async def _insert_test_application(
 
 @pytest.mark.asyncio
 async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
-    """
-    End-to-end test: insert QUEUED app → agent claims it → navigates to form →
+    """End-to-end test: insert QUEUED app → agent claims it → navigates to form →
     extracts fields → LLM maps profile → fills form → submits → status = APPLIED.
     """
     if db_pool is None:
@@ -350,8 +348,7 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
 
 @pytest.mark.asyncio
 async def test_agent_hold_form_has_unmappable_field(hold_form_server):
-    """
-    Verify the hold form fixture has an unmappable field (security_clearance)
+    """Verify the hold form fixture has an unmappable field (security_clearance)
     that the mock LLM mapping intentionally leaves empty, which would trigger
     the REQUIRES_INPUT hold state in a full agent run.
     """
@@ -379,8 +376,7 @@ async def test_agent_hold_form_has_unmappable_field(hold_form_server):
 
 @pytest.mark.asyncio
 async def test_validate_critical_rejects_missing_secrets():
-    """
-    Verify that validate_critical() catches missing csrf_secret and
+    """Verify that validate_critical() catches missing csrf_secret and
     sso_session_secret in staging/prod environments.
     """
     from shared.config import Settings
@@ -404,9 +400,7 @@ async def test_validate_critical_rejects_missing_secrets():
 
 @pytest.mark.asyncio
 async def test_validate_critical_passes_with_all_secrets():
-    """
-    Verify that validate_critical() passes when all required secrets are set.
-    """
+    """Verify that validate_critical() passes when all required secrets are set."""
     from shared.config import Settings
 
     settings = Settings(

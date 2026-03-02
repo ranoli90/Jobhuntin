@@ -1,5 +1,4 @@
-"""
-Tests for the resume tailoring service.
+"""Tests for the resume tailoring service.
 
 Validates dynamic resume customization and ATS scoring.
 """
@@ -7,7 +6,7 @@ Validates dynamic resume customization and ATS scoring.
 from __future__ import annotations
 
 import pytest
-from backend.domain.resume_tailoring import (
+from packages.backend.domain.resume_tailoring import (
     ATSScorer,
     ResumeTailoringService,
     TailoredResumeResult,

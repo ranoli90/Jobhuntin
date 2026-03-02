@@ -1,5 +1,4 @@
-"""
-Vector Database API endpoints for semantic job matching.
+"""Vector Database API endpoints for semantic job matching.
 
 Provides endpoints for:
 - Upserting job/profile vectors
@@ -11,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.domain.vector_db import (
+from packages.backend.domain.vector_db import (
     JOBS_NAMESPACE,
     PROFILES_NAMESPACE,
     VectorDBClient,
@@ -191,10 +190,12 @@ async def vector_db_health(
 async def upsert_job_vector(
     job_id: str,
     vector: list[float],
-    metadata: dict[str, Any] = {},
+    metadata: dict[str, Any] = None,
     client: VectorDBClient = Depends(_get_vector_db),
 ) -> dict[str, Any]:
     """Upsert a job vector (convenience endpoint)."""
+    if metadata is None:
+        metadata = {}
     success = await client.upsert(
         id=job_id,
         vector=vector,
@@ -225,10 +226,12 @@ async def query_jobs(
 async def upsert_profile_vector(
     user_id: str,
     vector: list[float],
-    metadata: dict[str, Any] = {},
+    metadata: dict[str, Any] = None,
     client: VectorDBClient = Depends(_get_vector_db),
 ) -> dict[str, Any]:
     """Upsert a profile vector (convenience endpoint)."""
+    if metadata is None:
+        metadata = {}
     success = await client.upsert(
         id=user_id,
         vector=vector,

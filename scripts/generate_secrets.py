@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-"""
-Generate secure secrets for production deployment.
+"""Generate secure secrets for production deployment.
 Run this script to generate values for:
   - CSRF_SECRET
   - WEBHOOK_SIGNING_SECRET
   - SSO_SESSION_SECRET
-  - JWT_SECRET (if needed)
+  - JWT_SECRET (if needed).
 """
 
 import secrets

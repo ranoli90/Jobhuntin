@@ -1,4 +1,4 @@
-"""Add pgvector support for vector similarity search
+"""Add pgvector support for vector similarity search.
 
 Revision ID: ab12cd34ef56
 Revises: 16a542a11f84

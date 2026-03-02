@@ -1,5 +1,4 @@
-"""
-Push notification sender — uses Expo Push Notifications API.
+"""Push notification sender — uses Expo Push Notifications API.
 
 Handles:
   - Sending push notifications to individual users
@@ -84,8 +83,7 @@ async def send_push_to_user(
     data: dict[str, Any] | None = None,
     tenant_id: str | None = None,
 ) -> int:
-    """
-    Send a push notification to all active tokens for a user.
+    """Send a push notification to all active tokens for a user.
 
     Returns the number of tokens sent to.
     """

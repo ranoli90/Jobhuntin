@@ -1,5 +1,4 @@
-"""
-Semantic Cache for LLM Responses
+"""Semantic Cache for LLM Responses.
 
 Caches LLM responses for semantically similar queries, reducing API calls and costs.
 Uses embeddings to find similar cached queries rather than exact matches.
@@ -17,7 +16,7 @@ import hashlib
 import threading
 import time
 from collections import OrderedDict
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from shared.logging_config import get_logger
@@ -37,8 +36,7 @@ class CacheEntry(BaseModel):
 
 
 class SemanticCache:
-    """
-    Semantic cache for LLM responses using embedding similarity.
+    """Semantic cache for LLM responses using embedding similarity.
 
     Unlike exact-match caches, this finds semantically similar queries
     and returns cached responses, reducing LLM API calls significantly.
@@ -61,7 +59,7 @@ class SemanticCache:
         if len(a) != len(b):
             return 0.0
 
-        dot_product = sum(x * y for x, y in zip(a, b))
+        dot_product = sum(x * y for x, y in zip(a, b, strict=False))
         norm_a = sum(x * x for x in a) ** 0.5
         norm_b = sum(x * x for x in b) ** 0.5
 
@@ -80,9 +78,8 @@ class SemanticCache:
         query: str,
         query_embedding: list[float],
         model: str,
-    ) -> Optional[dict[str, Any]]:
-        """
-        Get cached response for a semantically similar query.
+    ) -> dict[str, Any] | None:
+        """Get cached response for a semantically similar query.
 
         Searches through cached entries to find one with similar embedding.
         Returns None if no similar query found or if expired.
@@ -102,9 +99,9 @@ class SemanticCache:
                     return entry.response
 
             # Search for similar queries
-            best_match: Optional[CacheEntry] = None
+            best_match: CacheEntry | None = None
             best_similarity = 0.0
-            best_key: Optional[str] = None
+            best_key: str | None = None
 
             for cache_key, entry in self._cache.items():
                 if not cache_key.startswith(key_prefix):
@@ -189,8 +186,7 @@ class SemanticCache:
 
 
 class RedisSemanticCache(SemanticCache):
-    """
-    Redis-backed semantic cache for distributed environments.
+    """Redis-backed semantic cache for distributed environments.
 
     Stores embeddings and responses in Redis for cross-process sharing.
     """
@@ -204,7 +200,7 @@ class RedisSemanticCache(SemanticCache):
     ):
         super().__init__(max_size, ttl_seconds, similarity_threshold)
         self.redis_key_prefix = redis_key_prefix
-        self._redis_available: Optional[bool] = None
+        self._redis_available: bool | None = None
 
     async def _get_redis(self):
         """Get Redis client, caching availability status."""
@@ -228,7 +224,7 @@ class RedisSemanticCache(SemanticCache):
         query: str,
         query_embedding: list[float],
         model: str,
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get cached response with Redis support."""
         # Try in-memory first (fast path)
         result = await super().get(query, query_embedding, model)
@@ -309,7 +305,7 @@ class RedisSemanticCache(SemanticCache):
 
 
 # Singleton instance
-_semantic_cache: Optional[SemanticCache] = None
+_semantic_cache: SemanticCache | None = None
 _cache_lock = threading.Lock()
 
 

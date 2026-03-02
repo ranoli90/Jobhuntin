@@ -1,5 +1,4 @@
-"""
-Worker horizontal scaling — manages multiple concurrent Playwright instances
+"""Worker horizontal scaling — manages multiple concurrent Playwright instances
 with connection pooling, read replicas, and enterprise-dedicated pools.
 
 Usage:
@@ -171,12 +170,11 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
 # ---------------------------------------------------------------------------
 
 class BrowserPoolManager:
-    """
-    Manages Playwright browser lifecycle with support for:
+    """Manages Playwright browser lifecycle with support for:
     - Local Chromium launch (default)
     - Remote Browserless.io via CDP (when browserless_url is configured)
     - Context recycling after N uses to prevent memory leaks
-    - Active context count and usage metrics
+    - Active context count and usage metrics.
     """
 
     def __init__(self) -> None:
@@ -258,8 +256,7 @@ class BrowserPoolManager:
         return ctx
 
     async def record_context_use(self, ctx: Any) -> bool:
-        """
-        Record a use of the context. Returns True if context should be recycled
+        """Record a use of the context. Returns True if context should be recycled
         (exceeded max_uses threshold).
         """
         s = get_settings()

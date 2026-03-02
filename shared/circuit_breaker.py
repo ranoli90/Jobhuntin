@@ -1,16 +1,14 @@
-"""
-Circuit breaker implementation for external service calls.
-"""
+"""Circuit breaker implementation for external service calls."""
 
 import logging
 import time
-from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class CircuitBreakerOpen(Exception):
     """Raised when circuit breaker is open."""
+
     pass
 
 
@@ -23,7 +21,7 @@ class CircuitBreaker:
         self.expected_exception = expected_exception
 
         self.failure_count = 0
-        self.last_failure_time: Optional[float] = None
+        self.last_failure_time: float | None = None
         self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
 
     def call(self, func, *args, **kwargs):
@@ -64,7 +62,7 @@ class CircuitBreaker:
 
 
 # Global circuit breakers cache
-_circuit_breakers: Dict[str, CircuitBreaker] = {}
+_circuit_breakers: dict[str, CircuitBreaker] = {}
 
 
 def get_circuit_breaker(service_name: str, **kwargs) -> CircuitBreaker:

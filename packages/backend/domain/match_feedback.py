@@ -1,5 +1,4 @@
-"""
-Match feedback service for collecting and processing user feedback on match results.
+"""Match feedback service for collecting and processing user feedback on match results.
 
 Implements the feedback loop for ML improvement:
 - Thumbs up/down on match results

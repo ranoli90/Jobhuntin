@@ -1,5 +1,4 @@
-"""
-Unit tests for backend domain models, normalize_profile, and LLM client.
+"""Unit tests for backend domain models, normalize_profile, and LLM client.
 
 No database or network required – pure logic tests.
 """
@@ -10,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.domain.models import (
+from packages.backend.domain.models import (
     ApplicationStatus,
     CanonicalProfile,
     ErrorDetail,

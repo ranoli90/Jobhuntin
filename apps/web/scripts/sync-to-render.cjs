@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const API_KEY = 'rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa';
+const API_KEY = process.env.RENDER_API_TOKEN;
 const WEB_SERVICE_ID = 'srv-d63spbogjchc739akan0';
 const API_SERVICE_ID = 'srv-d63l79hr0fns73boblag';
 
@@ -11,7 +11,7 @@ const compactServiceAccount = JSON.stringify(JSON.parse(serviceAccount));
 
 const newVars = [
     { key: 'GOOGLE_SERVICE_ACCOUNT_KEY', value: compactServiceAccount },
-    { key: 'LLM_API_KEY', value: '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' },
+    { key: 'LLM_API_KEY', value: process.env.LLM_API_KEY },
     { key: 'VITE_GA_ID', value: 'G-P1QLYH3M13' }
 ];
 

@@ -1,5 +1,4 @@
-"""
-Calendar Integration — interview scheduling and calendar sync.
+"""Calendar Integration — interview scheduling and calendar sync.
 
 Provides:
 - Google Calendar integration

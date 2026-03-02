@@ -84,6 +84,7 @@ components:
           type: integer
         results:
           type: array
+          maxItems: 1000
           items:
             type: object
 

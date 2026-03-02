@@ -1,6 +1,4 @@
-"""
-Staffing Agency models — candidate profiles for bulk ATS submission.
-"""
+"""Staffing Agency models — candidate profiles for bulk ATS submission."""
 
 from __future__ import annotations
 
@@ -9,6 +7,7 @@ from pydantic import BaseModel
 
 class CandidateProfile(BaseModel):
     """Profile for a single candidate to submit to a client ATS."""
+
     full_name: str
     email: str
     phone: str = ""
@@ -27,6 +26,7 @@ class CandidateProfile(BaseModel):
 
 class StaffingBatchRequest(BaseModel):
     """Request to submit a batch of candidates to a client portal."""
+
     client_name: str
     client_portal: str  # URL of client ATS/Greenhouse/Lever
     role_title: str

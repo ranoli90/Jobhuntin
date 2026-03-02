@@ -1,13 +1,11 @@
-"""
-Cursor-based pagination utilities for consistent API pagination.
-"""
+"""Cursor-based pagination utilities for consistent API pagination."""
 
 from __future__ import annotations
 
 import base64
 import json
 from dataclasses import dataclass, field
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
@@ -15,6 +13,7 @@ T = TypeVar("T")
 @dataclass
 class PageInfo:
     """Pagination metadata."""
+
     has_next_page: bool
     has_previous_page: bool
     start_cursor: str | None
@@ -23,8 +22,9 @@ class PageInfo:
 
 
 @dataclass
-class PaginatedResult(Generic[T]):
+class PaginatedResult[T]:
     """Paginated result with items and page info."""
+
     items: list[T]
     page_info: PageInfo
     extra: dict[str, Any] = field(default_factory=dict)
@@ -33,6 +33,7 @@ class PaginatedResult(Generic[T]):
 @dataclass
 class PaginationParams:
     """Parameters for cursor-based pagination."""
+
     first: int | None = None  # Number of items from start
     after: str | None = None  # Cursor to start after
     last: int | None = None   # Number of items from end
@@ -84,8 +85,7 @@ async def paginate_query(
     extra_conditions: str = "",
     args: list[Any] | None = None,
 ) -> PaginatedResult[dict]:
-    """
-    Execute a paginated query.
+    """Execute a paginated query.
 
     Args:
         conn: Database connection
@@ -97,6 +97,7 @@ async def paginate_query(
 
     Returns:
         PaginatedResult with items and page info
+
     """
     args = args or []
     page_size = params.first or params.last or PaginationParams.DEFAULT_PAGE_SIZE

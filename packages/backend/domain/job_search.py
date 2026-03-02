@@ -1,6 +1,4 @@
-"""
-Job search domain logic: Adzuna integration and job listing/filtering.
-"""
+"""Job search domain logic: Adzuna integration and job listing/filtering."""
 import json
 from typing import Any
 
@@ -8,7 +6,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from backend.domain.job_boards import AdzunaClient
+from packages.backend.domain.job_boards import AdzunaClient
 
 logger = get_logger("sorce.job_search")
 
@@ -21,8 +19,7 @@ async def search_and_list_jobs(
     limit: int = 25,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
-    """
-    Search jobs:
+    """Search jobs:
     1. Fetch from Adzuna (if keywords/location provided) and sync to DB.
     2. Query DB with filters.
     """

@@ -1,5 +1,4 @@
-"""
-Priority scoring for task queue — ENTERPRISE > TEAM > PRO > FREE.
+"""Priority scoring for task queue — ENTERPRISE > TEAM > PRO > FREE.
 
 Assigns priority_score to applications at creation time based on
 the tenant's plan. Enterprise tasks are processed first.
@@ -22,8 +21,7 @@ PLAN_PRIORITY: dict[str, int] = {
 
 
 def compute_priority_score(plan: str, is_bulk: bool = False) -> int:
-    """
-    Compute priority score for a new application.
+    """Compute priority score for a new application.
 
     Enterprise tasks get highest priority. Bulk campaigns get a slight
     penalty to avoid starving individual requests.

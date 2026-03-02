@@ -1,4 +1,4 @@
-"""Comprehensive UX/Technical Audit Report for JobHuntin"""
+"""Comprehensive UX/Technical Audit Report for JobHuntin."""
 
 def generate_audit_report():
     audit = {

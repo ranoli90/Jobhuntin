@@ -1,5 +1,4 @@
-"""
-Team management — invites, seat allocation, member management.
+"""Team management — invites, seat allocation, member management.
 
 Handles the lifecycle of team invites and per-seat Stripe quantity updates.
 """
@@ -300,8 +299,7 @@ async def update_stripe_seat_quantity(
     tenant_id: str,
     new_seat_count: int,
 ) -> None:
-    """
-    Update Stripe subscription quantity for per-seat billing.
+    """Update Stripe subscription quantity for per-seat billing.
     Also updates tenants.max_seats.
     """
     s = get_settings()

@@ -1,5 +1,4 @@
-"""
-Part 3: Observability – Structured Logging
+"""Part 3: Observability – Structured Logging.
 
 Provides:
   - setup_logging(env, log_level, log_json): configures root logger
@@ -212,8 +211,7 @@ def _sanitize_nested(data: Any) -> Any:
 
 
 def sanitize_for_log(data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Return a shallow copy of `data` with PII-bearing keys replaced by '[REDACTED]'.
+    """Return a shallow copy of `data` with PII-bearing keys replaced by '[REDACTED]'.
     Recurses into nested dicts but not lists (for performance).
     """
     result: dict[str, Any] = {}

@@ -1,5 +1,4 @@
-"""
-Audit log — SOC 2 compliance trail for enterprise tenants.
+"""Audit log — SOC 2 compliance trail for enterprise tenants.
 
 Records all significant actions: member changes, billing events,
 SSO configuration, data exports, impersonation, etc.

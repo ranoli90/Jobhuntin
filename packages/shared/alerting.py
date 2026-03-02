@@ -1,5 +1,4 @@
-"""
-Alerting System for Production Monitoring
+"""Alerting System for Production Monitoring.
 
 Provides:
   - AlertRule dataclass for defining alert conditions
@@ -283,8 +282,7 @@ Labels: {json.dumps(alert.labels, indent=2)}
 
 
 class AlertManager:
-    """
-    Manages alert rules, evaluation, and notifications.
+    """Manages alert rules, evaluation, and notifications.
 
     Features:
     - Threshold-based alert evaluation

@@ -1,5 +1,4 @@
-"""
-Tests for production hardening module.
+"""Tests for production hardening module.
 
 Validates error handling, rate limiting, and metrics.
 """
@@ -7,7 +6,7 @@ Validates error handling, rate limiting, and metrics.
 from __future__ import annotations
 
 import pytest
-from backend.domain.production import (
+from packages.backend.domain.production import (
     AIEndpointError,
     EmbeddingError,
     LLMError,

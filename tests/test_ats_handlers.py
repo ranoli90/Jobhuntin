@@ -1,12 +1,11 @@
-"""
-Tests for ATS-specific handlers.
+"""Tests for ATS-specific handlers.
 
 Validates platform detection, CAPTCHA detection, and handler functionality.
 """
 
 from __future__ import annotations
 
-from backend.domain.ats_handlers import (
+from packages.backend.domain.ats_handlers import (
     ATSDetectionResult,
     ATSPlatform,
     CAPTCHADetection,

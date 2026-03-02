@@ -1,6 +1,4 @@
-"""
-Shared validation utilities for API path parameters and request bodies.
-"""
+"""Shared validation utilities for API path parameters and request bodies."""
 
 from __future__ import annotations
 

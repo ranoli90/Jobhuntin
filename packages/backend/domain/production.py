@@ -1,5 +1,4 @@
-"""
-Production hardening module for AI endpoints.
+"""Production hardening module for AI endpoints.
 
 Provides:
 - Comprehensive error handling middleware
@@ -13,9 +12,10 @@ from __future__ import annotations
 
 import time
 import uuid
+from collections.abc import Callable
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import HTTPException, Request, Response
 from shared.logging_config import get_logger
@@ -44,8 +44,7 @@ class RequestContext:
 
 
 class ProductionMiddleware(BaseHTTPMiddleware):
-    """
-    Production-hardening middleware for all API endpoints.
+    """Production-hardening middleware for all API endpoints.
 
     Features:
     - Request ID tracking
@@ -226,8 +225,7 @@ def handle_ai_error(error: Exception) -> HTTPException:
 
 
 class TenantRateLimiter:
-    """
-    Multi-tenant rate limiter with per-tenant quotas.
+    """Multi-tenant rate limiter with per-tenant quotas.
 
     Supports different rate limits based on tenant tier:
     - FREE: 20 AI requests per minute
@@ -252,11 +250,11 @@ class TenantRateLimiter:
         tier: str = "free",
         endpoint: str = "default",
     ) -> tuple[bool, int, int]:
-        """
-        Check if request is allowed under rate limit.
+        """Check if request is allowed under rate limit.
 
         Returns:
             Tuple of (allowed, remaining, reset_after_seconds)
+
         """
         from shared.metrics import get_rate_limiter
 

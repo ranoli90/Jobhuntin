@@ -2,10 +2,14 @@
 """Add profile_embeddings table to Render PostgreSQL database."""
 
 import asyncio
+import os
 
 import asyncpg
+from dotenv import load_dotenv
 
-DATABASE_URL = "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/jobhuntin?sslmode=require"
+load_dotenv()
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
 async def run_migration():

@@ -1,6 +1,4 @@
-"""
-Debug DDL statements for manual schema verification/fixing.
-"""
+"""Debug DDL statements for manual schema verification/fixing."""
 from __future__ import annotations
 
 import asyncpg

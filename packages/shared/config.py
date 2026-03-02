@@ -1,5 +1,4 @@
-"""
-Part 1: Configuration and Environments
+"""Part 1: Configuration and Environments.
 
 Typed Settings model that:
   - Loads from environment variables with sensible local defaults

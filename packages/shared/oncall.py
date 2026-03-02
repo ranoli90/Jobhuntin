@@ -1,5 +1,4 @@
-"""
-On-Call Integration — PagerDuty/Opsgenie integration for alerting.
+"""On-Call Integration — PagerDuty/Opsgenie integration for alerting.
 
 Provides:
 - PagerDuty Events API v2 integration

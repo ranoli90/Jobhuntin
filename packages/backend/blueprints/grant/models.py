@@ -1,5 +1,4 @@
-"""
-Grant Application profile model.
+"""Grant Application profile model.
 
 Extends ActorProfile with grant-specific fields: organization details,
 project information, budget narrative, and compliance data.
@@ -9,16 +8,16 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from backend.domain.core_models import ActorProfile
+from packages.backend.domain.core_models import ActorProfile
 
 
 class GrantApplicantProfile(ActorProfile):
-    """
-    Grant-specific extension of ActorProfile.
+    """Grant-specific extension of ActorProfile.
 
     Stores all data needed to auto-fill grant application forms:
     organization identity, project details, budget, and qualifications.
     """
+
     # Organization identity
     organization_name: str = ""
     organization_ein: str = ""  # EIN / Tax ID

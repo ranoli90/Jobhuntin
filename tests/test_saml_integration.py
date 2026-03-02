@@ -1,5 +1,4 @@
-"""
-Integration tests for SAML 2.0 signature verification.
+"""Integration tests for SAML 2.0 signature verification.
 
 Tests the full parse_saml_response flow with:
 - A self-signed certificate and properly signed SAML XML

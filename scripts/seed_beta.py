@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Seed script for M1 closed beta.
+"""Seed script for M1 closed beta.
 
 Populates the database with:
   1. Sample jobs from Adzuna API (or hardcoded fallbacks)

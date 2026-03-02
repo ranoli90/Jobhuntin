@@ -1,5 +1,4 @@
-"""
-Grant Application Blueprint — LLM prompt templates.
+"""Grant Application Blueprint — LLM prompt templates.
 
 Production prompts tuned for common grant portals (Grants.gov, foundations,
 university research offices). Handles org identity, project details, budget,

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Initialize fresh database schema on Render
-"""
+"""Initialize fresh database schema on Render."""
 import logging
 import sys
 from pathlib import Path
@@ -13,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 async def init_schema(conn):
-    """Initialize database schema"""
+    """Initialize database schema."""
     # Get schema from file
     schema_file = Path(__file__).parent.parent / "infra" / "supabase" / "schema.sql"
     if not schema_file.exists():
@@ -30,7 +28,7 @@ async def init_schema(conn):
     logger.info("Database schema initialized")
 
 async def main():
-    """Main execution"""
+    """Main execution."""
     if len(sys.argv) < 2:
         logger.error("Usage: python init_render_db.py <database_url>")
         return

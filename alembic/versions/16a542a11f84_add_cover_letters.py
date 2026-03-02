@@ -1,18 +1,18 @@
-"""add_cover_letters
+"""add_cover_letters.
 
 Revision ID: 16a542a11f84
 Revises: edde89a3dcba
 Create Date: 2026-02-09 23:23:11.842488
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from alembic import op
 
 revision: str = '16a542a11f84'
-down_revision: Union[str, Sequence[str], None] = 'edde89a3dcba'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = 'edde89a3dcba'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

@@ -1,5 +1,4 @@
-"""
-Job signal extraction for work style and growth matching.
+"""Job signal extraction for work style and growth matching.
 
 This module extracts work style signals from job postings to enable
 two-way compatibility matching between candidates and jobs.
@@ -7,7 +6,7 @@ two-way compatibility matching between candidates and jobs.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
     pass
 
 
-class CompanyStage(str, Enum):
+class CompanyStage(StrEnum):
     """Company stage classification."""
 
     EARLY_STARTUP = "early_startup"
@@ -24,7 +23,7 @@ class CompanyStage(str, Enum):
     ENTERPRISE = "enterprise"
 
 
-class WorkPace(str, Enum):
+class WorkPace(StrEnum):
     """Work pace classification."""
 
     FAST = "fast"
@@ -32,7 +31,7 @@ class WorkPace(str, Enum):
     METHODICAL = "methodical"
 
 
-class AutonomyLevel(str, Enum):
+class AutonomyLevel(StrEnum):
     """Autonomy level classification."""
 
     HIGH = "high"
@@ -40,7 +39,7 @@ class AutonomyLevel(str, Enum):
     LOW = "low"
 
 
-class GrowthPotential(str, Enum):
+class GrowthPotential(StrEnum):
     """Growth potential classification."""
 
     IC_PATH = "ic_path"
@@ -49,7 +48,7 @@ class GrowthPotential(str, Enum):
     LIMITED = "limited"
 
 
-class TeamSize(str, Enum):
+class TeamSize(StrEnum):
     """Team size classification."""
 
     SMALL = "small"
@@ -57,7 +56,7 @@ class TeamSize(str, Enum):
     LARGE = "large"
 
 
-class RemoteCulture(str, Enum):
+class RemoteCulture(StrEnum):
     """Remote work culture classification."""
 
     ASYNC_FIRST = "async_first"
@@ -207,14 +206,14 @@ def parse_job_signals_response(response: JobSignalsResponse_V1) -> JobSignals:
 def compute_work_style_fit(
     work_style: dict[str, str], job_signals: JobSignals
 ) -> float:
-    """
-    Compute compatibility score between candidate work style and job signals.
+    """Compute compatibility score between candidate work style and job signals.
 
     Args:
         work_style: Dict with keys like autonomy_preference, pace_preference, etc.
         job_signals: JobSignals model
 
     Returns a score from 0.0 to 1.0.
+
     """
     scores: list[float] = []
 
@@ -275,14 +274,14 @@ def compute_work_style_fit(
 
 
 def compute_trajectory_alignment(trajectory: str, job_signals: JobSignals) -> float:
-    """
-    Compute alignment between candidate's career trajectory and job's growth potential.
+    """Compute alignment between candidate's career trajectory and job's growth potential.
 
     Args:
         trajectory: One of "ic", "tech_lead", "manager", "founder", "open"
         job_signals: JobSignals model
 
     Returns a score from 0.0 to 1.0.
+
     """
     if trajectory == "open":
         return 0.7  # Open to anything is moderate fit

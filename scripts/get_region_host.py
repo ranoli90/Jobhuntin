@@ -2,7 +2,7 @@ import json
 
 data = None
 try:
-    with open("projects.json", "r", encoding="utf-8") as f:
+    with open("projects.json", encoding="utf-8") as f:
         data = json.load(f)
 except Exception:
     pass

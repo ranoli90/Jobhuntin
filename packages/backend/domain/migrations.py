@@ -1,6 +1,4 @@
-"""
-Database migration utilities.
-"""
+"""Database migration utilities."""
 from __future__ import annotations
 
 import pathlib
@@ -14,7 +12,6 @@ logger = get_logger("sorce.migrations")
 
 async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> None:
     """Run auth shim + schema.sql + all numbered migrations."""
-
     # Supabase-only patterns to skip on plain Postgres
     _skip = re.compile(
         r"(ALTER\s+PUBLICATION|supabase_realtime|auth\.uid\(\)|auth\.role\(\))",

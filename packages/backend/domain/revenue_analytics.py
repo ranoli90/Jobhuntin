@@ -1,5 +1,4 @@
-"""
-Revenue Analytics Dashboard — track MRR, churn, and revenue metrics.
+"""Revenue Analytics Dashboard — track MRR, churn, and revenue metrics.
 
 Provides insights for subscription-based business tracking.
 """

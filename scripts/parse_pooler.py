@@ -1,14 +1,19 @@
 import json
+import os
 
-PASSWORD = "ravhuv-gitqec-nixvY4"
+from dotenv import load_dotenv
+
+load_dotenv()
+
+PASSWORD = os.environ.get("SUPABASE_DB_PASSWORD")
 
 
 def load_json(path):
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except Exception:
-        with open(path, "r", encoding="utf-16") as f:
+        with open(path, encoding="utf-16") as f:
             return json.load(f)
 
 

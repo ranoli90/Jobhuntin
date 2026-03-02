@@ -1,5 +1,4 @@
-"""
-Observability — Sentry integration, structured error tracking, and automated alerting.
+"""Observability — Sentry integration, structured error tracking, and automated alerting.
 
 Provides:
   - Sentry SDK initialization with tenant/plan context
@@ -60,8 +59,7 @@ def capture_error(
     user_id: str | None = None,
     extra: dict[str, Any] | None = None,
 ) -> str | None:
-    """
-    Capture an error in Sentry with tenant context.
+    """Capture an error in Sentry with tenant context.
     Returns the Sentry event ID or None.
     """
     try:
@@ -90,6 +88,7 @@ def capture_error(
 
 class AlertResult:
     """Result of an alert check."""
+
     def __init__(self, name: str, level: str, message: str, value: Any = None):
         self.name = name
         self.level = level  # info, warning, critical

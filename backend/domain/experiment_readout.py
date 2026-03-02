@@ -1,5 +1,4 @@
-"""
-Experiment readout — compare variant-level performance metrics.
+"""Experiment readout — compare variant-level performance metrics.
 
 Joins experiment_assignments with applications and agent_evaluations
 to produce per-variant success rates and hold-question averages.
@@ -74,8 +73,7 @@ async def get_experiment_results(
     conn: asyncpg.Connection,
     experiment_key: str,
 ) -> list[dict[str, Any]]:
-    """
-    Return per-variant performance stats for an experiment.
+    """Return per-variant performance stats for an experiment.
 
     Each row contains:
       - variant: str

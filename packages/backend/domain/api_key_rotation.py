@@ -1,5 +1,4 @@
-"""
-API Key Rotation — automatic key rotation, expiration, and grace period handling.
+"""API Key Rotation — automatic key rotation, expiration, and grace period handling.
 
 Features:
   - Scheduled automatic key rotation
@@ -13,7 +12,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -43,12 +42,12 @@ class APIKeyInfo:
     def is_expired(self) -> bool:
         if not self.expires_at:
             return False
-        return datetime.now(timezone.utc) > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
     def days_until_expiry(self) -> int | None:
         if not self.expires_at:
             return None
-        delta = self.expires_at - datetime.now(timezone.utc)
+        delta = self.expires_at - datetime.now(UTC)
         return max(0, delta.days)
 
 
@@ -81,7 +80,7 @@ class APIKeyRotationManager:
     ) -> tuple[str, APIKeyInfo]:
         raw_key, key_hash, key_prefix = self.generate_api_key()
         lifetime = lifetime_days or self.DEFAULT_KEY_LIFETIME_DAYS
-        expires_at = datetime.now(timezone.utc) + timedelta(days=lifetime)
+        expires_at = datetime.now(UTC) + timedelta(days=lifetime)
 
         async with self._pool.acquire() as conn:
             key_id = await conn.fetchval(
@@ -126,7 +125,7 @@ class APIKeyRotationManager:
             expires_at=expires_at,
             rotated_from=None,
             rotated_to=None,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             last_used_at=None,
             rate_limit_rpm=rate_limit_rpm,
             monthly_quota=monthly_quota,
@@ -158,7 +157,7 @@ class APIKeyRotationManager:
                 raise ValueError(f"API key {key_id} has already been rotated")
 
             raw_key, key_hash, key_prefix = self.generate_api_key()
-            expires_at = datetime.now(timezone.utc) + timedelta(
+            expires_at = datetime.now(UTC) + timedelta(
                 days=self.DEFAULT_KEY_LIFETIME_DAYS
             )
 
@@ -180,7 +179,7 @@ class APIKeyRotationManager:
                 key_id,
             )
 
-            grace_expires = datetime.now(timezone.utc) + timedelta(hours=grace_hours)
+            grace_expires = datetime.now(UTC) + timedelta(hours=grace_hours)
             await conn.execute(
                 """
                 UPDATE public.api_keys
@@ -225,7 +224,7 @@ class APIKeyRotationManager:
             expires_at=expires_at,
             rotated_from=key_id,
             rotated_to=None,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             last_used_at=None,
             rate_limit_rpm=old_key["rate_limit_rpm"],
             monthly_quota=old_key["monthly_quota"],
@@ -270,7 +269,7 @@ class APIKeyRotationManager:
         days: int | None = None,
     ) -> list[APIKeyInfo]:
         warning_days = days or self.ROTATION_WARNING_DAYS
-        threshold = datetime.now(timezone.utc) + timedelta(days=warning_days)
+        threshold = datetime.now(UTC) + timedelta(days=warning_days)
 
         async with self._pool.acquire() as conn:
             rows = await conn.fetch(

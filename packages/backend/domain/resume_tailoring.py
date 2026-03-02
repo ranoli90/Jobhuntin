@@ -1,5 +1,4 @@
-"""
-Dynamic resume tailoring service.
+"""Dynamic resume tailoring service.
 
 Implements per-application resume customization:
 - Analyzes job description requirements
@@ -40,8 +39,7 @@ class TailoredResumeResult(BaseModel):
 
 
 class ResumeTailoringService:
-    """
-    Service for dynamically tailoring resumes to specific job descriptions.
+    """Service for dynamically tailoring resumes to specific job descriptions.
 
     Uses LLM-powered content optimization and semantic analysis to create
     customized resumes that maximize ATS compatibility and relevance.
@@ -63,8 +61,7 @@ class ResumeTailoringService:
         job: dict[str, Any],
         match_explanation: dict[str, Any] | None = None,
     ) -> TailoredResumeResult:
-        """
-        Tailor a resume for a specific job application.
+        """Tailor a resume for a specific job application.
 
         Args:
             profile: CanonicalProfile as dict
@@ -73,6 +70,7 @@ class ResumeTailoringService:
 
         Returns:
             TailoredResumeResult with optimized content
+
         """
         job_description = self._build_job_context(job)
         profile_context = self._build_profile_context(profile)
@@ -335,8 +333,7 @@ Return ONLY the summary text, no additional formatting or labels."""
 
 
 class ATSScorer:
-    """
-    Comprehensive ATS scoring system.
+    """Comprehensive ATS scoring system.
 
     Implements 23 metrics for resume optimization analysis.
     """
@@ -372,8 +369,7 @@ class ATSScorer:
         resume_text: str,
         job_description: str,
     ) -> dict[str, float]:
-        """
-        Compute comprehensive ATS score.
+        """Compute comprehensive ATS score.
 
         Args:
             resume_text: Plain text of the resume
@@ -381,6 +377,7 @@ class ATSScorer:
 
         Returns:
             Dict of metric names to scores (0.0 to 1.0)
+
         """
         scores = {}
         resume_lower = resume_text.lower()

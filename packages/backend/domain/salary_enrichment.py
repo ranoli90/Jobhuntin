@@ -1,5 +1,4 @@
-"""
-Salary Enrichment — enrich job listings with salary data.
+"""Salary Enrichment — enrich job listings with salary data.
 
 Provides:
 - Salary estimation from job description

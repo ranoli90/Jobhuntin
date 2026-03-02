@@ -1,5 +1,4 @@
-"""
-Cost Monitoring — track and alert on cloud infrastructure costs.
+"""Cost Monitoring — track and alert on cloud infrastructure costs.
 
 Provides:
 - Multi-provider cost aggregation (Render, AWS, etc.)

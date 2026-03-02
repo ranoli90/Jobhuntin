@@ -1,5 +1,4 @@
-"""
-Database connection pool monitoring and tuning utilities.
+"""Database connection pool monitoring and tuning utilities.
 
 This addresses recommendation #18: Tune db_pool_min/max based on load testing.
 
@@ -88,8 +87,7 @@ class PoolRecommendation:
 
 
 class PoolMonitor:
-    """
-    Monitors database connection pool health and provides tuning recommendations.
+    """Monitors database connection pool health and provides tuning recommendations.
 
     Usage:
         monitor = PoolMonitor(pool)
@@ -99,7 +97,7 @@ class PoolMonitor:
 
     def __init__(
         self,
-        pool: "asyncpg.Pool",
+        pool: asyncpg.Pool,
         name: str = "primary",
         sample_interval_seconds: float = 60.0,
     ) -> None:
@@ -184,8 +182,7 @@ class PoolMonitor:
             incr(f"db.pool.{self._name}.waiting_events")
 
     def get_recommendation(self, stats: PoolStats | None = None) -> PoolRecommendation:
-        """
-        Generate pool sizing recommendation based on collected statistics.
+        """Generate pool sizing recommendation based on collected statistics.
 
         Uses the following heuristics:
         - If peak utilization > 80%, increase max pool size
@@ -330,8 +327,7 @@ def calculate_optimal_pool_size(
     avg_query_time_ms: float,
     target_response_time_ms: float = 200,
 ) -> tuple[int, int]:
-    """
-    Calculate optimal pool size based on system parameters.
+    """Calculate optimal pool size based on system parameters.
 
     Uses the formula from the Universal Scalability Law and PostgreSQL best practices:
     - min_size = max(2, cpu_cores)
@@ -345,6 +341,7 @@ def calculate_optimal_pool_size(
 
     Returns:
         Tuple of (min_size, max_size)
+
     """
     # Minimum pool size should be at least equal to CPU cores
     min_size = max(2, cpu_cores)
@@ -374,7 +371,7 @@ def calculate_optimal_pool_size(
 _monitors: dict[str, PoolMonitor] = {}
 
 
-def get_pool_monitor(pool: "asyncpg.Pool", name: str = "primary") -> PoolMonitor:
+def get_pool_monitor(pool: asyncpg.Pool, name: str = "primary") -> PoolMonitor:
     """Get or create a pool monitor instance."""
     if name not in _monitors:
         _monitors[name] = PoolMonitor(pool, name)

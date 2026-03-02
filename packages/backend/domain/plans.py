@@ -1,5 +1,4 @@
-"""
-Plan definitions and configuration.
+"""Plan definitions and configuration.
 
 Maps tenant plan tiers to concrete limits and feature flags.
 """
@@ -11,6 +10,7 @@ from typing import Any, TypedDict
 
 class PlanConfig(TypedDict):
     """Configuration structure for a subscription plan."""
+
     max_monthly_tasks: int
     max_concurrent_tasks: int
     # Backward-compat aliases (same values, different keys for Sorce code)
@@ -102,8 +102,7 @@ PLAN_CONFIGS: dict[str, PlanConfig] = {
 
 
 def plan_config_for(plan: str, plan_metadata: dict[str, Any] | None = None) -> PlanConfig:
-    """
-    Return the PlanConfig for a given plan tier.
+    """Return the PlanConfig for a given plan tier.
 
     If plan_metadata contains overrides (e.g., custom limits negotiated for
     an enterprise tenant), those take precedence over the defaults.

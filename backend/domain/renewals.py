@@ -1,5 +1,4 @@
-"""
-Contract Renewal Automation — 90/60/30-day Slack/email notification sequences,
+"""Contract Renewal Automation — 90/60/30-day Slack/email notification sequences,
 auto-invoice via Stripe, churn tracking.
 
 Designed to run daily via cron: `python -m backend.domain.renewals`
@@ -54,8 +53,7 @@ async def scan_upcoming_renewals(conn: asyncpg.Connection) -> list[dict[str, Any
 
 
 async def run_notification_sequence(conn: asyncpg.Connection) -> list[dict[str, Any]]:
-    """
-    Check all upcoming renewals and send notifications at 90/60/30 day marks.
+    """Check all upcoming renewals and send notifications at 90/60/30 day marks.
     Updates renewal status and notification_log.
     """
     now = datetime.now(UTC)
@@ -112,7 +110,7 @@ async def _send_renewal_notification(
     )
 
     # Send Slack notification
-    from backend.domain.alerting_v2 import send_slack_message
+    from packages.backend.domain.alerting_v2 import send_slack_message
     await send_slack_message(
         text=msg,
         channel=get_settings().slack_enterprise_channel,
@@ -146,10 +144,9 @@ async def _send_renewal_notification(
 
 
 async def run_renewal_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
-    """
-    Full renewal cycle — run daily via cron.
+    """Full renewal cycle — run daily via cron.
     1. Scan for upcoming renewals
-    2. Send 90/60/30-day notifications
+    2. Send 90/60/30-day notifications.
     """
     new_renewals = await scan_upcoming_renewals(conn)
     notifications = await run_notification_sequence(conn)

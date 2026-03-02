@@ -1,5 +1,4 @@
-"""
-Webhook Delivery Engine — fires signed webhook payloads on application status changes.
+"""Webhook Delivery Engine — fires signed webhook payloads on application status changes.
 
 Called by the worker after status transitions. Retries up to 3 times with exponential backoff.
 """
@@ -51,8 +50,7 @@ async def fire_webhooks_for_status_change(
     new_status: str,
     metadata: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """
-    Fire all matching webhooks for a tenant when an application status changes.
+    """Fire all matching webhooks for a tenant when an application status changes.
     Returns list of delivery results.
     """
     event_type = EVENT_MAP.get(new_status)

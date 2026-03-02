@@ -1,12 +1,10 @@
-"""
-Career Path API endpoints — career progression suggestions.
-"""
+"""Career Path API endpoints — career progression suggestions."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from backend.domain.career_path import CareerPathAnalyzer, SkillGap
+from packages.backend.domain.career_path import CareerPathAnalyzer, SkillGap
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from shared.logging_config import get_logger

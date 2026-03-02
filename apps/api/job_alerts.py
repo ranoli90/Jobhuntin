@@ -1,5 +1,4 @@
-"""
-Job Alerts API endpoints.
+"""Job Alerts API endpoints.
 
 Provides REST API for managing job alerts and a worker endpoint for processing.
 """
@@ -9,7 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from backend.domain.job_alerts import (
+from packages.backend.domain.job_alerts import (
     AlertFrequency,
     JobAlert,
     JobAlertService,
@@ -17,7 +16,7 @@ from backend.domain.job_alerts import (
 from fastapi import APIRouter, Depends, HTTPException
 from shared.logging_config import get_logger
 
-from backend.domain.tenant import TenantContext, get_tenant_context
+from packages.backend.domain.tenant import TenantContext, get_tenant_context
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.job_alerts")

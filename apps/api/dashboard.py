@@ -1,5 +1,4 @@
-"""
-Admin Dashboard API Endpoints
+"""Admin Dashboard API Endpoints.
 
 Provides:
   - GET /admin/dashboard/overview - System health summary
@@ -22,8 +21,6 @@ from shared.alerting import AlertSeverity, AlertStatus, get_alert_manager
 from shared.logging_config import get_logger
 from shared.monitoring_config import get_monitoring_config
 from shared.structured_logging import get_structured_metrics
-
-from shared.circuit_breaker import get_all_circuit_breaker_statuses
 
 logger = get_logger("sorce.dashboard")
 

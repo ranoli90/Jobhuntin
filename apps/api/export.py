@@ -1,5 +1,4 @@
-"""
-Data export endpoint for user self-service data access.
+"""Data export endpoint for user self-service data access.
 
 Provides:
   - GET /me/export – streaming JSON export of profile + applications + events
@@ -19,8 +18,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from shared.logging_config import get_logger
 
-from backend.domain.repositories import ApplicationRepo, ProfileRepo
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.repositories import ApplicationRepo, ProfileRepo
+from packages.backend.domain.tenant import TenantContext
 from shared.metrics import RateLimiter, incr
 
 logger = get_logger("sorce.export")
@@ -66,11 +65,10 @@ async def _stream_export(
     db: asyncpg.Pool,
     ctx: TenantContext,
 ):
-    """
-    Generator that yields newline-delimited JSON objects:
-      {"type": "profile", "data": {...}}
-      {"type": "application", "data": {...}}
-      {"type": "event", "data": {...}}
+    """Generator that yields newline-delimited JSON objects:
+    {"type": "profile", "data": {...}}
+    {"type": "application", "data": {...}}
+    {"type": "event", "data": {...}}.
     """
     async with db.acquire() as conn:
         # 1. Profile
@@ -122,8 +120,7 @@ async def export_my_data(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ):
-    """
-    Export all user data as newline-delimited JSON.
+    """Export all user data as newline-delimited JSON.
 
     Includes: profile, applications, events.
     Rate limited: 1 request per minute per user.

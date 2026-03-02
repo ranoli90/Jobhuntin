@@ -1,5 +1,4 @@
-"""
-Embedding Cache for AI Operations
+"""Embedding Cache for AI Operations.
 
 Provides caching layer for embeddings to reduce API calls and latency.
 Uses Redis when available, falls back to in-memory LRU cache.
@@ -11,7 +10,6 @@ import hashlib
 import threading
 import time
 from collections import OrderedDict
-from typing import Optional
 
 from shared.logging_config import get_logger
 
@@ -19,8 +17,7 @@ logger = get_logger("sorce.embedding_cache")
 
 
 class EmbeddingCache:
-    """
-    LRU cache for text embeddings with TTL support.
+    """LRU cache for text embeddings with TTL support.
 
     Features:
     - In-memory LRU cache with configurable size
@@ -44,9 +41,8 @@ class EmbeddingCache:
         text_hash = hashlib.sha256(text.encode()).hexdigest()[:16]
         return f"emb:{model}:{text_hash}"
 
-    def get(self, text: str, model: str = "default") -> Optional[list[float]]:
-        """
-        Get cached embedding for text.
+    def get(self, text: str, model: str = "default") -> list[float] | None:
+        """Get cached embedding for text.
 
         Returns None if not cached or expired.
         """
@@ -98,8 +94,7 @@ class EmbeddingCache:
 
 
 class RedisEmbeddingCache(EmbeddingCache):
-    """
-    Redis-backed embedding cache for distributed environments.
+    """Redis-backed embedding cache for distributed environments.
 
     Falls back to in-memory LRU cache if Redis is unavailable.
     """
@@ -112,7 +107,7 @@ class RedisEmbeddingCache(EmbeddingCache):
     ):
         super().__init__(max_size, ttl_seconds)
         self.redis_key_prefix = redis_key_prefix
-        self._redis_available: Optional[bool] = None
+        self._redis_available: bool | None = None
 
     async def _get_redis(self):
         """Get Redis client, caching availability status."""
@@ -133,7 +128,7 @@ class RedisEmbeddingCache(EmbeddingCache):
 
     async def get_async(
         self, text: str, model: str = "default"
-    ) -> Optional[list[float]]:
+    ) -> list[float] | None:
         """Get cached embedding (async with Redis support)."""
         import json
 
@@ -177,7 +172,7 @@ class RedisEmbeddingCache(EmbeddingCache):
 
 
 # Singleton instance
-_embedding_cache: Optional[EmbeddingCache] = None
+_embedding_cache: EmbeddingCache | None = None
 _cache_lock = threading.Lock()
 
 

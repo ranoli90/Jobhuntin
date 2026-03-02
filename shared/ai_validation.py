@@ -2,21 +2,21 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
 class ValidationResult:
     """Result of AI input validation."""
+
     is_valid: bool
-    error_message: Optional[str] = None
+    error_message: str | None = None
     warnings: list[str] = field(default_factory=list)
     sanitized_input: dict[str, Any] = field(default_factory=dict)
 
 
 def sanitize_input(text: str) -> str:
-    """
-    Sanitize user input to prevent prompt injection attacks.
+    """Sanitize user input to prevent prompt injection attacks.
 
     Removes or escapes potentially dangerous patterns that could manipulate LLM behavior.
     """
@@ -68,8 +68,7 @@ def sanitize_input(text: str) -> str:
 
 
 def validate_and_sanitize_ai_input(*args: Any, **kwargs: Any) -> Any:
-    """
-    Polymorphic validation function to handle inconsistent usage across the codebase.
+    """Polymorphic validation function to handle inconsistent usage across the codebase.
 
     Usage 1: validate_and_sanitize_ai_input(text_string) -> str
     Usage 2: validate_and_sanitize_ai_input(profile=..., user_id=...) -> ValidationResult

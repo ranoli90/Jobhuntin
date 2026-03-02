@@ -1,4 +1,4 @@
-"""Advanced Render API debugging and DATABASE_URL fix"""
+"""Advanced Render API debugging and DATABASE_URL fix."""
 import json
 import os
 
@@ -11,7 +11,7 @@ RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 SERVICE_ID = "srv-d63l79hr0fns73boblag"
 
 def test_api_access():
-    """Test basic API access and list services"""
+    """Test basic API access and list services."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -42,7 +42,7 @@ def test_api_access():
         return False
 
 def get_service_details():
-    """Get detailed service info"""
+    """Get detailed service info."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -68,7 +68,7 @@ def get_service_details():
         return None
 
 def list_env_vars():
-    """List current environment variables"""
+    """List current environment variables."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -99,7 +99,7 @@ def list_env_vars():
         return None
 
 def update_env_var_patch():
-    """Try PATCH method to update env var"""
+    """Try PATCH method to update env var."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -143,7 +143,7 @@ def update_env_var_patch():
         return False
 
 def update_env_var_put():
-    """Try PUT method for specific env var"""
+    """Try PUT method for specific env var."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -186,7 +186,7 @@ def update_env_var_put():
         return False
 
 def create_env_var_post():
-    """Try POST with different payload structure"""
+    """Try POST with different payload structure."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -232,7 +232,7 @@ def create_env_var_post():
         return False
 
 def trigger_deploy():
-    """Trigger a new deploy after setting env vars"""
+    """Trigger a new deploy after setting env vars."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -306,7 +306,7 @@ def main():
         print("\n❌ All API methods failed. Manual intervention required.")
         print("\nManual steps:")
         print("1. https://dashboard.render.com/web/sorce-api/env-vars")
-        print("2. Add DATABASE_URL: postgresql://postgres:SorceDB2026Secure@db.zglovpfwyobbbaaocawz.supabase.co:5432/postgres")
+        print("2. Add DATABASE_URL: <YOUR_DATABASE_URL>")
         print("3. Save and deploy")
 
 if __name__ == "__main__":

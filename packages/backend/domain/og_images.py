@@ -1,5 +1,4 @@
-"""
-Open Graph Image Generator — dynamic OG images for social sharing.
+"""Open Graph Image Generator — dynamic OG images for social sharing.
 
 Generates shareable images for:
 - Match results
@@ -62,7 +61,7 @@ class OGImageGenerator:
         for font_name in font_names:
             try:
                 return ImageFont.truetype(font_name, size)
-            except (OSError, IOError):
+            except OSError:
                 continue
 
         return ImageFont.load_default()

@@ -1,5 +1,4 @@
-"""
-Database Read Replicas Configuration and Management
+"""Database Read Replicas Configuration and Management.
 
 This module provides read replica support for PostgreSQL databases,
 enabling horizontal scaling of read operations and improved performance.
@@ -8,7 +7,7 @@ enabling horizontal scaling of read operations and improved performance.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import asyncpg
 
@@ -24,12 +23,12 @@ class ReadReplicaManager:
 
     def __init__(self):
         self.settings = get_settings()
-        self.replica_pools: Dict[str, asyncpg.Pool] = {}
-        self.primary_pool: Optional[asyncpg.Pool] = None
+        self.replica_pools: dict[str, asyncpg.Pool] = {}
+        self.primary_pool: asyncpg.Pool | None = None
         self.current_replica_index = 0
         self.health_check_interval = 30  # seconds
-        self.health_check_task: Optional[asyncio.Task] = None
-        self.replica_health: Dict[str, bool] = {}
+        self.health_check_task: asyncio.Task | None = None
+        self.replica_health: dict[str, bool] = {}
 
     async def initialize(self) -> None:
         """Initialize primary and replica connection pools."""
@@ -84,7 +83,7 @@ class ReadReplicaManager:
                 logger.error(f"Failed to initialize replica {i}: {e}")
                 self.replica_health[f"replica_{i}"] = False
 
-    def _get_replica_urls(self) -> List[str]:
+    def _get_replica_urls(self) -> list[str]:
         """Get read replica URLs from settings or environment."""
         urls = []
 
@@ -209,7 +208,7 @@ class ReadReplicaManager:
         query: str,
         *args: Any,
         fetch: str = "all",
-    ) -> Union[List[Dict[str, Any]], Dict[str, Any], None]:
+    ) -> list[dict[str, Any]] | dict[str, Any] | None:
         """Execute a read query on a replica."""
         start_time = asyncio.get_event_loop().time()
 
@@ -241,7 +240,7 @@ class ReadReplicaManager:
         query: str,
         *args: Any,
         fetch: str = "all",
-    ) -> Union[List[Dict[str, Any]], Dict[str, Any], None]:
+    ) -> list[dict[str, Any]] | dict[str, Any] | None:
         """Execute a write query on the primary database."""
         start_time = asyncio.get_event_loop().time()
 
@@ -272,9 +271,9 @@ class ReadReplicaManager:
 
     async def execute_transaction(
         self,
-        queries: List[tuple[str, tuple[Any, ...]]],
+        queries: list[tuple[str, tuple[Any, ...]]],
         read_only: bool = False,
-    ) -> List[Any]:
+    ) -> list[Any]:
         """Execute multiple queries in a transaction."""
         if read_only:
             conn = await self.get_read_connection()
@@ -299,7 +298,7 @@ class ReadReplicaManager:
         finally:
             await conn.release()
 
-    async def get_replica_status(self) -> Dict[str, Any]:
+    async def get_replica_status(self) -> dict[str, Any]:
         """Get status of all replicas."""
         status = {
             "primary": {
@@ -355,7 +354,7 @@ async def execute_read_query(
     query: str,
     *args: Any,
     fetch: str = "all",
-) -> Union[List[Dict[str, Any]], Dict[str, Any], None]:
+) -> list[dict[str, Any]] | dict[str, Any] | None:
     """Execute a read query."""
     return await replica_manager.execute_read_query(query, *args, fetch=fetch)
 
@@ -364,15 +363,15 @@ async def execute_write_query(
     query: str,
     *args: Any,
     fetch: str = "all",
-) -> Union[List[Dict[str, Any]], Dict[str, Any], None]:
+) -> list[dict[str, Any]] | dict[str, Any] | None:
     """Execute a write query."""
     return await replica_manager.execute_write_query(query, *args, fetch=fetch)
 
 
 async def execute_transaction(
-    queries: List[tuple[str, tuple[Any, ...]]],
+    queries: list[tuple[str, tuple[Any, ...]]],
     read_only: bool = False,
-) -> List[Any]:
+) -> list[Any]:
     """Execute multiple queries in a transaction."""
     return await replica_manager.execute_transaction(queries, read_only)
 

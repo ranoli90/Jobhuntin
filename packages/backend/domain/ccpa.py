@@ -1,5 +1,4 @@
-"""
-CCPA Compliance — California Consumer Privacy Act rights.
+"""CCPA Compliance — California Consumer Privacy Act rights.
 
 Features:
   - Right to Know: What data is collected and sold
@@ -13,8 +12,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 import asyncpg
@@ -25,7 +24,7 @@ from shared.metrics import incr
 logger = get_logger("sorce.ccpa")
 
 
-class CCPARequestType(str, Enum):
+class CCPARequestType(StrEnum):
     KNOW = "know"
     DELETE = "delete"
     OPT_OUT = "opt_out"
@@ -34,7 +33,7 @@ class CCPARequestType(str, Enum):
     PORTABILITY = "portability"
 
 
-class CCPARequestStatus(str, Enum):
+class CCPARequestStatus(StrEnum):
     PENDING = "pending"
     VERIFIED = "verified"
     PROCESSING = "processing"
@@ -173,7 +172,7 @@ class CCPAComplianceManager:
             email=email,
             phone=phone,
             status=CCPARequestStatus.PENDING,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             verified_at=None,
             completed_at=None,
             details=details or {},
@@ -231,7 +230,7 @@ class CCPAComplianceManager:
             phone=row["phone"],
             status=CCPARequestStatus.VERIFIED,
             created_at=row["created_at"],
-            verified_at=datetime.now(timezone.utc),
+            verified_at=datetime.now(UTC),
             completed_at=row["completed_at"],
             details=row["details"]
             if isinstance(row["details"], dict)
@@ -314,7 +313,7 @@ class CCPAComplianceManager:
 
         incr("ccpa.request_completed", {"type": request.request_type.value})
         request.status = CCPARequestStatus.COMPLETED
-        request.completed_at = datetime.now(timezone.utc)
+        request.completed_at = datetime.now(UTC)
         request.response = response
 
         return request

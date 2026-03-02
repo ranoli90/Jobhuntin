@@ -1,5 +1,4 @@
-"""
-GDPR Compliance — data export and deletion for user privacy rights.
+"""GDPR Compliance — data export and deletion for user privacy rights.
 
 Implements:
 - Right to Access (Article 15): Export all user data

@@ -1,4 +1,4 @@
-"""Fix DATABASE_URL for sorce-api service"""
+"""Fix DATABASE_URL for sorce-api service."""
 import os
 
 import httpx
@@ -10,7 +10,7 @@ RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 SERVICE_ID = "srv-d63l79hr0fns73boblag"
 
 def get_database_info():
-    """Get database connection info from Render"""
+    """Get database connection info from Render."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -32,7 +32,7 @@ def get_database_info():
     return None
 
 def check_current_env():
-    """Check current env vars on sorce-api"""
+    """Check current env vars on sorce-api."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
@@ -60,7 +60,7 @@ def check_current_env():
     return None
 
 def set_database_url():
-    """Set DATABASE_URL directly"""
+    """Set DATABASE_URL directly."""
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",

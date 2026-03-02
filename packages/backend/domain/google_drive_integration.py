@@ -1,5 +1,4 @@
-"""
-Google Drive Integration — resume backup and file storage.
+"""Google Drive Integration — resume backup and file storage.
 
 Features:
   - OAuth authentication with Google
@@ -12,7 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -145,8 +144,8 @@ class GoogleDriveClient:
                 name=data["name"],
                 mime_type=data.get("mimeType", mime_type),
                 size=len(file_content),
-                created_time=datetime.now(timezone.utc),
-                modified_time=datetime.now(timezone.utc),
+                created_time=datetime.now(UTC),
+                modified_time=datetime.now(UTC),
                 web_view_link=data.get("webViewLink"),
             )
 

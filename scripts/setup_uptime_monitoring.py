@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Setup external uptime monitoring for production services.
+"""Setup external uptime monitoring for production services.
 
 Creates monitors via UptimeRobot API for:
 - API health checks

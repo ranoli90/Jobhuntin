@@ -1,5 +1,4 @@
-"""
-University Career Center Partner API — white-label, student onboarding, ROI reports.
+"""University Career Center Partner API — white-label, student onboarding, ROI reports.
 
 Mounted at /partners/university prefix by api/main.py.
 """
@@ -16,8 +15,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.tenant import TenantContext
 from shared.metrics import incr
 
 logger = get_logger("sorce.partners.university")
@@ -110,8 +109,7 @@ async def import_students(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """
-    Bulk import students from CSV.
+    """Bulk import students from CSV.
     CSV columns: email, first_name, last_name, major, graduation_year
     Auto-provisions FREE tenants and sends invite links.
     """
@@ -233,9 +231,8 @@ async def roi_report(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """
-    Career center ROI dashboard:
-    "500 students applied to 3,472 jobs this semester"
+    """Career center ROI dashboard:
+    "500 students applied to 3,472 jobs this semester".
     """
     async with db.acquire() as conn:
         partner = await conn.fetchrow(

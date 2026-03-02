@@ -1,5 +1,4 @@
-"""
-Staffing Agency Blueprint — bulk candidate submission to client ATS portals.
+"""Staffing Agency Blueprint — bulk candidate submission to client ATS portals.
 
 Handles Greenhouse, Lever, Workday, iCIMS, BambooHR, and generic career pages.
 Designed for staffing agencies submitting multiple candidates per role.

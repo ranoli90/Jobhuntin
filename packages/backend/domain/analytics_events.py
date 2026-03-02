@@ -1,5 +1,4 @@
-"""
-Product analytics event taxonomy.
+"""Product analytics event taxonomy.
 
 Defines canonical event type constants used by both the API (server-side
 enrichment) and the mobile client (via the /analytics/events sink).

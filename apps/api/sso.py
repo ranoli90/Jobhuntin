@@ -1,5 +1,4 @@
-"""
-SSO API — SAML 2.0 ACS, metadata, OIDC discovery, and SSO config management.
+"""SSO API — SAML 2.0 ACS, metadata, OIDC discovery, and SSO config management.
 
 Mounted at /sso prefix by api/main.py.
 """
@@ -13,13 +12,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
 
 try:
     from backend.sso.saml import (
         create_sso_session_token,
-        find_tenant_by_sso_domain,
         generate_sp_metadata,
         get_sso_config,
         parse_saml_response,
@@ -57,6 +55,7 @@ def _get_tenant_ctx() -> TenantContext:
 
 class SSOConfigRequest(BaseModel):
     """Payload for configuring SSO."""
+
     provider: str = "saml"  # saml or oidc
     entity_id: str = ""
     sso_url: str = ""
@@ -68,6 +67,7 @@ class SSOConfigRequest(BaseModel):
 
 class SSOConfigResponse(BaseModel):
     """SSO configuration details."""
+
     tenant_id: str
     provider: str
     is_active: bool
@@ -93,8 +93,7 @@ async def saml_acs(
     request: Request,
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """
-    SAML Assertion Consumer Service — receives POST from IdP after authentication.
+    """SAML Assertion Consumer Service — receives POST from IdP after authentication.
 
     Flow:
     1. Parse SAML response

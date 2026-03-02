@@ -1,5 +1,4 @@
-"""
-Query result caching with Redis.
+"""Query result caching with Redis.
 
 Provides caching for frequent database queries to reduce load and latency.
 """
@@ -9,8 +8,9 @@ from __future__ import annotations
 import functools
 import hashlib
 import json
+from collections.abc import Callable
 from datetime import timedelta
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from shared.logging_config import get_logger
 from shared.redis_client import get_redis
@@ -87,8 +87,7 @@ def cached(
     ttl: timedelta = DEFAULT_TTL,
     key_builder: Callable | None = None,
 ):
-    """
-    Decorator for caching async function results.
+    """Decorator for caching async function results.
 
     Usage:
         @cached("user_profile", ttl=PROFILE_TTL)

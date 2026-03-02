@@ -1,5 +1,4 @@
-"""
-Centralized LLM client with retry, timeout, and response validation.
+"""Centralized LLM client with retry, timeout, and response validation.
 
 Usage:
     from backend.llm import LLMClient
@@ -34,21 +33,22 @@ T = TypeVar("T", bound=BaseModel)
 
 class LLMError(Exception):
     """Raised when an LLM call fails after all retries."""
+
     pass
 
 
 class LLMValidationError(LLMError):
     """Raised when the LLM response doesn't match the expected schema."""
+
     pass
 
 
 class LLMClient:
-    """
-    Typed LLM client that:
-      - Calls the OpenAI-compatible chat completions API
-      - Retries on transient errors (5xx, timeouts, connection errors)
-      - Validates the JSON response against a Pydantic model T
-      - Tracks latency and error metrics
+    """Typed LLM client that:
+    - Calls the OpenAI-compatible chat completions API
+    - Retries on transient errors (5xx, timeouts, connection errors)
+    - Validates the JSON response against a Pydantic model T
+    - Tracks latency and error metrics.
     """
 
     def __init__(self, settings: Settings) -> None:
@@ -68,8 +68,7 @@ class LLMClient:
         response_format: type[T] | None = None,
         max_tokens: int | None = None,
     ) -> T | dict:
-        """
-        Send a prompt to the LLM and return a validated response.
+        """Send a prompt to the LLM and return a validated response.
 
         If response_format is provided, the JSON response is parsed into
         that Pydantic model. Otherwise returns a raw dict.

@@ -1,6 +1,4 @@
-"""
-Debug bundle generation logic.
-"""
+"""Debug bundle generation logic."""
 from __future__ import annotations
 
 import contextlib
@@ -9,12 +7,11 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.masking import redact_event_payload
+from packages.backend.domain.masking import redact_event_payload
 
 
 async def build_debug_bundle(conn: asyncpg.Connection, application_id: str) -> dict[str, Any] | None:
-    """
-    Build a comprehensive debug bundle for a single application.
+    """Build a comprehensive debug bundle for a single application.
     Returns None if application not found.
     """
     # Application

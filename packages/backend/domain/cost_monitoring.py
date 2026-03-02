@@ -1,5 +1,4 @@
-"""
-Cost monitoring service for cloud spend.
+"""Cost monitoring service for cloud spend.
 
 Provides:
 - Cloud cost tracking
@@ -11,8 +10,8 @@ Provides:
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import TYPE_CHECKING, Optional
+from enum import StrEnum
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import asyncpg
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class CloudProvider(str, Enum):
+class CloudProvider(StrEnum):
     """Supported cloud providers."""
 
     AWS = "aws"
@@ -31,7 +30,7 @@ class CloudProvider(str, Enum):
     SUPABASE = "supabase"
 
 
-class CostCategory(str, Enum):
+class CostCategory(StrEnum):
     """Categories of cloud costs."""
 
     COMPUTE = "compute"
@@ -51,8 +50,8 @@ class CostEntry:
     category: CostCategory
     amount_usd: float
     date: datetime
-    resource_id: Optional[str] = None
-    resource_name: Optional[str] = None
+    resource_id: str | None = None
+    resource_name: str | None = None
     tags: dict[str, str] = field(default_factory=dict)
 
 
@@ -77,7 +76,7 @@ class CostAnomaly:
     actual_usd: float
     deviation_pct: float
     detected_at: datetime
-    resource_id: Optional[str] = None
+    resource_id: str | None = None
 
     @property
     def severity(self) -> str:
@@ -115,8 +114,7 @@ class CostSummary:
 
 
 class CostMonitor:
-    """
-    Cloud cost monitoring service.
+    """Cloud cost monitoring service.
 
     Features:
     - Multi-provider cost aggregation
@@ -128,7 +126,7 @@ class CostMonitor:
     def __init__(
         self,
         db_conn: "asyncpg.Connection",
-        budget_alerts: Optional[list[BudgetAlert]] = None,
+        budget_alerts: list[BudgetAlert] | None = None,
         anomaly_threshold_pct: float = 30.0,
     ):
         self.db = db_conn
@@ -156,8 +154,8 @@ class CostMonitor:
         self,
         start_date: datetime,
         end_date: datetime,
-        provider: Optional[CloudProvider] = None,
-        category: Optional[CostCategory] = None,
+        provider: CloudProvider | None = None,
+        category: CostCategory | None = None,
     ) -> list[CostEntry]:
         """Get cost entries for a period."""
         conditions = ["date >= $1", "date <= $2"]
@@ -411,7 +409,7 @@ class CostMonitor:
 async def setup_cost_monitoring(
     db_conn: "asyncpg.Connection",
     monthly_budget_usd: float = 500.0,
-    notify_emails: Optional[list[str]] = None,
+    notify_emails: list[str] | None = None,
 ) -> CostMonitor:
     """Set up cost monitoring with default budget alert."""
     budget_alert = BudgetAlert(

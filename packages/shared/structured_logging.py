@@ -1,5 +1,4 @@
-"""
-Structured Logging for Observability
+"""Structured Logging for Observability.
 
 Provides comprehensive observability metrics:
 - Success rate per endpoint/operation
@@ -43,8 +42,7 @@ class EndpointMetrics:
 
 
 class StructuredMetrics:
-    """
-    Thread-safe structured metrics collection for observability.
+    """Thread-safe structured metrics collection for observability.
 
     Tracks:
     - Request counts (total, success, error) per endpoint
@@ -70,8 +68,7 @@ class StructuredMetrics:
         error_category: str | None = None,
         tenant_id: str | None = None,
     ) -> None:
-        """
-        Record a request to an endpoint.
+        """Record a request to an endpoint.
 
         Args:
             endpoint: API endpoint path (e.g., "/api/jobs")
@@ -79,6 +76,7 @@ class StructuredMetrics:
             latency_ms: Request latency in milliseconds
             error_category: Optional error category (e.g., "validation", "auth", "db")
             tenant_id: Optional tenant ID for multi-tenant tracking
+
         """
         with self._lock:
             metrics = self._endpoints[endpoint]
@@ -102,8 +100,7 @@ class StructuredMetrics:
         error_category: str | None = None,
         tenant_id: str | None = None,
     ) -> None:
-        """
-        Record an internal operation (e.g., "db_query", "llm_call").
+        """Record an internal operation (e.g., "db_query", "llm_call").
 
         Args:
             operation: Operation name
@@ -111,6 +108,7 @@ class StructuredMetrics:
             latency_ms: Operation latency in milliseconds
             error_category: Optional error category
             tenant_id: Optional tenant ID
+
         """
         with self._lock:
             metrics = self._operations[operation]
@@ -255,11 +253,11 @@ class StructuredMetrics:
         }
 
     def export_prometheus(self) -> str:
-        """
-        Export metrics in Prometheus text format.
+        """Export metrics in Prometheus text format.
 
         Returns:
             Prometheus-formatted metrics string
+
         """
         with self._lock:
             lines = []
@@ -364,7 +362,7 @@ class RequestTimer:
         self.status_code = 200
         self.error_category: str | None = None
 
-    def __enter__(self) -> "RequestTimer":
+    def __enter__(self) -> RequestTimer:
         self.start_time = time.monotonic()
         return self
 

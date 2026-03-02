@@ -1,5 +1,4 @@
-"""
-Alerting v2 — PagerDuty integration, Slack channels per tenant tier,
+"""Alerting v2 — PagerDuty integration, Slack channels per tenant tier,
 auto-rollback on agent failure spikes.
 
 Extends observability.py with multi-channel alert dispatch.
@@ -13,7 +12,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from backend.domain.observability import run_all_alerts
+from packages.backend.domain.observability import run_all_alerts
 
 logger = get_logger("sorce.alerting_v2")
 
@@ -119,8 +118,7 @@ def slack_channel_for_tier(plan: str) -> str:
 # ---------------------------------------------------------------------------
 
 async def check_and_auto_rollback(conn: asyncpg.Connection) -> dict[str, Any] | None:
-    """
-    Check if agent success rate has dropped critically and auto-rollback
+    """Check if agent success rate has dropped critically and auto-rollback
     the prompt version to the previous known-good version.
 
     Triggers if success rate < 60% in the last hour with > 20 samples.
@@ -164,8 +162,7 @@ async def check_and_auto_rollback(conn: asyncpg.Connection) -> dict[str, Any] | 
 # ---------------------------------------------------------------------------
 
 async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str, Any]]:
-    """
-    Check running experiments and auto-graduate winners.
+    """Check running experiments and auto-graduate winners.
 
     An experiment graduates if:
     - ≥ 100 samples per variant
@@ -237,12 +234,11 @@ async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str
 # ---------------------------------------------------------------------------
 
 async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
-    """
-    Full alerting cycle:
+    """Full alerting cycle:
     1. Run all alert checks
     2. Check for auto-rollback
     3. Graduate experiments
-    4. Dispatch to PagerDuty/Slack
+    4. Dispatch to PagerDuty/Slack.
     """
     # 1. Standard alerts
     alerts = await run_all_alerts(conn)

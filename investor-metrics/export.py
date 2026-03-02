@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Series A Metrics Export CLI — fetches investor metrics from the API
+"""Series A Metrics Export CLI — fetches investor metrics from the API
 and saves as JSON + CSV for pitch deck preparation.
 
 Usage:

@@ -1,5 +1,4 @@
-"""
-Job search domain logic.
+"""Job search domain logic.
 Jobs are synced from JobSpy via background worker.
 This module queries the local database.
 """
@@ -25,8 +24,7 @@ async def search_and_list_jobs(
     limit: int = 25,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
-    """
-    Search jobs from local database (synced from JobSpy).
+    """Search jobs from local database (synced from JobSpy).
 
     No longer fetches from external APIs on-demand - uses background sync.
     """

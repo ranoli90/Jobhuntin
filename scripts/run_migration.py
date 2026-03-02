@@ -5,7 +5,7 @@ import asyncio
 
 import asyncpg
 
-DATABASE_URL = "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/jobhuntin?sslmode=require"
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
 async def run_migration():

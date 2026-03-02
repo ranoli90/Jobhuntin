@@ -1,5 +1,4 @@
-"""
-Circuit Breaker implementation for external service calls.
+"""Circuit Breaker implementation for external service calls.
 
 Provides automatic failure detection and recovery with configurable thresholds.
 Uses the Circuit Breaker pattern to prevent cascading failures.
@@ -9,10 +8,11 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
-from typing import Any, Awaitable, Callable, TypeVar
+from typing import Any, TypeVar
 
 from shared.logging_config import get_logger
 
@@ -30,6 +30,7 @@ class CircuitState(Enum):
 @dataclass
 class CircuitBreakerConfig:
     """Configuration for a circuit breaker."""
+
     name: str
     failure_threshold: int = 5       # Number of failures before opening
     success_threshold: int = 2       # Successes needed to close in half-open
@@ -40,6 +41,7 @@ class CircuitBreakerConfig:
 @dataclass
 class CircuitStats:
     """Runtime statistics for a circuit breaker."""
+
     failures: int = 0
     successes: int = 0
     last_failure_time: float = 0.0
@@ -50,8 +52,9 @@ class CircuitStats:
     half_open_calls: int = 0
 
 
-class CircuitBreakerOpen(Exception):
+class CircuitBreakerOpenError(Exception):
     """Raised when the circuit breaker is open and rejects a request."""
+
     def __init__(self, name: str, retry_after: float):
         self.name = name
         self.retry_after = retry_after
@@ -60,8 +63,7 @@ class CircuitBreakerOpen(Exception):
 
 @dataclass
 class CircuitBreaker:
-    """
-    Circuit Breaker for protecting external service calls.
+    """Circuit Breaker for protecting external service calls.
 
     Usage:
         cb = CircuitBreaker(CircuitBreakerConfig(name="llm"))
@@ -75,13 +77,14 @@ class CircuitBreaker:
         async def call_llm():
             return await make_llm_request()
     """
+
     config: CircuitBreakerConfig
     state: CircuitState = field(default=CircuitState.CLOSED)
     stats: CircuitStats = field(default_factory=CircuitStats)
     _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     _opened_at: float = 0.0
 
-    async def __aenter__(self) -> "CircuitBreaker":
+    async def __aenter__(self) -> CircuitBreaker:
         await self._before_call()
         return self
 
@@ -109,12 +112,12 @@ class CircuitBreaker:
                     self.stats.half_open_calls = 0
                 else:
                     retry_after = self.config.timeout_seconds - (now - self._opened_at)
-                    raise CircuitBreakerOpen(self.config.name, retry_after)
+                    raise CircuitBreakerOpenError(self.config.name, retry_after)
 
             if self.state == CircuitState.HALF_OPEN:
                 if self.stats.half_open_calls >= self.config.half_open_max_calls:
                     retry_after = 1.0  # Short wait before next attempt
-                    raise CircuitBreakerOpen(self.config.name, retry_after)
+                    raise CircuitBreakerOpenError(self.config.name, retry_after)
                 self.stats.half_open_calls += 1
 
     async def _on_success(self) -> None:

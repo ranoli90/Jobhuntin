@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Load testing script for API endpoints using locust.
+"""Load testing script for API endpoints using locust.
 
 Usage:
     pip install locust

@@ -22,11 +22,11 @@ async def apply():
 
     print("Reading security_hardening.sql...")
     try:
-        with open("security_hardening.sql", "r", encoding="utf-8") as f:
+        with open("security_hardening.sql", encoding="utf-8") as f:
             sql = f.read()
     except Exception:
         # Fallback for utf-16 if powershell created it
-        with open("security_hardening.sql", "r", encoding="utf-16") as f:
+        with open("security_hardening.sql", encoding="utf-16") as f:
             sql = f.read()
 
     print("Applying security hardening...")

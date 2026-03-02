@@ -1,5 +1,4 @@
-"""
-SAML 2.0 Service Provider — handles ACS (Assertion Consumer Service),
+"""SAML 2.0 Service Provider — handles ACS (Assertion Consumer Service),
 metadata endpoint, and IdP-initiated login for enterprise tenants.
 
 Uses signxml for XML digital signature verification.
@@ -60,8 +59,7 @@ def _load_idp_certificate(cert_pem: str) -> bytes:
 
 
 def _verify_xml_signature(xml_bytes: bytes, certificate_pem: str) -> ET.Element:
-    """
-    Verify the XML digital signature using signxml.
+    """Verify the XML digital signature using signxml.
 
     Returns the verified XML root element.
     Raises Exception on verification failure.
@@ -75,8 +73,7 @@ def _verify_xml_signature(xml_bytes: bytes, certificate_pem: str) -> ET.Element:
 
 
 def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[str, Any] | None:
-    """
-    Parse a SAML Response and extract user attributes.
+    """Parse a SAML Response and extract user attributes.
 
     Args:
         saml_response_b64: Base64-encoded SAML response XML.
@@ -87,6 +84,7 @@ def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[s
 
     Returns dict with: email, name_id, attributes, session_index
     Returns None if parsing or verification fails.
+
     """
     s = get_settings()
 

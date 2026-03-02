@@ -1,5 +1,4 @@
-"""
-Event tracking for user analytics.
+"""Event tracking for user analytics.
 
 Supports multiple backends:
 - Segment
@@ -19,6 +18,7 @@ import httpx
 @dataclass
 class Event:
     """Analytics event."""
+
     name: str
     user_id: str
     tenant_id: str | None

@@ -1,5 +1,4 @@
-"""
-Keyboard shortcuts service for power users.
+"""Keyboard shortcuts service for power users.
 
 Provides a centralized registry for keyboard shortcuts with:
 - Global and context-sensitive shortcuts
@@ -9,15 +8,16 @@ Provides a centralized registry for keyboard shortcuts with:
 """
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
-from typing import Callable, Optional
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class ShortcutScope(str, Enum):
+class ShortcutScope(StrEnum):
     """Scope where shortcut is active."""
+
     GLOBAL = "global"
     DASHBOARD = "dashboard"
     JOBS = "jobs"
@@ -28,14 +28,15 @@ class ShortcutScope(str, Enum):
 @dataclass
 class KeyboardShortcut:
     """Represents a keyboard shortcut."""
+
     id: str
     name: str
     description: str
     default_binding: str
     scope: ShortcutScope = ShortcutScope.GLOBAL
     category: str = "general"
-    handler: Optional[Callable] = None
-    current_binding: Optional[str] = None
+    handler: Callable | None = None
+    current_binding: str | None = None
 
     def __post_init__(self):
         if self.current_binding is None:
@@ -43,8 +44,7 @@ class KeyboardShortcut:
 
 
 class KeyboardShortcutsService:
-    """
-    Centralized keyboard shortcuts management.
+    """Centralized keyboard shortcuts management.
 
     Features:
     - Register shortcuts with default bindings
@@ -228,11 +228,11 @@ class KeyboardShortcutsService:
 
         return True
 
-    def get(self, shortcut_id: str) -> Optional[KeyboardShortcut]:
+    def get(self, shortcut_id: str) -> KeyboardShortcut | None:
         """Get a shortcut by ID."""
         return self._shortcuts.get(shortcut_id)
 
-    def get_by_binding(self, binding: str) -> Optional[KeyboardShortcut]:
+    def get_by_binding(self, binding: str) -> KeyboardShortcut | None:
         """Get a shortcut by its key binding."""
         shortcut_id = self._bindings.get(binding)
         if shortcut_id:
@@ -348,7 +348,7 @@ class KeyboardShortcutsService:
 
 
 # Global instance
-_shortcuts_service: Optional[KeyboardShortcutsService] = None
+_shortcuts_service: KeyboardShortcutsService | None = None
 
 
 def get_shortcuts_service() -> KeyboardShortcutsService:

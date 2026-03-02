@@ -1,6 +1,4 @@
-"""
-File upload limits configuration per tenant tier.
-"""
+"""File upload limits configuration per tenant tier."""
 
 from __future__ import annotations
 
@@ -11,6 +9,7 @@ from typing import BinaryIO
 
 class FileType(Enum):
     """Allowed file types for upload."""
+
     RESUME = "resume"
     COVER_LETTER = "cover_letter"
     PROFILE_IMAGE = "profile_image"
@@ -20,6 +19,7 @@ class FileType(Enum):
 @dataclass
 class UploadLimits:
     """Upload limits for a specific tier."""
+
     max_file_size_mb: int
     max_files_per_day: int
     allowed_extensions: list[str]
@@ -123,11 +123,11 @@ def validate_upload(
     current_storage_mb: float = 0,
     uploads_today: int = 0,
 ) -> tuple[bool, str]:
-    """
-    Validate a file upload against tier limits.
+    """Validate a file upload against tier limits.
 
     Returns:
         tuple of (is_valid, error_message)
+
     """
     limits = get_limits(tier, file_type)
 
@@ -196,8 +196,7 @@ def get_content_type(filename: str) -> str:
 
 
 async def scan_file_for_malware(file: BinaryIO) -> tuple[bool, str]:
-    """
-    Scan uploaded file for malware.
+    """Scan uploaded file for malware.
 
     This is a placeholder - integrate with ClamAV or similar.
     """

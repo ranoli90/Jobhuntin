@@ -1,5 +1,4 @@
-"""
-Aggregation queries for agent performance metrics.
+"""Aggregation queries for agent performance metrics.
 
 Provides SQL-based analytics over agent_evaluations, applications, and
 application_inputs to surface success rates, failure distributions, and

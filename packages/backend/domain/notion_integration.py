@@ -1,5 +1,4 @@
-"""
-Notion Integration — export applications to Notion workspace.
+"""Notion Integration — export applications to Notion workspace.
 
 Features:
   - Export applications to Notion database
@@ -11,7 +10,7 @@ Features:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -296,7 +295,7 @@ class NotionIntegrationManager:
             "Status": {
                 "select": {"name": self._map_status(application.get("status", "saved"))}
             },
-            "Applied Date": {"date": {"start": datetime.now(timezone.utc).isoformat()}},
+            "Applied Date": {"date": {"start": datetime.now(UTC).isoformat()}},
             "Location": {
                 "rich_text": [{"text": {"content": application.get("location", "")}}]
             },

@@ -1,6 +1,5 @@
-"""
-File storage service interface for handling uploads/downloads
-Supports: Local filesystem, S3-compatible (AWS S3, Cloudflare R2, Render Disks)
+"""File storage service interface for handling uploads/downloads
+Supports: Local filesystem, S3-compatible (AWS S3, Cloudflare R2, Render Disks).
 """
 
 import base64
@@ -9,7 +8,6 @@ import hmac
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 from urllib.parse import quote, urlparse
 
 import httpx
@@ -20,37 +18,27 @@ logger = get_logger("sorce.storage")
 
 
 class StorageService:
-    """
-    Abstract base class for file storage services
-    """
+    """Abstract base class for file storage services."""
 
     async def upload_file(
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
-        """
-        Upload a file to storage and return its storage path
-        """
+        """Upload a file to storage and return its storage path."""
         raise NotImplementedError
 
     async def generate_signed_url(
-        self, storage_path: str, ttl_seconds: Optional[int] = None
+        self, storage_path: str, ttl_seconds: int | None = None
     ) -> str:
-        """
-        Generate a time-limited signed URL for accessing a stored file
-        """
+        """Generate a time-limited signed URL for accessing a stored file."""
         raise NotImplementedError
 
     async def download_file(self, storage_path: str) -> bytes:
-        """
-        Download a file from storage
-        """
+        """Download a file from storage."""
         raise NotImplementedError
 
 
 class LocalStorageService(StorageService):
-    """
-    Basic local filesystem storage implementation for development
-    """
+    """Basic local filesystem storage implementation for development."""
 
     def __init__(self, base_path: str = "./storage"):
         self.base_path = Path(base_path)
@@ -59,36 +47,29 @@ class LocalStorageService(StorageService):
     async def upload_file(
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
-        """
-        Save file to local filesystem
-        """
+        """Save file to local filesystem."""
         full_path = self.base_path / bucket / path
         full_path.parent.mkdir(parents=True, exist_ok=True)
         full_path.write_bytes(data)
         return f"{bucket}/{path}"
 
     async def generate_signed_url(
-        self, storage_path: str, ttl_seconds: Optional[int] = None
+        self, storage_path: str, ttl_seconds: int | None = None
     ) -> str:
-        """
-        For local storage, just return a file:// URL
-        """
+        """For local storage, just return a file:// URL."""
         bucket, path = storage_path.split("/", 1)
         full_path = self.base_path / bucket / path
         return f"file://{full_path.absolute()}"
 
     async def download_file(self, storage_path: str) -> bytes:
-        """
-        Read file from local filesystem
-        """
+        """Read file from local filesystem."""
         bucket, path = storage_path.split("/", 1)
         full_path = self.base_path / bucket / path
         return full_path.read_bytes()
 
 
 class S3CompatibleStorageService(StorageService):
-    """
-    S3-compatible storage implementation for AWS S3, Cloudflare R2, Render Disks, etc.
+    """S3-compatible storage implementation for AWS S3, Cloudflare R2, Render Disks, etc.
     Uses boto3-style signing for maximum compatibility.
     """
 
@@ -99,7 +80,7 @@ class S3CompatibleStorageService(StorageService):
         secret_key: str,
         region: str = "auto",
         bucket_name: str = "resumes",
-        public_url_base: Optional[str] = None,
+        public_url_base: str | None = None,
     ):
         self.endpoint_url = endpoint_url.rstrip("/")
         self.access_key = access_key
@@ -111,9 +92,7 @@ class S3CompatibleStorageService(StorageService):
     def _sign_request(
         self, method: str, path: str, headers: dict, body: bytes = b""
     ) -> str:
-        """
-        Sign request using AWS Signature Version 4
-        """
+        """Sign request using AWS Signature Version 4."""
         service = "s3"
         now = datetime.utcnow()
         amz_date = now.strftime("%Y%m%dT%H%M%SZ")
@@ -171,9 +150,7 @@ class S3CompatibleStorageService(StorageService):
     async def upload_file(
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
-        """
-        Upload file to S3-compatible storage
-        """
+        """Upload file to S3-compatible storage."""
         object_path = f"/{bucket}/{path}"
         url = f"{self.endpoint_url}{object_path}"
 
@@ -198,11 +175,9 @@ class S3CompatibleStorageService(StorageService):
         return f"{bucket}/{path}"
 
     async def generate_signed_url(
-        self, storage_path: str, ttl_seconds: Optional[int] = None
+        self, storage_path: str, ttl_seconds: int | None = None
     ) -> str:
-        """
-        Generate a pre-signed URL for object access
-        """
+        """Generate a pre-signed URL for object access."""
         ttl = ttl_seconds or 3600
         bucket, path = storage_path.split("/", 1)
 
@@ -229,9 +204,7 @@ class S3CompatibleStorageService(StorageService):
         return url
 
     async def download_file(self, storage_path: str) -> bytes:
-        """
-        Download file from S3-compatible storage
-        """
+        """Download file from S3-compatible storage."""
         bucket, path = storage_path.split("/", 1)
         object_path = f"/{bucket}/{path}"
         url = f"{self.endpoint_url}{object_path}"
@@ -255,15 +228,14 @@ class S3CompatibleStorageService(StorageService):
 
 
 class RenderDiskStorageService(StorageService):
-    """
-    Storage service using Render persistent disk
-    Files are stored on the disk mounted at /opt/render/project/data/storage
+    """Storage service using Render persistent disk
+    Files are stored on the disk mounted at /opt/render/project/data/storage.
     """
 
     def __init__(
         self,
         disk_path: str = "/opt/render/project/data/storage",
-        public_url_base: Optional[str] = None,
+        public_url_base: str | None = None,
     ):
         self.disk_path = Path(disk_path)
         self.disk_path.mkdir(parents=True, exist_ok=True)
@@ -272,9 +244,7 @@ class RenderDiskStorageService(StorageService):
     async def upload_file(
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
-        """
-        Save file to Render persistent disk
-        """
+        """Save file to Render persistent disk."""
         full_path = self.disk_path / bucket / path
         full_path.parent.mkdir(parents=True, exist_ok=True)
         full_path.write_bytes(data)
@@ -282,29 +252,24 @@ class RenderDiskStorageService(StorageService):
         return f"{bucket}/{path}"
 
     async def generate_signed_url(
-        self, storage_path: str, ttl_seconds: Optional[int] = None
+        self, storage_path: str, ttl_seconds: int | None = None
     ) -> str:
-        """
-        For Render disk storage, return API URL that serves the file
-        Requires serving endpoint to be configured in the API
+        """For Render disk storage, return API URL that serves the file
+        Requires serving endpoint to be configured in the API.
         """
         if self.public_url_base:
             return f"{self.public_url_base}/storage/{storage_path}"
         return f"/api/storage/{storage_path}"
 
     async def download_file(self, storage_path: str) -> bytes:
-        """
-        Read file from Render persistent disk
-        """
+        """Read file from Render persistent disk."""
         bucket, path = storage_path.split("/", 1)
         full_path = self.disk_path / bucket / path
         return full_path.read_bytes()
 
 
 def get_storage_service() -> StorageService:
-    """
-    Factory function to get the appropriate storage service based on config
-    """
+    """Factory function to get the appropriate storage service based on config."""
     from shared.config import get_settings
 
     s = get_settings()

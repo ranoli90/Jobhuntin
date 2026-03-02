@@ -1,5 +1,4 @@
-"""
-Tenant context resolution, guards, and auto-provisioning.
+"""Tenant context resolution, guards, and auto-provisioning.
 
 Provides:
   - TenantContext: the per-request identity envelope
@@ -26,6 +25,7 @@ logger = get_logger("sorce.tenant")
 @dataclass(frozen=True)
 class TenantContext:
     """Per-request identity: who is acting, under which tenant, with what roles."""
+
     tenant_id: str
     user_id: str
     roles: list[str]
@@ -46,6 +46,7 @@ class TenantContext:
 
 class TenantScopeError(Exception):
     """Raised when a resource does not belong to the expected tenant."""
+
     pass
 
 
@@ -57,8 +58,7 @@ async def resolve_tenant_context(
     conn: asyncpg.Connection,
     user_id: str,
 ) -> TenantContext:
-    """
-    Look up the user's tenant membership.
+    """Look up the user's tenant membership.
 
     If the user has no tenant_members rows, auto-create a personal FREE tenant
     and make them OWNER. Returns the resolved TenantContext.
@@ -135,8 +135,7 @@ def assert_tenant_owns(
     tenant_id: str,
     resource_name: str = "resource",
 ) -> None:
-    """
-    Raise TenantScopeError if the resource's tenant_id does not match.
+    """Raise TenantScopeError if the resource's tenant_id does not match.
     Callers should catch this and return 403.
     """
     res_tenant = str(resource.get("tenant_id", ""))
@@ -155,8 +154,7 @@ def require_role(ctx: TenantContext, *allowed_roles: str) -> None:
 
 
 async def require_system_admin(conn: asyncpg.Connection, user_id: str) -> None:
-    """
-    Raise TenantScopeError if the user is not a system admin.
+    """Raise TenantScopeError if the user is not a system admin.
     System admin is indicated by users.is_system_admin = true.
     """
     row = await conn.fetchrow(

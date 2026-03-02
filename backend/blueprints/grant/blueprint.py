@@ -1,5 +1,4 @@
-"""
-Grant Application Blueprint — stub implementation.
+"""Grant Application Blueprint — stub implementation.
 
 Demonstrates how a second vertical coexists with Sorce's job-app blueprint
 without touching the core engine. All methods are functional stubs.
@@ -17,13 +16,13 @@ from backend.blueprints.grant.prompts import (
     build_grant_dom_mapping_prompt,
     build_grant_profile_parse_prompt,
 )
-from backend.domain.core_models import (
+from packages.backend.domain.core_models import (
     ActorProfile,
     DomMappingResult,
     FormField,
     UnresolvedField,
 )
-from backend.domain.repositories import ApplicationRepo, EventRepo
+from packages.backend.domain.repositories import ApplicationRepo, EventRepo
 
 
 class GrantApplicationBlueprint:

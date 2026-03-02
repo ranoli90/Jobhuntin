@@ -1,5 +1,4 @@
-"""
-ATS Resume Scoring System - 23 Point Metrics.
+"""ATS Resume Scoring System - 23 Point Metrics.
 
 Implements comprehensive resume scoring based on Rezi.ai methodology
 as recommended in competitive analysis.
@@ -34,7 +33,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -43,7 +42,7 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.ats_scoring")
 
 
-class ATSGrade(str, Enum):
+class ATSGrade(StrEnum):
     A = "A"
     B = "B"
     C = "C"
@@ -65,8 +64,7 @@ class MetricResult:
 
 
 class ATS23Scorer:
-    """
-    Comprehensive 23-point ATS scoring system.
+    """Comprehensive 23-point ATS scoring system.
 
     Implements scoring methodology based on Rezi.ai and
     competitive analysis recommendations.
@@ -247,9 +245,8 @@ class ATS23Scorer:
         resume_text: str,
         resume_sections: dict[str, str] | None = None,
         job_description: str | None = None,
-    ) -> "ATS23ScoreResult":
-        """
-        Compute comprehensive 23-point ATS score.
+    ) -> ATS23ScoreResult:
+        """Compute comprehensive 23-point ATS score.
 
         Args:
             resume_text: Full resume text
@@ -258,6 +255,7 @@ class ATS23Scorer:
 
         Returns:
             ATS23ScoreResult with all metric scores
+
         """
         self._results = {}
         resume_lower = resume_text.lower()
@@ -340,7 +338,6 @@ class ATS23Scorer:
             "also",
             "more",
             "most",
-            "some",
         }
         job_words -= stop_words
 
@@ -806,7 +803,7 @@ class ATS23Scorer:
             details=details,
         )
 
-    def _build_result(self) -> "ATS23ScoreResult":
+    def _build_result(self) -> ATS23ScoreResult:
         total_weight = sum(self.WEIGHTS.values())
         weighted_sum = sum(r.weighted_score for r in self._results.values())
         overall_score = weighted_sum / total_weight if total_weight else 0

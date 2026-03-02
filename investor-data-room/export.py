@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Series A Data Room Export CLI — fetches full investor metrics and saves
+"""Series A Data Room Export CLI — fetches full investor metrics and saves
 as timestamped JSON + CSV for diligence preparation.
 
 Usage:

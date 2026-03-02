@@ -15,7 +15,7 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { useJobs } from "../hooks/useJobs";
 import type { JobFilters } from "../hooks/useJobs";
 import { formatCurrency, formatDate } from "../lib/format";
-import { t, formatT, isRTL, getLocale } from "../lib/i18n";
+import { t, formatT, getLocale } from "../lib/i18n";
 import { useSessionMilestone } from "../hooks/useCelebrations";
 import { telemetry } from "../lib/telemetry";
 

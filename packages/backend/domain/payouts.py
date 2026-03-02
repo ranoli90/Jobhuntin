@@ -1,5 +1,4 @@
-"""
-Stripe Connect payouts — revenue share for blueprint marketplace authors.
+"""Stripe Connect payouts — revenue share for blueprint marketplace authors.
 
 70% to authors, 30% platform fee.
 Handles: Connect account onboarding, transfer creation, payout tracking.
@@ -13,7 +12,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from backend.domain.stripe_client import (
+from packages.backend.domain.stripe_client import (
     get_protected_stripe,
     get_stripe,
     protected_stripe_call,
@@ -92,8 +91,7 @@ async def process_marketplace_payouts(
     period_start: str | None = None,
     period_end: str | None = None,
 ) -> list[dict[str, Any]]:
-    """
-    Process pending marketplace payouts for the current period.
+    """Process pending marketplace payouts for the current period.
 
     Calculates revenue share for each blueprint author based on
     installations during the period.

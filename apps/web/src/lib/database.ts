@@ -1,14 +1,13 @@
 import { Pool } from 'pg';
 
 // Database connection pool configuration
-// nosemgrep: problem-based-packs.insecure-transport.js-node.bypass-tls-verification - Render PostgreSQL may require this
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a.oregon-postgres.render.com/jobhuntin',
+  connectionString: process.env.DATABASE_URL,
   max: 20, // Maximum number of connections in the pool
   idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
   connectionTimeoutMillis: 2000, // How long to wait when connecting a new client
   ssl: {
-    rejectUnauthorized: false // Required for Render PostgreSQL
+    rejectUnauthorized: true
   }
 });
 

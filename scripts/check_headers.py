@@ -1,12 +1,17 @@
+# nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+import os
 import urllib.request
 
-# nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+from dotenv import load_dotenv
+
+load_dotenv()
+
 PROJECT_REF = "zglovpfwyobbbaaocawz"
 URL = f"https://{PROJECT_REF}.supabase.co/rest/v1/"
 # Try both keys
 KEYS = [
-    "sb_publishable_Mr5fIMoahb4_Jrkdp3D33Q_oA-5MXV2",
-    "sb_secret_3RfgVxidbpUJ8xRpmIygtA_7SRKmbVk"
+    os.environ.get("SUPABASE_ANON_KEY"),
+    os.environ.get("SUPABASE_SERVICE_KEY")
 ]
 
 for key in KEYS:

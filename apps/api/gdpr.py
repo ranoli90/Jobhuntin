@@ -1,5 +1,4 @@
-"""
-GDPR Compliance Module - Data export and deletion endpoints.
+"""GDPR Compliance Module - Data export and deletion endpoints.
 
 Implements:
 - GDPR Article 15: Right of access (data export)
@@ -18,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
-from backend.domain.repositories import db_transaction
+from packages.backend.domain.repositories import db_transaction
 from shared.metrics import incr
 
 logger = get_logger("sorce.gdpr")
@@ -156,8 +155,7 @@ async def export_user_data(
     tenant_id: str = Depends(_get_tenant_id),
     pool: asyncpg.Pool = Depends(_get_pool),
 ) -> DataExportResponse:
-    """
-    Export all user data for GDPR Article 15 compliance.
+    """Export all user data for GDPR Article 15 compliance.
 
     Creates a comprehensive export of all personal data stored for the user.
     """
@@ -182,7 +180,7 @@ async def export_user_data(
     }
 
     async with pool.acquire() as conn:
-        for table, user_col, columns in TABLES_WITH_USER_DATA:
+        for table, user_col, _columns in TABLES_WITH_USER_DATA:
             if table == "public.analytics_events" and not request.include_analytics:
                 continue
 
@@ -220,8 +218,7 @@ async def delete_user_data(
     tenant_id: str = Depends(_get_tenant_id),
     pool: asyncpg.Pool = Depends(_get_pool),
 ) -> DeletionResponse:
-    """
-    Delete all user data for GDPR Article 17 compliance.
+    """Delete all user data for GDPR Article 17 compliance.
 
     Permanently deletes all personal data. This action is irreversible.
     """

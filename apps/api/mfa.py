@@ -1,6 +1,4 @@
-"""
-MFA API endpoints — TOTP and recovery code management.
-"""
+"""MFA API endpoints — TOTP and recovery code management."""
 
 from __future__ import annotations
 
@@ -9,10 +7,11 @@ import time
 from typing import Any
 
 import asyncpg
-from backend.domain.mfa import MFAManager
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from shared.logging_config import get_logger
+
+from packages.backend.domain.mfa import MFAManager
 
 logger = get_logger("sorce.api.mfa")
 

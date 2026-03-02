@@ -1,5 +1,4 @@
-"""
-Career Path Analysis — career progression suggestions.
+"""Career Path Analysis — career progression suggestions.
 
 Features:
   - Career trajectory analysis from job history
@@ -12,7 +11,7 @@ Features:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from shared.logging_config import get_logger
@@ -22,7 +21,7 @@ from shared.metrics import incr
 logger = get_logger("sorce.career_path")
 
 
-class CareerLevel(str, Enum):
+class CareerLevel(StrEnum):
     ENTRY = "entry"
     JUNIOR = "junior"
     MID = "mid"
@@ -35,7 +34,7 @@ class CareerLevel(str, Enum):
     C_LEVEL = "c_level"
 
 
-class CareerTrack(str, Enum):
+class CareerTrack(StrEnum):
     INDIVIDUAL_CONTRIBUTOR = "ic"
     MANAGEMENT = "management"
     HYBRID = "hybrid"
@@ -775,7 +774,7 @@ class CareerPathAnalyzer:
         if not current_role:
             return moves
 
-        for key, role in self.roles.items():
+        for _key, role in self.roles.items():
             if role.level.value > current_role.level.value:
                 overlap = len(
                     set(s.lower() for s in current_skills)

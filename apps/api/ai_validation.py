@@ -1,5 +1,4 @@
-"""
-AI Input Validation and Sanitization Module.
+"""AI Input Validation and Sanitization Module.
 
 This module provides comprehensive validation and sanitization for all AI inputs
 to prevent prompt injection, malicious content, and ensure data quality.
@@ -17,6 +16,7 @@ logger = get_logger("sorce.api.ai_validation")
 
 class AIValidationError(Exception):
     """Raised when AI input validation fails."""
+
     pass
 
 
@@ -89,8 +89,7 @@ class AIInputValidator:
         )
 
     def validate_and_sanitize(self, input_text: str, input_type: str = 'general_text') -> str:
-        """
-        Validate and sanitize AI input text.
+        """Validate and sanitize AI input text.
 
         Args:
             input_text: The input text to validate
@@ -101,6 +100,7 @@ class AIInputValidator:
 
         Raises:
             AIValidationError: If validation fails
+
         """
         if not isinstance(input_text, str):
             raise AIValidationError("Input must be a string")
@@ -290,8 +290,7 @@ class AIInputValidator:
 # ---------------------------------------------------------------------------
 
 def validate_and_sanitize_ai_input(input_text: str, input_type: str = 'general_text') -> str:
-    """
-    Convenience function to validate and sanitize AI input.
+    """Convenience function to validate and sanitize AI input.
 
     Args:
         input_text: The input text to validate
@@ -302,14 +301,36 @@ def validate_and_sanitize_ai_input(input_text: str, input_type: str = 'general_t
 
     Raises:
         AIValidationError: If validation fails
+
     """
     validator = AIInputValidator()
     return validator.validate_and_sanitize(input_text, input_type)
 
 
+def _validate_field(validator: AIInputValidator, key: str, value: Any) -> tuple[str, Any] | None:
+    """Validate a single field based on its key. Returns (key, validated_value) or None."""
+    validation_map = {
+        'resume_text': lambda v: validator.validate_and_sanitize(v, 'resume_text'),
+        'skills': lambda v: validator.validate_skills_list(v),
+        'role': lambda v: validator.validate_and_sanitize(v, 'role'),
+        'location': lambda v: validator.validate_and_sanitize(v, 'location'),
+        'experience_years': lambda v: validator.validate_experience_years(v),
+        'education_level': lambda v: validator.validate_education_level(v),
+        'remote_preference': lambda v: validator.validate_remote_preference(v),
+        'job_ids': lambda v: validator.validate_job_ids_list(v),
+        'email': lambda v: validator.validate_email(v),
+    }
+
+    if key in validation_map:
+        try:
+            return (key, validation_map[key](value))
+        except AIValidationError:
+            return None
+    return None
+
+
 def validate_ai_request_data(data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Validate an entire AI request data dictionary.
+    """Validate an entire AI request data dictionary.
 
     Args:
         data: Dictionary containing request data
@@ -319,41 +340,16 @@ def validate_ai_request_data(data: dict[str, Any]) -> dict[str, Any]:
 
     Raises:
         AIValidationError: If validation fails
+
     """
     validator = AIInputValidator()
     validated_data = {}
 
-    # Validate common fields
-    if 'resume_text' in data:
-        validated_data['resume_text'] = validator.validate_and_sanitize(data['resume_text'], 'resume_text')
-
-    if 'skills' in data:
-        validated_data['skills'] = validator.validate_skills_list(data['skills'])
-
-    if 'role' in data:
-        validated_data['role'] = validator.validate_and_sanitize(data['role'], 'role')
-
-    if 'location' in data:
-        validated_data['location'] = validator.validate_and_sanitize(data['location'], 'location')
-
-    if 'experience_years' in data:
-        validated_data['experience_years'] = validator.validate_experience_years(data['experience_years'])
-
-    if 'education_level' in data:
-        validated_data['education_level'] = validator.validate_education_level(data['education_level'])
-
-    if 'remote_preference' in data:
-        validated_data['remote_preference'] = validator.validate_remote_preference(data['remote_preference'])
-
-    if 'job_ids' in data:
-        validated_data['job_ids'] = validator.validate_job_ids_list(data['job_ids'])
-
-    if 'email' in data:
-        validated_data['email'] = validator.validate_email(data['email'])
-
-    # Copy other fields without validation
     for key, value in data.items():
-        if key not in validated_data:
+        result = _validate_field(validator, key, value)
+        if result:
+            validated_data[result[0]] = result[1]
+        elif key not in validated_data:
             validated_data[key] = value
 
     return validated_data

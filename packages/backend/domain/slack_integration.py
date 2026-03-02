@@ -1,5 +1,4 @@
-"""
-Slack Integration — notifications and bot interactions.
+"""Slack Integration — notifications and bot interactions.
 
 Features:
   - Slack bot for job notifications
@@ -14,8 +13,8 @@ from __future__ import annotations
 import hashlib
 import hmac
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 import asyncpg
@@ -26,7 +25,7 @@ from shared.metrics import incr
 logger = get_logger("sorce.slack")
 
 
-class SlackMessageType(str, Enum):
+class SlackMessageType(StrEnum):
     JOB_MATCH = "job_match"
     APPLICATION_UPDATE = "application_update"
     INTERVIEW_REMINDER = "interview_reminder"
@@ -418,7 +417,7 @@ class SlackIntegrationManager:
             "company": application.get("company", "Unknown"),
             "title": application.get("job_title", "Unknown"),
             "status": application.get("status", "Updated"),
-            "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"),
+            "updated_at": datetime.now(UTC).strftime("%Y-%m-%d %H:%M"),
         }
 
         return await self.send_notification(
@@ -567,7 +566,7 @@ def verify_slack_signature(
     timestamp: str,
     signature: str,
 ) -> bool:
-    if abs(int(datetime.now(timezone.utc).timestamp()) - int(timestamp)) > 300:
+    if abs(int(datetime.now(UTC).timestamp()) - int(timestamp)) > 300:
         return False
 
     basestring = f"v0:{timestamp}:{body}"

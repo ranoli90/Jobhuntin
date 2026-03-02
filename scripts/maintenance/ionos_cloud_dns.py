@@ -1,4 +1,4 @@
-"""Ionos Cloud API DNS Configuration - Correct approach"""
+"""Ionos Cloud API DNS Configuration - Correct approach."""
 import base64
 
 import httpx
@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Ionos Cloud API credentials (different from hosting)
-IONOS_PUBLIC_PREFIX = "48e1b13910ac4a6aa4e18a32460a1812"
-IONOS_SECRET = "Opgjoy-2ReOiIwd42BcbD1iLFGx1oMOXC9TLx_so1TPkuipLG-X8NvQQz-GSHlpm7RXTxqZ2HhPSTZZMhCRuaw"
+IONOS_PUBLIC_PREFIX = os.environ.get("IONOS_PUBLIC_PREFIX")
+IONOS_SECRET = os.environ.get("IONOS_SECRET")
 
 # Domain and DNS records from Resend
 DOMAIN = "jobhuntin.com"
@@ -40,7 +40,7 @@ DNS_RECORDS = [
 ]
 
 def get_ionos_token():
-    """Get Ionos Cloud API token"""
+    """Get Ionos Cloud API token."""
     # Ionos Cloud uses basic auth with prefix:secret
     credentials = f"{IONOS_PUBLIC_PREFIX}:{IONOS_SECRET}"
     encoded_credentials = base64.b64encode(credentials.encode()).decode()
@@ -75,7 +75,7 @@ def get_ionos_token():
         return None
 
 def list_zones(token):
-    """List DNS zones"""
+    """List DNS zones."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
@@ -112,7 +112,7 @@ def list_zones(token):
         return None
 
 def get_zone_records(token, zone_id):
-    """Get existing records in zone"""
+    """Get existing records in zone."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
@@ -138,7 +138,7 @@ def get_zone_records(token, zone_id):
         return None
 
 def create_record(token, zone_id, record):
-    """Create DNS record"""
+    """Create DNS record."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
@@ -184,7 +184,7 @@ def create_record(token, zone_id, record):
         return False
 
 def update_record(token, zone_id, record_id, record):
-    """Update existing DNS record"""
+    """Update existing DNS record."""
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",

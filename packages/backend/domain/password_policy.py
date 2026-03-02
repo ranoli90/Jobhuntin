@@ -1,5 +1,4 @@
-"""
-Password Policy — strength validation and enforcement.
+"""Password Policy — strength validation and enforcement.
 
 Features:
   - Configurable password strength requirements
@@ -14,7 +13,8 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
-from enum import Enum
+from datetime import UTC
+from enum import StrEnum
 from typing import Any
 
 import asyncpg
@@ -25,7 +25,7 @@ from shared.metrics import incr
 logger = get_logger("sorce.password_policy")
 
 
-class PasswordStrength(str, Enum):
+class PasswordStrength(StrEnum):
     VERY_WEAK = "very_weak"
     WEAK = "weak"
     MEDIUM = "medium"
@@ -434,9 +434,9 @@ class PasswordHistoryManager:
             if not row:
                 return None
 
-            from datetime import datetime, timezone
+            from datetime import datetime
 
-            age = datetime.now(timezone.utc) - row["created_at"]
+            age = datetime.now(UTC) - row["created_at"]
             return age.days
 
     async def is_password_expired(

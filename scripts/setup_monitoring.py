@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Setup monitoring and alerting for production.
+"""Setup monitoring and alerting for production.
 
 This script helps configure:
 - Slack webhooks for alert notifications
@@ -11,8 +10,7 @@ This script helps configure:
 
 
 def setup_sentry(sentry_dsn: str, environment: str = "production"):
-    """
-    Initialize Sentry SDK for error tracking.
+    """Initialize Sentry SDK for error tracking.
 
     Add this to your app startup (main.py):
     """
@@ -35,8 +33,7 @@ sentry_sdk.init(
 
 
 def setup_slack_alerts():
-    """
-    Create Slack webhook configuration for alerts.
+    """Create Slack webhook configuration for alerts.
 
     In Slack:
     1. Go to https://api.slack.com/apps
@@ -51,9 +48,7 @@ def setup_slack_alerts():
 
 
 def get_alert_rules():
-    """
-    Return built-in alert rules for production monitoring.
-    """
+    """Return built-in alert rules for production monitoring."""
     from packages.shared.alerting import AlertRule, AlertSeverity
 
     return [

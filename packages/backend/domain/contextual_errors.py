@@ -1,5 +1,4 @@
-"""
-Contextual error help service.
+"""Contextual error help service.
 
 Provides helpful, actionable error messages with:
 - Error code classification
@@ -10,14 +9,14 @@ Provides helpful, actionable error messages with:
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class ErrorCategory(str, Enum):
+class ErrorCategory(StrEnum):
     """Categories of errors."""
+
     AUTHENTICATION = "authentication"
     AUTHORIZATION = "authorization"
     VALIDATION = "validation"
@@ -32,8 +31,9 @@ class ErrorCategory(str, Enum):
     UNKNOWN = "unknown"
 
 
-class ErrorSeverity(str, Enum):
+class ErrorSeverity(StrEnum):
     """Error severity levels."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -43,23 +43,25 @@ class ErrorSeverity(str, Enum):
 @dataclass
 class ErrorSolution:
     """A potential solution for an error."""
+
     title: str
     description: str
-    action: Optional[str] = None  # e.g., "retry", "redirect", "contact_support"
-    action_url: Optional[str] = None
-    action_label: Optional[str] = None
+    action: str | None = None  # e.g., "retry", "redirect", "contact_support"
+    action_url: str | None = None
+    action_label: str | None = None
 
 
 @dataclass
 class ContextualError:
     """An error with contextual help."""
+
     code: str
     title: str
     message: str
     category: ErrorCategory
     severity: ErrorSeverity
     solutions: list[ErrorSolution] = field(default_factory=list)
-    documentation_url: Optional[str] = None
+    documentation_url: str | None = None
     support_ticket: bool = False
     retry_possible: bool = False
 
@@ -461,7 +463,7 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
 }
 
 
-def get_error(code: str) -> Optional[ContextualError]:
+def get_error(code: str) -> ContextualError | None:
     """Get an error by its code."""
     return ERROR_REGISTRY.get(code)
 
@@ -480,8 +482,8 @@ def get_error_solutions(code: str) -> list[ErrorSolution]:
 
 def create_error_response(
     code: str,
-    custom_message: Optional[str] = None,
-    additional_context: Optional[dict] = None,
+    custom_message: str | None = None,
+    additional_context: dict | None = None,
 ) -> dict:
     """Create a full error response for the API."""
     error = ERROR_REGISTRY.get(code)

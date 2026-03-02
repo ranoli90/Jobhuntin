@@ -1,5 +1,4 @@
-"""
-Background job synchronization service.
+"""Background job synchronization service.
 Fetches jobs from JobSpy on schedule and syncs to database.
 """
 
@@ -15,7 +14,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from backend.domain.jobspy_client import JobSpyClient, JobSpyError
+from packages.backend.domain.jobspy_client import JobSpyClient, JobSpyError
 from shared.metrics import incr
 
 logger = get_logger("sorce.job_sync")
@@ -72,12 +71,12 @@ class JobSyncService:
         search_queries: list[tuple[str, str]] | None = None,
         max_concurrent: int = 2,
     ) -> list[SyncResult]:
-        """
-        Sync jobs from all configured sources.
+        """Sync jobs from all configured sources.
 
         Args:
             search_queries: List of (search_term, location) tuples.
             max_concurrent: Max number of concurrent source scrapes.
+
         """
         if self._running:
             logger.warning("Sync already in progress, skipping")

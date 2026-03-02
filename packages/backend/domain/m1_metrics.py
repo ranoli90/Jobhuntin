@@ -1,5 +1,4 @@
-"""
-M1 closed-beta dashboard metrics.
+"""M1 closed-beta dashboard metrics.
 
 Queries the materialized views from migration 009 plus live counts
 to power the admin dashboard and mobile founder view.
@@ -14,7 +13,6 @@ import asyncpg
 
 async def get_m1_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     """Return the complete M1 dashboard payload."""
-
     # 1. Active users (MAU/WAU/DAU)
     active_users = await conn.fetchrow(
         "SELECT mau, wau, dau FROM public.mv_active_users"

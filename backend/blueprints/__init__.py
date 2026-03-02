@@ -1,5 +1,4 @@
-"""
-Pluggable Agent Blueprints.
+"""Pluggable Agent Blueprints.
 
 Each blueprint defines vertical-specific logic (prompts, profile schema,
 submit selectors, completion hooks) while the core engine handles the

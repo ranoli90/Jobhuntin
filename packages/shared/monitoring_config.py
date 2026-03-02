@@ -1,5 +1,4 @@
-"""
-Monitoring Configuration for Production
+"""Monitoring Configuration for Production.
 
 Provides:
   - Alert threshold configuration

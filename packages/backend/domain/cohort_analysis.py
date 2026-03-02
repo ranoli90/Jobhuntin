@@ -1,5 +1,4 @@
-"""
-Cohort Analysis — track user retention and engagement over time.
+"""Cohort Analysis — track user retention and engagement over time.
 
 Cohorts are groups of users who signed up in the same time period.
 This module analyzes their behavior over subsequent periods.

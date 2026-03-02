@@ -1,5 +1,4 @@
-"""
-Tests for the semantic matching and embedding services.
+"""Tests for the semantic matching and embedding services.
 
 Validates the "Precision Matcher" archetype implementation.
 """
@@ -8,13 +7,13 @@ from __future__ import annotations
 
 import pytest
 
-from backend.domain.embeddings import (
+from packages.backend.domain.embeddings import (
     compute_text_hash,
     cosine_similarity,
     job_to_searchable_text,
     profile_to_searchable_text,
 )
-from backend.domain.semantic_matching import (
+from packages.backend.domain.semantic_matching import (
     Dealbreakers,
     MatchExplanation,
     SemanticMatchingService,

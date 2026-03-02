@@ -18,6 +18,10 @@ concurrency:
   group: seo-deploy
   cancel-in-progress: false
 
+# Restrictive permissions - principle of least privilege
+permissions:
+  contents: read
+
 env:
   NODE_VERSION: "20"
 

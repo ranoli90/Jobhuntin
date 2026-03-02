@@ -1,6 +1,4 @@
-"""
-Interview Simulator API endpoints — AI-powered interview preparation.
-"""
+"""Interview Simulator API endpoints — AI-powered interview preparation."""
 
 from __future__ import annotations
 
@@ -8,7 +6,7 @@ import json
 from typing import Any
 
 import asyncpg
-from backend.domain.interview_simulator import (
+from packages.backend.domain.interview_simulator import (
     InterviewPhase,
     InterviewQuestion,
     InterviewSession,

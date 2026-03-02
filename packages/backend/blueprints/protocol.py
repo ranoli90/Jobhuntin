@@ -1,5 +1,4 @@
-"""
-AgentBlueprint Protocol — the contract every vertical must implement.
+"""AgentBlueprint Protocol — the contract every vertical must implement.
 
 The core engine (FormAgent) is parameterized by a blueprint instance.
 Each blueprint owns:
@@ -15,7 +14,7 @@ from typing import Protocol, runtime_checkable
 
 import asyncpg
 
-from backend.domain.core_models import ActorProfile, DomMappingResult, FormField
+from packages.backend.domain.core_models import ActorProfile, DomMappingResult, FormField
 
 
 @runtime_checkable
@@ -69,8 +68,7 @@ class AgentBlueprint(Protocol):
     # -- Playwright submit -------------------------------------------------
 
     def submit_button_selectors(self) -> list[str]:
-        """
-        Ordered list of CSS selectors to try when clicking the submit button.
+        """Ordered list of CSS selectors to try when clicking the submit button.
         More specific selectors first.
         """
         ...
@@ -83,8 +81,7 @@ class AgentBlueprint(Protocol):
         task: dict,
         tenant_id: str | None,
     ) -> str:
-        """
-        Called after successful form submission.
+        """Called after successful form submission.
 
         Responsible for:
           - Setting the final task status (e.g., 'APPLIED' for jobs)

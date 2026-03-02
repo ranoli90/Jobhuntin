@@ -1,5 +1,4 @@
-"""
-Skill Normalization — normalize skills across job postings for better matching.
+"""Skill Normalization — normalize skills across job postings for better matching.
 
 Provides:
 - Skill synonym resolution (JS → JavaScript)

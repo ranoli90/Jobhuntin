@@ -1,5 +1,4 @@
-"""
-Part 4: Test Harness and Local Sandbox
+"""Part 4: Test Harness and Local Sandbox.
 
 Integration test suite that:
   - Serves a fake multi-step job application page via Playwright route interception
@@ -37,7 +36,7 @@ from worker.agent import (
     ApplicationAgent,
 )
 
-from backend.domain.repositories import record_event
+from packages.backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Fake application HTML – two-step form
@@ -114,8 +113,7 @@ FAKE_APP_URL = "https://fake-careers.example.com/apply/senior-engineer"
 # ---------------------------------------------------------------------------
 
 async def mock_map_fields_via_llm(profile, form_fields, answered_inputs=None):
-    """
-    Deterministic mock for map_fields_via_llm that inspects form_fields
+    """Deterministic mock for map_fields_via_llm that inspects form_fields
     to decide which fields can be filled from the profile and which are unresolved.
     """
     # Check if "clearance" appears in form fields
@@ -341,8 +339,7 @@ async def get_application_inputs(
 # ---------------------------------------------------------------------------
 
 async def setup_route_interception(page):
-    """
-    Use Playwright's page.route() to intercept requests to the fake URL
+    """Use Playwright's page.route() to intercept requests to the fake URL
     and serve our test HTML. No separate HTTP server needed.
     """
 
@@ -384,13 +381,12 @@ def patch_map_fields():
 @pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
 @pytest.mark.asyncio
 async def test_full_application_lifecycle(db_pool, browser, clean_db):
-    """
-    End-to-end test:
-      1. Create test data
-      2. Run agent once → expect REQUIRES_INPUT (clearance question)
-      3. Simulate user answer
-      4. Run agent again → expect APPLIED
-      5. Verify events
+    """End-to-end test:
+    1. Create test data
+    2. Run agent once → expect REQUIRES_INPUT (clearance question)
+    3. Simulate user answer
+    4. Run agent again → expect APPLIED
+    5. Verify events.
     """
     patch_map_fields()
 
@@ -504,9 +500,7 @@ async def test_full_application_lifecycle(db_pool, browser, clean_db):
 @pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
 @pytest.mark.asyncio
 async def test_agent_failure_on_no_form_fields(db_pool, browser, clean_db):
-    """
-    When the page has no form fields, the agent should mark FAILED.
-    """
+    """When the page has no form fields, the agent should mark FAILED."""
     patch_map_fields()
 
     empty_html = "<!DOCTYPE html><html><body><h1>No form here</h1></body></html>"

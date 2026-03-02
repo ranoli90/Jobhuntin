@@ -1,5 +1,4 @@
-"""
-Part 4: Failure Drills
+"""Part 4: Failure Drills.
 
 Concrete test scenarios that simulate production failures:
   1. LLM outage – map_fields_via_llm raises consistently
@@ -32,7 +31,7 @@ from worker.agent import (
     ApplicationAgent,
 )
 
-from backend.domain.repositories import record_event
+from packages.backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Shared test fixtures (reuse from test_integration.py)
@@ -188,11 +187,10 @@ SUCCESS_HTML = "<!DOCTYPE html><html><body><h1>Done</h1></body></html>"
 @pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
 @pytest.mark.asyncio
 async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
-    """
-    When map_fields_via_llm raises consistently, the agent should:
-      - Mark the application as FAILED
-      - Record a FAILED event with the error message
-      - Set last_error on the application row
+    """When map_fields_via_llm raises consistently, the agent should:
+    - Mark the application as FAILED
+    - Record a FAILED event with the error message
+    - Set last_error on the application row.
     """
     async with db_pool.acquire() as conn:
         user_id = await create_test_user(conn)
@@ -245,9 +243,7 @@ async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
 @pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
 @pytest.mark.asyncio
 async def test_llm_outage_preserves_events(db_pool, browser, clean_db):
-    """
-    Even on LLM failure, CLAIMED and STARTED_PROCESSING events should exist.
-    """
+    """Even on LLM failure, CLAIMED and STARTED_PROCESSING events should exist."""
     async with db_pool.acquire() as conn:
         user_id = await create_test_user(conn)
         await create_test_profile(conn, user_id)
@@ -287,8 +283,7 @@ async def test_llm_outage_preserves_events(db_pool, browser, clean_db):
 @pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
 @pytest.mark.asyncio
 async def test_dom_no_form_fields(db_pool, browser, clean_db):
-    """
-    Page has no form fields (e.g., redesigned page).
+    """Page has no form fields (e.g., redesigned page).
     Agent should FAIL with 'No form fields' in the error.
     """
     empty_html = "<!DOCTYPE html><html><body><h1>We've moved!</h1><p>Apply elsewhere.</p></body></html>"
@@ -324,8 +319,7 @@ async def test_dom_no_form_fields(db_pool, browser, clean_db):
 @pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
 @pytest.mark.asyncio
 async def test_dom_missing_submit_button(db_pool, browser, clean_db):
-    """
-    Page has form fields but no submit button.
+    """Page has form fields but no submit button.
     Agent should FAIL with 'submit button' in the error.
     """
     no_submit_html = """<!DOCTYPE html>
@@ -382,8 +376,7 @@ async def test_dom_missing_submit_button(db_pool, browser, clean_db):
 @pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
 @pytest.mark.asyncio
 async def test_db_transient_failure_during_event_write(db_pool, browser, clean_db):
-    """
-    Simulate a transient DB failure during record_event.
+    """Simulate a transient DB failure during record_event.
     The agent's _handle_failure path should still surface a clean FAILED status
     or leave the app in a recoverable state (PROCESSING → picked up on restart).
 
@@ -451,11 +444,10 @@ async def test_db_transient_failure_during_event_write(db_pool, browser, clean_d
 
 @pytest.mark.asyncio
 async def test_profile_with_extra_fields():
-    """
-    Verify normalize_profile handles profiles with unknown extra fields
+    """Verify normalize_profile handles profiles with unknown extra fields
     gracefully (forward-compatible JSON parsing).
     """
-    from backend.domain.models import normalize_profile
+    from packages.backend.domain.models import normalize_profile
 
     raw = {
         "contact": {
@@ -483,8 +475,7 @@ async def test_profile_with_extra_fields():
 
 @pytest.mark.asyncio
 async def test_application_input_meta_with_unknown_keys(db_pool, clean_db):
-    """
-    Verify that application_inputs rows with extra keys in meta
+    """Verify that application_inputs rows with extra keys in meta
     are read without errors (forward-compatible).
     """
     async with db_pool.acquire() as conn:

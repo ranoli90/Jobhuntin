@@ -1,5 +1,4 @@
-"""
-Stripe client wrapper with circuit breaker protection.
+"""Stripe client wrapper with circuit breaker protection.
 
 Provides a protected Stripe client that automatically handles failures
 with circuit breaker pattern.
@@ -7,12 +6,13 @@ with circuit breaker pattern.
 
 from __future__ import annotations
 
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 
 logger = get_logger("sorce.stripe")
 
@@ -34,8 +34,7 @@ def get_stripe():
 
 
 class StripeCircuitBreaker:
-    """
-    Wrapper for Stripe API calls with circuit breaker protection.
+    """Wrapper for Stripe API calls with circuit breaker protection.
 
     Usage:
         stripe_cb = StripeCircuitBreaker()
@@ -50,8 +49,7 @@ class StripeCircuitBreaker:
         self._cb = get_circuit_breaker("stripe")
 
     def call(self, func: Callable[[], T], fallback: T | None = None) -> T | None:
-        """
-        Execute a Stripe API call with circuit breaker protection.
+        """Execute a Stripe API call with circuit breaker protection.
 
         Args:
             func: A callable that performs the Stripe API call
@@ -62,6 +60,7 @@ class StripeCircuitBreaker:
 
         Raises:
             Exception: Re-raises Stripe exceptions if circuit is closed
+
         """
         import asyncio
 
@@ -78,7 +77,7 @@ class StripeCircuitBreaker:
                 logger.warning("Stripe circuit breaker is open, returning fallback")
                 if fallback is not None:
                     return fallback
-                raise CircuitBreakerOpen("stripe", self._cb.config.timeout_seconds)
+                raise CircuitBreakerOpenError("stripe", self._cb.config.timeout_seconds)
 
         try:
             result = func()
@@ -121,14 +120,14 @@ def get_protected_stripe() -> StripeCircuitBreaker:
 
 
 def protected_stripe_call(func: Callable[[], T], fallback: T | None = None) -> T | None:
-    """
-    Convenience function for making protected Stripe calls.
+    """Convenience function for making protected Stripe calls.
 
     Example:
-        from backend.domain.stripe_client import protected_stripe_call
+        from packages.backend.domain.stripe_client import protected_stripe_call
 
         customer = protected_stripe_call(
             lambda: stripe.Customer.create(email="test@example.com")
         )
+
     """
     return get_protected_stripe().call(func, fallback)

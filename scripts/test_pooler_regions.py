@@ -1,10 +1,14 @@
 import asyncio
+import os
 
 import asyncpg
+from dotenv import load_dotenv
 
-PROJECT_REF = "zglovpfwyobbbaaocawz"
+load_dotenv()
+
+PROJECT_REF = os.environ.get("SUPABASE_PROJECT_REF", "zglovpfwyobbbaaocawz")
 USER = f"postgres.{PROJECT_REF}"
-PASSWORD = "ravhuv-gitqec-nixvY4"
+PASSWORD = os.environ.get("SUPABASE_DB_PASSWORD")
 DATABASE = "postgres"
 
 REGIONS = [
@@ -32,7 +36,7 @@ async def test_region(region):
         print(f"Version: {res}")
         await conn.close()
         return True
-    except asyncio.TimeoutError:
+    except TimeoutError:
         print(f"TIMEOUT: {region}")
     except Exception as e:
         print(f"FAILED: {region} ({e})")

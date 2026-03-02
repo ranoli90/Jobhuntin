@@ -1,5 +1,4 @@
-"""
-M5 Revenue Intelligence — P&L, LTV:CAC, cohort retention,
+"""M5 Revenue Intelligence — P&L, LTV:CAC, cohort retention,
 marketplace revenue, agent performance, and Series A metrics.
 
 Queries materialized views from migration 018.
@@ -68,7 +67,7 @@ async def get_churn_rate(conn: asyncpg.Connection, days: int = 30) -> dict[str, 
 
 async def get_ltv_cac_detailed(conn: asyncpg.Connection) -> dict[str, Any]:
     """Detailed LTV:CAC with per-plan breakdown."""
-    from backend.domain.m4_metrics import get_ltv_cac_estimate
+    from packages.backend.domain.m4_metrics import get_ltv_cac_estimate
     base = await get_ltv_cac_estimate(conn)
 
     # Per-plan ARPU
@@ -111,7 +110,7 @@ async def get_gross_margin(conn: asyncpg.Connection) -> dict[str, Any]:
 
 async def get_m5_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     """Complete M5 revenue intelligence dashboard."""
-    from backend.domain.m4_metrics import get_m4_dashboard
+    from packages.backend.domain.m4_metrics import get_m4_dashboard
 
     m4 = await get_m4_dashboard(conn)
     pnl = await get_pnl(conn)
@@ -158,8 +157,7 @@ async def get_m5_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
 
 
 async def get_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
-    """
-    Series A metrics export — clean JSON for pitch deck.
+    """Series A metrics export — clean JSON for pitch deck.
     Covers: MRR, ARR, growth, churn, LTV:CAC, NRR, gross margin,
     subscriber counts, agent performance, marketplace traction.
     """
@@ -224,6 +222,6 @@ async def get_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
 
 async def refresh_m5_views(conn: asyncpg.Connection) -> None:
     """Refresh all M1–M5 materialized views."""
-    from backend.domain.m4_metrics import refresh_m4_views
+    from packages.backend.domain.m4_metrics import refresh_m4_views
     await refresh_m4_views(conn)
     await conn.execute("SELECT public.refresh_m5_views()")

@@ -505,7 +505,8 @@ export default function Settings() {
                       }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold">{t(labelKey, locale)}</span>
+                      <span className="sr-only">, {t(preferences[key] ? "settings.toggleOn" : "settings.toggleOff", locale)}</span>
+                    <span className="text-sm font-semibold">{t(labelKey, locale)}</span>
                       <span className="text-xs text-brand-ink/60">{t(descKey, locale)}</span>
                     </div>
                     <span

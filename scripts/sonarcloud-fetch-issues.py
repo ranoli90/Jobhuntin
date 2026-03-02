@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""
-Fetch issues from SonarCloud API for ranoli90_sorce project.
+"""Fetch issues from SonarCloud API for ranoli90_sorce project.
 Usage: python scripts/sonarcloud-fetch-issues.py [--output issues.json]
-Requires: SONAR_TOKEN in .env or environment
+Requires: SONAR_TOKEN in .env or environment.
 """
 import json
 import os

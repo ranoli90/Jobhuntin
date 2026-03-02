@@ -1,5 +1,4 @@
-"""
-Agent evaluation logic — automatic (SYSTEM) labeling of task outcomes.
+"""Agent evaluation logic — automatic (SYSTEM) labeling of task outcomes.
 
 Called from the worker after task completion or failure to record a
 structured evaluation row in `agent_evaluations`.
@@ -35,8 +34,7 @@ async def record_system_evaluation(
     had_hold: bool = False,
     metadata: dict[str, Any] | None = None,
 ) -> None:
-    """
-    Insert a SYSTEM-generated evaluation row based on heuristics.
+    """Insert a SYSTEM-generated evaluation row based on heuristics.
 
     Heuristics:
       - SUCCESS: terminal success status on first attempt, no hold.
@@ -96,8 +94,7 @@ async def record_user_feedback(
     comment: str | None = None,
     tenant_id: str | None = None,
 ) -> str:
-    """
-    Insert a USER-generated evaluation row from explicit feedback.
+    """Insert a USER-generated evaluation row from explicit feedback.
 
     Returns the evaluation id.
     """

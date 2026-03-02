@@ -1,5 +1,4 @@
-"""
-AI Rate Limiting Module.
+"""AI Rate Limiting Module.
 
 This module provides comprehensive rate limiting for AI endpoints to prevent abuse,
 ensure fair usage, and protect against DDoS attacks.
@@ -8,7 +7,7 @@ ensure fair usage, and protect against DDoS attacks.
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 from shared.logging_config import get_logger
 from shared.redis_client import get_redis
@@ -18,8 +17,9 @@ from shared.metrics import incr
 logger = get_logger("sorce.api.ai_rate_limiting")
 
 
-class RateLimitExceeded(Exception):
+class RateLimitExceededErrorError(Exception):
     """Raised when rate limit is exceeded."""
+
     pass
 
 
@@ -55,11 +55,10 @@ class RateLimiter:
         self,
         identifier: str,
         endpoint_type: str,
-        ip_address: Optional[str] = None,
-        user_id: Optional[str] = None,
+        ip_address: str | None = None,
+        user_id: str | None = None,
     ) -> bool:
-        """
-        Check if the request is within rate limits.
+        """Check if the request is within rate limits.
 
         Args:
             identifier: Unique identifier for the request
@@ -71,7 +70,8 @@ class RateLimiter:
             True if within limits, False otherwise
 
         Raises:
-            RateLimitExceeded: If rate limit is exceeded
+            RateLimitExceededError: If rate limit is exceeded
+
         """
         limits = self.limits.get(endpoint_type, self.limits['ai_general'])
 
@@ -102,7 +102,7 @@ class RateLimiter:
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")
-            raise RateLimitExceeded(f"Rate limit exceeded for {endpoint_type} (per-minute)")
+            raise RateLimitExceededError(f"Rate limit exceeded for {endpoint_type} (per-minute)")
 
         # Increment counter with expiration
         await self.redis.setex(minute_key, 60, str(current_count + 1))
@@ -119,7 +119,7 @@ class RateLimiter:
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")
-            raise RateLimitExceeded(f"Rate limit exceeded for {endpoint_type} (per-hour)")
+            raise RateLimitExceededError(f"Rate limit exceeded for {endpoint_type} (per-hour)")
 
         # Increment counter with expiration
         await self.redis.setex(hour_key, 3600, str(current_count + 1))
@@ -136,7 +136,7 @@ class RateLimiter:
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")
-            raise RateLimitExceeded(f"Rate limit exceeded for {endpoint_type} (per-day)")
+            raise RateLimitExceededError(f"Rate limit exceeded for {endpoint_type} (per-day)")
 
         # Increment counter with expiration
         await self.redis.setex(day_key, 86400, str(current_count + 1))
@@ -171,11 +171,10 @@ class RateLimiter:
         self,
         identifier: str,
         endpoint_type: str,
-        ip_address: Optional[str] = None,
-        user_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """
-        Get current rate limit status.
+        ip_address: str | None = None,
+        user_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Get current rate limit status.
 
         Args:
             identifier: Unique identifier for the request
@@ -185,6 +184,7 @@ class RateLimiter:
 
         Returns:
             Dictionary containing rate limit status
+
         """
         limits = self.limits.get(endpoint_type, self.limits['ai_general'])
 
@@ -242,13 +242,13 @@ class RateLimiter:
         endpoint_type: str,
         window: str = 'all',
     ) -> None:
-        """
-        Reset rate limit for a specific identifier.
+        """Reset rate limit for a specific identifier.
 
         Args:
             identifier: Unique identifier for the request
             endpoint_type: Type of endpoint
             window: Time window to reset ('minute', 'hour', 'day', 'all')
+
         """
         current_time = int(time.time())
 
@@ -279,8 +279,8 @@ class AdaptiveRateLimiter(RateLimiter):
         self,
         identifier: str,
         endpoint_type: str,
-        ip_address: Optional[str] = None,
-        user_id: Optional[str] = None,
+        ip_address: str | None = None,
+        user_id: str | None = None,
     ) -> bool:
         """Check rate limit with adaptive adjustments."""
         # Update load factor every 60 seconds
@@ -326,7 +326,7 @@ class AdaptiveRateLimiter(RateLimiter):
             logger.error(f"Error updating load factor: {e}")
             self.load_factor = 1.0
 
-    def _adjust_limits(self, endpoint_type: str) -> Dict[str, int]:
+    def _adjust_limits(self, endpoint_type: str) -> dict[str, int]:
         """Adjust limits based on load factor."""
         base_limits = self.limits.get(endpoint_type, self.limits['ai_general'])
 
@@ -347,7 +347,7 @@ class AdaptiveRateLimiter(RateLimiter):
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")
-            raise RateLimitExceeded(f"Rate limit exceeded for {endpoint_type} (per-minute, adjusted for load)")
+            raise RateLimitExceededError(f"Rate limit exceeded for {endpoint_type} (per-minute, adjusted for load)")
 
         await self.redis.setex(minute_key, 60, str(current_count + 1))
 
@@ -362,7 +362,7 @@ class AdaptiveRateLimiter(RateLimiter):
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")
-            raise RateLimitExceeded(f"Rate limit exceeded for {endpoint_type} (per-hour, adjusted for load)")
+            raise RateLimitExceededError(f"Rate limit exceeded for {endpoint_type} (per-hour, adjusted for load)")
 
         await self.redis.setex(hour_key, 3600, str(current_count + 1))
 
@@ -377,7 +377,7 @@ class AdaptiveRateLimiter(RateLimiter):
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")
-            raise RateLimitExceeded(f"Rate limit exceeded for {endpoint_type} (per-day, adjusted for load)")
+            raise RateLimitExceededError(f"Rate limit exceeded for {endpoint_type} (per-day, adjusted for load)")
 
         await self.redis.setex(day_key, 86400, str(current_count + 1))
 
@@ -395,12 +395,12 @@ adaptive_rate_limiter = AdaptiveRateLimiter()
 # ---------------------------------------------------------------------------
 
 def rate_limit(endpoint_type: str, adaptive: bool = False):
-    """
-    Decorator for rate limiting AI endpoints.
+    """Decorator for rate limiting AI endpoints.
 
     Args:
         endpoint_type: Type of endpoint for rate limiting rules
         adaptive: Whether to use adaptive rate limiting
+
     """
     def decorator(func):
         async def wrapper(*args, **kwargs):

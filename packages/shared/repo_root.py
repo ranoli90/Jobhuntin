@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pathlib
-from typing import Iterable
+from collections.abc import Iterable
 
 
 def find_repo_root(start: pathlib.Path, markers: Iterable[str] | None = None) -> pathlib.Path:
@@ -9,7 +9,6 @@ def find_repo_root(start: pathlib.Path, markers: Iterable[str] | None = None) ->
 
     This is used to make runtime file lookups resilient to repo restructures.
     """
-
     if markers is None:
         markers = ("pyproject.toml", "render.yaml", ".git")
 

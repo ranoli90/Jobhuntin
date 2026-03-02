@@ -82,9 +82,7 @@ async def generate_og_image(
     score: int = Query(90, description="Match Score (0-100)"),
     location: str = Query("Denver, CO", description="Job Location", max_length=50),
 ):
-    """
-    Generate a dynamic Open Graph image for a job posting.
-    """
+    """Generate a dynamic Open Graph image for a job posting."""
     # Rate limit OG image generation per IP
     client_ip = get_client_ip(request)
     limiter = get_rate_limiter(f"og:{client_ip}", max_calls=30, window_seconds=60)

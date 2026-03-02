@@ -1,5 +1,4 @@
-"""
-OpenTelemetry integration for distributed tracing.
+"""OpenTelemetry integration for distributed tracing.
 
 Configures:
 - TracerProvider with Resource attributes (service name, env)
@@ -11,7 +10,8 @@ Configures:
 
 import functools
 import os
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -34,12 +34,12 @@ _tracer_initialized = False
 
 
 def setup_telemetry(service_name: str, app=None) -> None:
-    """
-    Initialize OpenTelemetry for the application.
+    """Initialize OpenTelemetry for the application.
 
     Args:
         service_name: Name of the service (e.g. sorce-api, sorce-worker)
         app: FastAPI app instance (optional, for auto-instrumentation)
+
     """
     global _tracer_initialized
     settings = get_settings()
@@ -105,11 +105,10 @@ def get_tracer(name: str):
 
 
 def traced(
-    name: Optional[str] = None,
-    attributes: Optional[dict[str, str]] = None,
+    name: str | None = None,
+    attributes: dict[str, str] | None = None,
 ) -> Callable:
-    """
-    Decorator to trace a function with OpenTelemetry.
+    """Decorator to trace a function with OpenTelemetry.
 
     Usage:
         @traced("my_operation")
@@ -171,8 +170,8 @@ class SpanContext:
     def __init__(
         self,
         name: str,
-        attributes: Optional[dict[str, Any]] = None,
-        tracer_name: Optional[str] = None,
+        attributes: dict[str, Any] | None = None,
+        tracer_name: str | None = None,
     ):
         self.name = name
         self.attributes = attributes or {}
@@ -199,6 +198,6 @@ class SpanContext:
         if self.span:
             self.span.set_attribute(key, value)
 
-    def add_event(self, name: str, attributes: Optional[dict[str, Any]] = None) -> None:
+    def add_event(self, name: str, attributes: dict[str, Any] | None = None) -> None:
         if self.span:
             self.span.add_event(name, attributes or {})

@@ -1,5 +1,4 @@
-"""
-Rate limit headers middleware.
+"""Rate limit headers middleware.
 
 Adds X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset headers
 to all responses.
@@ -7,9 +6,9 @@ to all responses.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -22,6 +21,7 @@ logger = get_logger("sorce.rate_limit_headers")
 @dataclass
 class RateLimitInfo:
     """Rate limit information for a client."""
+
     limit: int
     remaining: int
     reset_at: datetime

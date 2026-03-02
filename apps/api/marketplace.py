@@ -1,5 +1,4 @@
-"""
-Blueprint Marketplace API — browse, install, submit, review, and author payouts.
+"""Blueprint Marketplace API — browse, install, submit, review, and author payouts.
 
 Mounted at /marketplace prefix by api/main.py.
 """
@@ -14,8 +13,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext, TenantScopeError, require_system_admin
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_system_admin
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.marketplace")
@@ -55,6 +54,7 @@ class ReviewRequest(BaseModel):
 
 class BlueprintResponse(BaseModel):
     """Blueprint details response."""
+
     id: str
     slug: str
     name: str

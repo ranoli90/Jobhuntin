@@ -1,5 +1,4 @@
-"""
-Versioned prompt contracts for LLM interactions.
+"""Versioned prompt contracts for LLM interactions.
 
 Each contract defines:
   - A Pydantic response model (the expected output schema)
