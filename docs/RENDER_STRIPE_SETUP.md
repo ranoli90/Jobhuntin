@@ -22,7 +22,17 @@ brew install render
 curl -fsSL https://raw.githubusercontent.com/render-oss/cli/refs/heads/main/bin/install.sh | sh
 ```
 
-Authenticate (opens browser):
+Authenticate via API token (recommended for scripts/CI):
+
+```bash
+export RENDER_API_KEY=your-api-key   # From dashboard.render.com → Account → API Keys
+render whoami                        # Verify connection
+render workspaces -o json            # List workspaces
+render workspace set <workspace-id>  # Set active workspace (required before services)
+render services -o json              # List services
+```
+
+Or use interactive login (opens browser):
 
 ```bash
 render login
