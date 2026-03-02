@@ -105,10 +105,18 @@ Remaining audit items were grouped into 6 sprints and addressed systematically.
 
 ---
 
+## Sprint 8: Settings A11y (C15)
+
+| Item | Status | Notes |
+|------|--------|------|
+| C15 | ✅ Fixed | Settings: htmlFor/id on all form inputs, aria-label on avatar/resume upload, aria-label on preference toggles |
+
+---
+
 ## Remaining Items (Not Addressed)
 
 - **Critical:** S1 (JWT → httpOnly migration), S3 (CSP nonces)
-- **Low/Nitpick:** Additional i18n, copy polish, minor a11y
+- **Low/Nitpick:** Additional i18n for Settings, copy polish
 
 ---
 

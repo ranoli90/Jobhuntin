@@ -242,8 +242,8 @@ export default function Settings() {
                     {initials}
                   </div>
                 )}
-                <label className="absolute -bottom-2 -right-2 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-brand-ink text-white shadow">
-                  {isAvatarUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                <label className="absolute -bottom-2 -right-2 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-brand-ink text-white shadow" aria-label="Upload profile photo">
+                  {isAvatarUploading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Camera className="h-4 w-4" aria-hidden />}
                   <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarUpload} disabled={isAvatarUploading} />
                 </label>
               </div>
@@ -255,8 +255,9 @@ export default function Settings() {
 
             <form onSubmit={handleProfileSave} className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-brand-ink">Full name</label>
+                <label htmlFor="settings-full-name" className="mb-1 block text-sm font-medium text-brand-ink">Full name</label>
                 <input
+                  id="settings-full-name"
                   type="text"
                   value={contactForm.full_name}
                   onChange={(e) => setContactForm((prev) => ({ ...prev, full_name: e.target.value }))}
@@ -264,8 +265,9 @@ export default function Settings() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-brand-ink">Headline</label>
+                <label htmlFor="settings-headline" className="mb-1 block text-sm font-medium text-brand-ink">Headline</label>
                 <input
+                  id="settings-headline"
                   type="text"
                   placeholder="e.g., Product Designer @ Stripe"
                   value={contactForm.headline}
@@ -274,8 +276,9 @@ export default function Settings() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-brand-ink">Bio</label>
+                <label htmlFor="settings-bio" className="mb-1 block text-sm font-medium text-brand-ink">Bio</label>
                 <textarea
+                  id="settings-bio"
                   rows={4}
                   value={contactForm.bio}
                   onChange={(e) => setContactForm((prev) => ({ ...prev, bio: e.target.value }))}
@@ -304,8 +307,8 @@ export default function Settings() {
               </p>
             )}
             <div className="flex flex-col gap-3">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-brand-ink/20 bg-white px-4 py-3 text-sm font-medium text-brand-ink hover:bg-brand-shell/50">
-                <Upload className="h-4 w-4" />
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-brand-ink/20 bg-white px-4 py-3 text-sm font-medium text-brand-ink hover:bg-brand-shell/50" aria-label="Upload new resume (PDF, max 15MB)">
+                <Upload className="h-4 w-4" aria-hidden />
                 {isUploading ? "Uploading…" : "Upload new resume"}
                 <input
                   type="file"
@@ -328,10 +331,11 @@ export default function Settings() {
           </div>
           <form onSubmit={handleSavePreferences} className="space-y-4">
             <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <MapPin className="h-4 w-4" /> Location
+              <label htmlFor="settings-location" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
+                <MapPin className="h-4 w-4" aria-hidden /> Location
               </label>
               <input
+                id="settings-location"
                 type="text"
                 placeholder="e.g. Remote, San Francisco"
                 value={preferences.location}
@@ -340,10 +344,11 @@ export default function Settings() {
               />
             </div>
             <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <Briefcase className="h-4 w-4" /> Role type
+              <label htmlFor="settings-role-type" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
+                <Briefcase className="h-4 w-4" aria-hidden /> Role type
               </label>
               <input
+                id="settings-role-type"
                 type="text"
                 placeholder="e.g. Product Designer, Software Engineer"
                 value={preferences.role_type}
@@ -352,10 +357,11 @@ export default function Settings() {
               />
             </div>
             <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <DollarSign className="h-4 w-4" /> Min salary (optional)
+              <label htmlFor="settings-salary-min" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
+                <DollarSign className="h-4 w-4" aria-hidden /> Min salary (optional)
               </label>
               <input
+                id="settings-salary-min"
                 type="number"
                 placeholder="e.g. 100000"
                 min="0"
@@ -368,10 +374,11 @@ export default function Settings() {
               <p className="text-xs text-brand-ink/50 mt-1">Annual salary in USD</p>
             </div>
             <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <DollarSign className="h-4 w-4" /> Max salary (optional)
+              <label htmlFor="settings-salary-max" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
+                <DollarSign className="h-4 w-4" aria-hidden /> Max salary (optional)
               </label>
               <input
+                id="settings-salary-max"
                 type="number"
                 placeholder="e.g. 200000"
                 min="0"
@@ -394,6 +401,7 @@ export default function Settings() {
                     type="button"
                     role="switch"
                     aria-checked={preferences[key]}
+                    aria-label={`${label}: ${desc}. ${preferences[key] ? "On" : "Off"}`}
                     onClick={() => setPreferences((p) => ({ ...p, [key]: !p[key] }))}
                     className={`flex items-center justify-between w-full rounded-2xl border px-4 py-3 transition-all ${preferences[key]
                       ? "bg-primary-50 border-primary-200 text-primary-700"
