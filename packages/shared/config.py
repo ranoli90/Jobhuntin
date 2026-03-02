@@ -42,9 +42,9 @@ class Settings(BaseSettings):
     db_pool_max: int = 10
 
     # ── Web App ──────────────────────────────────────────────────
-    app_base_url: str = "http://localhost:5173"
+    app_base_url: str = "https://sorce-web.onrender.com"
     # Public URL of the API (for magic link verify redirect). Set API_PUBLIC_URL in prod.
-    api_public_url: str = "http://localhost:8000"
+    api_public_url: str = "https://sorce-api.onrender.com"
 
     # ── Redis ────────────────────────────────────────────────────
     redis_url: str | None = None
