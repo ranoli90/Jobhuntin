@@ -138,6 +138,17 @@ const dictionaries: Dict = {
     "settings.exportForDetails": "for details.",
     "settings.exportData": "Export my data",
     "settings.exporting": "Exporting…",
+
+    "maintenance.title": "We're making things better",
+    "maintenance.description": "JobHuntin is temporarily unavailable for scheduled maintenance. We'll be back shortly.",
+    "maintenance.expectedBack": "Expected back soon. Check back in a few minutes or contact support for updates.",
+    "maintenance.contactSupport": "Contact support",
+
+    "homepage.checkInbox": "Check your inbox",
+    "homepage.magicLinkSent": "Magic link sent!",
+    "homepage.enterValidEmail": "Enter a valid email",
+    "homepage.startFree": "Start free",
+    "homepage.sending": "Sending…",
   },
   fr: {
     "dashboard.activeRadar": "Radar actif",
@@ -276,6 +287,17 @@ const dictionaries: Dict = {
     "settings.exportForDetails": "pour plus de détails.",
     "settings.exportData": "Exporter mes données",
     "settings.exporting": "Export en cours…",
+
+    "maintenance.title": "Nous améliorons le service",
+    "maintenance.description": "JobHuntin est temporairement indisponible pour maintenance. Nous serons bientôt de retour.",
+    "maintenance.expectedBack": "Retour prévu sous peu. Réessayez dans quelques minutes ou contactez le support.",
+    "maintenance.contactSupport": "Contacter le support",
+
+    "homepage.checkInbox": "Vérifiez votre boîte de réception",
+    "homepage.magicLinkSent": "Lien magique envoyé !",
+    "homepage.enterValidEmail": "Entrez un e-mail valide",
+    "homepage.startFree": "Commencer gratuitement",
+    "homepage.sending": "Envoi…",
   },
 };
 

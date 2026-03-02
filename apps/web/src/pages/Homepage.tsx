@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
+import { t, getLocale } from '../lib/i18n';
 import {
   ArrowRight, MailCheck, Target, Sparkles, Activity,
   Upload, SlidersHorizontal, Send, Trophy,
@@ -22,7 +23,7 @@ function useEmailCapture() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-    if (!validateEmail(email)) { setEmailError("Enter a valid email"); return; }
+    if (!validateEmail(email)) { setEmailError(t("homepage.enterValidEmail", getLocale())); return; }
     setEmailError("");
     setIsSubmitting(true);
     setSentEmail(null);
@@ -30,7 +31,7 @@ function useEmailCapture() {
       const result = await magicLinkService.sendMagicLink(email, "/app/onboarding");
       if (!result.success) throw new Error(result.error || "Failed");
       telemetry.track("login_magic_link_requested", { source: "homepage" });
-      pushToast({ title: "Check your inbox", description: "Magic link sent!", tone: "success" });
+      pushToast({ title: t("homepage.checkInbox", getLocale()), description: t("homepage.magicLinkSent", getLocale()), tone: "success" });
       setSentEmail(result.email);
       setEmail("");
     } catch (err: any) {
@@ -47,9 +48,9 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
   const { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit } = useEmailCapture();
   if (sentEmail) {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 bg-white">
-        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-purple-100"><MailCheck className="w-5 h-5 text-purple-600" /></div>
-        <div className="min-w-0"><p className="text-sm font-semibold text-gray-900">Check your inbox</p><p className="text-xs truncate text-gray-500">{sentEmail}</p></div>
+      <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-purple-100 dark:bg-purple-900/30"><MailCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" /></div>
+        <div className="min-w-0"><p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t("homepage.checkInbox", getLocale())}</p><p className="text-xs truncate text-gray-500 dark:text-slate-400">{sentEmail}</p></div>
         <button onClick={() => setSentEmail(null)} className="min-h-[44px] min-w-[44px] px-3 py-2 -m-2 text-xs ml-auto shrink-0 hover:underline text-gray-400 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Change email address">Change</button>
       </div>
     );
@@ -64,7 +65,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
         <button type="submit" disabled={isSubmitting}
           className="h-14 px-8 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 active:translate-y-0"
         >
-          {isSubmitting ? "Sending…" : "Start free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
+          {isSubmitting ? t("homepage.sending", getLocale()) : t("homepage.startFree", getLocale())} {!isSubmitting && <ArrowRight className="w-4 h-4" aria-hidden />}
         </button>
       </form>
       {emailError && <p className="mt-2 text-xs text-red-500 pl-6">{emailError}</p>}

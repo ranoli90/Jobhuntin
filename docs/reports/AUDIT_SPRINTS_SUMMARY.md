@@ -121,10 +121,22 @@ Remaining audit items were grouped into 6 sprints and addressed systematically.
 
 ---
 
+## Sprint 10: Maintenance, Homepage i18n + S1/S3 docs
+
+| Item | Status | Notes |
+|------|--------|------|
+| Maintenance i18n | ✅ Fixed | All copy wired to i18n (en/fr) |
+| Homepage i18n | ✅ Fixed | Email form: check inbox, magic link sent, enter valid email, start free, sending |
+| Homepage dark mode | ✅ Fixed | Email success state dark mode styles |
+| S1 | ✅ Documented | api.ts: JWT localStorage risk + TODO for httpOnly migration |
+| S3 | ✅ Documented | middleware.py: CSP unsafe-inline TODO for nonce-based |
+
+---
+
 ## Remaining Items (Not Addressed)
 
-- **Critical:** S1 (JWT → httpOnly migration), S3 (CSP nonces)
-- **Low/Nitpick:** Copy polish on other pages
+- **Critical (architectural):** S1 httpOnly migration, S3 nonce-based CSP — require backend/frontend coordination
+- **Low/Nitpick:** Copy polish on Pricing, other marketing pages
 
 ---
 

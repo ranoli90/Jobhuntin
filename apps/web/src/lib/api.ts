@@ -91,6 +91,11 @@ export function getApiBase(): string {
   return API_BASE;
 }
 
+/**
+ * S1 (Audit): JWT stored in localStorage — vulnerable to XSS session hijack if any XSS exists.
+ * Mitigations: strict CSP, no eval, input sanitization. TODO: Migrate to httpOnly cookie;
+ * requires backend to set Set-Cookie on auth, frontend to use credentials: "include".
+ */
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem(AUTH_TOKEN_KEY);
