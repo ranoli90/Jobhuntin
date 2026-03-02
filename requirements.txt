@@ -34,16 +34,16 @@ PyMuPDF>=1.24,<2
 playwright>=1.43,<2
 
 # ── Payments ─────────────────────────────────────────────────────
-stripe>=8.0,<12
+stripe>=8.0,<15
 
 # ── Image Processing (OG images) ─────────────────────────────────
-Pillow>=10.3.0,<11
+Pillow>=10.3.0,<13
 
 # ── Caching ──────────────────────────────────────────────────────
 redis>=5.0.0
 
 # ── Logging ──────────────────────────────────────────────────────
-python-json-logger>=2.0,<3
+python-json-logger>=2.0,<5
 
 # ── Observability / Monitoring ───────────────────────────────────
 opentelemetry-api>=1.24.0
