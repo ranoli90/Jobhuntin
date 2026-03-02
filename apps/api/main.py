@@ -350,10 +350,6 @@ def _mount_sub_routers() -> None:
     Uses app.dependency_overrides so that Depends() references captured at
     route-definition time are correctly replaced at request time.
     """
-    import backend.domain.billing as billing_mod
-
-    app.include_router(billing_mod.router, prefix="/billing", tags=["Billing"])
-
     import api.admin as admin_mod
 
     app.dependency_overrides[admin_mod._get_pool] = get_pool
