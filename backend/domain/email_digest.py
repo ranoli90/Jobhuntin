@@ -187,7 +187,7 @@ async def send_digest_email(
                     return True
                 logger.error("Resend error: %d %s", resp.status_code, resp.text[:200])
                 return False
-    except CircuitBreakerOpen as exc:
+    except CircuitBreakerOpenError as exc:
         logger.warning("Resend circuit breaker open: %s", exc)
         return False
     except Exception as exc:
