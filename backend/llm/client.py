@@ -23,7 +23,7 @@ from pydantic import BaseModel, ValidationError
 from shared.config import Settings
 from shared.logging_config import get_logger
 
-from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.llm")

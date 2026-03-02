@@ -221,3 +221,7 @@ def get_circuit_breaker(name: str, **config_overrides: Any) -> CircuitBreaker:
 def get_all_circuit_breaker_statuses() -> list[dict]:
     """Get status of all circuit breakers for health checks."""
     return [cb.get_status() for cb in _circuit_breakers.values()]
+
+
+# Backward compatibility alias
+CircuitBreakerOpen = CircuitBreakerOpenError
