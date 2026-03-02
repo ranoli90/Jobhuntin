@@ -116,3 +116,7 @@ sonar-report.json
 *.temp
 *.bak
 *.orig
+
+# Generated analysis/audit outputs (regenerate as needed)
+analysis_output/
+render_audit_results.json

@@ -97,8 +97,10 @@
 ## Documentation Index
 
 - `docs/INDEX.md` – entry point into strategy notes, playbooks, and audits.
-- `docs/reports/root-docs/audit_report.md` – security + readiness audits.
-- `plans/` – architecture/system plans used during remediation projects.
+- `docs/reports/PRODUCTION_READINESS_AUDIT_2026-02-28.md` – canonical production readiness audit (312 findings).
+- `docs/reports/AUDIT_SPRINTS_SUMMARY.md` – audit fix implementation status.
+- `docs/reports/root-docs/` – anti-patterns, magic link, env setup.
+- `plans/` – architecture/system plans.
 
 ---
 

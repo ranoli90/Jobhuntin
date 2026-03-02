@@ -51,6 +51,7 @@ Copy `.env.example` to `.env` and set at minimum:
 - `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/sorce`
 - `ENV=local`
 - `CSRF_SECRET`, `JWT_SECRET` (generate with `python scripts/generate_secrets.py` if available)
+- `API_PUBLIC_URL` - Public API URL for magic-link httpOnly cookie flow (e.g. `http://localhost:8000` locally; set to production API URL in prod)
 
 ### FastAPI backend
 
