@@ -1049,7 +1049,7 @@ export default function Onboarding() {
                           </>
                         )}
 
-                  {currentStepData.id === "skill-review" && (
+                        {currentStepData.id === "skill-review" && (
                     <SkillReviewStep
                       onNext={handleSaveSkills}
                       onPrev={prevStep}

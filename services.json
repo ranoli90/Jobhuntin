@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "service": {
       "autoDeploy": "yes",
@@ -16,7 +16,7 @@
         "buildPlan": "starter",
         "env": "node",
         "envSpecificDetails": {
-          "buildCommand": "npm ci",
+          "buildCommand": "npm install",
           "startCommand": "npm run seo:engine"
         },
         "numInstances": 1,
