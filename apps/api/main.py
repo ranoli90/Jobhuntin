@@ -22,6 +22,7 @@ from typing import Any
 import asyncpg
 from fastapi import (
     BackgroundTasks,
+    Cookie,
     Depends,
     FastAPI,
     File,
@@ -700,9 +701,13 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 # ---------------------------------------------------------------------------
 
 
-async def get_current_user_id(authorization: str = Header(...)) -> str:
+async def get_current_user_id(
+    authorization: str | None = Header(None, alias="Authorization"),
+    jobhuntin_auth: str | None = Cookie(None),
+) -> str:
     """
     Decode a JWT and return the `sub` claim as user_id.
+    S1: Accepts token from Authorization header OR jobhuntin_auth httpOnly cookie.
     """
     import jwt as pyjwt
 
@@ -710,7 +715,15 @@ async def get_current_user_id(authorization: str = Header(...)) -> str:
     if not s.jwt_secret:
         raise HTTPException(status_code=500, detail="JWT secret not configured")
 
-    token = authorization.replace("Bearer ", "")
+    token: str | None = None
+    if jobhuntin_auth:
+        token = jobhuntin_auth
+    elif authorization and authorization.startswith("Bearer "):
+        token = authorization.replace("Bearer ", "")
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing authentication")
+
     try:
         payload = pyjwt.decode(
             token, s.jwt_secret, algorithms=["HS256"], audience="authenticated"

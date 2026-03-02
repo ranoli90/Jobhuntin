@@ -11,7 +11,9 @@ from typing import Any
 from urllib.parse import quote
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request
+import jwt as pyjwt
+from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr
 from shared.middleware import get_client_ip
 from shared.config import Settings, settings_dependency
@@ -179,7 +181,7 @@ async def _get_pool():
 
 
 async def _generate_magic_link(
-    settings: Settings, email: str, redirect_to: str, db: Any
+    settings: Settings, email: str, redirect_to: str, db: Any, return_to: str | None = None
 ) -> str:
     """Generate a magic link with a signed JWT."""
     import uuid
@@ -259,7 +261,20 @@ async def _generate_magic_link(
         extra={"user_id": str(user_id), "email": _mask_email(email), "token_length": len(token)},
     )
 
-    # Append token to redirect URL
+    # S1: When api_public_url is set, use verify-magic endpoint (httpOnly cookie flow)
+    api_url = getattr(settings, "api_public_url", "").rstrip("/")
+    if api_url:
+        verify_url = f"{api_url}/auth/verify-magic?token={quote(token, safe='')}"
+        safe_return = _sanitize_return_to(return_to) if return_to else None
+        if safe_return:
+            verify_url += f"&returnTo={quote(safe_return, safe='')}"
+        logger.info(
+            "[MAGIC_LINK] Using httpOnly cookie flow (verify-magic)",
+            extra={"user_id": str(user_id), "email": _mask_email(email)},
+        )
+        return verify_url
+
+    # Legacy: append token to frontend redirect URL
     separator = "&" if "?" in redirect_to else "?"
     magic_link = f"{redirect_to}{separator}token={token}"
     logger.info(
@@ -438,6 +453,74 @@ https://jobhuntin.com
     # Note: Metric is incremented in request_magic_link endpoint with email_domain tag
 
 
+AUTH_COOKIE_NAME = "jobhuntin_auth"
+
+
+@router.get("/verify-magic")
+async def verify_magic_link(
+    token: str,
+    returnTo: str | None = None,
+    settings: Settings = Depends(settings_dependency),
+    db: Any = Depends(_get_pool),
+) -> RedirectResponse:
+    """
+    S1: Verify magic link token, set httpOnly cookie, redirect to app.
+    User clicks link in email -> hits this endpoint -> cookie set -> redirect.
+    """
+    if not token or not settings.jwt_secret:
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
+        if returnTo:
+            redirect_url += f"?returnTo={quote(returnTo, safe='')}"
+        return RedirectResponse(url=redirect_url, status_code=302)
+
+    try:
+        payload = pyjwt.decode(
+            token, settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+        )
+        user_id = payload.get("sub")
+        jti = payload.get("jti")
+        if not user_id:
+            raise ValueError("Missing sub")
+    except pyjwt.PyJWTError as exc:
+        logger.warning("Verify-magic JWT invalid: %s", exc)
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=invalid_token"
+        return RedirectResponse(url=redirect_url, status_code=302)
+
+    if jti and not await _mark_token_consumed(jti, settings):
+        logger.warning("Verify-magic replay attempt jti=%s", jti)
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=token_used"
+        return RedirectResponse(url=redirect_url, status_code=302)
+
+    safe_return = _sanitize_return_to(returnTo)
+    dest = safe_return or "/app/dashboard"
+    redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}"
+
+    ttl = getattr(settings, "magic_link_token_ttl_seconds", 3600)
+    is_prod = settings.env.value in ("prod", "staging")
+    response = RedirectResponse(url=redirect_url, status_code=302)
+    response.set_cookie(
+        key=AUTH_COOKIE_NAME,
+        value=token,
+        max_age=ttl,
+        httponly=True,
+        secure=is_prod,
+        samesite="none" if is_prod else "lax",
+        path="/",
+    )
+    return response
+
+
+@router.api_route("/logout", methods=["GET", "POST"])
+async def logout(
+    settings: Settings = Depends(settings_dependency),
+) -> RedirectResponse:
+    """Clear auth cookie and redirect to login. Supports GET for redirect-based logout."""
+    redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
+    response = RedirectResponse(url=redirect_url, status_code=302)
+    response.delete_cookie(key=AUTH_COOKIE_NAME, path="/")
+    return response
+
+
 @router.post("/magic-link", response_model=MagicLinkResponse)
 async def request_magic_link(
     request: Request,
@@ -484,7 +567,7 @@ async def request_magic_link(
         )
 
     redirect = _build_redirect_url(settings, body.return_to)
-    action_link = await _generate_magic_link(settings, body.email, redirect, db)
+    action_link = await _generate_magic_link(settings, body.email, redirect, db, body.return_to)
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
     incr("auth.magic_link.sent", {"email_domain": body.email.split("@")[-1]})
     return MagicLinkResponse()

@@ -151,7 +151,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         clearAuthToken();
         setUser(null);
         localStorage.removeItem('jobhuntin-session');
-        window.location.href = "/login";
+        // S1: Redirect to API logout to clear httpOnly cookie, then to /login
+        const base = getApiBase();
+        if (base) {
+            window.location.href = `${base.replace(/\/$/, "")}/auth/logout`;
+        } else {
+            window.location.href = "/login";
+        }
     };
 
     const updateUser = (updates: Partial<User>) => {

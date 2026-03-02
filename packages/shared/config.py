@@ -44,6 +44,8 @@ class Settings(BaseSettings):
 
     # ── Web App ──────────────────────────────────────────────────
     app_base_url: str = "http://localhost:5173"
+    # Public URL of the API (for magic link verify redirect). Set API_PUBLIC_URL in prod.
+    api_public_url: str = "http://localhost:8000"
 
     # ── Redis ────────────────────────────────────────────────────
     redis_url: str | None = None

@@ -92,9 +92,8 @@ export function getApiBase(): string {
 }
 
 /**
- * S1 (Audit): JWT stored in localStorage — vulnerable to XSS session hijack if any XSS exists.
- * Mitigations: strict CSP, no eval, input sanitization. TODO: Migrate to httpOnly cookie;
- * requires backend to set Set-Cookie on auth, frontend to use credentials: "include".
+ * S1 (Audit): JWT in localStorage when api_public_url unset (legacy). When API_PUBLIC_URL is set,
+ * magic link uses /auth/verify-magic → httpOnly cookie. Token from cookie is sent via credentials.
  */
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;

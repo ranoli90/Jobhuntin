@@ -141,10 +141,20 @@ Remaining audit items were grouped into 6 sprints and addressed systematically.
 
 ---
 
+## Sprint 12: Critical S1 + S3
+
+| Item | Status | Notes |
+|------|--------|------|
+| S1 | ✅ Fixed | httpOnly cookie flow: API_PUBLIC_URL → /auth/verify-magic sets cookie; get_current_user_id accepts cookie or header; /auth/logout clears cookie |
+| S3 | ✅ Fixed | Removed 'unsafe-inline' from script-src in API CSP (API serves JSON only) |
+
+**S1 activation:** Set `API_PUBLIC_URL` to your API's public URL (e.g. https://sorce-api.onrender.com). Magic links will then use the verify-magic endpoint and httpOnly cookies.
+
+---
+
 ## Remaining Items (Not Addressed)
 
-- **Critical (architectural):** S1 httpOnly migration, S3 nonce-based CSP — require backend/frontend coordination
-- **Low/Nitpick:** Copy polish on other marketing pages (Success Stories, Chrome Extension, etc.)
+- **Low/Nitpick:** Copy polish on other marketing pages
 
 ---
 

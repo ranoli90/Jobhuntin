@@ -186,12 +186,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        # S3 (Audit): script-src 'unsafe-inline' required for gtag. TODO: Implement nonce-based
-        # CSP — Vite/React can inject nonces; remove unsafe-inline for stricter XSS protection.
-        # Restrict script-src to minimal set of trusted origins.
+        # S3 (Audit): Removed 'unsafe-inline' from script-src for stricter XSS protection.
+        # API serves JSON; no inline scripts. Frontend CSP is separate (Vite/static).
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; "
+            "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: https: blob:; "
