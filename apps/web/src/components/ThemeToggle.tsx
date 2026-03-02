@@ -9,13 +9,13 @@ type ThemeMode = 'light' | 'dark' | 'system';
 
 export function ThemeToggle({ className }: { className?: string }) {
   const [theme, setTheme] = useState<ThemeMode>(() => {
-    if (typeof window === 'undefined') return 'system';
+    if (typeof globalThis.window === 'undefined') return 'system';
     const stored = localStorage.getItem(THEME_KEY);
     if (stored === 'dark' || stored === 'light' || stored === 'system') return stored as ThemeMode;
     return 'system';
   });
 
-  const resolvedDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const resolvedDark = theme === 'dark' || (theme === 'system' && typeof globalThis.window !== 'undefined' && globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -29,7 +29,7 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   useEffect(() => {
     if (theme !== 'system') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const mq = globalThis.window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
       root.classList.toggle('dark', mq.matches);
     };

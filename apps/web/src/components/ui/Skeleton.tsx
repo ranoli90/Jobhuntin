@@ -107,7 +107,7 @@ export function ResumeStepSkeleton() {
                         <Skeleton className="h-4 w-24 mb-2" />
                         <div className="flex flex-wrap gap-2">
                             {Array.from({ length: 6 }).map((_, i) => (
-                                <Skeleton key={i} className="h-6 w-16 rounded-full" />
+                                <Skeleton key={`skill-skeleton-${i}`} className="h-6 w-16 rounded-full" />
                             ))}
                         </div>
                     </div>
@@ -130,7 +130,7 @@ export function PreferencesStepSkeleton() {
             {/* AI Suggestions */}
             <div className="grid md:grid-cols-2 gap-4">
                 {Array.from({ length: 2 }).map((_, i) => (
-                    <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div key={`ai-suggestion-${i}`} className="rounded-xl border border-slate-200 bg-white p-4">
                         <div className="flex items-center gap-3 mb-3">
                             <Skeleton className="w-8 h-8 rounded-lg" />
                             <div className="flex-1">
@@ -140,7 +140,7 @@ export function PreferencesStepSkeleton() {
                         </div>
                         <div className="space-y-2">
                             {Array.from({ length: 3 }).map((_, j) => (
-                                <Skeleton key={j} className="h-4 w-full" />
+                                <Skeleton key={`ai-suggestion-${i}-item-${j}`} className="h-4 w-full" />
                             ))}
                         </div>
                         <div className="flex gap-2 mt-3">
@@ -172,7 +172,7 @@ export function PreferencesStepSkeleton() {
             {/* Toggle Options */}
             <div className="space-y-3">
                 {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100">
+                    <div key={`preference-${i}`} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100">
                         <Skeleton className="w-8 h-8 rounded-lg" />
                         <div className="flex-1">
                             <Skeleton className="h-4 w-32 mb-1" />
@@ -199,7 +199,7 @@ export function SkillReviewStepSkeleton() {
             {/* Skills Grid */}
             <div className="grid gap-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div key={`skill-review-${i}`} className="rounded-xl border border-slate-200 bg-white p-4">
                         <div className="flex items-center gap-3">
                             <Skeleton className="w-10 h-10 rounded-lg" />
                             <div className="flex-1">

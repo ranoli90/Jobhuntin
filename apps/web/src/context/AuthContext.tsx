@@ -66,14 +66,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             localStorage.removeItem('jobhuntin-session');
             // Store the current URL to redirect back after re-auth
-            const returnTo = window.location.pathname + window.location.search;
+            const returnTo = globalThis.window.location.pathname + globalThis.window.location.search;
             sessionStorage.setItem('returnTo', returnTo);
             // Show user-facing error with redirect option
             const msg = error instanceof Error ? error.message : "Your session has expired";
             pushToast({ title: "Session expired", description: `${msg}. Please sign in again.`, tone: "error" });
             // Redirect to login after short delay
             setTimeout(() => {
-                window.location.href = '/login';
+                globalThis.window.location.href = '/login';
             }, 2000);
         }
     }, []);

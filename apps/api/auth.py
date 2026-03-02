@@ -551,7 +551,7 @@ async def request_magic_link(
             "Magic link IP rate limit hit",
             extra={"retry_after": retry_after},
         )
-        incr("auth.magic_link.ip_rate_limited", {})
+        incr("auth.magic_link.ip_rate_limited", tags={})
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait before requesting another magic link.",
@@ -565,9 +565,7 @@ async def request_magic_link(
             "Magic link rate limit hit",
             extra={"email": body.email, "retry_after": retry_after},
         )
-        incr(
-            "auth.magic_link.rate_limited", {"email_domain": body.email.split("@")[-1]}
-        )
+        incr("auth.magic_link.rate_limited", 1, tags={"email_domain": body.email.split("@")[-1]})
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait before requesting another magic link.",
@@ -577,5 +575,5 @@ async def request_magic_link(
     redirect = _build_redirect_url(settings, body.return_to)
     action_link = await _generate_magic_link(settings, body.email, redirect, db, body.return_to)
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
-    incr("auth.magic_link.sent", {"email_domain": body.email.split("@")[-1]})
+    incr("auth.magic_link.sent", tags={"email_domain": body.email.split("@")[-1]})
     return MagicLinkResponse()

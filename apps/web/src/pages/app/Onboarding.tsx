@@ -184,7 +184,7 @@ export default function Onboarding() {
   const [showRetryComponent, setShowRetryComponent] = React.useState(false);
 
   // Skeleton loading states for better UX
-  const [stepLoadingStates, setStepLoadingStates] = React.useState<Record<string, boolean>>({});
+  const [stepLoadingStates] = React.useState<Record<string, boolean>>({});
 
   // Helper function to determine if current step should show skeleton
   const shouldShowSkeleton = React.useCallback(() => {
@@ -786,8 +786,8 @@ export default function Onboarding() {
       const prefs: import("../../hooks/useProfile").Preferences = {
         location: trimmedPrefs.location,
         role_type: trimmedPrefs.role_type,
-        salary_min: parseInt(trimmedPrefs.salary_min) || 0,
-        salary_max: trimmedPrefs.salary_max?.trim() ? parseInt(trimmedPrefs.salary_max.trim()) : undefined,
+        salary_min: Number.parseInt(trimmedPrefs.salary_min) || 0,
+        salary_max: trimmedPrefs.salary_max?.trim() ? Number.parseInt(trimmedPrefs.salary_max.trim()) : undefined,
         remote_only: trimmedPrefs.remote_only,
         onsite_only: trimmedPrefs.onsite_only,
         work_authorized: trimmedPrefs.work_authorized,
@@ -888,7 +888,7 @@ export default function Onboarding() {
               <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" aria-hidden />
               <span className="text-[9px] font-black text-primary-700 uppercase tracking-wider">Setup</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => { if (window.confirm('Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100 dark:hover:bg-slate-800" title="Clear progress and start over" aria-label="Restart onboarding and clear progress">
+            <Button variant="ghost" size="sm" onClick={() => { if (globalThis.confirm('Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100 dark:hover:bg-slate-800" title="Clear progress and start over" aria-label="Restart onboarding and clear progress">
               Restart
             </Button>
           </div>

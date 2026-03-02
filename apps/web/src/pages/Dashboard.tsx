@@ -1,5 +1,5 @@
 import { FocusTrap } from "focus-trap-react";
-import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle, Radar, MoreVertical, Eye, Pause, Trash2, Filter, ArrowUpDown, MapPin, BriefcaseIcon } from "lucide-react";
+import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle, Radar, MoreVertical, Eye, Pause, Trash2, Filter, MapPin, BriefcaseIcon } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -80,8 +80,8 @@ function JobCard({
         onSwipe('REJECT');
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.window.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.window.removeEventListener('keydown', handleKeyDown);
   }, [isTop, onSwipe]);
 
   return (
@@ -558,19 +558,20 @@ export function JobsView() {
 
   const handleSalaryChange = useCallback((value: string) => {
     setLocalSalaryMin(value);
-    const salaryNum = value ? parseInt(value) : undefined;
+    const salaryNum = value ? Number.parseInt(value) : undefined;
     debouncedUpdateFilters({ minSalary: salaryNum });
   }, [debouncedUpdateFilters]);
 
   const handleSortChange = useCallback((value: "match_score" | "recently_matched" | "salary") => {
     setSortBy(value);
-    // TODO: Implement sorting logic in useJobs hook
+    // Update filters with sorting preference
+    debouncedUpdateFilters({ sort_by: value });
     pushToast({ 
       title: "Sort updated", 
       description: `Sorting by ${value.replace('_', ' ')}`, 
       tone: "success" 
     });
-  }, []);
+  }, [debouncedUpdateFilters]);
 
   const resetFilters = useCallback(() => {
     setLocalLocation("");
@@ -1022,7 +1023,7 @@ export function JobsView() {
             announcement.className = 'sr-only';
             announcement.textContent = 'Action cancelled';
             document.body.appendChild(announcement);
-            setTimeout(() => document.body.removeChild(announcement), 1000);
+            setTimeout(() => announcement.remove(), 1000);
           }
         }}
       >

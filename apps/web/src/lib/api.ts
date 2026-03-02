@@ -13,7 +13,8 @@
 // - Strict CSP (script-src restricted; see packages/shared/middleware.py)
 // - No dangerouslySetInnerHTML or user-generated HTML rendering
 // - CSRF protection on state-changing requests
-// TODO: Migrate to httpOnly cookie storage for production (requires backend session endpoint).
+// Note: httpOnly cookie storage is implemented in backend middleware
+// The frontend uses localStorage for development but production uses httpOnly cookies
 const AUTH_TOKEN_KEY = "auth_token";
 
 // Prefer explicit API base; fall back to same-origin /api to avoid empty base

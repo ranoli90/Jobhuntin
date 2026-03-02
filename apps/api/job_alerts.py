@@ -56,7 +56,7 @@ async def create_alert(
     ctx: TenantContext = Depends(get_tenant_context),
     service: JobAlertService = Depends(get_alert_service),
 ) -> dict[str, Any]:
-    incr("api.job_alerts.create", {"tenant_id": ctx.tenant_id})
+    incr("api.job_alerts.create", tags={"tenant_id": ctx.tenant_id})
 
     alert = JobAlert(
         user_id=ctx.user_id,
@@ -88,7 +88,7 @@ async def list_alerts(
     ctx: TenantContext = Depends(get_tenant_context),
     service: JobAlertService = Depends(get_alert_service),
 ) -> list[dict[str, Any]]:
-    incr("api.job_alerts.list", {"tenant_id": ctx.tenant_id})
+    incr("api.job_alerts.list", tags={"tenant_id": ctx.tenant_id})
     alerts = await service.get_user_alerts(ctx.user_id)
 
     return [
@@ -111,7 +111,7 @@ async def delete_alert(
     ctx: TenantContext = Depends(get_tenant_context),
     service: JobAlertService = Depends(get_alert_service),
 ) -> dict[str, str]:
-    incr("api.job_alerts.delete", {"tenant_id": ctx.tenant_id})
+    incr("api.job_alerts.delete", tags={"tenant_id": ctx.tenant_id})
     success = await service.delete_alert(alert_id, ctx.user_id)
 
     if not success:
@@ -125,7 +125,7 @@ async def process_alerts(
     frequency: str,
     pool: asyncpg.Pool = Depends,
 ) -> dict[str, int]:
-    incr("api.job_alerts.process", {"frequency": frequency})
+    incr("api.job_alerts.process", tags={"frequency": frequency})
 
     try:
         freq = AlertFrequency(frequency)

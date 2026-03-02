@@ -12,6 +12,7 @@ export interface JobFilters {
   source?: string;
   isRemote?: boolean;
   jobType?: string;
+  sortBy?: "match_score" | "recently_matched" | "salary";
 }
 
 export interface JobPosting {
@@ -55,6 +56,7 @@ async function fetchJobs(filters: JobFilters, offset = 0, limit = 25): Promise<J
   if (filters.source) params.set("source", filters.source);
   if (filters.isRemote !== undefined) params.set("is_remote", String(filters.isRemote));
   if (filters.jobType) params.set("job_type", filters.jobType);
+  if (filters.sortBy) params.set("sort_by", filters.sortBy);
   params.set("limit", String(limit));
   params.set("offset", String(offset));
   const query = params.toString();
@@ -76,7 +78,8 @@ export function useJobs(filters: JobFilters) {
     source: filters.source,
     isRemote: filters.isRemote,
     jobType: filters.jobType,
-  }), [filters.location, filters.minSalary, filters.keywords, filters.source, filters.isRemote, filters.jobType]);
+    sortBy: filters.sortBy,
+  }), [filters.location, filters.minSalary, filters.keywords, filters.source, filters.isRemote, filters.jobType, filters.sortBy]);
 
   const query = useInfiniteQuery({
     queryKey: ["jobs", memoFilters],

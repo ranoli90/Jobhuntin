@@ -67,8 +67,8 @@ export function CookieConsent() {
     }));
     
     // Update Google Analytics consent
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('consent', 'update', { 
+    if (typeof globalThis.window !== 'undefined' && (globalThis.window as any).gtag) {
+      (globalThis.window as any).gtag('consent', 'update', { 
         analytics_storage: prefs.analytics ? 'granted' : 'denied', 
         ad_storage: prefs.marketing ? 'granted' : 'denied' 
       });

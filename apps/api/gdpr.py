@@ -169,7 +169,7 @@ async def export_user_data(
         extra={"user_id": user_id, "export_id": export_id, "format": request.format},
     )
 
-    incr("gdpr.export_requested", {"tenant_id": tenant_id})
+    incr("gdpr.export_requested", tags={"tenant_id": tenant_id})
 
     export_data: dict[str, Any] = {
         "export_id": export_id,
@@ -200,7 +200,7 @@ async def export_user_data(
 
     json.dumps(export_data, indent=2, default=str)
 
-    incr("gdpr.export_completed", {"tenant_id": tenant_id})
+    incr("gdpr.export_completed", tags={"tenant_id": tenant_id})
 
     return DataExportResponse(
         export_id=export_id,
@@ -239,7 +239,7 @@ async def delete_user_data(
         },
     )
 
-    incr("gdpr.deletion_requested", {"tenant_id": tenant_id})
+    incr("gdpr.deletion_requested", tags={"tenant_id": tenant_id})
 
     deleted_counts: dict[str, int] = {}
 
@@ -273,7 +273,7 @@ async def delete_user_data(
         },
     )
 
-    incr("gdpr.deletion_completed", {"tenant_id": tenant_id})
+    incr("gdpr.deletion_completed", tags={"tenant_id": tenant_id})
 
     return DeletionResponse(
         deletion_id=deletion_id,

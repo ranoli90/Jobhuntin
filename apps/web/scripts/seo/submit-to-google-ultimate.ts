@@ -54,9 +54,12 @@ function parseSitemap(): UrlInfo[] {
     const urlMatches = content.match(/<url>[\s\S]*?<\/url>/g) || [];
     
     return urlMatches.map(urlBlock => {
-        const loc = urlBlock.match(/<loc>(.*?)<\/loc>/)?.[1] || '';
-        const priority = parseFloat(urlBlock.match(/<priority>(.*?)<\/priority>/)?.[1] || '0.5');
-        const changefreq = urlBlock.match(/<changefreq>(.*?)<\/changefreq>/)?.[1] || 'weekly';
+        const locMatch = /<loc>(.*?)<\/loc>/.exec(urlBlock);
+        const loc = locMatch?.[1] || '';
+        const priorityMatch = /<priority>(.*?)<\/priority>/.exec(urlBlock);
+        const priority = parseFloat(priorityMatch?.[1] || '0.5');
+        const changefreqMatch = /<changefreq>(.*?)<\/changefreq>/.exec(urlBlock);
+        const changefreq = changefreqMatch?.[1] || 'weekly';
         
         let urlPriority: UrlInfo['priority'] = 'low';
         let type: UrlInfo['type'] = 'static';

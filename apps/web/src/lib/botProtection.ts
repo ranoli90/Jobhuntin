@@ -41,7 +41,7 @@ class BotProtection {
 
   private initCaptchaConfig(): void {
     // Initialize captcha configuration based on environment
-    if (typeof window !== 'undefined') {
+    if (typeof globalThis.window !== 'undefined') {
       // Check for captcha provider in environment or config
       const hcaptchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
       const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
@@ -73,14 +73,14 @@ class BotProtection {
    * Generate a browser fingerprint for bot detection
    */
   generateFingerprint(): string {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis.window === 'undefined') {
       return 'server-side';
     }
 
     const fingerprintData: FingerprintData = {
       userAgent: navigator.userAgent,
       language: navigator.language,
-      platform: navigator.platform,
+      platform: (navigator as any).userAgentData?.platform || navigator.platform,
       screenResolution: `${screen.width}x${screen.height}`,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
@@ -127,7 +127,7 @@ class BotProtection {
   private simpleHash(str: string): string {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
+      const char = str.codePointAt(i) || 0;
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
@@ -142,10 +142,10 @@ class BotProtection {
       // In production, this should come from your backend API
       // For now, we'll use a public IP service as fallback
       const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
+      const data = await response.json() as { ip?: string };
       return data.ip || 'unknown';
-    } catch (error) {
-      console.warn('[BotProtection] Failed to get client IP:', error);
+    } catch {
+      // Expected error in incognito mode
       return 'unknown';
     }
   }
@@ -198,7 +198,7 @@ class BotProtection {
    * Detect automated user agents
    */
   private isAutomatedUserAgent(): boolean {
-    if (typeof window === 'undefined') return false;
+    if (typeof globalThis.window === 'undefined') return false;
 
     const userAgent = navigator.userAgent.toLowerCase();
     const botPatterns = [
@@ -222,13 +222,13 @@ class BotProtection {
    * Attempt to detect incognito/private mode
    */
   private detectIncognitoMode(): boolean {
-    if (typeof window === 'undefined') return false;
+    if (typeof globalThis.window === 'undefined') return false;
 
     try {
       // Chrome/Edge detection
-      const fs = window.webkitRequestFileSystem || window.webkitResolveLocalFileSystemURL;
+      const fs = (globalThis.window as any).webkitRequestFileSystem || (globalThis.window as any).webkitResolveLocalFileSystemURL;
       if (fs) {
-        fs(window.TEMPORARY, 100, () => {}, () => {
+        fs((globalThis.window as any).TEMPORARY, 100, () => {}, () => {
           return true; // Incognito detected
         });
       }
@@ -362,20 +362,6 @@ class BotProtection {
   /**
    * Verify captcha token with backend
    */
-  async verifyCaptcha(token: string): Promise<boolean> {
-    try {
-      const { apiPost } = await import('./api');
-      const response = await apiPost('/auth/verify-captcha', { token });
-      return response.success === true;
-    } catch (error) {
-      console.error('[BotProtection] Captcha verification failed:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Enhanced rate limiting that considers IP and fingerprint
-   */
   async checkRateLimit(
     identifier: string,
     options: BotProtectionOptions = {}
@@ -396,7 +382,7 @@ class BotProtection {
         rateLimitPerIP: opts.rateLimitPerIP,
         rateLimitPerFingerprint: opts.rateLimitPerFingerprint,
         windowMs: opts.windowMs,
-      });
+      }) as { allowed: boolean; resetIn?: number; reason?: string };
 
       telemetry.track('Rate Limit Check', {
         identifier: identifier.replace(/(.{2}).+(@.+)/, '$1***$2'),

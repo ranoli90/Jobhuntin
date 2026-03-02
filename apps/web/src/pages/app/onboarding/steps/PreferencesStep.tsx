@@ -14,8 +14,8 @@ const validateSalary = (value: string, fieldName: string): { isValid: boolean; e
     return { isValid: false, error: `${fieldName === 'salary_min' ? 'Minimum' : 'Maximum'} salary is required` };
   }
   
-  const numValue = parseFloat(value);
-  if (isNaN(numValue)) {
+  const numValue = Number.parseFloat(value);
+  if (Number.isNaN(numValue)) {
     return { isValid: false, error: 'Please enter a valid number' };
   }
   
@@ -33,10 +33,10 @@ const validateSalary = (value: string, fieldName: string): { isValid: boolean; e
 const validateSalaryRange = (min: string, max: string): { isValid: boolean; error?: string } => {
   if (!min || !max) return { isValid: true }; // Skip validation if either field is empty
   
-  const minNum = parseFloat(min);
-  const maxNum = parseFloat(max);
+  const minNum = Number.parseFloat(min);
+  const maxNum = Number.parseFloat(max);
   
-  if (!isNaN(minNum) && !isNaN(maxNum) && minNum > maxNum) {
+  if (!Number.isNaN(minNum) && !Number.isNaN(maxNum) && minNum > maxNum) {
     return { isValid: false, error: 'Minimum salary cannot be greater than maximum salary' };
   }
   

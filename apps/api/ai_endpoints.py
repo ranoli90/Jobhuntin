@@ -112,7 +112,7 @@ class OnboardingQuestionsRequest(BaseModel):
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 
-@router.post("/roles/suggest", response_model=RoleSuggestionResponse_V1)
+@router.post("/roles/suggest", response_model=RoleSuggestionResponse_V1, responses={500: {"description": "Failed to generate role suggestions"}})
 async def suggest_roles(
     request: RoleSuggestionRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -126,6 +126,12 @@ async def suggest_roles(
         llm = _get_llm_client()
 
         # Build prompt
+        profile_dict = {
+            "resume_text": sanitized_text,
+            "skills": request.skills,
+            "experience_years": request.experience_years,
+            "education_level": request.education_level,
+        }
         prompt = build_role_suggestion_prompt(
             resume_text=sanitized_text,
             skills=request.skills,
@@ -157,7 +163,7 @@ async def suggest_roles(
         raise HTTPException(status_code=500, detail="Failed to generate role suggestions")
 
 
-@router.post("/salary/suggest", response_model=SalarySuggestionResponse_V1)
+@router.post("/salary/suggest", response_model=SalarySuggestionResponse_V1, responses={500: {"description": "Failed to generate salary suggestions"}})
 async def suggest_salary(
     request: SalarySuggestionRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -172,12 +178,17 @@ async def suggest_salary(
         llm = _get_llm_client()
 
         # Build prompt
+        profile_dict = {
+            "skills": request.skills,
+            "experience_years": request.experience_years,
+            "education_level": request.education_level,
+        }
         prompt = build_salary_suggestion_prompt(
-            role=sanitized_role,
-            location=sanitized_location,
             skills=request.skills,
             experience_years=request.experience_years,
             education_level=request.education_level,
+            target_role=sanitized_role,
+            location=sanitized_location,
         )
 
         # Get AI response
@@ -204,7 +215,7 @@ async def suggest_salary(
         raise HTTPException(status_code=500, detail="Failed to generate salary suggestions")
 
 
-@router.post("/locations/suggest", response_model=LocationSuggestionResponse_V1)
+@router.post("/locations/suggest", response_model=LocationSuggestionResponse_V1, responses={500: {"description": "Failed to generate location suggestions"}})
 async def suggest_locations(
     request: LocationSuggestionRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -219,6 +230,12 @@ async def suggest_locations(
         llm = _get_llm_client()
 
         # Build prompt
+        profile_dict = {
+            "skills": sanitized_skills,
+            "role": sanitized_role,
+            "experience_years": request.experience_years,
+            "remote_preference": request.remote_preference,
+        }
         prompt = build_location_suggestion_prompt(
             skills=sanitized_skills,
             role=sanitized_role,
@@ -250,7 +267,7 @@ async def suggest_locations(
         raise HTTPException(status_code=500, detail="Failed to generate location suggestions")
 
 
-@router.post("/jobs/match", response_model=JobMatchScore_V1)
+@router.post("/jobs/match", response_model=JobMatchScore_V1, responses={404: {"description": "Profile not found"}, 500: {"description": "Failed to generate job matches"}})
 async def match_jobs(
     request: JobMatchRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -283,8 +300,8 @@ async def match_jobs(
                     continue
 
                 prompt = build_job_match_prompt(
-                    profile=profile,
-                    job=job_details,
+                    profile,
+                    job_details,
                 )
 
                 # Get AI response
@@ -317,7 +334,7 @@ async def match_jobs(
         raise HTTPException(status_code=500, detail="Failed to generate job matches") from e
 
 
-@router.post("/onboarding/questions", response_model=OnboardingQuestionsResponse_V1)
+@router.post("/onboarding/questions", response_model=OnboardingQuestionsResponse_V1, responses={500: {"description": "Failed to generate onboarding questions"}})
 async def generate_onboarding_questions(
     request: OnboardingQuestionsRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -332,6 +349,10 @@ async def generate_onboarding_questions(
         llm = _get_llm_client()
 
         # Build prompt
+        profile_dict = {
+            "resume_text": sanitized_text,
+            "current_step": sanitized_step,
+        }
         prompt = build_onboarding_questions_prompt(
             resume_text=sanitized_text,
             current_step=sanitized_step,

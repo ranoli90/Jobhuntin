@@ -204,7 +204,8 @@ ${'-'.repeat(60)}
         const lines = logs.split('\n').filter(line => line.trim()).slice(-10);
         
         lines.forEach(line => {
-          const timestamp = line.match(/\[(.*?)\]/)?.[1] || '';
+          const timestampMatch = /\[(.*?)\]/.exec(line);
+          const timestamp = timestampMatch?.[1] || '';
           const message = line.replace(/\[.*?\]\s*/, '');
           console.log("  ", timestamp, message);
         });
