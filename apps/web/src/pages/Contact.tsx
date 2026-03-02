@@ -48,13 +48,13 @@ export default function Contact() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700"
           >
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Send className="w-8 h-8 text-emerald-600" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-4">Message Sent!</h1>
-            <p className="text-slate-600 mb-8">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Message Sent!</h1>
+            <p className="text-slate-600 dark:text-slate-400 mb-8">
               We'll get back to you within 24 hours. Keep an eye on your inbox for a response from our team.
             </p>
             <Link to="/">
@@ -69,7 +69,7 @@ export default function Contact() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
         title="Contact JobHuntin | Get in Touch with Our Team"
         description="Have questions about JobHuntin's AI job search automation? Contact our team for support, sales inquiries, or partnership opportunities."
@@ -95,11 +95,11 @@ export default function Contact() {
             <MessageSquare className="w-4 h-4" />
             Get in Touch
           </motion.div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900 text-balance">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900 dark:text-slate-100 text-balance">
             We're here to help you <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">land your dream job.</span>
           </h1>
-          <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium text-balance">
+          <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium text-balance">
             Whether you have questions, need support, or want to explore partnerships, our team is ready to help.
           </p>
         </div>
@@ -111,13 +111,13 @@ export default function Contact() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">Send us a message</h2>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Send us a message</h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Name *
                     </label>
                     <input
@@ -127,13 +127,13 @@ export default function Contact() {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                       placeholder="John Doe"
                     />
                   </div>
                   
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Email *
                     </label>
                     <input
@@ -143,14 +143,14 @@ export default function Contact() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                       placeholder="john@example.com"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="company" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="company" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Company
                   </label>
                   <input
@@ -159,13 +159,13 @@ export default function Contact() {
                     name="company"
                     value={formData.company}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                     placeholder="Acme Corp (optional)"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="type" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Inquiry Type
                   </label>
                   <select
@@ -173,7 +173,7 @@ export default function Contact() {
                     name="type"
                     value={formData.type}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                   >
                     <option value="general">General Question</option>
                     <option value="support">Technical Support</option>
@@ -183,7 +183,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="message" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Message *
                   </label>
                   <textarea
@@ -227,8 +227,8 @@ export default function Contact() {
             transition={{ delay: 0.4 }}
             className="space-y-8"
           >
-            <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">Other ways to reach us</h2>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Other ways to reach us</h2>
               
               <div className="space-y-6">
                 <div className="flex items-start gap-4">

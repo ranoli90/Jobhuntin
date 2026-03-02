@@ -20,7 +20,7 @@ export default function ChromeExtension() {
   }, [shouldReduceMotion]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
         title="Chrome Extension | JobHuntin — One-Click Auto-Apply from LinkedIn & Indeed"
         description="JobHuntin Chrome extension: Auto-apply to jobs with one click from LinkedIn, Indeed, and Glassdoor. AI tailors your resume and writes cover letters instantly."
@@ -63,7 +63,7 @@ export default function ChromeExtension() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-display text-slate-900 mb-6 sm:mb-8 leading-tight tracking-tight text-balance"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-display text-slate-900 dark:text-slate-100 mb-6 sm:mb-8 leading-tight tracking-tight text-balance"
             >
               The "Add to Cart" <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">for your career.</span>
@@ -73,7 +73,7 @@ export default function ChromeExtension() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg sm:text-xl text-slate-500 mb-8 sm:mb-10 leading-relaxed max-w-lg font-medium text-balance"
+              className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 mb-8 sm:mb-10 leading-relaxed max-w-lg font-medium text-balance"
             >
               Browse LinkedIn, Indeed, or Glassdoor. See a job you like?
               Click one button. Our AI handles the resume tailoring, cover letter, and submission.

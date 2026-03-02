@@ -152,14 +152,25 @@ Remaining audit items were grouped into 6 sprints and addressed systematically.
 
 ---
 
+## Sprint 13: Marketing Pages Copy & Dark Mode
+
+| Item | Status | Notes |
+|------|--------|------|
+| Success Stories typo | ✅ Fixed | "Jessica Alverez" → "Alvarez" |
+| Success Stories dark mode | ✅ Fixed | bg, text, StoryCard, borders |
+| Chrome Extension dark mode | ✅ Fixed | Page bg, headings, body text |
+| Contact dark mode | ✅ Fixed | Page, form, inputs, labels |
+| About dark mode | ✅ Fixed | Page bg, headings, body text |
+
+---
+
 ## Remaining Items (Not Addressed)
 
-- **Low/Nitpick:** Copy polish on other marketing pages
+- **Low/Nitpick:** Full i18n for Success Stories, Chrome Extension, About, Contact (en/fr keys)
 
 ---
 
 ## Next Steps
 
-1. Continue with remaining Medium/Low items in subsequent sprints  
-2. Address Critical S1/S3 when architecture allows  
-3. Run full regression: `make lint-backend`, `make test-backend`, `npm run build --workspace=apps/web`
+1. Add i18n keys for remaining marketing pages when needed  
+2. Run full regression: `make lint-backend`, `make test-backend`, `npm run build --workspace=apps/web`

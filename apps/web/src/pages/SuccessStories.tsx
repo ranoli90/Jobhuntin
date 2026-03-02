@@ -32,7 +32,7 @@ export default function SuccessStories() {
       audio: "michael_clip.mp3"
     },
     {
-      name: "Jessica Alverez",
+      name: "Jessica Alvarez",
       role: "Sales Executive",
       company: "Global Sales",
       image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
@@ -61,7 +61,7 @@ export default function SuccessStories() {
   ];
 
   return (
-    <div className="font-sans text-slate-900 overflow-x-hidden">
+    <div className="font-sans text-slate-900 dark:text-slate-100 overflow-x-hidden bg-white dark:bg-slate-950">
       <SEO
         title="Success Stories | Real Users Share How They Got Hired with JobHuntin"
         description="Real JobHuntin success stories: Users landed jobs in 14 days, got salary bumps, and received multiple offers using our AI auto-apply platform. Read their testimonials."
@@ -97,12 +97,12 @@ export default function SuccessStories() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-8xl font-black font-display mb-8 tracking-tighter leading-tight text-slate-900">
+            <h1 className="text-5xl md:text-8xl font-black font-display mb-8 tracking-tighter leading-tight text-slate-900 dark:text-slate-100">
               THEY <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">WON.</span><br />
               YOU'RE NEXT.
             </h1>
           </motion.div>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+          <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">
             Real people. Real offers. No BS.
           </p>
         </div>
@@ -190,7 +190,7 @@ const StoryCard = ({
 
   return (
     <div
-      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white ${isMobile ? 'p-8' : 'p-10'} rounded-3xl border border-slate-100 shadow-xl relative flex-shrink-0 group hover:border-primary-200 transition-colors overflow-hidden`}
+      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white dark:bg-slate-900 ${isMobile ? 'p-8' : 'p-10'} rounded-3xl border border-slate-100 dark:border-slate-700 shadow-xl relative flex-shrink-0 group hover:border-primary-200 dark:hover:border-primary-600 transition-colors overflow-hidden`}
     >
       {/* Hired Stamp */}
       {/* Hired Ribbon */}
@@ -222,24 +222,24 @@ const StoryCard = ({
           </div>
         </div>
         <div>
-          <h3 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'} text-slate-900`}>{story.name}</h3>
-          <p className="text-slate-500">{story.role}</p>
+          <h3 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'} text-slate-900 dark:text-slate-100`}>{story.name}</h3>
+          <p className="text-slate-500 dark:text-slate-400">{story.role}</p>
           {!isMobile && <p className="text-primary-600 text-sm font-bold">@{story.company}</p>}
         </div>
       </div>
 
       <div className={`mb-${isMobile ? '6' : '8'} relative`}>
         <Quote className={`w-${isMobile ? '8' : '10'} h-${isMobile ? '8' : '10'} text-slate-100 absolute -top-4 -left-4 -z-10`} />
-        <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-medium leading-relaxed text-slate-700 relative z-10`}>
+        <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-medium leading-relaxed text-slate-700 dark:text-slate-300 relative z-10`}>
           "{story.quote}"
         </p>
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+      <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-4">
         <div className="flex gap-0.5 text-amber-400">
           {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} fill-current`} />)}
         </div>
-        <div className={`font-mono ${isMobile ? 'text-xs' : 'text-sm'} text-emerald-600 bg-emerald-50 px-${isMobile ? '2' : '3'} py-1 rounded-full font-bold`}>
+        <div className={`font-mono ${isMobile ? 'text-xs' : 'text-sm'} text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-${isMobile ? '2' : '3'} py-1 rounded-full font-bold`}>
           {story.stat}
         </div>
       </div>

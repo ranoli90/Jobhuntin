@@ -81,7 +81,7 @@ export default function About() {
     const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
 
     return (
-        <div className="bg-white overflow-x-hidden">
+        <div className="bg-white dark:bg-slate-950 overflow-x-hidden">
             <SEO
                 title="About JobHuntin | AI Job Search Automation That Works While You Sleep"
                 description="JobHuntin is an AI-powered job search automation platform. Our autonomous agent discovers jobs, tailors resumes, and auto-applies 24/7. Built by job seekers, for job seekers."
@@ -139,12 +139,12 @@ export default function About() {
                         <span>12,000+ job seekers stopped scrolling</span>
                     </motion.div>
 
-                    <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-[0.9] tracking-tighter mb-8">
+                    <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-slate-100 leading-[0.9] tracking-tighter mb-8">
                         The end of the <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">infinite scroll.</span>
                     </h1>
 
-                    <p className="text-xl md:text-2xl text-slate-500 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
+                    <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
                         We built JobHuntin because finding a job shouldn't be a full-time job.
                         So we moved the hard part to an engine that never sleeps.
                     </p>
@@ -169,7 +169,7 @@ export default function About() {
                         <div className="space-y-8">
                             <div className="space-y-4">
                                 <p className="text-primary-600 font-black tracking-widest uppercase text-sm">Enterprise-Grade Intelligence</p>
-                                <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
+                                <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-100 leading-tight">
                                     A digital double that <br /> hunts for you.
                                 </h2>
                                 <p className="text-lg text-slate-500 font-medium leading-relaxed">
