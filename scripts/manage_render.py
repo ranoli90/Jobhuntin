@@ -1,11 +1,13 @@
+import os
 import httpx
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# Use the provided CLI token
-RENDER_API_KEY = "rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
+# Use env var (never commit keys)
+RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
+if not RENDER_API_KEY:
+    raise SystemExit("RENDER_API_KEY not set. Export it: export RENDER_API_KEY=your-key")
 
 # Render API base URL
 RENDER_API_BASE = "https://api.render.com/v1"

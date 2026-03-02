@@ -20,7 +20,7 @@ export default function Terms() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-50 rounded-2xl mb-6">
             <FileText className="w-8 h-8 text-primary-600" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black font-display text-slate-900 mb-6 tracking-tight">Terms of Service</h1>
+          <h1 className="text-4xl md:text-5xl font-sans font-black text-slate-900 mb-6 tracking-tight">Terms of Service</h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">
             Please read these terms carefully before using our service. They govern your relationship with JobHuntin AI.
           </p>

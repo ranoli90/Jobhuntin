@@ -5,8 +5,12 @@
 
 set -e
 
-# Configuration
-RENDER_API_TOKEN="rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
+# Configuration - use env vars (never commit keys)
+RENDER_API_TOKEN="${RENDER_API_TOKEN:-}"
+if [ -z "$RENDER_API_TOKEN" ]; then
+  echo "❌ RENDER_API_TOKEN not set. Export it: export RENDER_API_TOKEN=your-key"
+  exit 1
+fi
 SERVICE_ID_WEB="srv-cqdq7bg8fa8c73c1qgr0"  # Web service
 SERVICE_ID_SEO="srv-cqdq7t68fa8c73c1qgs0"  # SEO worker service
 

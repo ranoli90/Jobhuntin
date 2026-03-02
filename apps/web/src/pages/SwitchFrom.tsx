@@ -152,7 +152,7 @@ export default function SwitchFrom() {
                         <Clock className="w-4 h-4" />
                         5-Minute Migration
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900">
+                    <h1 className="text-4xl md:text-6xl font-sans font-black mb-6 leading-tight text-slate-900">
                         Switch from{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-400 to-slate-300 line-through decoration-red-400">
                             {competitor.name}

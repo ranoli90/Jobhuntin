@@ -15,7 +15,7 @@ export default function Maintenance() {
         <div className="w-20 h-20 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-6">
           <Wrench className="w-10 h-10 text-amber-600 dark:text-amber-400" aria-hidden />
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+        <h1 className="text-2xl font-sans font-bold text-slate-900 dark:text-slate-100 mb-2">
           {t("maintenance.title", locale)}
         </h1>
         <p className="text-slate-600 dark:text-slate-400 mb-6">

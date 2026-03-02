@@ -141,7 +141,7 @@ export default function About() {
                         <span>{t("about.badge", locale)}</span>
                     </motion.div>
 
-                    <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-slate-100 leading-[0.9] tracking-tighter mb-8">
+                    <h1 className="text-6xl md:text-8xl font-sans font-black text-slate-900 dark:text-slate-100 leading-[0.9] tracking-tighter mb-8">
                         {t("about.heading1", locale)} <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">{t("about.heading2", locale)}</span>
                     </h1>
@@ -170,7 +170,7 @@ export default function About() {
                         <div className="space-y-8">
                             <div className="space-y-4">
                                 <p className="text-primary-600 font-black tracking-widest uppercase text-sm">{t("about.enterpriseIntelligence", locale)}</p>
-                                <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-100 leading-tight">
+                                <h2 className="text-4xl md:text-5xl font-sans font-black text-slate-900 dark:text-slate-100 leading-tight">
                                     {t("about.digitalDouble", locale)}
                                 </h2>
                                 <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -224,7 +224,7 @@ export default function About() {
             <section className="py-32 bg-slate-50/50 px-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-24 max-w-3xl mx-auto">
-                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-100 mb-6 tracking-tight">{t("about.howEngineWorks", locale)}</h2>
+                        <h2 className="text-4xl md:text-5xl font-sans font-black text-slate-900 dark:text-slate-100 mb-6 tracking-tight">{t("about.howEngineWorks", locale)}</h2>
                         <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                             {t("about.howEngineDesc", locale)}
                         </p>
@@ -262,7 +262,7 @@ export default function About() {
             {/* --- THE VISION --- */}
             <section className="py-40 px-6 relative overflow-hidden">
                 <div className="max-w-4xl mx-auto text-center relative z-10">
-                    <h2 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-slate-100 mb-8 leading-tight tracking-tight">
+                    <h2 className="text-5xl md:text-7xl font-sans font-black text-slate-900 dark:text-slate-100 mb-8 leading-tight tracking-tight">
                         {t("about.visionHeading", locale)}
                     </h2>
                     <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 font-medium">

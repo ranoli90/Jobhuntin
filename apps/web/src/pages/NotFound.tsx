@@ -47,7 +47,7 @@ export default function NotFound() {
             </span>
           </motion.div>
           
-          <h1 className="text-7xl sm:text-8xl font-black font-display text-slate-900 mb-4 tracking-tighter">
+          <h1 className="text-7xl sm:text-8xl font-sans font-black text-slate-900 dark:text-slate-100 mb-4 tracking-tighter">
             404
           </h1>
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-slate-800 dark:text-slate-200">

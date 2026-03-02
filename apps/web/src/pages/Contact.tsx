@@ -97,7 +97,7 @@ export default function Contact() {
             <MessageSquare className="w-4 h-4" />
             {t("contact.getInTouch", locale)}
           </motion.div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900 dark:text-slate-100 text-balance">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black mb-6 leading-tight text-slate-900 dark:text-slate-100 text-balance">
             {t("contact.headingLine1", locale)} <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">{t("contact.headingLine2", locale)}</span>
           </h1>

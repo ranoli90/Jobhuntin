@@ -148,7 +148,7 @@ export default function Pricing() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-block"
           >
-            <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tight">
+            <h1 className="text-5xl md:text-7xl font-sans font-black text-slate-900 dark:text-slate-100 mb-6 tracking-tight">
               Pricing that <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">pays for itself.</span>
             </h1>

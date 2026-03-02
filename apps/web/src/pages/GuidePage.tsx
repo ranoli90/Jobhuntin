@@ -247,7 +247,7 @@ export default function GuidePage() {
               <Clock className="w-4 h-4" /> {guide.readTime}
             </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display mb-6 sm:mb-8 leading-tight text-slate-900 text-balance">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-black mb-6 sm:mb-8 leading-tight text-slate-900 text-balance">
             {guide.title}
           </h1>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-y border-slate-200 py-6">

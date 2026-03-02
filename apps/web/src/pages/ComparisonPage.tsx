@@ -163,7 +163,7 @@ export default function ComparisonPage() {
             <Sparkles className="w-4 h-4" aria-hidden="true" />
             Head-to-Head Comparison
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display mb-6 leading-tight text-slate-900 text-balance">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-black mb-6 leading-tight text-slate-900 text-balance">
             JobHuntin vs{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">
               {competitor.name}

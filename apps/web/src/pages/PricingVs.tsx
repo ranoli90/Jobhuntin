@@ -154,7 +154,7 @@ export default function PricingVs() {
                         <DollarSign className="w-4 h-4" />
                         Pricing Breakdown
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900">
+                    <h1 className="text-4xl md:text-6xl font-sans font-black mb-6 leading-tight text-slate-900">
                         {competitor.name} Pricing vs{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-emerald-400">
                             JobHuntin

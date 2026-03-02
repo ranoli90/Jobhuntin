@@ -89,7 +89,7 @@ export default function Recruiters() {
               className="space-y-20"
             >
               <div className="text-center">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-display mb-6 leading-tight text-slate-900 text-balance">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-black mb-6 leading-tight text-slate-900 text-balance">
                   Hire talent, <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">not keyword stuffers.</span>
                 </h1>

@@ -112,7 +112,7 @@ export default function CategoryHub() {
                         <Trophy className="w-4 h-4" />
                         Updated {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900">
+                    <h1 className="text-4xl md:text-6xl font-sans font-black mb-6 leading-tight text-slate-900">
                         {seoData.h1}
                     </h1>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">

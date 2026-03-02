@@ -180,7 +180,7 @@ export default function ReviewPage() {
                         </span>
                     </div>
 
-                    <h1 className="text-3xl md:text-5xl font-black font-display mb-6 leading-tight text-slate-900">
+                    <h1 className="text-3xl md:text-5xl font-sans font-black mb-6 leading-tight text-slate-900">
                         {competitor.name} Review{' '}
                         <span className="text-slate-400">(2026)</span>
                     </h1>

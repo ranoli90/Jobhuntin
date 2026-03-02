@@ -22,7 +22,7 @@ export default function Privacy() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-50 rounded-2xl mb-6">
             <Shield className="w-8 h-8 text-primary-600" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black font-display text-slate-900 mb-6 tracking-tight">Privacy Policy</h1>
+          <h1 className="text-4xl md:text-5xl font-sans font-black text-slate-900 mb-6 tracking-tight">Privacy Policy</h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">
             Your trust is our foundation. We are transparent about every byte of data we collect and how we use it to land your dream job.
           </p>

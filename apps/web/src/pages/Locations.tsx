@@ -80,7 +80,7 @@ export default function Locations() {
                         <MapPin className="w-4 h-4" />
                         Location-Based Job Discovery
                     </div>
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-display mb-6 text-slate-900">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black mb-6 text-slate-900">
                         Find Jobs by Location <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">& Role</span>
                     </h1>

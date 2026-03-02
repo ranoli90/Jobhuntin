@@ -99,7 +99,7 @@ export default function SuccessStories() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-8xl font-black font-display mb-8 tracking-tighter leading-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-5xl md:text-8xl font-sans font-black mb-8 tracking-tighter leading-tight text-slate-900 dark:text-slate-100">
               {t("successStories.headingWon", locale)} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">{t("successStories.headingNext", locale)}</span><br />
               {t("successStories.headingYou", locale)}
             </h1>

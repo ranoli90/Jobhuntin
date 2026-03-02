@@ -10,6 +10,62 @@ If credentials have been exposed (e.g. shared in chat, committed by mistake), **
 
 ---
 
+## Render CLI
+
+Install the official Render CLI for deployments and service management:
+
+```bash
+# macOS/Linux (Homebrew)
+brew install render
+
+# Or via curl
+curl -fsSL https://raw.githubusercontent.com/render-oss/cli/refs/heads/main/bin/install.sh | sh
+```
+
+Authenticate (opens browser):
+
+```bash
+render login
+```
+
+Then use `render` commands for deploys, logs, etc.
+
+---
+
+## Stripe CLI
+
+Install for webhook forwarding and API testing:
+
+```bash
+# macOS (Homebrew)
+brew install stripe/stripe-cli/stripe
+
+# Linux
+# See https://stripe.com/docs/stripe-cli#install
+```
+
+Login:
+
+```bash
+stripe login
+```
+
+Forward webhooks to local API:
+
+```bash
+stripe listen --forward-to localhost:8000/webhooks/stripe
+```
+
+**Verify Render services** (requires `RENDER_API_KEY` in env):
+
+```bash
+export RENDER_API_KEY=your-key
+python check_seo_service.py          # Check SEO service env
+python scripts/manage_render.py     # List services
+```
+
+---
+
 ## Render Setup
 
 ### 1. Environment Variables (Render Dashboard)

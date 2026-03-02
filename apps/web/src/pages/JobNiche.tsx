@@ -128,7 +128,7 @@ export default function JobNiche() {
             <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             {formattedCity}, {cityInfo?.state || (isUS ? 'USA' : cityInfo?.country || 'Remote')}
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black font-display mb-4 sm:mb-6 text-slate-900 leading-[1.1] px-2">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-black mb-4 sm:mb-6 text-slate-900 leading-[1.1] px-2">
             {seoData.h1}
           </h1>
           <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium px-4">

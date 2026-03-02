@@ -1,7 +1,10 @@
 import json
+import os
 import urllib.request
 
-RENDER_API_KEY = "rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
+RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
+if not RENDER_API_KEY:
+    raise SystemExit("RENDER_API_KEY not set. Export it: export RENDER_API_KEY=your-key")
 
 headers = {
     "Authorization": f"Bearer {RENDER_API_KEY}",

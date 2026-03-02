@@ -217,7 +217,7 @@ export default function Login() {
 
           <div className="space-y-8">
             <div>
-              <h2 className="font-display text-4xl xl:text-5xl font-bold text-white leading-tight mb-4 tracking-tight">
+              <h2 className="font-sans text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4 tracking-tight">
                 {t("login.sidebarTitleLine1", getLocale())}<br />
                 <span className="text-primary-600 dark:text-primary-400">
                   {t("login.sidebarTitleLine2", getLocale())}
@@ -267,7 +267,7 @@ export default function Login() {
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-10">
             <Logo className="mx-auto mb-4" />
-            <h1 className="font-display text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="font-sans text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
               {t("login.welcomeBack", getLocale())}
             </h1>
           </div>
@@ -278,7 +278,7 @@ export default function Login() {
             className="space-y-8"
           >
             <div className="hidden lg:block">
-              <h1 className="font-display text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
+              <h1 className="font-sans text-3xl font-extrabold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
                 {t("login.signInTitle", getLocale())}
               </h1>
               <p className="text-slate-500 dark:text-slate-400">

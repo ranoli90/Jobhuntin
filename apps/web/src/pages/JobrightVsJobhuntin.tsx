@@ -138,7 +138,7 @@ export default function JobrightVsJobhuntin() {
             <Star className="w-4 h-4" />
             Updated February 2026
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-sans font-black text-slate-900 mb-6 tracking-tight">
             Jobright vs JobHuntin: Which AI Job Tool Wins?
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
