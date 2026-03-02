@@ -549,16 +549,27 @@ const dictionaries: Dict = {
 
 const rtlLocales = ["ar", "he", "fa", "ur"];
 
+// RTL language detection and support
+export function isRTLLanguage(locale: string): boolean {
+  const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ps', 'yi'];
+  return rtlLanguages.includes(locale);
+}
+
+export function getDirection(locale: string): 'ltr' | 'rtl' {
+  return isRTLLanguage(locale) ? 'rtl' : 'ltr';
+}
+
+export function setDocumentDirection(locale: string) {
+  const direction = getDirection(locale);
+  document.documentElement.dir = direction;
+  document.documentElement.lang = locale;
+}
+
 export function getLocale(): string {
   if (typeof navigator !== "undefined") {
     return navigator.language || navigator.languages?.[0] || "en";
   }
   return "en";
-}
-
-export function isRTL(locale?: string): boolean {
-  const lang = (locale || getLocale()).split("-")[0].toLowerCase();
-  return rtlLocales.includes(lang);
 }
 
 export function t(key: string, locale?: string): string {

@@ -38,11 +38,19 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
 
-  <!-- I5: Set lang from locale (en, fr, etc.) -->
+  <!-- I5: Set lang and direction from locale (en, fr, etc.) -->
   <script>
     (function() {
       const lang = (navigator.language || navigator.userLanguage || 'en').split('-')[0];
-      document.documentElement.lang = ['en','fr'].includes(lang) ? lang : 'en';
+      const supportedLang = ['en','fr'].includes(lang) ? lang : 'en';
+      
+      // Set language
+      document.documentElement.lang = supportedLang;
+      
+      // Set direction for RTL languages
+      const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ps', 'yi'];
+      const direction = rtlLanguages.includes(supportedLang) ? 'rtl' : 'ltr';
+      document.documentElement.dir = direction;
     })();
   </script>
   <!-- Dark mode: apply class based on system preference; user override in localStorage -->

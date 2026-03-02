@@ -80,12 +80,23 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
             logger.warning("Redis consumed-token check failed, falling back to in-memory: %s", e)
 
     # In-memory fallback (single-instance only) - NOT safe for multi-worker deployments
-    if settings.env.value == "prod" and not hasattr(_mark_token_consumed, "_warned_no_redis"):
+    if settings.env.value == "prod":
+        # CRITICAL: Fail fast in production without Redis to prevent security vulnerability
+        logger.critical(
+            "Redis not available in production - magic link token replay protection disabled. "
+            "Set REDIS_URL for multi-instance deployments. This is a security risk."
+        )
+        raise RuntimeError(
+            "Redis required for production token replay protection. Set REDIS_URL environment variable."
+        )
+    
+    if not hasattr(_mark_token_consumed, "_warned_no_redis"):
         logger.warning(
-            "Redis not available in production - magic link token replay prevention uses in-memory store. "
+            "Redis not available - magic link token replay prevention uses in-memory store. "
             "Set REDIS_URL for multi-instance deployments."
         )
         _mark_token_consumed._warned_no_redis = True  # type: ignore
+        
     now = time.monotonic()
     expired = [k for k, ts in _consumed_tokens.items() if now - ts > _CONSUMED_TOKEN_TTL]
     for k in expired:

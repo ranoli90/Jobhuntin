@@ -257,9 +257,21 @@ function handleApiError(resp: Response, body: string): never {
   const msg = parsedMsg
     ? `${parsedMsg} (HTTP ${resp.status})`
     : friendlyMessage(resp.status, body);
-  const err = new Error(msg) as Error & { status: number; rawBody: string };
+  
+  // Create error with sanitized information for production
+  const err = new Error(msg) as Error & { status: number; rawBody: string; sanitized: boolean };
   err.status = resp.status;
-  err.rawBody = body;
+  
+  // In production, sanitize sensitive information
+  if (import.meta.env.PROD) {
+    err.sanitized = true;
+    // Only include raw body in development for debugging
+    err.rawBody = "[Sanitized in production]";
+  } else {
+    err.sanitized = false;
+    err.rawBody = body;
+  }
+  
   throw err;
 }
 

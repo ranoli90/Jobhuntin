@@ -524,6 +524,15 @@ export function JobsView() {
     }, 400);
   }, [updateFilters]);
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
   const handleLocationChange = useCallback((value: string) => {
     setLocalLocation(value);
     debouncedUpdateFilters({ location: value });
@@ -989,6 +998,19 @@ export function JobsView() {
         onKeyDown={(e) => {
           if (e.key === 'ArrowLeft') handleSwipe('REJECT');
           if (e.key === 'ArrowRight') handleSwipe('ACCEPT');
+          if (e.key === 'Escape') {
+            // Cancel current swipe action and reset focus
+            e.preventDefault();
+            e.stopPropagation();
+            // Announce cancellation to screen readers
+            const announcement = document.createElement('div');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = 'Action cancelled';
+            document.body.appendChild(announcement);
+            setTimeout(() => document.body.removeChild(announcement), 1000);
+          }
         }}
       >
         <div className="sr-only" aria-live="polite">{statusMessage}</div>
@@ -1233,14 +1255,22 @@ export function ApplicationsView() {
           navigate(`/app/applications/${appId}`);
           break;
         case 'reviewed':
+          // Mark application as reviewed
+          await fetch(`${getApiBase()}/me/applications/${appId}/review`, {
+            method: 'POST',
+            headers: await getAuthHeaders(),
+          });
           pushToast({ title: "Marked as reviewed", description: "Application has been marked as reviewed.", tone: "success" });
-          // TODO: Implement API call to mark as reviewed
           break;
         case 'snooze':
           await snoozeApplication(appId, 24);
           break;
         case 'withdraw':
-          // TODO: Implement withdraw API call
+          // Withdraw application
+          await fetch(`${getApiBase()}/me/applications/${appId}/withdraw`, {
+            method: 'POST',
+            headers: await getAuthHeaders(),
+          });
           pushToast({ title: "Application withdrawn", description: "The application has been withdrawn.", tone: "info" });
           break;
         default:

@@ -86,7 +86,9 @@ class MagicLinkService {
       }
 
       if (!configuredOrigin && browserOrigin) {
-        console.warn('[MagicLink] Using browser origin as fallback - configure appBaseUrl for production');
+        if (import.meta.env.DEV) {
+          console.warn('[MagicLink] Using browser origin as fallback - configure appBaseUrl for production');
+        }
       }
 
       // Construct redirect URL to go through /login page first
@@ -112,7 +114,9 @@ class MagicLinkService {
 
       if (import.meta.env.DEV) {
         const maskedEmail = normalizedEmail.replace(/(^.{2}).+(@.+)$/, '$1***$2');
-        console.log('[MagicLink] Sending request to API:', maskedEmail, 'return_to:', sanitizedReturnTo);
+        if (import.meta.env.DEV) {
+          console.log('[MagicLink] Sending request to API:', maskedEmail, 'return_to:', sanitizedReturnTo);
+        }
       }
 
       // Use the backend API to send the magic link
@@ -123,10 +127,9 @@ class MagicLinkService {
         return_to: sanitizedReturnTo
       });
 
-      console.log('[MagicLink] API request successful');
-
-      // Clear rate limit on success
-      this.rateLimitResets.delete(normalizedEmail);
+      if (import.meta.env.DEV) {
+        console.log('[MagicLink] API request successful');
+      }
 
       return {
         success: true,

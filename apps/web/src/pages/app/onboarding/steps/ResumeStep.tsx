@@ -174,11 +174,18 @@ export function ResumeStep({
             <div className="mb-4 md:mb-6 relative group">
                 <input
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.doc,.docx"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file && file.size > 15 * 1024 * 1024) {
                         setResumeError("File must be under 15MB");
+                        e.target.value = "";
+                        return;
+                      }
+                      // Validate file type
+                      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                      if (file && !allowedTypes.includes(file.type)) {
+                        setResumeError("Please upload a PDF, DOC, or DOCX file");
                         e.target.value = "";
                         return;
                       }
@@ -211,7 +218,7 @@ export function ResumeStep({
                         <p className={`text-base md:text-lg font-bold ${resumeFile ? 'text-primary-700' : 'text-slate-700'}`}>
                             {resumeFile ? resumeFile.name : "Click to upload your resume"}
                         </p>
-                        <p className="text-xs text-slate-400 font-medium">PDF format — Max 15MB</p>
+                        <p className="text-xs text-slate-400 font-medium">PDF, DOC, or DOCX format — Max 15MB</p>
                     </div>
                 </label>
                 {resumeFile && !isUploading && (

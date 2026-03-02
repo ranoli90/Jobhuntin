@@ -186,11 +186,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        # S3 (Audit): Removed 'unsafe-inline' from style-src for stricter XSS protection.
-        # Use nonces or hashes for any inline styles in frontend.
+        # S3 (Audit): Enhanced CSP with nonce support for dynamic scripts
+        # Uses nonce-based approach instead of 'unsafe-inline' for better security
+        csp_script_src = "'self' https://www.googletagmanager.com https://www.google-analytics.com"
+        if hasattr(request.state, 'csp_nonce'):
+            csp_script_src += f" 'nonce-{request.state.csp_nonce}'"
+        else:
+            # Fallback to 'unsafe-eval' only when nonce not available (rare)
+            csp_script_src += " 'unsafe-eval'"
+        
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; "
+            f"default-src 'self'; "
+            f"script-src {csp_script_src}; "
             "style-src 'self' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: https: blob:; "
@@ -202,11 +209,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         )
 
         # HSTS (Strict-Transport-Security)
-        # We assume SSL is handled by termination proxy (Render/Heroku/AWS),
-        # so we check X-Forwarded-Proto or just enforce if env is PROD.
-        # Ideally, we should check if request.url.scheme == "https" or settings.env == "prod"
+        # Must be set by server, not meta tag. Enforce in production.
         s = get_settings()
         if s.env.value == "prod":
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains; preload"
+            )
+        elif request.url.scheme == "https":
+            # For HTTPS in non-prod environments
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains"
             )
