@@ -39,7 +39,6 @@ COPY packages/partners/ ./partners/
 COPY apps/api/ ./api/
 COPY apps/api_v2/ ./api_v2/
 COPY apps/worker/ ./worker/
-COPY infra/supabase/ ./supabase/
 COPY templates/ ./templates/
 
 RUN chown -R sorce:sorce /app
