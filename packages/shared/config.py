@@ -144,6 +144,9 @@ class Settings(BaseSettings):
     jobspy_description_max_length: int = 50000
     jobspy_quality_min_desc_length: int = 50
 
+    # ── Render API (deploy scripts, maintenance, CI/CD) ────────────
+    render_api_key: str = ""  # From dashboard.render.com → Account → API Keys
+
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = "dev-placeholder-webhook-secret"

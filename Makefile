@@ -62,6 +62,16 @@ docker-logs:
 	docker compose logs -f
 
 # ---------------------------------------------------------------------------
+# Render API
+# ---------------------------------------------------------------------------
+
+render-api-verify:
+	PYTHONPATH=packages python scripts/render_api_verify.py
+
+render-sync-envs:
+	PYTHONPATH=packages python scripts/sync_render_envs.py
+
+# ---------------------------------------------------------------------------
 # Database (local)
 # ---------------------------------------------------------------------------
 

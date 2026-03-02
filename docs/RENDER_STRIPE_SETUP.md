@@ -40,6 +40,35 @@ render login
 
 Then use `render` commands for deploys, logs, etc.
 
+### Python Render API Client
+
+The project includes a typed Python client for the Render REST API (`packages/shared/render_api.py`). Use it for scripts, CI/CD, or programmatic service management.
+
+```bash
+# Verify connection (requires RENDER_API_KEY or RENDER_API_TOKEN)
+make render-api-verify
+# Or: PYTHONPATH=packages python scripts/render_api_verify.py
+```
+
+**Usage in Python:**
+
+```python
+from shared.render_api import get_render_client, require_render_client, RenderAPIError
+
+# Optional: returns None if no API key
+client = get_render_client()
+if client:
+    services = client.list_services()
+    client.trigger_deploy(service_id)
+
+# Required: raises if no API key
+client = require_render_client()
+services = client.list_services()
+client.trigger_deploy(service_id)
+```
+
+**Available methods:** `list_services`, `get_service`, `trigger_deploy`, `list_deploys`, `get_deploy`, `list_env_vars`, `set_env_var`, `delete_env_var`. Extensible for custom domains, jobs, Postgres, etc. See https://api-docs.render.com/
+
 ---
 
 ## Stripe CLI

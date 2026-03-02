@@ -1,10 +1,12 @@
+"""Check Render env vars. Requires RENDER_API_KEY. Use scripts/render_api_verify.py instead."""
 import json
+import os
 import subprocess
 
 
 def get_env_vars(token, service_id):
     cmd = [
-        "curl.exe",
+        "curl",
         "-s",
         "-H",
         f"Authorization: Bearer {token}",
@@ -20,9 +22,12 @@ def get_env_vars(token, service_id):
 
 
 if __name__ == "__main__":
-    token = "rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
+    token = os.environ.get("RENDER_API_KEY") or os.environ.get("RENDER_API_TOKEN")
+    if not token:
+        print("Set RENDER_API_KEY or RENDER_API_TOKEN")
+        exit(1)
     services = {
-        "jobhuntin-web": "srv-d63spbogjchc739boblag",
+        "jobhuntin-web": "srv-d63spbogjchc739akan0",
         "jobhuntin-api": "srv-d63l79hr0fns73boblag",
     }
 

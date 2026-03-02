@@ -216,8 +216,8 @@ Action Items: [Link to postmortem]
 ## Useful Commands
 
 ```bash
-# Set Render API key
-export RENDER_API_KEY=rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa
+# Set Render API key (from dashboard.render.com → Account → API Keys)
+export RENDER_API_KEY=your-key
 
 # Set workspace
 render workspace set tea-d63jqusr85hc73b9bun0

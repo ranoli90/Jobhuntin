@@ -22,6 +22,10 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20  # Fix for npm ci segfault (exit status 139)
+      - key: VITE_API_URL
+        value: https://sorce-api.onrender.com
+      - key: VITE_APP_BASE_URL
+        value: https://sorce-web.onrender.com
     autoDeploy: true
     
   # API Backend
@@ -46,7 +50,9 @@ services:
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
-        value: https://jobhuntin.com
+        value: https://sorce-web.onrender.com
+      - key: API_PUBLIC_URL
+        value: https://sorce-api.onrender.com
       - key: CSRF_SECRET
         sync: false  # Set in Render dashboard
       - key: JWT_SECRET
@@ -76,7 +82,7 @@ services:
       - key: GOOGLE_SERVICE_ACCOUNT_KEY
         sync: false  # Set in Render dashboard
       - key: GOOGLE_SEARCH_CONSOLE_SITE
-        value: https://jobhuntin.com
+        value: https://sorce-web.onrender.com
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
@@ -117,7 +123,7 @@ services:
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
-        value: https://jobhuntin.com
+        value: https://sorce-web.onrender.com
       - key: CSRF_SECRET
         sync: false  # Set in Render dashboard
       - key: JWT_SECRET
@@ -132,16 +138,19 @@ services:
 # 1. Go to your Render dashboard
 # 2. Add these environment variables to each service:
 #
-# For Web Service:
-# - GOOGLE_SERVICE_ACCOUNT_KEY: Paste your entire service account JSON
-# - GOOGLE_SEARCH_CONSOLE_SITE: https://jobhuntin.com
+# For Web Service (jobhuntin-web):
+# - VITE_API_URL: https://sorce-api.onrender.com
+# - VITE_APP_BASE_URL: https://sorce-web.onrender.com
+# - GOOGLE_SERVICE_ACCOUNT_KEY: Paste your entire service account JSON (if used)
 #
-# For API Service:
+# For API Service (jobhuntin-api):
 # - DATABASE_URL: Your PostgreSQL connection string
+# - REDIS_URL: Required in prod - create Redis on Render, set URL in dashboard
+# - API_PUBLIC_URL: https://sorce-api.onrender.com (for magic-link cookies)
 #
 # For SEO Worker:
 # - GOOGLE_SERVICE_ACCOUNT_KEY: Same as web service
-# - GOOGLE_SEARCH_CONSOLE_SITE: Same as web service
+# - GOOGLE_SEARCH_CONSOLE_SITE: https://sorce-web.onrender.com
 
 # Deployment Commands:
 # Install Render CLI: curl https://render.com/docs/install.sh | sh
