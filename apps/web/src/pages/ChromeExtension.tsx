@@ -23,7 +23,7 @@ export default function ChromeExtension() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
-        title="Chrome Extension | JobHuntin — One-Click Auto-Apply from LinkedIn & Indeed"
+        title="Chrome Extension | JobHuntin: One-Click Auto-Apply from LinkedIn & Indeed"
         description="JobHuntin Chrome extension: Auto-apply to jobs with one click from LinkedIn, Indeed, and Glassdoor. AI tailors your resume and writes cover letters instantly."
         ogTitle="Chrome Extension | JobHuntin Auto-Apply"
         ogImage="https://jobhuntin.com/og/chrome-extension.png"

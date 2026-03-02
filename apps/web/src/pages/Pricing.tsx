@@ -95,9 +95,9 @@ export default function Pricing() {
     return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700 pb-20">
       <SEO
-        title="Pricing | JobHuntin AI — Free to Start, $19/mo Pro for Unlimited Auto-Apply"
+        title="Pricing | JobHuntin AI: Free to Start, $19/mo Pro for Unlimited Auto-Apply"
         description="JobHuntin pricing: Free tier to start, Pro at $19/month for unlimited AI job applications, resume tailoring, and stealth mode. One interview pays for a lifetime."
-        ogTitle="JobHuntin Pricing — Free to Start"
+        ogTitle="JobHuntin Pricing: Free to Start"
         ogImage="https://jobhuntin.com/og/pricing.png"
         canonicalUrl="https://jobhuntin.com/pricing"
         includeDate={true}
@@ -106,7 +106,7 @@ export default function Pricing() {
             "@context": "https://schema.org",
             "@type": "Product",
             "name": "JobHuntin Pro",
-            "description": "AI-powered job application automation — unlimited applications, resume tailoring, and interview coaching.",
+            "description": "AI-powered job application automation: unlimited applications, resume tailoring, and interview coaching.",
             "offers": {
               "@type": "Offer",
               "url": "https://jobhuntin.com/pricing",

@@ -158,9 +158,9 @@ export default function Homepage() {
   return (
     <>
       <SEO
-        title="JobHuntin — AI That Applies to Jobs While You Sleep"
+        title="JobHuntin | AI That Applies to Jobs While You Sleep"
         description="Upload your resume. Our AI agent tailors every application and applies to hundreds of jobs daily. More interviews, zero effort."
-        ogTitle="JobHuntin — AI That Applies to Jobs While You Sleep"
+        ogTitle="JobHuntin | AI That Applies to Jobs While You Sleep"
         canonicalUrl="https://jobhuntin.com/"
         schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "AI agent that tailors and submits job applications autonomously." }}
       />

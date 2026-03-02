@@ -12,6 +12,7 @@
 
 - **[Production Readiness Audit](./reports/PRODUCTION_READINESS_AUDIT_2026-02-28.md)** - Canonical 312-finding audit (Feb 2026)
 - **[Audit Sprints Summary](./reports/AUDIT_SPRINTS_SUMMARY.md)** - Fix implementation status (14 sprints completed)
+- **[Render & Stripe Setup](./RENDER_STRIPE_SETUP.md)** - Environment variables, webhooks, verification
 
 ## Monorepo layout
 

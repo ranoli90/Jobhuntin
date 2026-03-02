@@ -372,7 +372,7 @@ export function generateCategoryHubSEO(
   const month = new Date().toLocaleString('default', { month: 'long' });
   const currentDate = new Date().toISOString().split('T')[0];
 
-  const title = `Best ${categoryName} in ${year} — Top ${competitors.length}+ Tools Compared`;
+  const title = `Best ${categoryName} in ${year} | Top ${competitors.length}+ Tools Compared`;
   const description = `Compare the best ${categoryName.toLowerCase()} tools in ${year}. Expert reviews, pricing, features & alternatives. Updated ${month} ${year}.`;
   const h1 = category?.h1 || `Best ${categoryName} in ${year}`;
 

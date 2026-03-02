@@ -79,7 +79,7 @@ export default function SwitchFrom() {
         );
     }
 
-    const title = `Switch from ${competitor.name} to JobHuntin — 5-Minute Migration Guide 2026`;
+    const title = `Switch from ${competitor.name} to JobHuntin | 5-Minute Migration Guide 2026`;
     const description = `Migrate from ${competitor.name} to JobHuntin in 5 minutes. Get autonomous AI auto-apply, resume tailoring, and stealth mode. Step-by-step switching guide.`;
     const canonicalUrl = `https://jobhuntin.com/switch-from/${competitorSlug}`;
     const faq = generateFAQ(competitor);

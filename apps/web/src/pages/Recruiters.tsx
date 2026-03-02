@@ -11,7 +11,7 @@ export default function Recruiters() {
   return (
     <div className={`min-h-[calc(100vh-80px)] transition-colors duration-500 ${view === 'terminal' ? 'bg-[#0d1117] text-gray-300' : 'bg-slate-50 text-slate-900'}`}>
       <SEO
-        title="For Recruiters | JobHuntin — Hire Pre-Screened AI-Matched Talent"
+        title="For Recruiters | JobHuntin: Hire Pre-Screened AI-Matched Talent"
         description="JobHuntin for recruiters: Access pre-screened candidates with AI-verified skills. Get structured data, salary expectations, and match scores delivered to your ATS."
         ogTitle="For Recruiters | JobHuntin Talent Pipeline"
         ogImage="https://jobhuntin.com/og/recruiters.png"

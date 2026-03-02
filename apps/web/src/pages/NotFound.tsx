@@ -17,7 +17,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO 
-        title="404 — This Page Doesn't Exist, But Your Dream Job Does | JobHuntin"
+        title="404 | This Page Doesn't Exist, But Your Dream Job Does | JobHuntin"
         description="Wrong turn? While you're here, JobHuntin's AI agent is applying to jobs for thousands of people. Start free and never miss a role again."
       />
       
