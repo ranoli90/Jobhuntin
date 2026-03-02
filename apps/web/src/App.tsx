@@ -6,6 +6,7 @@ import { Button } from "./components/ui/Button";
 import ScrollToTop from "./components/ScrollToTop";
 import MarketingLayout from "./layouts/MarketingLayout";
 import AuthGuard from "./guards/AuthGuard";
+import AdminGuard from "./guards/AdminGuard";
 import AppLayout from "./layouts/AppLayout";
 import { useProfile } from "./hooks/useProfile";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
@@ -219,10 +220,12 @@ export default function App() {
               <Route path="ats-score" element={<React.Suspense fallback={<PageLoader />}><ATSScorePage /></React.Suspense>} />
 
               {/* Admin Routes */}
-              <Route path="admin/usage" element={<React.Suspense fallback={<PageLoader />}><AdminUsagePage /></React.Suspense>} />
-              <Route path="admin/matches" element={<React.Suspense fallback={<PageLoader />}><AdminMatchesPage /></React.Suspense>} />
-              <Route path="admin/alerts" element={<React.Suspense fallback={<PageLoader />}><AdminAlertsPage /></React.Suspense>} />
-              <Route path="admin/sources" element={<React.Suspense fallback={<PageLoader />}><AdminSourcesPage /></React.Suspense>} />
+              <Route path="admin" element={<AdminGuard />}>
+                <Route path="usage" element={<React.Suspense fallback={<PageLoader />}><AdminUsagePage /></React.Suspense>} />
+                <Route path="matches" element={<React.Suspense fallback={<PageLoader />}><AdminMatchesPage /></React.Suspense>} />
+                <Route path="alerts" element={<React.Suspense fallback={<PageLoader />}><AdminAlertsPage /></React.Suspense>} />
+                <Route path="sources" element={<React.Suspense fallback={<PageLoader />}><AdminSourcesPage /></React.Suspense>} />
+              </Route>
 
               <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
             </Route>

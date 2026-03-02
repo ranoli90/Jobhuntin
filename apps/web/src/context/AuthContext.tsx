@@ -15,6 +15,7 @@ export interface User {
     contact?: Record<string, any>;
     headline?: string;
     bio?: string;
+    role?: 'user' | 'admin' | 'superadmin';
 }
 
 interface AuthContextType {
@@ -64,9 +65,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             clearAuthToken();
             setUser(null);
             localStorage.removeItem('jobhuntin-session');
-            // Show user-facing error so they know to retry
-            const msg = error instanceof Error ? error.message : "Failed to load profile";
-            pushToast({ title: "Session issue", description: msg, tone: "error" });
+            // Store the current URL to redirect back after re-auth
+            const returnTo = window.location.pathname + window.location.search;
+            sessionStorage.setItem('returnTo', returnTo);
+            // Show user-facing error with redirect option
+            const msg = error instanceof Error ? error.message : "Your session has expired";
+            pushToast({ title: "Session expired", description: `${msg}. Please sign in again.`, tone: "error" });
+            // Redirect to login after short delay
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
         }
     }, []);
 

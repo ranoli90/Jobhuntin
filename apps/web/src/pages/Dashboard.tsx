@@ -68,21 +68,34 @@ function JobCard({
   children: React.ReactNode;
 }) {
   const x = useMotionValue(0);
-  // L-3: opacity for accept overlay (right drag ➡ green)
   const acceptOpacity = useTransform(x, [0, 100, 200], [0, 0, 0.25]);
-  // L-3: opacity for reject overlay (left drag ➡ red)
   const rejectOpacity = useTransform(x, [0, -100, -200], [0, 0, 0.25]);
+
+  React.useEffect(() => {
+    if (!isTop) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        onSwipe('ACCEPT');
+      } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        onSwipe('REJECT');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isTop, onSwipe]);
 
   return (
     <motion.div
       role="article"
-      aria-label={`Job card. Swipe right to accept, left to reject.`}
+      aria-label={`Job card. Swipe right or press Arrow Right/D to accept, Arrow Left/A to reject.`}
+      aria-roledescription="swipeable job card"
       style={{
         zIndex: idx,
         position: 'absolute',
         width: '100%',
         x,
       }}
+      tabIndex={0}
       initial={shouldReduceMotion ? undefined : { scale: 0.95, opacity: 0, y: 20 }}
       animate={{
         scale: isTop ? 1 : 0.95,
@@ -252,9 +265,9 @@ export default function Dashboard() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
+          initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
         >
           <p className="text-[10px] font-medium uppercase tracking-[0.4em] text-slate-500">Dashboard</p>
           <h1 className="font-display text-xl md:text-2xl font-bold text-slate-900">
@@ -1733,8 +1746,8 @@ export function TeamView() {
                     <Users className="w-6 h-6" />
                   </div>
                   <h4 className="font-bold text-slate-900 mb-1">No teammates yet</h4>
-                  <p className="text-sm text-slate-500 max-w-xs mx-auto mb-6">Upgrade to Agency to add up to 10 teammates and share your job pipeline.</p>
-                  <Button size="sm" variant="primary" onClick={() => navigate("/app/billing")} className="font-bold text-xs uppercase px-6">Upgrade to Agency</Button>
+                  <p className="text-sm text-slate-500 max-w-xs mx-auto mb-6">Upgrade to Team to add up to 10 teammates and share your job pipeline.</p>
+                  <Button size="sm" variant="primary" onClick={() => navigate("/app/billing")} className="font-bold text-xs uppercase px-6">Upgrade to Team</Button>
                 </div>
               )}
             </div>
@@ -1768,7 +1781,7 @@ export function TeamView() {
 
 
 export function BillingView() {
-  const { status, plan, usage, upgrade, addSeats, manageBilling, loading: isLoading } = useBilling();
+  const { status, plan, usage, upgrade, addSeats, manageBilling, loading: isLoading, error } = useBilling();
   const shouldReduceMotion = useReducedMotion();
 
   if (isLoading) {
@@ -1837,6 +1850,16 @@ export function BillingView() {
           Plan: {plan || "FREE"}
         </Badge>
       </div>
+
+      {error && (
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800" role="alert">
+          <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" aria-hidden />
+          <div className="flex-1">
+            <p className="font-bold text-sm">Unable to load billing data</p>
+            <p className="text-xs text-red-600 mt-0.5">{error}</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
         <div className="lg:col-span-2 space-y-6 lg:space-y-8">

@@ -41,6 +41,8 @@ export default function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+
   const closeMobile = () => setMobileMenuOpen(false);
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -49,6 +51,11 @@ export default function AppLayout() {
         ? "bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-100"
         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
     );
+
+  const visibleNavItems = NAV_ITEMS.filter(item => {
+    if (item.to === '/app/admin/sources') return isAdmin;
+    return true;
+  });
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -67,7 +74,7 @@ export default function AppLayout() {
           <p className="text-[10px] text-slate-400 mt-2 font-black uppercase tracking-[0.2em] ml-1">Dashboard</p>
         </div>
         <nav className="flex-1 space-y-1 px-4 py-8">
-          {NAV_ITEMS.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink key={item.to} to={item.to} className={navLinkClass}>
