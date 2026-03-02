@@ -170,11 +170,10 @@ export function ResumeStep({
                 </div>
             </div>
 
-            {/* O11: Backend process_resume_upload accepts PDF only; .doc/.docx would require API change */}
             <div className="mb-4 md:mb-6 relative group">
                 <input
                     type="file"
-                    accept=".pdf,.doc,.docx"
+                    accept=".pdf"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file && file.size > 15 * 1024 * 1024) {
@@ -182,10 +181,10 @@ export function ResumeStep({
                         e.target.value = "";
                         return;
                       }
-                      // Validate file type
-                      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                      // Validate file type - PDF only to match backend
+                      const allowedTypes = ['application/pdf'];
                       if (file && !allowedTypes.includes(file.type)) {
-                        setResumeError("Please upload a PDF, DOC, or DOCX file");
+                        setResumeError("Please upload a PDF file");
                         e.target.value = "";
                         return;
                       }
@@ -218,7 +217,7 @@ export function ResumeStep({
                         <p className={`text-base md:text-lg font-bold ${resumeFile ? 'text-primary-700' : 'text-slate-700'}`}>
                             {resumeFile ? resumeFile.name : "Click to upload your resume"}
                         </p>
-                        <p className="text-xs text-slate-400 font-medium">PDF, DOC, or DOCX format — Max 15MB</p>
+                        <p className="text-xs text-slate-400 font-medium">PDF format only — Max 15MB</p>
                     </div>
                 </label>
                 {resumeFile && !isUploading && (

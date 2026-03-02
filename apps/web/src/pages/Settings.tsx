@@ -1,10 +1,12 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download, Trash2, AlertTriangle } from "lucide-react";
 import { useProfile } from "../hooks/useProfile";
 import { t, getLocale } from "../lib/i18n";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { ConfirmModal } from "../components/ui/ConfirmModal";
+import { ReAuthModal } from "../components/ui/ReAuthModal";
 import { pushToast } from "../lib/toast";
 import { getApiBase, getAuthHeaders } from "../lib/api";
 import { telemetry } from "../lib/telemetry";
@@ -32,6 +34,12 @@ export default function Settings() {
   const [resumeError, setResumeError] = React.useState<string | null>(null);
   const [resumeSuccess, setResumeSuccess] = React.useState<string | null>(null);
   const [isExporting, setIsExporting] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = React.useState('');
+  const [showReAuthModal, setShowReAuthModal] = React.useState(false);
+  const [reAuthPassword, setReAuthPassword] = React.useState('');
+  const [reAuthError, setReAuthError] = React.useState('');
 
   React.useEffect(() => {
     if (profile?.preferences) {
@@ -148,13 +156,85 @@ export default function Settings() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== 'DELETE') {
+      pushToast('Please type "DELETE" to confirm account deletion', 'error');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${getApiBase()}/user/delete-account`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to delete account');
+      }
+
+      const result = await response.json();
+      
+      // Track deletion event
+      telemetry.track('Account Deleted', {
+        success: true,
+        email: profile?.email ? profile.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
+      });
+
+      pushToast('Account deletion initiated. You will receive a confirmation email shortly.', 'success');
+      
+      // Redirect to home after successful deletion request
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+      
+    } catch (error: any) {
+      console.error('Account deletion failed:', error);
+      
+      telemetry.track('Account Deletion Failed', {
+        error: error.message,
+        email: profile?.email ? profile.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
+      });
+      
+      pushToast(error.message || 'Failed to delete account. Please try again.', 'error');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+      setDeleteConfirmation('');
+    }
+  };
   const handleExportData = async () => {
+    // Show re-authentication modal first
+    setShowReAuthModal(true);
+  };
+
+  const handleReAuthExport = async (password: string) => {
     setIsExporting(true);
+    setReAuthError('');
+    
     try {
       const base = getApiBase();
       const headers = await getAuthHeaders();
-      const res = await fetch(`${base.replace(/\/$/, "")}/me/export`, { headers, credentials: "include" });
+      
+      // Include password in headers for re-authentication
+      const authHeaders = {
+        ...headers,
+        'X-Re-Auth-Password': password,
+      };
+      
+      const res = await fetch(`${base.replace(/\/$/, "")}/me/export`, { 
+        headers: authHeaders, 
+        credentials: "include" 
+      });
+      
+      if (res.status === 401) {
+        setReAuthError('Invalid password. Please try again.');
+        return;
+      }
+      
       if (!res.ok) throw new Error(res.statusText || "Export failed");
+      
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -162,10 +242,24 @@ export default function Settings() {
       a.download = `jobhuntin-data-export-${new Date().toISOString().slice(0, 10)}.ndjson`;
       a.click();
       URL.revokeObjectURL(url);
-      telemetry.track("data_exported", {});
-      pushToast({ title: "Data exported", tone: "success" });
-    } catch (err) {
-      pushToast({ title: "Export failed", description: (err as Error).message, tone: "error" });
+      
+      telemetry.track("data_exported", { reauth_required: true });
+      pushToast({ title: "Data exported successfully", tone: "success" });
+      
+      // Close modal on success
+      setShowReAuthModal(false);
+      setReAuthPassword('');
+      
+    } catch (err: any) {
+      console.error('Export failed:', err);
+      
+      if (err.message.includes('401') || err.message.includes('Unauthorized')) {
+        setReAuthError('Invalid password. Please try again.');
+      } else {
+        pushToast({ title: "Export failed", description: (err as Error).message, tone: "error" });
+        setShowReAuthModal(false);
+        setReAuthPassword('');
+      }
     } finally {
       setIsExporting(false);
     }
@@ -439,11 +533,97 @@ export default function Settings() {
             {t("settings.exportDescription", locale)}{" "}
             <a href="/privacy" className="underline hover:text-brand-ink">{t("cookies.privacyPolicy", locale)}</a> {t("settings.exportForDetails", locale)}
           </p>
-          <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
-            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Download className="h-4 w-4" aria-hidden />}
-            {isExporting ? t("settings.exporting", locale) : t("settings.exportData", locale)}
-          </Button>
+          <div className="space-y-3">
+            <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
+              {isExporting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Download className="h-4 w-4" aria-hidden />}
+              {isExporting ? t("settings.exporting", locale) : t("settings.exportData", locale)}
+            </Button>
+            
+            <div className="border-t pt-4 mt-4">
+              <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Delete Account
+              </h3>
+              <p className="text-sm text-red-700 mb-4">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeleteModal(true)}
+                className="border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Account
+              </Button>
+            </div>
+          </div>
         </Card>
+
+        {/* Account Deletion Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setDeleteConfirmation('');
+          }}
+          onConfirm={handleDeleteAccount}
+          title="Delete Account Permanently"
+          description={
+            <div className="space-y-4">
+              <p>
+                This action <strong>cannot be undone</strong>. Deleting your account will permanently remove:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Your profile information and preferences</li>
+                <li>All job applications and swipe history</li>
+                <li>Resume files and parsed data</li>
+                <li>AI recommendations and personalization data</li>
+              </ul>
+              <p>
+                To confirm deletion, please type <code className="bg-gray-100 px-2 py-1 rounded text-sm">DELETE</code> below:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                autoFocus
+              />
+              {deleteConfirmation && deleteConfirmation !== 'DELETE' && (
+                <p className="text-sm text-red-600">
+                  Please type exactly "DELETE" to confirm
+                </p>
+              )}
+            </div>
+          }
+          confirmText="Delete Account Permanently"
+          cancelText="Cancel"
+          variant="danger"
+          isLoading={isDeleting}
+        />
+
+        {/* Re-authentication Modal for Data Export */}
+        <ReAuthModal
+          isOpen={showReAuthModal}
+          onClose={() => {
+            setShowReAuthModal(false);
+            setReAuthPassword('');
+            setReAuthError('');
+          }}
+          onSuccess={() => {
+            // Get password from the modal's internal state
+            const passwordInput = document.getElementById('reauth-password') as HTMLInputElement;
+            const password = passwordInput?.value || '';
+            if (password) {
+              handleReAuthExport(password);
+            }
+          }}
+          title="Re-authentication Required"
+          description="For your security, please confirm your password to download your data export."
+          isLoading={isExporting}
+          error={reAuthError}
+        />
       </div>
     </div>
   );

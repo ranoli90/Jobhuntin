@@ -1,10 +1,12 @@
 /**
  * Magic Link Service - Centralized magic link handling
  * Ensures consistent behavior across Homepage, Login, and Onboarding
+ * Enhanced with bot protection and rate limiting
  */
 
 import { config } from '../config';
 import { ValidationUtils } from '../lib/validation';
+import { botProtection } from '../lib/botProtection';
 
 export interface MagicLinkResponse {
   status: string;
@@ -19,14 +21,16 @@ export interface MagicLinkError {
 
 class MagicLinkService {
   private rateLimitResets: Map<string, number> = new Map();
+  private captchaRequired: boolean = false;
 
   /**
-   * Send a magic link to user's email
+   * Send a magic link to user's email with bot protection
    */
   async sendMagicLink(
     email: string,
-    returnTo: string = '/app/onboarding'
-  ): Promise<{ success: boolean; email: string; error?: string; retryAfter?: number }> {
+    returnTo: string = '/app/onboarding',
+    captchaToken?: string
+  ): Promise<{ success: boolean; email: string; error?: string; retryAfter?: number; captchaRequired?: boolean }> {
     // RFC max email length is 320 chars (254 + local part variations). Allow full range.
     const normalizedEmail = ValidationUtils.sanitizeInput(email.trim().toLowerCase(), 320);
 
@@ -56,17 +60,46 @@ class MagicLinkService {
       this.rateLimitResets.delete(normalizedEmail);
     }
 
-    // Adaptive rate limiting: up to 3 requests per 5 minutes per email
-    const rateLimitCheck = ValidationUtils.security.rateLimit(`magiclink:${normalizedEmail}`, 3, 300000);
+    // Enhanced rate limiting with IP and fingerprint checking
+    const rateLimitCheck = await botProtection.checkRateLimit(normalizedEmail, {
+      rateLimitPerIP: 5,
+      rateLimitPerFingerprint: 3,
+      windowMs: 15 * 60 * 1000, // 15 minutes
+    });
+
     if (!rateLimitCheck.allowed) {
-      const retryAfter = rateLimitCheck.resetIn;
+      const retryAfter = rateLimitCheck.resetIn || 300;
       this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
       return {
         success: false,
         email: normalizedEmail,
-        error: `Too many magic link requests. Please wait ${retryAfter} seconds before retrying.`,
+        error: rateLimitCheck.reason || `Too many requests. Please wait ${retryAfter} seconds before retrying.`,
         retryAfter: retryAfter,
       };
+    }
+
+    // Check if captcha is required
+    const shouldRequireCaptcha = botProtection.shouldRequireCaptcha(normalizedEmail);
+    if (shouldRequireCaptcha && !captchaToken) {
+      return {
+        success: false,
+        email: normalizedEmail,
+        error: 'Please complete the captcha verification to continue.',
+        captchaRequired: true,
+      };
+    }
+
+    // Verify captcha if provided
+    if (captchaToken) {
+      const captchaValid = await botProtection.verifyCaptcha(captchaToken);
+      if (!captchaValid) {
+        return {
+          success: false,
+          email: normalizedEmail,
+          error: 'Captcha verification failed. Please try again.',
+          captchaRequired: true,
+        };
+      }
     }
 
     try {
@@ -119,13 +152,21 @@ class MagicLinkService {
         }
       }
 
-      // Use the backend API to send the magic link
+      // Use the backend API to send the magic link with enhanced security
       const { apiPost } = await import('../lib/api');
 
-      await apiPost('/auth/magic-link', {
+      const payload: any = {
         email: normalizedEmail,
-        return_to: sanitizedReturnTo
-      });
+        return_to: sanitizedReturnTo,
+        fingerprint: botProtection.generateFingerprint(),
+      };
+
+      // Include captcha token if provided
+      if (captchaToken) {
+        payload.captcha_token = captchaToken;
+      }
+
+      await apiPost('/auth/magic-link', payload);
 
       if (import.meta.env.DEV) {
         console.log('[MagicLink] API request successful');

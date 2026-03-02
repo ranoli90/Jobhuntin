@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Input } from "./Input";
 import { cn } from "../../lib/utils";
+import { useDebounce } from "../../lib/debounce";
 
 interface AutoCompleteInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   icon?: React.ReactNode;
@@ -12,6 +13,8 @@ interface AutoCompleteInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
   maxSuggestions?: number;
   className?: string;
   error?: boolean;
+  debounceMs?: number; // New prop for debounce timing
+  enableCache?: boolean; // New prop for caching
 }
 
 export function AutoCompleteInput({
@@ -24,31 +27,81 @@ export function AutoCompleteInput({
   maxSuggestions = 5,
   className,
   error,
+  debounceMs = 150, // Default 150ms debounce
+  enableCache = true, // Enable caching by default
   ...props
 }: AutoCompleteInputProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
+  const [localValue, setLocalValue] = React.useState(value);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLUListElement>(null);
+  
+  // Cache for filtered suggestions to avoid re-filtering same inputs
+  const cacheRef = React.useRef<Map<string, string[]>>(new Map());
+  
+  // Sync local value with prop value
+  React.useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+  
+  // Debounced change handler
+  const debouncedOnChange = useDebounce(
+    React.useCallback((newValue: string) => {
+      onChange(newValue);
+    }, [onChange]),
+    debounceMs,
+    [onChange, debounceMs]
+  );
 
   const filteredSuggestions = React.useMemo(() => {
-    if (!value.trim()) return [];
-    return suggestions
+    if (!localValue.trim()) return [];
+    
+    // Check cache first if enabled
+    if (enableCache) {
+      const cacheKey = `${localValue.toLowerCase()}_${suggestions.length}`;
+      const cached = cacheRef.current.get(cacheKey);
+      if (cached) {
+        return cached.slice(0, maxSuggestions);
+      }
+    }
+    
+    // Filter suggestions
+    const filtered = suggestions
       .filter(suggestion =>
-        suggestion.toLowerCase().includes(value.toLowerCase())
+        suggestion.toLowerCase().includes(localValue.toLowerCase())
       )
       .slice(0, maxSuggestions);
-  }, [suggestions, value, maxSuggestions]);
+    
+    // Cache result if enabled
+    if (enableCache) {
+      const cacheKey = `${localValue.toLowerCase()}_${suggestions.length}`;
+      cacheRef.current.set(cacheKey, filtered);
+      
+      // Limit cache size to prevent memory leaks
+      if (cacheRef.current.size > 100) {
+        const firstKey = cacheRef.current.keys().next().value;
+        cacheRef.current.delete(firstKey);
+      }
+    }
+    
+    return filtered;
+  }, [suggestions, localValue, maxSuggestions, enableCache]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    onChange(newValue);
+    setLocalValue(newValue); // Update local value immediately for responsive UI
+    
+    // Debounce the onChange callback
+    debouncedOnChange(newValue);
+    
+    // Update dropdown visibility based on local value
     setIsOpen(newValue.length > 0 && filteredSuggestions.length > 0);
     setHighlightedIndex(-1);
   };
 
   const handleInputFocus = () => {
-    if (value && filteredSuggestions.length > 0) {
+    if (localValue && filteredSuggestions.length > 0) {
       setIsOpen(true);
     }
   };
@@ -59,7 +112,8 @@ export function AutoCompleteInput({
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    onChange(suggestion);
+    setLocalValue(suggestion);
+    onChange(suggestion); // Immediate update for selection
     setIsOpen(false);
     setHighlightedIndex(-1);
     inputRef.current?.focus();
@@ -108,7 +162,7 @@ export function AutoCompleteInput({
         icon={icon}
         type="text"
         placeholder={placeholder}
-        value={value}
+        value={localValue}
         onChange={handleInputChange}
         onFocus={handleInputFocus}
         onBlur={handleInputBlur}

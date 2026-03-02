@@ -14,9 +14,11 @@ import { api } from "../../lib/api";
 import { telemetry } from "../../lib/telemetry";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { BrowserCacheService } from "../../lib/browserCache";
-import { Skeleton, OnboardingSkeleton } from "../../components/ui/Skeleton";
+import { Skeleton, OnboardingSkeleton, ResumeStepSkeleton, PreferencesStepSkeleton, SkillReviewStepSkeleton, WorkStyleStepSkeleton } from "../../components/ui/Skeleton";
 import { checkEmailTypo } from "../../lib/emailUtils";
 import { ErrorBoundary } from "../../components/ErrorBoundary";
+import { resumeUploadRetry } from "../../lib/resumeUploadRetry";
+import ResumeUploadRetry from "../../components/ui/ResumeUploadRetry";
 
 // Step Components
 import { WelcomeStep } from "./onboarding/steps/WelcomeStep";
@@ -177,6 +179,63 @@ export default function Onboarding() {
     return {};
   });
   const [isSavingWorkStyle, setIsSavingWorkStyle] = React.useState(false);
+
+  // Resume upload retry state
+  const [showRetryComponent, setShowRetryComponent] = React.useState(false);
+
+  // Skeleton loading states for better UX
+  const [stepLoadingStates, setStepLoadingStates] = React.useState<Record<string, boolean>>({});
+
+  // Helper function to determine if current step should show skeleton
+  const shouldShowSkeleton = React.useCallback(() => {
+    const stepId = currentStepData.id;
+    
+    // Show skeleton during specific loading states
+    switch (stepId) {
+      case 'resume':
+        return isUploading || stepLoadingStates[stepId];
+      case 'preferences':
+        return isSavingPreferences || stepLoadingStates[stepId] || 
+               aiSuggestions.roles.loading || aiSuggestions.locations.loading || aiSuggestions.salary.loading;
+      case 'skill-review':
+        return isSavingSkills || stepLoadingStates[stepId];
+      case 'confirm-contact':
+        return isSavingContact || stepLoadingStates[stepId];
+      case 'work-style':
+        return isSavingWorkStyle || stepLoadingStates[stepId];
+      default:
+        return stepLoadingStates[stepId];
+    }
+  }, [
+    currentStepData.id,
+    isUploading,
+    isSavingPreferences,
+    isSavingSkills,
+    isSavingContact,
+    isSavingWorkStyle,
+    stepLoadingStates,
+    aiSuggestions.roles.loading,
+    aiSuggestions.locations.loading,
+    aiSuggestions.salary.loading
+  ]);
+
+  // Helper function to get the appropriate skeleton component
+  const getSkeletonComponent = React.useCallback(() => {
+    const stepId = currentStepData.id;
+    
+    switch (stepId) {
+      case 'resume':
+        return <ResumeStepSkeleton />;
+      case 'preferences':
+        return <PreferencesStepSkeleton />;
+      case 'skill-review':
+        return <SkillReviewStepSkeleton />;
+      case 'work-style':
+        return <WorkStyleStepSkeleton />;
+      default:
+        return <OnboardingSkeleton />;
+    }
+  }, [currentStepData.id]);
 
   // Restore data from formData on mount and step changes (for back navigation persistence)
   React.useEffect(() => {
@@ -384,12 +443,19 @@ export default function Onboarding() {
     }
   }, []);
 
-  const handleResumeUpload = async () => {
-    if (!resumeFile) return;
+  const handleResumeUpload = async (file?: File) => {
+    const uploadFile = file || resumeFile;
+    if (!uploadFile) return;
+    
     setIsUploading(true);
     setResumeError(null);
+    
     try {
-      const data = await uploadResume(resumeFile);
+      // Use retry with backoff for better reliability
+      const data = await retryWithBackoff(async () => {
+        return await uploadResume(uploadFile);
+      }, 3, 1000);
+      
       pushToast({ title: "Resume uploaded!", tone: "success" });
 
       if (data.parsed_profile) {
@@ -481,10 +547,21 @@ export default function Onboarding() {
           hasEducation: !!data.parsed_profile.education,
         });
       }
+      
+      // Clear any retry metadata on success
+      await resumeUploadRetry.clearMetadata();
+      setShowRetryComponent(false);
+      
     } catch (err) {
       const message = (err as Error).message;
       const status = (err as any).status;
       console.error("Resume upload failed:", err);
+      
+      // Save metadata for retry
+      await resumeUploadRetry.saveResumeMetadata(uploadFile, message);
+      await resumeUploadRetry.updateAfterFailure(message);
+      setShowRetryComponent(true);
+      
       setResumeError(message);
       pushToast({
         title: "Upload failed",
@@ -494,6 +571,22 @@ export default function Onboarding() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Handle retry from the retry component
+  const handleResumeRetry = async () => {
+    const storedFile = await resumeUploadRetry.getStoredFile();
+    if (storedFile) {
+      setResumeFile(storedFile);
+      await handleResumeUpload(storedFile);
+    }
+  };
+
+  // Handle clearing retry state
+  const handleClearRetry = () => {
+    resumeUploadRetry.clearMetadata();
+    setShowRetryComponent(false);
+    setResumeError(null);
   };
 
   const handleConfirmParsing = () => {
@@ -884,37 +977,77 @@ export default function Onboarding() {
                     </div>
                   </div>
 
-                  {currentStepData.id === "welcome" && (
-                    <WelcomeStep
-                      onNext={nextStep}
-                      shouldReduceMotion={!!shouldReduceMotion}
-                    />
-                  )}
+                  {/* Step Content with Skeleton Loading */}
+                  <AnimatePresence mode="wait">
+                    {shouldShowSkeleton() ? (
+                      <motion.div
+                        key="skeleton"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {getSkeletonComponent()}
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="content"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {currentStepData.id === "welcome" && (
+                          <WelcomeStep
+                            onNext={nextStep}
+                            shouldReduceMotion={!!shouldReduceMotion}
+                          />
+                        )}
 
-                  {currentStepData.id === "resume" && (
-                    <ResumeStep
-                      onNext={nextStep}
-                      onPrev={prevStep}
-                      onUpload={handleResumeUpload}
-                      resumeFile={resumeFile}
-                      setResumeFile={setResumeFile}
-                      isUploading={isUploading}
-                      resumeError={resumeError}
-                      setResumeError={setResumeError}
-                      linkedinUrl={linkedinUrl}
-                      setLinkedinUrl={setLinkedinUrl}
-                      showParsingPreview={showParsingPreview}
-                      setShowParsingPreview={setShowParsingPreview}
-                      parsedResume={parsedResume}
-                      onConfirmParsing={handleConfirmParsing}
-                      shouldReduceMotion={!!shouldReduceMotion}
-                      onResetParsingState={() => {
-                        setParsedResume(null);
-                        setParsedProfile(null);
-                        setRichSkills([]);
-                      }}
-                    />
-                  )}
+                        {currentStepData.id === "resume" && (
+                          <>
+                            <ResumeStep
+                              onNext={nextStep}
+                              onPrev={prevStep}
+                              onUpload={handleResumeUpload}
+                              resumeFile={resumeFile}
+                              setResumeFile={setResumeFile}
+                              isUploading={isUploading}
+                              resumeError={resumeError}
+                              setResumeError={setResumeError}
+                              linkedinUrl={linkedinUrl}
+                              setLinkedinUrl={setLinkedinUrl}
+                              showParsingPreview={showParsingPreview}
+                              setShowParsingPreview={setShowParsingPreview}
+                              parsedResume={parsedResume}
+                              onConfirmParsing={handleConfirmParsing}
+                              shouldReduceMotion={!!shouldReduceMotion}
+                              onResetParsingState={() => {
+                                setParsedResume(null);
+                                setParsedProfile(null);
+                                setRichSkills([]);
+                              }}
+                            />
+                            
+                            {/* Resume Upload Retry Component */}
+                            <AnimatePresence>
+                              {showRetryComponent && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -20 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="mt-4"
+                                >
+                                  <ResumeUploadRetry
+                                    onRetry={handleResumeRetry}
+                                    onClear={handleClearRetry}
+                                  />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </>
+                        )}
 
                   {currentStepData.id === "skill-review" && (
                     <SkillReviewStep
@@ -995,9 +1128,11 @@ export default function Onboarding() {
                       shouldReduceMotion={!!shouldReduceMotion}
                     />
                   )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </Card>
               </motion.div>
-            </AnimatePresence>
           </div>
         </main>
       </ErrorBoundary>

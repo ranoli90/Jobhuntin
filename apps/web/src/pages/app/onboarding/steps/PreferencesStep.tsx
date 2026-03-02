@@ -8,6 +8,41 @@ import { AISuggestionCard, SalarySuggestionCard } from "../../../../components/u
 import { CITIES } from "../../../../data/cities";
 import { JOB_TITLES } from "../../../../data/jobTitles";
 
+// Salary validation utilities
+const validateSalary = (value: string, fieldName: string): { isValid: boolean; error?: string } => {
+  if (!value || value.trim() === '') {
+    return { isValid: false, error: `${fieldName === 'salary_min' ? 'Minimum' : 'Maximum'} salary is required` };
+  }
+  
+  const numValue = parseFloat(value);
+  if (isNaN(numValue)) {
+    return { isValid: false, error: 'Please enter a valid number' };
+  }
+  
+  if (numValue < 0) {
+    return { isValid: false, error: 'Salary must be greater than 0' };
+  }
+  
+  if (numValue > 10000000) {
+    return { isValid: false, error: 'Salary cannot exceed $10,000,000' };
+  }
+  
+  return { isValid: true };
+};
+
+const validateSalaryRange = (min: string, max: string): { isValid: boolean; error?: string } => {
+  if (!min || !max) return { isValid: true }; // Skip validation if either field is empty
+  
+  const minNum = parseFloat(min);
+  const maxNum = parseFloat(max);
+  
+  if (!isNaN(minNum) && !isNaN(maxNum) && minNum > maxNum) {
+    return { isValid: false, error: 'Minimum salary cannot be greater than maximum salary' };
+  }
+  
+  return { isValid: true };
+};
+
 interface PreferencesStepProps {
     onNext: () => void;
     onPrev: () => void;
@@ -55,9 +90,57 @@ export function PreferencesStep({
 }: PreferencesStepProps) {
 
     // M-3 fix: store raw text while editing to avoid flickering from split/join on each keystroke
-    const [excludedCompaniesText, setExcludedCompaniesText] = React.useState(
-        (preferences.excluded_companies || []).join(", ")
+    const [localExcludedKeywords, setLocalExcludedKeywords] = React.useState(
+        preferences.excluded_keywords?.join(', ') || ''
     );
+    
+    // Local validation state for salary fields
+    const [salaryErrors, setSalaryErrors] = React.useState<Record<string, string>>({});
+    
+    // Validate salary fields on change
+    const validateSalaryFields = React.useCallback((minSalary: string, maxSalary: string) => {
+        const errors: Record<string, string> = {};
+        
+        // Validate minimum salary
+        const minValidation = validateSalary(minSalary, 'salary_min');
+        if (!minValidation.isValid) {
+            errors.salary_min = minValidation.error!;
+        }
+        
+        // Validate maximum salary (only if provided)
+        if (maxSalary && maxSalary.trim() !== '') {
+            const maxValidation = validateSalary(maxSalary, 'salary_max');
+            if (!maxValidation.isValid) {
+                errors.salary_max = maxValidation.error!;
+            }
+        }
+        
+        // Validate salary range
+        const rangeValidation = validateSalaryRange(minSalary, maxSalary);
+        if (!rangeValidation.isValid) {
+            errors.salary_min = rangeValidation.error!; // Show range error on min field
+        }
+        
+        setSalaryErrors(errors);
+        return Object.keys(errors).length === 0;
+    }, []);
+    
+    // Check if form is valid for submission
+    const isFormValid = React.useMemo(() => {
+        const hasRequiredFields = preferences.location.trim() !== '' && 
+                                preferences.role_type.trim() !== '' && 
+                                preferences.salary_min.trim() !== '';
+        
+        const hasNoErrors = Object.keys(formErrors).length === 0 && 
+                           Object.keys(salaryErrors).length === 0;
+        
+        return hasRequiredFields && hasNoErrors;
+    }, [preferences, formErrors, salaryErrors]);
+    
+    // Validate on salary changes
+    React.useEffect(() => {
+        validateSalaryFields(preferences.salary_min, preferences.salary_max || '');
+    }, [preferences.salary_min, preferences.salary_max, validateSalaryFields]);
     const [excludedKeywordsText, setExcludedKeywordsText] = React.useState(
         (preferences.excluded_keywords || []).join(", ")
     );
@@ -200,9 +283,13 @@ export function PreferencesStep({
                             max="10000000"
                             placeholder="150000"
                             value={preferences.salary_min}
-                            onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value || "" }))}
+                            onChange={(e) => {
+                                setPreferences((p) => ({ ...p, salary_min: e.target.value || "" }));
+                            }}
                             onClear={() => setPreferences((p) => ({ ...p, salary_min: "" }))}
                             className="bg-white shadow-sm"
+                            error={!!salaryErrors.salary_min}
+                            helperText={salaryErrors.salary_min}
                         />
                     </div>
                     <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200' : 'bg-slate-50 border-slate-100'}`}>
@@ -289,6 +376,8 @@ export function PreferencesStep({
                                   if (onClearError) onClearError("salary_max");
                                 }}
                                 className="bg-white"
+                                error={!!salaryErrors.salary_max}
+                                helperText={salaryErrors.salary_max}
                             />
                         </div>
 
@@ -381,7 +470,7 @@ export function PreferencesStep({
                     type="button"
                     onClick={onNext}
                     className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation"
-                    disabled={!preferences.location || !preferences.role_type || isSavingPreferences}
+                    disabled={!isFormValid || isSavingPreferences}
                     aria-label="Save preferences and continue" data-onboarding-next
                 >
                     {isSavingPreferences ? <LoadingSpinner size="sm" /> : "Save & Continue"}

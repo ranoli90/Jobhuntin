@@ -1,9 +1,29 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { telemetry } from "../lib/telemetry";
+import { securePIIStorage } from "../lib/secureStorage";
 
 import { OnboardingStep, OnboardingState, OnboardingFormData } from "../types/onboarding";
 
 const STORAGE_KEY = "onboarding_state";
+
+// PII fields that should be stored securely
+const PII_FIELDS = ['contactInfo'];
+
+// Helper to separate PII from non-PII data
+const separatePII = (formData: OnboardingFormData) => {
+  const pii: any = {};
+  const nonPii: any = {};
+  
+  Object.keys(formData).forEach(key => {
+    if (PII_FIELDS.includes(key)) {
+      pii[key] = formData[key as keyof OnboardingFormData];
+    } else {
+      nonPii[key] = formData[key as keyof OnboardingFormData];
+    }
+  });
+  
+  return { pii, nonPii };
+};
 
 const STEPS: OnboardingStep[] = [
   { id: "welcome", title: "Welcome to JobHuntin", description: "Let's get you set up in 2 minutes" },
@@ -16,50 +36,80 @@ const STEPS: OnboardingStep[] = [
 ];
 
 export function useOnboarding() {
-  // Parse localStorage once on mount for all state initializers
-  const _initialState = (() => {
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Parse localStorage and secure storage once on mount for all state initializers
+  const loadInitialState = useCallback(async () => {
     try {
+      // Get non-PII data from localStorage
+      let storedState: OnboardingState | null = null;
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const state: OnboardingState = JSON.parse(stored);
-        return state;
+        storedState = JSON.parse(stored);
       }
+      
+      // Get PII data from secure storage
+      let piiData: any = {};
+      try {
+        piiData = await securePIIStorage.get('contact_info') || {};
+      } catch (error) {
+        console.warn('[useOnboarding] Failed to load PII from secure storage:', error);
+      }
+      
+      // Merge the data
+      const mergedFormData = { ...(storedState?.formData || {}), ...piiData };
+      
+      return storedState ? { ...storedState, formData: mergedFormData } : null;
     } catch (e) {
       console.warn('[useOnboarding] Corrupted storage, resetting:', e);
       try {
         localStorage.removeItem(STORAGE_KEY);
+        securePIIStorage.clear();
       } catch { }
     }
     return null;
-  })();
+  }, []);
 
-  const [currentStep, setCurrentStep] = useState(() => {
-    const step = _initialState?.currentStep;
-    return typeof step === 'number' && step >= 0 ? step : 0;
-  });
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const [formData, setFormData] = useState<OnboardingFormData>({});
 
-  const [completedSteps, setCompletedSteps] = useState<string[]>(() => {
-    return Array.isArray(_initialState?.completedSteps) ? _initialState!.completedSteps : [];
-  });
+  // Initialize async state loading
+  useEffect(() => {
+    loadInitialState().then(initialState => {
+      if (initialState) {
+        setCurrentStep(initialState.currentStep);
+        setCompletedSteps(initialState.completedSteps);
+        setFormData(initialState.formData);
+      }
+      setIsLoading(false);
+    });
+  }, [loadInitialState]);
 
-  const [formData, setFormData] = useState(() => {
-    return _initialState?.formData && typeof _initialState.formData === 'object' ? _initialState.formData : {};
-  });
-
-  const saveState = useCallback(() => {
+  const saveState = useCallback(async () => {
     try {
+      const { pii, nonPii } = separatePII(formData);
+      
+      // Save non-PII data to localStorage
       const state: OnboardingState = {
         currentStep,
         completedSteps,
-        formData,
+        formData: nonPii,
       };
-      if (import.meta.env.DEV) console.log('[useOnboarding] Saving state:', state);
+      if (import.meta.env.DEV) console.log('[useOnboarding] Saving non-PII state:', state);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      
+      // Save PII data to secure storage
+      if (Object.keys(pii).length > 0) {
+        await securePIIStorage.set('contact_info', pii);
+        if (import.meta.env.DEV) console.log('[useOnboarding] Saved PII to secure storage');
+      }
     } catch (error) {
       console.error('[useOnboarding] Failed to save state:', error);
       // Attempt to clear corrupted data and save minimal state
       try {
         localStorage.removeItem(STORAGE_KEY);
+        securePIIStorage.clear();
         const minimalState = { currentStep: 0, completedSteps: [], formData: {} };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(minimalState));
         if (import.meta.env.DEV) console.log('[useOnboarding] Recovered with minimal state');
@@ -157,13 +207,14 @@ export function useOnboarding() {
     saveState();
   }, [currentStep, completedSteps, formData, saveState]);
 
-  const resetOnboarding = useCallback(() => {
+  const resetOnboarding = useCallback(async () => {
     setCurrentStep(0);
     setCompletedSteps([]);
     setFormData({});
     try {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem("offline_queue");
+      securePIIStorage.clear();
     } catch {
       /* ignore */
     }
@@ -236,5 +287,6 @@ export function useOnboarding() {
     goToStep,
     updateFormData,
     resetOnboarding,
+    isLoading,
   };
 }
