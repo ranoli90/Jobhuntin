@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, MessageSquare, Send, Clock, Shield, Users } from 'lucide-react';
+import { Mail, MessageSquare, Send, Clock, Shield, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
+import { t, getLocale } from '../lib/i18n';
 
 export default function Contact() {
+  const locale = getLocale();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -53,13 +55,13 @@ export default function Contact() {
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Send className="w-8 h-8 text-emerald-600" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Message Sent!</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">{t("contact.messageSent", locale)}</h1>
             <p className="text-slate-600 dark:text-slate-400 mb-8">
-              We'll get back to you within 24 hours. Keep an eye on your inbox for a response from our team.
+              {t("contact.messageSentDescription", locale)}
             </p>
             <Link to="/">
               <Button variant="secondary" className="w-full">
-                Back to Homepage
+                {t("contact.backToHomepage", locale)}
               </Button>
             </Link>
           </motion.div>
@@ -93,14 +95,14 @@ export default function Contact() {
             className="inline-flex items-center gap-2 bg-primary-50 text-primary-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-primary-100"
           >
             <MessageSquare className="w-4 h-4" />
-            Get in Touch
+            {t("contact.getInTouch", locale)}
           </motion.div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-display mb-6 leading-tight text-slate-900 dark:text-slate-100 text-balance">
-            We're here to help you <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">land your dream job.</span>
+            {t("contact.headingLine1", locale)} <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">{t("contact.headingLine2", locale)}</span>
           </h1>
           <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium text-balance">
-            Whether you have questions, need support, or want to explore partnerships, our team is ready to help.
+            {t("contact.subtitle", locale)}
           </p>
         </div>
 
@@ -112,13 +114,13 @@ export default function Contact() {
             transition={{ delay: 0.2 }}
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Send us a message</h2>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{t("contact.sendMessage", locale)}</h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Name *
+                      {t("contact.name", locale)} *
                     </label>
                     <input
                       type="text"
@@ -134,7 +136,7 @@ export default function Contact() {
                   
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Email *
+                      {t("contact.email", locale)} *
                     </label>
                     <input
                       type="email"
@@ -151,7 +153,7 @@ export default function Contact() {
 
                 <div>
                   <label htmlFor="company" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Company
+                    {t("contact.company", locale)}
                   </label>
                   <input
                     type="text"
@@ -160,13 +162,13 @@ export default function Contact() {
                     value={formData.company}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                    placeholder="Acme Corp (optional)"
+                    placeholder={t("contact.companyPlaceholder", locale)}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="type" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Inquiry Type
+                    {t("contact.inquiryType", locale)}
                   </label>
                   <select
                     id="type"
@@ -175,16 +177,16 @@ export default function Contact() {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                   >
-                    <option value="general">General Question</option>
-                    <option value="support">Technical Support</option>
-                    <option value="sales">Sales Inquiry</option>
-                    <option value="partnership">Partnership</option>
+                    <option value="general">{t("contact.generalQuestion", locale)}</option>
+                    <option value="support">{t("contact.technicalSupport", locale)}</option>
+                    <option value="sales">{t("contact.salesInquiry", locale)}</option>
+                    <option value="partnership">{t("contact.partnership", locale)}</option>
                   </select>
                 </div>
 
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Message *
+                    {t("contact.message", locale)} *
                   </label>
                   <textarea
                     id="message"
@@ -193,8 +195,8 @@ export default function Contact() {
                     onChange={handleChange}
                     required
                     rows={5}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
-                    placeholder="Tell us how we can help you..."
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                    placeholder={t("contact.messagePlaceholder", locale)}
                   />
                 </div>
 
@@ -208,11 +210,11 @@ export default function Contact() {
                   {isSubmitting ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Sending...
+                      {t("contact.sending", locale)}
                     </>
                   ) : (
                     <>
-                      Send Message <Send className="w-5 h-5 ml-2" />
+                      {t("contact.sendMessageBtn", locale)} <Send className="w-5 h-5 ml-2" />
                     </>
                   )}
                 </Button>
@@ -228,7 +230,7 @@ export default function Contact() {
             className="space-y-8"
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Other ways to reach us</h2>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{t("contact.otherWays", locale)}</h2>
               
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
@@ -236,9 +238,9 @@ export default function Contact() {
                     <Mail className="w-6 h-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 mb-1">Email</h3>
-                    <p className="text-slate-600">support@jobhuntin.com</p>
-                    <p className="text-sm text-slate-400">We respond within 24 hours</p>
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{t("contact.emailLabel", locale)}</h3>
+                    <p className="text-slate-600 dark:text-slate-400">support@jobhuntin.com</p>
+                    <p className="text-sm text-slate-400">{t("contact.respondWithin24", locale)}</p>
                   </div>
                 </div>
 
@@ -247,9 +249,9 @@ export default function Contact() {
                     <Users className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 mb-1">Sales Team</h3>
-                    <p className="text-slate-600">sales@jobhuntin.com</p>
-                    <p className="text-sm text-slate-400">For enterprise and team plans</p>
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{t("contact.salesTeam", locale)}</h3>
+                    <p className="text-slate-600 dark:text-slate-400">sales@jobhuntin.com</p>
+                    <p className="text-sm text-slate-400">{t("contact.salesHint", locale)}</p>
                   </div>
                 </div>
 
@@ -258,40 +260,40 @@ export default function Contact() {
                     <Shield className="w-6 h-6 text-emerald-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 mb-1">Security & Privacy</h3>
-                    <p className="text-slate-600">privacy@jobhuntin.com</p>
-                    <p className="text-sm text-slate-400">For data protection inquiries</p>
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{t("contact.securityPrivacy", locale)}</h3>
+                    <p className="text-slate-600 dark:text-slate-400">privacy@jobhuntin.com</p>
+                    <p className="text-sm text-slate-400">{t("contact.privacyHint", locale)}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-8 text-white shadow-xl">
-              <h3 className="text-2xl font-bold mb-4">Need immediate help?</h3>
+              <h3 className="text-2xl font-bold mb-4">{t("contact.needImmediateHelp", locale)}</h3>
               <p className="text-white/90 mb-6">
-                Check out our comprehensive FAQ section or browse our documentation for quick answers to common questions.
+                {t("contact.faqHint", locale)}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/guides"
                   className="bg-white text-primary-600 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-colors text-center"
                 >
-                  Browse Guides
+                  {t("contact.browseGuides", locale)}
                 </Link>
                 <Link
                   to="/pricing"
                   className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-xl font-bold transition-colors border border-white/20 text-center"
                 >
-                  View Pricing
+                  {t("contact.viewPricing", locale)}
                 </Link>
               </div>
             </div>
 
-            <div className="bg-slate-100 rounded-3xl p-8 text-center">
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-3xl p-8 text-center">
               <Clock className="w-8 h-8 text-slate-400 mx-auto mb-4" />
-              <h3 className="font-bold text-slate-900 mb-2">Response Time</h3>
-              <p className="text-slate-600 text-sm">
-                We typically respond to all inquiries within 24 hours during business days (Monday-Friday, 9AM-5PM EST).
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">{t("contact.responseTime", locale)}</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                {t("contact.responseTimeDesc", locale)}
               </p>
             </div>
           </motion.div>

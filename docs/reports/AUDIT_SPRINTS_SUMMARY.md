@@ -164,13 +164,23 @@ Remaining audit items were grouped into 6 sprints and addressed systematically.
 
 ---
 
+## Sprint 14: Marketing Pages i18n (en/fr)
+
+| Item | Status | Notes |
+|------|--------|------|
+| Success Stories i18n | ✅ Fixed | Headings, subtitle, CTA, HIRED badge (en/fr) |
+| Chrome Extension i18n | ✅ Fixed | Badge, headings, description, buttons, overlay text, stats (en/fr) |
+| About i18n | ✅ Fixed | Hero, sections, process steps, vision CTA (en/fr) |
+| Contact i18n | ✅ Fixed | Form labels, headings, success state, contact info (en/fr) |
+
+---
+
 ## Remaining Items (Not Addressed)
 
-- **Low/Nitpick:** Full i18n for Success Stories, Chrome Extension, About, Contact (en/fr keys)
+- None — all audit items addressed.
 
 ---
 
 ## Next Steps
 
-1. Add i18n keys for remaining marketing pages when needed  
-2. Run full regression: `make lint-backend`, `make test-backend`, `npm run build --workspace=apps/web`
+1. Run full regression: `make lint-backend`, `make test-backend`, `npm run build --workspace=apps/web`

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, ArrowLeft, Download, Linkedin, Briefcase, Plus, Check } from 'lucide-react';
+import { Bot, Download, Linkedin, Plus, Check } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
-import { Logo } from '../components/brand/Logo';
+import { t, getLocale } from '../lib/i18n';
 
 export default function ChromeExtension() {
+  const locale = getLocale();
   const [activeStep, setActiveStep] = useState(0);
   const shouldReduceMotion = useReducedMotion();
 
@@ -56,7 +57,7 @@ export default function ChromeExtension() {
               animate={{ opacity: 1, y: 0 }}
               className="inline-block bg-primary-100 text-primary-700 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-6"
             >
-              v2.0 Now Available
+              {t("chromeExt.badge", locale)}
             </motion.div>
 
             <motion.h1
@@ -65,8 +66,8 @@ export default function ChromeExtension() {
               transition={{ delay: 0.1 }}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-display text-slate-900 dark:text-slate-100 mb-6 sm:mb-8 leading-tight tracking-tight text-balance"
             >
-              The "Add to Cart" <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">for your career.</span>
+              {t("chromeExt.heading1", locale)} <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">{t("chromeExt.heading2", locale)}</span>
             </motion.h1>
 
             <motion.p
@@ -75,8 +76,7 @@ export default function ChromeExtension() {
               transition={{ delay: 0.2 }}
               className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 mb-8 sm:mb-10 leading-relaxed max-w-lg font-medium text-balance"
             >
-              Browse LinkedIn, Indeed, or Glassdoor. See a job you like?
-              Click one button. Our AI handles the resume tailoring, cover letter, and submission.
+              {t("chromeExt.description", locale)}
             </motion.p>
 
             <motion.div
@@ -87,11 +87,11 @@ export default function ChromeExtension() {
             >
               <Button variant="primary" size="lg" className="px-6 sm:px-8 py-3 sm:py-4 h-auto rounded-xl font-bold bg-primary-600 hover:bg-primary-500 transition-colors flex items-center justify-center gap-3 shadow-xl shadow-primary-500/20 transform hover:-translate-y-1 w-full sm:w-auto">
                 <Download className="w-5 h-5" />
-                Add to Chrome
+                {t("chromeExt.addToChrome", locale)}
                 <span className="text-white/50 font-normal text-sm ml-2 font-mono">v2.4</span>
               </Button>
               <Button variant="outline" size="lg" className="bg-white border-2 border-slate-200 text-slate-700 px-6 sm:px-8 py-3 sm:py-4 h-auto rounded-xl font-bold hover:border-primary-500 hover:text-primary-500 transition-colors w-full sm:w-auto">
-                Watch Demo
+                {t("chromeExt.watchDemo", locale)}
               </Button>
             </motion.div>
           </div>
@@ -139,9 +139,9 @@ export default function ChromeExtension() {
                     className="bg-primary-600 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-xl shadow-primary-500/20 relative z-50 transition-colors text-xs sm:text-sm"
                   >
                     {activeStep >= 2 ? (
-                      <><Check className="w-3 sm:w-4 h-3 sm:h-4 stroke-[3]" /> <span className="hidden sm:inline">Added to Queue</span><span className="sm:hidden">Added</span></>
+                      <><Check className="w-3 sm:w-4 h-3 sm:h-4 stroke-[3]" /> <span className="hidden sm:inline">{t("chromeExt.addedToQueue", locale)}</span><span className="sm:hidden">{t("chromeExt.added", locale)}</span></>
                     ) : (
-                      <><Plus className="w-3 sm:w-4 h-3 sm:h-4 stroke-[3]" /> <span className="hidden sm:inline">Auto-Apply</span><span className="sm:hidden">Apply</span></>
+                      <><Plus className="w-3 sm:w-4 h-3 sm:h-4 stroke-[3]" /> <span className="hidden sm:inline">{t("chromeExt.autoApply", locale)}</span><span className="sm:hidden">{t("chromeExt.apply", locale)}</span></>
                     )}
                   </motion.button>
                 </div>
@@ -168,25 +168,25 @@ export default function ChromeExtension() {
                         <div className="bg-primary-500 p-1.5 rounded-lg">
                           <Bot className="w-4 h-4 text-white" />
                         </div>
-                        <span className="font-bold text-xs uppercase tracking-widest text-primary-400">Agent Intelligence</span>
+                        <span className="font-bold text-xs uppercase tracking-widest text-primary-400">{t("chromeExt.agentIntelligence", locale)}</span>
                       </div>
 
                       {activeStep === 1 && (
                         <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
                           <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-                          Parsing opportunities...
+                          {t("chromeExt.parsingOpportunities", locale)}
                         </div>
                       )}
 
                       {activeStep === 2 && (
                         <div className="space-y-4">
                           <div className="flex items-center gap-2 text-xs text-emerald-400 font-black uppercase tracking-wider">
-                            <Check className="w-4 h-4 stroke-[3]" /> Match Score: 94%
+                            <Check className="w-4 h-4 stroke-[3]" /> {t("chromeExt.matchScore", locale)}
                           </div>
                           <div className="bg-white/5 p-3 rounded-xl text-[10px] text-slate-400 font-mono leading-relaxed">
-                            <span className="text-primary-400">&gt;</span> Tailoring resume for role...<br />
-                            <span className="text-primary-400">&gt;</span> Drafting cover letter...<br />
-                            <span className="text-primary-400">&gt;</span> Task queued in cloud.
+                            <span className="text-primary-400">&gt;</span> {t("chromeExt.tailoringResume", locale)}<br />
+                            <span className="text-primary-400">&gt;</span> {t("chromeExt.draftingCoverLetter", locale)}<br />
+                            <span className="text-primary-400">&gt;</span> {t("chromeExt.taskQueued", locale)}
                           </div>
                         </div>
                       )}
@@ -196,8 +196,8 @@ export default function ChromeExtension() {
                           <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-emerald-400 border border-emerald-500/50">
                             <Check className="w-6 h-6 stroke-[3]" />
                           </div>
-                          <h4 className="font-black text-white text-xs uppercase tracking-widest">Autonomous Sync</h4>
-                          <p className="text-[10px] text-slate-400 mt-1">Application pending submission</p>
+                          <h4 className="font-black text-white text-xs uppercase tracking-widest">{t("chromeExt.autonomousSync", locale)}</h4>
+                          <p className="text-[10px] text-slate-400 mt-1">{t("chromeExt.applicationPending", locale)}</p>
                         </div>
                       )}
                     </motion.div>
@@ -234,8 +234,8 @@ export default function ChromeExtension() {
           <div className="absolute inset-0 bg-slate-900/[0.02] -skew-y-3 rounded-[4rem] -z-10" />
           <div className="py-20 px-6">
             <div className="text-center mb-16">
-              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">Works where you hunt.</h3>
-              <p className="text-slate-500 font-medium">Native integration with the platforms you already use.</p>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-4 tracking-tight">{t("chromeExt.worksWhere", locale)}</h3>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">{t("chromeExt.platformsHint", locale)}</p>
             </div>
 
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-20">
@@ -261,17 +261,17 @@ export default function ChromeExtension() {
             <div className="grid md:grid-cols-3 gap-8 mt-24">
               <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/20 text-center group hover:-translate-y-2 transition-transform">
                 <p className="text-primary-600 font-black text-4xl mb-2">0.4s</p>
-                <p className="text-slate-900 font-bold uppercase text-[10px] tracking-widest">Parsing Latency</p>
+                <p className="text-slate-900 dark:text-slate-100 font-bold uppercase text-[10px] tracking-widest">{t("chromeExt.parsingLatency", locale)}</p>
                 <div className="h-1 w-8 bg-primary-100 mx-auto mt-4 group-hover:w-16 transition-all" />
               </div>
               <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/20 text-center group hover:-translate-y-2 transition-transform">
                 <p className="text-blue-600 font-black text-4xl mb-2">99.8%</p>
-                <p className="text-slate-900 font-bold uppercase text-[10px] tracking-widest">Field Accuracy</p>
+                <p className="text-slate-900 dark:text-slate-100 font-bold uppercase text-[10px] tracking-widest">{t("chromeExt.fieldAccuracy", locale)}</p>
                 <div className="h-1 w-8 bg-blue-100 mx-auto mt-4 group-hover:w-16 transition-all" />
               </div>
               <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/20 text-center group hover:-translate-y-2 transition-transform">
                 <p className="text-emerald-600 font-black text-4xl mb-2">24/7</p>
-                <p className="text-slate-900 font-bold uppercase text-[10px] tracking-widest">Active Scouting</p>
+                <p className="text-slate-900 dark:text-slate-100 font-bold uppercase text-[10px] tracking-widest">{t("chromeExt.activeScouting", locale)}</p>
                 <div className="h-1 w-8 bg-emerald-100 mx-auto mt-4 group-hover:w-16 transition-all" />
               </div>
             </div>

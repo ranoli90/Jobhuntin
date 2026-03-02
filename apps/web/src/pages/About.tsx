@@ -1,9 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Bot, Search, FileText, Send, CheckCircle, Sparkles, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { Bot, Search, FileText, Send, Sparkles, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { SEO } from '../components/marketing/SEO';
+import { t, getLocale } from '../lib/i18n';
 
 // --- Simulation Components ---
 
@@ -71,6 +72,7 @@ const ProcessStep = ({ icon: Icon, title, desc, delay }: { icon: any, title: str
 );
 
 export default function About() {
+    const locale = getLocale();
     const containerRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({
         target: containerRef,
@@ -136,27 +138,26 @@ export default function About() {
                         className="inline-flex items-center gap-2 bg-slate-900/5 backdrop-blur-sm border border-slate-900/10 px-4 py-2 rounded-full text-sm font-bold text-slate-800 mb-8"
                     >
                         <Sparkles className="w-4 h-4 text-primary-600" />
-                        <span>12,000+ job seekers stopped scrolling</span>
+                        <span>{t("about.badge", locale)}</span>
                     </motion.div>
 
                     <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-slate-100 leading-[0.9] tracking-tighter mb-8">
-                        The end of the <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">infinite scroll.</span>
+                        {t("about.heading1", locale)} <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">{t("about.heading2", locale)}</span>
                     </h1>
 
                     <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
-                        We built JobHuntin because finding a job shouldn't be a full-time job.
-                        So we moved the hard part to an engine that never sleeps.
+                        {t("about.heroDescription", locale)}
                     </p>
 
                     <div className="flex flex-wrap justify-center gap-4">
                         <Link to="/login">
                             <Button variant="primary" size="lg" className="rounded-2xl px-8 py-6 text-lg font-bold shadow-2xl shadow-primary-500/20">
-                                Experience the magic
+                                {t("about.experienceMagic", locale)}
                             </Button>
                         </Link>
                         <Button variant="ghost" size="lg" className="rounded-2xl px-8 py-6 text-lg font-bold">
-                            Watch the story
+                            {t("about.watchStory", locale)}
                         </Button>
                     </div>
                 </motion.div>
@@ -168,13 +169,12 @@ export default function About() {
                     <div className="grid lg:grid-cols-2 gap-20 items-center">
                         <div className="space-y-8">
                             <div className="space-y-4">
-                                <p className="text-primary-600 font-black tracking-widest uppercase text-sm">Enterprise-Grade Intelligence</p>
+                                <p className="text-primary-600 font-black tracking-widest uppercase text-sm">{t("about.enterpriseIntelligence", locale)}</p>
                                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-100 leading-tight">
-                                    A digital double that <br /> hunts for you.
+                                    {t("about.digitalDouble", locale)}
                                 </h2>
-                                <p className="text-lg text-slate-500 font-medium leading-relaxed">
-                                    Our system doesn't just "find" jobs. It analyzes your unique skills, matches them against real market demand,
-                                    and handles the entire application lifecycle — from the initial find to the final submit.
+                                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                    {t("about.digitalDoubleDesc", locale)}
                                 </p>
                             </div>
 
@@ -184,8 +184,8 @@ export default function About() {
                                         <ShieldCheck className="w-6 h-6 text-green-600" />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-slate-900">Privacy First</h4>
-                                        <p className="text-sm text-slate-500 font-medium">Encrypted, never sold. Recruiters only see what you approve.</p>
+                                        <h4 className="font-bold text-slate-900 dark:text-slate-100">{t("about.privacyFirst", locale)}</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{t("about.privacyFirstDesc", locale)}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-4 p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-transform hover:-translate-y-1">
@@ -193,8 +193,8 @@ export default function About() {
                                         <Zap className="w-6 h-6 text-primary-600" />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-slate-900">Lightning Precision</h4>
-                                        <p className="text-sm text-slate-500 font-medium">Thousands of jobs parsed per minute. Your match scores update in milliseconds.</p>
+                                        <h4 className="font-bold text-slate-900 dark:text-slate-100">{t("about.lightningPrecision", locale)}</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{t("about.lightningPrecisionDesc", locale)}</p>
                                     </div>
                                 </div>
                             </div>
@@ -206,11 +206,11 @@ export default function About() {
                                 <SimulationLog />
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 text-center">
-                                        <p className="text-[10px] uppercase font-black text-primary-600 mb-1">Success Rate</p>
+                                        <p className="text-[10px] uppercase font-black text-primary-600 mb-1">{t("about.successRate", locale)}</p>
                                         <p className="text-3xl font-black text-primary-700">92%</p>
                                     </div>
                                     <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] uppercase font-black text-blue-600 mb-1">Time Saved</p>
+                                        <p className="text-[10px] uppercase font-black text-blue-600 mb-1">{t("about.timeSaved", locale)}</p>
                                         <p className="text-3xl font-black text-blue-700">40h+</p>
                                     </div>
                                 </div>
@@ -224,35 +224,35 @@ export default function About() {
             <section className="py-32 bg-slate-50/50 px-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-24 max-w-3xl mx-auto">
-                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">How the engine works.</h2>
-                        <p className="text-lg text-slate-500 font-medium leading-relaxed">
-                            Four steps. Zero effort from you. Applications that actually get responses.
+                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-100 mb-6 tracking-tight">{t("about.howEngineWorks", locale)}</h2>
+                        <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                            {t("about.howEngineDesc", locale)}
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-4 gap-12">
                         <ProcessStep
                             icon={Bot}
-                            title="Parse"
-                            desc="We build your digital twin from your resume and LinkedIn."
+                            title={t("about.parse", locale)}
+                            desc={t("about.parseDesc", locale)}
                             delay={0.1}
                         />
                         <ProcessStep
                             icon={Search}
-                            title="Scout"
-                            desc="AI agents scan the web for jobs that match your DNA."
+                            title={t("about.scout", locale)}
+                            desc={t("about.scoutDesc", locale)}
                             delay={0.2}
                         />
                         <ProcessStep
                             icon={FileText}
-                            title="Tailor"
-                            desc="Resumes and cover letters are rewritten for every single job."
+                            title={t("about.tailor", locale)}
+                            desc={t("about.tailorDesc", locale)}
                             delay={0.3}
                         />
                         <ProcessStep
                             icon={Send}
-                            title="Apply"
-                            desc="Submissions happen automatically. You just track notifications."
+                            title={t("about.apply", locale)}
+                            desc={t("about.applyDesc", locale)}
                             delay={0.4}
                         />
                     </div>
@@ -262,20 +262,19 @@ export default function About() {
             {/* --- THE VISION --- */}
             <section className="py-40 px-6 relative overflow-hidden">
                 <div className="max-w-4xl mx-auto text-center relative z-10">
-                    <h2 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 leading-tight tracking-tight">
-                        Every day you wait,<br />
-                        someone else gets hired.
+                    <h2 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-slate-100 mb-8 leading-tight tracking-tight">
+                        {t("about.visionHeading", locale)}
                     </h2>
-                    <p className="text-xl text-slate-500 mb-12 font-medium">
-                        Your time should be spent in interviews, not on job boards. The people who start today land roles 3x faster.
+                    <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 font-medium">
+                        {t("about.visionDescription", locale)}
                     </p>
                     <Link to="/login">
                         <Button size="lg" className="rounded-2xl px-12 py-8 text-xl font-bold bg-slate-900 text-white hover:bg-black hover:shadow-2xl transition-all group">
-                            Get Started for Free
+                            {t("about.getStartedFree", locale)}
                             <ArrowRight className="ml-3 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </Link>
-                    <p className="mt-8 text-slate-400 font-medium text-sm">No credit card required. Cancel anytime. Actually works.</p>
+                    <p className="mt-8 text-slate-400 font-medium text-sm">{t("about.noCardRequired", locale)}</p>
                 </div>
 
                 {/* Floating Background Sparkles */}

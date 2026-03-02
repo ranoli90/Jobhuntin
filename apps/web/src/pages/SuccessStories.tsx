@@ -1,11 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Quote, Play, Volume2, VolumeX } from 'lucide-react';
+import { Star, Quote, Volume2, VolumeX } from 'lucide-react';
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
+import { t, getLocale } from '../lib/i18n';
 
 export default function SuccessStories() {
+  const locale = getLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: scrollRef });
   const x = useTransform(scrollYProgress, [0, 1], ["1%", "-50%"]);
@@ -98,29 +100,29 @@ export default function SuccessStories() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl md:text-8xl font-black font-display mb-8 tracking-tighter leading-tight text-slate-900 dark:text-slate-100">
-              THEY <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">WON.</span><br />
-              YOU'RE NEXT.
+              {t("successStories.headingWon", locale)} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">{t("successStories.headingNext", locale)}</span><br />
+              {t("successStories.headingYou", locale)}
             </h1>
           </motion.div>
           <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-            Real people. Real offers. No BS.
+            {t("successStories.subtitle", locale)}
           </p>
         </div>
 
         {/* Responsive Layout: Stack on Mobile, Scroll on Desktop */}
         <div className="lg:hidden px-6 space-y-12">
           {stories.map((story, i) => (
-            <StoryCard key={i} story={story} index={i} isMobile={true} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} />
+            <StoryCard key={i} story={story} index={i} isMobile={true} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} locale={locale} />
           ))}
 
           {/* CTA Card Mobile */}
           <div className="w-full bg-gradient-to-br from-primary-500 to-primary-600 p-8 rounded-3xl text-center relative overflow-hidden shadow-xl">
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-            <h3 className="text-3xl font-black mb-4 relative z-10 text-white">YOUR TURN.</h3>
-            <p className="text-white/90 mb-6 relative z-10 font-medium">Every hour you wait, someone else gets the interview you wanted.</p>
+            <h3 className="text-3xl font-black mb-4 relative z-10 text-white">{t("successStories.ctaTitle", locale)}</h3>
+            <p className="text-white/90 mb-6 relative z-10 font-medium">{t("successStories.ctaDescription", locale)}</p>
             <Button asChild className="w-full bg-white text-primary-600 hover:bg-slate-50 border-none shadow-lg text-lg font-bold">
               <Link to="/login">
-                Start Free Trial
+                {t("successStories.startFreeTrial", locale)}
               </Link>
             </Button>
           </div>
@@ -141,17 +143,17 @@ export default function SuccessStories() {
               className="w-max"
             >
               {stories.map((story, i) => (
-                <StoryCard key={i} story={story} index={i} isMobile={false} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} />
+                <StoryCard key={i} story={story} index={i} isMobile={false} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} locale={locale} />
               ))}
 
               {/* CTA Card at the end */}
               <div className="w-[500px] bg-gradient-to-br from-primary-500 to-primary-600 p-10 rounded-[3rem] flex flex-col justify-center items-center text-center relative overflow-hidden shadow-2xl shadow-primary-500/30">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                <h3 className="text-4xl font-black mb-6 relative z-10 text-white">YOUR TURN.</h3>
-                <p className="text-white/90 mb-8 relative z-10 text-lg font-medium">Every hour you wait, someone else gets the interview you wanted.</p>
+                <h3 className="text-4xl font-black mb-6 relative z-10 text-white">{t("successStories.ctaTitle", locale)}</h3>
+                <p className="text-white/90 mb-8 relative z-10 text-lg font-medium">{t("successStories.ctaDescription", locale)}</p>
                 <Button asChild className="bg-white text-primary-600 hover:bg-slate-50 hover:scale-105 transition-transform relative z-10 shadow-xl hover:shadow-2xl h-16 px-8 text-xl font-bold rounded-2xl border-none">
                   <Link to="/login">
-                    Start Free Trial
+                    {t("successStories.startFreeTrial", locale)}
                   </Link>
                 </Button>
               </div>
@@ -169,13 +171,15 @@ const StoryCard = ({
   index,
   isMobile,
   playingAudio,
-  setPlayingAudio
+  setPlayingAudio,
+  locale
 }: {
   story: any;
   index: number;
   isMobile: boolean;
   playingAudio: string | null;
   setPlayingAudio: (audio: string | null) => void;
+  locale: string;
 }) => {
   const shouldReduceMotion = useReducedMotion();
   const isCurrentlyPlaying = playingAudio === story.audio;
@@ -195,7 +199,7 @@ const StoryCard = ({
       {/* Hired Stamp */}
       {/* Hired Ribbon */}
       <div className="absolute top-6 -right-12 bg-emerald-500 text-white py-1 px-12 rotate-45 transform shadow-md text-xs font-black tracking-widest uppercase z-10">
-        HIRED
+        {t("successStories.hired", locale)}
       </div>
 
       <div className="flex items-center gap-4 mb-6">
