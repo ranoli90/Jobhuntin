@@ -372,15 +372,16 @@ export default function Onboarding() {
       // Only show if we haven't shown it this session
       const hasWelcomed = sessionStorage.getItem("has_welcomed_back");
       if (!hasWelcomed) {
+        const locale = getLocale();
         pushToast({
-          title: "Welcome back!",
-          description: `Picking up at ${currentStepData.title}.`,
+          title: t("onboarding.welcomeBack", locale),
+          description: t("onboarding.pickingUpAt", locale).replace("{step}", currentStepData.title),
           tone: "info"
         });
         sessionStorage.setItem("has_welcomed_back", "true");
       }
     }
-  }, [profile, currentStep]);
+  }, [profile, currentStep, currentStepData]);
 
   // Handle email typo check (FV1: debounce to avoid flicker while typing)
   React.useEffect(() => {
