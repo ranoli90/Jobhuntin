@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const warningShownRef = useRef(false);
 
     // Helper to fetch user profile
-    const fetchUser = useCallback(async () => {
+    const fetchUser = useCallback(async (isInitialLoad = false) => {
         if (import.meta.env.DEV) console.log('[AUTH] Fetching user profile...');
         try {
             const profile = await apiGet<User>("/profile");
@@ -70,19 +70,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             warningShownRef.current = false;
         } catch (error) {
             console.error("[AUTH] Failed to fetch user profile:", error);
-            // If 401, apiGet handles redirect, but we should clear state
+            // Clear user state
             setUser(null);
             sessionExpiryRef.current = null;
-            // Store the current URL to redirect back after re-auth
-            const returnTo = globalThis.window.location.pathname + globalThis.window.location.search;
-            sessionStorage.setItem('returnTo', returnTo);
-            // Show user-facing error with redirect option
-            const msg = error instanceof Error ? error.message : "Your session has expired";
-            pushToast({ title: "Session expired", description: `${msg}. Please sign in again.`, tone: "error" });
-            // Redirect to login after short delay
-            setTimeout(() => {
-                globalThis.window.location.href = '/login';
-            }, 2000);
+            
+            // Only show toast and redirect if this is not the initial load
+            // (user had a session that expired) or if we're not already on the login page
+            const isLoginPage = window.location.pathname === '/login';
+            if (!isInitialLoad && !isLoginPage) {
+                const msg = error instanceof Error ? error.message : "Your session has expired";
+                pushToast({ title: "Session expired", description: `${msg}. Please sign in again.`, tone: "error" });
+                // Store the current URL to redirect back after re-auth
+                const returnTo = window.location.pathname + window.location.search;
+                sessionStorage.setItem('returnTo', returnTo);
+                // Redirect to login after short delay
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            }
         }
     }, []);
 
@@ -183,14 +188,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 window.history.replaceState({}, document.title, newUrl);
                 if (import.meta.env.DEV) console.log('[AUTH] URL cleaned, fetching CSRF cookie and user profile');
                 await ensureCsrfCookie();
-                await fetchUser();
+                await fetchUser(true); // Pass true - don't auto-redirect on error
                 if (import.meta.env.DEV) console.log('[AUTH] Magic link auth complete');
             } else {
                 // 2. Check for existing session via httpOnly cookie
                 // The /profile endpoint will return 401 if no valid cookie
                 if (import.meta.env.DEV) console.log('[AUTH] Checking for existing session via httpOnly cookie');
                 await ensureCsrfCookie();
-                await fetchUser();
+                await fetchUser(true); // Pass true for initial load - don't redirect if no session
             }
             setLoading(false);
             if (import.meta.env.DEV) console.log('[AUTH] Auth initialization complete');
