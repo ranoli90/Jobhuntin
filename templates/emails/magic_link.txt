@@ -1,12 +1,11 @@
 Sign in to $app_name
 
-Your sign-in link is ready. Click below to access your account:
+Click the link below to sign in to your account. This secure link expires in $expires_minutes minutes.
 
 $action_link
 
-This link expires in $expires_minutes minutes and can only be used once.
+Didn't request this email? You can safely ignore it.
 
-Didn't request this? You can safely ignore this email.
-
-—
 $app_domain
+
+$app_name — $app_tagline

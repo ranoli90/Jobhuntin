@@ -462,6 +462,7 @@ def _get_destination_label(destination_path: str) -> str:
 def _get_app_branding(settings: Settings) -> dict[str, str]:
     """Get app branding values from settings or defaults."""
     base_url = settings.app_base_url.rstrip("/")
+    api_url = getattr(settings, "api_public_url", "").rstrip("/")
     domain = base_url.replace("https://", "").replace("http://", "") if base_url else "jobhuntin.com"
     
     return {
@@ -469,6 +470,7 @@ def _get_app_branding(settings: Settings) -> dict[str, str]:
         "app_initials": getattr(settings, "app_initials", "JH"),
         "app_tagline": getattr(settings, "app_tagline", "Find your next job, faster"),
         "app_base_url": base_url or "https://jobhuntin.com",
+        "api_public_url": api_url,
         "app_domain": domain,
         "support_email": getattr(settings, "support_email", "support@jobhuntin.com"),
     }
@@ -498,6 +500,7 @@ def _render_email_html(
         .replace("$expires_minutes", str(expires_minutes))
         .replace("$app_name", branding["app_name"])
         .replace("$app_domain", branding["app_domain"])
+        .replace("$app_tagline", branding["app_tagline"])
     )
     return html
 
@@ -523,6 +526,7 @@ def _render_email_text(
         .replace("$expires_minutes", str(expires_minutes))
         .replace("$app_name", branding["app_name"])
         .replace("$app_domain", branding["app_domain"])
+        .replace("$app_tagline", branding["app_tagline"])
     )
     return text
 
