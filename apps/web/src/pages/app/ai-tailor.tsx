@@ -16,7 +16,7 @@ import {
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
-import { ErrorBoundaryAI } from "../../components/ui/ErrorBoundaryAI";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 import { useResumeTailor, useATSScore } from "../../hooks/useAIEndpoints";
 import { useFeatureFlag } from "../../hooks/useFeatureFlags";
 import { cn } from "../../lib/utils";
@@ -159,7 +159,7 @@ export default function AITailorPage() {
   };
 
   return (
-    <ErrorBoundaryAI onRetry={handleTailor}>
+    <ErrorBoundary onRetry={handleTailor}>
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -434,6 +434,6 @@ export default function AITailorPage() {
           </Card>
         )}
       </div>
-    </ErrorBoundaryAI>
+    </ErrorBoundary>
   );
 }

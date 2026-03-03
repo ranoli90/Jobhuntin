@@ -116,6 +116,64 @@ class MagicLinkResponse(BaseModel):
     status: str = "sent"
 
 
+# Common disposable/temporary email domains to block
+_DISPOSABLE_EMAIL_DOMAINS: set[str] = {
+    # Major disposable providers
+    "mailinator.com",
+    "guerrillamail.com",
+    "tempmail.com",
+    "throwawaymail.com",
+    "yopmail.com",
+    "sharklasers.com",
+    "getairmail.com",
+    "temp-mail.org",
+    "fakeinbox.com",
+    "tempinbox.com",
+    "mailnesia.com",
+    "tempmailaddress.com",
+    "burnermail.io",
+    "disposablemail.com",
+    "emailondeck.com",
+    "getnada.com",
+    "inboxkitten.com",
+    "maildrop.cc",
+    "mailforspam.com",
+    "mailsac.com",
+    "mailtothis.com",
+    "mytemp.email",
+    "shieldemail.net",
+    "tempm.com",
+    "tempmails.com",
+    "thistempmail.com",
+    "tmpmail.org",
+    "trashmail.com",
+    "trash-mail.com",
+    "wegwerfmail.de",
+    "yandex.com",  # Often abused
+    # Temporary mail variants
+    "10minutemail.com",
+    "10minutemail.net",
+    "10minemail.com",
+    "20minute.email",
+    "20minutemail.com",
+    "30minutemail.com",
+    "60minutemail.com",
+    "hourlymail.com",
+    "minutemail.com",
+    "instantemail.com",
+    "quickmail.com",
+}
+
+
+def _is_disposable_email(email: str) -> bool:
+    """Check if email domain is a known disposable/temporary email provider."""
+    try:
+        domain = email.lower().split("@")[-1]
+        return domain in _DISPOSABLE_EMAIL_DOMAINS
+    except Exception:
+        return False
+
+
 def _sanitize_return_to(value: str | None) -> str | None:
     """Whitelist-only sanitizer for return_to paths to prevent open redirects."""
     if not value:
@@ -520,7 +578,7 @@ async def verify_magic_link(
         max_age=ttl,
         httponly=True,
         secure=is_prod,
-        samesite="none" if is_prod else "lax",
+        samesite="lax",  # Security: lax prevents CSRF while allowing normal navigation
         path="/",
     )
     return response
@@ -540,6 +598,10 @@ async def logout(
 async def _verify_captcha(settings: Settings, token: str, client_ip: str) -> bool:
     """Verify a reCAPTCHA v3 token."""
     if not settings.recaptcha_secret_key:
+        # In production, CAPTCHA is mandatory. Fail closed for security.
+        if settings.env.value == "prod":
+            logger.error("RECAPTCHA_SECRET_KEY not set in production - rejecting request")
+            return False
         logger.warning("RECAPTCHA_SECRET_KEY not set, skipping verification.")
         return True
 
@@ -586,6 +648,19 @@ async def request_magic_link(
     """Generate a magic link and email it via Resend."""
     # S6: Global IP rate limit to prevent mass enumeration from a single IP
     client_ip = get_client_ip(request)
+
+    # Check for disposable email domains
+    if _is_disposable_email(body.email):
+        logger.warning(
+            "Disposable email blocked",
+            extra={"email": _mask_email(body.email), "ip": client_ip},
+        )
+        incr("auth.magic_link.disposable_email_blocked", tags={})
+        # Return generic error to avoid revealing our detection
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please wait before requesting another magic link.",
+        )
 
     if body.captcha_token:
         if not await _verify_captcha(settings, body.captcha_token, client_ip):

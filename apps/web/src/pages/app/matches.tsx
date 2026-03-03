@@ -19,7 +19,7 @@ import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
-import { ErrorBoundaryAI } from "../../components/ui/ErrorBoundaryAI";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 import { useSemanticMatch } from "../../hooks/useAIEndpoints";
 import { useFeatureFlag } from "../../hooks/useFeatureFlags";
 import { cn } from "../../lib/utils";
@@ -275,7 +275,7 @@ export default function MatchesPage() {
   }
 
   return (
-    <ErrorBoundaryAI>
+    <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
         <div className="max-w-4xl mx-auto p-6 space-y-8">
           <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
@@ -473,6 +473,6 @@ export default function MatchesPage() {
           )}
         </div>
       </div>
-    </ErrorBoundaryAI>
+    </ErrorBoundary>
   );
 }

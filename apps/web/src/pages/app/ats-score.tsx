@@ -17,7 +17,7 @@ import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
-import { ErrorBoundaryAI } from "../../components/ui/ErrorBoundaryAI";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 import { useATSScore } from "../../hooks/useAIEndpoints";
 import { useFeatureFlag } from "../../hooks/useFeatureFlags";
 import { cn } from "../../lib/utils";
@@ -171,7 +171,7 @@ export default function ATSScorePage() {
   };
 
   return (
-    <ErrorBoundaryAI onRetry={handleScore}>
+    <ErrorBoundary onRetry={handleScore}>
       <div className="max-w-5xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -361,6 +361,6 @@ export default function ATSScorePage() {
           </div>
         )}
       </div>
-    </ErrorBoundaryAI>
+    </ErrorBoundary>
   );
 }

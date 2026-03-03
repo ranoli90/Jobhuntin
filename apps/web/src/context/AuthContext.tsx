@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
-import { apiGet, clearAuthToken, getApiBase, getAuthToken, setAuthToken } from "../lib/api";
+import { apiGet, getApiBase } from "../lib/api";
 import { pushToast } from "../lib/toast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -62,9 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } catch (error) {
             console.error("[AUTH] Failed to fetch user profile:", error);
             // If 401, apiGet handles redirect, but we should clear state
-            clearAuthToken();
             setUser(null);
-            localStorage.removeItem('jobhuntin-session');
             // Store the current URL to redirect back after re-auth
             const returnTo = globalThis.window.location.pathname + globalThis.window.location.search;
             sessionStorage.setItem('returnTo', returnTo);
@@ -98,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const tokenFromUrl = params.get("token");
 
             if (tokenFromUrl) {
-                if (import.meta.env.DEV) console.log('[AUTH] Token found in URL, processing magic link');
+                if (import.meta.env.DEV) console.log('[AUTH] Token found in URL, processing magic link')
                 
                 // Preserve returnTo before cleaning URL (for magic link flow without api_public_url)
                 const returnToFromUrl = params.get("returnTo");
@@ -106,6 +104,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     sessionStorage.setItem('magicLinkReturnTo', returnToFromUrl);
                     if (import.meta.env.DEV) console.log('[AUTH] Stored returnTo from URL:', returnToFromUrl);
                 }
+                
+                // NOTE: Token is now exchanged for httpOnly cookie by the backend.
+                // The backend /auth/verify-magic endpoint sets the cookie and redirects.
+                // If we receive a token here, it means we're using the legacy flow.
+                // We'll send it to the backend to exchange for a cookie.
+                try {
+                    const base = getApiBase();
+                    if (base) {
+                        // Exchange token for httpOnly cookie
+                        await fetch(`${base.replace(/\/$/, "")}/auth/verify-magic?token=${encodeURIComponent(tokenFromUrl)}`, {
+                            credentials: 'include',
+                        });
+                    }
+                } catch (e) {
+                    console.error('[AUTH] Failed to exchange token for cookie:', e);
+                }
+                
+                // Clean URL - remove token and returnTo query params but preserve other params
+                const searchParams = new URLSearchParams(window.location.search);
+                searchParams.delete("token");
+                searchParams.delete("returnTo");
+                const newSearch = searchParams.toString();
+                const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : '') + window.location.hash;
+                window.history.replaceState({}, document.title, newUrl);
+                if (import.meta.env.DEV) console.log('[AUTH] URL cleaned, fetching CSRF cookie and user profile');
+                await ensureCsrfCookie();
+                await fetchUser();
+                if (import.meta.env.DEV) console.log('[AUTH] Magic link auth complete');
+            } else {
+                // 2. Check for existing session via httpOnly cookie
+                // The /profile endpoint will return 401 if no valid cookie
+                if (import.meta.env.DEV) console.log('[AUTH] Checking for existing session via httpOnly cookie');
+                await ensureCsrfCookie();
+                await fetchUser();
+            }
                 
                 setAuthToken(tokenFromUrl);
                 // Clean URL - remove token and returnTo query params but preserve other params
@@ -138,9 +171,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const handleUnauthorized = (event: Event) => {
             if (import.meta.env.DEV) console.log('[AUTH] Unauthorized event received, clearing session');
             const detail = (event as CustomEvent<{ returnTo?: string }>).detail;
-            clearAuthToken();
             setUser(null);
-            localStorage.removeItem('jobhuntin-session');
             sessionStorage.setItem('session_expired', 'true');
             const returnTo = detail?.returnTo ?? encodeURIComponent(window.location.pathname + window.location.search);
             window.location.href = `/login?returnTo=${returnTo}`;
@@ -168,9 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const signOut = async () => {
-        clearAuthToken();
         setUser(null);
-        localStorage.removeItem('jobhuntin-session');
         // S1: Redirect to API logout to clear httpOnly cookie, then to /login
         const base = getApiBase();
         if (base) {
