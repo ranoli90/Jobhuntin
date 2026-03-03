@@ -8,37 +8,41 @@ import { AISuggestionCard, SalarySuggestionCard } from "../../../../components/u
 import { CITIES } from "../../../../data/cities";
 import { JOB_TITLES } from "../../../../data/jobTitles";
 import type { RoleSuggestion, SalarySuggestion, LocationSuggestion } from "../../../../hooks/useAISuggestions";
+import { t, getLocale } from "../../../../lib/i18n";
 
 // Salary validation utilities
-const validateSalary = (value: string, fieldName: string): { isValid: boolean; error?: string } => {
+const validateSalary = (value: string, fieldName: string, locale: string): { isValid: boolean; error?: string } => {
   if (!value || value.trim() === '') {
-    return { isValid: false, error: `${fieldName === 'salary_min' ? 'Minimum' : 'Maximum'} salary is required` };
+    return { isValid: false, error: fieldName === 'salary_min' 
+      ? (t("onboarding.minSalaryRequired", locale) || 'Minimum salary is required')
+      : (t("onboarding.maxSalaryRequired", locale) || 'Maximum salary is required')
+    };
   }
   
   const numValue = Number.parseFloat(value);
   if (Number.isNaN(numValue)) {
-    return { isValid: false, error: 'Please enter a valid number' };
+    return { isValid: false, error: t("onboarding.validNumber", locale) || 'Please enter a valid number' };
   }
   
   if (numValue < 0) {
-    return { isValid: false, error: 'Salary must be greater than 0' };
+    return { isValid: false, error: t("onboarding.salaryGreaterThanZero", locale) || 'Salary must be greater than 0' };
   }
   
   if (numValue > 10000000) {
-    return { isValid: false, error: 'Salary cannot exceed $10,000,000' };
+    return { isValid: false, error: t("onboarding.salaryExceeds", locale) || 'Salary cannot exceed $10,000,000' };
   }
   
   return { isValid: true };
 };
 
-const validateSalaryRange = (min: string, max: string): { isValid: boolean; error?: string } => {
+const validateSalaryRange = (min: string, max: string, locale: string): { isValid: boolean; error?: string } => {
   if (!min || !max) return { isValid: true }; // Skip validation if either field is empty
   
   const minNum = Number.parseFloat(min);
   const maxNum = Number.parseFloat(max);
   
   if (!Number.isNaN(minNum) && !Number.isNaN(maxNum) && minNum > maxNum) {
-    return { isValid: false, error: 'Minimum salary cannot be greater than maximum salary' };
+    return { isValid: false, error: t("onboarding.minGreaterThanMax", locale) || 'Minimum salary cannot be greater than maximum salary' };
   }
   
   return { isValid: true };
@@ -93,376 +97,288 @@ export function PreferencesStep({
     hasParsedProfile = false,
     onClearError,
 }: PreferencesStepProps) {
+    const locale = getLocale();
 
     // M-3 fix: store raw text while editing to avoid flickering from split/join on each keystroke
     const [localExcludedKeywords, setLocalExcludedKeywords] = React.useState(
         preferences.excluded_keywords?.join(', ') || ''
     );
-    
-    // Local validation state for salary fields
-    const [salaryErrors, setSalaryErrors] = React.useState<Record<string, string>>({});
-    
-    // Validate salary fields on change
-    const validateSalaryFields = React.useCallback((minSalary: string, maxSalary: string) => {
-        const errors: Record<string, string> = {};
-        
-        // Validate minimum salary
-        const minValidation = validateSalary(minSalary, 'salary_min');
-        if (!minValidation.isValid) {
-            errors.salary_min = minValidation.error!;
-        }
-        
-        // Validate maximum salary (only if provided)
-        if (maxSalary && maxSalary.trim() !== '') {
-            const maxValidation = validateSalary(maxSalary, 'salary_max');
-            if (!maxValidation.isValid) {
-                errors.salary_max = maxValidation.error!;
-            }
-        }
-        
-        // Validate salary range
-        const rangeValidation = validateSalaryRange(minSalary, maxSalary);
-        if (!rangeValidation.isValid) {
-            errors.salary_min = rangeValidation.error!; // Show range error on min field
-        }
-        
-        setSalaryErrors(errors);
-        return Object.keys(errors).length === 0;
-    }, []);
-    
-    // Check if form is valid for submission
-    const isFormValid = React.useMemo(() => {
-        const hasRequiredFields = preferences.location.trim() !== '' && 
-                                preferences.role_type.trim() !== '' && 
-                                preferences.salary_min.trim() !== '';
-        
-        const hasNoErrors = Object.keys(formErrors).length === 0 && 
-                           Object.keys(salaryErrors).length === 0;
-        
-        return hasRequiredFields && hasNoErrors;
-    }, [preferences, formErrors, salaryErrors]);
-    
-    // Validate on salary changes
-    React.useEffect(() => {
-        validateSalaryFields(preferences.salary_min, preferences.salary_max || '');
-    }, [preferences.salary_min, preferences.salary_max, validateSalaryFields]);
-    const [excludedKeywordsText, setExcludedKeywordsText] = React.useState(
-        (preferences.excluded_keywords || []).join(", ")
-    );
-    
-    // BUG FIX: Added missing excludedCompaniesText state
-    const [excludedCompaniesText, setExcludedCompaniesText] = React.useState(
-        (preferences.excluded_companies || []).join(", ")
-    );
 
     const handleLocationChange = (value: string) => {
-        setPreferences((p) => ({ ...p, location: value }));
-        if (formErrors.location && onClearError) {
+        setPreferences(p => ({ ...p, location: value }));
+        if (onClearError && formErrors.location) {
             onClearError('location');
         }
     };
 
     const handleRoleTypeChange = (value: string) => {
-        setPreferences((p) => ({ ...p, role_type: value }));
-        if (formErrors.role_type && onClearError) {
+        setPreferences(p => ({ ...p, role_type: value }));
+        if (onClearError && formErrors.role_type) {
             onClearError('role_type');
         }
     };
 
-    const showAISuggestions = hasParsedProfile && (
-        aiSuggestions.roles.data ||
-        aiSuggestions.roles.loading ||
-        aiSuggestions.locations.data ||
-        aiSuggestions.locations.loading ||
-        aiSuggestions.salary.data ||
-        aiSuggestions.salary.loading
-    );
+    const handleSalaryChange = (field: 'salary_min' | 'salary_max', value: string) => {
+        setPreferences(p => ({ ...p, [field]: value }));
+        if (onClearError && (formErrors.salary_min || formErrors.salary_max)) {
+            onClearError('salary_min');
+            onClearError('salary_max');
+        }
+    };
+
+    const handleExcludedKeywordsChange = (value: string) => {
+        setLocalExcludedKeywords(value);
+        const keywords = value.split(',').map(k => k.trim()).filter(k => k.length > 0);
+        setPreferences(p => ({ ...p, excluded_keywords: keywords }));
+    };
+
+    const handleExcludedCompaniesChange = (value: string) => {
+        const companies = value.split(',').map(c => c.trim()).filter(c => c.length > 0);
+        setPreferences(p => ({ ...p, excluded_companies: companies }));
+    };
+
     return (
         <div>
             <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
-                <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 shadow-sm">
+                <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
                     <MapPin className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div className="min-w-0">
-                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">Job Settings</h2>
-                    <p className="text-xs md:text-sm text-slate-500 font-medium">Set your location and salary goals.</p>
+                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">
+                        {t("onboarding.preferencesTitle", locale)}
+                    </h2>
+                    <p className="text-xs md:text-sm text-slate-500 font-medium">
+                        {t("onboarding.preferencesSubtitle", locale)}
+                    </p>
                 </div>
             </div>
 
-            {showAISuggestions && (
-                <>
-                    {(aiSuggestions.roles.data || aiSuggestions.roles.loading || aiSuggestions.locations.data || aiSuggestions.locations.loading) && (
-                        <div className="grid md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
-                            <AISuggestionCard
-                                title="Suggested Roles"
-                                subtitle="Based on your experience"
-                                suggestions={aiSuggestions.roles.data?.suggested_roles || []}
-                                confidence={aiSuggestions.roles.data?.confidence}
-                                reasoning={aiSuggestions.roles.data?.reasoning}
-                                loading={aiSuggestions.roles.loading}
-                                error={aiSuggestions.roles.error}
-                                onAccept={(role) => setPreferences(p => ({ ...p, role_type: role }))}
-                                onReject={() => { console.debug('[AI] User dismissed role suggestion'); }}
-                            />
-                            <AISuggestionCard
-                                title="Recommended Locations"
-                                subtitle={aiSuggestions.locations.data?.remote_friendly_score
-                                    ? `${Math.round(aiSuggestions.locations.data.remote_friendly_score * 100)}% remote`
-                                    : "Based on your skills"
-                                }
-                                suggestions={aiSuggestions.locations.data?.suggested_locations || []}
-                                confidence={aiSuggestions.locations.data?.remote_friendly_score}
-                                reasoning={aiSuggestions.locations.data?.reasoning}
-                                loading={aiSuggestions.locations.loading}
-                                error={aiSuggestions.locations.error}
-                                onAccept={(location) => setPreferences(p => ({ ...p, location }))}
-                                onReject={() => { console.debug('[AI] User dismissed location suggestion'); }}
-                            />
-                        </div>
+            <div className="grid gap-4 md:gap-6">
+                {/* Location */}
+                <div>
+                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <MapPin className="w-3 h-3" />
+                        {t("onboarding.location", locale)} <span className="text-red-400">*</span>
+                    </label>
+                    <AutoCompleteInput
+                        value={preferences.location}
+                        onChange={handleLocationChange}
+                        suggestions={CITIES}
+                        placeholder={t("onboarding.locationPlaceholder", locale)}
+                        icon={<MapPin className="h-4 w-4 md:h-5 md:w-5" />}
+                        error={!!formErrors.location}
+                    />
+                    {formErrors.location && (
+                        <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.location}</p>
                     )}
-
-                    {(aiSuggestions.salary.data || aiSuggestions.salary.loading) && (
-                        <div className="mb-4 md:mb-6">
-                            <SalarySuggestionCard
-                                minSalary={aiSuggestions.salary.data?.min_salary || 0}
-                                maxSalary={aiSuggestions.salary.data?.max_salary || 0}
-                                marketMedian={aiSuggestions.salary.data?.market_median || 0}
-                                currency={aiSuggestions.salary.data?.currency}
-                                confidence={aiSuggestions.salary.data?.confidence}
-                                factors={aiSuggestions.salary.data?.factors}
-                                reasoning={aiSuggestions.salary.data?.reasoning}
-                                loading={aiSuggestions.salary.loading}
-                                error={aiSuggestions.salary.error}
-                                onAccept={(min) => setPreferences(p => ({ ...p, salary_min: String(min) }))}
-                                onReject={() => { console.debug('[AI] User dismissed salary suggestion'); }}
-                            />
-                        </div>
-                    )}
-                </>
-            )}
-
-            <div className="space-y-4 md:space-y-6">
-                <div className="grid gap-4 md:gap-6">
-                    <div>
-                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <div className="w-1 h-1 rounded-full bg-primary-500" />
-                            Where do you want to work?
-                        </label>
-                        <AutoCompleteInput
-                            icon={<MapPin className="h-4 w-4 md:h-5 md:w-5" />}
-                            type="text"
-                            placeholder="e.g., Remote, Austin TX, London"
-                            value={preferences.location}
-                            onChange={handleLocationChange}
-                            onClear={() => setPreferences((p) => ({ ...p, location: "" }))}
-                            suggestions={CITIES}
-                            className="bg-white shadow-sm"
-                            error={!!formErrors.location}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <div className="w-1 h-1 rounded-full bg-primary-500" />
-                            Desired Job Title
-                        </label>
-                        <AutoCompleteInput
-                            icon={<Briefcase className="h-4 w-4 md:h-5 md:w-5" />}
-                            type="text"
-                            placeholder="e.g., Staff AI Engineer"
-                            value={preferences.role_type}
-                            onChange={handleRoleTypeChange}
-                            onClear={() => setPreferences((p) => ({ ...p, role_type: "" }))}
-                            suggestions={JOB_TITLES}
-                            className="bg-white shadow-sm"
-                            error={!!formErrors.role_type}
-                        />
-                    </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+                {/* Role Type */}
+                <div>
+                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <Briefcase className="w-3 h-3" />
+                        {t("onboarding.roleType", locale)} <span className="text-red-400">*</span>
+                    </label>
+                    <AutoCompleteInput
+                        value={preferences.role_type}
+                        onChange={handleRoleTypeChange}
+                        suggestions={JOB_TITLES}
+                        placeholder={t("onboarding.rolePlaceholder", locale)}
+                        icon={<Briefcase className="h-4 w-4 md:h-5 md:w-5" />}
+                        error={!!formErrors.role_type}
+                    />
+                    {formErrors.role_type && (
+                        <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.role_type}</p>
+                    )}
+                </div>
+
+                {/* Salary Range */}
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <div>
                         <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <div className="w-1 h-1 rounded-full bg-primary-500" />
-                            Minimum Salary
+                            <DollarSign className="w-3 h-3" />
+                            {t("onboarding.minSalary", locale)}
                         </label>
                         <Input
-                            icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5" />}
                             type="number"
-                            min="0"
-                            max="10000000"
-                            placeholder="150000"
+                            placeholder="80000"
                             value={preferences.salary_min}
-                            onChange={(e) => {
-                                setPreferences((p) => ({ ...p, salary_min: e.target.value || "" }));
-                            }}
-                            onClear={() => setPreferences((p) => ({ ...p, salary_min: "" }))}
+                            onChange={(e) => handleSalaryChange('salary_min', e.target.value)}
+                            icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5" />}
                             className="bg-white shadow-sm"
-                            error={!!salaryErrors.salary_min}
-                            helperText={salaryErrors.salary_min}
+                            error={!!formErrors.salary_min}
                         />
+                        {formErrors.salary_min && (
+                            <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.salary_min}</p>
+                        )}
                     </div>
-                    <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.remote_only ? 'bg-primary-50 border-primary-200' : 'bg-slate-50 border-slate-100'}`}>
-                        <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.remote_only ? 'bg-primary-600 text-white' : 'bg-white text-slate-300'}`}>
-                            <Wifi className="h-4 w-4 md:h-5 md:w-5" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-xs font-bold text-slate-900">Remote Work Only</p>
-                            <p className="text-[10px] text-slate-500">Show only work-from-home jobs</p>
-                        </div>
-                        <input
-                            type="checkbox"
-                            checked={preferences.remote_only}
-                            onChange={(e) => setPreferences((p) => ({ ...p, remote_only: e.target.checked, onsite_only: e.target.checked ? false : p.onsite_only }))}
-                            className="h-5 w-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-                        />
-                    </label>
-                </div>
-
-                {/* Dealbreaker Filters */}
-                <div className="pt-4 md:pt-6 border-t border-slate-100">
-                    <div className="flex items-center gap-2 mb-3 md:mb-4">
-                        <div className="w-1 h-1 rounded-full bg-red-500" />
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            Dealbreakers
+                    <div>
+                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <DollarSign className="w-3 h-3" />
+                            {t("onboarding.maxSalary", locale)}
                         </label>
+                        <Input
+                            type="number"
+                            placeholder="150000"
+                            value={preferences.salary_max || ''}
+                            onChange={(e) => handleSalaryChange('salary_max', e.target.value)}
+                            icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5" />}
+                            className="bg-white shadow-sm"
+                            error={!!formErrors.salary_max}
+                        />
+                        {formErrors.salary_max && (
+                            <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.salary_max}</p>
+                        )}
                     </div>
+                </div>
+                <p className="text-[10px] text-slate-400 -mt-2">{t("onboarding.salaryHint", locale)}</p>
 
-                    <div className="space-y-3">
-                        <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.visa_sponsorship ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-100'}`}>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${preferences.visa_sponsorship ? 'bg-blue-600 text-white' : 'bg-white text-slate-300'}`}>
-                                <Globe className="h-4 w-4" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-xs font-bold text-slate-900">Need Visa Sponsorship?</p>
-                                <p className="text-[10px] text-slate-500">I need a company to sponsor my work visa</p>
-                            </div>
+                {/* Work Arrangement */}
+                <div className="p-3 md:p-4 rounded-xl bg-slate-50 border border-slate-100">
+                    <label className="mb-3 flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        <Wifi className="w-3 h-3" />
+                        {t("onboarding.workArrangement", locale) || "Work Arrangement"}
+                    </label>
+                    <div className="flex flex-col gap-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
-                                checked={preferences.visa_sponsorship || false}
-                                onChange={(e) => setPreferences((p) => ({ ...p, visa_sponsorship: e.target.checked }))}
-                                className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                checked={preferences.remote_only}
+                                onChange={(e) => setPreferences(p => ({ ...p, remote_only: e.target.checked }))}
+                                className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                             />
+                            <span className="text-sm text-slate-700">{t("onboarding.remoteOnly", locale)}</span>
                         </label>
-
-                        <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.onsite_only ? 'bg-purple-50 border-purple-200' : 'bg-slate-50 border-slate-100'}`}>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${preferences.onsite_only ? 'bg-purple-600 text-white' : 'bg-white text-slate-300'}`}>
-                                <Building2 className="h-4 w-4" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-xs font-bold text-slate-900">On-site Only</p>
-                                <p className="text-[10px] text-slate-500">I want to work at the office</p>
-                            </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={preferences.onsite_only || false}
-                                onChange={(e) => setPreferences((p) => ({ ...p, onsite_only: e.target.checked, remote_only: e.target.checked ? false : p.remote_only }))}
-                                className="h-5 w-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                                onChange={(e) => setPreferences(p => ({ ...p, onsite_only: e.target.checked }))}
+                                className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                             />
+                            <span className="text-sm text-slate-700">{t("onboarding.onsiteOnly", locale)}</span>
                         </label>
-
-                        <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
-                                    <DollarSign className="h-4 w-4" aria-hidden />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-slate-900">Salary Cap</p>
-                                    <p className="text-[10px] text-slate-500">Your target upper range. Max $10M.</p>
-                                </div>
-                            </div>
-                            <Input
-                                type="number"
-                                min="0"
-                                max="10000000"
-                                placeholder="e.g., 300000"
-                                value={preferences.salary_max || ""}
-                                onChange={(e) => {
-                                  setPreferences((p) => ({ ...p, salary_max: e.target.value || "" }));
-                                  if (formErrors.salary_max && onClearError) onClearError("salary_max");
-                                }}
-                                onClear={() => {
-                                  setPreferences((p) => ({ ...p, salary_max: "" }));
-                                  if (onClearError) onClearError("salary_max");
-                                }}
-                                className="bg-white"
-                                error={!!salaryErrors.salary_max}
-                                helperText={salaryErrors.salary_max}
-                            />
-                        </div>
-
-                        <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
-                                    <Ban className="h-4 w-4" aria-hidden />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-slate-900">Exclude Companies</p>
-                                    <p className="text-[10px] text-slate-500">Companies you don't want to apply to</p>
-                                </div>
-                            </div>
-                            <Input
-                                type="text"
-                                placeholder="e.g., BadCorp, ToxicInc"
-                                value={excludedCompaniesText}
-                                onChange={(e) => setExcludedCompaniesText(e.target.value)}
-                                onBlur={() => setPreferences((p) => ({
-                                    ...p,
-                                    excluded_companies: excludedCompaniesText.split(",").map(s => s.trim()).filter(Boolean)
-                                }))}
-                                onClear={() => { setExcludedCompaniesText(""); setPreferences((p) => ({ ...p, excluded_companies: [] })); }}
-                                className="bg-white"
-                            />
-                        </div>
-
-                        <div className="p-3 md:p-4 rounded-xl border bg-slate-50 border-slate-100">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-slate-400">
-                                    <AlertTriangle className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-slate-900">Exclude Keywords</p>
-                                    <p className="text-[10px] text-slate-500">Jobs with these words won't be shown</p>
-                                </div>
-                            </div>
-                            <Input
-                                type="text"
-                                placeholder="e.g., senior, lead, manager"
-                                value={excludedKeywordsText}
-                                onChange={(e) => setExcludedKeywordsText(e.target.value)}
-                                onBlur={() => setPreferences((p) => ({
-                                    ...p,
-                                    excluded_keywords: excludedKeywordsText.split(",").map(s => s.trim()).filter(Boolean)
-                                }))}
-                                onClear={() => { setExcludedKeywordsText(""); setPreferences((p) => ({ ...p, excluded_keywords: [] })); }}
-                                className="bg-white"
-                            />
-                        </div>
                     </div>
                 </div>
 
                 {/* Work Authorization */}
-                <div className="pt-4 md:pt-6 border-t border-slate-100">
-                    <label className="mb-2 md:mb-3 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                        Work Authorization
+                <div className="p-3 md:p-4 rounded-xl bg-slate-50 border border-slate-100">
+                    <label className="mb-3 flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        <Shield className="w-3 h-3" />
+                        {t("onboarding.workAuthorization", locale) || "Work Authorization"}
                     </label>
-                    <label className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl cursor-pointer border transition-all ${preferences.work_authorized ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-100'}`}>
-                        <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${preferences.work_authorized ? 'bg-emerald-600 text-white' : 'bg-white text-slate-300'}`}>
-                            <Shield className="h-4 w-4 md:h-5 md:w-5" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-xs font-bold text-slate-900">Can you work legally?</p>
-                            <p className="text-[10px] text-slate-500">I don't need a visa sponsor</p>
-                        </div>
-                        <input
-                            type="checkbox"
-                            checked={preferences.work_authorized}
-                            onChange={(e) => setPreferences((p) => ({ ...p, work_authorized: e.target.checked }))}
-                            className="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                        />
-                    </label>
+                    <div className="flex flex-col gap-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={preferences.work_authorized !== false}
+                                onChange={(e) => setPreferences(p => ({ ...p, work_authorized: e.target.checked }))}
+                                className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                            />
+                            <span className="text-sm text-slate-700">{t("onboarding.workAuthorized", locale)}</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={preferences.visa_sponsorship || false}
+                                onChange={(e) => setPreferences(p => ({ ...p, visa_sponsorship: e.target.checked }))}
+                                className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                            />
+                            <span className="text-sm text-slate-700">{t("onboarding.visaSponsorship", locale)}</span>
+                        </label>
+                    </div>
+                    {preferences.visa_sponsorship && (
+                        <p className="mt-2 text-[10px] text-amber-600 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" />
+                            {t("onboarding.visaSponsorshipDesc", locale)}
+                        </p>
+                    )}
                 </div>
+
+                {/* Excluded Companies */}
+                <div>
+                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <Building2 className="w-3 h-3" />
+                        {t("onboarding.excludedCompanies", locale)}
+                    </label>
+                    <Input
+                        type="text"
+                        placeholder={t("onboarding.excludedCompaniesPlaceholder", locale) || "Company A, Company B, ..."}
+                        value={preferences.excluded_companies?.join(', ') || ''}
+                        onChange={(e) => handleExcludedCompaniesChange(e.target.value)}
+                        icon={<Ban className="h-4 w-4 md:h-5 md:w-5" />}
+                        className="bg-white shadow-sm"
+                    />
+                    <p className="mt-1 text-[10px] text-slate-400">
+                        {t("onboarding.excludedCompaniesHint", locale) || "Separate multiple companies with commas"}
+                    </p>
+                </div>
+
+                {/* Excluded Keywords */}
+                <div>
+                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <Ban className="w-3 h-3" />
+                        {t("onboarding.excludedKeywords", locale)}
+                    </label>
+                    <Input
+                        type="text"
+                        placeholder={t("onboarding.excludedKeywordsPlaceholder", locale) || "keyword1, keyword2, ..."}
+                        value={localExcludedKeywords}
+                        onChange={(e) => handleExcludedKeywordsChange(e.target.value)}
+                        icon={<Ban className="h-4 w-4 md:h-5 md:w-5" />}
+                        className="bg-white shadow-sm"
+                    />
+                    <p className="mt-1 text-[10px] text-slate-400">
+                        {t("onboarding.excludedKeywordsHint", locale) || "Jobs containing these keywords will be filtered out"}
+                    </p>
+                </div>
+
+                {/* AI Suggestions */}
+                {hasParsedProfile && (
+                    <div className="p-3 md:p-4 rounded-xl bg-blue-50 border border-blue-100">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Globe className="w-4 h-4 text-blue-600" />
+                            <p className="text-[10px] font-bold text-blue-800 uppercase tracking-wider">
+                                {t("onboarding.aiSuggestions", locale) || "AI Suggestions"}
+                            </p>
+                        </div>
+                        
+                        {aiSuggestions.locations && (
+                            <AISuggestionCard
+                                title={t("onboarding.suggestedLocation", locale) || "Suggested Location"}
+                                suggestion={aiSuggestions.locations.city}
+                                confidence={aiSuggestions.locations.confidence}
+                                onApply={() => handleLocationChange(aiSuggestions.locations!.city)}
+                                currentValue={preferences.location}
+                            />
+                        )}
+                        
+                        {aiSuggestions.roles && (
+                            <AISuggestionCard
+                                title={t("onboarding.suggestedRole", locale) || "Suggested Role"}
+                                suggestion={aiSuggestions.roles.title}
+                                confidence={aiSuggestions.roles.confidence}
+                                onApply={() => handleRoleTypeChange(aiSuggestions.roles!.title)}
+                                currentValue={preferences.role_type}
+                            />
+                        )}
+                        
+                        {aiSuggestions.salary && (
+                            <SalarySuggestionCard
+                                title={t("onboarding.suggestedSalary", locale) || "Suggested Salary Range"}
+                                min={aiSuggestions.salary.min}
+                                max={aiSuggestions.salary.max}
+                                confidence={aiSuggestions.salary.confidence}
+                                onApply={() => {
+                                    handleSalaryChange('salary_min', aiSuggestions.salary!.min.toString());
+                                    handleSalaryChange('salary_max', aiSuggestions.salary!.max.toString());
+                                }}
+                                currentMin={preferences.salary_min}
+                                currentMax={preferences.salary_max}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4">
@@ -471,20 +387,24 @@ export function PreferencesStep({
                     variant="ghost"
                     onClick={onPrev}
                     className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
-                    aria-label="Go back to previous step"
+                    aria-label={t("onboarding.back", locale)}
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
+                    {t("onboarding.back", locale)}
                 </Button>
                 <Button
                     type="button"
                     onClick={onNext}
-                    className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation"
-                    disabled={!isFormValid || isSavingPreferences}
-                    aria-label="Save preferences and continue" data-onboarding-next
+                    disabled={!preferences.location || !preferences.role_type || isSavingPreferences}
+                    className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
+                    aria-label={t("onboarding.savePreferences", locale)} data-onboarding-next
                 >
-                    {isSavingPreferences ? <LoadingSpinner size="sm" /> : "Save & Continue"}
-                    {!isSavingPreferences && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />}
+                    {isSavingPreferences ? <LoadingSpinner size="sm" /> : (
+                        <>
+                            {t("onboarding.savePreferences", locale)}
+                            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                        </>
+                    )}
                 </Button>
             </div>
         </div>
