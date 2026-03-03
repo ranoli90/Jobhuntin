@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Clear user state
             setUser(null);
             sessionExpiryRef.current = null;
-            
+
             // Only show toast and redirect if this is not the initial load
             // (user had a session that expired) or if we're not already on the login page
             const isLoginPage = window.location.pathname === '/login';
@@ -155,14 +155,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             if (tokenFromUrl) {
                 if (import.meta.env.DEV) console.log('[AUTH] Token found in URL, processing magic link')
-                
+
                 // Preserve returnTo before cleaning URL (for magic link flow without api_public_url)
                 const returnToFromUrl = params.get("returnTo");
                 if (returnToFromUrl) {
                     sessionStorage.setItem('magicLinkReturnTo', returnToFromUrl);
                     if (import.meta.env.DEV) console.log('[AUTH] Stored returnTo from URL:', returnToFromUrl);
                 }
-                
+
                 // NOTE: Token is now exchanged for httpOnly cookie by the backend.
                 // The backend /auth/verify-magic endpoint sets the cookie and redirects.
                 // If we receive a token here, it means we're using the legacy flow.
@@ -178,7 +178,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 } catch (e) {
                     console.error('[AUTH] Failed to exchange token for cookie:', e);
                 }
-                
+
                 // Clean URL - remove token and returnTo query params but preserve other params
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.delete("token");
@@ -207,6 +207,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             sessionExpiryRef.current = null;
             sessionStorage.setItem('session_expired', 'true');
+            // Don't redirect if already on the login page — prevents infinite redirect loop
+            if (window.location.pathname === '/login') return;
             const returnTo = detail?.returnTo ?? encodeURIComponent(window.location.pathname + window.location.search);
             window.location.href = `/login?returnTo=${returnTo}`;
         };
