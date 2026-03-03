@@ -10,6 +10,26 @@ interface WelcomeStepProps {
 }
 
 export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
+    const locale = getLocale();
+    
+    const features = [
+        { 
+            titleKey: "onboarding.feature1Title", 
+            descKey: "onboarding.feature1Desc", 
+            icon: Sparkles 
+        },
+        { 
+            titleKey: "onboarding.feature2Title", 
+            descKey: "onboarding.feature2Desc", 
+            icon: MapPin 
+        },
+        { 
+            titleKey: "onboarding.feature3Title", 
+            descKey: "onboarding.feature3Desc", 
+            icon: Rocket 
+        },
+    ];
+
     return (
         <div>
             <div className="text-center py-2 md:py-4">
@@ -24,17 +44,16 @@ export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
                     </div>
                 </div>
                 <h1 className="mb-2 md:mb-3 font-display text-xl md:text-3xl font-bold text-slate-900 tracking-tight leading-tight">
-                    Find Your <span className="text-primary-600 italic">Dream Job.</span>
+                    {t("onboarding.welcomeTitle", locale).split(" ").slice(0, -1).join(" ")}{" "}
+                    <span className="text-primary-600 italic">
+                        {t("onboarding.welcomeTitle", locale).split(" ").pop()?.replace(".", "")}.
+                    </span>
                 </h1>
                 <p className="mb-4 md:mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-sm md:text-base">
-                    {t("onboarding.welcomeSubtitle", getLocale())}
+                    {t("onboarding.welcomeSubtitle", locale)}
                 </p>
                 <div className="grid gap-2 md:gap-3 mb-6 md:mb-8 text-left">
-                    {[
-                        { title: "Upload Resume", desc: "We'll analyze your skills and experience", icon: Sparkles },
-                        { title: "Set Preferences", desc: "Tell us where and what you want to work", icon: MapPin },
-                        { title: "Auto-Apply", desc: "We'll apply to jobs for you automatically", icon: Rocket },
-                    ].map((item, i) => (
+                    {features.map((item, i) => (
                         <motion.div
                             key={i}
                             initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
@@ -46,16 +65,26 @@ export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
                                 <item.icon className="h-4 w-4 md:h-5 md:w-5" />
                             </div>
                             <div className="text-left min-w-0">
-                                <p className="text-xs md:text-sm font-bold text-slate-900 uppercase tracking-tight">{item.title}</p>
-                                <p className="text-[10px] md:text-xs text-slate-500 font-medium">{item.desc}</p>
+                                <p className="text-xs md:text-sm font-bold text-slate-900 uppercase tracking-tight">
+                                    {t(item.titleKey, locale)}
+                                </p>
+                                <p className="text-[10px] md:text-xs text-slate-500 font-medium">
+                                    {t(item.descKey, locale)}
+                                </p>
                             </div>
                         </motion.div>
                     ))}
                 </div>
             </div>
 
-            <Button type="button" onClick={onNext} className="w-full h-11 md:h-12 rounded-xl font-bold text-base md:text-lg shadow-lg shadow-primary-500/20 bg-primary-600 hover:bg-primary-500 group" aria-label={t("onboarding.startSetup", getLocale())} data-onboarding-next>
-                {t("onboarding.startSetup", getLocale())}
+            <Button 
+                type="button" 
+                onClick={onNext} 
+                className="w-full h-11 md:h-12 rounded-xl font-bold text-base md:text-lg shadow-lg shadow-primary-500/20 bg-primary-600 hover:bg-primary-500 group" 
+                aria-label={t("onboarding.startSetup", locale)} 
+                data-onboarding-next
+            >
+                {t("onboarding.startSetup", locale)}
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
         </div>
