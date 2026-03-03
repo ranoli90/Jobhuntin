@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     app_base_url: str = "https://sorce-web.onrender.com"
     # Public URL of the API (for magic link verify redirect). Set API_PUBLIC_URL in prod.
     api_public_url: str = "https://sorce-api.onrender.com"
+    # App branding (used in emails, etc.)
+    app_name: str = "JobHuntin"
+    app_initials: str = "JH"
+    app_tagline: str = "Find your next job, faster"
+    support_email: str = "support@jobhuntin.com"
 
     # ── Redis ────────────────────────────────────────────────────
     redis_url: str | None = None
@@ -87,6 +92,8 @@ class Settings(BaseSettings):
     magic_link_requests_per_hour: int = 20
     magic_link_rate_limit_window_seconds: int = 300
     magic_link_token_ttl_seconds: int = 3600
+    # Bind magic link tokens to requesting IP (security feature, default off)
+    magic_link_bind_to_ip: bool = False
 
     # ── Blueprints ────────────────────────────────────────────────
     default_blueprint_key: str = "job-app"

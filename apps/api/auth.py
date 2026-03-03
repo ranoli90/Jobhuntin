@@ -12,7 +12,7 @@ from urllib.parse import quote
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr
 from shared.config import Settings, settings_dependency
@@ -325,13 +325,15 @@ async def _find_or_create_user_by_email(
 
 
 async def _generate_magic_link(
-    settings: Settings, email: str, redirect_to: str, db: Any, return_to: str | None = None
+    settings: Settings, email: str, redirect_to: str, db: Any, return_to: str | None = None, client_ip: str | None = None
 ) -> tuple[str, str]:
     """
     Generate a magic link with a signed JWT.
     
     Returns tuple of (magic_link_url, pending_user_id_or_email).
     The user_id is stored in the token for existing users, or email for new users.
+    
+    If MAGIC_LINK_BIND_TO_IP is enabled, the token will be bound to the requesting IP.
     """
     import uuid
     from datetime import datetime, timedelta
@@ -369,6 +371,15 @@ async def _generate_magic_link(
     ttl_seconds = getattr(settings, "magic_link_token_ttl_seconds", 3600)
     token_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
+    
+    # Optional: Bind token to requesting IP for additional security
+    # This prevents token theft and use from different IP addresses
+    bind_to_ip = getattr(settings, "magic_link_bind_to_ip", False)
+    ip_hash = None
+    if bind_to_ip and client_ip:
+        import hashlib
+        ip_hash = hashlib.sha256(client_ip.encode()).hexdigest()[:16]
+    
     payload = {
         "sub": str(user_identifier),
         "email": email,
@@ -379,6 +390,10 @@ async def _generate_magic_link(
         "exp": now + timedelta(seconds=ttl_seconds),
         "new_user": existing_user_id is None,
     }
+    
+    # Add IP binding if enabled
+    if ip_hash:
+        payload["ip_hash"] = ip_hash
 
     if not settings.jwt_secret:
         logger.error("[MAGIC_LINK] JWT_SECRET not set - cannot sign magic link")
@@ -666,6 +681,7 @@ AUTH_COOKIE_NAME = "jobhuntin_auth"
 
 @router.get("/verify-magic")
 async def verify_magic_link(
+    request: Request,
     token: str,
     return_to: str | None = None,
     settings: Settings = Depends(settings_dependency),
@@ -688,6 +704,7 @@ async def verify_magic_link(
         email = payload.get("email")
         jti = payload.get("jti")
         is_new_user_flag = payload.get("new_user", False)
+        ip_hash = payload.get("ip_hash")  # Optional IP binding
         
         if not user_identifier or not jti or not email:
             raise ValueError("Missing sub, email, or jti")
@@ -695,6 +712,20 @@ async def verify_magic_link(
         logger.warning("Verify-magic JWT invalid: %s", exc)
         redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=invalid_token"
         return RedirectResponse(url=redirect_url, status_code=302)
+
+    # Verify IP binding if present
+    if ip_hash:
+        client_ip = get_client_ip(request)
+        import hashlib
+        current_ip_hash = hashlib.sha256(client_ip.encode()).hexdigest()[:16]
+        if current_ip_hash != ip_hash:
+            logger.warning(
+                "[MAGIC_LINK] IP binding mismatch for jti: %s",
+                jti,
+                extra={"expected_ip_hash": ip_hash, "actual_ip_hash": current_ip_hash},
+            )
+            redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=ip_mismatch"
+            return RedirectResponse(url=redirect_url, status_code=302)
 
     if not await _mark_token_consumed(jti, settings):
         logger.warning("Verify-magic replay attempt for jti: %s", jti)
@@ -733,14 +764,20 @@ async def verify_magic_link(
                 return RedirectResponse(url=redirect_url, status_code=302)
             user_id = user_identifier
 
+    safe_return = _sanitize_return_to(return_to)
+    dest = safe_return or "/app/dashboard"
+
     logger.info(
         "Successfully verified magic link for user ID: %s with jti: %s",
         user_id,
         jti,
     )
-
-    safe_return = _sanitize_return_to(return_to)
-    dest = safe_return or "/app/dashboard"
+    
+    # Track verification success metrics
+    incr("auth.magic_link.verified", tags={
+        "is_new_user": str(is_new_user_flag),
+        "destination": dest,
+    })
     redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}"
 
     ttl = getattr(settings, "magic_link_token_ttl_seconds", 3600)
@@ -873,7 +910,7 @@ async def request_magic_link(
         )
 
     redirect = _build_redirect_url(settings, body.return_to)
-    action_link, _ = await _generate_magic_link(settings, body.email, redirect, db, body.return_to)
+    action_link, _ = await _generate_magic_link(settings, body.email, redirect, db, body.return_to, client_ip)
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
     incr("auth.magic_link.sent", tags={"email_domain": body.email.split("@")[-1]})
     return MagicLinkResponse()
