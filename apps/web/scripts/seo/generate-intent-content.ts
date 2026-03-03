@@ -2,7 +2,7 @@
  * generate-intent-content.ts
  * 
  * Generates content optimized for specific search intent
- * Implements modern SEO best practices for 2024
+ * Implements modern SEO best practices for 2026
  */
 
 import 'dotenv/config';
@@ -110,7 +110,7 @@ SEO OPTIMIZATION:
 - Optimize for featured snippets with clear definitions and lists
 - Include "Last Updated: ${new Date().toLocaleDateString()}" near top
 
-E-E-A-T SIGNALS (Critical for 2024):
+E-E-A-T SIGNALS (Critical for 2026):
 - Write from position of expertise
 - Include specific data/statistics where relevant
 - Reference industry standards/best practices
