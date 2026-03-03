@@ -6,9 +6,12 @@ import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { ParsedResume } from "../../../../types/onboarding";
+import { t, getLocale } from "../../../../lib/i18n";
 
 function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () => void }) {
     const containerRef = React.useRef<HTMLDivElement>(null);
+    const locale = getLocale();
+    
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="skip-confirm-title" onClick={(e) => e.target === e.currentTarget && onStay()}>
             <FocusTrap
@@ -22,16 +25,24 @@ function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () =
                     <button
                         type="button"
                         onClick={onStay}
-                        aria-label="Cancel and stay"
+                        aria-label={t("onboarding.cancel", locale)}
                         className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                         <X className="h-5 w-5" aria-hidden />
                     </button>
-                    <h3 id="skip-confirm-title" className="font-bold text-slate-900 dark:text-slate-100 mb-2 pr-8">Skip resume?</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Resume improves match quality by ~40%. You can add it later in Settings.</p>
+                    <h3 id="skip-confirm-title" className="font-bold text-slate-900 dark:text-slate-100 mb-2 pr-8">
+                        {t("onboarding.skipResumeTitle", locale)}
+                    </h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        {t("onboarding.skipResumeDesc", locale)}
+                    </p>
                     <div className="flex gap-3">
-                        <Button variant="outline" onClick={onStay} className="flex-1">Go back</Button>
-                        <Button variant="primary" onClick={onSkip} className="flex-1">Skip for now</Button>
+                        <Button variant="outline" onClick={onStay} className="flex-1">
+                            {t("onboarding.goBack", locale)}
+                        </Button>
+                        <Button variant="primary" onClick={onSkip} className="flex-1">
+                            {t("onboarding.skipForNow", locale)}
+                        </Button>
                     </div>
                 </div>
             </FocusTrap>
@@ -76,6 +87,7 @@ export function ResumeStep({
     shouldReduceMotion,
     onResetParsingState,
 }: ResumeStepProps) {
+    const locale = getLocale();
     const [isDragging, setIsDragging] = React.useState(false);
     const [linkedinError, setLinkedinError] = React.useState<string | null>(null);
     const [showSkipConfirm, setShowSkipConfirm] = React.useState(false);
@@ -107,7 +119,7 @@ export function ResumeStep({
     const handleLinkedinChange = (value: string) => {
         setLinkedinUrl(value);
         if (value && !validateLinkedInUrl(value)) {
-            setLinkedinError("Please enter a valid LinkedIn profile URL (e.g., linkedin.com/in/yourname)");
+            setLinkedinError(t("onboarding.linkedinError", locale));
         } else {
             setLinkedinError(null);
         }
@@ -153,8 +165,8 @@ export function ResumeStep({
                             className="bg-white/10 p-8 rounded-3xl border-4 border-white/20 shadow-2xl backdrop-blur-md"
                         >
                             <Upload className="w-16 h-16 mb-4 mx-auto animate-bounce" />
-                            <h3 className="text-2xl font-bold tracking-tight mb-2">Drop to Upload</h3>
-                            <p className="text-base text-white/80">Release to upload your resume</p>
+                            <h3 className="text-2xl font-bold tracking-tight mb-2">{t("onboarding.dragAndDrop", locale)}</h3>
+                            <p className="text-base text-white/80">{t("onboarding.uploadResume", locale)}</p>
                         </motion.div>
                     </motion.div>
                 )}
@@ -165,8 +177,12 @@ export function ResumeStep({
                     <Upload className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div className="min-w-0">
-                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">Upload Your Resume</h2>
-                    <p className="text-xs md:text-sm text-slate-500 font-medium">AI will extract your skills and experience</p>
+                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">
+                        {t("onboarding.resumeTitle", locale)}
+                    </h2>
+                    <p className="text-xs md:text-sm text-slate-500 font-medium">
+                        {t("onboarding.resumeSubtitle", locale)}
+                    </p>
                 </div>
             </div>
 
@@ -215,17 +231,17 @@ export function ResumeStep({
                     </div>
                     <div className="space-y-1">
                         <p className={`text-base md:text-lg font-bold ${resumeFile ? 'text-primary-700' : 'text-slate-700'}`}>
-                            {resumeFile ? resumeFile.name : "Click to upload your resume"}
+                            {resumeFile ? resumeFile.name : t("onboarding.clickToUpload", locale)}
                         </p>
-                        <p className="text-xs text-slate-400 font-medium">PDF format only — Max 15MB</p>
+                        <p className="text-xs text-slate-400 font-medium">{t("onboarding.fileTypes", locale)}</p>
                     </div>
                 </label>
                 {resumeFile && !isUploading && (
                     <button
                         onClick={(e) => { e.preventDefault(); setResumeFile(null); setResumeError(null); setShowParsingPreview(false); }}
                         className="absolute top-2 right-2 md:top-3 md:right-3 w-7 h-7 md:w-8 md:h-8 rounded-full bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 flex items-center justify-center transition-colors z-20 shadow-sm"
-                        title="Remove file"
-                        aria-label="Remove uploaded resume"
+                        title={t("app.delete", locale)}
+                        aria-label={t("app.delete", locale)}
                     >
                         <X className="h-3.5 w-3.5 md:h-4 md:w-4 text-slate-400 hover:text-red-500" />
                     </button>
@@ -240,7 +256,7 @@ export function ResumeStep({
                                 transition={shouldReduceMotion ? undefined : { duration: 3, repeat: Infinity }}
                             />
                         </div>
-                        <p className="text-xs font-bold text-primary-600 uppercase tracking-wide">Parsing resume...</p>
+                        <p className="text-xs font-bold text-primary-600 uppercase tracking-wide">{t("app.loading", locale)}</p>
                     </div>
                 )}
             </div>
@@ -248,13 +264,13 @@ export function ResumeStep({
             <div className="mb-4 md:mb-6">
                 <div className="flex items-center gap-2 mb-2">
                     <div className="h-px flex-1 bg-slate-200" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">or</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("app.or", locale) || "or"}</span>
                     <div className="h-px flex-1 bg-slate-200" />
                 </div>
                 <Input
                     icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
                     type="url"
-                    placeholder="LinkedIn URL (optional)"
+                    placeholder={t("onboarding.linkedinPlaceholder", locale)}
                     value={linkedinUrl}
                     onChange={(e) => handleLinkedinChange(e.target.value)}
                     onClear={() => { setLinkedinUrl(""); setLinkedinError(null); }}
@@ -294,8 +310,8 @@ export function ResumeStep({
                                             <Sparkles className="h-4 w-4 text-white" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-white text-sm">Resume Parsed Successfully</h3>
-                                            <p className="text-emerald-100 text-xs">AI extracted your professional profile</p>
+                                            <h3 className="font-bold text-white text-sm">{t("onboarding.parsingSuccess", locale) || "Resume Parsed Successfully"}</h3>
+                                            <p className="text-emerald-100 text-xs">{t("onboarding.aiExtracted", locale) || "AI extracted your professional profile"}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full">
@@ -312,7 +328,9 @@ export function ResumeStep({
                                             <User className="h-5 w-5 text-primary-500" />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Professional Title</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                                {t("onboarding.professionalTitle", locale) || "Professional Title"}
+                                            </p>
                                             <p className="font-bold text-slate-900 text-sm">{parsedResume.title}</p>
                                         </div>
                                     </div>
@@ -322,22 +340,38 @@ export function ResumeStep({
                                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                         <div className="flex items-center gap-2 mb-1">
                                             <Briefcase className="h-4 w-4 text-primary-500" />
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Experience</span>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                {t("onboarding.experience", locale) || "Experience"}
+                                            </span>
                                         </div>
-                                        <p className="font-bold text-slate-900 text-lg">{parsedResume.years || 0}<span className="text-sm font-medium text-slate-500 ml-0.5">yrs</span></p>
+                                        <p className="font-bold text-slate-900 text-lg">
+                                            {parsedResume.years || 0}
+                                            <span className="text-sm font-medium text-slate-500 ml-0.5">
+                                                {t("onboarding.years", locale) || "yrs"}
+                                            </span>
+                                        </p>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                         <div className="flex items-center gap-2 mb-1">
                                             <Sparkles className="h-4 w-4 text-primary-500" />
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Skills</span>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                {t("onboarding.skillsDetected", locale) || "Skills"}
+                                            </span>
                                         </div>
-                                        <p className="font-bold text-slate-900 text-lg">{parsedResume.skills?.length || 0}<span className="text-sm font-medium text-slate-500 ml-0.5">found</span></p>
+                                        <p className="font-bold text-slate-900 text-lg">
+                                            {parsedResume.skills?.length || 0}
+                                            <span className="text-sm font-medium text-slate-500 ml-0.5">
+                                                {t("onboarding.found", locale) || "found"}
+                                            </span>
+                                        </p>
                                     </div>
                                 </div>
 
                                 {parsedResume.skills && parsedResume.skills.length > 0 && (
                                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Detected Skills</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                                            {t("onboarding.detectedSkills", locale) || "Detected Skills"}
+                                        </p>
                                         <div className="flex flex-wrap gap-1.5">
                                             {parsedResume.skills.slice(0, 12).map((skill, i) => (
                                                 <motion.span
@@ -352,7 +386,7 @@ export function ResumeStep({
                                             ))}
                                             {parsedResume.skills.length > 12 && (
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-50 border border-primary-200 text-primary-700">
-                                                    +{parsedResume.skills.length - 12} more
+                                                    +{parsedResume.skills.length - 12} {t("onboarding.more", locale) || "more"}
                                                 </span>
                                             )}
                                         </div>
@@ -365,9 +399,9 @@ export function ResumeStep({
                                     variant="primary"
                                     className="w-full h-12 sm:h-11 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 touch-manipulation"
                                     onClick={onConfirmParsing}
-                                    aria-label="Confirm parsed resume and continue" data-onboarding-next
+                                    aria-label={t("onboarding.looksGoodContinue", locale)} data-onboarding-next
                                 >
-                                    Looks Good, Continue
+                                    {t("onboarding.looksGoodContinue", locale)}
                                 </Button>
                             </div>
                         </div>
@@ -380,19 +414,19 @@ export function ResumeStep({
                     variant="ghost" 
                     onClick={onPrev} 
                     className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
-                    aria-label="Go back to previous step"
+                    aria-label={t("onboarding.back", locale)}
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
+                    {t("onboarding.back", locale)}
                 </Button>
                 {resumeFile && !resumeError ? (
                     <Button
                         onClick={() => onUpload(resumeFile)}
                         disabled={isUploading}
                         className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation"
-                        aria-label="Parse resume" data-onboarding-next
+                        aria-label={t("onboarding.uploadResume", locale)} data-onboarding-next
                     >
-                        {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? "Re-upload Resume" : "Parse Resume"}
+                        {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? t("onboarding.reupload", locale) : t("onboarding.uploadResume", locale)}
                         {!isUploading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />}
                     </Button>
                 ) : (
@@ -400,9 +434,9 @@ export function ResumeStep({
                         variant="ghost"
                         onClick={() => (resumeFile || parsedResume) ? setShowSkipConfirm(true) : onNext()}
                         className="flex-1 h-12 sm:h-11 rounded-xl font-bold text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 text-sm touch-manipulation"
-                        aria-label={resumeError ? "Skip upload and continue" : "Skip for now and continue"} data-onboarding-next
+                        aria-label={t("onboarding.skipForNow", locale)} data-onboarding-next
                     >
-                        {resumeError ? "Skip Upload" : "Skip for Now"}
+                        {resumeError ? t("onboarding.skipUpload", locale) || "Skip Upload" : t("onboarding.skipForNow", locale)}
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 )}
