@@ -96,21 +96,21 @@ export function getApiBase(): string {
  */
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  
+
   // First try to get token from httpOnly cookie (via server-side set cookie)
   // Note: We can't access httpOnly cookies directly from JavaScript, but we can check
   // if we have a session by making a test request or checking for a session indicator
-  
+
   // For now, check if we have a session indicator cookie that tells us server has auth
-  const hasSession = document.cookie.split(';').some(cookie => 
+  const hasSession = document.cookie.split(';').some(cookie =>
     cookie.trim().startsWith('jobhuntin_session=')
   );
-  
+
   if (hasSession) {
     // Server will handle authentication via httpOnly cookie
     return null; // Let server handle auth via cookie
   }
-  
+
   // Fallback to localStorage for backward compatibility
   return localStorage.getItem(AUTH_TOKEN_KEY);
 }
@@ -237,30 +237,34 @@ function retryDelay(attempt: number, resp?: Response): number {
 let _redirecting = false;
 function handleApiError(resp: Response, body: string): never {
   if (resp.status === 401 && !_redirecting) {
-    _redirecting = true;
-    const returnTo = typeof window !== "undefined" ? encodeURIComponent(window.location.pathname + window.location.search) : "";
-    // Dispatch event so React Router can handle redirect without destroying state
-    if (typeof window !== "undefined") {
-      const evt = new CustomEvent("auth:unauthorized", { detail: { returnTo } });
-      window.dispatchEvent(evt);
-    }
-    // Fallback hard redirect after a short delay if event wasn't handled
-    setTimeout(() => {
-      if (_redirecting) {
-        _redirecting = false;
-        window.location.href = `/login?returnTo=${returnTo}`;
+    // Skip redirect logic entirely if already on the login page — prevents infinite loop
+    const isLoginPage = typeof window !== "undefined" && window.location.pathname === "/login";
+    if (!isLoginPage) {
+      _redirecting = true;
+      const returnTo = typeof window !== "undefined" ? encodeURIComponent(window.location.pathname + window.location.search) : "";
+      // Dispatch event so React Router can handle redirect without destroying state
+      if (typeof window !== "undefined") {
+        const evt = new CustomEvent("auth:unauthorized", { detail: { returnTo } });
+        window.dispatchEvent(evt);
       }
-    }, 200);
+      // Fallback hard redirect after a short delay if event wasn't handled
+      setTimeout(() => {
+        if (_redirecting) {
+          _redirecting = false;
+          window.location.href = `/login?returnTo=${returnTo}`;
+        }
+      }, 200);
+    }
   }
   const parsedMsg = tryParseMessage(body);
   const msg = parsedMsg
     ? `${parsedMsg} (HTTP ${resp.status})`
     : friendlyMessage(resp.status, body);
-  
+
   // Create error with sanitized information for production
   const err = new Error(msg) as Error & { status: number; rawBody: string; sanitized: boolean };
   err.status = resp.status;
-  
+
   // In production, sanitize sensitive information
   if (import.meta.env.PROD) {
     err.sanitized = true;
@@ -270,7 +274,7 @@ function handleApiError(resp: Response, body: string): never {
     err.sanitized = false;
     err.rawBody = body;
   }
-  
+
   throw err;
 }
 

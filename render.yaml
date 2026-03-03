@@ -6,7 +6,7 @@ services:
   - type: web
     name: jobhuntin-web
     env: static
-    buildCommand: cd apps/web && npm ci && npx playwright install chromium && npm run build
+    buildCommand: cd apps/web && npm ci && npx playwright install chromium && npm run build && cp dist/index.html dist/200.html
     staticPublishPath: apps/web/dist
     headers:
       - path: /*
@@ -24,6 +24,8 @@ services:
         value: 20  # Fix for npm ci segfault (exit status 139)
       - key: VITE_API_URL
         value: https://sorce-api.onrender.com
+      - key: VITE_APP_BASE_URL
+        value: https://sorce-web.onrender.com
     autoDeploy: true
     
   # API Backend

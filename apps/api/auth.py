@@ -427,10 +427,10 @@ async def _generate_magic_link(
     separator = "&" if "?" in redirect_to else "?"
     magic_link = f"{redirect_to}{separator}token={token}"
     logger.info(
-        "[MAGIC_LINK] Magic link generated successfully for user ID: %s",
-        str(user_id),
+        "[MAGIC_LINK] Magic link generated successfully for identifier: %s",
+        str(user_identifier),
     )
-    return magic_link
+    return magic_link, user_identifier
 
 
 _DESTINATION_LABELS = {
