@@ -49,9 +49,27 @@ export interface ProfileUpdatePayload {
   resume_url?: string;
 }
 
+interface ParsedProfile {
+  title?: string;
+  skills?: string[];
+  experience?: Array<{
+    title: string;
+    company: string;
+    duration: string;
+    highlights: string[];
+  }>;
+  education?: Array<{
+    degree: string;
+    institution: string;
+    year?: string;
+  }>;
+  summary?: string;
+  years_experience?: number;
+}
+
 interface UploadResumeResponse {
   resume_url: string;
-  parsed_profile?: any;
+  parsed_profile?: ParsedProfile;
   contact?: ContactInfo;
   preferences?: Preferences;
 }
@@ -152,13 +170,14 @@ export function useProfile() {
         await refreshProfile();
       }
       return data;
-    } catch (err: any) {
-      if (err?.name === "AbortError") {
+    } catch (error) {
+      const err = error as Error & { status?: number };
+      if (err.name === "AbortError") {
         throw new Error("Upload timed out. Please check your connection and try again.");
       }
-      
+
       // Provide more specific error messages based on status
-      if (err?.status) {
+      if (err.status) {
         switch (err.status) {
           case 413:
             throw new Error("File too large. Maximum size is 15 MB.");

@@ -4,10 +4,58 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 from dataclasses import dataclass, field
 from typing import Any, TypeVar
 
 T = TypeVar("T")
+
+# Valid SQL identifier pattern (alphanumeric and underscore only)
+VALID_IDENTIFIER_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+# Whitelist of allowed cursor fields - extend as needed
+ALLOWED_CURSOR_FIELDS = {
+    "id", "created_at", "updated_at", "priority_score",
+    "title", "company", "salary_min", "salary_max",
+    "name", "email", "status", "last_used_at"
+}
+
+
+def validate_identifier(identifier: str) -> str:
+    """Validate that an identifier is safe for SQL interpolation.
+
+    Args:
+        identifier: The SQL identifier to validate
+
+    Returns:
+        The identifier if valid
+
+    Raises:
+        ValueError: If the identifier contains invalid characters
+    """
+    if not VALID_IDENTIFIER_PATTERN.match(identifier):
+        raise ValueError(f"Invalid SQL identifier: {identifier}")
+    return identifier
+
+
+def validate_cursor_field(cursor_field: str) -> str:
+    """Validate cursor field against whitelist.
+
+    Args:
+        cursor_field: The cursor field to validate
+
+    Returns:
+        The cursor field if valid
+
+    Raises:
+        ValueError: If the cursor field is not in the whitelist
+    """
+    if cursor_field not in ALLOWED_CURSOR_FIELDS:
+        raise ValueError(
+            f"Invalid cursor field: {cursor_field}. "
+            f"Must be one of: {', '.join(sorted(ALLOWED_CURSOR_FIELDS))}"
+        )
+    return cursor_field
 
 
 @dataclass
@@ -22,10 +70,10 @@ class PageInfo:
 
 
 @dataclass
-class PaginatedResult[T]:
+class PaginatedResult:
     """Paginated result with items and page info."""
 
-    items: list[T]
+    items: list[Any]
     page_info: PageInfo
     extra: dict[str, Any] = field(default_factory=dict)
 
@@ -71,6 +119,8 @@ def decode_cursor(cursor: str) -> dict[str, Any] | None:
 
 def create_cursor_from_row(row: dict[str, Any], sort_field: str = "id") -> str:
     """Create a cursor from a database row."""
+    # Validate sort_field
+    validate_cursor_field(sort_field)
     return encode_cursor({
         "sort_value": str(row.get(sort_field, "")),
         "id": str(row.get("id", "")),
@@ -84,6 +134,7 @@ async def paginate_query(
     cursor_field: str = "id",
     extra_conditions: str = "",
     args: list[Any] | None = None,
+    allowed_cursor_fields: set[str] | None = None,
 ) -> PaginatedResult[dict]:
     """Execute a paginated query.
 
@@ -91,18 +142,29 @@ async def paginate_query(
         conn: Database connection
         query: Base query (without ORDER BY and LIMIT)
         params: Pagination parameters
-        cursor_field: Field to use for cursor
-        extra_conditions: Additional WHERE conditions
+        cursor_field: Field to use for cursor (must be in whitelist)
+        extra_conditions: Additional WHERE conditions (parameterized only)
         args: Query arguments
+        allowed_cursor_fields: Optional additional allowed cursor fields
 
     Returns:
         PaginatedResult with items and page info
 
+    Raises:
+        ValueError: If cursor_field is not in whitelist
     """
+    # Validate cursor_field against whitelist
+    valid_fields = ALLOWED_CURSOR_FIELDS | (allowed_cursor_fields or set())
+    if cursor_field not in valid_fields:
+        raise ValueError(
+            f"Invalid cursor field: {cursor_field}. "
+            f"Must be one of: {', '.join(sorted(valid_fields))}"
+        )
+
     args = args or []
     page_size = params.first or params.last or PaginationParams.DEFAULT_PAGE_SIZE
 
-    # Build cursor condition
+    # Build cursor condition using parameterized queries only
     cursor_condition = ""
     cursor_value = None
 
@@ -110,30 +172,35 @@ async def paginate_query(
         cursor_data = decode_cursor(params.after)
         if cursor_data:
             cursor_value = cursor_data.get("id")
-            cursor_condition = f"AND {cursor_field} > ${{cursor_val}}"
+            cursor_condition = f"AND {cursor_field} > ${len(args) + 1}"
 
     if params.before:
         cursor_data = decode_cursor(params.before)
         if cursor_data:
             cursor_value = cursor_data.get("id")
-            cursor_condition = f"AND {cursor_field} < ${{cursor_val}}"
+            cursor_condition = f"AND {cursor_field} < ${len(args) + 1}"
 
     # Build full query
     direction = "DESC" if params.last else "ASC"
+
+    # Use parameterized query for LIMIT
+    limit_param = len(args) + (2 if cursor_value else 1)
+
     full_query = f"""
         {query}
         {extra_conditions}
         {cursor_condition}
         ORDER BY {cursor_field} {direction}
-        LIMIT {page_size + 1}
+        LIMIT ${limit_param}
     """
 
-    # Execute query
+    # Build args list
+    query_args = args.copy()
     if cursor_value:
-        full_query = full_query.replace("${cursor_val}", f"${len(args) + 1}")
-        args.append(cursor_value)
+        query_args.append(cursor_value)
+    query_args.append(page_size + 1)
 
-    rows = await conn.fetch(full_query, *args)
+    rows = await conn.fetch(full_query, *query_args)
 
     # Determine if there's a next page
     has_next = len(rows) > page_size
@@ -148,9 +215,10 @@ async def paginate_query(
     end_cursor = create_cursor_from_row(items[-1], cursor_field) if items else None
 
     # Get total count (optional)
+    # Use only the base args, not cursor or limit
     count_query = f"SELECT COUNT(*) FROM ({query}) AS subq"
     try:
-        total_result = await conn.fetchrow(count_query, *args[:args.index(cursor_value) if cursor_value in args else len(args)])
+        total_result = await conn.fetchrow(count_query, *args)
         total_count = total_result["count"] if total_result else None
     except Exception:
         total_count = None

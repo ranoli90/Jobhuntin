@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import time
-from datetime import UTC
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -250,7 +250,7 @@ async def _generate_magic_link(
     # Generate token
     ttl_seconds = getattr(settings, "magic_link_token_ttl_seconds", 3600)
     token_id = str(uuid.uuid4())
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),
         "email": email,

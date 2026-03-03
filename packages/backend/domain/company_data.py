@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import json
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -448,7 +448,7 @@ class CompanyDataManager:
             size=CompanySize.MEDIUM,
             employee_count=100,
             logo_url=f"https://logo.clearbit.com/{domain}" if domain else None,
-            last_updated=datetime.now(UTC),
+            last_updated=datetime.now(timezone.utc),
         )
 
     def _infer_industry(self, company_name: str) -> str:
@@ -501,7 +501,7 @@ class CompanyDataManager:
             "website_url": profile.website_url,
             "glassdoor_rating": profile.glassdoor_rating,
             "remote_policy": profile.remote_policy,
-            "last_updated": datetime.now(UTC).isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
         async with self._pool.acquire() as conn:

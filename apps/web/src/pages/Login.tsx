@@ -106,7 +106,8 @@ export default function Login() {
       setSuccessState({ email: normalized });
       telemetry.track("login_magic_link_requested", {});
       pushToast({ title: "Check your inbox", tone: "success" });
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
       setFormError(msg);
     } finally {
@@ -189,7 +190,8 @@ export default function Login() {
                   setResendLoading(true);
                   await requestMagicLink(successState.email, safeReturnTo);
                   pushToast({ title: "Link resent", tone: "success" });
-                } catch (err: any) {
+                } catch (error) {
+                  const err = error as Error;
                   const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to resend. Please try again.";
                   setFormError(msg);
                 } finally {

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -194,7 +194,7 @@ class DataResidencyManager:
             tenant_id=tenant_id,
             primary_region=primary_region,
             backup_region=backup_region,
-            enforced_at=datetime.now(UTC),
+            enforced_at=datetime.now(timezone.utc),
             data_types=types,
             cross_region_transfer_allowed=cross_region_transfer_allowed,
         )

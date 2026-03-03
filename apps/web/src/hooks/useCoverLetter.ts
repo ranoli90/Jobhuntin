@@ -6,7 +6,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiPost, apiGet } from "../lib/api";
-import { useProfile } from "./useProfile";
+import { useProfile, type UserProfile } from "./useProfile";
+import type { JobPosting } from "./useJobs";
 
 export interface CoverLetterTemplate {
   id: string;
@@ -101,7 +102,7 @@ export function useCoverLetter() {
   });
 
   // Legacy generate function for backward compatibility
-  const generate = async (profileData: any, job: any, tone: string = "professional") => {
+  const generate = async (profileData: UserProfile, job: JobPosting, tone: string = "professional") => {
     setLoading(true);
     setError(null);
     try {
@@ -112,7 +113,8 @@ export function useCoverLetter() {
       });
       setResult(data);
       return data;
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error(err);
       setError(err.message || "Failed to generate cover letter");
       throw err;

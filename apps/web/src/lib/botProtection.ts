@@ -203,14 +203,6 @@ class BotProtection {
     if (typeof globalThis.window === 'undefined') return false;
 
     try {
-      // Chrome/Edge detection
-      const fs = (globalThis.window as any).webkitRequestFileSystem || (globalThis.window as any).webkitResolveLocalFileSystemURL;
-      if (fs) {
-        fs((globalThis.window as any).TEMPORARY, 100, () => { }, () => {
-          return true; // Incognito detected
-        });
-      }
-
       // Firefox detection
       if ('serviceWorker' in navigator && !navigator.serviceWorker.controller) {
         return true;

@@ -10,7 +10,7 @@ Provides:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -67,7 +67,7 @@ class PagerDutyClient:
                 "summary": summary,
                 "severity": severity.value,
                 "source": "sorce-api",
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "custom_details": details or {},
             },
         }

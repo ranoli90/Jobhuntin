@@ -8,6 +8,7 @@ Supports multiple backends:
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -43,8 +44,16 @@ class EventTracker:
         self.posthog_host = posthog_host
         self._buffer: list[Event] = []
         self._flush_size = 100
+        self._lock = asyncio.Lock()
+        self._http_client: httpx.AsyncClient | None = None
 
-    def track(
+    async def _get_client(self) -> httpx.AsyncClient:
+        """Get or create async HTTP client."""
+        if self._http_client is None or self._http_client.is_closed:
+            self._http_client = httpx.AsyncClient(timeout=10.0)
+        return self._http_client
+
+    async def track(
         self,
         event_name: str,
         user_id: str,
@@ -61,34 +70,41 @@ class EventTracker:
             properties=properties or {},
             context=context,
         )
-        self._buffer.append(event)
 
-        if len(self._buffer) >= self._flush_size:
-            self._flush()
+        async with self._lock:
+            self._buffer.append(event)
+            should_flush = len(self._buffer) >= self._flush_size
+
+        if should_flush:
+            await self._flush()
 
         return event
 
-    def _flush(self) -> None:
+    async def _flush(self) -> None:
         """Send buffered events to analytics backends."""
-        if not self._buffer:
-            return
+        async with self._lock:
+            if not self._buffer:
+                return
 
-        events = self._buffer.copy()
-        self._buffer = []
+            events = self._buffer.copy()
+            self._buffer = []
 
-        # Send to Segment
+        # Send to backends concurrently
+        tasks = []
+
         if self.write_key:
-            self._send_to_segment(events)
+            tasks.append(self._send_to_segment(events))
 
-        # Send to Mixpanel
         if self.mixpanel_token:
-            self._send_to_mixpanel(events)
+            tasks.append(self._send_to_mixpanel(events))
 
-        # Send to PostHog
         if self.posthog_key:
-            self._send_to_posthog(events)
+            tasks.append(self._send_to_posthog(events))
 
-    def _send_to_segment(self, events: list[Event]) -> None:
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def _send_to_segment(self, events: list[Event]) -> None:
         """Send events to Segment."""
         batch = {
             "batch": [
@@ -105,17 +121,17 @@ class EventTracker:
         }
 
         try:
-            httpx.post(
+            client = await self._get_client()
+            await client.post(
                 "https://api.segment.io/v1/batch",
                 auth=(self.write_key, ""),
                 json=batch,
-                timeout=10.0,
             )
         except Exception:
             # Don't fail on analytics errors
             pass
 
-    def _send_to_mixpanel(self, events: list[Event]) -> None:
+    async def _send_to_mixpanel(self, events: list[Event]) -> None:
         """Send events to Mixpanel."""
         batch = [
             {
@@ -131,20 +147,21 @@ class EventTracker:
         ]
 
         try:
-            httpx.post(
+            client = await self._get_client()
+            await client.post(
                 "https://api.mixpanel.com/track",
                 headers={"Content-Type": "application/json"},
                 json=batch,
-                timeout=10.0,
             )
         except Exception:
             pass
 
-    def _send_to_posthog(self, events: list[Event]) -> None:
+    async def _send_to_posthog(self, events: list[Event]) -> None:
         """Send events to PostHog."""
+        client = await self._get_client()
         for event in events:
             try:
-                httpx.post(
+                await client.post(
                     f"{self.posthog_host}/capture/",
                     json={
                         "api_key": self.posthog_key,
@@ -156,10 +173,14 @@ class EventTracker:
                             **event.properties,
                         },
                     },
-                    timeout=10.0,
                 )
             except Exception:
                 pass
+
+    async def close(self) -> None:
+        """Close the HTTP client."""
+        if self._http_client and not self._http_client.is_closed:
+            await self._http_client.aclose()
 
 
 # Common event names
@@ -209,7 +230,7 @@ class EventName:
 _tracker: EventTracker | None = None
 
 
-def get_tracker() -> EventTracker:
+async def get_tracker() -> EventTracker:
     """Get the global event tracker."""
     global _tracker
     if _tracker is None:
@@ -223,14 +244,15 @@ def get_tracker() -> EventTracker:
     return _tracker
 
 
-def track_event(
+async def track_event(
     event_name: str,
     user_id: str,
     tenant_id: str | None = None,
     **properties: Any,
 ) -> Event:
     """Convenience function to track an event."""
-    return get_tracker().track(
+    tracker = await get_tracker()
+    return await tracker.track(
         event_name=event_name,
         user_id=user_id,
         tenant_id=tenant_id,

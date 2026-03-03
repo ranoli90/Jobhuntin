@@ -186,7 +186,7 @@ export const SEO = ({
     "benefits": "AI-powered job search automation, resume tailoring, and application tracking"
   } : null;
 
-  const finalSchema: any[] = [baseSchema, organizationSchema, softwareSchema, breadcrumbSchema];
+  const finalSchema: unknown[] = [baseSchema, organizationSchema, softwareSchema, breadcrumbSchema];
   if (jobPostingSchema) {
     finalSchema.push(jobPostingSchema);
   }

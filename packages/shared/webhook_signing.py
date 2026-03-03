@@ -95,7 +95,7 @@ class WebhookSigner:
                 return False, "Invalid timestamp"
 
             current_time = int(time.time())
-            if abs(current_time - ts_int) > self.timestamp_tolerance_seconds:
+            if abs(current_time - ts_int) > self.timestamp_tolerance:
                 incr("webhook.verify_failed", {"reason": "expired_timestamp"})
                 return False, "Timestamp expired"
 

@@ -41,8 +41,8 @@ class BatchResult:
 
 
 async def process_in_chunks(
-    items: list[T],
-    processor: Callable[[T], Awaitable[R]],
+    items: list,
+    processor: Callable[[Any], Any],
     config: BatchConfig | None = None,
 ) -> BatchResult:
     """Process items in chunks with controlled concurrency.
@@ -58,50 +58,62 @@ async def process_in_chunks(
     """
     import time
 
-    config = config or BatchConfig()
-    start_time = time.monotonic()
+    cfg = config or BatchConfig()
+    start_time = time.time()
+    successful: list[Any] = []
+    failed: list[tuple[Any, Exception]] = []
 
-    successful: list[R] = []
-    failed: list[tuple[T, Exception]] = []
+    async def process_with_timeout(item: Any) -> Any:
+        """Process single item with timeout and retry."""
+        for attempt in range(cfg.retry_count + 1):
+            try:
+                return await asyncio.wait_for(
+                    processor(item), timeout=cfg.timeout_seconds
+                )
+            except asyncio.TimeoutError:
+                if attempt == cfg.retry_count:
+                    raise
+                await asyncio.sleep(0.1 * (attempt + 1))
+        raise RuntimeError("Unreachable")
 
     # Process in chunks
-    for chunk_start in range(0, len(items), config.chunk_size):
-        chunk = items[chunk_start:chunk_start + config.chunk_size]
+    for i in range(0, len(items), cfg.chunk_size):
+        chunk = items[i : i + cfg.chunk_size]
 
-        # Process chunk with semaphore for concurrency control
-        semaphore = asyncio.Semaphore(config.max_concurrent)
+        # Process chunk with limited concurrency
+        semaphore = asyncio.Semaphore(cfg.max_concurrent)
 
-        async def process_with_semaphore(item: T) -> R:
+        async def process_item(item: Any) -> tuple[Any, Any | None, Exception | None]:
             async with semaphore:
-                for attempt in range(config.retry_count + 1):
-                    try:
-                        return await asyncio.wait_for(
-                            processor(item),
-                            timeout=config.timeout_seconds,
-                        )
-                    except Exception as e:
-                        if attempt == config.retry_count:
-                            raise
-                        logger.warning(
-                            "Batch item failed, retrying",
-                            extra={"attempt": attempt + 1, "error": str(e)},
-                        )
-                        await asyncio.sleep(0.5 * (attempt + 1))
-                raise RuntimeError("Unreachable")
+                try:
+                    result = await process_with_timeout(item)
+                    return (item, result, None)
+                except Exception as e:
+                    return (item, None, e)
 
-        # Run chunk concurrently
-        tasks = [process_with_semaphore(item) for item in chunk]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Gather results for this chunk
+        tasks = [process_item(item) for item in chunk]
+        chunk_results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        for item, result in zip(chunk, results, strict=False):
+        # Process results
+        for result in chunk_results:
             if isinstance(result, Exception):
-                failed.append((item, result))
-                if config.fail_fast:
-                    raise result
+                failed.append((chunk[0], result))
+                if cfg.fail_fast:
+                    break
             else:
-                successful.append(result)
+                item, output, error = result
+                if error:
+                    failed.append((item, error))
+                    if cfg.fail_fast:
+                        break
+                else:
+                    successful.append(output)
 
-    duration = time.monotonic() - start_time
+        if cfg.fail_fast and failed:
+            break
+
+    duration = time.time() - start_time
 
     logger.info(
         "Batch processing complete",
@@ -121,10 +133,10 @@ async def process_in_chunks(
     )
 
 
-async def stream_items[T](
-    items: list[T],
+async def stream_items(
+    items: list,
     chunk_size: int = 20,
-) -> AsyncIterator[list[T]]:
+) -> AsyncIterator[list]:
     """Stream items in chunks for memory-efficient processing.
 
     Usage:
@@ -141,64 +153,37 @@ class BatchProcessor:
     def __init__(self, config: BatchConfig | None = None):
         self.config = config or BatchConfig()
         self._semaphore = asyncio.Semaphore(self.config.max_concurrent)
-        self._active_tasks: set[asyncio.Task] = set()
+        self._results: list[Any] = []
+        self._errors: list[tuple[Any, Exception]] = []
 
-    async def submit(self, item: T, processor: Callable[[T], Awaitable[R]]) -> asyncio.Task[R]:
+    async def submit(self, item: Any, processor: Callable[[Any], Any]) -> asyncio.Task:
         """Submit an item for processing."""
-        async def process():
+
+        async def wrapped() -> Any:
             async with self._semaphore:
-                return await processor(item)
+                try:
+                    result = await asyncio.wait_for(
+                        processor(item), timeout=self.config.timeout_seconds
+                    )
+                    self._results.append(result)
+                    return result
+                except Exception as e:
+                    self._errors.append((item, e))
+                    raise
 
-        task = asyncio.create_task(process())
-        self._active_tasks.add(task)
-        task.add_done_callback(self._active_tasks.discard)
-        return task
-
-    async def wait_all(self) -> list[Any]:
-        """Wait for all submitted tasks to complete."""
-        return await asyncio.gather(*self._active_tasks, return_exceptions=True)
+        return asyncio.create_task(wrapped())
 
     @property
-    def pending_count(self) -> int:
-        """Number of pending tasks."""
-        return len(self._active_tasks)
+    def results(self) -> list[Any]:
+        """Get successful results."""
+        return self._results.copy()
 
-    async def __aenter__(self):
-        return self
+    @property
+    def errors(self) -> list[tuple[Any, Exception]]:
+        """Get errors."""
+        return self._errors.copy()
 
-    async def __aexit__(self, *args):
-        # Wait for all tasks to complete
-        if self._active_tasks:
-            await asyncio.gather(*self._active_tasks, return_exceptions=True)
-
-
-async def batch_match_jobs(
-    jobs: list[dict[str, Any]],
-    profile: dict[str, Any],
-    match_func: Callable[[dict, dict], Awaitable[dict]],
-    config: BatchConfig | None = None,
-) -> list[dict[str, Any]]:
-    """Batch match multiple jobs against a profile.
-
-    Optimized for >20 jobs with streaming and concurrency control.
-    """
-    config = config or BatchConfig(chunk_size=20, max_concurrent=5)
-
-    async def process_job(job: dict) -> dict:
-        result = await match_func(job, profile)
-        return {**job, "match_result": result}
-
-    result = await process_in_chunks(jobs, process_job, config)
-
-    # Log failed matches
-    for job, error in result.failed:
-        logger.warning(
-            "Job match failed",
-            extra={"job_id": job.get("id"), "error": str(error)},
-        )
-
-    return result.successful
-
-
-# Convenience type alias for async callable
-from collections.abc import Awaitable
+    def reset(self) -> None:
+        """Clear all results and errors."""
+        self._results.clear()
+        self._errors.clear()

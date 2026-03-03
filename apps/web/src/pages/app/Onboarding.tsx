@@ -315,9 +315,10 @@ export default function Onboarding() {
       });
 
       nextStep();
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error('[Onboarding] Failed to save work style:', err);
-      const message = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to save work style";
+      const message = (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to save work style";
       pushToast({ title: "Failed to save work style", description: message, tone: "error" });
     } finally {
       setIsSavingWorkStyle(false);
@@ -485,17 +486,29 @@ export default function Onboarding() {
 
         if (techSkills.length > 0 && typeof techSkills[0] === 'object' && techSkills[0] !== null) {
           // Rich skills format from V2 parser
-          const parsedSkills = techSkills.map((s: any) => ({
-            skill: s.skill || String(s),
-            confidence: typeof s.confidence === 'number' ? s.confidence : 0.5,
-            years_actual: s.years_actual || null,
-            context: s.context || "",
-            last_used: s.last_used || null,
-            verified: s.verified || false,
-            related_to: s.related_to || [],
-            source: s.source || "resume",
-            project_count: s.project_count || 0,
-          }));
+          const parsedSkills: RichSkill[] = techSkills.map((s: RichSkill | string) => (
+            typeof s === 'string' ? {
+              skill: s,
+              confidence: 0.5,
+              years_actual: null,
+              context: "",
+              last_used: null,
+              verified: false,
+              related_to: [],
+              source: "resume",
+              project_count: 0,
+            } : {
+              skill: s.skill || String(s),
+              confidence: typeof s.confidence === 'number' ? s.confidence : 0.5,
+              years_actual: s.years_actual || null,
+              context: s.context || "",
+              last_used: s.last_used || null,
+              verified: s.verified || false,
+              related_to: s.related_to || [],
+              source: s.source || "resume",
+              project_count: s.project_count || 0,
+            }
+          ));
           if (import.meta.env.DEV) console.log('[Onboarding] Parsed rich skills:', parsedSkills);
           setRichSkills(parsedSkills);
           resumeData.richSkills = parsedSkills;
@@ -555,9 +568,10 @@ export default function Onboarding() {
       await resumeUploadRetry.clearMetadata();
       setShowRetryComponent(false);
       
-    } catch (err) {
-      const message = (err as Error).message;
-      const status = (err as any).status;
+    } catch (error) {
+      const err = error as Error & { status?: number };
+      const message = err.message;
+      const status = err.status;
       console.error("Resume upload failed:", err);
       
       // Save metadata for retry
@@ -605,10 +619,11 @@ export default function Onboarding() {
     for (let i = 0; i < maxRetries; i++) {
       try {
         return await fn();
-      } catch (error: any) {
-        if (i === maxRetries - 1) throw error;
+      } catch (error) {
+        const err = error as Error & { status?: number };
+        if (i === maxRetries - 1) throw err;
 
-        const isNetworkError = !navigator.onLine || error?.status >= 500;
+        const isNetworkError = !navigator.onLine || (err.status && err.status >= 500);
         const nextDelay = delay * Math.pow(2, i);
 
         if (import.meta.env.DEV) {
@@ -640,12 +655,13 @@ export default function Onboarding() {
       if (import.meta.env.DEV) console.log('[Onboarding] Skills saved:', result);
       pushToast({ title: "Skills saved!", tone: "success" });
       nextStep();
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error & { status?: number };
       console.error('[Onboarding] Failed to save skills:', err);
-      const isNetworkError = !navigator.onLine || err?.status >= 500;
+      const isNetworkError = !navigator.onLine || (err.status && err.status >= 500);
       const message = isNetworkError
         ? "Network error. Please check your connection and try again."
-        : (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to save skills";
+        : (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to save skills";
       pushToast({
         title: "Failed to save skills",
         description: message,
@@ -705,12 +721,13 @@ export default function Onboarding() {
       }
 
       nextStep();
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error & { status?: number };
       console.error('[Onboarding] Failed to save contact:', err);
-      const isNetworkError = !navigator.onLine || err?.status >= 500;
+      const isNetworkError = !navigator.onLine || (err.status && err.status >= 500);
       const message = isNetworkError
         ? "Network error. Please check your connection and try again."
-        : (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again";
+        : (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again";
       pushToast({
         title: "Failed to save contact info",
         description: message,
@@ -827,11 +844,11 @@ export default function Onboarding() {
       }
 
       nextStep();
-    } catch (err: any) {
-      console.error('[Onboarding] Failed to save preferences:', err);
+    } catch (error) {
+      console.error("[Onboarding] Failed to save preferences:", error);
       pushToast({
         title: "Failed to save preferences",
-        description: (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
+        description: (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
         tone: "error"
       });
     } finally {
@@ -849,11 +866,11 @@ export default function Onboarding() {
       telemetry.track("onboarding_completed", { step: "ready" });
       pushToast({ title: "You're all set! Let's job hunt!", tone: "success" });
       navigate("/app/dashboard");
-    } catch (err: any) {
+    } catch (error) {
       console.error('[Onboarding] Failed to complete:', err);
       pushToast({
         title: "Almost there!",
-        description: (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.",
+        description: (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.",
         tone: "error"
       });
     } finally {

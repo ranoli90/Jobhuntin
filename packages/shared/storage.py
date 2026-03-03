@@ -177,29 +177,57 @@ class S3CompatibleStorageService(StorageService):
     async def generate_signed_url(
         self, storage_path: str, ttl_seconds: int | None = None
     ) -> str:
-        """Generate a pre-signed URL for object access."""
+        """Generate a pre-signed URL for object access using AWS Signature V4."""
         ttl = ttl_seconds or 3600
         bucket, path = storage_path.split("/", 1)
 
-        expires = int(time.time()) + ttl
+        # Use AWS Signature Version 4 (more secure than V2)
+        from datetime import datetime
+        now = datetime.utcnow()
+        amz_date = now.strftime("%Y%m%dT%H%M%SZ")
+        date_stamp = now.strftime("%Y%m%d")
 
-        string_to_sign = f"GET\n\n\n{expires}\n/{bucket}/{path}"
-        signature = (
-            base64.b64encode(
-                hmac.new(
-                    self.secret_key.encode(), string_to_sign.encode(), hashlib.sha1
-                ).digest()
-            )
-            .decode()
-            .rstrip("=")
+        credential_scope = f"{date_stamp}/{self.region}/s3/aws4_request"
+        credential = f"{self.access_key}/{credential_scope}"
+
+        # Build query parameters
+        query_params = {
+            "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+            "X-Amz-Credential": credential,
+            "X-Amz-Date": amz_date,
+            "X-Amz-Expires": str(ttl),
+            "X-Amz-SignedHeaders": "host",
+        }
+
+        # Create canonical request
+        host = urlparse(self.endpoint_url).netloc
+        canonical_headers = f"host:{host}\n"
+        canonical_request = (
+            f"GET\n/{bucket}/{path}\n"
+            + "&".join(f"{k}={quote(v, safe='')}" for k, v in sorted(query_params.items()))
+            + f"\n{canonical_headers}\nhost\nUNSIGNED-PAYLOAD"
         )
 
-        url = (
-            f"{self.public_url_base}/{bucket}/{path}"
-            f"?AWSAccessKeyId={self.access_key}"
-            f"&Expires={expires}"
-            f"&Signature={quote(signature)}"
+        # Create string to sign
+        string_to_sign = (
+            f"AWS4-HMAC-SHA256\n{amz_date}\n{credential_scope}\n"
+            + hashlib.sha256(canonical_request.encode()).hexdigest()
         )
+
+        # Calculate signature
+        def sign(key: bytes, msg: str) -> bytes:
+            return hmac.new(key, msg.encode(), hashlib.sha256).digest()
+
+        k_date = sign(("AWS4" + self.secret_key).encode(), date_stamp)
+        k_region = sign(k_date, self.region)
+        k_service = sign(k_region, "s3")
+        k_signing = sign(k_service, "aws4_request")
+        signature = hmac.new(k_signing, string_to_sign.encode(), hashlib.sha256).hexdigest()
+
+        # Build final URL
+        query_params["X-Amz-Signature"] = signature
+        query_string = "&".join(f"{k}={quote(v, safe='')}" for k, v in sorted(query_params.items()))
+        url = f"{self.public_url_base}/{bucket}/{path}?{query_string}"
 
         return url
 

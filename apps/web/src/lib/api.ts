@@ -48,9 +48,9 @@ export async function withRetry<T>(
     maxRetries = 3,
     baseDelayMs = BASE_DELAY_MS,
     maxDelayMs = MAX_DELAY_MS,
-    shouldRetry = (err: Error) => {
+    shouldRetry = (err: Error & { status?: number }) => {
       // Retry on network errors and 5xx status
-      const status = (err as any).status;
+      const status = err.status;
       return !status || status >= 500 || status === 429;
     },
     onRetry,
@@ -61,7 +61,8 @@ export async function withRetry<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       lastError = err;
 
       // Check if we should retry
@@ -309,7 +310,7 @@ export async function apiFetch(
   };
 
   let lastResp: Response | undefined;
-  let lastError: any;
+  let lastError: Error | undefined;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const controller = new AbortController();
@@ -342,7 +343,8 @@ export async function apiFetch(
       }
 
       lastResp = resp;
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       clearTimeout(timeoutId);
       if (options.signal) {
         options.signal.removeEventListener("abort", onUserAbort);
@@ -465,12 +467,12 @@ export async function apiPostFormData<T = unknown>(path: string, body: FormData,
       }
 
       lastResp = resp;
-    } catch (err: any) {
+    } catch (error) {
       clearTimeout(timeoutId);
       if (options.signal) {
         options.signal.removeEventListener("abort", onUserAbort);
       }
-      throw err;
+      throw error;
     }
 
     const delay = retryDelay(attempt, lastResp);

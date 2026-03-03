@@ -507,36 +507,36 @@ async def match_jobs_batch(
     matches: list[JobMatchScore_V1] = []
     errors: list[str] = []
 
-    for i, job in enumerate(sanitized_jobs):
-        job_id = job.get("id")
+    # Use single connection for all cache operations (prevents N+1)
+    async with db.acquire() as conn:
+        for i, job in enumerate(sanitized_jobs):
+            job_id = job.get("id")
 
-        # Check cache first
-        if job_id:
-            async with db.acquire() as conn:
+            # Check cache first
+            if job_id:
                 cached = await JobMatchCacheRepo.get(conn, str(job_id), profile_hash)
                 if cached:
                     matches.append(JobMatchScore_V1(**cached))
                     continue
 
-        try:
-            prompt = build_job_match_prompt(sanitized_profile, job)
-            result = await client.call(
-                prompt=prompt,
-                response_format=JobMatchScore_V1,
-            )
-            matches.append(result)
+            try:
+                prompt = build_job_match_prompt(sanitized_profile, job)
+                result = await client.call(
+                    prompt=prompt,
+                    response_format=JobMatchScore_V1,
+                )
+                matches.append(result)
 
-            # Cache result
-            if job_id:
-                async with db.acquire() as conn:
+                # Cache result
+                if job_id:
                     await JobMatchCacheRepo.put(
                         conn, str(job_id), profile_hash, result.model_dump(mode="json")
                     )
 
-        except Exception as exc:
-            job_label = job_id or f"job_{i}"
-            errors.append(f"{job_label}: matching failed")
-            logger.warning("Batch job match failed for %s: %s", job_label, exc)
+            except Exception as exc:
+                job_label = job_id or f"job_{i}"
+                errors.append(f"{job_label}: matching failed")
+                logger.warning("Batch job match failed for %s: %s", job_label, exc)
 
     logger.info(
         "Batch job matching complete",
@@ -1257,7 +1257,7 @@ async def get_match_weights(
     defaults = MatchWeights.default()
     return MatchWeightsResponse(
         semantic_similarity=defaults.semantic_similarity,
-        skill_match=defaults.skill_.match,
+        skill_match=defaults.skill_match,
         experience_alignment=defaults.experience_alignment,
         normalized=True,
     )

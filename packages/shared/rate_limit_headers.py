@@ -6,8 +6,10 @@ to all responses.
 
 from __future__ import annotations
 
+import threading
+import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from fastapi import Request, Response
@@ -26,10 +28,15 @@ class RateLimitInfo:
     remaining: int
     reset_at: datetime
     retry_after: int | None = None
+    last_accessed: float = field(default_factory=time.time)
 
 
 class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
     """Middleware that adds rate limit headers to responses."""
+
+    # Cleanup settings
+    CLEANUP_INTERVAL_SECONDS = 300  # Run cleanup every 5 minutes
+    ENTRY_MAX_AGE_SECONDS = 600  # Remove entries older than 10 minutes
 
     def __init__(
         self,
@@ -41,6 +48,29 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
         self.default_limit = default_limit
         self.window_seconds = window_seconds
         self._limits: dict[str, RateLimitInfo] = {}
+        self._lock = threading.Lock()
+        self._last_cleanup = time.time()
+
+    def _cleanup_old_entries(self) -> None:
+        """Remove old entries to prevent memory leak."""
+        now = time.time()
+        if now - self._last_cleanup < self.CLEANUP_INTERVAL_SECONDS:
+            return
+
+        with self._lock:
+            cutoff = now - self.ENTRY_MAX_AGE_SECONDS
+            old_keys = [
+                key for key, info in self._limits.items()
+                if info.last_accessed < cutoff
+            ]
+            for key in old_keys:
+                del self._limits[key]
+            self._last_cleanup = now
+            if old_keys:
+                logger.debug(
+                    "Cleaned up %d stale rate limit entries",
+                    len(old_keys),
+                )
 
     def _get_client_key(self, request: Request) -> str:
         """Get unique key for client (IP or user ID)."""
@@ -52,7 +82,8 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
         # Fall back to IP
         forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
-            return f"ip:{forwarded.split(',')[0].strip()}"
+            # SECURITY: Use rightmost IP (closest to server) to prevent spoofing
+            return f"ip:{forwarded.split(',')[-1].strip()}"
 
         return f"ip:{request.client.host if request.client else 'unknown'}"
 
@@ -70,41 +101,47 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
 
     def check_rate_limit(self, request: Request) -> RateLimitInfo:
         """Check rate limit for client and return info."""
+        # Run cleanup periodically
+        self._cleanup_old_entries()
+
         key = self._get_client_key(request)
         limit = self._get_tier_limit(request)
         now = datetime.now()
 
-        if key not in self._limits:
-            # First request
-            info = RateLimitInfo(
-                limit=limit,
-                remaining=limit - 1,
-                reset_at=now + timedelta(seconds=self.window_seconds),
-            )
-            self._limits[key] = info
+        with self._lock:
+            if key not in self._limits:
+                # First request
+                info = RateLimitInfo(
+                    limit=limit,
+                    remaining=limit - 1,
+                    reset_at=now + timedelta(seconds=self.window_seconds),
+                )
+                self._limits[key] = info
+                return info
+
+            info = self._limits[key]
+            info.last_accessed = time.time()
+
+            # Check if window has reset
+            if now >= info.reset_at:
+                info = RateLimitInfo(
+                    limit=limit,
+                    remaining=limit - 1,
+                    reset_at=now + timedelta(seconds=self.window_seconds),
+                    last_accessed=time.time(),
+                )
+                self._limits[key] = info
+                return info
+
+            # Decrement remaining
+            if info.remaining > 0:
+                info.remaining -= 1
+            else:
+                # Rate limited
+                retry_after = int((info.reset_at - now).total_seconds())
+                info.retry_after = retry_after
+
             return info
-
-        info = self._limits[key]
-
-        # Check if window has reset
-        if now >= info.reset_at:
-            info = RateLimitInfo(
-                limit=limit,
-                remaining=limit - 1,
-                reset_at=now + timedelta(seconds=self.window_seconds),
-            )
-            self._limits[key] = info
-            return info
-
-        # Decrement remaining
-        if info.remaining > 0:
-            info.remaining -= 1
-        else:
-            # Rate limited
-            retry_after = int((info.reset_at - now).total_seconds())
-            info.retry_after = retry_after
-
-        return info
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Process request and add rate limit headers."""

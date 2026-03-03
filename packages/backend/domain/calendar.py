@@ -9,7 +9,7 @@ Provides:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -144,7 +144,7 @@ class GoogleCalendarClient:
         if event.conference_url:
             event_body["conferenceData"] = {
                 "createRequest": {
-                    "requestId": f"sorce-{datetime.now(UTC).timestamp()}",
+                    "requestId": f"sorce-{datetime.now(timezone.utc).timestamp()}",
                     "conferenceSolutionKey": {"type": "hangoutsMeet"},
                 }
             }

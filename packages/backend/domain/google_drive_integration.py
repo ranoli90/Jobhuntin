@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -144,8 +144,8 @@ class GoogleDriveClient:
                 name=data["name"],
                 mime_type=data.get("mimeType", mime_type),
                 size=len(file_content),
-                created_time=datetime.now(UTC),
-                modified_time=datetime.now(UTC),
+                created_time=datetime.now(timezone.utc),
+                modified_time=datetime.now(timezone.utc),
                 web_view_link=data.get("webViewLink"),
             )
 

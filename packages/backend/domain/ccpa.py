@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -172,7 +172,7 @@ class CCPAComplianceManager:
             email=email,
             phone=phone,
             status=CCPARequestStatus.PENDING,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
             verified_at=None,
             completed_at=None,
             details=details or {},
@@ -230,7 +230,7 @@ class CCPAComplianceManager:
             phone=row["phone"],
             status=CCPARequestStatus.VERIFIED,
             created_at=row["created_at"],
-            verified_at=datetime.now(UTC),
+            verified_at=datetime.now(timezone.utc),
             completed_at=row["completed_at"],
             details=row["details"]
             if isinstance(row["details"], dict)
@@ -313,7 +313,7 @@ class CCPAComplianceManager:
 
         incr("ccpa.request_completed", {"type": request.request_type.value})
         request.status = CCPARequestStatus.COMPLETED
-        request.completed_at = datetime.now(UTC)
+        request.completed_at = datetime.now(timezone.utc)
         request.response = response
 
         return request

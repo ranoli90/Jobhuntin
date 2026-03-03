@@ -40,10 +40,15 @@ interface SyncRun {
     started_at: string;
 }
 
+interface JobStat {
+    date: string;
+    count: number;
+}
+
 interface SyncStatus {
     sources: JobSource[];
     recent_runs: SyncRun[];
-    job_stats: any[];
+    job_stats: JobStat[];
     circuit_breakers: Record<string, "closed" | "open" | "half-open">;
 }
 
@@ -69,7 +74,7 @@ export default function AdminSourcesPage() {
             // Invalidate query to refresh status immediately
             queryClient.invalidateQueries({ queryKey: ["admin", "jobs", "sync-status"] });
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
             pushToast({
                 title: "Sync Failed",
                 description: err.message || "Could not trigger sync.",

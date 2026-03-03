@@ -176,7 +176,12 @@ async function submitIndexNow(urls: string[], progress: Progress): Promise<numbe
   if (pending.length > 5) log('INDEXNOW', `  ... and ${pending.length - 5} more`);
 
   const host = new URL(BASE_URL).hostname;
-  const indexNowKey = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
+  const indexNowKey = process.env.INDEXNOW_API_KEY;
+  if (!indexNowKey) {
+    log('INDEXNOW', '⚠️  INDEXNOW_API_KEY not set in environment. Skipping IndexNow submission.');
+    log('INDEXNOW', '💡 Set INDEXNOW_API_KEY in your .env file to enable IndexNow submissions.');
+    return 0;
+  }
 
   // Ensure the key file exists in public dir for verification
   const keyFilePath = path.resolve(__dirname, `../../public/${indexNowKey}.txt`);

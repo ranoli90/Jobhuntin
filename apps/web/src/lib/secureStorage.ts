@@ -5,8 +5,8 @@ interface SecureStorageOptions {
   encrypt?: boolean; // Whether to encrypt the data
 }
 
-interface StoredData {
-  data: any;
+interface StoredData<T = unknown> {
+  data: T;
   timestamp: number;
   ttl?: number;
   encrypted?: boolean;
@@ -113,7 +113,7 @@ class SecureStorage {
   /**
    * Store data securely in session storage
    */
-  async setItem(key: string, data: any, options: SecureStorageOptions = {}): Promise<void> {
+  async setItem<T>(key: string, data: T, options: SecureStorageOptions = {}): Promise<void> {
     try {
       const { ttl = this.DEFAULT_TTL, encrypt = true } = options;
       const timestamp = Date.now();
@@ -220,13 +220,13 @@ export const secureStorage = new SecureStorage();
 
 // Helper functions for common use cases
 export const securePIIStorage = {
-  set: async (key: string, data: any, ttl?: number) => {
-    return secureStorage.setItem(`pii_${key}`, data, { 
+  set: async <T>(key: string, data: T, ttl?: number) => {
+    return secureStorage.setItem(`pii_${key}`, data, {
       ttl: ttl || 4 * 60 * 60 * 1000, // 4 hours for PII
-      encrypt: true 
+      encrypt: true
     });
   },
-  get: <T = any>(key: string) => secureStorage.getItem<T>(`pii_${key}`),
+  get: <T = unknown>(key: string) => secureStorage.getItem<T>(`pii_${key}`),
   remove: (key: string) => secureStorage.removeItem(`pii_${key}`),
   clear: () => {
     // Clear all PII-related items

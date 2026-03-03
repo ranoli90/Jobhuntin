@@ -3,6 +3,12 @@ import { FocusTrap } from 'focus-trap-react';
 import { Button } from './ui/Button';
 import { t, getLocale } from '../lib/i18n';
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 const CONSENT_KEY = 'jobhuntin-cookie-consent';
 const CONSENT_EXPIRY_MONTHS = 12; // L4: GDPR - re-prompt after 12 months
 
@@ -67,10 +73,10 @@ export function CookieConsent() {
     }));
     
     // Update Google Analytics consent
-    if (typeof globalThis.window !== 'undefined' && (globalThis.window as any).gtag) {
-      (globalThis.window as any).gtag('consent', 'update', { 
-        analytics_storage: prefs.analytics ? 'granted' : 'denied', 
-        ad_storage: prefs.marketing ? 'granted' : 'denied' 
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('consent', 'update', {
+        analytics_storage: prefs.analytics ? 'granted' : 'denied',
+        ad_storage: prefs.marketing ? 'granted' : 'denied'
       });
     }
     

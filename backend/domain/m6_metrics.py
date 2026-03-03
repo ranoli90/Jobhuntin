@@ -6,7 +6,7 @@ Queries materialized views from migration 020.
 
 from __future__ import annotations
 
-from datetime import UTC
+from datetime import timezone, UTC
 from typing import Any
 
 import asyncpg
@@ -159,7 +159,7 @@ async def get_full_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
     bp_revenue = await get_revenue_per_blueprint(conn)
     summary = await get_platform_summary(conn)
 
-    base["generated_at"] = datetime.now(UTC).isoformat()
+    base["generated_at"] = datetime.now(timezone.utc).isoformat()
 
     # Platform data
     base["platform"] = {

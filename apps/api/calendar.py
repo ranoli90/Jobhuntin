@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -159,7 +159,7 @@ async def list_calendar_events(
             detail="Calendar not connected",
         )
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     time_min = now - timedelta(days=days_back)
     time_max = now + timedelta(days=days_ahead)
 
@@ -221,7 +221,7 @@ async def check_calendar_conflicts(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format")
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     time_min = now - timedelta(days=1)
     time_max = now + timedelta(days=30)
 

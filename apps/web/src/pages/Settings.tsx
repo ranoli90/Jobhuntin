@@ -145,8 +145,9 @@ export default function Settings() {
       pushToast({ title: "Resume updated", tone: "success" });
       setResumeSuccess("Resume uploaded successfully");
     } catch (err) {
-      const message = (err as Error).message;
-      const status = (err as any).status;
+      const apiErr = err as Error & { status?: number };
+      const message = apiErr.message;
+      const status = apiErr.status;
       console.error("Resume upload failed:", err);
       pushToast({ title: "Upload failed", description: status ? `[${status}] ${message}` : message, tone: "error" });
       setResumeError(status ? `[${status}] ${message}` : message);
@@ -190,15 +191,16 @@ export default function Settings() {
         window.location.href = '/';
       }, 2000);
       
-    } catch (error: any) {
-      console.error('Account deletion failed:', error);
+    } catch (error) {
+      const err = error as Error;
+      console.error('Account deletion failed:', err);
       
       telemetry.track('Account Deletion Failed', {
-        error: error.message,
+        error: err.message,
         email: profile?.email ? profile.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
       });
       
-      pushToast({ title: error.message || 'Failed to delete account. Please try again.', tone: 'error' });
+      pushToast({ title: err.message || 'Failed to delete account. Please try again.', tone: 'error' });
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -251,13 +253,14 @@ export default function Settings() {
       setShowReAuthModal(false);
       setReAuthPassword('');
       
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error('Export failed:', err);
-      
+
       if (err.message.includes('401') || err.message.includes('Unauthorized')) {
         setReAuthError('Invalid password. Please try again.');
       } else {
-        pushToast({ title: "Export failed", description: (err as Error).message, tone: "error" });
+        pushToast({ title: "Export failed", description: err.message, tone: "error" });
         setShowReAuthModal(false);
         setReAuthPassword('');
       }

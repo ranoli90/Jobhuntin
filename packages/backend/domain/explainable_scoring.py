@@ -14,7 +14,7 @@ users do not know why the bot applied to a specific job."
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -85,7 +85,7 @@ class ExplainableMatchScore(BaseModel):
     applied_reasoning: str
     passed_dealbreakers: bool = True
     dealbreaker_details: list[str] = Field(default_factory=list)
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_audit_log(self) -> str:
         return f"[{self.timestamp.isoformat()}] Job {self.job_id}: Score {self.overall_score:.2%} (CI: {self.confidence_interval_lower:.2%}-{self.confidence_interval_upper:.2%}). {self.applied_reasoning}"

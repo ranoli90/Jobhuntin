@@ -5,6 +5,40 @@ import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
 import rolesData from '../data/roles.json';
 import locationsData from '../data/locations.json';
+
+interface RoleSchema {
+  "@context": string;
+  "@type": string;
+  name: string;
+  description: string;
+  estimatedSalary: {
+    "@type": string;
+    currency: string;
+    duration: string;
+    percentile10: number;
+    percentile25: number;
+    median: number;
+    percentile75: number;
+    percentile90: number;
+  };
+}
+
+interface RoleData {
+  id: string;
+  name: string;
+  keywords: string[];
+  slug: string;
+  category: string;
+  avgSalary: number;
+  demandLevel: string;
+  remotePercentage: number;
+  skills: string[];
+  seoTitle: string;
+  seoDescription: string;
+  h1: string;
+  h2s: string[];
+  schema: RoleSchema[];
+}
 import { generateLocationRoleSEO } from '../utils/seoOptimizer';
 import { generateSemanticLinksForLocationRole, generateTopicalClusters } from '../utils/semanticLinking';
 import TopicalClusters from '../components/marketing/TopicalClusters';
@@ -35,7 +69,7 @@ export default function JobNiche() {
     );
   }
 
-  const roleInfo = rolesData.find(r => r.id === sanitizedRole);
+  const roleInfo = (rolesData as RoleData[]).find(r => r.id === sanitizedRole);
   const cityInfo = locationsData.find(c => c.id === sanitizedCity);
 
   const seoData = generateLocationRoleSEO(
@@ -66,8 +100,8 @@ export default function JobNiche() {
   const isUS = cityInfo?.country === 'USA';
 
   const salaryStats = React.useMemo(() => {
-    if ((roleInfo as any)?.schema?.[0]?.estimatedSalary) {
-      const est = (roleInfo as any).schema[0].estimatedSalary;
+    if (roleInfo?.schema?.[0]?.estimatedSalary) {
+      const est = roleInfo.schema[0].estimatedSalary;
       const currency = est.currency === 'USD' ? '$' : '€';
       const format = (val: number) => `${currency}${Math.round(val / 1000)}k`;
       return {

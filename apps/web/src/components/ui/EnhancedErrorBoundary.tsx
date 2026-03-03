@@ -10,6 +10,13 @@ import { pushToast } from '../../lib/toast';
 declare global {
   interface Window {
     __USER_ID__?: string;
+    Sentry?: {
+      captureException: (error: Error, context?: unknown) => void;
+    };
+  }
+  interface ImportMetaEnv {
+    VITE_APP_VERSION?: string;
+    VITE_ERROR_REPORTING_ENDPOINT?: string;
   }
 }
 
@@ -110,7 +117,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
           name: error.name || 'UnknownError',
         },
         componentStack: errorInfo.componentStack || '',
-        buildVersion: (import.meta as any).env?.VITE_APP_VERSION || 'unknown',
+        buildVersion: import.meta.env.VITE_APP_VERSION || 'unknown',
         environment: import.meta.env.MODE || 'unknown',
       };
 
@@ -126,7 +133,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
       });
 
       // Also send to external service if configured
-      const externalEndpoint = (import.meta as any).env?.VITE_ERROR_REPORTING_ENDPOINT;
+      const externalEndpoint = import.meta.env.VITE_ERROR_REPORTING_ENDPOINT;
       if (externalEndpoint) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -404,8 +411,8 @@ export function useErrorBoundary() {
     console.error('Error caught by boundary:', error, errorInfo);
 
     // You can integrate with Sentry, LogRocket, etc.
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.captureException(error, {
+    if (typeof window !== 'undefined' && window.Sentry) {
+      window.Sentry.captureException(error, {
         contexts: {
           react: {
             componentStack: errorInfo.componentStack,

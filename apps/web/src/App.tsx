@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import React, { Suspense } from 'react';
 import { Helmet } from "react-helmet-async";
-import { Loader2, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Button } from "./components/ui/Button";
 import ScrollToTop from "./components/ScrollToTop";
 import MarketingLayout from "./layouts/MarketingLayout";

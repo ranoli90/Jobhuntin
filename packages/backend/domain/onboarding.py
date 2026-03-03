@@ -11,7 +11,7 @@ Based on JobCopilot's adaptive ML ingestion approach.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -93,8 +93,8 @@ class AdaptiveProfile(BaseModel):
     career_goals: dict[str, Any] = Field(default_factory=dict)
     learned_preferences: dict[str, Any] = Field(default_factory=dict)
     profile_completeness: float = 0.0
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 QUESTIONS: list[OnboardingQuestion] = [
@@ -377,7 +377,7 @@ class OnboardingService:
             self._apply_answer_to_profile(profile, question, answer)
 
         profile.profile_completeness = self._calculate_completeness(profile)
-        profile.updated_at = datetime.now(UTC)
+        profile.updated_at = datetime.now(timezone.utc)
 
         return profile
 
@@ -506,7 +506,7 @@ class OnboardingService:
                 "original": original_value,
                 "new": new_value,
                 "context": context,
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
 

@@ -9,7 +9,7 @@ Implements:
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -25,7 +25,7 @@ async def export_user_data(
     user_id: str,
 ) -> dict[str, Any]:
     data: dict[str, Any] = {
-        "exported_at": datetime.now(UTC).isoformat(),
+        "exported_at": datetime.now(timezone.utc).isoformat(),
         "user_id": user_id,
         "sections": {},
     }

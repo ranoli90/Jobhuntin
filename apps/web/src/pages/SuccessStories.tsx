@@ -6,6 +6,16 @@ import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
 import { t, getLocale } from '../lib/i18n';
 
+interface Story {
+  name: string;
+  role: string;
+  company: string;
+  image: string;
+  quote: string;
+  stat: string;
+  audio: string;
+}
+
 export default function SuccessStories() {
   const locale = getLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -174,7 +184,7 @@ const StoryCard = ({
   setPlayingAudio,
   locale
 }: {
-  story: any;
+  story: Story;
   index: number;
   isMobile: boolean;
   playingAudio: string | null;

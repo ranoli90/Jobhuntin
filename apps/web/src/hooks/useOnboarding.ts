@@ -4,6 +4,12 @@ import { securePIIStorage } from "../lib/secureStorage";
 
 import { OnboardingStep, OnboardingState, OnboardingFormData } from "../types/onboarding";
 
+interface OfflineAction {
+  type: string;
+  payload: Record<string, unknown>;
+  timestamp: number;
+}
+
 const STORAGE_KEY = "onboarding_state";
 
 // PII fields that should be stored securely
@@ -11,17 +17,17 @@ const PII_FIELDS = ['contactInfo'];
 
 // Helper to separate PII from non-PII data
 const separatePII = (formData: OnboardingFormData) => {
-  const pii: any = {};
-  const nonPii: any = {};
-  
+  const pii: Partial<OnboardingFormData> = {};
+  const nonPii: Partial<OnboardingFormData> = {};
+
   Object.keys(formData).forEach(key => {
     if (PII_FIELDS.includes(key)) {
-      pii[key] = formData[key as keyof OnboardingFormData];
+      (pii as Record<string, unknown>)[key] = formData[key as keyof OnboardingFormData];
     } else {
-      nonPii[key] = formData[key as keyof OnboardingFormData];
+      (nonPii as Record<string, unknown>)[key] = formData[key as keyof OnboardingFormData];
     }
   });
-  
+
   return { pii, nonPii };
 };
 
@@ -49,9 +55,9 @@ export function useOnboarding() {
       }
       
       // Get PII data from secure storage
-      let piiData: any = {};
+      let piiData: Partial<OnboardingFormData> = {};
       try {
-        piiData = await securePIIStorage.get('contact_info') || {};
+        piiData = (await securePIIStorage.get('contact_info')) || {};
       } catch (error) {
         console.warn('[useOnboarding] Failed to load PII from secure storage:', error);
       }
@@ -129,7 +135,7 @@ export function useOnboarding() {
   useEffect(() => {
     const storedVariant = localStorage.getItem("onboarding_ab_variant");
     if (storedVariant) {
-      setAbVariant(storedVariant as any);
+      setAbVariant(storedVariant as "resume_first" | "role_first");
     } else {
       // 50/50 split
       const newVariant = Math.random() > 0.5 ? "resume_first" : "role_first";
@@ -255,7 +261,7 @@ export function useOnboarding() {
     return () => window.removeEventListener("online", processQueue);
   }, []);
 
-  const queueOfflineAction = useCallback((action: any) => {
+  const queueOfflineAction = useCallback((action: OfflineAction) => {
     try {
       const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
       queue.push({ ...action, timestamp: Date.now() });

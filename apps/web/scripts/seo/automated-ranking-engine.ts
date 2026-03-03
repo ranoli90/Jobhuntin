@@ -20,6 +20,7 @@ import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
 import { setInterval } from 'timers';
 import { loadProgress, saveProgress, logSubmission, getQuotaState } from './supabase-checkpoint.ts';
+import { validateCityName, validateRoleName, sanitizeForShell } from './utils';
 
 const BASE_URL = process.env.GOOGLE_SEARCH_CONSOLE_SITE || 'https://jobhuntin.com';
 const DAILY_SUBMISSION_LIMIT = 200;
@@ -170,8 +171,12 @@ async function generateContent(city: string, role: string): Promise<boolean> {
   console.log("=".repeat(70));
 
   return new Promise((resolve) => {
+    // SECURITY: Validate inputs before passing to spawn
+    const safeCity = sanitizeForShell(validateCityName(city));
+    const safeRole = sanitizeForShell(validateRoleName(role));
+    
     // Pass arguments as an array to spawn correctly
-    const childProcess = spawn('npx', ['tsx', 'scripts/seo/generate-city-content.ts', city, role, '--aggressive'], {
+    const childProcess = spawn('npx', ['tsx', 'scripts/seo/generate-city-content.ts', safeCity, safeRole, '--aggressive'], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'inherit' // Show all output in real-time
     });

@@ -6,7 +6,7 @@ without touching the core engine. All methods are functional stubs.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 
 import asyncpg
 
@@ -95,6 +95,6 @@ class GrantApplicationBlueprint:
         app_id = str(task["id"])
         await ApplicationRepo.update_status(conn, app_id, "SUBMITTED")
         await EventRepo.emit(conn, app_id, "SUBMITTED", {
-            "submitted_at": datetime.now(UTC).isoformat(),
+            "submitted_at": datetime.now(timezone.utc).isoformat(),
         }, tenant_id=tenant_id)
         return "SUBMITTED"

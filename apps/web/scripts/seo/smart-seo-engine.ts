@@ -16,6 +16,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
 import { google } from 'googleapis';
+import { validateCompetitorName, validateCityName, validateRoleName, sanitizeForShell } from './utils';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -191,12 +192,17 @@ async function generateCompetitorComparison(
   console.log('='.repeat(80));
 
   return new Promise((resolve) => {
+    // SECURITY: Validate inputs before passing to spawn
+    const safeCompetitorName = sanitizeForShell(validateCompetitorName(competitor.name));
+    const safeKeywords = competitor.keywords.map(k => sanitizeForShell(validateCompetitorName(k)));
+    const safeModel = sanitizeForShell(CONFIG.MODEL);
+    
     const childProcess = spawn('npx', [
       'tsx',
       'scripts/seo/generate-competitor-content.ts',
-      competitor.name,
-      '--model', CONFIG.MODEL,
-      '--keywords', competitor.keywords.join(','),
+      safeCompetitorName,
+      '--model', safeModel,
+      '--keywords', safeKeywords.join(','),
     ], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'inherit',
@@ -248,11 +254,15 @@ async function generateTrendingContent(
   console.log('='.repeat(80));
 
   return new Promise((resolve) => {
+    // SECURITY: Validate topic before passing to spawn
+    const safeTopic = sanitizeForShell(validateCompetitorName(topic));
+    const safeModel = sanitizeForShell(CONFIG.MODEL);
+    
     const childProcess = spawn('npx', [
       'tsx',
       'scripts/seo/generate-trending-content.ts',
-      topic,
-      '--model', CONFIG.MODEL,
+      safeTopic,
+      '--model', safeModel,
     ], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'inherit',
@@ -304,12 +314,17 @@ async function generateLocationContent(
   console.log('='.repeat(80));
 
   return new Promise((resolve) => {
+    // SECURITY: Validate inputs before passing to spawn
+    const safeLocation = sanitizeForShell(validateCityName(location));
+    const safeRole = sanitizeForShell(validateRoleName(role));
+    const safeModel = sanitizeForShell(CONFIG.MODEL);
+    
     const childProcess = spawn('npx', [
       'tsx',
       'scripts/seo/generate-city-content.ts',
-      location,
-      role,
-      '--model', CONFIG.MODEL,
+      safeLocation,
+      safeRole,
+      '--model', safeModel,
     ], {
       cwd: path.resolve(__dirname, '../..'),
       stdio: 'inherit',

@@ -1143,16 +1143,29 @@ async def serve_storage_file(
     user_id: str = Depends(get_current_user_id),
 ):
     """Serve files from storage (e.g., resumes, avatars)."""
-    # Prevent path traversal
-    if ".." in bucket or ".." in path or "//" in bucket or "//" in path:
+    # SECURITY: Prevent path traversal with canonicalization
+    import os
+    import re
+
+    # Validate bucket name (alphanumeric, hyphens, underscores only)
+    if not re.match(r'^[a-zA-Z0-9_-]+$', bucket):
+        raise HTTPException(status_code=400, detail="Invalid bucket name")
+
+    # Validate path components
+    # Normalize path and check for traversal attempts
+    normalized_path = os.path.normpath(path)
+    if ".." in normalized_path or normalized_path.startswith("/") or normalized_path.startswith("\\"):
         raise HTTPException(status_code=400, detail="Invalid path")
-    if bucket.startswith("/") or path.startswith("/"):
+
+    # Additional checks for encoded traversal attempts
+    decoded_path = path.replace("%2e%2e", "..").replace("%2E%2E", "..")
+    if ".." in decoded_path:
         raise HTTPException(status_code=400, detail="Invalid path")
 
     from shared.storage import get_storage_service
 
     storage = get_storage_service()
-    storage_path = f"{bucket}/{path}"
+    storage_path = f"{bucket}/{normalized_path}"
 
     try:
         data = await storage.download_file(storage_path)

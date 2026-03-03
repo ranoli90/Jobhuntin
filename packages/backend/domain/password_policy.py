@@ -13,7 +13,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
-from datetime import UTC
+from datetime import timezone, UTC
 from enum import StrEnum
 from typing import Any
 
@@ -436,7 +436,7 @@ class PasswordHistoryManager:
 
             from datetime import datetime
 
-            age = datetime.now(UTC) - row["created_at"]
+            age = datetime.now(timezone.utc) - row["created_at"]
             return age.days
 
     async def is_password_expired(

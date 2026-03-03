@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, TypeVar
 
 from shared.logging_config import get_logger
@@ -25,25 +25,25 @@ R = TypeVar("R")
 
 
 @dataclass
-class BatchRequest[T]:
+class BatchRequest:
     id: str
-    payload: T
+    payload: Any
     metadata: dict[str, Any] = field(default_factory=dict)
     priority: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
-class BatchResult[R]:
+class BatchResult:
     request_id: str
     success: bool
-    result: R | None = None
+    result: Any | None = None
     error: str | None = None
     tokens_used: int = 0
     latency_ms: float = 0.0
 
 
-class BatchProcessor[T, R]:
+class BatchProcessor:
     def __init__(
         self,
         process_fn,
@@ -58,7 +58,7 @@ class BatchProcessor[T, R]:
         self._semaphore = asyncio.Semaphore(max_concurrent)
         self._request_times: list[float] = []
 
-    async def process_single(self, request: BatchRequest[T]) -> BatchResult[R]:
+    async def process_single(self, request: BatchRequest) -> BatchResult:
         async with self._semaphore:
             await self._rate_limit()
 
@@ -88,8 +88,8 @@ class BatchProcessor[T, R]:
                 )
 
     async def process_batch(
-        self, requests: list[BatchRequest[T]]
-    ) -> list[BatchResult[R]]:
+        self, requests: list[BatchRequest]
+    ) -> list[BatchResult]:
         sorted_requests = sorted(requests, key=lambda r: -r.priority)
 
         tasks = [self.process_single(req) for req in sorted_requests]
@@ -129,7 +129,7 @@ async def batch_process_embeddings(
     embed_fn,
     batch_size: int = 20,
 ) -> list[list[float] | None]:
-    processor = BatchProcessor[str, list[float]](
+    processor = BatchProcessor(
         process_fn=embed_fn,
         max_batch_size=batch_size,
         max_concurrent=3,
@@ -147,7 +147,7 @@ async def batch_process_matches(
     job: dict[str, Any],
     match_fn,
 ) -> list[dict[str, Any] | None]:
-    processor = BatchProcessor[dict, dict](
+    processor = BatchProcessor(
         process_fn=lambda p: match_fn(p, job),
         max_batch_size=10,
         max_concurrent=5,

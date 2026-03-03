@@ -162,8 +162,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return { error: new Error(res.error || "Failed to send magic link") };
             }
             return { error: null };
-        } catch (err: any) {
-            return { error: err };
+        } catch (error) {
+            return { error: error as Error };
         }
     };
 

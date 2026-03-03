@@ -46,7 +46,8 @@ function useEmailCapture() {
       pushToast({ title: t("homepage.checkInbox", getLocale()), description: t("homepage.magicLinkSent", getLocale()), tone: "success" });
       setSentEmail(result.email);
       setEmail("");
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
       setEmailError(msg);
       pushToast({ title: "Error", description: msg, tone: "error" });
@@ -62,7 +63,8 @@ function useEmailCapture() {
       if (!result.success) throw new Error(result.error || "Failed to resend magic link. Please try again.");
       telemetry.track("login_magic_link_resent", { source: "homepage" });
       pushToast({ title: t("homepage.checkInbox", getLocale()), description: t("homepage.magicLinkResent", getLocale()), tone: "success" });
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as Error;
       const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
       pushToast({ title: "Error", description: msg, tone: "error" });
     } finally { setIsSubmitting(false); }

@@ -12,6 +12,28 @@
 import * as React from "react";
 import { BarChart3, Activity, AlertCircle, TrendingUp } from "lucide-react";
 
+// Performance Observer entry type definitions
+interface LayoutShiftEntry extends PerformanceEntry {
+  value: number;
+  hadRecentInput: boolean;
+}
+
+interface FirstInputEntry extends PerformanceEntry {
+  processingStart: number;
+}
+
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+declare global {
+  interface Performance {
+    memory?: PerformanceMemory;
+  }
+}
+
 interface PerformanceMetrics {
   lcp: number; // Largest Contentful Paint
   fid: number; // First Input Delay
@@ -70,11 +92,11 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
               this.metrics.lcp = entry.startTime;
               break;
             case 'first-input':
-              this.metrics.fid = (entry as any).processingStart - entry.startTime;
+              this.metrics.fid = (entry as FirstInputEntry).processingStart - entry.startTime;
               break;
             case 'layout-shift':
-              if (!(entry as any).hadRecentInput) {
-                this.metrics.cls += (entry as any).value;
+              if (!(entry as LayoutShiftEntry).hadRecentInput) {
+                this.metrics.cls += (entry as LayoutShiftEntry).value;
               }
               break;
             case 'first-contentful-paint':
@@ -138,9 +160,8 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
   };
 
   private collectMemoryMetrics = () => {
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      this.metrics.memoryUsage = memory.usedJSHeapSize / 1024 / 1024; // Convert to MB
+    if (performance.memory) {
+      this.metrics.memoryUsage = performance.memory.usedJSHeapSize / 1024 / 1024; // Convert to MB
     }
   };
 
@@ -174,7 +195,7 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
     }
   };
 
-  private reportError = (type: string, error: any) => {
+  private reportError = (type: string, error: Error | unknown) => {
     if (!this.props.reportToService || !this.props.enableReporting) return;
 
     try {
@@ -413,12 +434,12 @@ export const performanceUtils = {
   /**
    * Debounce function for performance optimization
    */
-  debounce: <T extends (...args: any[]) => any>(
-    func: T,
+  debounce: <Args extends unknown[], Return>(
+    func: (...args: Args) => Return,
     wait: number
-  ): ((...args: Parameters<T>) => void) => {
-    let timeout: NodeJS.Timeout;
-    return (...args: Parameters<T>) => {
+  ): ((...args: Args) => void) => {
+    let timeout: ReturnType<typeof setTimeout>;
+    return (...args: Args) => {
       clearTimeout(timeout);
       timeout = setTimeout(() => func(...args), wait);
     };
@@ -427,12 +448,12 @@ export const performanceUtils = {
   /**
    * Throttle function for performance optimization
    */
-  throttle: <T extends (...args: any[]) => any>(
-    func: T,
+  throttle: <Args extends unknown[], Return>(
+    func: (...args: Args) => Return,
     limit: number
-  ): ((...args: Parameters<T>) => void) => {
+  ): ((...args: Args) => void) => {
     let inThrottle: boolean;
-    return (...args: Parameters<T>) => {
+    return (...args: Args) => {
       if (!inThrottle) {
         func(...args);
         inThrottle = true;
@@ -444,7 +465,7 @@ export const performanceUtils = {
   /**
    * Lazy load component
    */
-  lazyLoad: <T extends React.ComponentType<any>>(
+  lazyLoad: <T extends React.ComponentType<unknown>>(
     importFunc: () => Promise<{ default: T }>
   ) => {
     return React.lazy(importFunc);
@@ -453,16 +474,16 @@ export const performanceUtils = {
   /**
    * Memoize expensive calculations
    */
-  memoize: <T extends (...args: any[]) => any>(func: T): T => {
-    const cache = new Map();
-    return ((...args: Parameters<T>) => {
+  memoize: <Args extends unknown[], Return>(func: (...args: Args) => Return): (...args: Args) => Return => {
+    const cache = new Map<string, Return>();
+    return (...args: Args) => {
       const key = JSON.stringify(args);
       if (cache.has(key)) {
-        return cache.get(key);
+        return cache.get(key)!;
       }
       const result = func(...args);
       cache.set(key, result);
       return result;
-    }) as T;
+    };
   },
 };

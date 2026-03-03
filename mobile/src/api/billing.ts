@@ -4,8 +4,8 @@
  * Used by the upgrade prompt and settings screens.
  */
 
-import { supabase } from "../lib/supabase";
 import { API_BASE_URL } from "../lib/config";
+import { getAuthHeaders } from "../lib/auth";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,22 +41,7 @@ export interface PortalResult {
 }
 
 // ---------------------------------------------------------------------------
-// Auth helper
-// ---------------------------------------------------------------------------
-
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const token = session?.access_token;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-}
+// Auth helper is now centralized in ../lib/auth
 
 async function handleResponse<T>(resp: Response): Promise<T> {
   if (!resp.ok) {

@@ -9,7 +9,7 @@ Provides:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -130,7 +130,7 @@ class CostMonitor:
                             current_spend=current_spend,
                             budget_limit=budget_limit,
                             threshold_pct=threshold * 100,
-                            timestamp=datetime.now(UTC).isoformat(),
+                            timestamp=datetime.now(timezone.utc).isoformat(),
                         )
                         alerts.append(alert)
 
@@ -212,7 +212,7 @@ async def get_cost_dashboard() -> dict[str, Any]:
     observe("cost.llm_api_usd", costs.get(CostCategory.LLM_API, 0))
 
     return {
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "costs_by_category": {c.value: v for c, v in costs.items()},
         "total_monthly_spend": sum(costs.values()),
         "llm_details": llm_costs,

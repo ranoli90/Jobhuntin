@@ -11,9 +11,9 @@ import {
   ActivityIndicator, RefreshControl,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { supabase } from "../../lib/supabase";
 import { API_BASE_URL } from "../../lib/config";
 import { track } from "../../lib/analytics";
+import { getAuthHeaders } from "../../lib/auth";
 
 interface DashboardData {
   active_count: number;
@@ -22,13 +22,6 @@ interface DashboardData {
   completed_week: number;
   total_all_time: number;
   recent: Array<{ id: string; job_title: string; status: string; updated_at: string }>;
-}
-
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token
-    ? { Authorization: `Bearer ${session.access_token}` }
-    : {};
 }
 
 export default function DashboardHome() {

@@ -11,7 +11,7 @@ Provides:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -387,7 +387,7 @@ async def get_performance_trends(
         PerformanceTrend(
             timestamp=r["bucket"].isoformat()
             if r["bucket"]
-            else datetime.now(UTC).isoformat(),
+            else datetime.now(timezone.utc).isoformat(),
             requests_per_minute=r["requests"] / 5.0 if r["requests"] else 0,
             avg_latency_ms=round(r["avg_latency_ms"] or 0, 2),
             error_rate_pct=round(r["error_rate_pct"] or 0, 2),
@@ -439,7 +439,7 @@ async def evaluate_alerts(
     new_alerts = alert_manager.evaluate()
 
     return {
-        "evaluated_at": datetime.now(UTC).isoformat(),
+        "evaluated_at": datetime.now(timezone.utc).isoformat(),
         "new_alerts_count": len(new_alerts),
         "new_alerts": [a.to_dict() for a in new_alerts],
     }

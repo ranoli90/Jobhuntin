@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import secrets
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -203,7 +203,7 @@ class ZapierIntegrationManager:
             webhook_url=webhook_url,
             event_types=event_types,
             is_active=True,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
 
     async def unsubscribe(self, hook_id: str, tenant_id: str | None = None) -> bool:
@@ -289,7 +289,7 @@ class ZapierIntegrationManager:
                         json={
                             "event_type": event_type,
                             "hook_id": hook.hook_id,
-                            "timestamp": datetime.now(UTC).isoformat(),
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
                             "data": payload,
                         },
                     )

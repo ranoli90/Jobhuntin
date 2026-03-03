@@ -13,7 +13,7 @@ from __future__ import annotations
 import threading
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from typing import Any
 
 from shared.logging_config import get_logger
@@ -54,7 +54,7 @@ class ModelMetrics:
         self.prompt_tokens += prompt_tokens
         self.completion_tokens += completion_tokens
         self.estimated_cost_usd += cost_usd
-        self.last_success = datetime.now(UTC)
+        self.last_success = datetime.now(timezone.utc)
 
         # Keep bounded latency history for percentiles
         self.latencies.append(latency_seconds)
@@ -65,7 +65,7 @@ class ModelMetrics:
         self.total_requests += 1
         self.failed_requests += 1
         self.errors[error_type] = self.errors.get(error_type, 0) + 1
-        self.last_failure = datetime.now(UTC)
+        self.last_failure = datetime.now(timezone.utc)
 
     @property
     def success_rate(self) -> float:
@@ -263,7 +263,7 @@ class LLMModelMonitor:
             elif metrics.last_failure and (
                 not metrics.last_success or metrics.last_failure > metrics.last_success
             ):
-                age_seconds = (datetime.now(UTC) - metrics.last_failure).total_seconds()
+                age_seconds = (datetime.now(timezone.utc) - metrics.last_failure).total_seconds()
                 if age_seconds < 300:  # 5 minutes
                     unhealthy_models.append(
                         {

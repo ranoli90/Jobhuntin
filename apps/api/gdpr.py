@@ -9,7 +9,7 @@ Implements:
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import timezone, datetime
 from typing import Any
 
 import asyncpg
@@ -174,7 +174,7 @@ async def export_user_data(
     export_data: dict[str, Any] = {
         "export_id": export_id,
         "user_id": user_id,
-        "exported_at": datetime.now(UTC).isoformat(),
+        "exported_at": datetime.now(timezone.utc).isoformat(),
         "format": request.format,
         "data": {},
     }
@@ -278,7 +278,7 @@ async def delete_user_data(
     return DeletionResponse(
         deletion_id=deletion_id,
         status="completed",
-        scheduled_at=datetime.now(UTC).isoformat(),
+        scheduled_at=datetime.now(timezone.utc).isoformat(),
         retention_exceptions=retention_exceptions,
     )
 

@@ -14,7 +14,7 @@ import ipaddress
 import json
 import secrets
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -144,7 +144,7 @@ class IPAllowlistManager:
             cidr=str(network),
             description=description,
             created_by=created_by,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
             is_active=True,
         )
 
@@ -246,7 +246,7 @@ class IPAllowlistManager:
     ) -> str:
         code = secrets.token_urlsafe(self.TEMP_CODE_LENGTH)
         duration = duration_hours or self.TEMP_CODE_DURATION_HOURS
-        expires_at = datetime.now(UTC) + timedelta(hours=duration)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=duration)
 
         async with self._pool.acquire() as conn:
             await conn.execute(
@@ -301,7 +301,7 @@ class IPAllowlistManager:
             if row["used"]:
                 return False, "Access code already used"
 
-            if datetime.now(UTC) > row["expires_at"]:
+            if datetime.now(timezone.utc) > row["expires_at"]:
                 return False, "Access code expired"
 
             if row["ip_address"] and row["ip_address"] != ip_address:

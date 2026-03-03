@@ -52,7 +52,9 @@ const SimulationLog = () => {
     );
 };
 
-const ProcessStep = ({ icon: Icon, title, desc, delay }: { icon: any, title: string, desc: string, delay: number }) => (
+import type { LucideIcon } from "lucide-react";
+
+const ProcessStep = ({ icon: Icon, title, desc, delay }: { icon: LucideIcon, title: string, desc: string, delay: number }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

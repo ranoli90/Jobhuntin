@@ -15,7 +15,7 @@ import { supabase } from './supabase';
 
 // Storage keys
 const BIOMETRIC_ENABLED_KEY = 'biometric_auth_enabled';
-const BIOMETRIC_CREDENTIALS_KEY = 'biometric_credentials';
+const BIOMETRIC_TOKEN_KEY = 'biometric_refresh_token';
 
 export interface BiometricCapabilities {
   isAvailable: boolean;
@@ -96,11 +96,11 @@ export async function isBiometricAuthEnabled(): Promise<boolean> {
 
 /**
  * Enable biometric authentication for the current user.
- * Stores credentials securely for later authentication.
+ * Stores a secure session identifier for later authentication.
+ * SECURITY: Never stores plaintext passwords - uses Supabase session instead.
  */
 export async function enableBiometricAuth(
-  email: string,
-  password: string
+  sessionToken?: string
 ): Promise<BiometricAuthResult> {
   try {
     // Check capabilities first
@@ -121,11 +121,21 @@ export async function enableBiometricAuth(
       return authResult;
     }
 
-    // Store credentials securely
-    await SecureStore.setItemAsync(
-      BIOMETRIC_CREDENTIALS_KEY,
-      JSON.stringify({ email, password })
-    );
+    // Get current session if token not provided
+    let token = sessionToken;
+    if (!token) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.refresh_token) {
+        return {
+          success: false,
+          error: 'No active session to enable biometric login',
+        };
+      }
+      token = session.refresh_token;
+    }
+
+    // Store only the refresh token securely - never the password
+    await SecureStore.setItemAsync(BIOMETRIC_TOKEN_KEY, token);
     await SecureStore.setItemAsync(BIOMETRIC_ENABLED_KEY, 'true');
 
     return { success: true };
@@ -144,7 +154,7 @@ export async function enableBiometricAuth(
 export async function disableBiometricAuth(): Promise<void> {
   try {
     await SecureStore.deleteItemAsync(BIOMETRIC_ENABLED_KEY);
-    await SecureStore.deleteItemAsync(BIOMETRIC_CREDENTIALS_KEY);
+    await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY);
   } catch (error) {
     console.error('Error disabling biometric auth:', error);
   }
@@ -152,6 +162,7 @@ export async function disableBiometricAuth(): Promise<void> {
 
 /**
  * Authenticate with biometrics and log the user in.
+ * SECURITY: Uses refresh token, never plaintext password.
  */
 export async function loginWithBiometrics(): Promise<BiometricAuthResult> {
   try {
@@ -164,16 +175,14 @@ export async function loginWithBiometrics(): Promise<BiometricAuthResult> {
       };
     }
 
-    // Get stored credentials
-    const credentialsJson = await SecureStore.getItemAsync(BIOMETRIC_CREDENTIALS_KEY);
-    if (!credentialsJson) {
+    // Get stored refresh token
+    const refreshToken = await SecureStore.getItemAsync(BIOMETRIC_TOKEN_KEY);
+    if (!refreshToken) {
       return {
         success: false,
-        error: 'No stored credentials found',
+        error: 'No stored session found. Please log in with email and password.',
       };
     }
-
-    const credentials = JSON.parse(credentialsJson);
 
     // Authenticate with biometrics
     const authResult = await authenticateWithBiometrics(
@@ -184,16 +193,18 @@ export async function loginWithBiometrics(): Promise<BiometricAuthResult> {
       return authResult;
     }
 
-    // Sign in with stored credentials
-    const { error } = await supabase.auth.signInWithPassword({
-      email: credentials.email,
-      password: credentials.password,
+    // Use refresh token to get new session
+    const { error } = await supabase.auth.refreshSession({
+      refresh_token: refreshToken,
     });
 
     if (error) {
+      // Clear stored token if it's invalid
+      await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY);
+      await SecureStore.deleteItemAsync(BIOMETRIC_ENABLED_KEY);
       return {
         success: false,
-        error: error.message,
+        error: 'Session expired. Please log in with email and password.',
       };
     }
 
@@ -252,25 +263,28 @@ export async function authenticateWithBiometrics(
 }
 
 /**
- * Update stored credentials (call when user changes password).
+ * Update stored session token (call when session is refreshed).
+ * SECURITY: Updates refresh token, never handles passwords.
  */
 export async function updateBiometricCredentials(
-  newPassword: string
+  newRefreshToken?: string
 ): Promise<void> {
   try {
     const enabled = await isBiometricAuthEnabled();
     if (!enabled) return;
 
-    const credentialsJson = await SecureStore.getItemAsync(BIOMETRIC_CREDENTIALS_KEY);
-    if (!credentialsJson) return;
+    let token = newRefreshToken;
+    if (!token) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.refresh_token) {
+        // No valid session, clear biometric auth
+        await disableBiometricAuth();
+        return;
+      }
+      token = session.refresh_token;
+    }
 
-    const credentials = JSON.parse(credentialsJson);
-    credentials.password = newPassword;
-
-    await SecureStore.setItemAsync(
-      BIOMETRIC_CREDENTIALS_KEY,
-      JSON.stringify(credentials)
-    );
+    await SecureStore.setItemAsync(BIOMETRIC_TOKEN_KEY, token);
   } catch (error) {
     console.error('Error updating biometric credentials:', error);
   }
@@ -338,8 +352,8 @@ export function useBiometricAuth(): BiometricState & {
     loadState();
   }, []);
 
-  const enable = async (email: string, password: string) => {
-    const result = await enableBiometricAuth(email, password);
+  const enable = async (sessionToken?: string) => {
+    const result = await enableBiometricAuth(sessionToken);
     if (result.success) {
       setState((prev) => ({ ...prev, isEnabled: true }));
     }

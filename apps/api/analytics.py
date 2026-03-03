@@ -7,7 +7,7 @@ Mounted via _mount_sub_routers() in api/main.py.
 from __future__ import annotations
 
 import json
-from datetime import UTC
+from datetime import timezone
 from typing import Any
 
 import asyncpg
@@ -398,7 +398,7 @@ async def investor_metrics(
             "SELECT COUNT(*)::int FROM public.marketplace_blueprints WHERE approval_status = 'approved'"
         )
         data["product"]["marketplace_blueprints"] = bp_count or 0
-    data["generated_at"] = datetime.now(UTC).isoformat()
+    data["generated_at"] = datetime.now(timezone.utc).isoformat()
     return data
 
 

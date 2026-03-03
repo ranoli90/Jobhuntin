@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card"
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { useBilling } from "../hooks/useBilling";
-import { useApplications } from "../hooks/useApplications";
+import { useApplications, type ApplicationRecord } from "../hooks/useApplications";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -889,7 +889,12 @@ export function JobsView() {
           {/* Sort Control */}
           <select
             value={sortBy}
-            onChange={(e) => handleSortChange(e.target.value as any)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "match_score" || value === "recently_matched" || value === "salary") {
+                handleSortChange(value);
+              }
+            }}
             className="px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white font-medium"
           >
             <option value="match_score">Match %</option>
@@ -1157,7 +1162,7 @@ export function JobsView() {
 
 
 // Actions menu component for application management
-function ActionsMenu({ app, onAction }: { app: any; onAction: (action: string, appId: string) => void }) {
+function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (action: string, appId: string) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 

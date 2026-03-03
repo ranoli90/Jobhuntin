@@ -7,6 +7,7 @@ import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { AISuggestionCard, SalarySuggestionCard } from "../../../../components/ui/AISuggestionCard";
 import { CITIES } from "../../../../data/cities";
 import { JOB_TITLES } from "../../../../data/jobTitles";
+import type { RoleSuggestion, SalarySuggestion, LocationSuggestion } from "../../../../hooks/useAISuggestions";
 
 // Salary validation utilities
 const validateSalary = (value: string, fieldName: string): { isValid: boolean; error?: string } => {
@@ -71,7 +72,11 @@ interface PreferencesStepProps {
         excluded_keywords?: string[];
     }>>;
     isSavingPreferences: boolean;
-    aiSuggestions: any;
+    aiSuggestions: {
+        roles: RoleSuggestion | null;
+        salary: SalarySuggestion | null;
+        locations: LocationSuggestion | null;
+    };
     formErrors: Record<string, string>;
     hasParsedProfile?: boolean;
     onClearError?: (field: string) => void;

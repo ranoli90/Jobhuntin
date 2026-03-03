@@ -159,33 +159,36 @@ export default function TailorResumeScreen() {
         setProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
-      const beforeResult = await atsScore(
-        session.access_token,
-        resumeText,
-        jobDescription
-      );
-      if (beforeResult) {
-        setBeforeScore(beforeResult.overall_score);
+      try {
+        const beforeResult = await atsScore(
+          session.access_token,
+          resumeText,
+          jobDescription
+        );
+        if (beforeResult) {
+          setBeforeScore(beforeResult.overall_score);
+        }
+
+        const result = await tailorResume(
+          session.access_token,
+          { resume_text: resumeText },
+          { description: jobDescription, url: jobUrl }
+        );
+        setData(result);
+
+        const afterResult = await atsScore(
+          session.access_token,
+          result.tailored_summary,
+          jobDescription
+        );
+        if (afterResult) {
+          setAfterScore(afterResult.overall_score);
+        }
+
+        setProgress(100);
+      } finally {
+        clearInterval(progressInterval);
       }
-
-      const result = await tailorResume(
-        session.access_token,
-        { resume_text: resumeText },
-        { description: jobDescription, url: jobUrl }
-      );
-      setData(result);
-
-      const afterResult = await atsScore(
-        session.access_token,
-        result.tailored_summary,
-        jobDescription
-      );
-      if (afterResult) {
-        setAfterScore(afterResult.overall_score);
-      }
-
-      clearInterval(progressInterval);
-      setProgress(100);
     } catch (err) {
       setError(String(err));
     } finally {

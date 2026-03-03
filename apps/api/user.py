@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import UTC
+from datetime import timezone
 from pathlib import Path
 from typing import Any, Literal
 
@@ -299,7 +299,7 @@ async def undo_application(
         from datetime import datetime, timedelta
 
         created_at = app["created_at"]
-        if created_at and datetime.now(UTC) - created_at > timedelta(seconds=10):
+        if created_at and datetime.now(timezone.utc) - created_at > timedelta(seconds=10):
             raise HTTPException(status_code=400, detail="Undo window has expired")
 
         # Delete the application record
@@ -408,7 +408,7 @@ async def snooze_application(
     validate_uuid(application_id, "application_id")
     from datetime import datetime, timedelta
 
-    until = datetime.now(UTC) + timedelta(hours=body.hours)
+    until = datetime.now(timezone.utc) + timedelta(hours=body.hours)
 
     async with db.acquire() as conn:
         res = await conn.execute(

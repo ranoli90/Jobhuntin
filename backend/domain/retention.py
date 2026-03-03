@@ -12,7 +12,7 @@ Retention defaults:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -42,7 +42,7 @@ async def find_stale_resumes(
     """Find profiles with resume_url that are older than the retention period.
     Returns list of dicts with id, user_id, tenant_id, resume_url, updated_at.
     """
-    cutoff = datetime.now(UTC) - timedelta(days=retention_days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
     rows = await conn.fetch(
         """
         SELECT id, user_id, tenant_id, resume_url, updated_at
@@ -125,7 +125,7 @@ async def find_old_events(
     limit: int = 1000,
 ) -> list[dict[str, Any]]:
     """Find application_events with payloads older than the retention period."""
-    cutoff = datetime.now(UTC) - timedelta(days=retention_days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
     rows = await conn.fetch(
         """
         SELECT id, payload

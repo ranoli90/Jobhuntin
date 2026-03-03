@@ -5,7 +5,7 @@ Provides insights for subscription-based business tracking.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -245,5 +245,5 @@ async def get_revenue_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
         "arpu": arpu,
         "funnel": funnel,
         "trend": trend,
-        "updated_at": datetime.now(UTC).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }

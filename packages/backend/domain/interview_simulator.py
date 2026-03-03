@@ -14,7 +14,7 @@ conducted twenty-four hours before the interview."
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -102,7 +102,7 @@ class InterviewSession(BaseModel):
     current_phase: InterviewPhase = InterviewPhase.INTRODUCTION
     current_question_index: int = 0
     total_score: float = 0.0
-    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: datetime | None = None
     status: str = "in_progress"
 
@@ -394,7 +394,7 @@ class InterviewSimulator:
 
         if session.current_question_index >= len(session.questions):
             session.status = "completed"
-            session.completed_at = datetime.now(UTC)
+            session.completed_at = datetime.now(timezone.utc)
             session.total_score = self._calculate_total_score(session)
 
         return feedback

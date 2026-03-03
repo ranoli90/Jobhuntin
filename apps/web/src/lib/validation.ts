@@ -75,11 +75,15 @@ export class XSSProtection {
 
   static sanitizeInput(input: string, maxLength: number = 1000): string {
     if (typeof input !== 'string') return '';
-    
+
     return input
       .substring(0, maxLength)
       .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
       .replace(/[<>]/g, '') // Remove HTML brackets
+      .replace(/javascript:/gi, '') // Remove JavaScript protocol
+      .replace(/data:/gi, '') // Remove data URIs
+      .replace(/vbscript:/gi, '') // Remove VBScript protocol
+      .replace(/on\w+\s*=/gi, '') // Remove event handlers
       .trim();
   }
 }

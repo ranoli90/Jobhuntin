@@ -12,7 +12,7 @@ import logging
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +21,11 @@ R = TypeVar("R")
 
 
 @dataclass
-class BatchResult[R]:
+class BatchResult:
     """Result of a batch LLM operation."""
 
     success: bool
-    result: R | None = None
+    result: Any | None = None
     error: str | None = None
     tokens_used: int = 0
     cost_usd: float = 0.0
@@ -33,7 +33,7 @@ class BatchResult[R]:
 
 
 @dataclass
-class BatchSummary[R]:
+class BatchSummary:
     """Summary of a batch processing run."""
 
     total_items: int = 0
@@ -42,7 +42,7 @@ class BatchSummary[R]:
     total_tokens: int = 0
     total_cost_usd: float = 0.0
     total_latency_ms: float = 0.0
-    results: list[BatchResult[R]] = field(default_factory=list)
+    results: list[BatchResult] = field(default_factory=list)
 
     @property
     def success_rate(self) -> float:
@@ -50,309 +50,153 @@ class BatchSummary[R]:
             return 0.0
         return self.successful / self.total_items
 
-    @property
-    def avg_latency_ms(self) -> float:
-        if self.total_items == 0:
-            return 0.0
-        return self.total_latency_ms / self.total_items
-
 
 @dataclass
-class RateLimitConfig:
-    """Rate limit configuration."""
+class BatchConfig:
+    """Configuration for batch processing."""
 
-    requests_per_minute: int = 60
-    tokens_per_minute: int = 150000
-    max_concurrent: int = 10
-    retry_attempts: int = 3
-    retry_base_delay_ms: float = 1000.0
-    retry_max_delay_ms: float = 30000.0
+    max_concurrent: int = 5
+    max_retries: int = 3
+    base_delay: float = 1.0
+    max_delay: float = 60.0
+    timeout_seconds: float = 30.0
+    rate_limit_per_minute: int = 60
 
 
-class BatchLLMProcessor[T, R]:
-    """Batch processor for LLM operations.
+class BatchProcessor:
+    """Process items in batches with controlled concurrency and rate limiting."""
 
-    Features:
-    - Concurrent processing with configurable parallelism
-    - Rate limit management
-    - Automatic retry with exponential backoff
-    - Cost and token tracking
-    """
+    def __init__(self, config: BatchConfig | None = None):
+        self.config = config or BatchConfig()
+        self._semaphore = asyncio.Semaphore(self.config.max_concurrent)
+        self._rate_limit_tokens = self.config.rate_limit_per_minute
+        self._last_refill = time.time()
 
-    def __init__(
+    async def _acquire_rate_limit(self) -> bool:
+        """Acquire a rate limit token, waiting if necessary."""
+        now = time.time()
+        elapsed = now - self._last_refill
+        # Refill tokens based on elapsed time
+        tokens_to_add = elapsed * (self.config.rate_limit_per_minute / 60.0)
+        self._rate_limit_tokens = min(
+            self.config.rate_limit_per_minute,
+            self._rate_limit_tokens + tokens_to_add
+        )
+        self._last_refill = now
+
+        if self._rate_limit_tokens >= 1:
+            self._rate_limit_tokens -= 1
+            return True
+        return False
+
+    async def _wait_for_rate_limit(self):
+        """Wait until a rate limit token is available."""
+        while not await self._acquire_rate_limit():
+            await asyncio.sleep(0.1)
+
+    async def process_item(
         self,
-        process_fn: "Callable[[T], Awaitable[R]]",
-        config: RateLimitConfig | None = None,
-        token_counter: "Callable[[T], int] | None" = None,
-        cost_calculator: "Callable[[int], float] | None" = None,
-    ):
-        """Initialize batch processor.
-
-        Args:
-            process_fn: Async function to process each item
-            config: Rate limit configuration
-            token_counter: Function to estimate tokens for an item
-            cost_calculator: Function to calculate cost from tokens
-
-        """
-        self._process_fn = process_fn
-        self._config = config or RateLimitConfig()
-        self._token_counter = token_counter or (lambda _: 0)
-        self._cost_calculator = cost_calculator or (lambda _: 0.0)
-
-        # Rate limiting state
-        self._request_times: list[float] = []
-        self._token_usage: list[tuple[float, int]] = []
-        self._semaphore = asyncio.Semaphore(self._config.max_concurrent)
-        self._lock = asyncio.Lock()
-
-    async def _check_rate_limits(self, estimated_tokens: int = 0) -> None:
-        """Check and wait for rate limits if necessary."""
-        async with self._lock:
-            now = time.time()
-            minute_ago = now - 60.0
-
-            # Clean old entries
-            self._request_times = [t for t in self._request_times if t > minute_ago]
-            self._token_usage = [(t, tok) for t, tok in self._token_usage if t > minute_ago]
-
-            # Check request rate
-            if len(self._request_times) >= self._config.requests_per_minute:
-                wait_time = self._request_times[0] - minute_ago + 0.1
-                logger.debug(f"Rate limit: waiting {wait_time:.2f}s for request slot")
-                await asyncio.sleep(wait_time)
-
-            # Check token rate
-            current_tokens = sum(tok for _, tok in self._token_usage)
-            if current_tokens + estimated_tokens > self._config.tokens_per_minute:
-                # Find when oldest tokens will expire
-                wait_time = self._token_usage[0][0] - minute_ago + 0.1
-                logger.debug(f"Rate limit: waiting {wait_time:.2f}s for token budget")
-                await asyncio.sleep(wait_time)
-
-            # Record this request
-            self._request_times.append(time.time())
-            if estimated_tokens > 0:
-                self._token_usage.append((time.time(), estimated_tokens))
-
-    async def _process_with_retry(
-        self,
-        item: T,
-        item_id: str | int = "unknown",
-    ) -> BatchResult[R]:
+        item: Any,
+        processor: Callable[[Any], Awaitable[Any]],
+    ) -> BatchResult:
         """Process a single item with retry logic."""
-        estimated_tokens = self._token_counter(item)
+        start_time = time.time()
 
-        for attempt in range(self._config.retry_attempts):
-            try:
-                async with self._semaphore:
-                    await self._check_rate_limits(estimated_tokens)
+        async with self._semaphore:
+            await self._wait_for_rate_limit()
 
-                    start_time = time.time()
-                    result = await self._process_fn(item)
-                    latency = (time.time() - start_time) * 1000
-
-                    # Calculate actual cost (would need actual token count from response)
-                    cost = self._cost_calculator(estimated_tokens)
-
+            for attempt in range(self.config.max_retries + 1):
+                try:
+                    result = await asyncio.wait_for(
+                        processor(item),
+                        timeout=self.config.timeout_seconds
+                    )
+                    latency_ms = (time.time() - start_time) * 1000
                     return BatchResult(
                         success=True,
                         result=result,
-                        tokens_used=estimated_tokens,
-                        cost_usd=cost,
-                        latency_ms=latency,
+                        latency_ms=latency_ms
                     )
+                except asyncio.TimeoutError:
+                    latency_ms = (time.time() - start_time) * 1000
+                    if attempt == self.config.max_retries:
+                        return BatchResult(
+                            success=False,
+                            error=f"Timeout after {self.config.timeout_seconds}s",
+                            latency_ms=latency_ms
+                        )
+                    await asyncio.sleep(min(
+                        self.config.base_delay * (2 ** attempt),
+                        self.config.max_delay
+                    ))
+                except Exception as e:
+                    latency_ms = (time.time() - start_time) * 1000
+                    if attempt == self.config.max_retries:
+                        return BatchResult(
+                            success=False,
+                            error=str(e),
+                            latency_ms=latency_ms
+                        )
+                    logger.warning(f"Attempt {attempt + 1} failed for item: {e}")
+                    await asyncio.sleep(min(
+                        self.config.base_delay * (2 ** attempt),
+                        self.config.max_delay
+                    ))
 
-            except Exception as e:
-                error_msg = str(e)
-                logger.warning(
-                    f"Batch item {item_id} attempt {attempt + 1} failed: {error_msg}"
-                )
-
-                if attempt < self._config.retry_attempts - 1:
-                    # Exponential backoff
-                    delay = min(
-                        self._config.retry_base_delay_ms * (2 ** attempt) / 1000.0,
-                        self._config.retry_max_delay_ms / 1000.0,
-                    )
-                    await asyncio.sleep(delay)
-                else:
-                    return BatchResult(
-                        success=False,
-                        error=error_msg,
-                    )
-
-        return BatchResult(success=False, error="Max retries exceeded")
+        # Should never reach here
+        return BatchResult(success=False, error="Unknown error")
 
     async def process_batch(
         self,
-        items: list[T],
-        fail_fast: bool = False,
-    ) -> BatchSummary[R]:
-        """Process a batch of items concurrently.
-
-        Args:
-            items: List of items to process
-            fail_fast: If True, stop on first error
-
-        Returns:
-            BatchSummary with results and statistics
-
-        """
-        summary = BatchSummary[R](total_items=len(items))
-
-        if not items:
-            return summary
+        items: list,
+        processor: Callable[[Any], Awaitable[Any]],
+    ) -> BatchSummary:
+        """Process a batch of items concurrently."""
+        summary = BatchSummary(total_items=len(items))
 
         # Create tasks for all items
         tasks = [
-            self._process_with_retry(item, i)
-            for i, item in enumerate(items)
+            self.process_item(item, processor)
+            for item in items
         ]
 
-        # Process concurrently
-        if fail_fast:
-            # Process with early termination on first failure
-            for coro in asyncio.as_completed(tasks):
-                result = await coro
-                summary.results.append(result)
+        # Process all tasks and collect results
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
+        for result in results:
+            if isinstance(result, Exception):
+                summary.failed += 1
+                summary.results.append(BatchResult(
+                    success=False,
+                    error=str(result)
+                ))
+            else:
+                summary.results.append(result)
                 if result.success:
                     summary.successful += 1
-                    summary.total_tokens += result.tokens_used
-                    summary.total_cost_usd += result.cost_usd
-                    summary.total_latency_ms += result.latency_ms
                 else:
                     summary.failed += 1
-                    # Cancel remaining tasks
-                    for task in tasks:
-                        if asyncio.isfuture(task) and not task.done():
-                            task.cancel()
-                    break
-        else:
-            # Process all items
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-
-            for _i, result in enumerate(results):
-                if isinstance(result, Exception):
-                    summary.results.append(BatchResult(
-                        success=False,
-                        error=str(result),
-                    ))
-                    summary.failed += 1
-                else:
-                    summary.results.append(result)
-                    if result.success:
-                        summary.successful += 1
-                        summary.total_tokens += result.tokens_used
-                        summary.total_cost_usd += result.cost_usd
-                        summary.total_latency_ms += result.latency_ms
-                    else:
-                        summary.failed += 1
-
-        logger.info(
-            f"Batch processed: {summary.successful}/{summary.total_items} successful, "
-            f"{summary.total_tokens} tokens, ${summary.total_cost_usd:.4f}"
-        )
-
-        return summary
-
-    async def process_stream(
-        self,
-        items: list[T],
-        callback: "Callable[[int, BatchResult[R]], Awaitable[None]]",
-    ) -> BatchSummary[R]:
-        """Process items and stream results via callback.
-
-        Args:
-            items: List of items to process
-            callback: Async callback for each result (index, result)
-
-        Returns:
-            BatchSummary with final statistics
-
-        """
-        summary = BatchSummary[R](total_items=len(items))
-
-        async def process_and_callback(i: int, item: T) -> None:
-            result = await self._process_with_retry(item, i)
-            summary.results.append(result)
-
-            if result.success:
-                summary.successful += 1
                 summary.total_tokens += result.tokens_used
                 summary.total_cost_usd += result.cost_usd
                 summary.total_latency_ms += result.latency_ms
-            else:
-                summary.failed += 1
-
-            await callback(i, result)
-
-        # Process all items concurrently
-        await asyncio.gather(*[
-            process_and_callback(i, item)
-            for i, item in enumerate(items)
-        ])
 
         return summary
 
 
-# Default token estimation functions
-def estimate_tokens_text(text: str) -> int:
-    """Estimate tokens for text (rough: 4 chars per token)."""
-    return len(text) // 4
-
-
-def estimate_tokens_messages(messages: list[dict]) -> int:
-    """Estimate tokens for chat messages."""
-    total = 0
-    for msg in messages:
-        total += 4  # Message overhead
-        if "content" in msg:
-            total += estimate_tokens_text(str(msg["content"]))
-        if "role" in msg:
-            total += 1
-    return total
-
-
-# Default cost calculators (approximate, as of 2024)
-def calculate_cost_gpt4(tokens: int) -> float:
-    """Calculate cost for GPT-4 (approximate)."""
-    return tokens * 0.00003  # $0.03 per 1K tokens
-
-
-def calculate_cost_gpt35(tokens: int) -> float:
-    """Calculate cost for GPT-3.5 (approximate)."""
-    return tokens * 0.0000015  # $0.0015 per 1K tokens
-
-
-def calculate_cost_claude(tokens: int) -> float:
-    """Calculate cost for Claude (approximate)."""
-    return tokens * 0.000008  # $0.008 per 1K tokens
-
-
-# Convenience function for common use case
-async def batch_process_llm_requests[T](
-    items: list[T],
-    process_fn: "Callable[[T], Awaitable[R]]",
-    max_concurrent: int = 10,
-    requests_per_minute: int = 60,
-) -> BatchSummary[R]:
-    """Convenience function for batch LLM processing.
+async def batch_process_llm_requests(
+    items: list,
+    process_fn: Callable[[Any], Awaitable[Any]],
+    config: BatchConfig | None = None,
+) -> BatchSummary:
+    """High-level function to batch process LLM requests.
 
     Args:
-        items: Items to process
-        process_fn: Async processing function
-        max_concurrent: Maximum concurrent requests
-        requests_per_minute: Rate limit
+        items: List of items to process
+        process_fn: Async function to process each item
+        config: Optional batch configuration
 
     Returns:
-        BatchSummary with results
-
+        BatchSummary with results and statistics
     """
-    config = RateLimitConfig(
-        max_concurrent=max_concurrent,
-        requests_per_minute=requests_per_minute,
-    )
-    processor = BatchLLMProcessor(process_fn, config)
-    return await processor.process_batch(items)
+    processor = BatchProcessor(config)
+    return await processor.process_batch(items, process_fn)

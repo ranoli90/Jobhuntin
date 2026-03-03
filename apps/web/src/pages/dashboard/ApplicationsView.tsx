@@ -22,7 +22,9 @@ import { AnimatedNumber, statusVariant } from "./shared";
 
 const APPLICATIONS_PAGE_SIZE = 20;
 
-function ActionsMenu({ app, onAction }: { app: any; onAction: (action: string, appId: string) => void }) {
+import type { ApplicationRecord } from "../../hooks/useApplications";
+
+function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (action: string, appId: string) => void }) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
   

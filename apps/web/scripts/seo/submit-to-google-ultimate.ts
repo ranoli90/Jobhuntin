@@ -125,8 +125,13 @@ async function submitViaSitemapPing(): Promise<boolean> {
 
 async function submitViaIndexNow(urls: string[]): Promise<boolean> {
     console.log('\n⚡ Method 2: IndexNow API (Instant Indexing)');
-    
-    const indexNowKey = '2021b89b3147e09e54b705189f2082d8446ce96c';
+
+    const indexNowKey = process.env.INDEXNOW_API_KEY;
+    if (!indexNowKey) {
+        console.log('   ⚠️  INDEXNOW_API_KEY not set in environment. Skipping IndexNow submission.');
+        console.log('   💡 Set INDEXNOW_API_KEY in your .env file to enable IndexNow submissions.');
+        return false;
+    }
     const keyFile = `${indexNowKey}.txt`;
     
     if (dryRun) {

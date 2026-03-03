@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import uuid
 from collections.abc import Callable, Coroutine
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
@@ -58,7 +58,7 @@ class Job(BaseModel):
     error_message: str | None = None
     result: dict[str, Any] | None = None
     dedup_key: str | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     tenant_id: str | None = None
 
 
@@ -321,7 +321,7 @@ class BackgroundJobQueue:
         delay_seconds: int,
         **kwargs,
     ) -> str:
-        scheduled_at = datetime.now(UTC) + timedelta(seconds=delay_seconds)
+        scheduled_at = datetime.now(timezone.utc) + timedelta(seconds=delay_seconds)
         return await self.enqueue(
             job_type, payload, scheduled_at=scheduled_at, **kwargs
         )
@@ -344,11 +344,11 @@ class BackgroundJobQueue:
                     continue
 
                 handler = self.handlers[job.job_type]
-                start_time = datetime.now(UTC)
+                start_time = datetime.now(timezone.utc)
 
                 try:
                     result = await handler(job.payload)
-                    duration = (datetime.now(UTC) - start_time).total_seconds()
+                    duration = (datetime.now(timezone.utc) - start_time).total_seconds()
                     observe(
                         "job_queue.job_duration_seconds",
                         duration,

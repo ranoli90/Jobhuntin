@@ -10,7 +10,7 @@ import hashlib
 import json
 import secrets
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, UTC, datetime, timedelta
 from typing import Any
 
 import asyncpg
@@ -38,7 +38,7 @@ class SessionInfo:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def is_expired(self) -> bool:
-        return datetime.now(UTC) > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
     def is_valid(self) -> bool:
         return not self.is_revoked and not self.is_expired()
@@ -99,7 +99,7 @@ class SessionManager:
         duration_hours: int | None = None,
     ) -> SessionInfo:
         duration = duration_hours or self.DEFAULT_SESSION_DURATION_HOURS
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         expires_at = now + timedelta(hours=duration)
         session_id = self.generate_session_id()
         device_fp = self.generate_device_fingerprint(user_agent, ip_address)
@@ -219,7 +219,7 @@ class SessionManager:
         reason: str,
         revoked_by_user_id: str | None = None,
     ) -> bool:
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         async with self._pool.acquire() as conn:
             row = await conn.fetchrow(
@@ -263,7 +263,7 @@ class SessionManager:
         reason: str,
         except_session_id: str | None = None,
     ) -> int:
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         async with self._pool.acquire() as conn:
             if except_session_id:

@@ -9,7 +9,7 @@ This is the first (and reference) blueprint. It wraps all Sorce-specific logic:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import timezone, UTC, datetime
 
 import asyncpg
 
@@ -111,6 +111,6 @@ class JobApplicationBlueprint:
         app_id = str(task["id"])
         await ApplicationRepo.update_status(conn, app_id, "APPLIED")
         await EventRepo.emit(conn, app_id, "SUBMITTED", {
-            "submitted_at": datetime.now(UTC).isoformat(),
+            "submitted_at": datetime.now(timezone.utc).isoformat(),
         }, tenant_id=tenant_id)
         return "APPLIED"

@@ -14,7 +14,7 @@ import threading
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import timezone, datetime
 from typing import Any
 
 from shared.logging_config import get_logger
@@ -217,7 +217,7 @@ class StructuredMetrics:
 
             return {
                 "uptime_seconds": round(uptime_seconds, 2),
-                "collection_timestamp": datetime.now(UTC).isoformat(),
+                "collection_timestamp": datetime.now(timezone.utc).isoformat(),
                 "endpoints": endpoints,
                 "operations": operations,
                 "summary": self._get_summary(),
