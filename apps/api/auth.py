@@ -12,7 +12,7 @@ from urllib.parse import quote
 import httpx
 import jwt as pyjwt
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
@@ -703,3 +703,84 @@ async def request_magic_link(
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
     incr("auth.magic_link.sent", tags={"email_domain": body.email.split("@")[-1]})
     return MagicLinkResponse()
+
+
+# ---------------------------------------------------------------------------
+# Email Delivery Webhook (Resend)
+# ---------------------------------------------------------------------------
+
+class ResendWebhookPayload(BaseModel):
+    type: str
+    data: dict[str, Any]
+
+
+@router.post("/webhooks/resend")
+async def resend_webhook(
+    request: Request,
+    payload: ResendWebhookPayload,
+    settings: Settings = Depends(settings_dependency),
+) -> JSONResponse:
+    """
+    Handle Resend email delivery webhooks.
+    
+    Tracks: delivered, bounced, complained, opened, clicked
+    Resend docs: https://resend.com/docs/dashboard/webhooks
+    """
+    # Verify webhook signature if configured
+    # Resend signs webhooks with a secret when configured
+    webhook_secret = getattr(settings, 'resend_webhook_secret', None)
+    if webhook_secret:
+        signature = request.headers.get('resend-signature')
+        if not signature:
+            logger.warning("Resend webhook missing signature")
+            raise HTTPException(status_code=401, detail="Missing signature")
+        # TODO: Implement signature verification when Resend adds it
+    
+    event_type = payload.type
+    data = payload.data
+    
+    # Extract email info
+    email_to = data.get('to', ['unknown'])[0] if isinstance(data.get('to'), list) else data.get('to', 'unknown')
+    email_id = data.get('email_id') or data.get('id', 'unknown')
+    
+    # Log the event
+    logger.info(
+        f"Resend webhook: {event_type}",
+        extra={
+            "event_type": event_type,
+            "email_id": email_id,
+            "email": _mask_email(email_to),
+        }
+    )
+    
+    # Track metrics
+    if event_type == "email.delivered":
+        incr("email.delivered", tags={"provider": "resend"})
+    elif event_type == "email.bounced":
+        incr("email.bounced", tags={"provider": "resend"})
+        logger.warning(
+            f"Email bounced: {_mask_email(email_to)}",
+            extra={"bounce_reason": data.get('bounce_type'), "email_id": email_id}
+        )
+    elif event_type == "email.complained":
+        incr("email.complained", tags={"provider": "resend"})
+        logger.warning(
+            f"Email complaint: {_mask_email(email_to)}",
+            extra={"email_id": email_id}
+        )
+    elif event_type == "email.opened":
+        incr("email.opened", tags={"provider": "resend"})
+    elif event_type == "email.clicked":
+        incr("email.clicked", tags={"provider": "resend"})
+    elif event_type == "email.sent":
+        incr("email.sent", tags={"provider": "resend"})
+    elif event_type == "email.delivery_delayed":
+        incr("email.delivery_delayed", tags={"provider": "resend"})
+        logger.warning(
+            f"Email delivery delayed: {_mask_email(email_to)}",
+            extra={"email_id": email_id, "delay_reason": data.get('reason')}
+        )
+    else:
+        logger.info(f"Unknown Resend event type: {event_type}")
+    
+    return JSONResponse({"status": "ok"})

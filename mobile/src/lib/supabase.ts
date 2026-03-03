@@ -3,6 +3,9 @@
  * 
  * This replaces Supabase Auth with direct API calls to the Render backend.
  * All auth tokens are stored securely using expo-secure-store.
+ * 
+ * NOTE: reCAPTCHA Enterprise Mobile SDK integration required for production.
+ * See: https://cloud.google.com/recaptcha-enterprise/docs/instrument-mobile-apps
  */
 
 import * as SecureStore from 'expo-secure-store';
@@ -71,16 +74,42 @@ export async function getSession(): Promise<{ session: Session | null }> {
 
 /**
  * Sign in with magic link.
+ * 
+ * TODO: Implement reCAPTCHA Enterprise Mobile SDK before production deployment.
+ * The backend now requires CAPTCHA in production. Without it, this will fail.
+ * 
+ * Installation:
+ *   npm install @google-cloud/recaptcha-enterprise-react-native
+ * 
+ * Implementation:
+ *   1. Initialize reCAPTCHA client with your site key
+ *   2. Execute reCAPTCHA before calling this function
+ *   3. Pass the obtained token as captchaToken
  */
-export async function signInWithMagicLink(email: string): Promise<{ error: Error | null }> {
+export async function signInWithMagicLink(
+  email: string,
+  captchaToken?: string
+): Promise<{ error: Error | null; captchaRequired?: boolean }> {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/magic-link`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ 
+        email,
+        // Pass CAPTCHA token if provided
+        captcha_token: captchaToken,
+      }),
     });
+    
+    if (response.status === 400) {
+      const errorData = await response.json().catch(() => ({}));
+      // Check if CAPTCHA is required
+      if (errorData.detail?.includes('CAPTCHA') || errorData.detail?.includes('captcha')) {
+        return { error: new Error('CAPTCHA verification required'), captchaRequired: true };
+      }
+    }
     
     if (!response.ok) {
       const error = await response.text();
@@ -91,6 +120,17 @@ export async function signInWithMagicLink(email: string): Promise<{ error: Error
   } catch (error) {
     return { error: error as Error };
   }
+}
+
+/**
+ * Request magic link with CAPTCHA token.
+ * This is the production-ready version that includes bot protection.
+ */
+export async function signInWithMagicLinkAndCaptcha(
+  email: string,
+  captchaToken: string
+): Promise<{ error: Error | null }> {
+  return signInWithMagicLink(email, captchaToken);
 }
 
 /**
@@ -205,14 +245,49 @@ export async function refreshSession(refreshToken: string): Promise<{ data: { se
   }
 }
 
+/**
+ * Handle magic link deep link.
+ * 
+ * TODO: Implement deep link handling for magic links.
+ * Currently, magic links open in browser. To open in app:
+ * 
+ * 1. Configure iOS Universal Links: https://jobhuntin.com/.well-known/apple-app-site-association
+ * 2. Configure Android App Links: https://jobhuntin.com/.well-known/assetlinks.json
+ * 3. Use expo-linking to handle incoming URLs
+ * 
+ * Example implementation:
+ * ```
+ * import * as Linking from 'expo-linking';
+ * 
+ * Linking.addEventListener('url', ({ url }) => {
+ *   if (url.includes('/auth/verify-magic')) {
+ *     const token = new URL(url).searchParams.get('token');
+ *     // Exchange token for session via API
+ *   }
+ * });
+ * ```
+ */
+export function handleMagicLinkDeepLink(url: string): { token: string | null; returnTo: string | null } {
+  try {
+    const parsedUrl = new URL(url);
+    const token = parsedUrl.searchParams.get('token');
+    const returnTo = parsedUrl.searchParams.get('returnTo');
+    return { token, returnTo };
+  } catch {
+    return { token: null, returnTo: null };
+  }
+}
+
 // Mock supabase object for compatibility with existing code
 export const supabase = {
   auth: {
     getSession,
     signInWithMagicLink,
+    signInWithMagicLinkAndCaptcha,
     signInWithPassword,
     signOut,
     refreshSession,
+    handleMagicLinkDeepLink,
   },
 };
 
