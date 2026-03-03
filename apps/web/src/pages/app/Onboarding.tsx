@@ -10,6 +10,7 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { pushToast } from "../../lib/toast";
+import { t, getLocale } from "../../lib/i18n";
 import { api } from "../../lib/api";
 import { telemetry } from "../../lib/telemetry";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -422,12 +423,19 @@ export default function Onboarding() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isLastStep, isFirstStep]);
 
+  // Onboarding completion guard - redirect if already completed
   React.useEffect(() => {
     if (profile?.has_completed_onboarding) {
+      // Clear onboarding state and redirect to dashboard
       resetOnboarding();
-      navigate("/app/dashboard");
+      // Use replace to prevent back navigation to onboarding
+      navigate("/app/dashboard", { replace: true });
+      pushToast({
+        title: t("onboarding.alreadyComplete", getLocale()) || "Already set up",
+        description: t("onboarding.redirectingToDashboard", getLocale()) || "Redirecting to your dashboard...",
+        tone: "info"
+      });
     }
-
   }, [profile, navigate, resetOnboarding]);
 
   // O25: Backend rate limits magic-link (auth.py), profile writes (user.py), and AI endpoints (ai_rate_limiting.py)
