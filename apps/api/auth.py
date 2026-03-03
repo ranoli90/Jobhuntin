@@ -478,20 +478,25 @@ def _render_email_html(
     settings: Settings, action_link: str, return_to: str | None
 ) -> str:
     """Render HTML email with template variables."""
-    destination_path = return_to or "/app/dashboard"
     expires_minutes = max(1, settings.magic_link_token_ttl_seconds // 60)
-    destination_label = _get_destination_label(destination_path)
     branding = _get_app_branding(settings)
+    
+    # Simplify the link display to show the main domain, not the API URL
+    # Extract just the domain part for cleaner display
+    display_link = action_link
+    if branding["app_base_url"] and branding["api_public_url"]:
+        # Replace API URL with main domain for display purposes
+        display_link = action_link.replace(
+            branding["api_public_url"], 
+            branding["app_base_url"]
+        )
     
     html = (
         MAGIC_LINK_TEMPLATE_HTML
         .replace("$action_link", action_link)
-        .replace("$destination", destination_label)
+        .replace("$display_link", display_link)
         .replace("$expires_minutes", str(expires_minutes))
         .replace("$app_name", branding["app_name"])
-        .replace("$app_initials", branding["app_initials"])
-        .replace("$app_tagline", branding["app_tagline"])
-        .replace("$app_base_url", branding["app_base_url"])
         .replace("$app_domain", branding["app_domain"])
     )
     return html
@@ -501,22 +506,23 @@ def _render_email_text(
     settings: Settings, action_link: str, return_to: str | None
 ) -> str:
     """Render plain text email with template variables."""
-    destination_path = return_to or "/app/dashboard"
     expires_minutes = max(1, settings.magic_link_token_ttl_seconds // 60)
-    destination_label = _get_destination_label(destination_path)
     branding = _get_app_branding(settings)
+    
+    # Simplify the link display to show the main domain
+    display_link = action_link
+    if branding["app_base_url"] and branding["api_public_url"]:
+        display_link = action_link.replace(
+            branding["api_public_url"], 
+            branding["app_base_url"]
+        )
     
     text = (
         MAGIC_LINK_TEMPLATE_TXT
-        .replace("$action_link", action_link)
-        .replace("$destination", destination_label)
+        .replace("$action_link", display_link)
         .replace("$expires_minutes", str(expires_minutes))
         .replace("$app_name", branding["app_name"])
-        .replace("$app_tagline", branding["app_tagline"])
-        .replace("$app_base_url", branding["app_base_url"])
         .replace("$app_domain", branding["app_domain"])
-        .replace("$support_email", branding["support_email"])
-        .replace("$year", str(datetime.now(timezone.utc).year))
     )
     return text
 

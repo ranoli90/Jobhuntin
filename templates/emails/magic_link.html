@@ -3,155 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Sign in to $app_name</title>
-  <!--[if mso]>
-  <noscript>
-    <xml>
-      <o:OfficeDocumentSettings>
-        <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-    </xml>
-  </noscript>
-  <![endif]-->
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; }
+      .content { padding: 32px 24px !important; }
+      .button { width: 100% !important; }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #0a0a0a;">
   
-  <!-- Preview text (preheader) - optimized for engagement -->
-  <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
-    🔐 Your secure sign-in link is ready — expires in $expires_minutes minutes. Click to access your $app_name account instantly.
-  </div>
-  <!-- Hack to hide preview text in email clients that don't support display:none -->
-  <div style="display: none; max-height: 0px; overflow: hidden;">
-    &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
-    &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
-    &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
-    &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
+  <!-- Hidden preheader -->
+  <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+    Your sign-in link for $app_name — expires in $expires_minutes minutes
   </div>
   
-  <!-- Main container -->
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a;">
     <tr>
-      <td align="center">
+      <td align="center" style="padding: 60px 20px;">
         
-        <!-- Email card -->
-        <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0" class="container" style="background-color: #111111; border: 1px solid #1a1a1a;">
           
-          <!-- Header -->
+          <!-- Logo -->
           <tr>
-            <td style="padding: 40px 40px 32px; text-align: center; border-bottom: 1px solid #f1f5f9;">
-
-              <!-- Logo / Wordmark -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px;">
+            <td class="content" style="padding: 48px 48px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="padding: 0;">
-                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
-                      <tr>
-                        <td style="background-color: #2563eb; width: 52px; height: 52px; border-radius: 14px; text-align: center; vertical-align: middle;">
-                          <span style="color: #ffffff; font-size: 22px; font-weight: 800; line-height: 52px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">$app_initials</span>
-                        </td>
-                        <td style="padding-left: 12px; text-align: left; vertical-align: middle;">
-                          <span style="display: inline-block; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">$app_name</span>
-                        </td>
-                      </tr>
-                    </table>
+                  <td style="vertical-align: middle;">
+                    <div style="width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%;"></div>
+                  </td>
+                  <td style="padding-left: 12px; vertical-align: middle;">
+                    <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 18px; font-weight: 500; color: #fafafa; letter-spacing: -0.02em;">$app_name</span>
                   </td>
                 </tr>
               </table>
-
-              <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em;">
-                Sign in to $app_name
-              </h1>
-              
-              <p style="margin: 0; font-size: 16px; color: #64748b; line-height: 1.5;">
-                Click below to sign in to your $app_name account.
-              </p>
-              
             </td>
           </tr>
           
-          <!-- Main content -->
+          <!-- Headline -->
           <tr>
-            <td style="padding: 40px 40px 32px; text-align: center;">
+            <td class="content" style="padding: 0 48px 24px;">
+              <h1 style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 28px; font-weight: 500; color: #fafafa; line-height: 1.2;">
+                Sign in
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Body -->
+          <tr>
+            <td class="content" style="padding: 0 48px 32px;">
+              <p style="margin: 0 0 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; color: #a1a1aa; line-height: 1.6;">
+                Click the button below to access your account. This link will expire in $expires_minutes minutes.
+              </p>
               
-              <!-- CTA Button -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 32px;">
+              <!-- Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
-                  <td style="background-color: #3b82f6; border-radius: 10px;">
-                    <a href="$action_link" style="display: inline-block; padding: 16px 40px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 10px;">
-                      Sign me in →
+                  <td>
+                    <a href="$action_link" class="button" style="display: block; padding: 16px 24px; background-color: #22c55e; color: #000000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 500; text-decoration: none; text-align: center;">
+                      Sign in to $app_name
                     </a>
                   </td>
                 </tr>
               </table>
-              
-              <!-- Destination info -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 8px;">
+            </td>
+          </tr>
+          
+              <!-- Security note -->
+          <tr>
+            <td class="content" style="padding: 0 48px 48px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-top: 1px solid #1a1a1a;">
                 <tr>
-                  <td style="padding: 16px 20px; text-align: center;">
-                    <p style="margin: 0; font-size: 14px; color: #64748b;">
-                      You'll be taken to: <span style="color: #0f172a; font-weight: 500;">$destination</span>
+                  <td style="padding-top: 24px;">
+                    <p style="margin: 0 0 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: #52525b; line-height: 1.5;">
+                      Didn't request this? You can safely ignore this email.
+                    </p>
+                    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #3f3f46; word-break: break-all;">
+                      $display_link
                     </p>
                   </td>
                 </tr>
               </table>
-              
-            </td>
-          </tr>
-          
-          <!-- Footer info -->
-          <tr>
-            <td style="padding: 0 40px 40px;">
-              
-              <!-- Expiry notice -->
-              <p style="margin: 0 0 16px; font-size: 14px; color: #64748b; text-align: center;">
-                ⏰ This link expires in <span style="color: #0f172a; font-weight: 600;">$expires_minutes minutes</span>.
-              </p>
-              
-              <!-- Divider -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
-                <tr>
-                  <td style="border-top: 1px solid #e2e8f0;"></td>
-                </tr>
-              </table>
-              
-              <!-- Alternative link -->
-              <p style="margin: 0 0 16px; font-size: 13px; color: #94a3b8; text-align: center; line-height: 1.6;">
-                Button not working? Copy this link instead:
-              </p>
-              
-              <p style="margin: 0; font-size: 12px; color: #64748b; text-align: center; word-break: break-all; line-height: 1.6;">
-                <a href="$action_link" style="color: #3b82f6; text-decoration: underline;">$action_link</a>
-              </p>
-              
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 24px 40px; background-color: #f8fafc; border-radius: 0 0 16px 16px; text-align: center; border-top: 1px solid #e2e8f0;">
-              
-              <p style="margin: 0 0 8px; font-size: 12px; color: #94a3b8;">
-                If you didn't ask for this email, no worries — just ignore it.
-              </p>
-              
-              <p style="margin: 0; font-size: 12px; color: #94a3b8;">
-                <span style="color: #0f172a; font-weight: 600;">$app_name</span> — $app_tagline
-              </p>
-              
-              <p style="margin: 12px 0 0; font-size: 11px; color: #94a3b8;">
-                <a href="$app_base_url" style="color: #94a3b8; text-decoration: none;">$app_domain</a>
-              </p>
-              
             </td>
           </tr>
           
         </table>
-        
-        <!-- Powered by -->
-        <p style="margin: 24px 0 0; font-size: 11px; color: #94a3b8; text-align: center;">
-          Powered by <a href="$app_base_url" style="color: #3b82f6; text-decoration: none;">$app_name</a>
-        </p>
         
       </td>
     </tr>

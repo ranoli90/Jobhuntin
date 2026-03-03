@@ -1,21 +1,12 @@
 Sign in to $app_name
 
-Hi there!
-
-Click the link below to sign in to your $app_name account:
+Your sign-in link is ready. Click below to access your account:
 
 $action_link
 
-You'll be taken to: $destination
+This link expires in $expires_minutes minutes and can only be used once.
 
-⚠️  This link expires in $expires_minutes minutes and can only be used once.
+Didn't request this? You can safely ignore this email.
 
-If you didn't request this sign-in link, you can safely ignore this email.
-
----
-$app_name — $app_tagline
-$app_base_url
-
-Need help? Contact us at $support_email
-
-© $year $app_name. All rights reserved.
+—
+$app_domain
