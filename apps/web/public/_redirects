@@ -1,6 +1,12 @@
+# Force HTTPS
+http://:splat https://:splat 301!
+
 # API Proxy
 /api/*  https://sorce-api.onrender.com/:splat  200
 
 # SPA Fallback
 /login /index.html 200
 /* /index.html 200
+
+# 301 Redirects
+# /old-path /new-path 301
