@@ -23,11 +23,22 @@ export default function Login() {
   const returnTo = searchParams.get("returnTo");
 
   const safeReturnTo = useMemo(() => {
-    if (!returnTo) return "/app/onboarding";
-    // Check if it's a relative path (starts with /) and NOT protocol-relative (starts with //)
-    if (returnTo.startsWith("/") && !returnTo.startsWith("//")) {
-      return returnTo;
+    // First check URL parameter
+    if (returnTo) {
+      // Check if it's a relative path (starts with /) and NOT protocol-relative (starts with //)
+      if (returnTo.startsWith("/") && !returnTo.startsWith("//")) {
+        return returnTo;
+      }
     }
+    // Second: Check if we have a stored returnTo from magic link flow (when api_public_url is not set)
+    const storedReturnTo = sessionStorage.getItem('magicLinkReturnTo');
+    if (storedReturnTo) {
+      sessionStorage.removeItem('magicLinkReturnTo'); // Clear after use
+      if (storedReturnTo.startsWith("/") && !storedReturnTo.startsWith("//")) {
+        return storedReturnTo;
+      }
+    }
+    // Default fallback
     return "/app/onboarding";
   }, [returnTo]);
 

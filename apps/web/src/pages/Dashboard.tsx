@@ -8,14 +8,14 @@ import { useApplications } from "../hooks/useApplications";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { apiPost, apiGet } from "../lib/api";
+import { apiPost, apiGet, getApiBase, getAuthHeaders } from "../lib/api";
 import { pushToast } from "../lib/toast";
 import { fireSuccessConfetti } from "../lib/confetti";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { useJobs } from "../hooks/useJobs";
 import type { JobFilters } from "../hooks/useJobs";
 import { formatCurrency, formatDate } from "../lib/format";
-import { t, formatT, getLocale } from "../lib/i18n";
+import { t, formatT, getLocale, isRTLLanguage } from "../lib/i18n";
 import { useSessionMilestone } from "../hooks/useCelebrations";
 import { telemetry } from "../lib/telemetry";
 
@@ -39,7 +39,7 @@ const BILLING_TIERS = [
 
 // N-2: Shared locale helper – used by all sub-views
 const sharedLocale = getLocale();
-const sharedRtl = isRTL(sharedLocale);
+const sharedRtl = isRTLLanguage(sharedLocale);
 
 // M-12: Page size for ApplicationsView pagination
 const APPLICATIONS_PAGE_SIZE = 20;
@@ -565,7 +565,7 @@ export function JobsView() {
   const handleSortChange = useCallback((value: "match_score" | "recently_matched" | "salary") => {
     setSortBy(value);
     // Update filters with sorting preference
-    debouncedUpdateFilters({ sort_by: value });
+    debouncedUpdateFilters({ sortBy: value });
     pushToast({ 
       title: "Sort updated", 
       description: `Sorting by ${value.replace('_', ' ')}`, 

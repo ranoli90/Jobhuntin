@@ -99,9 +99,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             if (tokenFromUrl) {
                 if (import.meta.env.DEV) console.log('[AUTH] Token found in URL, processing magic link');
+                
+                // Preserve returnTo before cleaning URL (for magic link flow without api_public_url)
+                const returnToFromUrl = params.get("returnTo");
+                if (returnToFromUrl) {
+                    sessionStorage.setItem('magicLinkReturnTo', returnToFromUrl);
+                    if (import.meta.env.DEV) console.log('[AUTH] Stored returnTo from URL:', returnToFromUrl);
+                }
+                
                 setAuthToken(tokenFromUrl);
-                // Clean URL
-                const newUrl = window.location.pathname + window.location.hash;
+                // Clean URL - remove token and returnTo query params but preserve other params
+                const searchParams = new URLSearchParams(window.location.search);
+                searchParams.delete("token");
+                searchParams.delete("returnTo");
+                const newSearch = searchParams.toString();
+                const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : '') + window.location.hash;
                 window.history.replaceState({}, document.title, newUrl);
                 if (import.meta.env.DEV) console.log('[AUTH] URL cleaned, fetching CSRF cookie and user profile');
                 await ensureCsrfCookie();

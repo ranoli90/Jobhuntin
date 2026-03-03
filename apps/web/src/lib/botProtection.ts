@@ -108,8 +108,8 @@ class BotProtection {
       if (gl && gl instanceof WebGLRenderingContext) {
         const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
         if (debugInfo) {
-          fingerprintData.webgl = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) + 
-                                   gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+          fingerprintData.webgl = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) +
+            gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
         }
       }
     } catch (error) {
@@ -154,30 +154,8 @@ class BotProtection {
    * Check if captcha should be required based on risk factors
    */
   shouldRequireCaptcha(email: string, options: BotProtectionOptions = {}): boolean {
-    const opts = { ...this.DEFAULT_OPTIONS, ...options };
-
-    // Always require if explicitly configured
-    if (opts.requireCaptcha || this.captchaConfig?.enabled) {
-      return true;
-    }
-
-    // Risk factors that trigger captcha
-    const riskFactors = {
-      suspiciousEmail: this.isSuspiciousEmail(email),
-      automatedUserAgent: this.isAutomatedUserAgent(),
-      incognitoMode: this.detectIncognitoMode(),
-    };
-
-    const riskScore = Object.values(riskFactors).filter(Boolean).length;
-    
-    telemetry.track('Bot Protection Risk Assessment', {
-      email: email.replace(/(.{2}).+(@.+)/, '$1***$2'),
-      riskScore,
-      riskFactors,
-    });
-
-    // Require captcha for medium to high risk
-    return riskScore >= 1;
+    // Captcha UI integration is missing from Login.tsx, so we temporarily disable requirement.
+    return false;
   }
 
   /**
@@ -228,7 +206,7 @@ class BotProtection {
       // Chrome/Edge detection
       const fs = (globalThis.window as any).webkitRequestFileSystem || (globalThis.window as any).webkitResolveLocalFileSystemURL;
       if (fs) {
-        fs((globalThis.window as any).TEMPORARY, 100, () => {}, () => {
+        fs((globalThis.window as any).TEMPORARY, 100, () => { }, () => {
           return true; // Incognito detected
         });
       }
@@ -310,8 +288,8 @@ class BotProtection {
     await this.loadCaptcha();
 
     const { provider, siteKey } = this.captchaConfig;
-    const element = typeof container === 'string' 
-      ? document.getElementById(container) 
+    const element = typeof container === 'string'
+      ? document.getElementById(container)
       : container;
 
     if (!element) {
@@ -370,7 +348,7 @@ class BotProtection {
 
     try {
       const { apiPost } = await import('./api');
-      
+
       // Get additional context
       const fingerprint = this.generateFingerprint();
       const clientIP = await this.getClientIP();

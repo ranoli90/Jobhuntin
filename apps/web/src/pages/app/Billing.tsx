@@ -13,9 +13,10 @@ interface Invoice {
 }
 
 export default function Billing() {
-  const { data: invoices, isLoading } = useQuery<Invoice[]>("invoices", () =>
-    api.get("/billing/invoices").then((res) => res.data)
-  );
+  const { data: invoices = [], isLoading } = useQuery<Invoice[]>({
+    queryKey: ["invoices"],
+    queryFn: () => api.get<Invoice[]>("/billing/invoices")
+  });
 
   return (
     <Page title="Billing">

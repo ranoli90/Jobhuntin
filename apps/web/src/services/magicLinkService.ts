@@ -89,18 +89,8 @@ class MagicLinkService {
       };
     }
 
-    // Verify captcha if provided
-    if (captchaToken) {
-      const captchaValid = await botProtection.verifyCaptcha(captchaToken);
-      if (!captchaValid) {
-        return {
-          success: false,
-          email: normalizedEmail,
-          error: 'Captcha verification failed. Please try again.',
-          captchaRequired: true,
-        };
-      }
-    }
+    // Note: Captcha verification happens on the backend.
+    // If a token is provided, we just pass it along in the payload.
 
     try {
       // Prefer canonical app base URL

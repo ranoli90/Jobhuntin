@@ -83,11 +83,11 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
     return null;
   }
 
-  const getVariant = () => {
-    if (uploadState.isOffline) return "warning";
-    if (uploadState.retryCount >= 3) return "danger";
-    if (uploadState.canRetry) return "info";
-    return "warning";
+  const getVariant = (): "default" | "sunrise" | "mango" | "shell" => {
+    if (uploadState.isOffline) return "sunrise";
+    if (uploadState.retryCount >= 3) return "mango";
+    if (uploadState.canRetry) return "shell";
+    return "sunrise";
   };
 
   const getIcon = () => {

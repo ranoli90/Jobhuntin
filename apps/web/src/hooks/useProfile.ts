@@ -8,7 +8,7 @@ export interface Preferences {
   salary_max?: number;
   remote_only?: boolean;
   hybrid_acceptable?: boolean;
-  onsite_acceptable?: boolean;
+  onsite_only?: boolean;
   work_authorized?: boolean;
   visa_sponsorship?: boolean;
   excluded_companies?: string[];

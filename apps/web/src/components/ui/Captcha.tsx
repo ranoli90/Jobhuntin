@@ -7,6 +7,7 @@ interface CaptchaProps {
   className?: string;
   size?: 'normal' | 'compact';
   theme?: 'light' | 'dark';
+  disabled?: boolean;
 }
 
 /**
@@ -115,14 +116,16 @@ export function Captcha({ onSuccess, onError, className = '', size = 'normal', t
         } ${
           theme === 'dark' ? 'dark-theme' : 'light-theme'
         }`}
-        style={{ minHeight: isLoading ? '0' : '70px' }}
+      style={{ minHeight: isLoading ? '0' : '70px' }}
       />
       
-      <style jsx>{`
-        .captcha-widget.dark-theme iframe {
-          filter: invert(1) hue-rotate(180deg);
-        }
-      `}</style>
+      {!isLoading && theme === 'dark' && (
+        <style>{`
+          .captcha-widget iframe {
+            filter: invert(1) hue-rotate(180deg);
+          }
+        `}</style>
+      )}
     </div>
   );
 }
@@ -177,7 +180,7 @@ export function CaptchaField({
   // Sync with external error prop
   useEffect(() => {
     if (error !== fieldError) {
-      setFieldError(error);
+      setFieldError(error ?? null);
     }
   }, [error, fieldError]);
 

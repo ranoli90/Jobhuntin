@@ -158,15 +158,16 @@ export default function Settings() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== 'DELETE') {
-      pushToast('Please type "DELETE" to confirm account deletion', 'error');
+      pushToast({ title: 'Please type "DELETE" to confirm account deletion', tone: 'error' });
       return;
     }
 
     setIsDeleting(true);
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`${getApiBase()}/user/delete-account`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
+        headers: authHeaders,
       });
 
       if (!response.ok) {
@@ -182,7 +183,7 @@ export default function Settings() {
         email: profile?.email ? profile.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
       });
 
-      pushToast('Account deletion initiated. You will receive a confirmation email shortly.', 'success');
+      pushToast({ title: 'Account deletion initiated. You will receive a confirmation email shortly.', tone: 'success' });
       
       // Redirect to home after successful deletion request
       setTimeout(() => {
@@ -197,7 +198,7 @@ export default function Settings() {
         email: profile?.email ? profile.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
       });
       
-      pushToast(error.message || 'Failed to delete account. Please try again.', 'error');
+      pushToast({ title: error.message || 'Failed to delete account. Please try again.', tone: 'error' });
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);

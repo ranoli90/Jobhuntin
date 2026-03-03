@@ -5,6 +5,7 @@ export interface ResumeUploadMetadata {
   fileName: string;
   fileSize: number;
   fileType: string;
+  fileBase64?: string;
   lastModified: number;
   uploadAttempts: number;
   lastAttemptTime: number;
@@ -53,7 +54,7 @@ export class ResumeUploadRetryManager {
 
     // Store file as base64 for persistence
     const fileBase64 = await this.fileToBase64(file);
-    await this.cacheService.setItem('resume_upload_metadata', {
+    await this.cacheService.set('resume_upload_metadata', {
       ...metadata,
       fileBase64,
     });
@@ -63,7 +64,7 @@ export class ResumeUploadRetryManager {
    * Get current upload state
    */
   async getUploadState(): Promise<ResumeUploadState> {
-    const metadata = await this.cacheService.getItem<ResumeUploadMetadata>('resume_upload_metadata');
+    const metadata = await this.cacheService.get<ResumeUploadMetadata>('resume_upload_metadata');
     
     if (!metadata) {
       return {
@@ -103,7 +104,7 @@ export class ResumeUploadRetryManager {
    * Update metadata after failed attempt
    */
   async updateAfterFailure(error: string): Promise<void> {
-    const metadata = await this.cacheService.getItem<ResumeUploadMetadata>('resume_upload_metadata');
+    const metadata = await this.cacheService.get<ResumeUploadMetadata>('resume_upload_metadata');
     if (!metadata) return;
 
     const nextBackoff = this.calculateBackoff(metadata.uploadAttempts + 1);
@@ -116,14 +117,14 @@ export class ResumeUploadRetryManager {
       backoffMs: nextBackoff,
     };
 
-    await this.cacheService.setItem('resume_upload_metadata', updatedMetadata);
+    await this.cacheService.set('resume_upload_metadata', updatedMetadata);
   }
 
   /**
    * Clear metadata after successful upload
    */
   async clearMetadata(): Promise<void> {
-    await this.cacheService.removeItem('resume_upload_metadata');
+    await this.cacheService.del('resume_upload_metadata');
     this.clearRetryTimer();
   }
 
@@ -131,7 +132,7 @@ export class ResumeUploadRetryManager {
    * Get stored file from metadata
    */
   async getStoredFile(): Promise<File | null> {
-    const metadata = await this.cacheService.getItem<ResumeUploadMetadata>('resume_upload_metadata');
+    const metadata = await this.cacheService.get<ResumeUploadMetadata>('resume_upload_metadata');
     if (!metadata?.fileBase64) return null;
 
     return this.base64ToFile(metadata.fileBase64, metadata.fileName, metadata.fileType);
@@ -170,7 +171,7 @@ export class ResumeUploadRetryManager {
   setupRetryTimer(onRetry: () => void): void {
     this.clearRetryTimer();
     
-    this.cacheService.getItem<ResumeUploadMetadata>('resume_upload_metadata').then(metadata => {
+    this.cacheService.get<ResumeUploadMetadata>('resume_upload_metadata').then((metadata: ResumeUploadMetadata | null) => {
       if (!metadata || metadata.uploadAttempts >= MAX_RETRIES) return;
       
       const delay = Math.max(0, metadata.nextRetryTime - Date.now());

@@ -90,6 +90,7 @@ export function generateEnhancedContent(
 
 function generateUniqueValue(role: string, city: string, roleData?: RoleData, cityData?: CityData): string {
   const insights = [];
+  const currentYear = new Date().getFullYear();
   
   // City-specific insights
   if (cityData) {

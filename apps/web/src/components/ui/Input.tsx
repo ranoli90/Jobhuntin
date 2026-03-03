@@ -7,11 +7,12 @@ export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: React.ReactNode
   error?: boolean
+  helperText?: string
   onClear?: () => void
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, icon, error, onClear, value, ...props }, ref) => {
+  ({ className, type, icon, error, helperText, onClear, value, ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false)
     const isPassword = type === "password"
     const inputType = isPassword ? (showPassword ? "text" : "password") : type
@@ -61,6 +62,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
+        )}
+        {helperText && (
+          <p className={cn(
+            "mt-1 text-xs",
+            error ? "text-red-500" : "text-gray-500"
+          )}>
+            {helperText}
+          </p>
         )}
       </div>
     )

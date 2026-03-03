@@ -66,11 +66,11 @@ class SecureStorage {
       { name: 'AES-GCM', iv },
       this.encryptionKey,
       dataBuffer
-    );
+    ) as ArrayBuffer;
 
     return {
       encrypted: this.arrayBufferToBase64(encrypted),
-      iv: this.arrayBufferToBase64(iv)
+      iv: this.arrayBufferToBase64(iv.buffer)
     };
   }
 

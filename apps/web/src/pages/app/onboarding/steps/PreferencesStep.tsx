@@ -144,6 +144,11 @@ export function PreferencesStep({
     const [excludedKeywordsText, setExcludedKeywordsText] = React.useState(
         (preferences.excluded_keywords || []).join(", ")
     );
+    
+    // BUG FIX: Added missing excludedCompaniesText state
+    const [excludedCompaniesText, setExcludedCompaniesText] = React.useState(
+        (preferences.excluded_companies || []).join(", ")
+    );
 
     const handleLocationChange = (value: string) => {
         setPreferences((p) => ({ ...p, location: value }));

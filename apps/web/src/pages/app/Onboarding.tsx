@@ -331,7 +331,7 @@ export default function Onboarding() {
         salary_min: p.salary_min ? String(p.salary_min) : "",
         salary_max: p.salary_max ? String(p.salary_max) : "",
         remote_only: p.remote_only ?? false,
-        onsite_only: p.onsite_acceptable ?? false,
+        onsite_only: p.onsite_only ?? false,
         work_authorized: p.work_authorized ?? true,
         visa_sponsorship: p.visa_sponsorship ?? false,
         excluded_companies: p.excluded_companies ?? [],
@@ -421,7 +421,7 @@ export default function Onboarding() {
   React.useEffect(() => {
     if (profile?.has_completed_onboarding) {
       resetOnboarding();
-      navigate("/app/jobs");
+      navigate("/app/dashboard");
     }
 
   }, [profile, navigate, resetOnboarding]);
@@ -845,7 +845,7 @@ export default function Onboarding() {
       sessionStorage.setItem("show_first_steps", "true");
       telemetry.track("onboarding_completed", { step: "ready" });
       pushToast({ title: "You're all set! Let's job hunt!", tone: "success" });
-      navigate("/app/jobs");
+      navigate("/app/dashboard");
     } catch (err: any) {
       console.error('[Onboarding] Failed to complete:', err);
       pushToast({
