@@ -12,40 +12,41 @@ import { t, getLocale } from "../../../../lib/i18n";
 
 // Salary validation utilities
 const validateSalary = (value: string, fieldName: string, locale: string): { isValid: boolean; error?: string } => {
-  if (!value || value.trim() === '') {
-    return { isValid: false, error: fieldName === 'salary_min' 
-      ? (t("onboarding.minSalaryRequired", locale) || 'Minimum salary is required')
-      : (t("onboarding.maxSalaryRequired", locale) || 'Maximum salary is required')
-    };
-  }
-  
-  const numValue = Number.parseFloat(value);
-  if (Number.isNaN(numValue)) {
-    return { isValid: false, error: t("onboarding.validNumber", locale) || 'Please enter a valid number' };
-  }
-  
-  if (numValue < 0) {
-    return { isValid: false, error: t("onboarding.salaryGreaterThanZero", locale) || 'Salary must be greater than 0' };
-  }
-  
-  if (numValue > 10000000) {
-    return { isValid: false, error: t("onboarding.salaryExceeds", locale) || 'Salary cannot exceed $10,000,000' };
-  }
-  
-  return { isValid: true };
+    if (!value || value.trim() === '') {
+        return {
+            isValid: false, error: fieldName === 'salary_min'
+                ? (t("onboarding.minSalaryRequired", locale) || 'Minimum salary is required')
+                : (t("onboarding.maxSalaryRequired", locale) || 'Maximum salary is required')
+        };
+    }
+
+    const numValue = Number.parseFloat(value);
+    if (Number.isNaN(numValue)) {
+        return { isValid: false, error: t("onboarding.validNumber", locale) || 'Please enter a valid number' };
+    }
+
+    if (numValue < 0) {
+        return { isValid: false, error: t("onboarding.salaryGreaterThanZero", locale) || 'Salary must be greater than 0' };
+    }
+
+    if (numValue > 10000000) {
+        return { isValid: false, error: t("onboarding.salaryExceeds", locale) || 'Salary cannot exceed $10,000,000' };
+    }
+
+    return { isValid: true };
 };
 
 const validateSalaryRange = (min: string, max: string, locale: string): { isValid: boolean; error?: string } => {
-  if (!min || !max) return { isValid: true }; // Skip validation if either field is empty
-  
-  const minNum = Number.parseFloat(min);
-  const maxNum = Number.parseFloat(max);
-  
-  if (!Number.isNaN(minNum) && !Number.isNaN(maxNum) && minNum > maxNum) {
-    return { isValid: false, error: t("onboarding.minGreaterThanMax", locale) || 'Minimum salary cannot be greater than maximum salary' };
-  }
-  
-  return { isValid: true };
+    if (!min || !max) return { isValid: true }; // Skip validation if either field is empty
+
+    const minNum = Number.parseFloat(min);
+    const maxNum = Number.parseFloat(max);
+
+    if (!Number.isNaN(minNum) && !Number.isNaN(maxNum) && minNum > maxNum) {
+        return { isValid: false, error: t("onboarding.minGreaterThanMax", locale) || 'Minimum salary cannot be greater than maximum salary' };
+    }
+
+    return { isValid: true };
 };
 
 interface PreferencesStepProps {
@@ -103,6 +104,9 @@ export function PreferencesStep({
     const [localExcludedKeywords, setLocalExcludedKeywords] = React.useState(
         preferences.excluded_keywords?.join(', ') || ''
     );
+    const [localExcludedCompanies, setLocalExcludedCompanies] = React.useState(
+        preferences.excluded_companies?.join(', ') || ''
+    );
 
     const handleLocationChange = (value: string) => {
         setPreferences(p => ({ ...p, location: value }));
@@ -133,6 +137,7 @@ export function PreferencesStep({
     };
 
     const handleExcludedCompaniesChange = (value: string) => {
+        setLocalExcludedCompanies(value);
         const companies = value.split(',').map(c => c.trim()).filter(c => c.length > 0);
         setPreferences(p => ({ ...p, excluded_companies: companies }));
     };
@@ -304,7 +309,7 @@ export function PreferencesStep({
                     <Input
                         type="text"
                         placeholder={t("onboarding.excludedCompaniesPlaceholder", locale) || "Company A, Company B, ..."}
-                        value={preferences.excluded_companies?.join(', ') || ''}
+                        value={localExcludedCompanies}
                         onChange={(e) => handleExcludedCompaniesChange(e.target.value)}
                         icon={<Ban className="h-4 w-4 md:h-5 md:w-5" />}
                         className="bg-white shadow-sm"
@@ -342,36 +347,36 @@ export function PreferencesStep({
                                 {t("onboarding.aiSuggestions", locale) || "AI Suggestions"}
                             </p>
                         </div>
-                        
-                        {aiSuggestions.locations && (
+
+                        {aiSuggestions.locations && aiSuggestions.locations.suggested_locations?.length > 0 && (
                             <AISuggestionCard
                                 title={t("onboarding.suggestedLocation", locale) || "Suggested Location"}
-                                suggestion={aiSuggestions.locations.city}
-                                confidence={aiSuggestions.locations.confidence}
-                                onApply={() => handleLocationChange(aiSuggestions.locations!.city)}
+                                suggestion={aiSuggestions.locations.suggested_locations[0]}
+                                confidence={aiSuggestions.locations.remote_friendly_score ?? 0.5}
+                                onApply={() => handleLocationChange(aiSuggestions.locations!.suggested_locations[0])}
                                 currentValue={preferences.location}
                             />
                         )}
-                        
+
                         {aiSuggestions.roles && (
                             <AISuggestionCard
                                 title={t("onboarding.suggestedRole", locale) || "Suggested Role"}
-                                suggestion={aiSuggestions.roles.title}
+                                suggestion={aiSuggestions.roles.primary_role}
                                 confidence={aiSuggestions.roles.confidence}
-                                onApply={() => handleRoleTypeChange(aiSuggestions.roles!.title)}
+                                onApply={() => handleRoleTypeChange(aiSuggestions.roles!.primary_role)}
                                 currentValue={preferences.role_type}
                             />
                         )}
-                        
+
                         {aiSuggestions.salary && (
                             <SalarySuggestionCard
                                 title={t("onboarding.suggestedSalary", locale) || "Suggested Salary Range"}
-                                min={aiSuggestions.salary.min}
-                                max={aiSuggestions.salary.max}
+                                min={aiSuggestions.salary.min_salary}
+                                max={aiSuggestions.salary.max_salary}
                                 confidence={aiSuggestions.salary.confidence}
                                 onApply={() => {
-                                    handleSalaryChange('salary_min', aiSuggestions.salary!.min.toString());
-                                    handleSalaryChange('salary_max', aiSuggestions.salary!.max.toString());
+                                    handleSalaryChange('salary_min', aiSuggestions.salary!.min_salary.toString());
+                                    handleSalaryChange('salary_max', aiSuggestions.salary!.max_salary.toString());
                                 }}
                                 currentMin={preferences.salary_min}
                                 currentMax={preferences.salary_max}

@@ -41,7 +41,7 @@ class SecureStorage {
         // Generate new key
         this.encryptionKey = await crypto.subtle.generateKey(
           { name: 'AES-GCM', length: 256 },
-          false,
+          true,
           ['encrypt', 'decrypt']
         );
         const exportedKey = await crypto.subtle.exportKey('raw', this.encryptionKey);
@@ -118,13 +118,13 @@ class SecureStorage {
       const { ttl = this.DEFAULT_TTL, encrypt = true } = options;
       const timestamp = Date.now();
 
-      let processedData = data;
+      let processedData: unknown = data;
       let encrypted = false;
 
       if (encrypt && typeof data === 'object') {
         const jsonString = JSON.stringify(data);
         const { encrypted: encryptedData, iv } = await this.encrypt(jsonString);
-        processedData = { encrypted: encryptedData, iv };
+        processedData = { encrypted: encryptedData, iv } as unknown;
         encrypted = true;
       }
 
@@ -136,11 +136,11 @@ class SecureStorage {
       };
 
       sessionStorage.setItem(key, JSON.stringify(storedData));
-      
-      telemetry.track('Secure Storage Set', { 
-        key: key.replace(/pii|contact|email|name/gi, '***'), 
+
+      telemetry.track('Secure Storage Set', {
+        key: key.replace(/pii|contact|email|name/gi, '***'),
         encrypted,
-        ttl 
+        ttl
       });
     } catch (error) {
       console.error('[SecureStorage] Failed to set item:', error);
@@ -169,9 +169,12 @@ class SecureStorage {
       let data = storedData.data;
 
       // Decrypt if needed
-      if (storedData.encrypted && typeof data === 'object' && data.encrypted) {
-        data = await this.decrypt(data.encrypted, data.iv);
-        data = JSON.parse(data);
+      if (storedData.encrypted && data != null && typeof data === 'object') {
+        const encObj = data as Record<string, string>;
+        if (encObj.encrypted && encObj.iv) {
+          const decrypted = await this.decrypt(encObj.encrypted, encObj.iv);
+          data = JSON.parse(decrypted);
+        }
       }
 
       return data as T;

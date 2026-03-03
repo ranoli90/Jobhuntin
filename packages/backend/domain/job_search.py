@@ -15,6 +15,10 @@ async def search_and_list_jobs(
     location: str | None = None,
     min_salary: int | None = None,
     keywords: str | None = None,
+    source: str | None = None,
+    is_remote: bool | None = None,
+    job_type: str | None = None,
+    user_id: str | None = None,
     *,
     limit: int = 25,
     offset: int = 0,
@@ -22,6 +26,7 @@ async def search_and_list_jobs(
     """Search jobs:
     1. Fetch from Adzuna (if keywords/location provided) and sync to DB.
     2. Query DB with filters.
+    3. Exclude jobs user already swiped on.
     """
     s = get_settings()
 
@@ -30,7 +35,10 @@ async def search_and_list_jobs(
         await _fetch_and_sync_adzuna(db_pool, s, location, keywords)
 
     async with db_pool.acquire() as conn:
-        query, params = _build_job_search_query(s, location, min_salary, keywords, limit, offset)
+        query, params = _build_job_search_query(
+            s, location, min_salary, keywords, source, is_remote, job_type, limit, offset,
+            user_id=user_id,
+        )
         rows = await conn.fetch(query, *params)
 
     return [_map_job_row(r) for r in rows]
@@ -55,17 +63,28 @@ def _build_job_search_query(
     location: str | None,
     min_salary: int | None,
     keywords: str | None,
+    source: str | None,
+    is_remote: bool | None,
+    job_type: str | None,
     limit: int,
     offset: int,
+    *,
+    user_id: str | None = None,
 ) -> tuple[str, list[Any]]:
     query = """
         SELECT id, title, company, description, location,
-               salary_min, salary_max, application_url, raw_data
+               salary_min, salary_max, application_url, raw_data, source,
+               created_at
         FROM   public.jobs
         WHERE  1=1
     """
     params: list[Any] = []
     n = 0
+    # Exclude jobs the user already swiped on
+    if user_id:
+        n += 1
+        query += f" AND id NOT IN (SELECT job_id FROM public.applications WHERE user_id = ${n})"
+        params.append(user_id)
     if location:
         n += 1
         query += f" AND location ILIKE ${n}"
@@ -78,6 +97,16 @@ def _build_job_search_query(
         n += 1
         query += f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
         params.append(f"%{keywords}%")
+    if source:
+        n += 1
+        query += f" AND source = ${n}"
+        params.append(source)
+    if is_remote is True:
+        query += " AND (location ILIKE '%remote%' OR location ILIKE '%anywhere%')"
+    if job_type:
+        n += 1
+        query += f" AND (raw_data->>'job_type' ILIKE ${n} OR raw_data->>'employment_type' ILIKE ${n})"
+        params.append(f"%{job_type}%")
     if settings.adzuna_job_ttl_days > 0:
         query += f" AND (source != 'adzuna' OR created_at >= now() - interval '{settings.adzuna_job_ttl_days} days')"
     query += " ORDER BY created_at DESC LIMIT $%d OFFSET $%d" % (n + 1, n + 2)
@@ -94,19 +123,35 @@ def _map_job_row(r: Any) -> dict[str, Any]:
             raw = {}
 
     logo_url = None
+    is_remote = False
+    job_type = None
+    requirements = []
+    date_posted = None
     if isinstance(raw, dict):
         logo_url = raw.get("logo_url") or raw.get("logo")
+        job_type = raw.get("job_type") or raw.get("employment_type")
+        requirements = raw.get("requirements") or []
+        date_posted = raw.get("date_posted")
+
+    location = r["location"] or ""
+    if "remote" in location.lower() or "anywhere" in location.lower():
+        is_remote = True
 
     return {
         "id": str(r["id"]),
         "title": r["title"],
         "company": r["company"],
         "description": r["description"],
-        "location": r["location"],
+        "location": location,
         "salary_min": float(r["salary_min"]) if r["salary_min"] is not None else None,
         "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
         "url": r["application_url"],
         "logo_url": logo_url,
+        "source": r.get("source"),
+        "is_remote": is_remote,
+        "job_type": job_type,
+        "requirements": requirements,
+        "date_posted": date_posted or (r["created_at"].isoformat() if r.get("created_at") else None),
     }
 
 

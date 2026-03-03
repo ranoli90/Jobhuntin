@@ -138,6 +138,7 @@ async def list_applications(
             FROM   public.applications a
             JOIN   public.jobs j ON j.id = a.job_id
             WHERE  a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
+              AND a.status != 'REJECTED'
               AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
             ORDER  BY a.updated_at DESC
             """,
@@ -465,6 +466,7 @@ async def list_jobs(
         source=source,
         is_remote=is_remote,
         job_type=job_type,
+        user_id=str(ctx.user_id),
         limit=limit,
         offset=offset,
     )

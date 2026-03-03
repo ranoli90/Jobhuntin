@@ -193,14 +193,14 @@ export default function Onboarding() {
   // Helper function to determine if current step should show skeleton
   const shouldShowSkeleton = React.useCallback(() => {
     const stepId = currentStepData.id;
-    
+
     // Show skeleton during specific loading states
     switch (stepId) {
       case 'resume':
         return isUploading || stepLoadingStates[stepId];
       case 'preferences':
-        return isSavingPreferences || stepLoadingStates[stepId] || 
-               aiSuggestions.roles.loading || aiSuggestions.locations.loading || aiSuggestions.salary.loading;
+        return isSavingPreferences || stepLoadingStates[stepId] ||
+          aiSuggestions.roles.loading || aiSuggestions.locations.loading || aiSuggestions.salary.loading;
       case 'skill-review':
         return isSavingSkills || stepLoadingStates[stepId];
       case 'confirm-contact':
@@ -226,7 +226,7 @@ export default function Onboarding() {
   // Helper function to get the appropriate skeleton component
   const getSkeletonComponent = React.useCallback(() => {
     const stepId = currentStepData.id;
-    
+
     switch (stepId) {
       case 'resume':
         return <ResumeStepSkeleton />;
@@ -459,16 +459,16 @@ export default function Onboarding() {
   const handleResumeUpload = async (file?: File) => {
     const uploadFile = file || resumeFile;
     if (!uploadFile) return;
-    
+
     setIsUploading(true);
     setResumeError(null);
-    
+
     try {
       // Use retry with backoff for better reliability
       const data = await retryWithBackoff(async () => {
         return await uploadResume(uploadFile);
       }, 3, 1000);
-      
+
       pushToast({ title: "Resume uploaded!", tone: "success" });
 
       if (data.parsed_profile) {
@@ -572,22 +572,22 @@ export default function Onboarding() {
           hasEducation: !!data.parsed_profile.education,
         });
       }
-      
+
       // Clear any retry metadata on success
       await resumeUploadRetry.clearMetadata();
       setShowRetryComponent(false);
-      
+
     } catch (error) {
       const err = error as Error & { status?: number };
       const message = err.message;
       const status = err.status;
       console.error("Resume upload failed:", err);
-      
+
       // Save metadata for retry
       await resumeUploadRetry.saveResumeMetadata(uploadFile, message);
       await resumeUploadRetry.updateAfterFailure(message);
       setShowRetryComponent(true);
-      
+
       setResumeError(message);
       pushToast({
         title: "Upload failed",
@@ -842,7 +842,7 @@ export default function Onboarding() {
         console.log("[Telemetry] AI Learned Job Preferences", {
           location: trimmedPrefs.location,
           roleType: trimmedPrefs.role_type,
-          salaryMin: parseInt(trimmedPrefs.salary_min) || 0,
+          salaryMin: parseInt(trimmedPrefs.salary_min, 10) || 0,
           remoteOnly: trimmedPrefs.remote_only,
           onsiteOnly: trimmedPrefs.onsite_only,
           workAuthorized: trimmedPrefs.work_authorized,
@@ -854,10 +854,11 @@ export default function Onboarding() {
 
       nextStep();
     } catch (error) {
-      console.error("[Onboarding] Failed to save preferences:", error);
+      const err = error as Error & { status?: number };
+      console.error("[Onboarding] Failed to save preferences:", err);
       pushToast({
         title: "Failed to save preferences",
-        description: (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
+        description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
         tone: "error"
       });
     } finally {
@@ -876,10 +877,11 @@ export default function Onboarding() {
       pushToast({ title: "You're all set! Let's job hunt!", tone: "success" });
       navigate("/app/dashboard");
     } catch (error) {
+      const err = error as Error & { status?: number };
       console.error('[Onboarding] Failed to complete:', err);
       pushToast({
         title: "Almost there!",
-        description: (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.",
+        description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.",
         tone: "error"
       });
     } finally {
@@ -1057,7 +1059,7 @@ export default function Onboarding() {
                                 setRichSkills([]);
                               }}
                             />
-                            
+
                             {/* Resume Upload Retry Component */}
                             <AnimatePresence>
                               {showRetryComponent && (
@@ -1080,89 +1082,93 @@ export default function Onboarding() {
 
                         {currentStepData.id === "skill-review" && (
                           <SkillReviewStep
-                      onNext={handleSaveSkills}
-                      onPrev={prevStep}
-                      richSkills={richSkills}
-                      setRichSkills={setRichSkills}
-                      isSaving={isSavingSkills}
-                    />
-                  )}
+                            onNext={handleSaveSkills}
+                            onPrev={prevStep}
+                            richSkills={richSkills}
+                            setRichSkills={setRichSkills}
+                            isSaving={isSavingSkills}
+                          />
+                        )}
 
-                  {currentStepData.id === "confirm-contact" && (
-                    <ConfirmContactStep
-                      onNext={handleSaveContact}
-                      onPrev={prevStep}
-                      contactInfo={contactInfo}
-                      setContactInfo={setContactInfo}
-                      isSavingContact={isSavingContact}
-                      parsedResume={parsedResume}
-                      formErrors={formErrors}
-                      emailTypoSuggestion={emailTypoSuggestion}
-                      onApplyEmailSuggestion={(suggestion) => {
-                        setContactInfo(prev => ({
-                          ...prev,
-                          email: `${prev.email.split('@')[0]}@${suggestion}`
-                        }));
-                        setEmailTypoSuggestion(null);
-                      }}
-                      onClearError={(field) => setFormErrors(prev => {
-                        const updated = { ...prev };
-                        delete updated[field];
-                        return updated;
-                      })}
-                      onSetFormError={(field, error) => setFormErrors(prev => ({
-                        ...prev,
-                        [field]: error
-                      }))}
-                    />
-                  )}
+                        {currentStepData.id === "confirm-contact" && (
+                          <ConfirmContactStep
+                            onNext={handleSaveContact}
+                            onPrev={prevStep}
+                            contactInfo={contactInfo}
+                            setContactInfo={setContactInfo}
+                            isSavingContact={isSavingContact}
+                            parsedResume={parsedResume}
+                            formErrors={formErrors}
+                            emailTypoSuggestion={emailTypoSuggestion}
+                            onApplyEmailSuggestion={(suggestion) => {
+                              setContactInfo(prev => ({
+                                ...prev,
+                                email: `${prev.email.split('@')[0]}@${suggestion}`
+                              }));
+                              setEmailTypoSuggestion(null);
+                            }}
+                            onClearError={(field) => setFormErrors(prev => {
+                              const updated = { ...prev };
+                              delete updated[field];
+                              return updated;
+                            })}
+                            onSetFormError={(field, error) => setFormErrors(prev => ({
+                              ...prev,
+                              [field]: error
+                            }))}
+                          />
+                        )}
 
-                  {currentStepData.id === "preferences" && (
-                    <PreferencesStep
-                      onNext={handleSavePreferences}
-                      onPrev={prevStep}
-                      preferences={preferences}
-                      setPreferences={setPreferences}
-                      isSavingPreferences={isSavingPreferences}
-                      aiSuggestions={aiSuggestions}
-                      formErrors={formErrors}
-                      hasParsedProfile={!!parsedProfile}
-                      onClearError={(field) => setFormErrors(prev => {
-                        const updated = { ...prev };
-                        delete updated[field];
-                        return updated;
-                      })}
-                    />
-                  )}
+                        {currentStepData.id === "preferences" && (
+                          <PreferencesStep
+                            onNext={handleSavePreferences}
+                            onPrev={prevStep}
+                            preferences={preferences}
+                            setPreferences={setPreferences}
+                            isSavingPreferences={isSavingPreferences}
+                            aiSuggestions={{
+                              roles: aiSuggestions.roles.data,
+                              salary: aiSuggestions.salary.data,
+                              locations: aiSuggestions.locations.data,
+                            }}
+                            formErrors={formErrors}
+                            hasParsedProfile={!!parsedProfile}
+                            onClearError={(field) => setFormErrors(prev => {
+                              const updated = { ...prev };
+                              delete updated[field];
+                              return updated;
+                            })}
+                          />
+                        )}
 
-                  {currentStepData.id === "work-style" && (
-                    <WorkStyleStep
-                      onNext={handleSaveWorkStyle}
-                      onPrev={prevStep}
-                      answers={workStyleAnswers}
-                      setAnswers={setWorkStyleAnswers}
-                      isSaving={isSavingWorkStyle}
-                    />
-                  )}
+                        {currentStepData.id === "work-style" && (
+                          <WorkStyleStep
+                            onNext={handleSaveWorkStyle}
+                            onPrev={prevStep}
+                            answers={workStyleAnswers}
+                            setAnswers={setWorkStyleAnswers}
+                            isSaving={isSavingWorkStyle}
+                          />
+                        )}
 
-                  {currentStepData.id === "ready" && (
-                    <ReadyStep
-                      onNext={handleComplete}
-                      isCompleting={isCompleting}
-                      contactInfo={contactInfo}
-                      preferences={preferences}
-                      completeness={completeness}
-                      profile={profile}
-                      resumeFile={resumeFile}
-                      shouldReduceMotion={!!shouldReduceMotion}
-                    />
-                  )}
-                </motion.div>
-              )}
+                        {currentStepData.id === "ready" && (
+                          <ReadyStep
+                            onNext={handleComplete}
+                            isCompleting={isCompleting}
+                            contactInfo={contactInfo}
+                            preferences={preferences}
+                            completeness={completeness}
+                            profile={profile}
+                            resumeFile={resumeFile}
+                            shouldReduceMotion={!!shouldReduceMotion}
+                          />
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Card>
+              </motion.div>
             </AnimatePresence>
-          </Card>
-        </motion.div>
-      </AnimatePresence>
           </div>
         </main>
       </ErrorBoundary>

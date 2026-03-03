@@ -18,6 +18,7 @@ import { formatCurrency, formatDate } from "../lib/format";
 import { t, formatT, getLocale, isRTLLanguage } from "../lib/i18n";
 import { useSessionMilestone } from "../hooks/useCelebrations";
 import { telemetry } from "../lib/telemetry";
+import { useProfile } from "../hooks/useProfile";
 
 // N-10: Centralised status → Badge variant mapping
 function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
@@ -511,15 +512,19 @@ export default function Dashboard() {
 }
 
 export function JobsView() {
+  // Load user preferences from onboarding to pre-populate filters
+  const { profile } = useProfile();
+  const userPrefs = profile?.preferences;
+
   // M-3: Debounced filter — local input values update instantly, API filters update after 400ms
-  const [localLocation, setLocalLocation] = useState("");
-  const [localKeywords, setLocalKeywords] = useState("");
-  const [localSalaryMin, setLocalSalaryMin] = useState("");
-  const [filters, setFilters] = useState<JobFilters>({ 
-    location: "", 
-    keywords: "",
-    minSalary: undefined,
-    isRemote: false,
+  const [localLocation, setLocalLocation] = useState(userPrefs?.location || "");
+  const [localKeywords, setLocalKeywords] = useState(userPrefs?.role_type || "");
+  const [localSalaryMin, setLocalSalaryMin] = useState(userPrefs?.salary_min ? String(userPrefs.salary_min) : "");
+  const [filters, setFilters] = useState<JobFilters>({
+    location: userPrefs?.location || "",
+    keywords: userPrefs?.role_type || "",
+    minSalary: userPrefs?.salary_min ?? undefined,
+    isRemote: userPrefs?.remote_only ?? false,
     jobType: undefined
   });
   const [sortBy, setSortBy] = useState<"match_score" | "recently_matched" | "salary">("match_score");
@@ -566,10 +571,10 @@ export function JobsView() {
     setSortBy(value);
     // Update filters with sorting preference
     debouncedUpdateFilters({ sortBy: value });
-    pushToast({ 
-      title: "Sort updated", 
-      description: `Sorting by ${value.replace('_', ' ')}`, 
-      tone: "success" 
+    pushToast({
+      title: "Sort updated",
+      description: `Sorting by ${value.replace('_', ' ')}`,
+      tone: "success"
     });
   }, [debouncedUpdateFilters]);
 
@@ -577,8 +582,8 @@ export function JobsView() {
     setLocalLocation("");
     setLocalKeywords("");
     setLocalSalaryMin("");
-    setFilters({ 
-      location: "", 
+    setFilters({
+      location: "",
       keywords: "",
       minSalary: undefined,
       isRemote: false,
@@ -1194,7 +1199,7 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
       >
         <MoreVertical className="w-4 h-4" />
       </Button>
-      
+
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -1494,7 +1499,7 @@ export function ApplicationsView() {
                     <td className="px-6 py-4 text-right">
                       <ActionsMenu app={app} onAction={handleApplicationAction} />
                     </td>
-                    </tr>
+                  </tr>
                 ))
               )}
             </tbody>
@@ -1620,7 +1625,7 @@ export function BillingView() {
           <Card className="p-6 lg:p-8 border-slate-200" shadow="sm">
             <h3 className="text-xl font-black text-slate-900 mb-6 font-display">Current Allocation</h3>
             <div className="space-y-4">
-                <div className="flex justify-between items-end">
+              <div className="flex justify-between items-end">
                 <p className="text-sm font-bold text-slate-500 uppercase">Monthly Volume</p>
                 <p className="text-sm font-black text-slate-900">{usageUsed} / {usageLimit}</p>
               </div>
