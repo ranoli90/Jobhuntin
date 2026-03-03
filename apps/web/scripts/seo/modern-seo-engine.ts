@@ -44,11 +44,11 @@ const CONFIG = {
   
   API_BASE: 'https://openrouter.ai/api/v1',
 
-  // Aggressive Generation Settings
-  PARALLEL_WORKERS: 5, // Generate 5 pages simultaneously
-  DAILY_GENERATION_LIMIT: 500, // 5x more than before
-  BATCH_SIZE: 20,
-  BATCH_DELAY_MS: 10000, // 10 seconds between batches (faster)
+  // Quality-Focused Generation Settings
+  PARALLEL_WORKERS: 2, // Max 2 simultaneous to ensure API rate limits and quality
+  DAILY_GENERATION_LIMIT: 50, // Focus on quality over quantity (50 high-value pages/day)
+  BATCH_SIZE: 5,
+  BATCH_DELAY_MS: 30000, // 30 seconds between batches for API stability
   
   // Modern SEO Priorities
   CONTENT_FRESHNESS_HOURS: 2, // Update content every 2 hours

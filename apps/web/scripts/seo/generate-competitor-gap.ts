@@ -22,36 +22,35 @@ if (!API_KEY) {
 }
 
 // Competitor intelligence database
+// ⚠️ IMPORTANT: All claims must be factual and verifiable
+// ✅ DO: State observable facts (pricing from their website, features they list)
+// ✅ DO: Compare feature sets objectively
+// ❌ DO NOT: Make unsubstantiated negative claims
+// ❌ DO NOT: Create fake reviews or testimonials
 const COMPETITOR_INTEL: Record<string, any> = {
   'teal': {
-    weaknesses: ['Limited job board integrations', 'No auto-apply feature', 'Expensive for individuals'],
-    pricing: '$9-29/month',
+    pricing: '$9-29/month (from tealhq.com)',
     features: ['Resume builder', 'Job tracker', 'LinkedIn optimization'],
-    gaps: ['No programmatic job application', 'Limited ATS support', 'No cover letter generation'],
+    comparisonPoints: {
+      jobhuntinAdvantage: ['AI-powered auto-apply', 'Multi-platform job aggregation', 'Real-time application tracking'],
+      differentiator: 'JobHuntin focuses on complete automation vs Teal\'s manual tracking approach',
+    },
   },
   'lazyapply': {
-    weaknesses: ['Outdated interface', 'High price point', 'Limited customization'],
-    pricing: '$99-249 one-time',
+    pricing: '$99-249 one-time (from lazyapply.com)',
     features: ['Auto-apply', 'Resume upload', 'Basic tracking'],
-    gaps: ['No AI resume tailoring', 'Poor mobile experience', 'No interview prep'],
+    comparisonPoints: {
+      jobhuntinAdvantage: ['AI resume tailoring for each job', 'Cover letter generation', 'Interview preparation tools', 'Lower total cost of ownership'],
+      differentiator: 'JobHuntin provides AI-powered personalization vs LazyApply\'s template-based approach',
+    },
   },
   'simplify': {
-    weaknesses: ['Browser extension only', 'Limited job sources', 'No resume builder'],
-    pricing: 'Free - $9/month',
+    pricing: 'Free - $9/month (from simplify.jobs)',
     features: ['Auto-fill applications', 'Job tracking', 'Chrome extension'],
-    gaps: ['No mobile app', 'Limited to supported sites', 'No AI features'],
-  },
-  'jobcopilot': {
-    weaknesses: ['New/unproven', 'Limited features', 'Small user base'],
-    pricing: 'Free - $15/month',
-    features: ['AI job matching', 'Application tracking', 'Resume suggestions'],
-    gaps: ['Limited integrations', 'No auto-apply', 'Basic UI'],
-  },
-  'jobright': {
-    weaknesses: ['Limited to tech jobs', 'No auto-apply', 'Expensive'],
-    pricing: '$29-79/month',
-    features: ['AI matching', 'Salary insights', 'Company research'],
-    gaps: ['No application automation', 'Limited locations', 'No resume tools'],
+    comparisonPoints: {
+      jobhuntinAdvantage: ['Native mobile app', 'AI-powered resume optimization', 'Direct job board integrations beyond browser extension'],
+      differentiator: 'JobHuntin offers full-platform automation vs Simplify\'s browser-only approach',
+    },
   },
 };
 
@@ -60,61 +59,75 @@ async function generateCompetitorGapContent(
   gapKeywords: string[]
 ): Promise<string> {
   const intel = COMPETITOR_INTEL[competitor.toLowerCase()] || {
-    weaknesses: ['Unknown weaknesses'],
-    pricing: 'Unknown',
-    features: ['Unknown features'],
-    gaps: ['Unknown gaps'],
+    pricing: 'Contact for pricing',
+    features: ['Job search tools', 'Application tracking'],
+    comparisonPoints: {
+      jobhuntinAdvantage: ['AI-powered automation', 'Comprehensive platform'],
+      differentiator: 'JobHuntin focuses on complete AI automation vs manual processes',
+    },
   };
 
-  const prompt = `Create a comprehensive comparison article that positions JobHuntin as the superior alternative to ${competitor}.
+  const prompt = `Create a comprehensive, factual comparison article comparing ${competitor} and JobHuntin.
 
 COMPETITOR: ${competitor}
 COMPETITOR PRICING: ${intel.pricing}
 COMPETITOR FEATURES: ${intel.features.join(', ')}
-COMPETITOR WEAKNESSES: ${intel.weaknesses.join(', ')}
+JOBHUNTIN ADVANTAGES: ${intel.comparisonPoints.jobhuntinAdvantage.join(', ')}
+KEY DIFFERENTIATOR: ${intel.comparisonPoints.differentiator}
 CONTENT GAPS TO TARGET: ${gapKeywords.join(', ')}
 
+⚠️ CRITICAL INSTRUCTIONS:
+1. Be FACTUAL and OBJECTIVE - only state verifiable facts
+2. NO fake reviews or testimonials - only reference real user experiences if cited
+3. NO unsubstantiated negative claims about competitor
+4. Focus on DIFFERENCES, not putting down the competitor
+5. Let readers decide based on their needs
+
 ARTICLE STRUCTURE:
-1. H1: "${competitor} Alternatives 2026: Why JobHuntin is the Better Choice"
-2. Introduction: Acknowledge ${competitor}'s popularity but highlight the problem
-3. H2: "The Problem with ${competitor}"
-   - Be honest but fair about weaknesses
-   - Include user pain points from reviews
-   - Use specific examples
-4. H2: "Top ${competitor} Alternatives Compared"
-   - Create comparison table: Features, Pricing, Pros, Cons
-   - Position JobHuntin as #1 alternative
-5. H2: "Why JobHuntin is the Best ${competitor} Alternative"
-   - Address each competitor weakness with JobHuntin solution
-   - Include specific feature comparisons
-   - Use data/statistics where possible
-6. H2: "Feature Comparison: ${competitor} vs JobHuntin"
-   - Side-by-side comparison table
-   - Highlight wins for JobHuntin
-   - Be honest about any competitor wins (builds trust)
+1. H1: "${competitor} vs JobHuntin: Which is Right for You? (2026)"
+2. Introduction: Brief overview of both tools, who this comparison is for
+3. H2: "Quick Comparison Table"
+   - Side-by-side: Features, Pricing, Best For
+   - Be objective - show where each wins
+4. H2: "What is ${competitor}?"
+   - Brief description based on their website
+   - Key features they offer
+   - Who it's best for
+5. H2: "What is JobHuntin?"
+   - Brief description of our platform
+   - Key features we offer
+   - Who it's best for
+6. H2: "Feature Comparison"
+   - Detailed comparison of key features
+   - Use table format
+   - Highlight JobHuntin's AI automation focus
 7. H2: "Pricing Comparison"
    - ${competitor}: ${intel.pricing}
-   - JobHuntin pricing (mention free trial, value)
-   - Calculate savings over time
-8. H2: "User Reviews: What People Are Saying"
-   - Quote hypothetical positive reviews for JobHuntin
-   - Address common complaints about ${competitor}
-9. H2: "How to Switch from ${competitor} to JobHuntin"
-   - Step-by-step migration guide
-   - Data export/import instructions
-10. H2: FAQ
-    - "Is JobHuntin better than ${competitor}?"
-    - "Can I import my ${competitor} data?"
-    - "Why is JobHuntin cheaper than ${competitor}?"
-11. Conclusion: Strong CTA to try JobHuntin
+   - JobHuntin pricing
+   - Value analysis (features per dollar)
+8. H2: "When to Choose ${competitor}"
+   - Be honest about scenarios where they might be better
+   - Builds trust and credibility
+9. H2: "When to Choose JobHuntin"
+   - Scenarios where our AI automation shines
+   - Users who want complete job search automation
+10. H2: "How to Get Started with JobHuntin"
+    - Simple onboarding steps
+    - Free trial information
+    - Migration tips (if switching)
+11. H2: FAQ
+    - "Can I try both before deciding?"
+    - "Do I need a credit card for the free trial?"
+    - "Can I switch from ${competitor} to JobHuntin?"
+12. Conclusion: Summarize key differences, encourage free trial
 
 SEO REQUIREMENTS:
-- Include semantic keywords: ${gapKeywords.join(', ')}
-- Target featured snippets with clear definitions
+- Include semantic keywords naturally: ${gapKeywords.join(', ')}
+- Target featured snippets with comparison tables
 - Use comparison schema markup
-- Include internal links: [LINK: jobhuntin-features], [LINK: pricing]
-- Word count: 2500-3500 words
-- Tone: Professional, helpful, not overly negative
+- Include internal links: [LINK: features], [LINK: pricing], [LINK: free-trial]
+- Word count: 2000-3000 words
+- Tone: Professional, balanced, helpful - help readers make the right choice for THEM
 
 OUTPUT: Return only the article content in Markdown format, starting with H1.`;
 
