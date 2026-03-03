@@ -1,10 +1,13 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
 import { apiGet, getApiBase } from "../lib/api";
 import { pushToast } from "../lib/toast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // LS5: Magic link tokens are one-time; no refresh flow. User re-authenticates via new magic link when session expires.
+
+// Session warning threshold (5 minutes before expiry)
+const SESSION_WARNING_THRESHOLD_MS = 5 * 60 * 1000;
 
 export interface User {
     id: string;
@@ -39,6 +42,8 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const sessionExpiryRef = useRef<number | null>(null);
+    const warningShownRef = useRef(false);
 
     // Helper to fetch user profile
     const fetchUser = useCallback(async () => {
@@ -59,10 +64,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 logged_in: true,
                 ts: Date.now(),
             }));
+
+            // Set session expiry (1 hour from now, matching backend)
+            sessionExpiryRef.current = Date.now() + 60 * 60 * 1000;
+            warningShownRef.current = false;
         } catch (error) {
             console.error("[AUTH] Failed to fetch user profile:", error);
             // If 401, apiGet handles redirect, but we should clear state
             setUser(null);
+            sessionExpiryRef.current = null;
             // Store the current URL to redirect back after re-auth
             const returnTo = globalThis.window.location.pathname + globalThis.window.location.search;
             sessionStorage.setItem('returnTo', returnTo);
@@ -84,6 +94,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } catch (err) {
             console.warn("CSRF cookie preflight failed", err);
         }
+    }, []);
+
+    // Session expiration warning
+    useEffect(() => {
+        const checkSessionExpiry = () => {
+            if (!sessionExpiryRef.current || warningShownRef.current) return;
+
+            const timeUntilExpiry = sessionExpiryRef.current - Date.now();
+
+            if (timeUntilExpiry <= 0) {
+                // Session expired
+                warningShownRef.current = true;
+                pushToast({
+                    title: "Session expired",
+                    description: "Your session has expired. Please sign in again.",
+                    tone: "error",
+                });
+            } else if (timeUntilExpiry <= SESSION_WARNING_THRESHOLD_MS) {
+                // Show warning
+                warningShownRef.current = true;
+                const minutesLeft = Math.ceil(timeUntilExpiry / 60000);
+                pushToast({
+                    title: "Session expiring soon",
+                    description: `Your session will expire in ${minutesLeft} minute${minutesLeft > 1 ? 's' : ''}. Save any work and refresh the page to extend your session.`,
+                    tone: "warning",
+                    duration: 10000, // Show for 10 seconds
+                });
+            }
+        };
+
+        // Check every minute
+        const interval = setInterval(checkSessionExpiry, 60000);
+
+        // Also check on user activity
+        const handleActivity = () => checkSessionExpiry();
+        window.addEventListener('click', handleActivity);
+        window.addEventListener('keypress', handleActivity);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('click', handleActivity);
+            window.removeEventListener('keypress', handleActivity);
+        };
     }, []);
 
     // Initialize auth
@@ -139,31 +192,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 await ensureCsrfCookie();
                 await fetchUser();
             }
-                
-                setAuthToken(tokenFromUrl);
-                // Clean URL - remove token and returnTo query params but preserve other params
-                const searchParams = new URLSearchParams(window.location.search);
-                searchParams.delete("token");
-                searchParams.delete("returnTo");
-                const newSearch = searchParams.toString();
-                const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : '') + window.location.hash;
-                window.history.replaceState({}, document.title, newUrl);
-                if (import.meta.env.DEV) console.log('[AUTH] URL cleaned, fetching CSRF cookie and user profile');
-                await ensureCsrfCookie();
-                await fetchUser();
-                if (import.meta.env.DEV) console.log('[AUTH] Magic link auth complete');
-            } else {
-                // 2. Check local storage
-                const token = getAuthToken();
-                if (token) {
-                    if (import.meta.env.DEV) console.log('[AUTH] Token found in localStorage, refreshing session');
-                    await ensureCsrfCookie();
-                    await fetchUser();
-                } else {
-                    if (import.meta.env.DEV) console.log('[AUTH] No token found, user is unauthenticated');
-                    localStorage.removeItem('jobhuntin-session');
-                }
-            }
             setLoading(false);
             if (import.meta.env.DEV) console.log('[AUTH] Auth initialization complete');
         };
@@ -172,6 +200,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (import.meta.env.DEV) console.log('[AUTH] Unauthorized event received, clearing session');
             const detail = (event as CustomEvent<{ returnTo?: string }>).detail;
             setUser(null);
+            sessionExpiryRef.current = null;
             sessionStorage.setItem('session_expired', 'true');
             const returnTo = detail?.returnTo ?? encodeURIComponent(window.location.pathname + window.location.search);
             window.location.href = `/login?returnTo=${returnTo}`;
@@ -200,6 +229,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const signOut = async () => {
         setUser(null);
+        sessionExpiryRef.current = null;
         // S1: Redirect to API logout to clear httpOnly cookie, then to /login
         const base = getApiBase();
         if (base) {

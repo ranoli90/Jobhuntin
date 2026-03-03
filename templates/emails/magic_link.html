@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Sign in to JobHuntin</title>
+  <title>Sign in to $app_name</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -17,9 +17,16 @@
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   
-  <!-- Preview text -->
+  <!-- Preview text (preheader) - optimized for engagement -->
   <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
-    Here's your sign-in link for JobHuntin. It expires in $expires_minutes minutes.
+    🔐 Your secure sign-in link is ready — expires in $expires_minutes minutes. Click to access your $app_name account instantly.
+  </div>
+  <!-- Hack to hide preview text in email clients that don't support display:none -->
+  <div style="display: none; max-height: 0px; overflow: hidden;">
+    &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
+    &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
+    &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
+    &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
   </div>
   
   <!-- Main container -->
@@ -41,10 +48,10 @@
                     <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                       <tr>
                         <td style="background-color: #2563eb; width: 52px; height: 52px; border-radius: 14px; text-align: center; vertical-align: middle;">
-                          <span style="color: #ffffff; font-size: 22px; font-weight: 800; line-height: 52px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">JH</span>
+                          <span style="color: #ffffff; font-size: 22px; font-weight: 800; line-height: 52px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">$app_initials</span>
                         </td>
                         <td style="padding-left: 12px; text-align: left; vertical-align: middle;">
-                          <span style="display: inline-block; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">JobHuntin</span>
+                          <span style="display: inline-block; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">$app_name</span>
                         </td>
                       </tr>
                     </table>
@@ -53,11 +60,11 @@
               </table>
 
               <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em;">
-                Sign in to JobHuntin
+                Sign in to $app_name
               </h1>
               
               <p style="margin: 0; font-size: 16px; color: #64748b; line-height: 1.5;">
-                Click below to sign in to your JobHuntin account.
+                Click below to sign in to your $app_name account.
               </p>
               
             </td>
@@ -129,11 +136,11 @@
               </p>
               
               <p style="margin: 0; font-size: 12px; color: #94a3b8;">
-                <span style="color: #0f172a; font-weight: 600;">JobHuntin</span> — Find your next job, faster
+                <span style="color: #0f172a; font-weight: 600;">$app_name</span> — $app_tagline
               </p>
               
               <p style="margin: 12px 0 0; font-size: 11px; color: #94a3b8;">
-                <a href="https://jobhuntin.com" style="color: #94a3b8; text-decoration: none;">jobhuntin.com</a>
+                <a href="$app_base_url" style="color: #94a3b8; text-decoration: none;">$app_domain</a>
               </p>
               
             </td>
@@ -143,7 +150,7 @@
         
         <!-- Powered by -->
         <p style="margin: 24px 0 0; font-size: 11px; color: #94a3b8; text-align: center;">
-          Powered by <a href="https://jobhuntin.com" style="color: #3b82f6; text-decoration: none;">JobHuntin</a>
+          Powered by <a href="$app_base_url" style="color: #3b82f6; text-decoration: none;">$app_name</a>
         </p>
         
       </td>
