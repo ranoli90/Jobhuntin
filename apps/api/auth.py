@@ -109,6 +109,7 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
 class MagicLinkRequest(BaseModel):
     email: EmailStr
     return_to: str | None = None
+    captcha_token: str | None = None
 
 
 class MagicLinkResponse(BaseModel):
@@ -200,7 +201,8 @@ async def _generate_magic_link(
     import jwt
 
     logger.info(
-        "[MAGIC_LINK] Starting generation",
+        "[MAGIC_LINK] Starting generation for email: %s",
+        _mask_email(email),
         extra={"email": _mask_email(email), "redirect_to": redirect_to},
     )
 
@@ -212,7 +214,7 @@ async def _generate_magic_link(
         )
         if not user_id:
             # Create new user
-            logger.info("[MAGIC_LINK] Creating new user", extra={"email": _mask_email(email)})
+            logger.info("[MAGIC_LINK] Creating new user for email: %s", _mask_email(email))
             user_id = await conn.fetchval(
                 """
                 INSERT INTO public.users (id, email, created_at, updated_at)
@@ -223,13 +225,15 @@ async def _generate_magic_link(
                 email,
             )
             logger.info(
-                "[MAGIC_LINK] User created",
-                extra={"user_id": str(user_id), "email": _mask_email(email)},
+                "[MAGIC_LINK] User created with ID %s for email: %s",
+                str(user_id),
+                _mask_email(email),
             )
         else:
             logger.info(
-                "[MAGIC_LINK] Found existing user",
-                extra={"user_id": str(user_id), "email": _mask_email(email)},
+                "[MAGIC_LINK] Found existing user with ID %s for email: %s",
+                str(user_id),
+                _mask_email(email),
             )
 
         # Create empty profile if not exists
@@ -241,7 +245,7 @@ async def _generate_magic_link(
         """,
             user_id,
         )
-        logger.debug("[MAGIC_LINK] Profile ensured", extra={"user_id": str(user_id)})
+        logger.debug("[MAGIC_LINK] Profile ensured for user ID: %s", str(user_id))
 
     # Generate token
     ttl_seconds = getattr(settings, "magic_link_token_ttl_seconds", 3600)
@@ -267,8 +271,9 @@ async def _generate_magic_link(
 
     token = jwt.encode(payload, secret, algorithm="HS256")
     logger.info(
-        "[MAGIC_LINK] Token generated",
-        extra={"user_id": str(user_id), "email": _mask_email(email), "token_length": len(token)},
+        "[MAGIC_LINK] Token generated for user ID %s with jti %s",
+        str(user_id),
+        token_id,
     )
 
     # S1: When api_public_url is set, use verify-magic endpoint (httpOnly cookie flow)
@@ -279,8 +284,8 @@ async def _generate_magic_link(
         if safe_return:
             verify_url += f"&returnTo={quote(safe_return, safe='')}"
         logger.info(
-            "[MAGIC_LINK] Using httpOnly cookie flow (verify-magic)",
-            extra={"user_id": str(user_id), "email": _mask_email(email)},
+            "[MAGIC_LINK] Using httpOnly cookie flow (verify-magic) for user ID: %s",
+            str(user_id),
         )
         return verify_url
 
@@ -288,8 +293,8 @@ async def _generate_magic_link(
     separator = "&" if "?" in redirect_to else "?"
     magic_link = f"{redirect_to}{separator}token={token}"
     logger.info(
-        "[MAGIC_LINK] Magic link generated successfully",
-        extra={"user_id": str(user_id), "email": _mask_email(email)},
+        "[MAGIC_LINK] Magic link generated successfully for user ID: %s",
+        str(user_id),
     )
     return magic_link
 
@@ -488,17 +493,19 @@ async def verify_magic_link(
         )
         user_id = payload.get("sub")
         jti = payload.get("jti")
-        if not user_id:
-            raise ValueError("Missing sub")
+        if not user_id or not jti:
+            raise ValueError("Missing sub or jti")
     except pyjwt.PyJWTError as exc:
         logger.warning("Verify-magic JWT invalid: %s", exc)
         redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=invalid_token"
         return RedirectResponse(url=redirect_url, status_code=302)
 
-    if jti and not await _mark_token_consumed(jti, settings):
-        logger.warning("Verify-magic replay attempt jti=%s", jti)
+    if not await _mark_token_consumed(jti, settings):
+        logger.warning("Verify-magic replay attempt for jti: %s", jti)
         redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=token_used"
         return RedirectResponse(url=redirect_url, status_code=302)
+
+    logger.info("Successfully verified magic link for user ID: %s with jti: %s", user_id, jti)
 
     safe_return = _sanitize_return_to(return_to)
     dest = safe_return or "/app/dashboard"
@@ -530,6 +537,45 @@ async def logout(
     return response
 
 
+async def _verify_captcha(settings: Settings, token: str, client_ip: str) -> bool:
+    """Verify a reCAPTCHA v3 token."""
+    if not settings.recaptcha_secret_key:
+        logger.warning("RECAPTCHA_SECRET_KEY not set, skipping verification.")
+        return True
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                "https://www.google.com/recaptcha/api/siteverify",
+                data={
+                    "secret": settings.recaptcha_secret_key,
+                    "response": token,
+                    "remoteip": client_ip,
+                },
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if result.get("success") and result.get("score", 0.0) >= 0.5:
+                logger.info(
+                    "reCAPTCHA verification successful with score: %s",
+                    result.get("score"),
+                )
+                return True
+            else:
+                logger.warning(
+                    "reCAPTCHA verification failed: %s",
+                    result.get("error-codes", "No error codes"),
+                )
+                return False
+        except httpx.HTTPStatusError as e:
+            logger.error("HTTP error while verifying reCAPTCHA token: %s", e)
+            return False
+        except Exception as e:
+            logger.error("An unexpected error occurred during reCAPTCHA verification: %s", e)
+            return False
+
+
 @router.post("/magic-link", response_model=MagicLinkResponse)
 async def request_magic_link(
     request: Request,
@@ -540,6 +586,11 @@ async def request_magic_link(
     """Generate a magic link and email it via Resend."""
     # S6: Global IP rate limit to prevent mass enumeration from a single IP
     client_ip = get_client_ip(request)
+
+    if body.captcha_token:
+        if not await _verify_captcha(settings, body.captcha_token, client_ip):
+            raise HTTPException(status_code=400, detail="Invalid CAPTCHA token")
+
     ip_limiter = get_rate_limiter(
         f"magic_link_ip:{client_ip}",
         max_calls=60,

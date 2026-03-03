@@ -12,6 +12,7 @@ import { useProfile } from "./hooks/useProfile";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { config } from "./config";
 import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
+import { listen } from 'quicklink';
 import { CookieConsent } from './components/CookieConsent';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -48,6 +49,8 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Maintenance = React.lazy(() => import("./pages/Maintenance"));
 const About = React.lazy(() => import("./pages/About"));
 const Locations = React.lazy(() => import("./pages/Locations"));
+const TopicPage = React.lazy(() => import("./pages/TopicPage"));
+const AuthorPage = React.lazy(() => import("./pages/AuthorPage"));
 
 // AI Feature Pages
 const MatchesPage = React.lazy(() => import("./pages/app/matches"));
@@ -147,6 +150,10 @@ export default function App() {
   // Track page views on route change
   useGoogleAnalytics();
 
+  React.useEffect(() => {
+    listen();
+  }, []);
+
   return (
     <>
       <OfflineBanner />
@@ -196,6 +203,8 @@ export default function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/about" element={<About />} />
             <Route path="/locations" element={<Locations />} />
+            <Route path="/topics/:slug" element={<TopicPage />} />
+            <Route path="/authors/:authorId" element={<AuthorPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/maintenance" element={<Maintenance />} />
             <Route path="*" element={<NotFound />} />

@@ -53,7 +53,7 @@ class DatabasePoolManager:
                     db_dsn,
                     min_size=s.db_pool_min,
                     max_size=s.db_pool_max,
-                    ssl=ssl_arg,
+                    ssl=False,
                     statement_cache_size=0,
                 )
                 logger.info("Database pool created (env=%s)", s.env.value)
@@ -107,7 +107,7 @@ class DatabasePoolManager:
                     read_dsn,
                     min_size=s.db_pool_min,
                     max_size=s.db_pool_max,
-                    ssl=ssl_arg,
+                    ssl=False,
                     statement_cache_size=0,
                 )
                 logger.info("Read replica pool initialized")

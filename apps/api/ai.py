@@ -827,7 +827,8 @@ I am writing to express my interest in the [Job Title] position at [Company Name
 [Body paragraph 3 - Call to action and closing]
 
 Sincerely,
-[Your Name]""",
+[Your Name]"""""
+,
             variables=[
                 "hiring_manager_name",
                 "company_name",
@@ -864,7 +865,8 @@ I'm particularly drawn to [Company Name] because [why this company/role excites 
 Let's connect and explore how my [key strength] can drive [company goal/outcome].
 
 Best regards,
-[Your Name]""",
+[Your Name]"""""
+,
             variables=[
                 "hook",
                 "job_title",
@@ -1255,7 +1257,7 @@ async def get_match_weights(
     defaults = MatchWeights.default()
     return MatchWeightsResponse(
         semantic_similarity=defaults.semantic_similarity,
-        skill_match=defaults.skill_match,
+        skill_match=defaults.skill_.match,
         experience_alignment=defaults.experience_alignment,
         normalized=True,
     )

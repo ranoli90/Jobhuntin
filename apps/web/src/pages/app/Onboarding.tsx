@@ -63,9 +63,11 @@ export default function Onboarding() {
     // Check battery status if available
     let batteryObj: BatteryManager | null = null;
     let handleBatteryChange: (() => void) | null = null;
+    let mounted = true;
 
     if (navigator.getBattery) {
       navigator.getBattery().then((battery) => {
+        if (!mounted) return; // Component unmounted before promise resolved
         batteryObj = battery;
         handleBatteryChange = () => {
           setIsLowPowerMode(battery.level < 0.2 && !battery.charging);
@@ -78,6 +80,7 @@ export default function Onboarding() {
     }
 
     return () => {
+      mounted = false;
       // Cleanup battery event listeners
       if (batteryObj && handleBatteryChange) {
         batteryObj.removeEventListener('levelchange', handleBatteryChange);
