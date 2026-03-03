@@ -14,7 +14,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
+from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
 
 logger = get_logger("sorce.email_digest")
 
@@ -187,7 +187,7 @@ async def send_digest_email(
                     return True
                 logger.error("Resend error: %d %s", resp.status_code, resp.text[:200])
                 return False
-    except CircuitBreakerOpenError as exc:
+    except CircuitBreakerOpen as exc:
         logger.warning("Resend circuit breaker open: %s", exc)
         return False
     except Exception as exc:

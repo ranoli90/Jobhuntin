@@ -19,6 +19,17 @@ function useEmailCapture() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
+  const [showResend, setShowResend] = useState(false);
+
+  useEffect(() => {
+    if (sentEmail) {
+      const timer = setTimeout(() => {
+        setShowResend(true);
+      }, 30000); // Show after 30 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [sentEmail]);
+
   const validateEmail = (e: string) => ValidationUtils.validate.email(e.trim()).isValid;
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +38,10 @@ function useEmailCapture() {
     setEmailError("");
     setIsSubmitting(true);
     setSentEmail(null);
+    setShowResend(false);
     try {
       const result = await magicLinkService.sendMagicLink(email, "/app/onboarding");
-      if (!result.success) throw new Error(result.error || "Failed");
+      if (!result.success) throw new Error(result.error || "Failed to send magic link. Please try again.");
       telemetry.track("login_magic_link_requested", { source: "homepage" });
       pushToast({ title: t("homepage.checkInbox", getLocale()), description: t("homepage.magicLinkSent", getLocale()), tone: "success" });
       setSentEmail(result.email);
@@ -40,17 +52,41 @@ function useEmailCapture() {
       pushToast({ title: "Error", description: msg, tone: "error" });
     } finally { setIsSubmitting(false); }
   };
-  return { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit };
+
+  const onResend = async () => {
+    if (isSubmitting || !sentEmail) return;
+    setIsSubmitting(true);
+    setShowResend(false);
+    try {
+      const result = await magicLinkService.sendMagicLink(sentEmail, "/app/onboarding");
+      if (!result.success) throw new Error(result.error || "Failed to resend magic link. Please try again.");
+      telemetry.track("login_magic_link_resent", { source: "homepage" });
+      pushToast({ title: t("homepage.checkInbox", getLocale()), description: t("homepage.magicLinkResent", getLocale()), tone: "success" });
+    } catch (err: any) {
+      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
+      pushToast({ title: "Error", description: msg, tone: "error" });
+    } finally { setIsSubmitting(false); }
+  }
+
+  return { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, showResend, onSubmit, onResend };
 }
 
 /* ─── Email form ─── */
 function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
-  const { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit } = useEmailCapture();
+  const { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, showResend, onSubmit, onResend } = useEmailCapture();
   if (sentEmail) {
     return (
       <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
         <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-purple-100 dark:bg-purple-900/30"><MailCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" /></div>
-        <div className="min-w-0"><p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t("homepage.checkInbox", getLocale())}</p><p className="text-xs truncate text-gray-500 dark:text-slate-400">{sentEmail}</p></div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t("homepage.checkInbox", getLocale())}</p>
+          <p className="text-xs truncate text-gray-500 dark:text-slate-400">{sentEmail}</p>
+          {showResend && (
+            <button onClick={onResend} disabled={isSubmitting} className="text-xs text-purple-600 hover:underline mt-1">
+              {isSubmitting ? 'Resending...' : 'Resend Link'}
+            </button>
+          )}
+        </div>
         <button onClick={() => setSentEmail(null)} className="min-h-[44px] min-w-[44px] px-3 py-2 -m-2 text-xs ml-auto shrink-0 hover:underline text-gray-400 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Change email address">Change</button>
       </div>
     );
@@ -168,112 +204,45 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §1  HERO — centered, big headline, CTA, then visual showcase below
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden">
-        {/* Soft gradient bg */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-50/60 via-white to-white" />
-
-        <div className="relative max-w-7xl mx-auto px-6 pt-16 sm:pt-24 pb-12">
-          <div className="max-w-3xl mx-auto text-center">
+      <section className="bg-slate-900 text-white">
+        <div className="max-w-7xl mx-auto px-6 pt-24 sm:pt-32 pb-20">
+          <div className="max-w-4xl mx-auto text-center">
             <FadeIn>
-              <h1 className="text-[clamp(2.75rem,7vw,5.5rem)] font-extrabold leading-[1.02] tracking-[-0.045em] text-gray-900">
-                The all-in-one for<br />
-                <span className="bg-gradient-to-r from-purple-600 to-violet-500 bg-clip-text text-transparent">job seekers</span>
+              <h1 className="text-[clamp(3rem,8vw,6rem)] font-extrabold leading-[1.05] tracking-[-0.04em] text-white">
+                Your Job Search,
+                <br />
+                <span className="bg-gradient-to-r from-purple-500 to-violet-400 bg-clip-text text-transparent">
+                  Automated.
+                </span>
               </h1>
             </FadeIn>
-            <FadeIn delay={80}>
-              <p className="mt-7 text-xl sm:text-[1.4rem] text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                Upload your resume. Our AI tailors every application and submits to hundreds of jobs daily — while you sleep.
+            <FadeIn delay={100}>
+              <p className="mt-8 text-xl sm:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                JobHuntin’s AI agent finds the best jobs, tailors your resume for every role, and applies for you.
+                Spend less time searching and more time interviewing.
               </p>
             </FadeIn>
-            <FadeIn delay={160}>
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/login" className="h-14 px-10 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
-                  Get Started Free <ArrowRight className="w-4 h-4" />
+            <FadeIn delay={200}>
+              <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  to="/login"
+                  className="h-14 px-10 rounded-full text-lg font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-2xl hover:shadow-purple-500/30 transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
+                >
+                  Start Your Free Trial <ArrowRight className="w-5 h-5" />
                 </Link>
-                <a href="#how-it-works" className="h-14 px-10 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
-                  See How It Works
+                <a
+                  href="#how-it-works"
+                  className="h-14 px-10 rounded-full text-lg font-semibold border-2 border-gray-400 text-white hover:border-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                >
+                  Learn More
                 </a>
               </div>
-              <p className="mt-5 text-sm text-gray-400">Free to start · No credit card required</p>
+              <p className="mt-6 text-sm text-gray-400">
+                14-day free trial · No credit card required
+              </p>
             </FadeIn>
           </div>
         </div>
-
-        {/* ── HERO VISUAL SHOWCASE — overlapping angled cards with mock UI ── */}
-        <FadeIn delay={300}>
-          <div className="relative max-w-6xl mx-auto px-6 pb-8">
-            <div className="relative h-[420px] sm:h-[520px] lg:h-[580px]">
-              {/* Card 1 — Purple — Dashboard (center-left, tilted) */}
-              <div className="absolute left-[2%] sm:left-[5%] top-[8%] w-[55%] sm:w-[45%] transform -rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
-                <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-purple-500/30">
-                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /><div className="w-2.5 h-2.5 rounded-full bg-amber-400" /><div className="w-2.5 h-2.5 rounded-full bg-green-400" /></div>
-                      <div className="flex-1 h-4 bg-gray-100 rounded-full mx-4" />
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      <div className="bg-purple-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-purple-600">127</div><div className="text-[8px] sm:text-[9px] text-gray-500">Applied</div></div>
-                      <div className="bg-green-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-green-600">23</div><div className="text-[8px] sm:text-[9px] text-gray-500">Responses</div></div>
-                      <div className="bg-amber-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-amber-600">7</div><div className="text-[8px] sm:text-[9px] text-gray-500">Interviews</div></div>
-                    </div>
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-50">
-                        <div className="w-6 h-6 rounded bg-gray-100 shrink-0" />
-                        <div className="flex-1"><div className="h-2 bg-gray-100 rounded-full w-3/4" /><div className="h-1.5 bg-gray-50 rounded-full w-1/2 mt-1" /></div>
-                        <div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-bold", i === 1 ? "bg-green-100 text-green-700" : i === 2 ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700")}>{i === 1 ? "Interview" : i === 2 ? "Applied" : "Viewed"}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2 — Coral/Orange — Resume (center-right, tilted other way) */}
-              <div className="absolute right-[2%] sm:right-[5%] top-[2%] w-[50%] sm:w-[40%] transform rotate-3 z-30 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
-                <div className="bg-gradient-to-br from-orange-400 to-rose-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-orange-500/30">
-                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="text-xs font-bold text-gray-900">Resume Preview</div>
-                      <div className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[8px] font-bold">ATS: 94%</div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-900 rounded-full w-2/3" />
-                      <div className="h-2.5 bg-gray-200 rounded-full w-full" />
-                      <div className="h-2.5 bg-gray-200 rounded-full w-5/6" />
-                      <div className="h-2.5 bg-gray-200 rounded-full w-4/5" />
-                      <div className="h-px bg-gray-100 my-2" />
-                      <div className="h-3 bg-gray-800 rounded-full w-2/5" />
-                      <div className="h-2 bg-gray-100 rounded-full w-full" />
-                      <div className="h-2 bg-gray-100 rounded-full w-3/4" />
-                    </div>
-                    <div className="mt-3 flex gap-1.5 flex-wrap">
-                      <div className="px-2 py-1 rounded bg-purple-50 text-purple-700 text-[7px] sm:text-[8px] font-bold">React</div>
-                      <div className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[7px] sm:text-[8px] font-bold">TypeScript</div>
-                      <div className="px-2 py-1 rounded bg-green-50 text-green-700 text-[7px] sm:text-[8px] font-bold">Node.js</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3 — Blue — Live Feed (bottom center) */}
-              <div className="absolute left-[15%] sm:left-[22%] bottom-[0%] w-[55%] sm:w-[42%] transform rotate-1 z-10 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
-                <div className="bg-gradient-to-br from-sky-400 to-blue-600 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-blue-500/30">
-                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                      <span className="text-[10px] font-semibold text-gray-700">Live Activity</span>
-                    </div>
-                    <LiveActivityFeed compact />
-                  </div>
-                </div>
-              </div>
-
-              {/* Small accent shapes */}
-              <div className="absolute top-0 right-[35%] w-20 h-20 bg-gradient-to-br from-teal-300 to-emerald-400 rounded-2xl rotate-12 opacity-60 z-0" />
-              <div className="absolute bottom-[15%] left-0 w-16 h-16 bg-gradient-to-br from-amber-300 to-orange-400 rounded-xl -rotate-12 opacity-50 z-0" />
-              <div className="absolute top-[30%] right-0 w-14 h-14 bg-gradient-to-br from-purple-300 to-violet-400 rounded-lg rotate-6 opacity-40 z-0" />
-            </div>
-          </div>
-        </FadeIn>
       </section>
 
       {/* ═══ TRUST BAR ═══ */}

@@ -149,6 +149,7 @@ class MagicLinkService {
         email: normalizedEmail,
         return_to: sanitizedReturnTo,
         fingerprint: botProtection.generateFingerprint(),
+        captcha_token: captchaToken,
       };
 
       // Include captcha token if provided
@@ -182,7 +183,7 @@ class MagicLinkService {
       }
 
       // Extract clean error message — guard against [object Object]
-      let message = 'Something went wrong. Please try again.';
+      let message = 'Failed to send magic link. Please try again.';
       if (typeof error?.message === 'string' && error.message.length > 0 && !error.message.includes('[object Object]')) {
         message = error.message.replace(/\s*\(HTTP\s*\d+\)\s*$/, '');
       } else if (typeof error === 'string') {

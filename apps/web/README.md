@@ -1,18 +1,26 @@
-# JobHuntin Web
+# Sorce Web
 
-## Local development
-1. `npm install`
-2. Create a `.env` file with `VITE_API_URL` (pointing to your FastAPI backend).
-3. `npm run dev`
+This is the web application for Sorce.
 
-Vite will boot on http://localhost:5173.
+## Development
 
-## API integration
-- Authentication is handled via magic links through the backend API.
-- `src/lib/api.ts` reads `VITE_API_URL` for all backend requests.
-- `src/hooks/usePlan.ts` reads `VITE_API_URL` (defaults to empty string). Point it at your FastAPI base to share billing state.
+To start the development server, run:
 
-## Next screens to build
-1. **Applications list:** sortable table with action menu.
-2. **Inbox:** timeline cards showing nudges, notes, and worker events.
-3. **Upgrade flow:** billing modal surfaced from plan badge to manage Stripe checkout.
+```bash
+npm run dev
+```
+
+## SEO
+
+### Broken Link Checker
+
+To check for broken links, you need to have the development server running first.
+
+1.  Start the dev server:
+    ```bash
+    npm run dev
+    ```
+2.  In a separate terminal, run the link checker:
+    ```bash
+    npm run check-links
+    ```

@@ -221,10 +221,58 @@ export function generateLocationRoleSEO(
  * Generate advanced schema markup for Knowledge Graph optimization
  * Focuses on valid, valuable structured data
  */
-function generateAdvancedSchema(role: string, location: string, locationData: any, roleData: any, currentDate: string): object[] {
+function generateAdvancedSchema(role: string, location: string, locationData: any, roleData: any, currentDate: string, author?: { '@type': string; name: string; url?: string }): object[] {
   const baseSalary = roleData?.avgSalary || 125000;
   const salaryMin = Math.floor(baseSalary * 0.8);
   const salaryMax = Math.floor(baseSalary * 1.4);
+
+  const jobPostingSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    'title': `${role} Jobs in ${location}`,
+    'description': `Find ${role} job opportunities in ${location}. Competitive salaries, remote options, and growth opportunities. Apply today through JobHuntin's AI-powered platform.`,
+    'datePosted': currentDate,
+    'validThrough': new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    'employmentType': 'FULL_TIME',
+    'hiringOrganization': {
+      '@type': 'Organization',
+      'name': 'JobHuntin',
+      'sameAs': 'https://jobhuntin.com',
+      'logo': 'https://jobhuntin.com/logo.png'
+    },
+    'jobLocation': {
+      '@type': 'Place',
+      'address': {
+        '@type': 'PostalAddress',
+        'addressLocality': location.split(',')[0] || location,
+        'addressRegion': location.split(',')[1]?.trim() || (locationData?.state) || 'US',
+        'addressCountry': locationData?.country || 'US'
+      }
+    },
+    'baseSalary': {
+      '@type': 'MonetaryRange',
+      'currency': 'USD',
+      'minValue': salaryMin * 100,
+      'maxValue': salaryMax * 100,
+      'unitText': 'YEAR'
+    },
+    'estimatedSalary': {
+        '@type': 'MonetaryAmount',
+        'currency': 'USD',
+        'value': {
+          '@type': 'QuantitativeValue',
+          'minValue': salaryMin,
+          'maxValue': salaryMax,
+          'unitText': 'YEAR'
+        }
+      },
+    'jobLocationType': locationData?.remotePercentage > 50 ? 'TELECOMMUTE' : 'OFFER',
+    'directApply': true,
+    'applicantLocationRequirements': {
+      '@type': 'Country',
+      'name': 'US'
+    }
+  };
 
   return [
     // LocalBusiness Schema - For location pages
@@ -245,7 +293,13 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
         '@type': 'City',
         'name': location
       },
-      'priceRange': '$$'
+      'priceRange': '$$',
+      'makesOffer': jobPostingSchema,
+      'hasOfferCatalog': {
+        '@type': 'OfferCatalog',
+        'name': `${role} job openings in ${location}`,
+        'itemListElement': [ jobPostingSchema ]
+      }
       // NOTE: aggregateRating REMOVED - Google requires ratings to reflect
       // real user reviews. Fabricated ratings violate structured data policies
       // and can trigger manual actions. Add this back only with real review data.
@@ -269,7 +323,8 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
       'occupationLocation': {
         '@type': 'City',
         'name': location
-      }
+      },
+      'mainEntityOfPage': jobPostingSchema
     },
     // FAQPage Schema - Addresses user questions
     {
@@ -309,7 +364,7 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
       'headline': `${role} Job Market Report: ${location} ${new Date().getFullYear()}`,
       'datePublished': currentDate,
       'dateModified': currentDate,
-      'author': {
+      'author': author || {
         '@type': 'Organization',
         'name': 'JobHuntin',
         'url': 'https://jobhuntin.com'
@@ -324,54 +379,7 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
       },
       'description': `Comprehensive analysis of the ${role} job market in ${location}, including salary data, hiring trends, and career opportunities.`
     },
-    // JobPosting Schema - Rich snippets for job listings
-    {
-      '@context': 'https://schema.org',
-      '@type': 'JobPosting',
-      'title': `${role} Jobs in ${location}`,
-      'description': `Find ${role} job opportunities in ${location}. Competitive salaries, remote options, and growth opportunities. Apply today through JobHuntin's AI-powered platform.`,
-      'datePosted': currentDate,
-      'validThrough': new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      'employmentType': 'FULL_TIME',
-      'hiringOrganization': {
-        '@type': 'Organization',
-        'name': 'JobHuntin',
-        'sameAs': 'https://jobhuntin.com',
-        'logo': 'https://jobhuntin.com/logo.png'
-      },
-      'jobLocation': {
-        '@type': 'Place',
-        'address': {
-          '@type': 'PostalAddress',
-          'addressLocality': location.split(',')[0] || location,
-          'addressRegion': location.split(',')[1]?.trim() || (locationData?.state) || 'US',
-          'addressCountry': locationData?.country || 'US'
-        }
-      },
-      'baseSalary': {
-        '@type': 'MonetaryRange',
-        'currency': 'USD',
-        'minValue': salaryMin * 100,
-        'maxValue': salaryMax * 100,
-        'unitText': 'YEAR'
-      },
-      'estimatedSalary': {
-        '@type': 'MonetaryAmount',
-        'currency': 'USD',
-        'value': {
-          '@type': 'QuantitativeValue',
-          'minValue': salaryMin,
-          'maxValue': salaryMax,
-          'unitText': 'YEAR'
-        }
-      },
-      'jobLocationType': locationData?.remotePercentage > 50 ? 'TELECOMMUTE' : 'OFFER',
-      'directApply': true,
-      'applicantLocationRequirements': {
-        '@type': 'Country',
-        'name': 'US'
-      }
-    },
+
     // FAQ Schema - FAQ rich snippets
     {
       '@context': 'https://schema.org',

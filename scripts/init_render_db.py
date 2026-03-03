@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 async def init_schema(conn):
     """Initialize database schema."""
     # Get schema from file
-    schema_file = Path(__file__).parent.parent / "infra" / "supabase" / "schema.sql"
+    schema_file = Path(__file__).parent.parent.parent / "infra" / "supabase" / "schema.sql"
     if not schema_file.exists():
         raise FileNotFoundError(f"Schema file not found: {schema_file}")
 

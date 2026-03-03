@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 import rolesData from '../data/roles.json';
 import locationsData from '../data/locations.json';
 import { generateLocationRoleSEO } from '../utils/seoOptimizer';
-import { generateSemanticLinksForLocationRole } from '../utils/semanticLinking';
+import { generateSemanticLinksForLocationRole, generateTopicalClusters } from '../utils/semanticLinking';
+import TopicalClusters from '../components/marketing/TopicalClusters';
 import { sanitizeSlug, isValidSlug, generateJobPagePath, detectSpammyPattern } from '../utils/urlSanitizer';
 
 export default function JobNiche() {
@@ -49,6 +50,11 @@ export default function JobNiche() {
     cityInfo?.name || city || 'Remote',
     roleInfo,
     cityInfo
+  );
+
+  const topicalClusters = generateTopicalClusters(
+    roleInfo?.name || role || 'Professional',
+    cityInfo?.name || city || 'Remote',
   );
 
   const formattedRole = roleInfo?.name || role?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || "Professional";
@@ -329,6 +335,8 @@ export default function JobNiche() {
             ))}
           </div>
         </section>
+
+        <TopicalClusters clusters={topicalClusters} />
 
         {/* Related Links - Mobile optimized */}
         <section className="bg-white rounded-2xl sm:rounded-[2.5rem] p-6 sm:p-10 border border-slate-100 shadow-sm mb-10 sm:mb-20">

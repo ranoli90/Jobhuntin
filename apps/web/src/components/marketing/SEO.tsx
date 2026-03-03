@@ -55,7 +55,15 @@ export const SEO = ({
     "@type": "WebSite",
     "name": "JobHuntin",
     "url": BASE_URL,
+    "alternateName": "AI Job Search Automation",
     "description": description,
+    "inLanguage": "en-US",
+    "publisher": {
+      "@type": "Organization",
+      "name": "JobHuntin",
+      "url": BASE_URL,
+      "logo": `${BASE_URL}/logo.png`
+    },
     "potentialAction": {
       "@type": "SearchAction",
       "target": `${BASE_URL}/search?q={search_term_string}`,
@@ -82,15 +90,7 @@ export const SEO = ({
       "https://twitter.com/jobhuntin",
       "https://github.com/ranoli90/sorce",
       "https://linkedin.com/company/jobhuntin"
-    ],
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": `${BASE_URL}/search?q={search_term_string}`
-      },
-      "query-input": "required name=search_term_string"
-    }
+    ]
   };
 
   // SoftwareApplication schema for the main product
