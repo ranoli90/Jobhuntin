@@ -4,87 +4,88 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../../../../components/ui/Button";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { BehavioralQuestion, WorkStyleProfile } from "../../../../types/onboarding";
+import { t, getLocale } from "../../../../lib/i18n";
 
-const BEHAVIORAL_QUESTIONS: BehavioralQuestion[] = [
+const getBehavioralQuestions = (locale: string): BehavioralQuestion[] => [
     {
         id: "blocked_dependency",
-        question: "Your team is blocked by a dependency. You:",
+        question: t("onboarding.workStyleQuestion1", locale),
         options: [
-            "Build a workaround and move forward",
-            "Escalate to get unblocked",
-            "Document the blocker and wait",
-            "Pick up other work while waiting"
+            t("onboarding.workStyleQ1Option1", locale),
+            t("onboarding.workStyleQ1Option2", locale),
+            t("onboarding.workStyleQ1Option3", locale),
+            t("onboarding.workStyleQ1Option4", locale)
         ],
         maps_to: "autonomy_preference"
     },
     {
         id: "learning_new_tech",
-        question: "Best way to learn a new technology:",
+        question: t("onboarding.workStyleQuestion2", locale),
         options: [
-            "Read docs thoroughly first",
-            "Build something small immediately",
-            "Pair with someone experienced",
-            "Take a structured course"
+            t("onboarding.workStyleQ2Option1", locale),
+            t("onboarding.workStyleQ2Option2", locale),
+            t("onboarding.workStyleQ2Option3", locale),
+            t("onboarding.workStyleQ2Option4", locale)
         ],
         maps_to: "learning_style"
     },
     {
         id: "company_stage",
-        question: "Which environment do you thrive in?",
+        question: t("onboarding.workStyleQuestion3", locale),
         options: [
-            "Early-stage startup (chaos, ownership)",
-            "Growth-stage company (scaling, process)",
-            "Enterprise (stability, specialization)",
-            "No strong preference"
+            t("onboarding.workStyleQ3Option1", locale),
+            t("onboarding.workStyleQ3Option2", locale),
+            t("onboarding.workStyleQ3Option3", locale),
+            t("onboarding.workStyleQ3Option4", locale)
         ],
         maps_to: "company_stage_preference"
     },
     {
         id: "communication_style",
-        question: "Preferred way to collaborate:",
+        question: t("onboarding.workStyleQuestion4", locale),
         options: [
-            "Async (Slack, docs, PRs)",
-            "Real-time (meetings, pairing)",
-            "Mixed depending on urgency",
-            "Whatever the team prefers"
+            t("onboarding.workStyleQ4Option1", locale),
+            t("onboarding.workStyleQ4Option2", locale),
+            t("onboarding.workStyleQ4Option3", locale),
+            t("onboarding.workStyleQ4Option4", locale)
         ],
         maps_to: "communication_style"
     },
     {
         id: "work_pace",
-        question: "Ideal work pace:",
+        question: t("onboarding.workStyleQuestion5", locale),
         options: [
-            "Fast (ship fast, iterate)",
-            "Steady (predictable sprints)",
-            "Methodical (thorough before shipping)",
-            "Varies by project"
+            t("onboarding.workStyleQ5Option1", locale),
+            t("onboarding.workStyleQ5Option2", locale),
+            t("onboarding.workStyleQ5Option3", locale),
+            t("onboarding.workStyleQ5Option4", locale)
         ],
         maps_to: "pace_preference"
     },
     {
         id: "ownership_style",
-        question: "How do you prefer to own work?",
+        question: t("onboarding.workStyleQuestion6", locale),
         options: [
-            "Solo (end-to-end ownership)",
-            "Team (collaborative ownership)",
-            "Lead (guide others, delegate)",
-            "Mix depending on scope"
+            t("onboarding.workStyleQ6Option1", locale),
+            t("onboarding.workStyleQ6Option2", locale),
+            t("onboarding.workStyleQ6Option3", locale),
+            t("onboarding.workStyleQ6Option4", locale)
         ],
         maps_to: "ownership_preference"
     }
 ];
 
-const TRAJECTORY_QUESTION = {
+const getTrajectoryQuestion = (locale: string) => ({
     id: "career_trajectory",
-    question: "In 3 years, what's your ideal role?",
+    question: t("onboarding.workStyleQuestion7", locale),
     options: [
-        { value: "ic", label: "Individual contributor (deep expertise)" },
-        { value: "tech_lead", label: "Tech lead (team influence)" },
-        { value: "manager", label: "Engineering manager (people leadership)" },
-        { value: "founder", label: "Founder/CTO (company building)" },
-        { value: "open", label: "Open to multiple paths" }
+        { value: "ic", label: t("onboarding.workStyleQ7Option1", locale) },
+        { value: "tech_lead", label: t("onboarding.workStyleQ7Option2", locale) },
+        { value: "manager", label: t("onboarding.workStyleQ7Option3", locale) },
+        { value: "founder", label: t("onboarding.workStyleQ7Option4", locale) },
+        { value: "open", label: t("onboarding.workStyleQ7Option5", locale) }
     ]
-};
+});
 
 const VALUE_MAPS: Record<string, Record<string, string>> = {
     autonomy_preference: {
@@ -140,6 +141,10 @@ export function WorkStyleStep({
     setAnswers,
     isSaving,
 }: WorkStyleStepProps) {
+    const locale = getLocale();
+    const BEHAVIORAL_QUESTIONS = getBehavioralQuestions(locale);
+    const TRAJECTORY_QUESTION = getTrajectoryQuestion(locale);
+    
     const [currentQuestion, setCurrentQuestion] = React.useState(0);
     const allQuestions = [...BEHAVIORAL_QUESTIONS, { ...TRAJECTORY_QUESTION, maps_to: "career_trajectory" }];
     const totalQuestions = allQuestions.length;
@@ -191,8 +196,12 @@ export function WorkStyleStep({
                         <Brain className="h-4 w-4 md:h-8 md:w-8" />
                     </div>
                     <div className="min-w-0">
-                        <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">Work Style</h2>
-                        <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">Help us find your ideal environment</p>
+                        <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">
+                            {t("onboarding.workStyleTitle", locale)}
+                        </h2>
+                        <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">
+                            {t("onboarding.workStyleSubtitle", locale)}
+                        </p>
                     </div>
                 </div>
 
@@ -208,7 +217,7 @@ export function WorkStyleStep({
                                         ? "bg-slate-400 scale-125"
                                         : "bg-slate-200"
                                 }`}
-                            aria-label={`Question ${idx + 1}`}
+                            aria-label={`${t("onboarding.question", locale) || "Question"} ${idx + 1}`}
                         />
                     ))}
                 </div>
@@ -277,7 +286,7 @@ export function WorkStyleStep({
 
                 {/* Question counter */}
                 <p className="mt-4 md:mt-6 text-center text-[10px] md:text-xs text-slate-400">
-                    Question {currentQuestion + 1} of {totalQuestions}
+                    {t("onboarding.questionCounter", locale).replace("{current}", String(currentQuestion + 1)).replace("{total}", String(totalQuestions))}
                 </p>
             </div>
 
@@ -286,10 +295,10 @@ export function WorkStyleStep({
                     variant="ghost"
                     onClick={onPrev}
                     className="h-12 sm:h-9 md:h-12 rounded-[1.25rem] font-black text-slate-400 hover:text-slate-900 border-2 border-slate-100 hover:bg-slate-50 transition-all text-[10px] md:text-base px-3 md:px-4 touch-manipulation"
-                    aria-label="Go to previous step"
+                    aria-label={t("onboarding.back", locale)}
                 >
                     <ArrowLeft className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-5 md:w-5" />
-                    PREV
+                    {t("onboarding.prev", locale)}
                 </Button>
                 {!isComplete && (
                     <Button
@@ -297,20 +306,20 @@ export function WorkStyleStep({
                         onClick={onNext}
                         disabled={isSaving}
                         className="h-12 sm:h-9 md:h-12 rounded-[1.25rem] font-black border-2 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all text-[10px] md:text-sm px-4 touch-manipulation"
-                        aria-label="Skip work style questions"
+                        aria-label={t("onboarding.skip", locale)}
                     >
-                        Skip
+                        {t("onboarding.skip", locale)}
                     </Button>
                 )}
                 <Button
                     onClick={onNext}
                     disabled={!isComplete || isSaving}
                     className="flex-[2] h-12 sm:h-9 md:h-12 rounded-[1.25rem] font-black bg-emerald-600 hover:bg-emerald-500 shadow-2xl shadow-emerald-500/30 text-xs md:text-lg disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
-                    aria-label="Save work style and continue" data-onboarding-next
+                    aria-label={t("onboarding.saveWorkStyle", locale)} data-onboarding-next
                 >
                     {isSaving ? <LoadingSpinner size="sm" /> : (
                         <>
-                            SAVE WORK STYLE
+                            {t("onboarding.saveWorkStyle", locale)}
                             <ArrowRight className="ml-1 md:ml-2 h-3.5 w-3.5 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform" />
                         </>
                     )}

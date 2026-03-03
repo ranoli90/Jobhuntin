@@ -5,6 +5,7 @@ import { Button } from "../../../../components/ui/Button";
 import { Card } from "../../../../components/ui/Card";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { pushToast } from "../../../../lib/toast";
+import { t, getLocale } from "../../../../lib/i18n";
 
 interface ContactInfo {
     first_name?: string;
@@ -39,26 +40,46 @@ export function ReadyStep({
     resumeFile,
     shouldReduceMotion,
 }: ReadyStepProps) {
+    const locale = getLocale();
+
     const handleShareArchetype = async () => {
-        const role = preferences.role_type || "tech professional";
-        const text = `I just set up my AI job hunter on JobHuntin as a ${role}. Check it out! #JobHuntin`;
+        const role = preferences.role_type || t("onboarding.techProfessional", locale) || "tech professional";
+        const text = t("onboarding.shareArchetypeText", locale)?.replace("{role}", role) || 
+            `I just set up my AI job hunter on JobHuntin as a ${role}. Check it out! #JobHuntin`;
         try {
             await navigator.clipboard.writeText(text);
-            pushToast({ title: "Copied to clipboard!", description: "Share it on social media.", tone: "success" });
+            pushToast({ 
+                title: t("onboarding.copiedClipboard", locale), 
+                description: t("onboarding.shareOnSocial", locale), 
+                tone: "success" 
+            });
         } catch {
-            pushToast({ title: "Couldn't copy", description: "Your browser blocked clipboard access.", tone: "error" });
+            pushToast({ 
+                title: t("onboarding.copyFailed", locale), 
+                description: t("onboarding.browserBlocked", locale), 
+                tone: "error" 
+            });
         }
     };
 
     const handleReferFriend = async () => {
-        const text = "Join me on JobHuntin and let AI apply for you! https://jobhuntin.com";
+        const text = t("onboarding.referFriendText", locale) || "Join me on JobHuntin and let AI apply for you! https://jobhuntin.com";
         try {
             await navigator.clipboard.writeText(text);
-            pushToast({ title: "Link copied!", description: "Share with friends.", tone: "success" });
+            pushToast({ 
+                title: t("onboarding.linkCopied", locale), 
+                description: t("onboarding.shareWithFriends", locale), 
+                tone: "success" 
+            });
         } catch {
-            pushToast({ title: "Couldn't copy", description: "Your browser blocked clipboard access.", tone: "error" });
+            pushToast({ 
+                title: t("onboarding.copyFailed", locale), 
+                description: t("onboarding.browserBlocked", locale), 
+                tone: "error" 
+            });
         }
     };
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex-1">
@@ -76,10 +97,10 @@ export function ReadyStep({
                     </div>
 
                     <h1 className="mb-1 md:mb-4 font-display text-2xl md:text-5xl font-black text-slate-900 tracking-tight">
-                        System <span className="text-emerald-500 italic">Online.</span>
+                        {t("onboarding.systemOnline", locale).split(' ')[0]} <span className="text-emerald-500 italic">{t("onboarding.systemOnline", locale).split(' ')[1] || "Online"}.</span>
                     </h1>
                     <p className="mb-4 md:mb-12 text-slate-500 font-medium max-w-sm mx-auto text-sm md:text-lg leading-relaxed">
-                        Calibration successful. Your digital twin is initialized.
+                        {t("onboarding.calibrationSuccess", locale)}
                     </p>
 
                     {/* Preferences Summary Table */}
@@ -92,40 +113,62 @@ export function ReadyStep({
                                     <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-primary-400">
                                         <Rocket className="h-3 w-3 md:h-4 md:w-4" aria-hidden />
                                     </div>
-                                    <h3 className="font-black text-white/50 text-[8px] md:text-[10px] uppercase tracking-[0.3em]">Operational Directives</h3>
+                                    <h3 className="font-black text-white/50 text-[8px] md:text-[10px] uppercase tracking-[0.3em]">
+                                        {t("onboarding.operationalDirectives", locale)}
+                                    </h3>
                                 </div>
                                 <div className="space-y-4 md:space-y-6">
                                     <div className="flex items-start justify-between group">
                                         <div>
-                                            <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">CONFIRMED IDENTITY</p>
-                                            <p className="font-black text-sm md:text-lg text-white group-hover:text-emerald-400 transition-colors uppercase">{contactInfo.first_name} {contactInfo.last_name}</p>
-                                            <p className="text-[10px] md:text-xs text-white/40 font-medium mt-0.5 max-w-[150px] truncate">{contactInfo.email}</p>
+                                            <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">
+                                                {t("onboarding.confirmedIdentity", locale)}
+                                            </p>
+                                            <p className="font-black text-sm md:text-lg text-white group-hover:text-emerald-400 transition-colors uppercase">
+                                                {contactInfo.first_name} {contactInfo.last_name}
+                                            </p>
+                                            <p className="text-[10px] md:text-xs text-white/40 font-medium mt-0.5 max-w-[150px] truncate">
+                                                {contactInfo.email}
+                                            </p>
                                         </div>
                                         <User className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-emerald-500 transition-colors" aria-hidden />
                                     </div>
                                     <div className="flex items-start justify-between group">
                                         <div>
-                                            <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">AOI GEOLOCATION</p>
-                                            <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.location || "Global Priority"}</p>
+                                            <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">
+                                                {t("onboarding.aoiGeolocation", locale)}
+                                            </p>
+                                            <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">
+                                                {preferences.location || t("onboarding.globalPriority", locale) || "Global Priority"}
+                                            </p>
                                         </div>
                                         <MapPin className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" aria-hidden />
                                     </div>
                                     <div className="flex items-start justify-between group">
                                         <div>
-                                            <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">TARGET CLASSIFICATION</p>
-                                            <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">{preferences.role_type || "Senior Impact Role"}</p>
+                                            <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">
+                                                {t("onboarding.targetClassification", locale)}
+                                            </p>
+                                            <p className="font-black text-sm md:text-lg text-white group-hover:text-primary-400 transition-colors uppercase">
+                                                {preferences.role_type || t("onboarding.seniorImpact", locale) || "Senior Impact Role"}
+                                            </p>
                                         </div>
                                         <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-white/10 group-hover:text-primary-500 transition-colors" aria-hidden />
                                     </div>
                                 </div>
                                 <div className="mt-6 md:mt-10 pt-4 md:pt-8 border-t border-white/5 grid grid-cols-2 gap-3 md:gap-6">
                                     <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 group">
-                                        <p className="text-[8px] md:text-[9px] uppercase font-black text-emerald-500/70 mb-1 tracking-widest">Match Strength</p>
+                                        <p className="text-[8px] md:text-[9px] uppercase font-black text-emerald-500/70 mb-1 tracking-widest">
+                                            {t("onboarding.matchStrength", locale)}
+                                        </p>
                                         <p className="text-xl md:text-2xl font-black text-emerald-400 italic">{completeness}%</p>
                                     </div>
                                     <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-primary-500/10 border border-primary-500/20 group">
-                                        <p className="text-[8px] md:text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">Data Points</p>
-                                        <p className="text-xl md:text-2xl font-black text-primary-400 italic">{[contactInfo.first_name, contactInfo.email, preferences.location, preferences.role_type, (preferences.salary_min != null && preferences.salary_min !== ""), (profile?.resume_url || (resumeFile instanceof File))].filter(Boolean).length}/6</p>
+                                        <p className="text-[8px] md:text-[9px] uppercase font-black text-primary-500/70 mb-1 tracking-widest">
+                                            {t("onboarding.dataPoints", locale)}
+                                        </p>
+                                        <p className="text-xl md:text-2xl font-black text-primary-400 italic">
+                                            {[contactInfo.first_name, contactInfo.email, preferences.location, preferences.role_type, (preferences.salary_min != null && preferences.salary_min !== ""), (profile?.resume_url || (resumeFile instanceof File))].filter(Boolean).length}/6
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -135,9 +178,17 @@ export function ReadyStep({
             </div>
 
             <div className="pt-2 md:pt-4 shrink-0 mt-auto sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-slate-950 dark:via-slate-950/95 backdrop-blur">
-                <Button size="lg" variant="primary" onClick={onNext} className="w-full h-10 md:h-16 rounded-[1.25rem] md:rounded-[2rem] text-base md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" disabled={isCompleting} aria-label="Complete setup and go to jobs" data-onboarding-next>
+                <Button 
+                    size="lg" 
+                    variant="primary" 
+                    onClick={onNext} 
+                    className="w-full h-10 md:h-16 rounded-[1.25rem] md:rounded-[2rem] text-base md:text-2xl font-black shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] bg-primary-600 hover:bg-primary-500 hover:scale-[1.03] active:scale-95 transition-all group overflow-hidden relative" 
+                    disabled={isCompleting} 
+                    aria-label={t("onboarding.launchCommandCenter", locale)} 
+                    data-onboarding-next
+                >
                     <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">
-                        {isCompleting ? <LoadingSpinner size="sm" /> : "LAUNCH COMMAND CENTER"}
+                        {isCompleting ? <LoadingSpinner size="sm" /> : t("onboarding.launchCommandCenter", locale)}
                         <Rocket className="h-5 w-5 md:h-8 md:w-8 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" aria-hidden />
                     </span>
                     <motion.div
@@ -146,7 +197,9 @@ export function ReadyStep({
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
                     />
                 </Button>
-                <p className="mt-2 md:mt-8 text-[8px] md:text-[10px] text-slate-400 font-black uppercase tracking-[0.4em] hidden md:block">Full system authority granted.</p>
+                <p className="mt-2 md:mt-8 text-[8px] md:text-[10px] text-slate-400 font-black uppercase tracking-[0.4em] hidden md:block">
+                    {t("onboarding.fullSystemAuthority", locale)}
+                </p>
 
                 <div className="mt-4 md:mt-8 flex justify-center">
                     <button
@@ -154,14 +207,14 @@ export function ReadyStep({
                         className="text-[10px] md:text-xs font-bold text-primary-600 hover:text-primary-700 underline decoration-dotted underline-offset-4 flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity"
                     >
                         <User className="w-3 h-3" aria-hidden />
-                        SHARE YOUR ARCHETYPE
+                        {t("onboarding.shareArchetype", locale)}
                     </button>
                     <div className="w-[1px] h-3 bg-slate-300 mx-3 opacity-50"></div>
                     <button
                         onClick={handleReferFriend}
                         className="text-[10px] md:text-xs font-bold text-slate-400 hover:text-slate-600 underline decoration-dotted underline-offset-4 transition-colors"
                     >
-                        REFER A FRIEND
+                        {t("onboarding.referFriend", locale)}
                     </button>
                 </div>
             </div>
