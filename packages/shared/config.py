@@ -189,8 +189,8 @@ class Settings(BaseSettings):
     slack_ops_channel: str = "#ops-alerts"
 
     # ── SSO ────────────────────────────────────────────────────────
-    sso_sp_entity_id: str = "https://api.jobhuntin.com/sso/saml/metadata"
-    sso_sp_acs_url: str = "https://api.jobhuntin.com/sso/saml/acs"
+    sso_sp_entity_id: str = "https://sorce-api.onrender.com/sso/saml/metadata"
+    sso_sp_acs_url: str = "https://sorce-api.onrender.com/sso/saml/acs"
     sso_session_secret: str = ""  # HMAC secret for SSO session tokens
 
     # ── Sentry / Observability ─────────────────────────────────────

@@ -179,6 +179,11 @@ async def get_current_user_id(
 ) -> str:
     """Decode a JWT and return the `sub` claim as user_id.
     S1: Accepts token from Authorization header OR jobhuntin_auth httpOnly cookie.
+
+    NOTE: Token replay protection (jti check) is handled at the /auth/verify-magic
+    endpoint level only. We do NOT check jti here because the httpOnly auth cookie
+    reuses the same JWT for the entire session — consuming the jti on the first
+    API call would block all subsequent calls.
     """
     import jwt as pyjwt
 
@@ -200,14 +205,6 @@ async def get_current_user_id(
             token, s.jwt_secret, algorithms=["HS256"], audience="authenticated"
         )
         user_id: str = payload["sub"]
-
-        jti = payload.get("jti")
-        if jti:
-            from api.auth import _mark_token_consumed
-            if not await _mark_token_consumed(jti, s):
-                logger.warning("Replay attempt for token jti=%s", jti)
-                raise HTTPException(status_code=401, detail="Token has already been used")
-
         return user_id
     except pyjwt.PyJWTError as exc:
         logger.warning("JWT validation failed: %s", exc)
@@ -215,3 +212,4 @@ async def get_current_user_id(
     except Exception as exc:
         logger.warning("Token processing error: %s", exc)
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+

@@ -20,6 +20,8 @@ from pydantic import BaseModel
 from shared.alerting import AlertSeverity, AlertStatus, get_alert_manager
 from shared.logging_config import get_logger
 from shared.monitoring_config import get_monitoring_config
+
+from packages.shared.circuit_breaker import get_all_circuit_breaker_statuses
 from shared.structured_logging import get_structured_metrics
 
 logger = get_logger("sorce.dashboard")
@@ -362,7 +364,7 @@ async def get_performance_trends(
     }
 
     duration = time_range_map.get(time_range, timedelta(hours=1))
-    interval_map.get(interval, "5 minutes")
+    _pg_interval = interval_map.get(interval, "5 minutes")  # noqa: F841 — reserved for future parameterized SQL
 
     interval_hours = duration.total_seconds() / 3600
     async with db.acquire() as conn:
