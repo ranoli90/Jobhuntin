@@ -6,6 +6,7 @@ import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { ParsedResume } from "../../../../types/onboarding";
+import { t, getLocale } from "../../../../lib/i18n";
 
 interface ConfirmContactStepProps {
     onNext: () => void;
@@ -44,6 +45,7 @@ export function ConfirmContactStep({
     onClearError,
     onSetFormError,
 }: ConfirmContactStepProps) {
+    const locale = getLocale();
 
     const handleFieldChange = (field: string, value: string) => {
         setContactInfo(c => ({ ...c, [field]: value }));
@@ -64,7 +66,7 @@ export function ConfirmContactStep({
 
         // Validate phone number if provided
         if (formatted && !isValidPhoneNumber(formatted) && onSetFormError) {
-            onSetFormError('phone', 'Please enter a valid phone number');
+            onSetFormError('phone', t("onboarding.phoneInvalid", locale) || 'Please enter a valid phone number');
         }
     };
 
@@ -73,7 +75,7 @@ export function ConfirmContactStep({
             {/* Screen reader error announcement */}
             {Object.keys(formErrors).length > 0 && (
                 <div role="alert" aria-live="polite" className="sr-only">
-                    Form has {Object.keys(formErrors).length} error{Object.keys(formErrors).length > 1 ? 's' : ''}:
+                    {t("onboarding.formErrors", locale) || "Form has"} {Object.keys(formErrors).length} {Object.keys(formErrors).length > 1 ? t("onboarding.errorsPlural", locale) || 'errors' : t("onboarding.errorsSingular", locale) || 'error'}:
                     {Object.entries(formErrors).map(([field, msg]) => `${field}: ${msg}`).join(', ')}
                 </div>
             )}
@@ -83,8 +85,12 @@ export function ConfirmContactStep({
                     <User className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div className="min-w-0">
-                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">Verify Identity</h2>
-                    <p className="text-xs md:text-sm text-slate-500 font-medium">Confirm the details we extracted.</p>
+                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">
+                        {t("onboarding.contactTitle", locale)}
+                    </h2>
+                    <p className="text-xs md:text-sm text-slate-500 font-medium">
+                        {t("onboarding.contactSubtitle", locale)}
+                    </p>
                 </div>
             </div>
 
@@ -93,12 +99,12 @@ export function ConfirmContactStep({
                     <div>
                         <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                            First Name <span className="text-red-400">*</span>
+                            {t("onboarding.firstName", locale)} <span className="text-red-400">*</span>
                         </label>
                         <Input
                             icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
                             type="text"
-                            placeholder="John"
+                            placeholder={t("onboarding.firstNamePlaceholder", locale) || "John"}
                             value={contactInfo.first_name}
                             onChange={(e) => handleFieldChange('first_name', e.target.value)}
                             onClear={() => setContactInfo(c => ({ ...c, first_name: "" }))}
@@ -109,12 +115,12 @@ export function ConfirmContactStep({
                     <div>
                         <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                            Last Name <span className="text-red-400">*</span>
+                            {t("onboarding.lastName", locale)} <span className="text-red-400">*</span>
                         </label>
                         <Input
                             icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
                             type="text"
-                            placeholder="Doe"
+                            placeholder={t("onboarding.lastNamePlaceholder", locale) || "Doe"}
                             value={contactInfo.last_name}
                             onChange={(e) => handleFieldChange('last_name', e.target.value)}
                             onClear={() => setContactInfo(c => ({ ...c, last_name: "" }))}
@@ -127,19 +133,19 @@ export function ConfirmContactStep({
                 <div>
                     <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                        Email Address <span className="text-red-400">*</span>
+                        {t("onboarding.email", locale)} <span className="text-red-400">*</span>
                     </label>
                     <Input
                         icon={<Mail className="h-4 w-4 md:h-5 md:w-5" />}
                         type="email"
-                        placeholder="john@example.com"
+                        placeholder={t("onboarding.emailPlaceholder", locale) || "john@example.com"}
                         value={contactInfo.email}
                         onChange={(e) => handleFieldChange('email', e.target.value)}
                         onClear={() => setContactInfo(c => ({ ...c, email: "" }))}
                         className="bg-white shadow-sm"
                         error={!!formErrors.email}
                     />
-                    <p className="mt-1 text-[10px] text-slate-400">We hate spam. You can unsubscribe anytime.</p>
+                    <p className="mt-1 text-[10px] text-slate-400">{t("onboarding.emailPrivacy", locale) || "We hate spam. You can unsubscribe anytime."}</p>
                     <AnimatePresence>
                         {emailTypoSuggestion && onApplyEmailSuggestion && (
                             <motion.div
@@ -153,7 +159,7 @@ export function ConfirmContactStep({
                                     onClick={() => onApplyEmailSuggestion(emailTypoSuggestion)}
                                     className="text-xs font-bold text-primary-600 hover:text-primary-700 underline"
                                 >
-                                    Did you mean <span className="italic">{contactInfo.email.split('@')[0]}@{emailTypoSuggestion}</span>?
+                                    {t("onboarding.didYouMean", locale)} <span className="italic">{contactInfo.email.split('@')[0]}@{emailTypoSuggestion}</span>?
                                 </button>
                             </motion.div>
                         )}
@@ -163,19 +169,19 @@ export function ConfirmContactStep({
                 <div>
                     <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                        Phone Number
+                        {t("onboarding.phone", locale)}
                     </label>
                     <Input
                         icon={<Phone className="h-4 w-4 md:h-5 md:w-5" />}
                         type="tel"
-                        placeholder="+1 (555) 123-4567"
+                        placeholder={t("onboarding.phonePlaceholder", locale) || "+1 (555) 123-4567"}
                         value={contactInfo.phone}
                         onChange={(e) => handlePhoneChange(e.target.value)}
                         onClear={() => setContactInfo(c => ({ ...c, phone: "" }))}
                         className="bg-white shadow-sm"
                         error={!!formErrors.phone}
                     />
-                    <p className="mt-1 text-[10px] text-slate-400">Optional. Include country code (e.g. +1 for US).</p>
+                    <p className="mt-1 text-[10px] text-slate-400">{t("onboarding.phoneHint", locale) || "Optional. Include country code (e.g. +1 for US)."}</p>
                     {formErrors.phone && (
                         <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.phone}</p>
                     )}
@@ -185,9 +191,9 @@ export function ConfirmContactStep({
                     <div className="p-3 md:p-4 rounded-xl bg-emerald-50 border border-emerald-100">
                         <div className="flex items-center gap-2 mb-1">
                             <Sparkles className="h-4 w-4 text-emerald-600" />
-                            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">AI-Extracted From Resume</p>
+                            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{t("onboarding.aiExtracted", locale) || "AI-Extracted From Resume"}</p>
                         </div>
-                        <p className="text-xs text-emerald-800 font-medium">We pre-filled these from your resume. Please verify details.</p>
+                        <p className="text-xs text-emerald-800 font-medium">{t("onboarding.verifyDetails", locale) || "We pre-filled these from your resume. Please verify details."}</p>
                     </div>
                 )}
             </div>
@@ -198,19 +204,19 @@ export function ConfirmContactStep({
                     variant="ghost"
                     onClick={onPrev}
                     className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
-                    aria-label="Go back to previous step"
+                    aria-label={t("onboarding.back", locale)}
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
+                    {t("onboarding.back", locale)}
                 </Button>
                 <Button
                     type="button"
                     onClick={onNext}
                     disabled={!contactInfo.first_name || !contactInfo.last_name || !contactInfo.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo.email) || isSavingContact}
                     className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
-                    aria-label="Confirm identity and continue" data-onboarding-next
+                    aria-label={t("onboarding.confirmIdentity", locale) || "Confirm identity and continue"} data-onboarding-next
                 >
-                    {isSavingContact ? <LoadingSpinner size="sm" /> : "Continue"}
+                    {isSavingContact ? <LoadingSpinner size="sm" /> : t("onboarding.continue", locale)}
                 </Button>
             </div>
         </div>
