@@ -66,12 +66,12 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     
-  # Background Worker (SEO Engine)
+  # Background Worker (Modern SEO Engine 2024)
   - type: worker
     name: jobhuntin-seo-engine
     env: node
     buildCommand: cd apps/web && npm ci
-    startCommand: cd apps/web && npm run seo:engine
+    startCommand: cd apps/web && npx tsx scripts/seo/modern-seo-engine.ts
     envVars:
       - key: GOOGLE_SERVICE_ACCOUNT_KEY
         sync: false  # Set in Render dashboard
@@ -81,16 +81,36 @@ services:
         value: production
       - key: NODE_VERSION
         value: 20
+      # AI Models for different content types
       - key: LLM_API_KEY
         sync: false  # OpenRouter API Key
       - key: LLM_API_BASE
         value: https://openrouter.ai/api/v1
       - key: LLM_MODEL
-        value: google/gemini-2.0-flash  # Best value: $0.10/1M input, $0.40/1M output
+        value: openai/gpt-4o-mini  # Main content generation
+      - key: LLM_MODEL_RESEARCH
+        value: anthropic/claude-3-haiku  # Fast research
+      - key: LLM_MODEL_OPTIMIZATION
+        value: google/gemini-flash-1.5  # Title/meta optimization
+      # SEO Engine Configuration
+      - key: SEO_PARALLEL_WORKERS
+        value: "5"
+      - key: SEO_DAILY_LIMIT
+        value: "500"
+      - key: SEO_BATCH_SIZE
+        value: "20"
+      - key: SEO_BATCH_DELAY_MS
+        value: "10000"
       - key: DATABASE_URL
         sync: false  # For progress tracking - NEVER hardcode
       - key: REDIS_URL
         sync: false  # For caching SEO results
+      # Search Console API
+      - key: GSC_API_KEY
+        sync: false
+      # IndexNow API
+      - key: INDEXNOW_API_KEY
+        sync: false
     autoDeploy: true
 
   # Background Worker (Auto-Apply Agent)
