@@ -49,7 +49,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const fetchUser = useCallback(async (isInitialLoad = false) => {
         if (import.meta.env.DEV) console.log('[AUTH] Fetching user profile...');
         try {
-            const profile = await apiGet<User>("/profile");
+            let profile: User;
+
+            if (isInitialLoad) {
+                // On initial load, use a direct fetch that does NOT dispatch auth:unauthorized
+                // on 401. apiGet() dispatches the event BEFORE the error reaches this catch block,
+                // causing an unwanted redirect + "session expired" toast on first visit.
+                const base = getApiBase();
+                const resp = await fetch(`${base.replace(/\/$/, "")}/profile`, {
+                    method: "GET",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                });
+                if (!resp.ok) {
+                    // Silently handle 401 on initial load — user simply isn't logged in yet
+                    if (import.meta.env.DEV) console.log('[AUTH] Initial profile check returned', resp.status);
+                    setUser(null);
+                    sessionExpiryRef.current = null;
+                    return;
+                }
+                profile = await resp.json();
+            } else {
+                // Subsequent calls (e.g. refreshUser) — use apiGet which has retry + error handling
+                profile = await apiGet<User>("/profile");
+            }
+
             setUser(profile);
             if (import.meta.env.DEV) {
                 console.log('[AUTH] User profile loaded:', {

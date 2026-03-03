@@ -799,7 +799,11 @@ async def verify_magic_link(
         max_age=ttl,
         httponly=True,
         secure=is_prod,
-        samesite="lax",  # Security: lax prevents CSRF while allowing normal navigation
+        # IMPORTANT: Must be "none" (not "lax") because onrender.com is on the
+        # Public Suffix List. sorce-web.onrender.com and sorce-api.onrender.com
+        # are treated as DIFFERENT sites, so SameSite=Lax blocks cookies on
+        # cross-origin fetch/XHR. SameSite=None + Secure allows it.
+        samesite="none" if is_prod else "lax",
         path="/",
     )
     return response
