@@ -1,18 +1,28 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp, Briefcase, Compass } from 'lucide-react';
+import { ArrowRight, TrendingUp, Briefcase, Compass, Search, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
 import { t, getLocale } from '../lib/i18n';
 
 export default function NotFound() {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const trendingSearches = [
     { label: "Software Engineer Jobs", path: "/app/jobs?role=software-engineer" },
     { label: "Product Manager Jobs", path: "/app/jobs?role=product-manager" },
     { label: "Data Scientist Jobs", path: "/app/jobs?role=data-scientist" },
     { label: "Marketing Manager Jobs", path: "/app/jobs?role=marketing-manager" },
   ];
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/app/jobs?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
@@ -57,6 +67,35 @@ export default function NotFound() {
             {t("404.description", getLocale())}
           </p>
 
+          {/* Search Box */}
+          <form onSubmit={handleSearch} className="w-full max-w-md mx-auto mb-8">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for jobs..."
+                className="w-full pl-12 pr-10 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="w-full mt-3 h-11 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
+            >
+              Search Jobs
+            </button>
+          </form>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
             <Link to="/login" aria-label={t("404.startFree", getLocale())}>
               <Button size="lg" className="rounded-xl px-8 shadow-xl shadow-primary-500/20 font-bold">
@@ -90,7 +129,7 @@ export default function NotFound() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-900 truncate">{search.label}</p>
-                    <p className="text-[10px] text-slate-400 font-medium">{t("404.applyWithAI", getLocale())}</p>
+                    <p className="text-[10px] text-slate-500 font-medium">{t("404.applyWithAI", getLocale())}</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary-500 transition-colors shrink-0" aria-hidden />
                 </Link>

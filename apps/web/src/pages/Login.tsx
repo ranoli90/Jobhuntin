@@ -6,7 +6,8 @@ import { pushToast } from '../lib/toast';
 import {
   ArrowRight, Mail, AlertCircle,
   CheckCircle, ShieldCheck, MailCheck,
-  Briefcase, Send, Zap, Loader2
+  Briefcase, Send, Zap, Loader2,
+  Lock, Server, EyeOff
 } from 'lucide-react';
 import { Logo } from '../components/brand/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -391,6 +392,28 @@ export default function Login() {
               }}
               disabled={isLoading}
             />
+
+            {/* Security Badges */}
+            <div className="grid grid-cols-3 gap-3 py-4 border-y border-slate-100">
+              <div className="flex flex-col items-center gap-1.5 text-center">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                  <Lock className="w-4 h-4 text-emerald-600" />
+                </div>
+                <span className="text-[10px] font-medium text-slate-500">256-bit SSL</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 text-center">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <Server className="w-4 h-4 text-blue-600" />
+                </div>
+                <span className="text-[10px] font-medium text-slate-500">SOC 2 Compliant</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 text-center">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                  <EyeOff className="w-4 h-4 text-purple-600" />
+                </div>
+                <span className="text-[10px] font-medium text-slate-500">GDPR Ready</span>
+              </div>
+            </div>
 
             <div className="space-y-4">
               <p className="text-center text-xs text-slate-500">
