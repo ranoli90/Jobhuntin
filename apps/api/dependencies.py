@@ -144,11 +144,13 @@ class DatabasePoolManager:
     @staticmethod
     def _get_ssl_config(settings: any) -> any:
         """Get SSL config for database connection."""
-        if settings.db_ssl_ca_cert_path:
+        if getattr(settings, "db_ssl_ca_cert_path", None):
             import ssl
             ctx = ssl.create_default_context(cafile=settings.db_ssl_ca_cert_path)
             return ctx
-        return None
+        # Explicitly disable SSL if no cert path is configured.
+        # This prevents "rejected SSL upgrade" errors in local dev with asyncpg.
+        return False
 
     async def close(self) -> None:
         """Close the database pool on shutdown."""

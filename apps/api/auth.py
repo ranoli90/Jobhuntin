@@ -307,11 +307,12 @@ async def _find_or_create_user_by_email(
         email,
     )
     
-    # Create profile for new user
+    # Create profile for new user (ON CONFLICT to handle race conditions)
     await conn.execute(
         """
-        INSERT INTO public.profiles (user_id, resume_url, profile_data)
-        VALUES ($1, '', '{}')
+        INSERT INTO public.profiles (user_id, profile_data)
+        VALUES ($1, '{}')
+        ON CONFLICT (user_id) DO NOTHING
     """,
         user_id,
     )
@@ -575,7 +576,19 @@ async def _send_magic_link_email(
 ) -> None:
     """Send magic link email via Resend with retry logic."""
     if not settings.resend_api_key:
-        raise HTTPException(status_code=500, detail="Email service is not configured")
+        # In production, email must be configured. In local/dev, log the link instead.
+        if settings.env.value == "prod":
+            raise HTTPException(status_code=500, detail="Email service is not configured")
+        # LOCAL DEV FALLBACK: print magic link to server logs so devs can click it
+        logger.warning(
+            "\n" + "="*70 + "\n"
+            "[DEV] RESEND_API_KEY not set — magic link NOT sent by email.\n"
+            "[DEV] Click this link to authenticate:\n"
+            "[DEV] %s\n"
+            "="*70,
+            action_link,
+        )
+        return
 
     # Render email content using templates
     html = _render_email_html(settings, action_link, return_to)
@@ -790,19 +803,40 @@ async def verify_magic_link(
     })
     redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}"
 
-    ttl = getattr(settings, "magic_link_token_ttl_seconds", 3600)
+    # ----------------------------------------------------------------
+    # CRITICAL FIX: Issue a fresh SESSION JWT with sub=user_id (UUID).
+    # The original magic-link JWT may have sub=email for new users.
+    # All downstream API dependencies (get_current_user_id) expect sub
+    # to be a UUID. The session cookie must use the resolved UUID.
+    # Session TTL is 7 days (separate from the 1h magic link TTL).
+    # ----------------------------------------------------------------
+    SESSION_TTL_SECONDS = 7 * 24 * 3600  # 7 days
+    import uuid as _uuid_mod
+    from datetime import datetime as _dt, timedelta as _td
+    import jwt as _jwt
+    _now = _dt.now(timezone.utc)
+    session_payload = {
+        "sub": str(user_id),
+        "email": email,
+        "aud": "authenticated",
+        "jti": str(_uuid_mod.uuid4()),
+        "iat": _now,
+        "nbf": _now,
+        "exp": _now + _td(seconds=SESSION_TTL_SECONDS),
+    }
+    session_token = _jwt.encode(session_payload, settings.jwt_secret, algorithm="HS256")
+
     is_prod = settings.env.value in ("prod", "staging")
     response = RedirectResponse(url=redirect_url, status_code=302)
     response.set_cookie(
         key=AUTH_COOKIE_NAME,
-        value=token,
-        max_age=ttl,
+        value=session_token,
+        max_age=SESSION_TTL_SECONDS,
         httponly=True,
         secure=is_prod,
-        # IMPORTANT: Must be "none" (not "lax") because onrender.com is on the
-        # Public Suffix List. sorce-web.onrender.com and sorce-api.onrender.com
-        # are treated as DIFFERENT sites, so SameSite=Lax blocks cookies on
-        # cross-origin fetch/XHR. SameSite=None + Secure allows it.
+        # IMPORTANT: Must be "none" for cross-origin Render deployments.
+        # onrender.com subdomains are different sites per Public Suffix List.
+        # SameSite=Lax would block the cookie on cross-origin fetch/XHR.
         samesite="none" if is_prod else "lax",
         path="/",
     )
