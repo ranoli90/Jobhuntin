@@ -61,7 +61,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
     <div>
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
         <input type="email" placeholder="you@example.com" aria-label="Email address"
-          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all outline-none", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-gray-400 focus:border-indigo-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 shadow-sm", emailError && "border-red-400")}
+          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all outline-none", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-gray-500 focus:border-indigo-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-indigo-400 shadow-sm", emailError && "border-red-400")}
           value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />
         <button type="submit" disabled={isSubmitting}
@@ -304,7 +304,7 @@ export default function Homepage() {
             {["Google", "Amazon", "Meta", "Stripe", "Shopify", "Netflix"].map((name) => (
               <span 
                 key={name} 
-                className="text-xl font-bold text-gray-400 tracking-tight select-none px-4 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-500 transition-all cursor-default"
+                className="text-xl font-bold text-gray-500 tracking-tight select-none px-4 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-500 transition-all cursor-default"
                 aria-label={`Trusted employer: ${name}`}
               >
                 {name}
@@ -345,7 +345,7 @@ export default function Homepage() {
                 <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Top Matches</span>
-                    <span className="text-[9px] text-gray-400">3 of 47 found</span>
+                    <span className="text-[9px] text-gray-500">3 of 47 found</span>
                   </div>
                   {[
                     { role: "Sr. Frontend Eng", co: "Stripe", match: 98, salary: "$180k–$220k" },
@@ -356,14 +356,14 @@ export default function Homepage() {
                       <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-[11px] font-black text-indigo-700 shrink-0">{j.co.charAt(0)}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[11px] font-bold text-gray-900 truncate">{j.role}</p>
-                        <p className="text-[9px] text-gray-400">{j.co} · {j.salary}</p>
+                        <p className="text-[9px] text-gray-500">{j.co} · {j.salary}</p>
                         <div className="mt-1.5 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
                           <div className="h-full bg-green-400/60 rounded-full" style={{ width: `${j.match}%` }} />
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-[13px] font-extrabold text-green-300">{j.match}%</div>
-                        <div className="text-[7px] text-gray-400 uppercase">match</div>
+                        <div className="text-[7px] text-gray-500 uppercase">match</div>
                       </div>
                     </div>
                   ))}
@@ -448,25 +448,25 @@ export default function Homepage() {
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
                       <div className="text-[15px] font-extrabold text-gray-900">18</div>
-                      <div className="text-[7px] text-gray-400 uppercase tracking-wide">Today</div>
+                      <div className="text-[7px] text-gray-500 uppercase tracking-wide">Today</div>
                     </div>
                     <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
                       <div className="text-[15px] font-extrabold text-gray-900">127</div>
-                      <div className="text-[7px] text-gray-400 uppercase tracking-wide">This week</div>
+                      <div className="text-[7px] text-gray-500 uppercase tracking-wide">This week</div>
                     </div>
                     <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
                       <div className="text-[15px] font-extrabold text-green-300">4</div>
-                      <div className="text-[7px] text-gray-400 uppercase tracking-wide">Interviews</div>
+                      <div className="text-[7px] text-gray-500 uppercase tracking-wide">Interviews</div>
                     </div>
                   </div>
                   {/* Activity bar chart */}
-                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span className="text-[8px] text-gray-400 uppercase tracking-wider font-bold">Activity This Week</span></div>
+                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span className="text-[8px] text-gray-500 uppercase tracking-wider font-bold">Activity This Week</span></div>
                   <div className="flex items-end gap-1 h-10 mb-1">
                     {[40, 65, 55, 80, 70, 90, 45].map((h, i) => (
                       <div key={i} className="flex-1 rounded-t bg-white/15 hover:bg-indigo-200 transition-colors" style={{ height: `${h}%` }} />
                     ))}
                   </div>
-                  <div className="flex justify-between text-[7px] text-gray-400 font-medium">
+                  <div className="flex justify-between text-[7px] text-gray-500 font-medium">
                     {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
                   </div>
                 </div>
@@ -528,8 +528,8 @@ export default function Homepage() {
                         { role: "UX Designer", co: "Figma", status: "Applied", color: "bg-indigo-100 text-indigo-700" },
                       ].map((row, i) => (
                         <div key={i} className="flex items-center gap-3 py-3 border-t border-gray-50">
-                          <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Briefcase className="w-4 h-4 text-gray-400" /></div>
-                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{row.role}</p><p className="text-xs text-gray-400">{row.co}</p></div>
+                          <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Briefcase className="w-4 h-4 text-gray-500" /></div>
+                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{row.role}</p><p className="text-xs text-gray-500">{row.co}</p></div>
                           <div className={cn("px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0", row.color)}>{row.status}</div>
                         </div>
                       ))}
@@ -621,9 +621,9 @@ export default function Homepage() {
                     </div>
                     <LiveActivityFeed />
                     <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-3 gap-2">
-                      <div className="text-center"><div className="text-lg font-bold text-gray-900">18</div><div className="text-[9px] text-gray-400">Today</div></div>
-                      <div className="text-center"><div className="text-lg font-bold text-gray-900">127</div><div className="text-[9px] text-gray-400">This week</div></div>
-                      <div className="text-center"><div className="text-lg font-bold text-gray-900">4</div><div className="text-[9px] text-gray-400">Interviews</div></div>
+                      <div className="text-center"><div className="text-lg font-bold text-gray-900">18</div><div className="text-[9px] text-gray-500">Today</div></div>
+                      <div className="text-center"><div className="text-lg font-bold text-gray-900">127</div><div className="text-[9px] text-gray-500">This week</div></div>
+                      <div className="text-center"><div className="text-lg font-bold text-gray-900">4</div><div className="text-[9px] text-gray-500">Interviews</div></div>
                     </div>
                   </div>
                 </div>
@@ -779,7 +779,7 @@ export default function Homepage() {
               <Link to="/login" className="inline-flex items-center gap-2 h-14 px-10 rounded-full text-base font-semibold bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/25 hover:-translate-y-0.5 transition-all">
                 Get Started Free <ArrowRight className="w-4 h-4" />
               </Link>
-              <p className="mt-4 text-sm text-gray-400">Your first applications go out today</p>
+              <p className="mt-4 text-sm text-gray-500">Your first applications go out today</p>
             </div>
           </FadeIn>
         </div>

@@ -119,7 +119,7 @@ export default function Login() {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center" role="status" aria-label="Checking sign-in">
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} aria-hidden>
-          <Loader2 className="w-8 h-8 text-gray-400" />
+          <Loader2 className="w-8 h-8 text-gray-500" />
         </motion.div>
       </div>
     );

@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckCircle, Zap, Crown, CreditCard, ChevronDown } from 'lucide-react';
+import { CheckCircle, Zap, Crown, CreditCard, ChevronDown, X } from 'lucide-react';
 import { t, getLocale } from '../lib/i18n';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { useAuth } from '../hooks/useAuth';
 import { useBilling } from '../hooks/useBilling';
 import { telemetry } from '../lib/telemetry';
 import { cn } from '../lib/utils';
 import { FadeIn } from '../components/animations/FadeIn';
+import { PricingSkeleton } from '../components/ui/Skeleton';
 
 // FAQ Item Component for collapsible behavior
 const FAQItem = ({ question, answer }: { question: string; answer: string }) => {
@@ -31,7 +32,7 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
           transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
           className="flex-shrink-0"
         >
-          <ChevronDown className="w-5 h-5 text-gray-400" aria-hidden="true" />
+          <ChevronDown className="w-5 h-5 text-gray-500" aria-hidden="true" />
         </motion.div>
       </button>
       <motion.div
@@ -51,8 +52,87 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
 };
 
 // B3: Verify plan IDs (FREE, PRO, TEAM) match backend /billing/checkout and Stripe products
+// Exit Intent Popup Component
+function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const navigate = useNavigate();
+  const locale = getLocale();
+  
+  if (!isOpen) return null;
+  
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Decorative gradient */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-400/20 to-primary-600/20 blur-3xl -mr-16 -mt-16" />
+            
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+              aria-label="Close popup"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center mb-6">
+                <Zap className="w-8 h-8 text-primary-600" />
+              </div>
+              
+              <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-3">
+                Wait! Don't miss out
+              </h3>
+              
+              <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                Join <span className="font-bold text-slate-900">10,000+ job seekers</span> who automated their job search. 
+                Get your first interviews in just 48 hours.
+              </p>
+              
+              <div className="space-y-3">
+                <Link
+                  to="/login"
+                  onClick={onClose}
+                  className="block w-full h-14 rounded-2xl bg-primary-600 text-white font-bold text-center leading-[56px] hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/25 hover:shadow-primary-600/40 hover:-translate-y-0.5"
+                >
+                  Start Free Trial
+                </Link>
+                
+                <button
+                  onClick={onClose}
+                  className="block w-full h-12 text-slate-500 font-medium hover:text-slate-700 transition-colors"
+                >
+                  Maybe later
+                </button>
+              </div>
+              
+              <p className="text-xs text-slate-400 text-center mt-4">
+                No credit card required. Cancel anytime.
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
+  const [showExitIntent, setShowExitIntent] = useState(false);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { plan, loading: billingLoading, upgrade } = useBilling();
@@ -61,6 +141,40 @@ export default function Pricing() {
 
   const isLoggedIn = !!user;
   const isProOrHigher = plan === 'PRO' || plan === 'TEAM';
+
+  // Exit intent detection
+  useEffect(() => {
+    // Skip if user is logged in or already pro
+    if (isLoggedIn || isProOrHigher) return;
+    
+    // Check if we've already shown the popup this session
+    if (sessionStorage.getItem('exitIntentShown')) return;
+    
+    let mouseY = 0;
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseY = e.clientY;
+    };
+    
+    const handleMouseLeave = (e: MouseEvent) => {
+      // Trigger when mouse leaves through the top of the page
+      if (e.clientY < 10 && mouseY < 100 && !sessionStorage.getItem('exitIntentShown')) {
+        setShowExitIntent(true);
+        sessionStorage.setItem('exitIntentShown', 'true');
+        telemetry.track("exit_intent_triggered", { page: "pricing" });
+      }
+    };
+    
+    // Only track on desktop
+    if (window.innerWidth >= 1024) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseleave', handleMouseLeave);
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [isLoggedIn, isProOrHigher]);
 
   const handleFreeCta = () => {
     if (isLoggedIn) {
@@ -94,8 +208,14 @@ export default function Pricing() {
     return t("pricing.startTrial", locale);
   };
 
+  // Show skeleton while loading auth/billing state
+  if (authLoading || billingLoading) {
+    return <PricingSkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700 pb-20">
+      <ExitIntentPopup isOpen={showExitIntent} onClose={() => setShowExitIntent(false)} />
       <SEO
         title="Pricing | JobHuntin AI: Free to Start, $19/mo Pro for Unlimited Auto-Apply"
         description="JobHuntin pricing: Free tier to start, Pro at $19/month for unlimited AI job applications, resume tailoring, and stealth mode. One interview pays for a lifetime."
@@ -173,7 +293,7 @@ export default function Pricing() {
 
           {/* Toggle */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <span className={`text-xs font-black uppercase tracking-widest ${!annual ? 'text-slate-950 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>Monthly</span>
+            <span className={`text-xs font-black uppercase tracking-widest ${!annual ? 'text-slate-950 dark:text-slate-100' : 'text-gray-500 dark:text-slate-500'}`}>Monthly</span>
             <button
               onClick={() => setAnnual(!annual)}
               className="w-14 h-8 bg-slate-200 dark:bg-slate-800 rounded-full p-1 relative transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -186,7 +306,7 @@ export default function Pricing() {
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </button>
-            <span className={`text-xs font-black uppercase tracking-widest flex items-center gap-2 ${annual ? 'text-slate-950 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>
+            <span className={`text-xs font-black uppercase tracking-widest flex items-center gap-2 ${annual ? 'text-slate-950 dark:text-slate-100' : 'text-gray-500 dark:text-slate-500'}`}>
               Annual <span className="bg-primary-600 text-white text-[9px] px-2 py-0.5 rounded-full shadow-lg shadow-primary-600/20">Save 25%</span>
             </span>
           </div>
@@ -199,10 +319,10 @@ export default function Pricing() {
             className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col h-full"
           >
             <div className="mb-10">
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Starter</h3>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 mb-4">Starter</h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-5xl font-black text-slate-950">$0</span>
-                <span className="text-sm font-bold text-gray-400">/mo</span>
+                <span className="text-sm font-bold text-gray-500">/mo</span>
               </div>
             </div>
 
@@ -280,10 +400,10 @@ export default function Pricing() {
             className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col h-full"
           >
             <div className="mb-10">
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Agency</h3>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 mb-4">Agency</h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-5xl font-black text-slate-950">$199</span>
-                <span className="text-sm font-bold text-gray-400">/mo</span>
+                <span className="text-sm font-bold text-gray-500">/mo</span>
               </div>
             </div>
 

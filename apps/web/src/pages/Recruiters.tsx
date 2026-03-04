@@ -153,7 +153,7 @@ export default function Recruiters() {
                 <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-6 text-emerald-400 break-all sm:break-normal font-mono">
                   $ curl api.jobhuntin.io/v1/candidates
                 </h2>
-                <p className="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-8 text-balance">
+                <p className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-8 text-balance">
                   Direct pipe to the top 1% of the market. Webhooks, JSON streams, and zero UI friction.
                 </p>
                 <Button variant="outline" size="lg" className="border-emerald-500 text-emerald-500 bg-transparent hover:bg-emerald-500/10 px-6 sm:px-8 py-3 sm:py-4 h-auto rounded-xl font-bold transition-colors">
