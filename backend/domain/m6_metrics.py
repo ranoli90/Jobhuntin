@@ -94,7 +94,7 @@ async def get_platform_summary(conn: asyncpg.Connection) -> dict[str, Any]:
 
 async def get_m6_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     """Complete M6 platform dashboard."""
-    from packages.backend.domain.m5_metrics import get_m5_dashboard
+    from backend.domain.m5_metrics import get_m5_dashboard
 
     m5 = await get_m5_dashboard(conn)
     summary = await get_platform_summary(conn)
@@ -149,7 +149,7 @@ async def get_full_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
     """
     from datetime import datetime
 
-    from packages.backend.domain.m5_metrics import get_investor_metrics
+    from backend.domain.m5_metrics import get_investor_metrics
 
     base = await get_investor_metrics(conn)
     arr_vertical = await get_arr_by_vertical(conn)
@@ -221,6 +221,6 @@ async def get_full_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
 
 async def refresh_m6_views(conn: asyncpg.Connection) -> None:
     """Refresh all M1–M6 materialized views."""
-    from packages.backend.domain.m5_metrics import refresh_m5_views
+    from backend.domain.m5_metrics import refresh_m5_views
     await refresh_m5_views(conn)
     await conn.execute("SELECT public.refresh_m6_views()")

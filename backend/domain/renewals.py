@@ -110,7 +110,7 @@ async def _send_renewal_notification(
     )
 
     # Send Slack notification
-    from packages.backend.domain.alerting_v2 import send_slack_message
+    from backend.domain.alerting_v2 import send_slack_message
     await send_slack_message(
         text=msg,
         channel=get_settings().slack_enterprise_channel,

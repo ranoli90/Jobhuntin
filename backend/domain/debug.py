@@ -7,7 +7,7 @@ from typing import Any
 
 import asyncpg
 
-from packages.backend.domain.masking import redact_event_payload
+from backend.domain.masking import redact_event_payload
 
 
 async def build_debug_bundle(conn: asyncpg.Connection, application_id: str) -> dict[str, Any] | None:

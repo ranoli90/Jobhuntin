@@ -12,7 +12,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from packages.backend.domain.observability import run_all_alerts
+from backend.domain.observability import run_all_alerts
 
 logger = get_logger("sorce.alerting_v2")
 

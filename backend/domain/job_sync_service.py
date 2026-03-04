@@ -14,7 +14,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from packages.backend.domain.jobspy_client import JobSpyClient, JobSpyError
+from backend.domain.jobspy_client import JobSpyClient, JobSpyError
 from shared.metrics import incr
 
 logger = get_logger("sorce.job_sync")

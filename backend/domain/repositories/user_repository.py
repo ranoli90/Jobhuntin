@@ -1,4 +1,4 @@
-from packages.backend.domain.repositories import db_transaction
+from backend.domain.repositories import db_transaction
 
 
 class UserRepository:

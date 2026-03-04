@@ -18,13 +18,13 @@ import json
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from packages.backend.domain.vectordb import VectorDB
+    from backend.domain.vectordb import VectorDB
 
 import asyncpg
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
-from packages.backend.domain.embeddings import (
+from backend.domain.embeddings import (
     EmbeddingClient,
     cosine_similarity,
     get_embedding_client,
@@ -660,7 +660,7 @@ class VectorMatchRepo:
     async def _get_vectordb(self, conn: asyncpg.Connection | None = None) -> VectorDB:
         """Get or initialize the vector database."""
         if self._vectordb is None:
-            from packages.backend.domain.vectordb import get_vectordb
+            from backend.domain.vectordb import get_vectordb
 
             self._vectordb = await get_vectordb(conn=conn)
         return self._vectordb
