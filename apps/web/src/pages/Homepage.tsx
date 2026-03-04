@@ -627,7 +627,7 @@ export default function Homepage() {
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="text-center max-w-2xl mx-auto mb-20">
-              <p className="text-purple-600 font-semibold text-sm uppercase tracking-wider mb-4">Simple setup</p>
+              <p className="text-slate-500 font-semibold text-sm uppercase tracking-wider mb-4">Simple setup</p>
               <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
                 Set up in 2 minutes.<br />Then it runs on autopilot.
               </h2>
@@ -637,7 +637,7 @@ export default function Homepage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Step 1 — Upload Resume */}
             <FadeIn delay={0}>
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-violet-700 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 border border-slate-700/50 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/20">
                 <div className="absolute top-3 right-3 w-24 h-24 bg-white/[0.06] rounded-2xl rotate-12" />
                 <div className="absolute bottom-8 right-6 w-16 h-16 bg-white/[0.04] rounded-xl -rotate-6" />
                 <div className="relative">
@@ -665,7 +665,7 @@ export default function Homepage() {
 
             {/* Step 2 — Set Filters */}
             <FadeIn delay={100}>
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-orange-400 via-rose-500 to-pink-600 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/20">
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-800 via-zinc-800 to-zinc-900 border border-zinc-700/50 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-zinc-900/20">
                 <div className="absolute top-4 right-4 w-20 h-20 bg-white/[0.06] rounded-full" />
                 <div className="absolute bottom-10 right-8 w-12 h-12 bg-white/[0.04] rounded-full" />
                 <div className="relative">
@@ -693,7 +693,7 @@ export default function Homepage() {
 
             {/* Step 3 — AI Applies */}
             <FadeIn delay={200}>
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20">
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-800 via-neutral-800 to-neutral-900 border border-neutral-700/50 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-neutral-900/20">
                 <div className="absolute top-3 right-3 w-28 h-16 bg-white/[0.05] rounded-xl rotate-6" />
                 <div className="absolute bottom-12 right-4 w-14 h-14 bg-white/[0.04] rounded-lg -rotate-12" />
                 <div className="relative">
@@ -722,7 +722,7 @@ export default function Homepage() {
 
             {/* Step 4 — Get Interviews */}
             <FadeIn delay={300}>
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20">
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900 border border-gray-700/50 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-gray-900/20">
                 <div className="absolute top-4 right-4 w-20 h-20 bg-white/[0.06] rounded-2xl rotate-12" />
                 <div className="absolute bottom-8 right-6 w-14 h-10 bg-white/[0.04] rounded-xl -rotate-3" />
                 <div className="relative">
