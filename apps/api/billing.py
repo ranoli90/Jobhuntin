@@ -11,8 +11,8 @@ from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
 from shared.middleware import get_tenant_context
 
-from backend.domain.billing import ensure_stripe_customer, update_subscription_state
-from backend.domain.stripe_client import get_stripe, protected_stripe_call
+from packages.backend.domain.billing import ensure_stripe_customer, update_subscription_state
+from packages.backend.domain.stripe_client import get_stripe, protected_stripe_call
 
 logger = get_logger("sorce.api.billing")
 
