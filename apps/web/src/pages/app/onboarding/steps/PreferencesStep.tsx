@@ -123,11 +123,19 @@ export function PreferencesStep({
     };
 
     const handleSalaryChange = (field: 'salary_min' | 'salary_max', value: string) => {
-        setPreferences(p => ({ ...p, [field]: value }));
+        // Only allow digits and one decimal point
+        const cleaned = value.replace(/[^0-9.]/g, '');
+        setPreferences(p => ({ ...p, [field]: cleaned }));
         if (onClearError && (formErrors.salary_min || formErrors.salary_max)) {
             onClearError('salary_min');
             onClearError('salary_max');
         }
+    };
+
+    const formatSalaryPreview = (value: string): string => {
+        const num = parseFloat(value);
+        if (isNaN(num) || value === '') return '';
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
     };
 
     const handleExcludedKeywordsChange = (value: string) => {
@@ -216,6 +224,9 @@ export function PreferencesStep({
                         {formErrors.salary_min && (
                             <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.salary_min}</p>
                         )}
+                        {preferences.salary_min && !formErrors.salary_min && (
+                            <p className="mt-1 text-[10px] text-emerald-600 font-medium">{formatSalaryPreview(preferences.salary_min)}</p>
+                        )}
                     </div>
                     <div>
                         <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -234,6 +245,9 @@ export function PreferencesStep({
                         {formErrors.salary_max && (
                             <p className="mt-1 text-[10px] text-red-500 font-medium">{formErrors.salary_max}</p>
                         )}
+                        {preferences.salary_max && !formErrors.salary_max && (
+                            <p className="mt-1 text-[10px] text-emerald-600 font-medium">{formatSalaryPreview(preferences.salary_max)}</p>
+                        )}
                     </div>
                 </div>
                 <p className="text-[10px] text-slate-400 -mt-2">{t("onboarding.salaryHint", locale)}</p>
@@ -249,7 +263,12 @@ export function PreferencesStep({
                             <input
                                 type="checkbox"
                                 checked={preferences.remote_only}
-                                onChange={(e) => setPreferences(p => ({ ...p, remote_only: e.target.checked }))}
+                                onChange={(e) => setPreferences(p => ({
+                                    ...p,
+                                    remote_only: e.target.checked,
+                                    // Mutually exclusive with onsite_only
+                                    onsite_only: e.target.checked ? false : p.onsite_only
+                                }))}
                                 className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                             />
                             <span className="text-sm text-slate-700">{t("onboarding.remoteOnly", locale)}</span>
@@ -258,7 +277,12 @@ export function PreferencesStep({
                             <input
                                 type="checkbox"
                                 checked={preferences.onsite_only || false}
-                                onChange={(e) => setPreferences(p => ({ ...p, onsite_only: e.target.checked }))}
+                                onChange={(e) => setPreferences(p => ({
+                                    ...p,
+                                    onsite_only: e.target.checked,
+                                    // Mutually exclusive with remote_only
+                                    remote_only: e.target.checked ? false : p.remote_only
+                                }))}
                                 className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                             />
                             <span className="text-sm text-slate-700">{t("onboarding.onsiteOnly", locale)}</span>
