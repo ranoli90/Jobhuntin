@@ -1,7 +1,7 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle, X, MessageCircle, Book, Mail, ExternalLink } from "lucide-react";
-import { cn } from "../../lib/utils";
+import { cn } from "../lib/utils";
 
 interface HelpButtonProps {
   className?: string;

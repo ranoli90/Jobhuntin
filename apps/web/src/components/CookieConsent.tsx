@@ -37,7 +37,6 @@ export function CookieConsent() {
     }
     try {
       const consent = JSON.parse(raw);
-      const ts = consent?.ts;
       // Check if consent is outdated (version or expiry)
       const isVersionOutdated = consent?.version !== CONSENT_VERSION;
       const ts = consent?.ts;
@@ -60,7 +59,6 @@ export function CookieConsent() {
         });
       } else {
         setVisible(true);
-      }
       }
     } catch {
       setVisible(true);
