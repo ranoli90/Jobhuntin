@@ -80,8 +80,8 @@ services:
   - type: worker
     name: jobhuntin-seo-engine
     env: node
-    buildCommand: cd apps/web && npm ci
-    startCommand: cd apps/web && npx tsx scripts/seo/modern-seo-engine.ts
+    buildCommand: cd apps/web && npm ci && npm ls tsx
+    startCommand: cd apps/web && node --import tsx scripts/seo/modern-seo-engine.ts
     envVars:
       - key: GOOGLE_SERVICE_ACCOUNT_KEY
         sync: false  # Set in Render dashboard
