@@ -177,26 +177,28 @@ export default function Homepage() {
         <div className="relative max-w-7xl mx-auto px-6 pt-28 sm:pt-36 pb-12">
           <div className="max-w-3xl mx-auto text-center">
             <FadeIn>
-              <h1 className="text-[clamp(2.2rem,6vw,5.5rem)] font-extrabold leading-[1.05] tracking-[-0.04em] text-gray-900">
-                The automation platform for<br className="hidden sm:block" />
-                <span className="text-slate-900 underline decoration-slate-900/20 underline-offset-[8px] sm:underline-offset-[12px]">job seekers</span>
+              <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] font-black leading-[1.0] tracking-[-0.05em] text-slate-900">
+                Land your next job<br className="hidden sm:block" />
+                <span className="text-indigo-600">without the search</span>
               </h1>
             </FadeIn>
             <FadeIn delay={80}>
-              <p className="mt-6 text-lg sm:text-xl sm:text-[1.35rem] text-gray-500 max-w-xl mx-auto leading-relaxed">
-                Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep.
+              <p className="mt-8 text-lg sm:text-xl sm:text-[1.35rem] text-slate-600 max-w-xl mx-auto leading-relaxed">
+                Stop spending 20 hours a week applying. We find the matching jobs, tailor your resume, and apply for you — all while you sleep.
               </p>
             </FadeIn>
             <FadeIn delay={160}>
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/login" className="h-14 px-10 rounded-full text-base font-semibold bg-gray-900 text-white hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
-                  Get Started Free <ArrowRight className="w-4 h-4" />
+              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link to="/login" className="h-16 px-12 rounded-full text-lg font-bold bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-2xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                  Start Applying Free <ArrowRight className="w-5 h-5" />
                 </Link>
-                <a href="#how-it-works" className="h-14 px-10 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <a href="#how-it-works" className="h-16 px-12 rounded-full text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   See How It Works
                 </a>
               </div>
-              <p className="mt-5 text-sm text-gray-400">Free to start · No credit card required</p>
+              <p className="mt-6 text-sm font-medium text-slate-400 flex items-center justify-center gap-2">
+                <Check className="w-4 h-4 text-green-500" /> Free to start · No card required
+              </p>
             </FadeIn>
           </div>
         </div>
@@ -297,9 +299,9 @@ export default function Homepage() {
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="text-center max-w-3xl mx-auto mb-20">
-              <p className="text-slate-500 font-semibold text-sm uppercase tracking-wider mb-4">How JobHuntin works for you</p>
-              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
-                Everything you need to<br />land more interviews
+              <p className="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-4">Your secret weapon</p>
+              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-black tracking-tight text-slate-900 leading-[1.1]">
+                Everything you need to<br />land your dream role
               </h2>
             </div>
           </FadeIn>
@@ -312,10 +314,10 @@ export default function Homepage() {
                   <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
                     <Target className="w-7 h-7 text-indigo-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Precision Matching</h3>
-                  <p className="text-gray-600 leading-relaxed text-[15px] mb-2">The matching engine analyzes thousands of listings and only applies to roles that truly fit your skills and goals.</p>
-                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-semibold text-sm mt-2 group/l">
-                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Perfect Matches Only</h3>
+                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">Our engine analyzes thousands of listings daily and only applies to the ones that fit your skills, goals, and salary requirements.</p>
+                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-bold text-sm mt-2 group/l">
+                    How it works <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
                 <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
@@ -354,10 +356,10 @@ export default function Homepage() {
                   <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
                     <PenTool className="w-7 h-7 text-indigo-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Curated Quality</h3>
-                  <p className="text-gray-600 leading-relaxed text-[15px] mb-2">Every resume &amp; cover letter is custom-tailored, ATS-optimized, and company-tone matched.</p>
-                  <a href="#features" className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-semibold text-sm mt-2 group/l">
-                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Your Best Resume</h3>
+                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">We rewrite your resume for every single job, making sure you highlight exactly what the hiring managers are looking for.</p>
+                  <a href="#features" className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-bold text-sm mt-2 group/l">
+                    View features <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
                 <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
@@ -526,8 +528,8 @@ export default function Homepage() {
                     <li key={f} className="flex items-center gap-4"><div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-indigo-600" /></div><span className="text-gray-700 font-medium text-[15px]">{f}</span></li>
                   ))}
                 </ul>
-                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-14 px-10 rounded-full text-base font-semibold bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/25 hover:-translate-y-0.5 transition-all">
-                  Try it free <ArrowRight className="w-4 h-4" />
+                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-16 px-12 rounded-full text-lg font-bold bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-2xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all">
+                  Try it free <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
             </div>
@@ -630,9 +632,9 @@ export default function Homepage() {
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="text-center max-w-2xl mx-auto mb-20">
-              <p className="text-slate-500 font-semibold text-sm uppercase tracking-wider mb-4">Simple setup</p>
-              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
-                Set up in 2 minutes.<br />Then it runs on autopilot.
+              <p className="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-4">The process</p>
+              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-black tracking-tight text-slate-900 leading-[1.1]">
+                Set up in 2 minutes.<br />Then relax.
               </h2>
             </div>
           </FadeIn>
@@ -640,27 +642,26 @@ export default function Homepage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Step 1 — Upload Resume */}
             <FadeIn delay={0}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-indigo-100/50 p-7 text-gray-900 shadow-xl shadow-indigo-900/5 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/20">
-                <div className="absolute top-3 right-3 w-24 h-24 bg-white border border-gray-100 rounded-2xl rotate-12" />
-                <div className="absolute bottom-8 right-6 w-16 h-16 bg-indigo-50/50 rounded-xl -rotate-6" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="absolute top-3 right-3 w-24 h-24 bg-slate-50 border border-slate-100 rounded-2xl rotate-12" />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-5">
                     <Upload className="w-6 h-6 text-indigo-600" />
                   </div>
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Step 1</div>
-                  <h3 className="text-xl font-bold mb-3">Upload resume</h3>
-                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Drop your PDF or paste a URL. We parse skills, experience, and preferences instantly.</p>
+                  <h3 className="text-xl font-bold mb-3">Upload</h3>
+                  <p className="text-slate-600 text-[13px] leading-relaxed mb-5">Just drop your resume. We'll read everything and figure out what you're good at.</p>
                 </div>
-                <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-gray-100">
+                <div className="mt-auto relative bg-slate-50 rounded-xl p-3 border border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center shrink-0">
-                      <Upload className="w-5 h-5 text-gray-500" />
+                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center shrink-0">
+                      <Upload className="w-5 h-5 text-indigo-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="h-2 bg-gray-200 rounded-full w-2/3 mb-1.5" />
-                      <div className="h-1.5 bg-gray-200 rounded-full w-1/2" />
+                      <div className="h-2 bg-slate-200 rounded-full w-2/3 mb-1.5" />
+                      <div className="h-1.5 bg-slate-100 rounded-full w-1/2" />
                     </div>
-                    <div className="px-2 py-1 rounded-lg bg-green-400/20 text-[8px] font-bold text-green-300">Parsed ✓</div>
+                    <div className="px-2 py-1 rounded-lg bg-green-50 text-[10px] font-bold text-green-600">Done ✓</div>
                   </div>
                 </div>
               </div>
@@ -668,26 +669,25 @@ export default function Homepage() {
 
             {/* Step 2 — Set Filters */}
             <FadeIn delay={100}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-indigo-100/50 p-7 text-gray-900 shadow-xl shadow-indigo-900/5 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-zinc-900/20">
-                <div className="absolute top-4 right-4 w-20 h-20 bg-white border border-gray-100 rounded-full" />
-                <div className="absolute bottom-10 right-8 w-12 h-12 bg-indigo-50/50 rounded-full" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="absolute top-4 right-4 w-20 h-20 bg-slate-50 border border-slate-100 rounded-full" />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-5">
                     <SlidersHorizontal className="w-6 h-6 text-indigo-600" />
                   </div>
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Step 2</div>
-                  <h3 className="text-xl font-bold mb-3">Set your filters</h3>
-                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Roles, locations, salary range, company size — we only apply to what genuinely matches.</p>
+                  <h3 className="text-xl font-bold mb-3">Choose jobs</h3>
+                  <p className="text-slate-600 text-[13px] leading-relaxed mb-5">Tell us what you want: salary, location, and role. We ONLY apply to what you actually want.</p>
                 </div>
                 <div className="mt-auto relative space-y-2">
                   {[
-                    { label: "Role", value: "Frontend Engineer" },
-                    { label: "Salary", value: "$150k – $200k" },
+                    { label: "Role", value: "Designer" },
+                    { label: "Salary", value: "$150k+" },
                     { label: "Remote", value: "Yes" },
                   ].map((f) => (
-                    <div key={f.label} className="flex items-center justify-between bg-white/[0.08] rounded-lg px-3 py-2 border border-gray-100">
-                      <span className="text-[10px] text-gray-400 font-semibold">{f.label}</span>
-                      <span className="text-[10px] text-gray-900 font-bold">{f.value}</span>
+                    <div key={f.label} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">{f.label}</span>
+                      <span className="text-[10px] text-indigo-600 font-bold">{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -696,28 +696,27 @@ export default function Homepage() {
 
             {/* Step 3 — AI Applies */}
             <FadeIn delay={200}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-indigo-100/50 p-7 text-gray-900 shadow-xl shadow-indigo-900/5 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-neutral-900/20">
-                <div className="absolute top-3 right-3 w-28 h-16 bg-indigo-50/50 rounded-xl rotate-6" />
-                <div className="absolute bottom-12 right-4 w-14 h-14 bg-indigo-50/50 rounded-lg -rotate-12" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="absolute top-3 right-3 w-28 h-16 bg-slate-50 rounded-xl rotate-6" />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-5">
                     <Send className="w-6 h-6 text-indigo-600" />
                   </div>
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Step 3</div>
-                  <h3 className="text-xl font-bold mb-3">Automated submissions</h3>
-                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Every application is individually tailored with a custom resume and cover letter.</p>
+                  <h3 className="text-xl font-bold mb-3">Sit back</h3>
+                  <p className="text-slate-600 text-[13px] leading-relaxed mb-5">We tailor your resume for every job and submit it within minutes of them being posted.</p>
                 </div>
-                <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-gray-100">
+                <div className="mt-auto relative bg-slate-50 rounded-xl p-3 border border-slate-100">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-[9px] text-gray-500 font-semibold">Applying now…</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] text-green-600 font-bold uppercase tracking-tight">Applying now…</span>
                   </div>
-                  <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-gray-300 rounded-full w-[72%] animate-pulse" />
+                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-500 rounded-full w-[72%] transition-all" />
                   </div>
-                  <div className="flex justify-between mt-1.5">
-                    <span className="text-[8px] text-gray-400">18 of 25 today</span>
-                    <span className="text-[8px] text-green-300 font-bold">72%</span>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-[10px] font-bold text-slate-400">18 sent today</span>
+                    <span className="text-[10px] text-indigo-600 font-black">72%</span>
                   </div>
                 </div>
               </div>
@@ -725,29 +724,28 @@ export default function Homepage() {
 
             {/* Step 4 — Get Interviews */}
             <FadeIn delay={300}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-indigo-100/50 p-7 text-gray-900 shadow-xl shadow-indigo-900/5 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-gray-900/20">
-                <div className="absolute top-4 right-4 w-20 h-20 bg-white border border-gray-100 rounded-2xl rotate-12" />
-                <div className="absolute bottom-8 right-6 w-14 h-10 bg-indigo-50/50 rounded-xl -rotate-3" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="absolute top-3 right-3 w-20 h-20 bg-slate-50 border border-slate-100 rounded-2xl rotate-12" />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-5">
                     <Trophy className="w-6 h-6 text-indigo-600" />
                   </div>
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Step 4</div>
-                  <h3 className="text-xl font-bold mb-3">Get interviews</h3>
-                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Track responses, prep for interviews with data-driven insights, and land your dream role.</p>
+                  <h3 className="text-xl font-bold mb-3">Get hired</h3>
+                  <p className="text-slate-600 text-[13px] leading-relaxed mb-5">Check your inbox for interview requests. We give you the data to crush the interview.</p>
                 </div>
                 <div className="mt-auto relative grid grid-cols-3 gap-2">
-                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-gray-100">
-                    <div className="text-lg font-extrabold">7</div>
-                    <div className="text-[7px] text-gray-400 uppercase font-bold tracking-wide">Interviews</div>
+                  <div className="bg-slate-50 rounded-xl p-2.5 text-center border border-slate-100">
+                    <div className="text-lg font-black text-slate-900">7</div>
+                    <div className="text-[7px] text-slate-400 uppercase font-black tracking-widest">Interviews</div>
                   </div>
-                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-gray-100">
-                    <div className="text-lg font-extrabold">3</div>
-                    <div className="text-[7px] text-gray-400 uppercase font-bold tracking-wide">Offers</div>
+                  <div className="bg-slate-50 rounded-xl p-2.5 text-center border border-slate-100">
+                    <div className="text-lg font-black text-slate-900">3</div>
+                    <div className="text-[7px] text-slate-400 uppercase font-black tracking-widest">Offers</div>
                   </div>
-                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-gray-100">
-                    <div className="text-lg font-extrabold text-green-300">1</div>
-                    <div className="text-[7px] text-gray-400 uppercase font-bold tracking-wide">Accepted</div>
+                  <div className="bg-indigo-600 rounded-xl p-2.5 text-center shadow-lg shadow-indigo-600/20">
+                    <div className="text-lg font-black text-white">1</div>
+                    <div className="text-[7px] text-indigo-100 uppercase font-black tracking-widest">Hired</div>
                   </div>
                 </div>
               </div>
