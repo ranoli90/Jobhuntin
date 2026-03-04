@@ -237,6 +237,9 @@ class Settings(BaseSettings):
     captcha_provider: str = "recaptcha"  # recaptcha, hcaptcha, turnstile
     captcha_min_score: float = 0.5  # Minimum score for reCAPTCHA v3
 
+    # ── Promotions ───────────────────────────────────────────────────
+    first_month_coupon: str = "FIRST_MONTH_10"  # Stripe coupon ID for $10 first month
+
     # ── Referral Program ──────────────────────────────────────────
     referral_reward_apps: int = 5  # bonus apps for both referrer and referee
 

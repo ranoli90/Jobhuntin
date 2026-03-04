@@ -155,8 +155,10 @@ async def create_checkout(
         if not price_id:
             raise HTTPException(status_code=500, detail="Stripe price ID not configured")
         
-        # Create checkout session with promotion
-        # The $10 first month should be configured in Stripe as a coupon/promotion
+        # Create checkout session with $10 first month promotion
+        # Apply the FIRST_MONTH_10 coupon automatically for new subscribers
+        coupon_id = getattr(settings, 'first_month_coupon', 'FIRST_MONTH_10')
+        
         checkout_session = protected_stripe_call(
             lambda: stripe.checkout.Session.create(
                 customer=customer_id,
@@ -168,6 +170,7 @@ async def create_checkout(
                 mode="subscription",
                 success_url=body.success_url,
                 cancel_url=body.cancel_url,
+                discounts=[{"coupon": coupon_id}] if coupon_id else [],
                 subscription_data={
                     "trial_period_days": settings.stripe_free_trial_days if settings.stripe_free_trial_days > 0 else None,
                     "metadata": {
