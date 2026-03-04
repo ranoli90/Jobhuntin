@@ -15,6 +15,7 @@ import { cn } from '../lib/utils';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
 import { t, formatT, getLocale } from '../lib/i18n';
+import { SocialLoginGroup, SocialLoginDivider } from '../components/auth/SocialLogin';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -368,6 +369,28 @@ export default function Login() {
                 )}
               </Button>
             </form>
+
+            <SocialLoginDivider />
+
+            <SocialLoginGroup
+              onGoogleClick={() => {
+                pushToast({
+                  title: "Google sign-in coming soon",
+                  description: "Please use email magic link for now",
+                  tone: "info"
+                });
+                telemetry.track("social_login_clicked", { provider: "google" });
+              }}
+              onLinkedInClick={() => {
+                pushToast({
+                  title: "LinkedIn sign-in coming soon",
+                  description: "Please use email magic link for now",
+                  tone: "info"
+                });
+                telemetry.track("social_login_clicked", { provider: "linkedin" });
+              }}
+              disabled={isLoading}
+            />
 
             <div className="space-y-4">
               <p className="text-center text-xs text-slate-400">

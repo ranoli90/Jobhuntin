@@ -1,4 +1,7 @@
 import React from 'react';
+import { AlertCircle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
+import { Button } from './ui/Button';
+import { cn } from '../lib/utils';
 import { pushToast } from '../lib/toast';
 
 interface ErrorBoundaryProps {
@@ -127,4 +130,129 @@ export function withErrorBoundary<P extends object>(
       </ErrorBoundary>
     );
   };
+}
+
+// Enhanced Error Fallback UI
+interface ErrorFallbackProps {
+  error: Error | null;
+  onReset?: () => void;
+  className?: string;
+}
+
+export function ErrorFallback({ error, onReset, className }: ErrorFallbackProps) {
+  const handleGoBack = () => {
+    window.history.back();
+  };
+
+  const handleGoHome = () => {
+    window.location.href = "/";
+  };
+
+  const handleReload = () => {
+    window.location.reload();
+  };
+
+  return (
+    <div
+      className={cn(
+        "min-h-screen bg-slate-50 flex items-center justify-center p-4",
+        className
+      )}
+    >
+      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-200 p-8 text-center">
+        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertCircle className="w-10 h-10 text-red-500" />
+        </div>
+
+        <h1 className="text-2xl font-black text-slate-900 mb-3">
+          Something went wrong
+        </h1>
+
+        <p className="text-slate-500 mb-6 leading-relaxed">
+          We apologize for the inconvenience. An unexpected error has occurred.
+          Our team has been notified.
+        </p>
+
+        {error && import.meta.env.DEV && (
+          <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-left overflow-auto">
+            <p className="text-xs font-mono text-red-600 mb-2">{error.toString()}</p>
+            {error.stack && (
+              <pre className="text-[10px] font-mono text-slate-400 whitespace-pre-wrap">
+                {error.stack}
+              </pre>
+            )}
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {onReset && (
+            <Button
+              onClick={onReset}
+              className="w-full h-12 rounded-xl"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          )}
+
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleGoBack}
+              className="flex-1 h-12 rounded-xl"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Go Back
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleGoHome}
+              className="flex-1 h-12 rounded-xl"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+          </div>
+
+          <button
+            onClick={handleReload}
+            className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            Reload page
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Route-specific error boundary wrapper
+interface RouteErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+export function RouteErrorBoundary({ children }: RouteErrorBoundaryProps) {
+  return (
+    <ErrorBoundary
+      showToast
+      reportError
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <h1 className="text-xl font-bold text-slate-900 mb-2">Page Error</h1>
+            <p className="text-slate-500 mb-4">This page failed to load</p>
+            <Button onClick={() => window.location.reload()}>
+              Reload Page
+            </Button>
+          </div>
+        </div>
+      }
+    >
+      {children}
+    </ErrorBoundary>
+  );
 }
