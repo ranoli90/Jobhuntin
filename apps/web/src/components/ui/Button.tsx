@@ -13,6 +13,7 @@ const buttonVariants = cva(
         secondary:
           "bg-slate-100 text-slate-900 hover:bg-slate-200 focus:ring-slate-500",
         ghost: "bg-transparent text-slate-900 hover:bg-slate-100 focus:ring-slate-500",
+        outline: "bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 focus:ring-slate-500",
         danger: "bg-error-600 text-white hover:bg-error-700 focus:ring-error-500",
         success: "bg-success-600 text-white hover:bg-success-700 focus:ring-success-500",
         lagoon: "bg-cyan-600 text-white hover:bg-cyan-700 focus:ring-cyan-500",

@@ -51,7 +51,10 @@ export interface ProfileUpdatePayload {
 
 interface ParsedProfile {
   title?: string;
-  skills?: string[];
+  headline?: string;
+  // V2 parser returns nested skills object; V1 returns flat string[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  skills?: any; // { technical?: (string | RichSkill)[], soft?: string[] } | string[]
   experience?: Array<{
     title: string;
     company: string;
@@ -65,6 +68,8 @@ interface ParsedProfile {
   }>;
   summary?: string;
   years_experience?: number;
+  // Allow additional fields from API
+  [key: string]: unknown;
 }
 
 interface UploadResumeResponse {
@@ -193,7 +198,7 @@ export function useProfile() {
             throw err;
         }
       }
-      
+
       throw err;
     } finally {
       clearTimeout(timeoutId);
@@ -219,7 +224,7 @@ export function useProfile() {
     const hasFirstName = c?.first_name?.trim();
     const hasLastName = c?.last_name?.trim();
     const hasEmail = c?.email?.trim() || profile?.email?.trim();
-    
+
     if (!hasFirstName || !hasLastName) {
       throw new Error("Please provide your first and last name.");
     }

@@ -569,13 +569,8 @@ export function JobsView() {
 
   const handleSortChange = useCallback((value: "match_score" | "recently_matched" | "salary") => {
     setSortBy(value);
-    // Update filters with sorting preference
+    // Update filters with sorting preference — no toast, the UI selection itself is the feedback
     debouncedUpdateFilters({ sortBy: value });
-    pushToast({
-      title: "Sort updated",
-      description: `Sorting by ${value.replace('_', ' ')}`,
-      tone: "success"
-    });
   }, [debouncedUpdateFilters]);
 
   const resetFilters = useCallback(() => {
@@ -811,7 +806,26 @@ export function JobsView() {
     );
   }
 
-  if (currentIndex >= jobs.length) {
+  if (currentIndex >= jobs.length && jobs.length === 0 && !isLoading) {
+    // No jobs at all — show help state with filter suggestions
+    return (
+      <Card className="flex flex-col items-center justify-center p-12 text-center border-slate-200">
+        <div className="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center mb-6">
+          <Radar className="h-10 w-10 text-slate-400" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 mb-3">No matches found</h2>
+        <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
+          We couldn't find any jobs matching your current filters. Try widening your search or adjusting your preferences.
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-sm">
+          <Button onClick={resetFilters}>Clear all filters</Button>
+          <Button variant="outline" onClick={() => navigate("/app/onboarding")}>Update preferences</Button>
+        </div>
+      </Card>
+    );
+  }
+
+  if (currentIndex >= jobs.length && jobs.length > 0) {
     return (
       <Card tone="lagoon" className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2">
         <div className="h-20 w-20 rounded-full bg-brand-lagoon/20 flex items-center justify-center mb-6">

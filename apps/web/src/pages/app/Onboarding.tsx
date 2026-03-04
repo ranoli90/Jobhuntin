@@ -365,12 +365,11 @@ export default function Onboarding() {
     updateFormData({ contactInfo, preferences, linkedinUrl });
   }, [contactInfo, preferences, linkedinUrl, updateFormData]);
 
-  // Remember Me - Welcome Back
+  // Remember Me - Welcome Back (OB-7 fix: only once per browser session, skipped on step 0)
   React.useEffect(() => {
-    // If we have a profile but haven't completed onboarding, welcome them back
     if (profile && !profile.has_completed_onboarding && currentStep > 0) {
-      // Only show if we haven't shown it this session
-      const hasWelcomed = sessionStorage.getItem("has_welcomed_back");
+      const welcomeKey = `has_welcomed_back_${profile.id || 'anon'}`;
+      const hasWelcomed = sessionStorage.getItem(welcomeKey);
       if (!hasWelcomed) {
         const locale = getLocale();
         pushToast({
@@ -378,10 +377,10 @@ export default function Onboarding() {
           description: t("onboarding.pickingUpAt", locale).replace("{step}", currentStepData.title),
           tone: "info"
         });
-        sessionStorage.setItem("has_welcomed_back", "true");
+        sessionStorage.setItem(welcomeKey, "true");
       }
     }
-  }, [profile, currentStep, currentStepData]);
+  }, [profile?.id]); // Only re-run when profile ID changes, not on every step change
 
   // Handle email typo check (FV1: debounce to avoid flicker while typing)
   React.useEffect(() => {
@@ -476,9 +475,17 @@ export default function Onboarding() {
         if (import.meta.env.DEV) console.log('[Onboarding] Parsed profile:', p);
 
         // Cache parsed resume data for future use
-        const resumeData = {
+        const resumeData: {
+          title: string | undefined;
+          skills: string[];
+          years: number;
+          summary: string | undefined;
+          headline: string | undefined;
+          parsedProfile: typeof data.parsed_profile;
+          richSkills: RichSkill[] | null;
+        } = {
           title: p.headline || (p.experience?.[0]?.title),
-          skills: p.skills?.technical?.slice(0, 5) || [],
+          skills: (p.skills?.technical || []).filter((s: unknown) => typeof s === 'string').slice(0, 5),
           years: p.experience?.length || 0,
           summary: p.summary,
           headline: p.headline,
@@ -552,12 +559,14 @@ export default function Onboarding() {
         setShowParsingPreview(true);
 
         // Store the full parsed profile for AI suggestions
-        setParsedProfile(data.parsed_profile);
+        // Cast to satisfy state type (Record<string,unknown>) — the shape is compatible at runtime
+        setParsedProfile(data.parsed_profile as unknown as Record<string, unknown>);
 
         // Fetch AI suggestions in background (don't block)
         aiSuggestions.fetchAllSuggestions(
-          data.parsed_profile,
-          data.preferences?.location || data.contact?.location || ""
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data.parsed_profile as any,
+          data.preferences?.location || (data.contact as any)?.location || ""
         ).catch(() => {
           // Non-critical failure
           if (import.meta.env.DEV) console.log("AI suggestions fetch failed, will continue without");
@@ -1032,6 +1041,7 @@ export default function Onboarding() {
                           <WelcomeStep
                             onNext={nextStep}
                             shouldReduceMotion={!!shouldReduceMotion}
+                            firstName={profile?.contact?.first_name}
                           />
                         )}
 

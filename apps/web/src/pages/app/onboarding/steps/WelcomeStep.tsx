@@ -7,28 +7,38 @@ import { t, getLocale } from "../../../../lib/i18n";
 interface WelcomeStepProps {
     onNext: () => void;
     shouldReduceMotion?: boolean;
+    firstName?: string;
 }
 
-export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
+export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeStepProps) {
     const locale = getLocale();
-    
+
     const features = [
-        { 
-            titleKey: "onboarding.feature1Title", 
-            descKey: "onboarding.feature1Desc", 
-            icon: Sparkles 
+        {
+            titleKey: "onboarding.feature1Title",
+            descKey: "onboarding.feature1Desc",
+            icon: Sparkles
         },
-        { 
-            titleKey: "onboarding.feature2Title", 
-            descKey: "onboarding.feature2Desc", 
-            icon: MapPin 
+        {
+            titleKey: "onboarding.feature2Title",
+            descKey: "onboarding.feature2Desc",
+            icon: MapPin
         },
-        { 
-            titleKey: "onboarding.feature3Title", 
-            descKey: "onboarding.feature3Desc", 
-            icon: Rocket 
+        {
+            titleKey: "onboarding.feature3Title",
+            descKey: "onboarding.feature3Desc",
+            icon: Rocket
         },
     ];
+
+    const welcomeTitle = t("onboarding.welcomeTitle", locale);
+    const titleWords = welcomeTitle.split(" ");
+    const titleStart = titleWords.slice(0, -1).join(" ");
+    const titleEnd = titleWords.pop()?.replace(".", "") || "";
+
+    const personalGreeting = firstName
+        ? `Hey ${firstName} 👋`
+        : null;
 
     return (
         <div>
@@ -43,10 +53,22 @@ export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
                         <Rocket className="h-7 w-7 md:h-10 md:w-10 text-primary-400" />
                     </div>
                 </div>
+
+                {personalGreeting && (
+                    <motion.p
+                        initial={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="mb-1 text-sm font-semibold text-primary-600"
+                    >
+                        {personalGreeting}
+                    </motion.p>
+                )}
+
                 <h1 className="mb-2 md:mb-3 font-display text-xl md:text-3xl font-bold text-slate-900 tracking-tight leading-tight">
-                    {t("onboarding.welcomeTitle", locale).split(" ").slice(0, -1).join(" ")}{" "}
+                    {titleStart}{" "}
                     <span className="text-primary-600 italic">
-                        {t("onboarding.welcomeTitle", locale).split(" ").pop()?.replace(".", "")}.
+                        {titleEnd}.
                     </span>
                 </h1>
                 <p className="mb-4 md:mb-8 text-slate-500 font-medium leading-relaxed max-w-sm mx-auto text-sm md:text-base">
@@ -77,11 +99,11 @@ export function WelcomeStep({ onNext, shouldReduceMotion }: WelcomeStepProps) {
                 </div>
             </div>
 
-            <Button 
-                type="button" 
-                onClick={onNext} 
-                className="w-full h-11 md:h-12 rounded-xl font-bold text-base md:text-lg shadow-lg shadow-primary-500/20 bg-primary-600 hover:bg-primary-500 group" 
-                aria-label={t("onboarding.startSetup", locale)} 
+            <Button
+                type="button"
+                onClick={onNext}
+                className="w-full h-11 md:h-12 rounded-xl font-bold text-base md:text-lg shadow-lg shadow-primary-500/20 bg-primary-600 hover:bg-primary-500 group"
+                aria-label={t("onboarding.startSetup", locale)}
                 data-onboarding-next
             >
                 {t("onboarding.startSetup", locale)}
