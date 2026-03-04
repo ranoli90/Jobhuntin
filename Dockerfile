@@ -25,21 +25,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# Install Python dependencies first for layer caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
-
-RUN rm -f .env
-
+# Copy application code in dependency order
+# Shared packages first (most stable)
 COPY packages/shared/ ./shared/
 COPY packages/backend/ ./backend/
 COPY packages/blueprints/ ./blueprints/
 COPY packages/partners/ ./partners/
+
+# Applications
 COPY apps/api/ ./api/
 COPY apps/api_v2/ ./api_v2/
 COPY apps/worker/ ./worker/
+
+# Templates and config
 COPY templates/ ./templates/
+COPY infra/ ./infra/
+
+# Remove any .env file that might have been copied
+RUN rm -f .env
 
 RUN chown -R sorce:sorce /app
 
@@ -68,10 +75,11 @@ EXPOSE 8000
 USER sorce
 
 ENV PORT=8000
+
 # Render handles health checks externally via http request to /health
-# We remove the internal Docker HEALTHCHECK to avoid port mismatches and dependency issues
+# We remove the internal Docker HEALTHCHECK to avoid port mismatches
 CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
 
-# HEALTHCHECK for local Docker usage ( Render uses external health checks )
+# HEALTHCHECK for local Docker usage (Render uses external health checks)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1

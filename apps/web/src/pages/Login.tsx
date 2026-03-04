@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { pushToast } from '../lib/toast';
 import {
@@ -17,6 +17,7 @@ import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
 import { t, formatT, getLocale } from '../lib/i18n';
 import { SocialLoginGroup, SocialLoginDivider } from '../components/auth/SocialLogin';
+import { CaptchaField } from '../components/ui/Captcha';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -52,6 +53,8 @@ export default function Login() {
   const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(null);
   const [focused, setFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string>("");
+  const [showCaptcha, setShowCaptcha] = useState(false);
 
   // Email domain suggestions
   const emailDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'me.com', 'aol.com', 'protonmail.com', 'zoho.com', 'mail.com'];
@@ -105,10 +108,14 @@ export default function Login() {
     return () => clearInterval(timer);
   }, [rateLimitCountdown]);
 
-  const requestMagicLink = async (targetEmail: string, destination: string) => {
-    const result = await magicLinkService.sendMagicLink(targetEmail, destination);
+  const requestMagicLink = async (targetEmail: string, destination: string, token?: string) => {
+    const result = await magicLinkService.sendMagicLink(targetEmail, destination, token);
     if (!result.success) {
       if (result.retryAfter) setRateLimitCountdown(result.retryAfter);
+      if (result.captchaRequired) {
+        setShowCaptcha(true);
+        throw new Error(result.error || "Please complete the captcha verification");
+      }
       throw new Error(result.error || "Magic link failed");
     }
     return result.email;
@@ -122,9 +129,11 @@ export default function Login() {
     setFormError(null);
 
     try {
-      const normalized = await requestMagicLink(email, safeReturnTo);
+      const normalized = await requestMagicLink(email, safeReturnTo, captchaToken || undefined);
       setSuccessState({ email: normalized });
-      telemetry.track("login_magic_link_requested", {});
+      setShowCaptcha(false);
+      setCaptchaToken("");
+      telemetry.track("login_magic_link_requested", { usedCaptcha: !!captchaToken });
       pushToast({ title: "Check your inbox", tone: "success" });
     } catch (error) {
       const err = error as Error;
@@ -208,7 +217,7 @@ export default function Login() {
               onClick={async () => {
                 try {
                   setResendLoading(true);
-                  await requestMagicLink(successState.email, safeReturnTo);
+                  await requestMagicLink(successState.email, safeReturnTo, captchaToken || undefined);
                   pushToast({ title: "Link resent", tone: "success" });
                 } catch (error) {
                   const err = error as Error;
@@ -218,7 +227,7 @@ export default function Login() {
                   setResendLoading(false);
                 }
               }}
-              disabled={resendLoading || !!rateLimitCountdown}
+              disabled={resendLoading || !!rateLimitCountdown || (showCaptcha && !captchaToken)}
               className="w-full text-gray-700 hover:bg-gray-50"
             >
               {resendLoading ? t("login.sending", getLocale()) : rateLimitCountdown ? formatT("login.resendIn", { seconds: String(rateLimitCountdown) }, getLocale()) : t("login.resendLink", getLocale())}
@@ -435,6 +444,27 @@ export default function Login() {
                   {formError}
                 </motion.div>
               )}
+
+              {/* Captcha Field - shown when triggered by rate limiting or bot detection */}
+              <AnimatePresence>
+                {showCaptcha && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <CaptchaField
+                      value={captchaToken}
+                      onChange={setCaptchaToken}
+                      onValidate={(isValid) => {
+                        if (isValid) setFormError(null);
+                      }}
+                      className="mb-4"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <Button
                 type="submit"
