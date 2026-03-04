@@ -4,6 +4,7 @@ import { Menu, X, ArrowRight, LayoutDashboard } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Logo } from '../brand/Logo';
 import { ThemeToggle } from '../ThemeToggle';
+import { cn } from '../../lib/utils';
 import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from '../navigation/MobileDrawer';
 import { useAuth } from '../../hooks/useAuth';
 

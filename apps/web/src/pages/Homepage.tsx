@@ -9,6 +9,9 @@ import {
   ChevronRight, Check, Star, Briefcase, TrendingUp
 } from 'lucide-react';
 import { pushToast } from '../lib/toast';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { FadeIn } from '../components/animations/FadeIn';
+import { useAuth } from '../hooks/useAuth';
 import { SEO } from '../components/marketing/SEO';
 import { cn } from '../lib/utils';
 import { ValidationUtils } from '../lib/validation';
@@ -107,24 +110,6 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
         </button>
       </form>
       {emailError && <p className="mt-2 text-xs text-red-500 pl-6">{emailError}</p>}
-    </div>
-  );
-}
-
-/* ─── Fade-in on scroll ─── */
-function FadeIn({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.08 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={cn("transition-all duration-700 ease-out", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10", className)} style={{ transitionDelay: `${delay}ms` }}>
-      {children}
     </div>
   );
 }

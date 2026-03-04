@@ -7,6 +7,8 @@ import { SEO } from '../components/marketing/SEO';
 import { useAuth } from '../hooks/useAuth';
 import { useBilling } from '../hooks/useBilling';
 import { telemetry } from '../lib/telemetry';
+import { cn } from '../lib/utils';
+import { FadeIn } from '../components/animations/FadeIn';
 
 // FAQ Item Component for collapsible behavior
 const FAQItem = ({ question, answer }: { question: string; answer: string }) => {
