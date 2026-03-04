@@ -110,6 +110,16 @@ export default function HoldsView() {
                     onChange={(e) => setAnswers(prev => ({ ...prev, [app.id]: e.target.value }))}
                     aria-describedby={`hold-question-${app.id}`}
                   />
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-slate-400">
+                      {(answers[app.id] || '').length}/5000 characters
+                    </p>
+                    {(answers[app.id] || '').length > 4500 && (
+                      <p className="text-[10px] text-amber-500 font-medium">
+                        {5000 - (answers[app.id] || '').length} characters remaining
+                      </p>
+                    )}
+                  </div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 sticky bottom-0 bg-white/90 backdrop-blur p-2 rounded-xl border border-slate-100">
                     <Button
                       variant="ghost"
@@ -125,8 +135,9 @@ export default function HoldsView() {
                       onClick={() => answerHold(app.id, answers[app.id])}
                       className="bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl px-6 sm:px-8 shadow-lg shadow-primary-500/20"
                     >
-                      {isSubmitting(app.id) ? <LoadingSpinner className="ml-2 w-4 h-4" /> : <Send className="ml-2 w-4 h-4" />}
-                      {isSubmitting(app.id) ? "Sending..." : "Send Instructions"}
+                      {isSubmitting(app.id)
+                        ? <><LoadingSpinner className="mr-2 w-4 h-4" />Sending...</>
+                        : <><Send className="mr-2 w-4 h-4" />Send Instructions</>}
                     </Button>
                   </div>
                 </div>
