@@ -177,35 +177,40 @@ export default function Homepage() {
         <div className="relative max-w-7xl mx-auto px-6 pt-28 sm:pt-36 pb-12">
           <div className="max-w-3xl mx-auto text-center">
             <FadeIn>
-              <h1 className="text-[clamp(2.5rem,7vw,5.5rem)] font-black leading-[1.0] tracking-[-0.05em] text-slate-900">
+              <h1 className="text-[clamp(2.5rem,8vw,5.5rem)] font-black leading-[1.1] sm:leading-[1.0] tracking-[-0.05em] text-slate-900 px-2 sm:px-0 text-balance">
                 Land your next job<br className="hidden sm:block" />
-                <span className="text-indigo-600">without the search</span>
+                <span className="text-indigo-600"> without the search</span>
               </h1>
             </FadeIn>
             <FadeIn delay={80}>
-              <p className="mt-8 text-lg sm:text-xl sm:text-[1.35rem] text-slate-600 max-w-xl mx-auto leading-relaxed">
+              <p className="mt-6 sm:mt-8 text-base sm:text-lg lg:text-[1.35rem] text-slate-600 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
                 Stop spending 20 hours a week applying. We find the matching jobs, tailor your resume, and apply for you — all while you sleep.
               </p>
             </FadeIn>
             <FadeIn delay={160}>
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Link to="/login" className="h-16 px-12 rounded-full text-lg font-bold bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-2xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+              <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
+                <Link to="/login" className="h-14 sm:h-16 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-2xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   Start Applying Free <ArrowRight className="w-5 h-5" />
                 </Link>
-                <a href="#how-it-works" className="h-16 px-12 rounded-full text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <a href="#how-it-works" className="h-14 sm:h-16 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   See How It Works
                 </a>
               </div>
-              <p className="mt-6 text-sm font-medium text-slate-400 flex items-center justify-center gap-2">
-                <Check className="w-4 h-4 text-green-500" /> Free to start · No card required
-              </p>
+              <div className="mt-6 flex items-center justify-center gap-2">
+                <div className="flex -space-x-2 mr-2">
+                  {[1, 2, 3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-200" />)}
+                </div>
+                <p className="text-xs sm:text-sm font-medium text-slate-400">
+                  <span className="text-slate-900 font-bold">10,000+</span> seekers already hired
+                </p>
+              </div>
             </FadeIn>
           </div>
         </div>
 
-        {/* ── HERO VISUAL SHOWCASE — overlapping angled cards with mock UI ── */}
+        {/* ── HERO VISUAL SHOWCASE ── */}
         <FadeIn delay={300}>
-          <div className="relative max-w-6xl mx-auto px-6 pb-8">
+          <div className="relative max-w-7xl mx-auto px-6 pb-20 mt-12 sm:mt-20">
             <div className="relative h-[420px] sm:h-[520px] lg:h-[580px]">
               {/* Card 1 — Purple — Dashboard (center-left, tilted) */}
               <div className="absolute left-[2%] sm:left-[5%] top-[8%] w-[55%] sm:w-[45%] transform -rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
@@ -295,13 +300,13 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §2  THREE COLORFUL PRODUCT CARDS
           ═══════════════════════════════════════════════════════════════ */}
-      < section className="bg-white py-24 sm:py-36" >
+      <section className="bg-white py-20 sm:py-32 lg:py-40">
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
-            <div className="text-center max-w-3xl mx-auto mb-20">
-              <p className="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-4">Your secret weapon</p>
-              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-black tracking-tight text-slate-900 leading-[1.1]">
-                Everything you need to<br />land your dream role
+            <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-24">
+              <p className="text-indigo-600 font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-4">Your secret weapon</p>
+              <h2 className="text-[clamp(2.25rem,5vw,4rem)] font-black tracking-tight text-slate-900 leading-[1.1] text-balance">
+                Everything you need to<br className="hidden sm:block" /> land your dream role
               </h2>
             </div>
           </FadeIn>
@@ -457,13 +462,13 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §3  BIG TESTIMONIAL QUOTE
           ═══════════════════════════════════════════════════════════════ */}
-      < section className="bg-gray-50 py-24 sm:py-32" >
+      <section className="bg-slate-50 py-20 sm:py-32 overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <FadeIn>
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-8">
-              <span className="text-3xl text-indigo-600 font-serif leading-none">"</span>
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-indigo-100 mb-8 sm:mb-12">
+              <span className="text-2xl sm:text-3xl text-indigo-600 font-serif leading-none">"</span>
             </div>
-            <blockquote className="text-[clamp(1.5rem,3.5vw,2.75rem)] font-bold text-gray-900 leading-snug tracking-tight">
+            <blockquote className="text-[clamp(1.25rem,4vw,2.5rem)] font-black text-slate-900 leading-[1.3] sm:leading-snug tracking-tight text-balance">
               That first week I literally did nothing and got 4 interview callbacks. This is the future of job hunting.
             </blockquote>
             <div className="mt-10 flex items-center justify-center gap-4">
@@ -480,8 +485,8 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §4  FEATURE SHOWCASE ROWS — large mockups on colored backgrounds
           ═══════════════════════════════════════════════════════════════ */}
-      < section className="bg-white py-24 sm:py-36" >
-        <div className="max-w-7xl mx-auto px-6 space-y-32 sm:space-y-44">
+      <section className="bg-white py-20 sm:py-32 lg:py-48">
+        <div className="max-w-7xl mx-auto px-6 space-y-32 sm:space-y-48">
 
           {/* Row 1 — Dashboard */}
           <FadeIn>
@@ -628,13 +633,13 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §5  HOW IT WORKS — colorful step cards
           ═══════════════════════════════════════════════════════════════ */}
-      < section id="how-it-works" className="bg-gray-50 py-24 sm:py-36" >
+      <section id="how-it-works" className="bg-slate-50 py-20 sm:py-32 lg:py-40">
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
-            <div className="text-center max-w-2xl mx-auto mb-20">
-              <p className="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-4">The process</p>
-              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-black tracking-tight text-slate-900 leading-[1.1]">
-                Set up in 2 minutes.<br />Then relax.
+            <div className="text-center max-w-2xl mx-auto mb-16 sm:mb-24">
+              <p className="text-indigo-600 font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-4">The process</p>
+              <h2 className="text-[clamp(2.25rem,5vw,4rem)] font-black tracking-tight text-slate-900 leading-[1.1] text-balance">
+                Set up in 2 minutes.<br className="hidden sm:block" /> Then relax.
               </h2>
             </div>
           </FadeIn>
@@ -766,64 +771,120 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §6  TESTIMONIALS GRID
           ═══════════════════════════════════════════════════════════════ */}
-      < section className="bg-white py-24 sm:py-36" >
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeIn>
-            <div className="text-center max-w-2xl mx-auto mb-20">
-              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
-                Loved by job seekers everywhere
-              </h2>
-            </div>
-          </FadeIn>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { q: "Got 4 interviews in my first week. I'd been applying manually for 3 months with nothing.", n: "Sarah K.", r: "Marketing Manager", initials: "SK", bg: "bg-indigo-100 text-indigo-700" },
-              { q: "The cover letters are genuinely better than what I'd write myself. Not generic at all.", n: "Marcus T.", r: "Software Engineer", initials: "MT", bg: "bg-teal-100 text-teal-700" },
-              { q: "Found a listing 20 minutes after it was posted and applied instantly. That's how I got my current role.", n: "Priya R.", r: "Product Designer", initials: "PR", bg: "bg-orange-100 text-orange-700" },
-              { q: "Landed 7 interviews in 2 weeks. The AI matched me with roles I didn't even know existed.", n: "James L.", r: "Data Analyst", initials: "JL", bg: "bg-sky-100 text-sky-700" },
-              { q: "I was skeptical about AI applications, but every single one was personalized. My response rate doubled.", n: "Elena M.", r: "Product Manager", initials: "EM", bg: "bg-rose-100 text-rose-700" },
-              { q: "Set it up in 5 minutes and forgot about it. Got a call from Google the next week.", n: "David C.", r: "Engineering Lead", initials: "DC", bg: "bg-amber-100 text-amber-700" },
-            ].map((t, idx) => (
-              <FadeIn key={t.n} delay={idx * 80}>
-                <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100/80 transition-colors h-full flex flex-col">
-                  <div className="flex gap-0.5 mb-5">{[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />)}</div>
-                  <p className="text-[15px] text-gray-700 leading-relaxed flex-1 mb-6">"{t.q}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold", t.bg)}>{t.initials}</div>
-                    <div><p className="text-sm font-semibold text-gray-900">{t.n}</p><p className="text-xs text-gray-400">{t.r}</p></div>
+      {/* ═══════════════════════════════════════════════════════════════
+          §6  GLOBAL SUCCESS FEED — high-energy social proof
+          ═══════════════════════════════════════════════════════════════ */}
+      <section className="bg-slate-900 py-24 sm:py-36 overflow-hidden relative">
+        {/* Background glow effects */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/20 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <div>
+              <FadeIn>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-widest mb-6">
+                  <Activity className="w-3.5 h-3.5" /> Live success engine
+                </div>
+                <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] font-black tracking-tight text-white leading-[1.05] text-balance mb-8">
+                  We don't just apply. <br />
+                  <span className="text-indigo-400">We win.</span>
+                </h2>
+                <p className="text-lg sm:text-xl text-slate-400 max-w-lg leading-relaxed mb-12">
+                  While other platforms send generic spam, JobHuntin sends high-fidelity, tailored applications that actually get callbacks.
+                </p>
+                <div className="grid grid-cols-2 gap-8">
+                  <div>
+                    <div className="text-4xl sm:text-5xl font-black text-white mb-2">1.2M+</div>
+                    <div className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest">Applications Sent</div>
+                  </div>
+                  <div>
+                    <div className="text-4xl sm:text-5xl font-black text-indigo-400 mb-2">84%</div>
+                    <div className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest">Callback Increase</div>
                   </div>
                 </div>
               </FadeIn>
-            ))}
+            </div>
+
+            <div className="relative h-[500px] sm:h-[600px] flex items-center justify-center">
+              <div className="absolute inset-0 bg-slate-800/50 rounded-[2.5rem] border border-white/5 backdrop-blur-sm overflow-hidden p-6 sm:p-8">
+                <div className="space-y-4 animate-scroll-v">
+                  {[
+                    ...[
+                      { n: "Sarah K.", c: "Stripe", r: "Software Engineer", t: "2m ago" },
+                      { n: "Marcus T.", c: "Google", r: "Product Manager", t: "5m ago" },
+                      { n: "James L.", c: "Airbnb", r: "UX Designer", t: "12m ago" },
+                      { n: "Priya R.", c: "Meta", r: "Data Scientist", t: "15m ago" },
+                      { n: "Elena M.", c: "Figma", r: "Product Lead", t: "22m ago" },
+                      { n: "David C.", c: "Shopify", r: "Backend Dev", t: "28m ago" },
+                      { n: "Chris B.", c: "Netflix", r: "SRE", t: "35m ago" },
+                      { n: "Alex J.", c: "Vercel", r: "Front End", t: "42m ago" },
+                    ],
+                    ...[
+                      { n: "Sarah K.", c: "Stripe", r: "Software Engineer", t: "2m ago" },
+                      { n: "Marcus T.", c: "Google", r: "Product Manager", t: "5m ago" },
+                      { n: "James L.", c: "Airbnb", r: "UX Designer", t: "12m ago" },
+                      { n: "Priya R.", c: "Meta", r: "Data Scientist", t: "15m ago" },
+                      { n: "Elena M.", c: "Figma", r: "Product Lead", t: "22m ago" },
+                      { n: "David C.", c: "Shopify", r: "Backend Dev", t: "28m ago" },
+                      { n: "Chris B.", c: "Netflix", r: "SRE", t: "35m ago" },
+                      { n: "Alex J.", c: "Vercel", r: "Front End", t: "42m ago" },
+                    ]
+                  ].map((win, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        {win.n.split(' ').map(x => x[0]).join('')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{win.n} <span className="text-slate-500 font-normal">landed at</span> {win.c}</p>
+                        <p className="text-[11px] text-slate-400 font-medium">{win.r}</p>
+                      </div>
+                      <div className="px-2 py-1 rounded-lg bg-green-400/10 text-[10px] font-black text-green-400 shrink-0">
+                        SUCCESS ✓
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Fade overlays */}
+                <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-slate-900/0 via-slate-900/0 to-transparent pointer-events-none" />
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
+              </div>
+
+              {/* Floating badges */}
+              <div className="absolute -top-6 -right-6 w-32 h-32 bg-indigo-600 rounded-3xl rotate-12 flex flex-col items-center justify-center p-4 shadow-2xl shadow-indigo-600/40 z-20">
+                <Trophy className="w-8 h-8 text-white mb-2" />
+                <div className="text-[10px] font-black text-indigo-100 uppercase tracking-widest text-center leading-tight">Match Rate 98.4%</div>
+              </div>
+            </div>
           </div>
         </div>
-      </section >
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════════
           §7  FEATURES GRID
           ═══════════════════════════════════════════════════════════════ */}
-      <section id="features" className="bg-gray-50 py-24 sm:py-36">
+      <section id="features" className="bg-slate-50 py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
-            <div className="text-center max-w-3xl mx-auto mb-8">
-              <p className="text-slate-600 font-semibold text-sm uppercase tracking-wider mb-4">Full feature set</p>
-              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
-                Everything you need,<br />right out of the box
+            <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-20">
+              <p className="text-indigo-600 font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-4">Full feature set</p>
+              <h2 className="text-[clamp(2.25rem,5vw,3.5rem)] font-black tracking-tight text-slate-900 leading-[1.1] text-balance">
+                Everything you need to<br className="hidden sm:block" /> automate your hunt
               </h2>
             </div>
           </FadeIn>
           <FadeIn delay={100}>
-            <div className="text-center max-w-xl mx-auto mb-16">
-              <p className="text-gray-500 italic text-base">"Instead of worrying about 20 different tools…<br />I just run my search from JobHuntin."</p>
-              <p className="mt-3 text-sm text-gray-400 font-medium">– Sarah K., Marketing Manager</p>
+            <div className="text-center max-w-xl mx-auto mb-16 px-4">
+              <p className="text-slate-600 italic text-base leading-relaxed">"Instead of worrying about 20 different tools… I just run my career searches from JobHuntin."</p>
+              <p className="mt-4 text-sm text-slate-400 font-bold uppercase tracking-wider">– Sarah K., Marketing Manager</p>
             </div>
           </FadeIn>
           <FadeIn delay={200}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {["Smart resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep insights", "Personalized applications", "Salary filtering", "Company size filters", "Location preferences", "Role matching engine", "Auto-apply engine", "Application dashboard", "Response tracking", "Resume versioning", "Email notifications", "Mobile dashboard", "Data encryption", "Bulk applications", "Smart scheduling", "Company research", "Skills gap analysis", "Application analytics", "Priority support"].map((feature) => (
-                <div key={feature} className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white border border-gray-100 hover:border-slate-300 hover:shadow-sm transition-all">
-                  <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0"><Check className="w-3 h-3 text-slate-800" /></div>
-                  <span className="text-sm font-medium text-gray-700">{feature}</span>
+                <div key={feature} className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-600/5 transition-all group">
+                  <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 transition-colors"><Check className="w-3.5 h-3.5 text-indigo-600 group-hover:text-white transition-colors" /></div>
+                  <span className="text-sm font-bold text-slate-700">{feature}</span>
                 </div>
               ))}
             </div>
@@ -832,31 +893,31 @@ export default function Homepage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          §8  FINAL CTA — colorful bg with floating shapes
+          §8  FINAL CTA
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-slate-50 py-28 sm:py-40">
+      <section className="relative overflow-hidden bg-white py-24 sm:py-32 lg:py-48">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Subtle geometric shapes instead of vibrant blobs */}
-          <div className="absolute top-[10%] left-[3%] w-[220px] h-[170px] bg-slate-200 rounded-3xl rotate-12 opacity-[0.4]" />
-          <div className="absolute bottom-[8%] right-[3%] w-[260px] h-[200px] bg-slate-200 rounded-3xl -rotate-6 opacity-[0.4]" />
-          <div className="absolute top-[35%] right-[12%] w-[180px] h-[140px] bg-slate-200 rounded-2xl rotate-6 opacity-[0.3]" />
-          <div className="absolute bottom-[30%] left-[10%] w-[200px] h-[160px] bg-slate-200 rounded-2xl -rotate-12 opacity-[0.3]" />
+          <div className="absolute top-[10%] left-[3%] w-[220px] h-[170px] bg-slate-100 rounded-3xl rotate-12 opacity-[0.6]" />
+          <div className="absolute bottom-[8%] right-[3%] w-[260px] h-[200px] bg-slate-100 rounded-3xl -rotate-6 opacity-[0.6]" />
+          <div className="absolute top-[35%] right-[12%] w-[180px] h-[140px] bg-indigo-50 rounded-2xl rotate-6 opacity-[0.5]" />
+          <div className="absolute bottom-[30%] left-[10%] w-[200px] h-[160px] bg-indigo-50 rounded-2xl -rotate-12 opacity-[0.5]" />
         </div>
         <div className="relative max-w-7xl mx-auto px-6">
           <FadeIn>
-            <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-[clamp(2.25rem,5vw,3.75rem)] font-extrabold tracking-tight text-gray-900 leading-[1.08]">
-                Job searching is simpler when automation does the heavy lifting
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] font-black tracking-tight text-slate-900 leading-[1.05] text-balance mb-8">
+                Automation is the secret <br className="hidden sm:block" />
+                of the modern job hunt
               </h2>
-              <p className="mt-7 text-xl text-gray-500 max-w-lg mx-auto leading-relaxed">
-                Stop applying manually. Set it up in 2 minutes and your first applications go out today.
+              <p className="text-lg sm:text-xl text-slate-600 max-w-lg mx-auto leading-relaxed mb-12">
+                Stop applying manually. Join thousands who've reclaimed their time and landed dream roles.
               </p>
-              <div className="mt-12 max-w-[520px] mx-auto">
+              <div className="max-w-[520px] mx-auto px-4 sm:px-0">
                 <EmailForm variant="light" />
               </div>
-              <div className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm text-gray-400">
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-400">
                 {["Free plan", "No credit card", "Cancel anytime"].map((t) => (
-                  <span key={t} className="flex items-center gap-2"><Check className="w-4 h-4 text-slate-400" /> {t}</span>
+                  <span key={t} className="flex items-center gap-2.5"><Check className="w-5 h-5 text-indigo-600" /> {t}</span>
                 ))}
               </div>
             </div>
@@ -870,9 +931,9 @@ export default function Homepage() {
       {/* ── Sticky mobile CTA ── */}
       {
         stickyVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-gray-200 p-3 shadow-lg">
-            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-12 rounded-full text-[15px] font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
-              Get Started Free <ArrowRight className="w-4 h-4" />
+          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 shadow-2xl">
+            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-14 rounded-full text-base font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30">
+              Start Applying Free <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         )

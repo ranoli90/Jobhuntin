@@ -747,4 +747,22 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   .pt-safe-area {
     padding-top: env(safe-area-inset-top, 0px);
   }
+
+  @keyframes scroll-v {
+    0% {
+      transform: translateY(0);
+    }
+
+    100% {
+      transform: translateY(-50%);
+    }
+  }
+
+  .animate-scroll-v {
+    animation: scroll-v 30s linear infinite;
+  }
+
+  .animate-scroll-v:hover {
+    animation-play-state: paused;
+  }
 }

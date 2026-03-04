@@ -9,20 +9,20 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
+          "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 active:scale-95 transform",
         secondary:
-          "bg-slate-100 text-slate-900 hover:bg-slate-200 focus:ring-slate-500",
-        ghost: "bg-transparent text-slate-900 hover:bg-slate-100 focus:ring-slate-500",
-        outline: "bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 focus:ring-slate-500",
-        danger: "bg-error-600 text-white hover:bg-error-700 focus:ring-error-500",
-        success: "bg-success-600 text-white hover:bg-success-700 focus:ring-success-500",
+          "bg-slate-100 text-slate-900 hover:bg-slate-200 focus:ring-slate-500 active:scale-95 transform",
+        ghost: "bg-transparent text-slate-900 hover:bg-slate-100 focus:ring-slate-500 active:scale-95 transform",
+        outline: "bg-transparent border-2 border-slate-200 text-slate-700 hover:border-indigo-200 hover:bg-indigo-50/50 focus:ring-indigo-500 active:scale-95 transform",
+        danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+        success: "bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500",
         lagoon: "bg-cyan-600 text-white hover:bg-cyan-700 focus:ring-cyan-500",
       },
       size: {
-        sm: "h-9 px-3 text-xs",
-        md: "h-10 px-4 text-sm",
-        lg: "h-12 px-6 text-base",
-        icon: "h-10 w-10",
+        sm: "h-9 px-4 text-xs rounded-xl",
+        md: "h-11 px-5 text-sm rounded-xl",
+        lg: "h-14 px-8 text-lg rounded-2xl",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {

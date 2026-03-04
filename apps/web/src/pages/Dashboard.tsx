@@ -236,10 +236,10 @@ export default function Dashboard() {
       label: "Total Applications",
       value: stats.monthlyApps,
       icon: Zap,
-      color: 'from-primary-500 to-primary-600',
-      bg: 'bg-primary-50',
-      text: 'text-primary-600',
-      iconColor: 'text-primary-500',
+      color: 'from-indigo-500 to-indigo-600',
+      bg: 'bg-indigo-50',
+      text: 'text-indigo-600',
+      iconColor: 'text-indigo-500',
       progress: monthlyProgress,
     },
   ];
@@ -280,12 +280,12 @@ export default function Dashboard() {
           whileTap={{ scale: 0.98 }}
         >
           <Button
-            className="group relative overflow-hidden gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white shadow-lg shadow-primary-500/20 transition-all duration-300"
+            className="group relative overflow-hidden gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-xl shadow-indigo-600/20 transition-all duration-300"
             onClick={() => navigate("/app/jobs")}
           >
             <span className="relative z-10 flex items-center gap-2">
               <Rocket className="h-5 w-5 transition-transform group-hover:rotate-12" aria-hidden />
-              <span className="font-medium">Find Jobs</span>
+              <span className="font-bold tracking-tight">Find Jobs</span>
             </span>
           </Button>
         </motion.div>
@@ -459,20 +459,20 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="relative overflow-hidden border-primary-200/50 bg-gradient-to-br from-primary-50/50 to-white" tone="glass">
+            <Card className="relative overflow-hidden border-indigo-200/50 bg-gradient-to-br from-indigo-50/50 to-white" tone="glass">
               {/* Animated background elements */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
-                <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
+                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-indigo-500/5 blur-3xl"></div>
+                <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-indigo-500/5 blur-3xl"></div>
               </div>
 
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-primary-900/60">Your plan</p>
+                    <p className="text-sm font-medium text-indigo-900/60">Your plan</p>
                     <p className="text-2xl font-bold text-slate-900">{status?.plan ?? "FREE"}</p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
                     <Zap className="h-5 w-5" />
                   </div>
                 </div>
@@ -480,11 +480,11 @@ export default function Dashboard() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Status</span>
-                    <span className="font-medium text-emerald-600 capitalize">{status?.subscription_status ?? "active"}</span>
+                    <span className="font-bold text-indigo-600 capitalize">{status?.subscription_status ?? "active"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Success Rate</span>
-                    <span className="font-medium text-emerald-600">{stats.successRate}%</span>
+                    <span className="font-bold text-emerald-600">{stats.successRate}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Next Billing</span>
@@ -496,7 +496,7 @@ export default function Dashboard() {
                 </div>
 
                 <Button
-                  className="w-full mt-2 bg-slate-900 hover:bg-black text-white hover:shadow-lg transition-all"
+                  className="w-full mt-2 bg-slate-900 hover:bg-slate-950 text-white hover:shadow-xl transition-all font-bold"
                   onClick={() => navigate("/app/billing")}
                 >
                   View plans

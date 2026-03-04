@@ -51,7 +51,7 @@ function ScoreVisualization({ score, label }: { score: number; label: string }) 
   };
 
   return (
-    <motion.div 
+    <motion.div
       className={`p-4 rounded-lg border ${getScoreBgColor(score)}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -59,7 +59,7 @@ function ScoreVisualization({ score, label }: { score: number; label: string }) 
     >
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-medium text-slate-600">{label}</span>
-        <motion.div 
+        <motion.div
           className={`text-2xl font-bold ${getScoreTextColor(score)}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -69,7 +69,7 @@ function ScoreVisualization({ score, label }: { score: number; label: string }) 
         </motion.div>
       </div>
       <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-        <motion.div 
+        <motion.div
           className={`h-full bg-gradient-to-r ${getScoreColor(score)} rounded-full`}
           initial={{ width: 0 }}
           animate={{ width: `${score}%` }}
@@ -112,7 +112,7 @@ function SkillList({
             {skills.length}
           </Badge>
         </h4>
-        <motion.div 
+        <motion.div
           className="w-4 h-4 text-slate-400"
           animate={{ rotate: expanded ? 180 : 0 }}
           transition={{ duration: 0.2 }}
@@ -122,7 +122,7 @@ function SkillList({
       </motion.button>
       <AnimatePresence>
         {expanded && (
-          <motion.div 
+          <motion.div
             className="flex flex-wrap gap-2 pl-6"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -162,8 +162,8 @@ function DealbreakerWarnings({ reasons }: { reasons: string[] }) {
             <h4 className="font-semibold text-red-900 mb-2">Dealbreaker Issues Detected</h4>
             <ul className="space-y-1">
               {reasons.map((reason, i) => (
-                <motion.li 
-                  key={i} 
+                <motion.li
+                  key={i}
                   className="text-sm text-red-700 flex items-center gap-2"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -268,7 +268,7 @@ export default function MatchesPage() {
           <p className="text-slate-500 mb-6">
             Select a job from the job feed to view match details.
           </p>
-          <Button onClick={() => navigate("/app/jobs")}>Browse Jobs</Button>
+          <Button variant="primary" onClick={() => navigate("/app/jobs")}>Browse Jobs</Button>
         </Card>
       </div>
     );
@@ -314,7 +314,7 @@ export default function MatchesPage() {
             <Card className="p-12 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-xl" aria-busy="true" aria-label="Loading match analysis">
               <div className="text-center space-y-6">
                 <div className="w-20 h-20 mx-auto">
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-2xl animate-pulse">
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center shadow-2xl animate-pulse">
                     <Brain className="w-10 h-10 text-white animate-bounce" />
                   </div>
                 </div>
@@ -323,7 +323,7 @@ export default function MatchesPage() {
                   <p className="text-slate-600">AI is processing your resume against this job...</p>
                 </div>
                 <div className="w-64 h-2 bg-slate-200 rounded-full mx-auto overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-pulse" style={{width: '60%'}} />
+                  <div className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full animate-pulse" style={{ width: '60%' }} />
                 </div>
               </div>
             </Card>

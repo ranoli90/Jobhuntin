@@ -55,7 +55,7 @@ export function MarketingNavbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between">
         {/* Logo */}
         <div className="relative">
-          <Logo to="/" onClick={closeMenu} variant={shouldBeTransparent ? "dark" : "light"} />
+          <Logo to="/" onClick={closeMenu} variant="light" />
         </div>
 
         {/* Desktop Nav */}
@@ -152,12 +152,20 @@ export function MarketingNavbar() {
               <Link
                 key={link.path}
                 to={link.path}
-                onClick={closeMenu}
+                onClick={() => {
+                  closeMenu();
+                  // If it's a hash link on the same page, manually scroll
+                  if (link.path.startsWith('/#') && location.pathname === '/') {
+                    const id = link.path.split('#')[1];
+                    const el = document.getElementById(id);
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
                 className={cn(
-                  "text-[15px] font-semibold block py-3.5 px-4 rounded-xl transition-all active:scale-[0.98]",
-                  location.pathname === link.path
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  "text-[15px] font-bold block py-4 px-5 rounded-2xl transition-all active:scale-[0.98]",
+                  location.pathname === link.path || (link.path.startsWith('/#') && location.pathname === '/')
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 )}
               >
                 {link.name}

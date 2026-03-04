@@ -2,6 +2,7 @@ import React from 'react';
 import { Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
+import { motion } from 'framer-motion';
 
 interface LogoProps {
     className?: string;
@@ -45,20 +46,28 @@ export function Logo({
 
     const content = (
         <div className={cn("flex items-center group relative z-10", currentSize.container, className)}>
-            <div className={cn(
-                variant === 'dark'
-                    ? "bg-white/10 shadow-sm transition-all duration-300 group-hover:bg-white/20"
-                    : "bg-gradient-to-br from-indigo-600 to-indigo-700 shadow-xl shadow-indigo-600/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-indigo-600/30",
-                currentSize.iconBox
-            )}>
-                <Bot className={cn("text-white drop-shadow-sm", currentSize.bot)} aria-hidden />
-            </div>
+            <motion.div
+                whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
+                transition={{ duration: 0.4 }}
+                className={cn(
+                    variant === 'dark'
+                        ? "bg-white/10 shadow-sm transition-all duration-300 group-hover:bg-white/20"
+                        : "bg-gradient-to-br from-indigo-600 to-indigo-700 shadow-xl shadow-indigo-600/20 transition-all duration-300 group-hover:shadow-indigo-600/30",
+                    currentSize.iconBox,
+                    "relative overflow-hidden"
+                )}
+            >
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+
+                <Bot className={cn("text-white drop-shadow-sm relative z-10", currentSize.bot)} aria-hidden />
+            </motion.div>
             {!iconOnly && (
                 <span className={cn(
-                    "font-black tracking-[-0.04em] transition-colors",
+                    "font-black tracking-[-0.04em] transition-all duration-300",
                     variant === 'dark'
                         ? "text-white group-hover:text-indigo-400"
-                        : "text-slate-900 group-hover:text-indigo-600",
+                        : "text-slate-900 group-hover:text-indigo-600 group-hover:tracking-[-0.03em]",
                     currentSize.text
                 )}>
                     JobHuntin

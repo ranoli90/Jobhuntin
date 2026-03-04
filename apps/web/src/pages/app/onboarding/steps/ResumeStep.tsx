@@ -11,7 +11,7 @@ import { t, getLocale } from "../../../../lib/i18n";
 function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () => void }) {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const locale = getLocale();
-    
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="skip-confirm-title" onClick={(e) => e.target === e.currentTarget && onStay()}>
             <FocusTrap
@@ -91,7 +91,7 @@ export function ResumeStep({
     const [isDragging, setIsDragging] = React.useState(false);
     const [linkedinError, setLinkedinError] = React.useState<string | null>(null);
     const [showSkipConfirm, setShowSkipConfirm] = React.useState(false);
-    
+
     // Reset parsing state when a new file is selected
     const handleFileChange = (file: File | null) => {
         setResumeFile(file);
@@ -156,7 +156,7 @@ export function ResumeStep({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-primary-500/90 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-white text-center"
+                        className="fixed inset-0 z-50 bg-indigo-600/90 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-white text-center"
                     >
                         <motion.div
                             initial={{ scale: 0.8, y: 20 }}
@@ -173,7 +173,7 @@ export function ResumeStep({
             </AnimatePresence>
 
             <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
-                <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-primary-50 border border-primary-100 text-primary-600 shadow-sm">
+                <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 shadow-sm">
                     <Upload className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div className="min-w-0">
@@ -191,20 +191,20 @@ export function ResumeStep({
                     type="file"
                     accept=".pdf"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file && file.size > 15 * 1024 * 1024) {
-                        setResumeError("File must be under 15MB");
-                        e.target.value = "";
-                        return;
-                      }
-                      // Validate file type - PDF only to match backend
-                      const allowedTypes = ['application/pdf'];
-                      if (file && !allowedTypes.includes(file.type)) {
-                        setResumeError("Please upload a PDF file");
-                        e.target.value = "";
-                        return;
-                      }
-                      handleFileChange(file || null);
+                        const file = e.target.files?.[0];
+                        if (file && file.size > 15 * 1024 * 1024) {
+                            setResumeError("File must be under 15MB");
+                            e.target.value = "";
+                            return;
+                        }
+                        // Validate file type - PDF only to match backend
+                        const allowedTypes = ['application/pdf'];
+                        if (file && !allowedTypes.includes(file.type)) {
+                            setResumeError("Please upload a PDF file");
+                            e.target.value = "";
+                            return;
+                        }
+                        handleFileChange(file || null);
                     }}
                     className="hidden"
                     id="resume-upload"
@@ -213,24 +213,24 @@ export function ResumeStep({
                 <label
                     htmlFor="resume-upload"
                     className={`flex cursor-pointer flex-col items-center gap-3 md:gap-4 rounded-2xl border-2 border-dashed p-6 md:p-8 text-center transition-all duration-200 ${resumeFile
-                        ? "bg-primary-50 border-primary-300"
-                        : "bg-slate-50 border-slate-200 hover:bg-white hover:border-primary-300"
+                        ? "bg-indigo-50 border-indigo-300"
+                        : "bg-slate-50 border-slate-200 hover:bg-white hover:border-indigo-300"
                         }`}
                 >
                     <div className={`flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-xl md:rounded-2xl bg-white shadow-sm border border-slate-100 transition-all ${isUploading ? 'animate-pulse' : 'group-hover:scale-105'}`}>
                         {isUploading ? (
                             <div className="relative">
-                                <FileText className="h-7 w-7 md:h-8 md:w-8 text-primary-400" />
+                                <FileText className="h-7 w-7 md:h-8 md:w-8 text-indigo-400" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                                 </div>
                             </div>
                         ) : (
-                            <FileText className={`h-7 w-7 md:h-8 md:w-8 ${resumeFile ? 'text-primary-500' : 'text-slate-300'}`} />
+                            <FileText className={`h-7 w-7 md:h-8 md:w-8 ${resumeFile ? 'text-indigo-500' : 'text-slate-300'}`} />
                         )}
                     </div>
                     <div className="space-y-1">
-                        <p className={`text-base md:text-lg font-bold ${resumeFile ? 'text-primary-700' : 'text-slate-700'}`}>
+                        <p className={`text-base md:text-lg font-bold ${resumeFile ? 'text-indigo-700' : 'text-slate-700'}`}>
                             {resumeFile ? resumeFile.name : t("onboarding.clickToUpload", locale)}
                         </p>
                         <p className="text-xs text-slate-400 font-medium">{t("onboarding.fileTypes", locale)}</p>
@@ -250,13 +250,13 @@ export function ResumeStep({
                     <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] rounded-2xl flex flex-col items-center justify-center gap-2 md:gap-3 z-10">
                         <div className="w-32 md:w-48 h-1 bg-slate-100 rounded-full overflow-hidden">
                             <motion.div
-                                className="h-full bg-primary-500"
+                                className="h-full bg-indigo-500"
                                 initial={shouldReduceMotion ? { width: "100%" } : { width: "0%" }}
                                 animate={{ width: "100%" }}
                                 transition={shouldReduceMotion ? undefined : { duration: 3, repeat: Infinity }}
                             />
                         </div>
-                        <p className="text-xs font-bold text-primary-600 uppercase tracking-wide">{t("app.loading", locale)}</p>
+                        <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide">{t("app.loading", locale)}</p>
                     </div>
                 )}
             </div>
@@ -323,9 +323,9 @@ export function ResumeStep({
 
                             <div className="p-4 space-y-3">
                                 {parsedResume.title && (
-                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-indigo-50/30 border border-indigo-100">
                                         <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-                                            <User className="h-5 w-5 text-primary-500" />
+                                            <User className="h-5 w-5 text-indigo-500" />
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
@@ -339,7 +339,7 @@ export function ResumeStep({
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <Briefcase className="h-4 w-4 text-primary-500" />
+                                            <Briefcase className="h-4 w-4 text-indigo-500" />
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                                                 {t("onboarding.experience", locale) || "Experience"}
                                             </span>
@@ -353,7 +353,7 @@ export function ResumeStep({
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <FileText className="h-4 w-4 text-primary-500" />
+                                            <FileText className="h-4 w-4 text-indigo-500" />
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                                                 {t("onboarding.skillsDetected", locale) || "Skills"}
                                             </span>
@@ -385,7 +385,7 @@ export function ResumeStep({
                                                 </motion.span>
                                             ))}
                                             {parsedResume.skills.length > 12 && (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-50 border border-primary-200 text-primary-700">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 border border-indigo-200 text-indigo-700">
                                                     +{parsedResume.skills.length - 12} {t("onboarding.more", locale) || "more"}
                                                 </span>
                                             )}
@@ -410,9 +410,9 @@ export function ResumeStep({
             </AnimatePresence>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <Button 
-                    variant="ghost" 
-                    onClick={onPrev} 
+                <Button
+                    variant="ghost"
+                    onClick={onPrev}
                     className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
                     aria-label={t("onboarding.back", locale)}
                 >
@@ -423,7 +423,7 @@ export function ResumeStep({
                     <Button
                         onClick={() => onUpload(resumeFile)}
                         disabled={isUploading}
-                        className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-500/20 text-sm group touch-manipulation"
+                        className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 text-sm group touch-manipulation"
                         aria-label={t("onboarding.uploadResume", locale)} data-onboarding-next
                     >
                         {isUploading ? <LoadingSpinner size="sm" /> : showParsingPreview ? t("onboarding.reupload", locale) : t("onboarding.uploadResume", locale)}
