@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
+import { TestimonialsSection } from '../components/TestimonialsSection';
 import { cn } from '../lib/utils';
 import { ValidationUtils } from '../lib/validation';
 
@@ -910,7 +911,12 @@ export default function Homepage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          §8  FINAL CTA
+          §8  TESTIMONIALS
+          ═══════════════════════════════════════════════════════════════ */}
+      <TestimonialsSection />
+
+      {/* ═══════════════════════════════════════════════════════════════
+          §9  FINAL CTA
           ═══════════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-white py-24 sm:py-32 lg:py-48">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
