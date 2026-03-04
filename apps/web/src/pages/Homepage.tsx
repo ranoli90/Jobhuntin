@@ -48,7 +48,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
   if (sentEmail) {
     return (
       <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 bg-white">
-        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-purple-100"><MailCheck className="w-5 h-5 text-purple-600" /></div>
+        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-indigo-100"><MailCheck className="w-5 h-5 text-indigo-600" /></div>
         <div className="min-w-0"><p className="text-sm font-semibold text-gray-900">Check your inbox</p><p className="text-xs truncate text-gray-500">{sentEmail}</p></div>
         <button onClick={() => setSentEmail(null)} className="text-xs ml-auto shrink-0 hover:underline text-gray-400">Change</button>
       </div>
@@ -58,11 +58,11 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
     <div>
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
         <input type="email" placeholder="you@example.com" aria-label="Email address"
-          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all outline-none", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-white/40 focus:border-purple-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-purple-400 shadow-sm", emailError && "border-red-400")}
+          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all outline-none", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-gray-400 focus:border-indigo-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 shadow-sm", emailError && "border-red-400")}
           value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />
         <button type="submit" disabled={isSubmitting}
-          className="h-14 px-8 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 active:translate-y-0"
+          className="h-14 px-8 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/25 hover:-translate-y-0.5 active:translate-y-0"
         >
           {isSubmitting ? "Sending…" : "Start free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
         </button>
@@ -120,7 +120,7 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
       <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Demo activity</p>
       {visibleItems.map((item, idx) => (
         <div key={`${item.role}-${idx}-${currentIdx}`} className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-500" style={{ opacity: 1 - idx * 0.15 }}>
-          <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-400" : "bg-purple-400")} />
+          <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-400" : "bg-indigo-400")} />
           <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{item.role}</p><p className="text-xs text-gray-400">{item.company}</p></div>
           <span className="text-[11px] text-gray-400 shrink-0">{item.time}</span>
         </div>
@@ -169,7 +169,7 @@ export default function Homepage() {
           ═══════════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden">
         {/* Soft gradient bg */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-50/60 via-white to-white" />
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/60 via-white to-white" />
 
         <div className="relative max-w-7xl mx-auto px-6 pt-16 sm:pt-24 pb-12">
           <div className="max-w-3xl mx-auto text-center">
@@ -204,14 +204,14 @@ export default function Homepage() {
             <div className="relative h-[420px] sm:h-[520px] lg:h-[580px]">
               {/* Card 1 — Purple — Dashboard (center-left, tilted) */}
               <div className="absolute left-[2%] sm:left-[5%] top-[8%] w-[55%] sm:w-[45%] transform -rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
-                <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-purple-500/30">
+                <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-indigo-500/30">
                   <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="flex gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /><div className="w-2.5 h-2.5 rounded-full bg-amber-400" /><div className="w-2.5 h-2.5 rounded-full bg-green-400" /></div>
                       <div className="flex-1 h-4 bg-gray-100 rounded-full mx-4" />
                     </div>
                     <div className="grid grid-cols-3 gap-2 mb-3">
-                      <div className="bg-purple-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-purple-600">127</div><div className="text-[8px] sm:text-[9px] text-gray-500">Applied</div></div>
+                      <div className="bg-indigo-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-indigo-600">127</div><div className="text-[8px] sm:text-[9px] text-gray-500">Applied</div></div>
                       <div className="bg-green-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-green-600">23</div><div className="text-[8px] sm:text-[9px] text-gray-500">Responses</div></div>
                       <div className="bg-amber-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-amber-600">7</div><div className="text-[8px] sm:text-[9px] text-gray-500">Interviews</div></div>
                     </div>
@@ -219,7 +219,7 @@ export default function Homepage() {
                       <div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-50">
                         <div className="w-6 h-6 rounded bg-gray-100 shrink-0" />
                         <div className="flex-1"><div className="h-2 bg-gray-100 rounded-full w-3/4" /><div className="h-1.5 bg-gray-50 rounded-full w-1/2 mt-1" /></div>
-                        <div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-bold", i === 1 ? "bg-green-100 text-green-700" : i === 2 ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700")}>{i === 1 ? "Interview" : i === 2 ? "Applied" : "Viewed"}</div>
+                        <div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-bold", i === 1 ? "bg-green-100 text-green-700" : i === 2 ? "bg-indigo-100 text-indigo-700" : "bg-amber-100 text-amber-700")}>{i === 1 ? "Interview" : i === 2 ? "Applied" : "Viewed"}</div>
                       </div>
                     ))}
                   </div>
@@ -245,7 +245,7 @@ export default function Homepage() {
                       <div className="h-2 bg-gray-100 rounded-full w-3/4" />
                     </div>
                     <div className="mt-3 flex gap-1.5 flex-wrap">
-                      <div className="px-2 py-1 rounded bg-purple-50 text-purple-700 text-[7px] sm:text-[8px] font-bold">React</div>
+                      <div className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 text-[7px] sm:text-[8px] font-bold">React</div>
                       <div className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[7px] sm:text-[8px] font-bold">TypeScript</div>
                       <div className="px-2 py-1 rounded bg-green-50 text-green-700 text-[7px] sm:text-[8px] font-bold">Node.js</div>
                     </div>
@@ -269,7 +269,7 @@ export default function Homepage() {
               {/* Small accent shapes */}
               <div className="absolute top-0 right-[35%] w-20 h-20 bg-gradient-to-br from-teal-300 to-emerald-400 rounded-2xl rotate-12 opacity-60 z-0" />
               <div className="absolute bottom-[15%] left-0 w-16 h-16 bg-gradient-to-br from-amber-300 to-orange-400 rounded-xl -rotate-12 opacity-50 z-0" />
-              <div className="absolute top-[30%] right-0 w-14 h-14 bg-gradient-to-br from-purple-300 to-violet-400 rounded-lg rotate-6 opacity-40 z-0" />
+              <div className="absolute top-[30%] right-0 w-14 h-14 bg-gradient-to-br from-indigo-300 to-violet-400 rounded-lg rotate-6 opacity-40 z-0" />
             </div>
           </div>
         </FadeIn>
@@ -304,39 +304,39 @@ export default function Homepage() {
           <div className="grid md:grid-cols-3 gap-7">
             {/* ── Card 1: Precision Matching (Purple) ── */}
             <FadeIn delay={0}>
-              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 shadow-slate-900/20 border border-slate-700/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-indigo-900/5 border border-indigo-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
                 <div className="flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <Target className="w-7 h-7 text-white" />
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <Target className="w-7 h-7 text-indigo-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Precision Matching</h3>
-                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">The matching engine analyzes thousands of listings and only applies to roles that truly fit your skills and goals.</p>
-                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Precision Matching</h3>
+                  <p className="text-gray-600 leading-relaxed text-[15px] mb-2">The matching engine analyzes thousands of listings and only applies to roles that truly fit your skills and goals.</p>
+                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-semibold text-sm mt-2 group/l">
                     Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
-                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Top Matches</span>
-                    <span className="text-[9px] text-white/40">3 of 47 found</span>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Top Matches</span>
+                    <span className="text-[9px] text-gray-400">3 of 47 found</span>
                   </div>
                   {[
                     { role: "Sr. Frontend Eng", co: "Stripe", match: 98, salary: "$180k–$220k" },
                     { role: "Product Manager", co: "Airbnb", match: 95, salary: "$165k–$200k" },
                     { role: "UX Designer", co: "Figma", match: 92, salary: "$140k–$175k" },
                   ].map((j, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-white/[0.06] rounded-xl p-3 mb-2 last:mb-0">
-                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-[11px] font-black text-white/60 shrink-0">{j.co.charAt(0)}</div>
+                    <div key={i} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 mb-2 last:mb-0">
+                      <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-[11px] font-black text-indigo-700 shrink-0">{j.co.charAt(0)}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-bold text-white truncate">{j.role}</p>
-                        <p className="text-[9px] text-white/40">{j.co} · {j.salary}</p>
-                        <div className="mt-1.5 h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                        <p className="text-[11px] font-bold text-gray-900 truncate">{j.role}</p>
+                        <p className="text-[9px] text-gray-400">{j.co} · {j.salary}</p>
+                        <div className="mt-1.5 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
                           <div className="h-full bg-green-400/60 rounded-full" style={{ width: `${j.match}%` }} />
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-[13px] font-extrabold text-green-300">{j.match}%</div>
-                        <div className="text-[7px] text-white/30 uppercase">match</div>
+                        <div className="text-[7px] text-gray-400 uppercase">match</div>
                       </div>
                     </div>
                   ))}
@@ -346,44 +346,44 @@ export default function Homepage() {
 
             {/* ── Card 2: Curated Quality (Orange) ── */}
             <FadeIn delay={120}>
-              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-zinc-900/20 border border-zinc-700/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-indigo-900/5 border border-indigo-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
                 <div className="flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <PenTool className="w-7 h-7 text-white" />
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <PenTool className="w-7 h-7 text-indigo-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Curated Quality</h3>
-                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">Every resume &amp; cover letter is custom-tailored, ATS-optimized, and company-tone matched.</p>
-                  <a href="#features" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Curated Quality</h3>
+                  <p className="text-gray-600 leading-relaxed text-[15px] mb-2">Every resume &amp; cover letter is custom-tailored, ATS-optimized, and company-tone matched.</p>
+                  <a href="#features" className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-semibold text-sm mt-2 group/l">
                     Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
-                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
                   {/* Mini resume document mock */}
-                  <div className="bg-white/[0.06] rounded-xl p-3.5">
+                  <div className="bg-white border border-gray-100 rounded-xl p-3.5">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <div className="h-3 w-24 bg-white/30 rounded-full mb-1" />
-                        <div className="h-2 w-16 bg-white/15 rounded-full" />
+                        <div className="h-3 w-24 bg-gray-300 rounded-full mb-1" />
+                        <div className="h-2 w-16 bg-gray-200 rounded-full" />
                       </div>
                       <div className="px-2.5 py-1 rounded-lg bg-green-400/20 text-[9px] font-bold text-green-200 flex items-center gap-1">
                         <TrendingUp className="w-3 h-3" /> ATS 94%
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <div className="h-1.5 bg-white/20 rounded-full w-full" />
-                      <div className="h-1.5 bg-white/15 rounded-full w-[90%]" />
-                      <div className="h-1.5 bg-white/10 rounded-full w-[75%]" />
+                      <div className="h-1.5 bg-gray-200 rounded-full w-full" />
+                      <div className="h-1.5 bg-gray-200 rounded-full w-[90%]" />
+                      <div className="h-1.5 bg-gray-200 rounded-full w-[75%]" />
                     </div>
-                    <div className="mt-2.5 pt-2.5 border-t border-white/5">
-                      <div className="h-2 w-14 bg-white/20 rounded-full mb-1.5" />
+                    <div className="mt-2.5 pt-2.5 border-t border-gray-200">
+                      <div className="h-2 w-14 bg-gray-200 rounded-full mb-1.5" />
                       <div className="space-y-1">
-                        <div className="h-1.5 bg-white/10 rounded-full w-full" />
-                        <div className="h-1.5 bg-white/10 rounded-full w-[85%]" />
+                        <div className="h-1.5 bg-gray-200 rounded-full w-full" />
+                        <div className="h-1.5 bg-gray-200 rounded-full w-[85%]" />
                       </div>
                     </div>
                     <div className="mt-2.5 flex gap-1.5 flex-wrap">
                       {["React", "TS", "Node", "AWS"].map((s) => (
-                        <span key={s} className="px-2 py-0.5 rounded bg-white/10 text-[7px] font-bold text-white/60">{s}</span>
+                        <span key={s} className="px-2 py-0.5 rounded bg-indigo-50 text-[7px] font-bold text-indigo-700">{s}</span>
                       ))}
                     </div>
                   </div>
@@ -405,41 +405,41 @@ export default function Homepage() {
 
             {/* ── Card 3: Live Tracking (Blue) ── */}
             <FadeIn delay={240}>
-              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 shadow-neutral-900/20 border border-neutral-700/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-indigo-900/5 border border-indigo-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
                 <div className="flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <Activity className="w-7 h-7 text-white" />
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <Activity className="w-7 h-7 text-indigo-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Live Tracking</h3>
-                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">Watch applications go out in real-time. See matches, responses, and interview invites instantly.</p>
-                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Live Tracking</h3>
+                  <p className="text-gray-600 leading-relaxed text-[15px] mb-2">Watch applications go out in real-time. See matches, responses, and interview invites instantly.</p>
+                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-semibold text-sm mt-2 group/l">
                     Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
-                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
                   {/* Mini stats row */}
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
-                      <div className="text-[15px] font-extrabold text-white">18</div>
-                      <div className="text-[7px] text-white/40 uppercase tracking-wide">Today</div>
+                    <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
+                      <div className="text-[15px] font-extrabold text-gray-900">18</div>
+                      <div className="text-[7px] text-gray-400 uppercase tracking-wide">Today</div>
                     </div>
-                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
-                      <div className="text-[15px] font-extrabold text-white">127</div>
-                      <div className="text-[7px] text-white/40 uppercase tracking-wide">This week</div>
+                    <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
+                      <div className="text-[15px] font-extrabold text-gray-900">127</div>
+                      <div className="text-[7px] text-gray-400 uppercase tracking-wide">This week</div>
                     </div>
-                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
+                    <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
                       <div className="text-[15px] font-extrabold text-green-300">4</div>
-                      <div className="text-[7px] text-white/40 uppercase tracking-wide">Interviews</div>
+                      <div className="text-[7px] text-gray-400 uppercase tracking-wide">Interviews</div>
                     </div>
                   </div>
                   {/* Activity bar chart */}
-                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span className="text-[8px] text-white/40 uppercase tracking-wider font-bold">Activity This Week</span></div>
+                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span className="text-[8px] text-gray-400 uppercase tracking-wider font-bold">Activity This Week</span></div>
                   <div className="flex items-end gap-1 h-10 mb-1">
                     {[40, 65, 55, 80, 70, 90, 45].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t bg-white/15 hover:bg-white/25 transition-colors" style={{ height: `${h}%` }} />
+                      <div key={i} className="flex-1 rounded-t bg-white/15 hover:bg-indigo-200 transition-colors" style={{ height: `${h}%` }} />
                     ))}
                   </div>
-                  <div className="flex justify-between text-[7px] text-white/25 font-medium">
+                  <div className="flex justify-between text-[7px] text-gray-400 font-medium">
                     {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
                   </div>
                 </div>
@@ -455,14 +455,14 @@ export default function Homepage() {
       < section className="bg-gray-50 py-24 sm:py-32" >
         <div className="max-w-4xl mx-auto px-6 text-center">
           <FadeIn>
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 mb-8">
-              <span className="text-3xl text-purple-600 font-serif leading-none">"</span>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-8">
+              <span className="text-3xl text-indigo-600 font-serif leading-none">"</span>
             </div>
             <blockquote className="text-[clamp(1.5rem,3.5vw,2.75rem)] font-bold text-gray-900 leading-snug tracking-tight">
               That first week I literally did nothing and got 4 interview callbacks. This is the future of job hunting.
             </blockquote>
             <div className="mt-10 flex items-center justify-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center text-lg font-bold text-purple-700">SK</div>
+              <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center text-lg font-bold text-indigo-700">SK</div>
               <div className="text-left">
                 <p className="font-semibold text-gray-900 text-lg">Sarah K.</p>
                 <p className="text-sm text-gray-500">Marketing Manager · Landed at HubSpot</p>
@@ -482,23 +482,23 @@ export default function Homepage() {
           <FadeIn>
             <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
               <div className="relative">
-                <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-violet-100 rounded-[2rem] p-6 sm:p-10 lg:p-12">
-                  <div className="bg-white rounded-2xl shadow-2xl shadow-purple-200/50 p-5 sm:p-6 border border-gray-100/80">
+                <div className="bg-gradient-to-br from-indigo-100 via-indigo-50 to-violet-100 rounded-[2rem] p-6 sm:p-10 lg:p-12">
+                  <div className="bg-white rounded-2xl shadow-2xl shadow-indigo-200/50 p-5 sm:p-6 border border-gray-100/80">
                     <div className="flex items-center gap-2 mb-5">
                       <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-400" /><div className="w-3 h-3 rounded-full bg-amber-400" /><div className="w-3 h-3 rounded-full bg-green-400" /></div>
                       <div className="flex-1 h-7 bg-gray-100 rounded-full mx-6" />
                     </div>
                     <div className="grid grid-cols-3 gap-3 mb-5">
-                      <div className="bg-purple-50 rounded-xl p-3 sm:p-4 text-center"><div className="text-2xl sm:text-3xl font-extrabold text-purple-600">127</div><div className="text-[10px] sm:text-xs text-gray-500 mt-1">Applied</div></div>
+                      <div className="bg-indigo-50 rounded-xl p-3 sm:p-4 text-center"><div className="text-2xl sm:text-3xl font-extrabold text-indigo-600">127</div><div className="text-[10px] sm:text-xs text-gray-500 mt-1">Applied</div></div>
                       <div className="bg-green-50 rounded-xl p-3 sm:p-4 text-center"><div className="text-2xl sm:text-3xl font-extrabold text-green-600">23</div><div className="text-[10px] sm:text-xs text-gray-500 mt-1">Responses</div></div>
                       <div className="bg-amber-50 rounded-xl p-3 sm:p-4 text-center"><div className="text-2xl sm:text-3xl font-extrabold text-amber-600">7</div><div className="text-[10px] sm:text-xs text-gray-500 mt-1">Interviews</div></div>
                     </div>
                     <div className="space-y-0">
                       {[
                         { role: "Senior Frontend Engineer", co: "Stripe", status: "Interview", color: "bg-green-100 text-green-700" },
-                        { role: "Product Manager", co: "Airbnb", status: "Applied", color: "bg-purple-100 text-purple-700" },
+                        { role: "Product Manager", co: "Airbnb", status: "Applied", color: "bg-indigo-100 text-indigo-700" },
                         { role: "Data Scientist", co: "Netflix", status: "Viewed", color: "bg-amber-100 text-amber-700" },
-                        { role: "UX Designer", co: "Figma", status: "Applied", color: "bg-purple-100 text-purple-700" },
+                        { role: "UX Designer", co: "Figma", status: "Applied", color: "bg-indigo-100 text-indigo-700" },
                       ].map((row, i) => (
                         <div key={i} className="flex items-center gap-3 py-3 border-t border-gray-50">
                           <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Briefcase className="w-4 h-4 text-gray-400" /></div>
@@ -511,7 +511,7 @@ export default function Homepage() {
                 </div>
               </div>
               <div>
-                <p className="text-purple-600 font-semibold text-sm uppercase tracking-wider mb-4">Your command center</p>
+                <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider mb-4">Your command center</p>
                 <h2 className="text-[clamp(2rem,4vw,3rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
                   A dashboard that keeps you in complete control
                 </h2>
@@ -520,10 +520,10 @@ export default function Homepage() {
                 </p>
                 <ul className="mt-10 space-y-5">
                   {["Real-time application tracking", "Response & interview monitoring", "AI match confidence scores", "One-click application review"].map((f) => (
-                    <li key={f} className="flex items-center gap-4"><div className="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-purple-600" /></div><span className="text-gray-700 font-medium text-[15px]">{f}</span></li>
+                    <li key={f} className="flex items-center gap-4"><div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-indigo-600" /></div><span className="text-gray-700 font-medium text-[15px]">{f}</span></li>
                   ))}
                 </ul>
-                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-14 px-10 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all">
+                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-14 px-10 rounded-full text-base font-semibold bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/25 hover:-translate-y-0.5 transition-all">
                   Try it free <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -573,7 +573,7 @@ export default function Homepage() {
                     </div>
                     <div className="mt-5 flex gap-2 flex-wrap">
                       {["React", "TypeScript", "Node.js", "AWS", "GraphQL"].map((s) => (
-                        <div key={s} className="px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 text-[10px] font-bold">{s}</div>
+                        <div key={s} className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-bold">{s}</div>
                       ))}
                     </div>
                   </div>
@@ -637,25 +637,25 @@ export default function Homepage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Step 1 — Upload Resume */}
             <FadeIn delay={0}>
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 border border-slate-700/50 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/20">
-                <div className="absolute top-3 right-3 w-24 h-24 bg-white/[0.06] rounded-2xl rotate-12" />
-                <div className="absolute bottom-8 right-6 w-16 h-16 bg-white/[0.04] rounded-xl -rotate-6" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-indigo-100/50 p-7 text-gray-900 shadow-xl shadow-indigo-900/5 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/20">
+                <div className="absolute top-3 right-3 w-24 h-24 bg-white border border-gray-100 rounded-2xl rotate-12" />
+                <div className="absolute bottom-8 right-6 w-16 h-16 bg-indigo-50/50 rounded-xl -rotate-6" />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5">
-                    <Upload className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-5">
+                    <Upload className="w-6 h-6 text-indigo-600" />
                   </div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 1</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Step 1</div>
                   <h3 className="text-xl font-bold mb-3">Upload resume</h3>
                   <p className="text-white/70 text-[13px] leading-relaxed mb-5">Drop your PDF or paste a URL. We parse skills, experience, and preferences instantly.</p>
                 </div>
-                <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-white/[0.06]">
+                <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-gray-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                      <Upload className="w-5 h-5 text-white/50" />
+                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center shrink-0">
+                      <Upload className="w-5 h-5 text-gray-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="h-2 bg-white/20 rounded-full w-2/3 mb-1.5" />
-                      <div className="h-1.5 bg-white/10 rounded-full w-1/2" />
+                      <div className="h-2 bg-gray-200 rounded-full w-2/3 mb-1.5" />
+                      <div className="h-1.5 bg-gray-200 rounded-full w-1/2" />
                     </div>
                     <div className="px-2 py-1 rounded-lg bg-green-400/20 text-[8px] font-bold text-green-300">Parsed ✓</div>
                   </div>
@@ -665,14 +665,14 @@ export default function Homepage() {
 
             {/* Step 2 — Set Filters */}
             <FadeIn delay={100}>
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-800 via-zinc-800 to-zinc-900 border border-zinc-700/50 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-zinc-900/20">
-                <div className="absolute top-4 right-4 w-20 h-20 bg-white/[0.06] rounded-full" />
-                <div className="absolute bottom-10 right-8 w-12 h-12 bg-white/[0.04] rounded-full" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-indigo-100/50 p-7 text-gray-900 shadow-xl shadow-indigo-900/5 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-zinc-900/20">
+                <div className="absolute top-4 right-4 w-20 h-20 bg-white border border-gray-100 rounded-full" />
+                <div className="absolute bottom-10 right-8 w-12 h-12 bg-indigo-50/50 rounded-full" />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5">
-                    <SlidersHorizontal className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-5">
+                    <SlidersHorizontal className="w-6 h-6 text-indigo-600" />
                   </div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 2</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Step 2</div>
                   <h3 className="text-xl font-bold mb-3">Set your filters</h3>
                   <p className="text-white/70 text-[13px] leading-relaxed mb-5">Roles, locations, salary range, company size — we only apply to what genuinely matches.</p>
                 </div>
@@ -682,9 +682,9 @@ export default function Homepage() {
                     { label: "Salary", value: "$150k – $200k" },
                     { label: "Remote", value: "Yes" },
                   ].map((f) => (
-                    <div key={f.label} className="flex items-center justify-between bg-white/[0.08] rounded-lg px-3 py-2 border border-white/[0.06]">
-                      <span className="text-[10px] text-white/40 font-semibold">{f.label}</span>
-                      <span className="text-[10px] text-white/80 font-bold">{f.value}</span>
+                    <div key={f.label} className="flex items-center justify-between bg-white/[0.08] rounded-lg px-3 py-2 border border-gray-100">
+                      <span className="text-[10px] text-gray-400 font-semibold">{f.label}</span>
+                      <span className="text-[10px] text-gray-900 font-bold">{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -693,27 +693,27 @@ export default function Homepage() {
 
             {/* Step 3 — AI Applies */}
             <FadeIn delay={200}>
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-800 via-neutral-800 to-neutral-900 border border-neutral-700/50 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-neutral-900/20">
-                <div className="absolute top-3 right-3 w-28 h-16 bg-white/[0.05] rounded-xl rotate-6" />
-                <div className="absolute bottom-12 right-4 w-14 h-14 bg-white/[0.04] rounded-lg -rotate-12" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-indigo-100/50 p-7 text-gray-900 shadow-xl shadow-indigo-900/5 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-neutral-900/20">
+                <div className="absolute top-3 right-3 w-28 h-16 bg-indigo-50/50 rounded-xl rotate-6" />
+                <div className="absolute bottom-12 right-4 w-14 h-14 bg-indigo-50/50 rounded-lg -rotate-12" />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5">
-                    <Send className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-5">
+                    <Send className="w-6 h-6 text-indigo-600" />
                   </div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 3</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Step 3</div>
                   <h3 className="text-xl font-bold mb-3">Automated submissions</h3>
                   <p className="text-white/70 text-[13px] leading-relaxed mb-5">Every application is individually tailored with a custom resume and cover letter.</p>
                 </div>
-                <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-white/[0.06]">
+                <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-gray-100">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-[9px] text-white/50 font-semibold">Applying now…</span>
+                    <span className="text-[9px] text-gray-500 font-semibold">Applying now…</span>
                   </div>
-                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-white/30 rounded-full w-[72%] animate-pulse" />
+                  <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-gray-300 rounded-full w-[72%] animate-pulse" />
                   </div>
                   <div className="flex justify-between mt-1.5">
-                    <span className="text-[8px] text-white/30">18 of 25 today</span>
+                    <span className="text-[8px] text-gray-400">18 of 25 today</span>
                     <span className="text-[8px] text-green-300 font-bold">72%</span>
                   </div>
                 </div>
@@ -722,29 +722,29 @@ export default function Homepage() {
 
             {/* Step 4 — Get Interviews */}
             <FadeIn delay={300}>
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900 border border-gray-700/50 p-7 text-white min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-gray-900/20">
-                <div className="absolute top-4 right-4 w-20 h-20 bg-white/[0.06] rounded-2xl rotate-12" />
-                <div className="absolute bottom-8 right-6 w-14 h-10 bg-white/[0.04] rounded-xl -rotate-3" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-indigo-100/50 p-7 text-gray-900 shadow-xl shadow-indigo-900/5 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl hover:shadow-gray-900/20">
+                <div className="absolute top-4 right-4 w-20 h-20 bg-white border border-gray-100 rounded-2xl rotate-12" />
+                <div className="absolute bottom-8 right-6 w-14 h-10 bg-indigo-50/50 rounded-xl -rotate-3" />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5">
-                    <Trophy className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100/50 backdrop-blur-sm flex items-center justify-center mb-5">
+                    <Trophy className="w-6 h-6 text-indigo-600" />
                   </div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 4</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Step 4</div>
                   <h3 className="text-xl font-bold mb-3">Get interviews</h3>
                   <p className="text-white/70 text-[13px] leading-relaxed mb-5">Track responses, prep for interviews with data-driven insights, and land your dream role.</p>
                 </div>
                 <div className="mt-auto relative grid grid-cols-3 gap-2">
-                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-white/[0.06]">
+                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-gray-100">
                     <div className="text-lg font-extrabold">7</div>
-                    <div className="text-[7px] text-white/40 uppercase font-bold tracking-wide">Interviews</div>
+                    <div className="text-[7px] text-gray-400 uppercase font-bold tracking-wide">Interviews</div>
                   </div>
-                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-white/[0.06]">
+                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-gray-100">
                     <div className="text-lg font-extrabold">3</div>
-                    <div className="text-[7px] text-white/40 uppercase font-bold tracking-wide">Offers</div>
+                    <div className="text-[7px] text-gray-400 uppercase font-bold tracking-wide">Offers</div>
                   </div>
-                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-white/[0.06]">
+                  <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-gray-100">
                     <div className="text-lg font-extrabold text-green-300">1</div>
-                    <div className="text-[7px] text-white/40 uppercase font-bold tracking-wide">Accepted</div>
+                    <div className="text-[7px] text-gray-400 uppercase font-bold tracking-wide">Accepted</div>
                   </div>
                 </div>
               </div>
@@ -753,7 +753,7 @@ export default function Homepage() {
 
           <FadeIn delay={400}>
             <div className="text-center mt-16">
-              <Link to="/login" className="inline-flex items-center gap-2 h-14 px-10 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all">
+              <Link to="/login" className="inline-flex items-center gap-2 h-14 px-10 rounded-full text-base font-semibold bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/25 hover:-translate-y-0.5 transition-all">
                 Get Started Free <ArrowRight className="w-4 h-4" />
               </Link>
               <p className="mt-4 text-sm text-gray-400">Your first applications go out today</p>
@@ -776,7 +776,7 @@ export default function Homepage() {
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { q: "Got 4 interviews in my first week. I'd been applying manually for 3 months with nothing.", n: "Sarah K.", r: "Marketing Manager", initials: "SK", bg: "bg-purple-100 text-purple-700" },
+              { q: "Got 4 interviews in my first week. I'd been applying manually for 3 months with nothing.", n: "Sarah K.", r: "Marketing Manager", initials: "SK", bg: "bg-indigo-100 text-indigo-700" },
               { q: "The cover letters are genuinely better than what I'd write myself. Not generic at all.", n: "Marcus T.", r: "Software Engineer", initials: "MT", bg: "bg-teal-100 text-teal-700" },
               { q: "Found a listing 20 minutes after it was posted and applied instantly. That's how I got my current role.", n: "Priya R.", r: "Product Designer", initials: "PR", bg: "bg-orange-100 text-orange-700" },
               { q: "Landed 7 interviews in 2 weeks. The AI matched me with roles I didn't even know existed.", n: "James L.", r: "Data Analyst", initials: "JL", bg: "bg-sky-100 text-sky-700" },
@@ -870,7 +870,7 @@ export default function Homepage() {
       {
         stickyVisible && (
           <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-gray-200 p-3 shadow-lg">
-            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-12 rounded-full text-[15px] font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-12 rounded-full text-[15px] font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
               Get Started Free <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
