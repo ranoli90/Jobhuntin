@@ -157,18 +157,14 @@ export default function App() {
   return (
     <>
       <OfflineBanner />
-      <Helmet>
-        <title>JobHuntin — The automation platform for job seekers</title>
+      <Helmet defaultTitle="JobHuntin — The automation platform for job seekers" titleTemplate="%s | JobHuntin">
         <meta name="description" content="Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={config.urls.homepage} />
-        <meta property="og:title" content="JobHuntin — The automation platform for job seekers" />
-        <meta property="og:description" content="Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep." />
-        <meta property="og:image" content={`${config.urls.homepage}/og-image.png`} />
+        <meta property="og:site_name" content="JobHuntin" />
+        <meta property="og:locale" content="en_US" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JobHuntin — The automation platform for job seekers" />
-        <meta name="twitter:description" content="Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep." />
-        <meta name="twitter:image" content={`${config.urls.homepage}/og-image.png`} />
+        <meta name="twitter:site" content="@jobhuntin" />
+        <meta name="twitter:creator" content="@jobhuntin" />
         {location.pathname.startsWith("/app") && <meta name="robots" content="noindex, nofollow" />}
         <link rel="canonical" href={`${config.urls.homepage}${location.pathname === "/" ? "" : location.pathname}`} />
         <link rel="alternate" hrefLang="en" href={`${config.urls.homepage}${location.pathname}`} />

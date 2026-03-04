@@ -95,6 +95,7 @@ function FadeIn({ children, className = "", delay = 0 }: { children: React.React
 
 /* ─── Live Activity Feed (sample data for demo) ─── */
 function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
+  const [announcement, setAnnouncement] = useState("");
   const activities = [
     { role: "Senior Frontend Engineer", company: "Stripe", time: "2s ago", type: "applied" },
     { role: "Product Manager", company: "Airbnb", time: "15s ago", type: "applied" },
@@ -108,7 +109,16 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
-    const start = () => { interval = setInterval(() => setCurrentIdx((prev) => (prev + 1) % activities.length), 3000); };
+    const start = () => { 
+      interval = setInterval(() => {
+        setCurrentIdx((prev) => {
+          const next = (prev + 1) % activities.length;
+          const item = activities[next];
+          setAnnouncement(`${item.role} at ${item.company} - ${item.type}`);
+          return next;
+        });
+      }, 3000); 
+    };
     const stop = () => { if (interval) clearInterval(interval); interval = null; };
     const onVisibility = () => (document.hidden ? stop() : start());
     start();
@@ -120,12 +130,13 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   for (let i = 0; i < count; i++) visibleItems.push(activities[(currentIdx + i) % activities.length]);
   return (
     <div className="space-y-2">
-      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Demo activity</p>
+      <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
+      <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mb-1">Demo activity</p>
       {visibleItems.map((item, idx) => (
         <div key={`${item.role}-${idx}-${currentIdx}`} className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-500" style={{ opacity: 1 - idx * 0.15 }}>
-          <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-400" : "bg-indigo-400")} />
-          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{item.role}</p><p className="text-xs text-gray-400">{item.company}</p></div>
-          <span className="text-[11px] text-gray-400 shrink-0">{item.time}</span>
+          <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-500" : "bg-primary-500")} />
+          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{item.role}</p><p className="text-xs text-gray-500">{item.company}</p></div>
+          <span className="text-[11px] text-gray-500 shrink-0">{item.time}</span>
         </div>
       ))}
     </div>
@@ -200,7 +211,7 @@ export default function Homepage() {
                 <div className="flex -space-x-2 mr-2">
                   {[1, 2, 3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-200" />)}
                 </div>
-                <p className="text-xs sm:text-sm font-medium text-slate-400">
+      <p className="text-xs sm:text-sm font-medium text-slate-500">
                   <span className="text-slate-900 font-bold">10,000+</span> seekers already hired
                 </p>
               </div>
@@ -210,10 +221,10 @@ export default function Homepage() {
 
         {/* ── HERO VISUAL SHOWCASE ── */}
         <FadeIn delay={300}>
-          <div className="relative max-w-7xl mx-auto px-6 pb-20 mt-12 sm:mt-20">
-            <div className="relative h-[420px] sm:h-[520px] lg:h-[580px]">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pb-20 mt-12 sm:mt-20 overflow-hidden">
+            <div className="relative h-[360px] sm:h-[520px] lg:h-[580px] min-h-[360px]">
               {/* Card 1 — Purple — Dashboard (center-left, tilted) */}
-              <div className="absolute left-[2%] sm:left-[5%] top-[8%] w-[55%] sm:w-[45%] transform -rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
+              <div className="absolute left-[0%] sm:left-[5%] top-[5%] sm:top-[8%] w-[58%] sm:w-[45%] transform -rotate-2 sm:-rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
                 <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-indigo-500/30">
                   <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-3">
@@ -237,7 +248,7 @@ export default function Homepage() {
               </div>
 
               {/* Card 2 — Coral/Orange — Resume (center-right, tilted other way) */}
-              <div className="absolute right-[2%] sm:right-[5%] top-[2%] w-[50%] sm:w-[40%] transform rotate-3 z-30 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
+              <div className="absolute right-[0%] sm:right-[5%] top-[0%] sm:top-[2%] w-[52%] sm:w-[40%] transform rotate-2 sm:rotate-3 z-30 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
                 <div className="bg-gradient-to-br from-orange-400 to-rose-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-orange-500/30">
                   <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -264,7 +275,7 @@ export default function Homepage() {
               </div>
 
               {/* Card 3 — Blue — Live Feed (bottom center) */}
-              <div className="absolute left-[15%] sm:left-[22%] bottom-[0%] w-[55%] sm:w-[42%] transform rotate-1 z-10 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
+              <div className="absolute left-[10%] sm:left-[22%] bottom-[2%] sm:bottom-[0%] w-[60%] sm:w-[42%] transform rotate-1 z-10 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
                 <div className="bg-gradient-to-br from-sky-400 to-blue-600 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-blue-500/30">
                   <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -288,10 +299,16 @@ export default function Homepage() {
       {/* ═══ TRUST BAR ═══ */}
       < section className="bg-white border-y border-gray-100 py-10" >
         <div className="max-w-7xl mx-auto px-6">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center mb-6">Trusted by job seekers landing roles at</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-center mb-6">Trusted by job seekers landing roles at</p>
           <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
             {["Google", "Amazon", "Meta", "Stripe", "Shopify", "Netflix"].map((name) => (
-              <span key={name} className="text-xl font-bold text-gray-300 tracking-tight select-none">{name}</span>
+              <span 
+                key={name} 
+                className="text-xl font-bold text-gray-400 tracking-tight select-none px-4 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-500 transition-all cursor-default"
+                aria-label={`Trusted employer: ${name}`}
+              >
+                {name}
+              </span>
             ))}
           </div>
         </div>

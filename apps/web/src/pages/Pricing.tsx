@@ -109,14 +109,26 @@ export default function Pricing() {
             "@type": "Product",
             "name": "JobHuntin Pro",
             "description": "AI-powered job application automation: unlimited applications, resume tailoring, and interview coaching.",
-            "offers": {
-              "@type": "Offer",
-              "url": "https://jobhuntin.com/pricing",
-              "priceCurrency": "USD",
-              "price": "29",
-              "priceValidUntil": "2026-12-31",
-              "availability": "https://schema.org/InStock"
-            }
+            "offers": [
+              {
+                "@type": "Offer",
+                "name": "Monthly",
+                "url": "https://jobhuntin.com/pricing",
+                "priceCurrency": "USD",
+                "price": "29",
+                "priceValidUntil": "2026-12-31",
+                "availability": "https://schema.org/InStock"
+              },
+              {
+                "@type": "Offer",
+                "name": "Annual",
+                "url": "https://jobhuntin.com/pricing",
+                "priceCurrency": "USD",
+                "price": "22",
+                "priceValidUntil": "2026-12-31",
+                "availability": "https://schema.org/InStock"
+              }
+            ]
           },
           {
             "@context": "https://schema.org",
@@ -164,7 +176,9 @@ export default function Pricing() {
             <span className={`text-xs font-black uppercase tracking-widest ${!annual ? 'text-slate-950 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>Monthly</span>
             <button
               onClick={() => setAnnual(!annual)}
-              className="w-14 h-8 bg-slate-200 dark:bg-slate-800 rounded-full p-1 relative transition-all hover:scale-105"
+              className="w-14 h-8 bg-slate-200 dark:bg-slate-800 rounded-full p-1 relative transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              aria-pressed={annual}
+              aria-label={annual ? "Switch to monthly billing" : "Switch to annual billing"}
             >
               <motion.div
                 className="w-6 h-6 bg-white dark:bg-slate-100 rounded-full shadow-sm"
@@ -273,12 +287,12 @@ export default function Pricing() {
               </div>
             </div>
 
-            <div className="space-y-5 mb-12 flex-1 text-sm font-bold text-gray-500">
+            <ul className="space-y-5 mb-12 flex-1 text-sm font-bold text-gray-500">
               <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary-500" /> 5 Team Seats</li>
               <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary-500" /> Custom Domain Integration</li>
               <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary-500" /> Full API Access</li>
               <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary-500" /> White-label Reporting</li>
-            </div>
+            </ul>
 
             <button
               onClick={() => window.location.href = 'mailto:sales@jobhuntin.com'}

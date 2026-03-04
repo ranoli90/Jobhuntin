@@ -19,6 +19,7 @@ import { t, formatT, getLocale, isRTLLanguage } from "../lib/i18n";
 import { useSessionMilestone } from "../hooks/useCelebrations";
 import { telemetry } from "../lib/telemetry";
 import { useProfile } from "../hooks/useProfile";
+import { sanitizeHtml } from "../lib/utils";
 
 // N-10: Centralised status → Badge variant mapping
 function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
@@ -59,7 +60,7 @@ function JobCard({
   locale,
   children,
 }: {
-  job: { id: string };
+  job: { id: string; title?: string; company?: string };
   isTop: boolean;
   idx: number;
   shouldReduceMotion: boolean;
@@ -71,24 +72,32 @@ function JobCard({
   const x = useMotionValue(0);
   const acceptOpacity = useTransform(x, [0, 100, 200], [0, 0, 0.25]);
   const rejectOpacity = useTransform(x, [0, -100, -200], [0, 0, 0.25]);
+  const cardRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (!isTop) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
         onSwipe('ACCEPT');
       } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
         onSwipe('REJECT');
       }
     };
     globalThis.window.addEventListener('keydown', handleKeyDown);
+    // Auto-focus the card when it becomes top
+    if (cardRef.current) {
+      cardRef.current.focus();
+    }
     return () => globalThis.window.removeEventListener('keydown', handleKeyDown);
   }, [isTop, onSwipe]);
 
   return (
     <motion.div
+      ref={cardRef}
       role="article"
-      aria-label={`Job card. Swipe right or press Arrow Right/D to accept, Arrow Left/A to reject.`}
+      aria-label={`${job.title || 'Job'} at ${job.company || 'Company'}. Swipe right or press Arrow Right/D to apply, Arrow Left/A to skip.`}
       aria-roledescription="swipeable job card"
       style={{
         zIndex: idx,
@@ -96,7 +105,7 @@ function JobCard({
         width: '100%',
         x,
       }}
-      tabIndex={0}
+      tabIndex={isTop ? 0 : -1}
       initial={shouldReduceMotion ? undefined : { scale: 0.95, opacity: 0, y: 20 }}
       animate={{
         scale: isTop ? 1 : 0.95,
@@ -1097,9 +1106,12 @@ export function JobsView() {
 
                   <div className="p-8 flex-1 bg-white overflow-y-auto no-scrollbar">
                     <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Role Analysis</h4>
-                    <p className="text-slate-600 font-medium leading-relaxed mb-6">
-                      {job.description || "No description provided."}
-                    </p>
+                    <p 
+                      className="text-slate-600 font-medium leading-relaxed mb-6"
+                      dangerouslySetInnerHTML={{ 
+                        __html: job.description ? sanitizeHtml(job.description) : "No description provided." 
+                      }}
+                    />
 
                     {job.requirements && job.requirements.length > 0 && (
                       <div className="space-y-4">
@@ -1108,7 +1120,10 @@ export function JobsView() {
                             <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <CheckCircle className="w-3 h-3 text-emerald-600" />
                             </div>
-                            <p className="text-sm text-slate-700 font-medium">{req}</p>
+                            <p 
+                              className="text-sm text-slate-700 font-medium"
+                              dangerouslySetInnerHTML={{ __html: sanitizeHtml(req || "") }}
+                            />
                           </div>
                         ))}
                       </div>

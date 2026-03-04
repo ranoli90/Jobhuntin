@@ -73,13 +73,31 @@ export function MarketingFooter() {
               The automation platform for job seekers.
             </p>
             <div className="flex gap-2.5">
-              <a href="#" aria-label="Follow us on Twitter" className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all">
+              <a 
+                href="https://twitter.com/jobhuntin" 
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Follow us on Twitter (opens in new tab)" 
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
                 <Twitter className="w-4 h-4" aria-hidden />
               </a>
-              <a href="#" aria-label="Follow us on LinkedIn" className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all">
+              <a 
+                href="https://linkedin.com/company/jobhuntin" 
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Follow us on LinkedIn (opens in new tab)" 
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
                 <Linkedin className="w-4 h-4" aria-hidden />
               </a>
-              <a href="#" aria-label="View our GitHub" className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all">
+              <a 
+                href="https://github.com/jobhuntin" 
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View our GitHub (opens in new tab)" 
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
                 <Github className="w-4 h-4" aria-hidden />
               </a>
             </div>

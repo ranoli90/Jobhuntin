@@ -333,12 +333,16 @@ export default function Login() {
                       formError ? "border-red-300 bg-red-50/50" : "border-slate-200"
                     )}
                     required
+                    aria-invalid={formError ? "true" : "false"}
+                    aria-describedby={formError ? "login-email-error" : undefined}
                   />
                 </div>
               </div>
 
               {formError && (
                 <motion.div
+                  id="login-email-error"
+                  role="alert"
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg"

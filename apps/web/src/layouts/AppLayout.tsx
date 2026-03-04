@@ -203,7 +203,7 @@ export default function AppLayout() {
 
         {/* Mobile bottom navigation: 4 main + More (opens full menu) */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 pb-safe-area shadow-[0_-8px_24px_rgba(15,23,42,0.06)]" aria-label="Main navigation">
-          <div className="grid grid-cols-5 gap-1 pt-2 pb-4">
+          <div className="grid grid-cols-5 gap-1 pt-2 pb-5">
             {NAV_ITEMS.slice(0, 4).map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname.startsWith(item.to);
@@ -214,15 +214,15 @@ export default function AppLayout() {
                   onClick={closeMobile}
                   className={({ isActive }) =>
                     cn(
-                      "flex flex-col items-center justify-center rounded-xl px-1 py-1.5 transition-all min-h-[48px]",
+                      "flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95",
                       isActive ? "text-indigo-700 font-bold" : "text-slate-500 hover:text-slate-900"
                     )
                   }
                   aria-label={item.label}
                 >
-                  <Icon className={cn("h-5 w-5 mb-1 transition-transform", isActive && "scale-110")} aria-hidden />
-                  <span className="text-[10px] tracking-tight">{item.label}</span>
-                  {isActive && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-indigo-600" />}
+                  <Icon className={cn("h-6 w-6 mb-1.5 transition-transform", isActive && "scale-110")} aria-hidden />
+                  <span className="text-[11px] tracking-tight font-medium">{item.label}</span>
+                  {isActive && <span className="absolute bottom-1.5 w-1 h-1 rounded-full bg-indigo-600" />}
                 </NavLink>
               );
             })}
@@ -230,16 +230,16 @@ export default function AppLayout() {
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               className={cn(
-                "relative flex flex-col items-center justify-center rounded-xl px-1 py-1.5 transition-all min-h-[48px]",
+                "relative flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95",
                 NAV_ITEMS.slice(4).some((i) => location.pathname.startsWith(i.to))
                   ? "text-indigo-700 font-bold"
                   : "text-slate-500 hover:text-slate-900"
               )}
               aria-label="More menu"
             >
-              <MoreHorizontal className="h-5 w-5 mb-1" aria-hidden />
-              <span className="text-[10px] tracking-tight">More</span>
-              <span className="absolute top-1 right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-indigo-600 text-[8px] font-black text-white px-1 border-2 border-white" aria-hidden>
+              <MoreHorizontal className="h-6 w-6 mb-1.5" aria-hidden />
+              <span className="text-[11px] tracking-tight font-medium">More</span>
+              <span className="absolute top-1 right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-indigo-600 text-[10px] font-black text-white px-1.5 border-2 border-white" aria-hidden>
                 {NAV_ITEMS.slice(4).length}
               </span>
             </button>

@@ -214,9 +214,11 @@ export function CookieConsent() {
     <FocusTrap
       active={visible}
       focusTrapOptions={{
-        initialFocus: () => containerRef.current?.querySelector<HTMLElement>('[data-consent-reject]') ?? containerRef.current?.querySelector<HTMLElement>('button') ?? false,
-        allowOutsideClick: false,
-        escapeDeactivates: true,
+        initialFocus: false,
+        fallbackFocus: () => containerRef.current || document.body,
+        allowOutsideClick: true,
+        escapeDeactivates: false,
+        clickOutsideDeactivates: true,
       }}
     >
       <div
