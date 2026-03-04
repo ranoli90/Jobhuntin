@@ -294,7 +294,7 @@ export default function Homepage() {
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="text-center max-w-3xl mx-auto mb-20">
-              <p className="text-purple-600 font-semibold text-sm uppercase tracking-wider mb-4">How JobHuntin works for you</p>
+              <p className="text-slate-500 font-semibold text-sm uppercase tracking-wider mb-4">How JobHuntin works for you</p>
               <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
                 Everything you need to<br />land more interviews
               </h2>
@@ -304,7 +304,7 @@ export default function Homepage() {
           <div className="grid md:grid-cols-3 gap-7">
             {/* ── Card 1: Precision Matching (Purple) ── */}
             <FadeIn delay={0}>
-              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700 shadow-purple-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 shadow-slate-900/20 border border-slate-700/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
                 <div className="flex-1">
                   <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
                     <Target className="w-7 h-7 text-white" />
@@ -346,7 +346,7 @@ export default function Homepage() {
 
             {/* ── Card 2: Curated Quality (Orange) ── */}
             <FadeIn delay={120}>
-              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-orange-400 to-rose-500 shadow-orange-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-zinc-900/20 border border-zinc-700/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
                 <div className="flex-1">
                   <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
                     <Sparkles className="w-7 h-7 text-white" />
@@ -405,7 +405,7 @@ export default function Homepage() {
 
             {/* ── Card 3: Live Tracking (Blue) ── */}
             <FadeIn delay={240}>
-              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-sky-400 to-blue-600 shadow-blue-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 shadow-neutral-900/20 border border-neutral-700/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
                 <div className="flex-1">
                   <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
                     <Activity className="w-7 h-7 text-white" />
