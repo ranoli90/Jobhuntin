@@ -15,7 +15,7 @@ import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
 import { listen } from 'quicklink';
 import { CookieConsent } from './components/CookieConsent';
 import { OfflineBanner } from './components/OfflineBanner';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorBoundary, RouteErrorBoundary } from './components/ErrorBoundary';
 import { ToastShelf } from './components/ui/ToastShelf';
 
 // Lazy Load Pages for Performance
@@ -177,9 +177,9 @@ export default function App() {
           <Routes>
             {/* Public Marketing Pages & Auth */}
             <Route element={<MarketingLayout />}>
-              <Route path="/" element={<Homepage />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/success-stories" element={<SuccessStories />} />
+              <Route path="/" element={<RouteErrorBoundary><Homepage /></RouteErrorBoundary>} />
+              <Route path="/pricing" element={<RouteErrorBoundary><Pricing /></RouteErrorBoundary>} />
+              <Route path="/success-stories" element={<RouteErrorBoundary><SuccessStories /></RouteErrorBoundary>} />
               <Route path="/chrome-extension" element={<ChromeExtension />} />
               <Route path="/recruiters" element={<Recruiters />} />
               <Route path="/jobs/:role/:city" element={<JobNiche />} />
@@ -197,41 +197,41 @@ export default function App() {
               <Route path="/vs/jobright" element={<JobrightVsJobhuntin />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/locations" element={<Locations />} />
-              <Route path="/topics/:slug" element={<TopicPage />} />
-              <Route path="/authors/:authorId" element={<AuthorPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/about" element={<RouteErrorBoundary><About /></RouteErrorBoundary>} />
+              <Route path="/locations" element={<RouteErrorBoundary><Locations /></RouteErrorBoundary>} />
+              <Route path="/topics/:slug" element={<RouteErrorBoundary><TopicPage /></RouteErrorBoundary>} />
+              <Route path="/authors/:authorId" element={<RouteErrorBoundary><AuthorPage /></RouteErrorBoundary>} />
+              <Route path="/login" element={<RouteErrorBoundary><Login /></RouteErrorBoundary>} />
+              <Route path="/maintenance" element={<RouteErrorBoundary><Maintenance /></RouteErrorBoundary>} />
+              <Route path="*" element={<RouteErrorBoundary><NotFound /></RouteErrorBoundary>} />
             </Route>
 
             {/* App Protected Routes */}
             <Route path="/app" element={<AuthGuard />}>
-              <Route path="onboarding" element={<CompletedOnboardingRedirect><Onboarding /></CompletedOnboardingRedirect>} />
+              <Route path="onboarding" element={<CompletedOnboardingRedirect><RouteErrorBoundary><Onboarding /></RouteErrorBoundary></CompletedOnboardingRedirect>} />
 
               <Route element={<OnboardingGuard><AppLayout /></OnboardingGuard>}>
                 <Route index element={<Navigate to="/app/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="jobs" element={<React.Suspense fallback={<PageLoader />}><JobsViewWrapper /></React.Suspense>} />
-                <Route path="applications" element={<React.Suspense fallback={<PageLoader />}><ApplicationsViewWrapper /></React.Suspense>} />
-                <Route path="applications/:id" element={<React.Suspense fallback={<PageLoader />}><ApplicationDetailPage /></React.Suspense>} />
-                <Route path="holds" element={<React.Suspense fallback={<PageLoader />}><HoldsViewWrapper /></React.Suspense>} />
-                <Route path="team" element={<React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense>} />
-                <Route path="billing" element={<React.Suspense fallback={<PageLoader />}><Billing /></React.Suspense>} />
-                <Route path="settings" element={<Settings />} />
+                <Route path="dashboard" element={<RouteErrorBoundary><Dashboard /></RouteErrorBoundary>} />
+                <Route path="jobs" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><JobsViewWrapper /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="applications" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><ApplicationsViewWrapper /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="applications/:id" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><ApplicationDetailPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="holds" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><HoldsViewWrapper /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="team" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="billing" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><Billing /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="settings" element={<RouteErrorBoundary><Settings /></RouteErrorBoundary>} />
 
                 {/* AI Feature Routes */}
-                <Route path="matches" element={<React.Suspense fallback={<PageLoader />}><MatchesPage /></React.Suspense>} />
-                <Route path="tailor" element={<React.Suspense fallback={<PageLoader />}><AITailorPage /></React.Suspense>} />
-                <Route path="ats-score" element={<React.Suspense fallback={<PageLoader />}><ATSScorePage /></React.Suspense>} />
+                <Route path="matches" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><MatchesPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="tailor" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><AITailorPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="ats-score" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><ATSScorePage /></React.Suspense></RouteErrorBoundary>} />
 
                 {/* Admin Routes */}
                 <Route path="admin" element={<AdminGuard />}>
-                  <Route path="usage" element={<React.Suspense fallback={<PageLoader />}><AdminUsagePage /></React.Suspense>} />
-                  <Route path="matches" element={<React.Suspense fallback={<PageLoader />}><AdminMatchesPage /></React.Suspense>} />
-                  <Route path="alerts" element={<React.Suspense fallback={<PageLoader />}><AdminAlertsPage /></React.Suspense>} />
-                  <Route path="sources" element={<React.Suspense fallback={<PageLoader />}><AdminSourcesPage /></React.Suspense>} />
+                  <Route path="usage" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><AdminUsagePage /></React.Suspense></RouteErrorBoundary>} />
+                  <Route path="matches" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><AdminMatchesPage /></React.Suspense></RouteErrorBoundary>} />
+                  <Route path="alerts" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><AdminAlertsPage /></React.Suspense></RouteErrorBoundary>} />
+                  <Route path="sources" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><AdminSourcesPage /></React.Suspense></RouteErrorBoundary>} />
                 </Route>
 
                 <Route path="*" element={<React.Suspense fallback={<PageLoader />}><AppNotFound /></React.Suspense>} />
