@@ -32,7 +32,7 @@ from fastapi import (
     FastAPI,
     File,
     HTTPException,
-    Path,
+    Path as FastAPIPath,
     Request,
     UploadFile,
 )

@@ -814,9 +814,15 @@ async def logout(
     settings: Settings = Depends(settings_dependency),
 ) -> RedirectResponse:
     """Clear auth cookie and redirect to login. Supports GET for redirect-based logout."""
+    is_prod = settings.env.value in ("prod", "staging")
     redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
     response = RedirectResponse(url=redirect_url, status_code=302)
-    response.delete_cookie(key=AUTH_COOKIE_NAME, path="/")
+    response.delete_cookie(
+        key=AUTH_COOKIE_NAME,
+        path="/",
+        samesite="none" if is_prod else "lax",
+        secure=is_prod,
+    )
     return response
 
 

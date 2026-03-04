@@ -66,9 +66,9 @@ class RoleSuggestionRequest(BaseModel):
     """Request for AI-powered role suggestions."""
 
     resume_text: str = Field(..., min_length=50, max_length=10000)
-    skills: list[str] = Field(default_factory=list, max_items=50)
+    skills: list[str] = Field(default_factory=list, max_length=50)
     experience_years: int = Field(default=0, ge=0, le=50)
-    education_level: str = Field(default="bachelor", regex="^(high_school|bachelor|master|phd|other)$")
+    education_level: str = Field(default="bachelor", pattern="^(high_school|bachelor|master|phd|other)$")
 
 
 class SalarySuggestionRequest(BaseModel):
@@ -76,15 +76,15 @@ class SalarySuggestionRequest(BaseModel):
 
     role: str = Field(..., min_length=2, max_length=100)
     location: str = Field(..., min_length=2, max_length=100)
-    skills: list[str] = Field(default_factory=list, max_items=50)
+    skills: list[str] = Field(default_factory=list, max_length=50)
     experience_years: int = Field(default=0, ge=0, le=50)
-    education_level: str = Field(default="bachelor", regex="^(high_school|bachelor|master|phd|other)$")
+    education_level: str = Field(default="bachelor", pattern="^(high_school|bachelor|master|phd|other)$")
 
 
 class LocationSuggestionRequest(BaseModel):
     """Request for AI-powered location suggestions."""
 
-    skills: list[str] = Field(..., min_items=1, max_items=50)
+    skills: list[str] = Field(..., min_length=1, max_length=50)
     role: str = Field(..., min_length=2, max_length=100)
     experience_years: int = Field(default=0, ge=0, le=50)
     remote_preference: bool = Field(default=True)
@@ -93,8 +93,8 @@ class LocationSuggestionRequest(BaseModel):
 class JobMatchRequest(BaseModel):
     """Request for AI-powered job matching."""
 
-    profile_id: str = Field(..., regex="^[a-zA-Z0-9_-]{1,50}$")
-    job_ids: list[str] = Field(..., min_items=1, max_items=100)
+    profile_id: str = Field(..., pattern="^[a-zA-Z0-9_-]{1,50}$")
+    job_ids: list[str] = Field(..., min_length=1, max_length=100)
     limit: int = Field(default=10, ge=1, le=50)
 
 
@@ -102,7 +102,7 @@ class OnboardingQuestionsRequest(BaseModel):
     """Request for AI-powered onboarding questions."""
 
     resume_text: str = Field(..., min_length=50, max_length=10000)
-    current_step: str = Field(default="initial", regex="^(initial|skills|experience|preferences)$")
+    current_step: str = Field(default="initial", pattern="^(initial|skills|experience|preferences)$")
 
 
 # ---------------------------------------------------------------------------
