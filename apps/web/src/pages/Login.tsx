@@ -326,7 +326,14 @@ export default function Login() {
 
             <SocialLoginDivider />
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <motion.form 
+              onSubmit={handleSubmit} 
+              className="space-y-4"
+              animate={formError ? {
+                x: [0, -10, 10, -10, 10, 0],
+                transition: { duration: 0.4 }
+              } : {}}
+            >
               <div className="relative">
                 <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   {t("login.email", getLocale())}
@@ -393,7 +400,7 @@ export default function Login() {
                   </span>
                 )}
               </Button>
-            </form>
+            </motion.form>
 
             {/* Security Badges - Compact row */}
             <div className="flex items-center justify-center gap-6 py-3">
