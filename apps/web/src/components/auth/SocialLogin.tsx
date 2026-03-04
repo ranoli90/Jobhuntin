@@ -50,7 +50,7 @@ export function SocialLoginButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full h-12 px-4 rounded-xl border font-semibold text-sm",
+        "w-full h-14 sm:h-12 px-4 rounded-xl border font-semibold text-sm",
         "flex items-center justify-center gap-3",
         "transition-all duration-200",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",

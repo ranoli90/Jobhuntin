@@ -381,7 +381,7 @@ export default function Login() {
               <Button
                 type="submit"
                 disabled={isLoading || !emailIsValid}
-                className="w-full h-11 rounded-xl font-semibold text-white bg-primary-600 hover:bg-primary-500 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 rounded-xl font-semibold text-white bg-primary-600 hover:bg-primary-500 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>

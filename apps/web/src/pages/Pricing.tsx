@@ -113,7 +113,7 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                 
                 <button
                   onClick={onClose}
-                  className="block w-full h-12 text-slate-500 font-medium hover:text-slate-700 transition-colors"
+                  className="block w-full h-14 text-slate-500 font-medium hover:text-slate-700 transition-colors"
                 >
                   Maybe later
                 </button>

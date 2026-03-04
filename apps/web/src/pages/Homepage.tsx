@@ -66,7 +66,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
           value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />
         <button type="submit" disabled={isSubmitting}
-          className="h-14 px-8 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 active:translate-y-0"
+          className="h-12 px-6 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 active:translate-y-0"
         >
           {isSubmitting ? "Sending…" : "Start free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
         </button>
@@ -201,10 +201,10 @@ export default function Homepage() {
             </FadeIn>
             <FadeIn delay={160}>
               <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
-                <Link to="/login" className="h-14 sm:h-16 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   Start Applying Free <ArrowRight className="w-5 h-5" />
                 </Link>
-                <a href="#how-it-works" className="h-14 sm:h-16 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   See How It Works
                 </a>
               </div>
@@ -551,7 +551,7 @@ export default function Homepage() {
                     <li key={f} className="flex items-center gap-4"><div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-primary-600" /></div><span className="text-gray-700 font-medium text-[15px]">{f}</span></li>
                   ))}
                 </ul>
-                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-16 px-12 rounded-full text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 transition-all">
+                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-14 px-10 rounded-full text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 transition-all">
                   Try it free <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
