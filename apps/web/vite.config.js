@@ -52,8 +52,10 @@ export default defineConfig(function (_a) {
                 },
             },
         },
-        esbuild: {
-            drop: ["console", "debugger"],
-        },
+        // Only strip console/debugger in production builds.
+        // In development, keep them for debugging auth flows, API calls, etc.
+        esbuild: mode === "production"
+            ? { drop: ["console", "debugger"] }
+            : {},
     };
 });
