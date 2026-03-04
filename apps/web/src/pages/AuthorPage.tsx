@@ -6,7 +6,7 @@ import guides from '../data/guides.json';
 export default function AuthorPage() {
   const { authorId } = useParams<{ authorId: string }>();
   const author = authors.find(a => a.id === authorId);
-  const guides = Object.entries(guides as Record<string, any>).filter(([slug, guide]) => guide.authorId === authorId);
+  const authorGuides = Object.entries(guides as Record<string, any>).filter(([slug, guide]: [string, any]) => guide.authorId === authorId);
 
   if (!author) {
     return (
@@ -36,7 +36,7 @@ export default function AuthorPage() {
 
         <h2 className="text-2xl font-bold mb-6">Guides by {author.name}</h2>
         <div className="grid gap-8">
-          {guides.map(([slug, guide]) => (
+          {authorGuides.map(([slug, guide]: [string, any]) => (
             <Link to={`/guides/${slug}`} key={slug} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-xl font-bold mb-2">{guide.title}</h3>
               <p className="text-slate-600">{guide.readTime}</p>

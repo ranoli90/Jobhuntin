@@ -1,6 +1,6 @@
 import { FocusTrap } from "focus-trap-react";
 import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle, Radar, MoreVertical, Eye, Pause, Trash2, Filter, MapPin, BriefcaseIcon } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
+import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { useBilling } from "../hooks/useBilling";
@@ -512,6 +512,7 @@ export default function Dashboard() {
 }
 
 export function JobsView() {
+  const navigate = useNavigate();
   // Load user preferences from onboarding to pre-populate filters
   const { profile } = useProfile();
   const userPrefs = profile?.preferences;

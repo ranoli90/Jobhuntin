@@ -224,7 +224,7 @@ export default function ApplicationsView() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <BriefcaseIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
@@ -244,8 +244,8 @@ export default function ApplicationsView() {
             key={label}
             onClick={() => setStatusFilter(value)}
             className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${statusFilter === value
-                ? 'bg-slate-900 text-white border-slate-900'
-                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+              ? 'bg-slate-900 text-white border-slate-900'
+              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               }`}
           >
             {label}

@@ -375,35 +375,31 @@ export function PreferencesStep({
                         {aiSuggestions.locations && aiSuggestions.locations.suggested_locations?.length > 0 && (
                             <AISuggestionCard
                                 title={t("onboarding.suggestedLocation", locale) || "Suggested Location"}
-                                suggestion={aiSuggestions.locations.suggested_locations[0]}
+                                suggestions={[aiSuggestions.locations.suggested_locations[0]]}
                                 confidence={aiSuggestions.locations.remote_friendly_score ?? 0.5}
-                                onApply={() => handleLocationChange(aiSuggestions.locations!.suggested_locations[0])}
-                                currentValue={preferences.location}
+                                onAccept={(val) => handleLocationChange(val)}
                             />
                         )}
 
                         {aiSuggestions.roles && (
                             <AISuggestionCard
                                 title={t("onboarding.suggestedRole", locale) || "Suggested Role"}
-                                suggestion={aiSuggestions.roles.primary_role}
+                                suggestions={[aiSuggestions.roles.primary_role]}
                                 confidence={aiSuggestions.roles.confidence}
-                                onApply={() => handleRoleTypeChange(aiSuggestions.roles!.primary_role)}
-                                currentValue={preferences.role_type}
+                                onAccept={(val) => handleRoleTypeChange(val)}
                             />
                         )}
 
                         {aiSuggestions.salary && (
                             <SalarySuggestionCard
-                                title={t("onboarding.suggestedSalary", locale) || "Suggested Salary Range"}
-                                min={aiSuggestions.salary.min_salary}
-                                max={aiSuggestions.salary.max_salary}
+                                minSalary={Number(aiSuggestions.salary.min_salary)}
+                                maxSalary={Number(aiSuggestions.salary.max_salary)}
+                                marketMedian={(Number(aiSuggestions.salary.min_salary) + Number(aiSuggestions.salary.max_salary)) / 2}
                                 confidence={aiSuggestions.salary.confidence}
-                                onApply={() => {
-                                    handleSalaryChange('salary_min', aiSuggestions.salary!.min_salary.toString());
-                                    handleSalaryChange('salary_max', aiSuggestions.salary!.max_salary.toString());
+                                onAccept={(min, max) => {
+                                    handleSalaryChange('salary_min', min.toString());
+                                    handleSalaryChange('salary_max', max.toString());
                                 }}
-                                currentMin={preferences.salary_min}
-                                currentMax={preferences.salary_max}
                             />
                         )}
                     </div>

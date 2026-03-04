@@ -90,7 +90,7 @@ export default function Dashboard() {
     },
   ];
 
-  const greeting = getGreeting(profile?.contact?.first_name || profile?.full_name?.split(' ')[0]);
+  const greeting = getGreeting(profile?.contact?.first_name || profile?.contact?.full_name?.split(' ')[0]);
   const recentApps = applications.slice(0, 5);
 
   return (

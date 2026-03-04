@@ -13,12 +13,12 @@ async function getRecaptchaToken(action: string): Promise<string | null> {
       window.grecaptcha.ready(() => {
         window.grecaptcha
           .execute(RECAPTCHA_SITE_KEY, { action })
-          .then((token) => {
+          .then((token: string) => {
             resolve(token);
           })
-          .catch((err) => {
+          .catch((err: any) => {
             console.error("reCAPTCHA execution error:", err);
-            telemetry.track("recaptcha_error", { error: err.message, action });
+            telemetry.track("recaptcha_error", { error: err?.message || "unknown error", action });
             resolve(null);
           });
       });

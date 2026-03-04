@@ -5,7 +5,7 @@ import { t, getLocale } from '../lib/i18n';
 
 declare global {
   interface Window {
-    gtag?: (...args: unknown[]) => void;
+    gtag?: (command: string, ...args: unknown[]) => void;
   }
 }
 
@@ -66,12 +66,12 @@ export function CookieConsent() {
   }, [visible]);
 
   const saveConsent = useCallback((prefs: ConsentPreferences) => {
-    localStorage.setItem(CONSENT_KEY, JSON.stringify({ 
-      analytics: prefs.analytics, 
-      marketing: prefs.marketing, 
-      ts: Date.now() 
+    localStorage.setItem(CONSENT_KEY, JSON.stringify({
+      analytics: prefs.analytics,
+      marketing: prefs.marketing,
+      ts: Date.now()
     }));
-    
+
     // Update Google Analytics consent
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('consent', 'update', {
@@ -79,7 +79,7 @@ export function CookieConsent() {
         ad_storage: prefs.marketing ? 'granted' : 'denied'
       });
     }
-    
+
     setPreferences(prefs);
     setVisible(false);
     setShowPreferences(false);
@@ -128,7 +128,7 @@ export function CookieConsent() {
         }}
       >
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div 
+          <div
             ref={containerRef}
             role="dialog"
             aria-modal="true"
@@ -139,7 +139,7 @@ export function CookieConsent() {
             <h2 id="cookie-preferences-title" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
               {t("cookies.managePreferences", getLocale())}
             </h2>
-            
+
             <div className="space-y-4 mb-6">
               <div className="flex items-start gap-3">
                 <input
@@ -219,35 +219,35 @@ export function CookieConsent() {
         escapeDeactivates: true,
       }}
     >
-    <div
-      ref={containerRef}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cookie-consent-title"
-      aria-describedby="cookie-consent-description"
-      className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 shadow-lg md:flex md:items-center md:justify-between md:px-8"
-      onKeyDown={handleKeyDown}
-    >
-      <p id="cookie-consent-title" className="sr-only">{t("cookies.title", getLocale())}</p>
-      <p id="cookie-consent-description" className="text-sm text-slate-600 dark:text-slate-400 mb-3 md:mb-0 md:mr-6">
-        {t("cookies.description", getLocale())}{' '}
-        <a href="/privacy#cookies" className="underline text-brand-accent hover:text-brand-ink">
-          {t("cookies.privacyPolicy", getLocale())}
-        </a>{' '}
-        {t("cookies.forDetails", getLocale())}
-      </p>
-      <div className="flex flex-wrap gap-2 shrink-0">
-        <Button variant="outline" size="sm" onClick={acceptEssentialOnly} data-consent-reject aria-label={t("cookies.rejectAll", getLocale())}>
-          {t("cookies.rejectAll", getLocale())}
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setShowPreferences(true)} aria-label={t("cookies.managePreferences", getLocale())}>
-          {t("cookies.managePreferences", getLocale())}
-        </Button>
-        <Button variant="primary" size="sm" onClick={acceptAll} aria-label={t("cookies.acceptAll", getLocale())}>
-          {t("cookies.acceptAll", getLocale())}
-        </Button>
+      <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cookie-consent-title"
+        aria-describedby="cookie-consent-description"
+        className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 shadow-lg md:flex md:items-center md:justify-between md:px-8"
+        onKeyDown={handleKeyDown}
+      >
+        <p id="cookie-consent-title" className="sr-only">{t("cookies.title", getLocale())}</p>
+        <p id="cookie-consent-description" className="text-sm text-slate-600 dark:text-slate-400 mb-3 md:mb-0 md:mr-6">
+          {t("cookies.description", getLocale())}{' '}
+          <a href="/privacy#cookies" className="underline text-brand-accent hover:text-brand-ink">
+            {t("cookies.privacyPolicy", getLocale())}
+          </a>{' '}
+          {t("cookies.forDetails", getLocale())}
+        </p>
+        <div className="flex flex-wrap gap-2 shrink-0">
+          <Button variant="outline" size="sm" onClick={acceptEssentialOnly} data-consent-reject aria-label={t("cookies.rejectAll", getLocale())}>
+            {t("cookies.rejectAll", getLocale())}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowPreferences(true)} aria-label={t("cookies.managePreferences", getLocale())}>
+            {t("cookies.managePreferences", getLocale())}
+          </Button>
+          <Button variant="primary" size="sm" onClick={acceptAll} aria-label={t("cookies.acceptAll", getLocale())}>
+            {t("cookies.acceptAll", getLocale())}
+          </Button>
+        </div>
       </div>
-    </div>
     </FocusTrap>
   );
 }

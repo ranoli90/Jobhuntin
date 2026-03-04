@@ -148,7 +148,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     title: "Session expiring soon",
                     description: `Your session will expire in ${minutesLeft} minute${minutesLeft > 1 ? 's' : ''}. Save any work and refresh the page to extend your session.`,
                     tone: "warning",
-                    duration: 10000, // Show for 10 seconds
                 });
             }
         };

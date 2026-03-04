@@ -85,7 +85,7 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
       // Monitor Core Web Vitals
       this.observer = new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
-        
+
         entries.forEach((entry) => {
           switch (entry.entryType) {
             case 'largest-contentful-paint':
@@ -195,7 +195,7 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
     }
   };
 
-  private reportError = (type: string, error: Error | unknown) => {
+  private reportError = (type: string, error: Error | any) => {
     if (!this.props.reportToService || !this.props.enableReporting) return;
 
     try {

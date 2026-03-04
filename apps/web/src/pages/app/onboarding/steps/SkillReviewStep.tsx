@@ -21,7 +21,7 @@ function getConfidenceLevel(confidence: number, locale: string): { label: string
 function ConfidenceBadge({ confidence, locale }: { confidence: number; locale: string }) {
     const { label, color, bgColor } = getConfidenceLevel(confidence, locale);
     return (
-        <span 
+        <span
             className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[10px] font-black rounded-full ${bgColor} ${color}`}
             aria-label={`${label} confidence: ${Math.round(confidence * 100)}%`}
         >
@@ -184,6 +184,14 @@ function AddSkillForm({ onAdd, onCancel, locale }: AddSkillFormProps) {
     );
 }
 
+export interface SkillReviewStepProps {
+    onNext: () => void;
+    onPrev: () => void;
+    richSkills: RichSkill[];
+    setRichSkills: React.Dispatch<React.SetStateAction<RichSkill[]>>;
+    isSaving: boolean;
+}
+
 export function SkillReviewStep({
     onNext,
     onPrev,
@@ -201,22 +209,22 @@ export function SkillReviewStep({
 
     const handleAddSkill = (skill: RichSkill) => {
         const normalizedSkillName = skill.skill.toLowerCase().trim();
-        
+
         // Check for duplicates, including similar spellings (case-insensitive)
         const isDuplicate = richSkills.some(
             s => s.skill.toLowerCase().trim() === normalizedSkillName
         );
-        
+
         if (isDuplicate) {
             // Show feedback to user instead of silently ignoring
-            pushToast({ 
-                title: t("onboarding.skillExistsTitle", locale) || "Skill already exists", 
+            pushToast({
+                title: t("onboarding.skillExistsTitle", locale) || "Skill already exists",
                 description: `"${skill.skill}" ${t("onboarding.skillExistsDesc", locale) || "is already in your skills list."}`,
-                tone: "warning" 
+                tone: "warning"
             });
             return;
         }
-        
+
         setRichSkills(prev => [...prev, skill]);
         setIsAddingSkill(false);
     };
@@ -398,10 +406,10 @@ export function SkillReviewStep({
             )}
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4">
-                <Button 
-                    type="button" 
-                    variant="ghost" 
-                    onClick={onPrev} 
+                <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onPrev}
                     className="h-12 sm:h-11 rounded-xl font-bold text-slate-400 hover:text-slate-900 border border-slate-100 hover:bg-slate-50 text-sm px-4 touch-manipulation"
                     aria-label={t("onboarding.back", locale)}
                 >

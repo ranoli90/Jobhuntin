@@ -23,7 +23,7 @@ export default function TopicPage() {
         <h1 className="text-4xl font-bold mb-6">{topic.title}</h1>
         <div
           className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-primary-600 prose-strong:text-slate-900"
-          dangerouslySetInnerHTML={XSSProtection.sanitize(topic.content)}
+          dangerouslySetInnerHTML={{ __html: XSSProtection.sanitizeHTML(topic.content) }}
         />
       </div>
     </div>
