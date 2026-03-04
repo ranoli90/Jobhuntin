@@ -4,8 +4,11 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from PIL import Image, ImageDraw, ImageFont
 from shared.middleware import get_client_ip
+from shared.logging_config import get_logger
 
 from shared.metrics import get_rate_limiter
+
+logger = get_logger("sorce.api.og")
 
 router = APIRouter()
 
@@ -39,7 +42,7 @@ def get_font(url: str, size: int):
         _font_cache[key] = font
         return font
     except Exception as e:
-        print(f"Failed to load font {url}: {e}")
+        logger.warning("Failed to load font %s: %s", url, e)
         return ImageFont.load_default()
 
 def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
@@ -97,7 +100,7 @@ async def generate_og_image(
     # We'll simulate a gradient by drawing multiple lines or circles
     # Background swipe trail
     for i in range(200):
-        int(255 * (1 - i/200))
+        _alpha = int(255 * (1 - i/200))  # kept for future gradient opacity
         color = (255, 107, 53) # RGB for #FF6B35
         # Interpolate towards blue
         if i > 100:
@@ -114,7 +117,7 @@ async def generate_og_image(
     # Main "Card" Area (White Box)
     margin = 60
     card_width = WIDTH - (margin * 2)
-    HEIGHT - (margin * 2)
+    _card_height = HEIGHT - (margin * 2)  # noqa: F841 — kept for future use
     draw.rounded_rectangle(
         [margin, margin, WIDTH - margin, HEIGHT - margin],
         radius=40,
