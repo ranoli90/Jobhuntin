@@ -112,7 +112,7 @@ export function MarketingNavbar() {
                   ? "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30"
                   : "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5"
               )}>
-                Start Free <ArrowRight className="w-4 h-4" />
+                Get 20 Free <ArrowRight className="w-4 h-4" />
               </Link>
             </>
           )}

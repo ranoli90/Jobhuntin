@@ -176,7 +176,7 @@ export default function Homepage() {
         description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily. More interviews, zero effort."
         ogTitle="JobHuntin — The Application Engine That Runs While You Sleep"
         canonicalUrl="https://jobhuntin.com/"
-        schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }}
+        schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "20 free applications per week. Upgrade to unlimited for $10 first month." }, "description": "Automated system that tailors and submits job applications." }}
       />
 
       {/* ═══════════════════════════════════════════════════════════════
@@ -202,7 +202,7 @@ export default function Homepage() {
             <FadeIn delay={160}>
               <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
                 <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
-                  Start Applying Free <ArrowRight className="w-5 h-5" />
+                  Get 20 Free Applications <ArrowRight className="w-5 h-5" />
                 </Link>
                 <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   See How It Works
@@ -778,9 +778,9 @@ export default function Homepage() {
           <FadeIn delay={400}>
             <div className="text-center mt-16">
               <Link to="/login" className="inline-flex items-center gap-2 h-14 px-10 rounded-full text-base font-semibold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 transition-all">
-                Get Started Free <ArrowRight className="w-4 h-4" />
+                Start Free <ArrowRight className="w-4 h-4" />
               </Link>
-              <p className="mt-4 text-sm text-gray-500">Your first applications go out today</p>
+              <p className="mt-4 text-sm text-gray-500">20 applications per week. No credit card required.</p>
             </div>
           </FadeIn>
         </div>
