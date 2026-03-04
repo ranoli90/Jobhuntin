@@ -434,6 +434,13 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[user_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(user_mod.router)
 
+    # Billing routes for Stripe checkout and subscription management
+    import api.billing as billing_mod
+
+    app.dependency_overrides[billing_mod._get_pool] = get_pool
+    app.dependency_overrides[billing_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(billing_mod.router)
+
     import api.og as og_mod
 
     app.include_router(og_mod.router)
