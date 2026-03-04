@@ -215,30 +215,28 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex">
-      {/* Left Side - Desktop Only */}
-      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Left Side - Brand/Info Panel */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-1/2 bg-slate-900 relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-slate-700/30 to-slate-900/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-gradient-to-tr from-slate-600/15 to-slate-800/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-primary-600/20 to-slate-900/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-slate-700/20 to-slate-800/10 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+        <div className="relative z-10 flex flex-col justify-between p-16 w-full">
           <div>
-            <div className="flex items-center gap-2 text-white/60 mb-2">
-              <Logo className="text-white" />
-            </div>
+            <Logo className="text-white h-8 w-auto" />
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-10 max-w-xl">
             <div>
-              <h2 className="font-sans text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4 tracking-tight">
-                {t("login.sidebarTitleLine1", getLocale())}<br />
-                <span className="text-primary-600 dark:text-primary-400">
+              <h2 className="font-sans text-3xl xl:text-4xl font-bold text-white leading-tight mb-4 tracking-tight">
+                {t("login.sidebarTitleLine1", getLocale())}{" "}
+                <span className="text-primary-400">
                   {t("login.sidebarTitleLine2", getLocale())}
                 </span>
               </h2>
-              <p className="text-slate-500 text-lg leading-relaxed max-w-md">
+              <p className="text-slate-400 text-base leading-relaxed">
                 {t("login.sidebarSubtitle", getLocale())}
               </p>
             </div>
@@ -256,10 +254,10 @@ export default function Login() {
                   transition={{ delay: 0.3 + i * 0.1 }}
                   className="flex items-center gap-4"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-slate-500" />
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                    <item.icon className="w-5 h-5 text-primary-400" />
                   </div>
-                  <span className="text-slate-300">{item.text}</span>
+                  <span className="text-slate-300 text-sm">{item.text}</span>
                 </motion.div>
               ))}
             </div>
@@ -274,35 +272,61 @@ export default function Login() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 relative">
+      <div className="w-full lg:w-[55%] xl:w-1/2 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-16 relative">
         <div className="absolute top-6 right-6">
           <ThemeToggle />
         </div>
-        <div className="w-full max-w-md">
+        
+        <div className="w-full max-w-sm lg:max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-6">
-            <Logo className="mx-auto mb-3" />
-            <h1 className="font-sans text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              {t("login.welcomeBack", getLocale())}
+          <div className="lg:hidden text-center mb-8">
+            <Logo className="mx-auto mb-4 h-10 w-auto" />
+            <h1 className="font-sans text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              Welcome to JobHuntin
             </h1>
-            <p className="text-sm text-slate-500 mt-1">Enter your email to get started</p>
+            <p className="text-sm text-slate-500 mt-2">Sign in to continue</p>
           </div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
+            className="space-y-6"
           >
-            <div className="hidden lg:block">
-              <h1 className="font-sans text-3xl font-extrabold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
-                {t("login.signInTitle", getLocale())}
+            <div className="hidden lg:block mb-8">
+              <h1 className="font-sans text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
+                Sign in to your account
               </h1>
-              <p className="text-slate-500 dark:text-slate-500">
-                {t("login.magicLinkHint", getLocale())}
+              <p className="text-slate-500 text-sm">
+                Enter your email and we'll send you a magic link
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Social Login - Prominent on both mobile and desktop */}
+            <div className="space-y-3">
+              <SocialLoginGroup
+                onGoogleClick={() => {
+                  pushToast({
+                    title: "Google sign-in coming soon",
+                    description: "Please use email magic link for now",
+                    tone: "info"
+                  });
+                  telemetry.track("social_login_clicked", { provider: "google" });
+                }}
+                onLinkedInClick={() => {
+                  pushToast({
+                    title: "LinkedIn sign-in coming soon",
+                    description: "Please use email magic link for now",
+                    tone: "info"
+                  });
+                  telemetry.track("social_login_clicked", { provider: "linkedin" });
+                }}
+                disabled={isLoading}
+              />
+            </div>
+
+            <SocialLoginDivider />
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
                 <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   {t("login.email", getLocale())}
@@ -314,7 +338,7 @@ export default function Login() {
                 )}>
                   <Mail className={cn(
                     "absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors",
-                    focused ? "text-primary-500" : "text-slate-500"
+                    focused ? "text-primary-500" : "text-slate-400"
                   )} aria-hidden />
                   <input
                     type="email"
@@ -329,8 +353,8 @@ export default function Login() {
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
                     className={cn(
-                      "w-full pl-12 pr-4 py-4 rounded-xl bg-slate-50 border transition-all",
-                      "text-slate-900 placeholder:text-slate-500",
+                      "w-full pl-12 pr-4 py-3.5 rounded-xl bg-white border transition-all",
+                      "text-slate-900 placeholder:text-slate-400",
                       "focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400",
                       formError ? "border-red-300 bg-red-50/50" : "border-slate-200"
                     )}
@@ -357,7 +381,7 @@ export default function Login() {
               <Button
                 type="submit"
                 disabled={isLoading || !emailIsValid}
-                className="w-full h-12 rounded-xl font-semibold text-white bg-primary-600 hover:bg-primary-500 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-11 rounded-xl font-semibold text-white bg-primary-600 hover:bg-primary-500 transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
@@ -371,69 +395,32 @@ export default function Login() {
               </Button>
             </form>
 
-            <SocialLoginDivider />
-
-            <SocialLoginGroup
-              onGoogleClick={() => {
-                pushToast({
-                  title: "Google sign-in coming soon",
-                  description: "Please use email magic link for now",
-                  tone: "info"
-                });
-                telemetry.track("social_login_clicked", { provider: "google" });
-              }}
-              onLinkedInClick={() => {
-                pushToast({
-                  title: "LinkedIn sign-in coming soon",
-                  description: "Please use email magic link for now",
-                  tone: "info"
-                });
-                telemetry.track("social_login_clicked", { provider: "linkedin" });
-              }}
-              disabled={isLoading}
-            />
-
-            {/* Security Badges */}
-            <div className="grid grid-cols-3 gap-3 py-4 border-y border-slate-100">
-              <div className="flex flex-col items-center gap-1.5 text-center">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <Lock className="w-4 h-4 text-emerald-600" />
-                </div>
-                <span className="text-[10px] font-medium text-slate-500">256-bit SSL</span>
+            {/* Security Badges - Compact row */}
+            <div className="flex items-center justify-center gap-6 py-3">
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <Lock className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Secure</span>
               </div>
-              <div className="flex flex-col items-center gap-1.5 text-center">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <Server className="w-4 h-4 text-blue-600" />
-                </div>
-                <span className="text-[10px] font-medium text-slate-500">SOC 2 Compliant</span>
-              </div>
-              <div className="flex flex-col items-center gap-1.5 text-center">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                  <EyeOff className="w-4 h-4 text-purple-600" />
-                </div>
-                <span className="text-[10px] font-medium text-slate-500">GDPR Ready</span>
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Encrypted</span>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <p className="text-center text-xs text-slate-500">
+            <div className="text-center">
+              <p className="text-xs text-slate-500">
                 By continuing, you agree to our{' '}
-                <Link to="/terms" className="underline hover:text-slate-600">Terms</Link>
+                <Link to="/terms" className="underline hover:text-slate-700">Terms</Link>
                 {' '}and{' '}
-                <Link to="/privacy" className="underline hover:text-slate-600">Privacy Policy</Link>
+                <Link to="/privacy" className="underline hover:text-slate-700">Privacy Policy</Link>
               </p>
-
-              <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" aria-hidden />
-                <span>{t("login.secure", getLocale())}</span>
-              </div>
             </div>
 
             {/* Mobile footer links */}
-            <div className="lg:hidden flex items-center justify-center gap-6 text-sm text-slate-500 pt-4 border-t border-slate-100">
-              <Link to="/terms" className="hover:text-slate-600">Terms</Link>
-              <Link to="/privacy" className="hover:text-slate-600">Privacy</Link>
-              <a href="mailto:support@jobhuntin.com" className="hover:text-slate-600">Support</a>
+            <div className="lg:hidden flex items-center justify-center gap-6 text-sm text-slate-500 pt-4 border-t border-slate-200">
+              <Link to="/terms" className="hover:text-slate-700">Terms</Link>
+              <Link to="/privacy" className="hover:text-slate-700">Privacy</Link>
+              <a href="mailto:support@jobhuntin.com" className="hover:text-slate-700">Support</a>
             </div>
           </motion.div>
         </div>
