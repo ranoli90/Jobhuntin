@@ -36,7 +36,7 @@ from worker.agent import (
     ApplicationAgent,
 )
 
-from packages.backend.domain.repositories import record_event
+from backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Fake application HTML – two-step form

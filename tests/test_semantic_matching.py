@@ -7,13 +7,13 @@ from __future__ import annotations
 
 import pytest
 
-from packages.backend.domain.embeddings import (
+from backend.domain.embeddings import (
     compute_text_hash,
     cosine_similarity,
     job_to_searchable_text,
     profile_to_searchable_text,
 )
-from packages.backend.domain.semantic_matching import (
+from backend.domain.semantic_matching import (
     Dealbreakers,
     MatchExplanation,
     SemanticMatchingService,

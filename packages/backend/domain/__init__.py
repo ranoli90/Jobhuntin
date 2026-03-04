@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------
 # Generic core models (agent-core vocabulary)
 # ---------------------------------------------------------------------------
-from packages.backend.domain.core_models import (
+from backend.domain.core_models import (
     COMPLETION_STATUS_ALIASES,
     ActorHistoryEntry,
     ActorIdentity,
@@ -20,16 +20,16 @@ from packages.backend.domain.core_models import (
     is_terminal,
     to_generic_status,
 )
-from packages.backend.domain.core_models import (
+from backend.domain.core_models import (
     FormField as CoreFormField,
 )
-from packages.backend.domain.core_models import (
+from backend.domain.core_models import (
     FormFieldOption as CoreFormFieldOption,
 )
-from packages.backend.domain.core_models import (
+from backend.domain.core_models import (
     UnresolvedField as CoreUnresolvedField,
 )
-from packages.backend.domain.models import (
+from backend.domain.models import (
     Application,
     ApplicationEvent,
     ApplicationInput,
@@ -55,7 +55,7 @@ from packages.backend.domain.models import (
 # ---------------------------------------------------------------------------
 # Repositories
 # ---------------------------------------------------------------------------
-from packages.backend.domain.repositories import (
+from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
@@ -68,7 +68,7 @@ from packages.backend.domain.repositories import (
 # ---------------------------------------------------------------------------
 # Tenant context and guards
 # ---------------------------------------------------------------------------
-from packages.backend.domain.tenant import (
+from backend.domain.tenant import (
     TenantContext,
     TenantScopeError,
     assert_tenant_owns,

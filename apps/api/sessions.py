@@ -10,12 +10,12 @@ Endpoints for:
 from __future__ import annotations
 
 import asyncpg
-from packages.backend.domain.session_manager import SessionManager
+from backend.domain.session_manager import SessionManager
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from packages.backend.domain.tenant import TenantContext
+from backend.domain.tenant import TenantContext
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.sessions")

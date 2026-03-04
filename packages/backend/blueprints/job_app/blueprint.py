@@ -27,13 +27,13 @@ from backend.blueprints.job_app.prompts import (
 from backend.blueprints.job_app.prompts import (
     build_resume_parse_prompt as _build_resume_parse_prompt,
 )
-from packages.backend.domain.core_models import (
+from backend.domain.core_models import (
     ActorProfile,
     DomMappingResult,
     FormField,
     UnresolvedField,
 )
-from packages.backend.domain.repositories import ApplicationRepo, EventRepo
+from backend.domain.repositories import ApplicationRepo, EventRepo
 
 
 class JobApplicationBlueprint:

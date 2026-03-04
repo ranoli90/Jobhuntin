@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from packages.backend.domain.vector_db import (
+from backend.domain.vector_db import (
     JOBS_NAMESPACE,
     PROFILES_NAMESPACE,
     VectorDBClient,

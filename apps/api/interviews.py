@@ -6,7 +6,7 @@ import json
 from typing import Any
 
 import asyncpg
-from packages.backend.domain.interview_simulator import (
+from backend.domain.interview_simulator import (
     InterviewPhase,
     InterviewQuestion,
     InterviewSession,

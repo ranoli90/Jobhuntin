@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from packages.backend.domain.models import (
+from backend.domain.models import (
     ApplicationStatus,
     CanonicalProfile,
     ErrorDetail,

@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from packages.backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
+from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
 from backend.llm.contracts import (
     JobMatchScore_V1,
@@ -264,7 +264,7 @@ async def generate_onboarding_questions(
         )
 
     client = _get_llm_client()
-    from packages.backend.domain.masking import strip_pii_for_llm
+    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_data = validation_result.sanitized_input
     sanitized_profile = strip_pii_for_llm(
@@ -302,7 +302,7 @@ async def suggest_roles(
         raise HTTPException(status_code=400, detail=validation_result.error_message)
 
     client = _get_llm_client()
-    from packages.backend.domain.masking import strip_pii_for_llm
+    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_data = validation_result.sanitized_input
     sanitized_profile = strip_pii_for_llm(
@@ -342,7 +342,7 @@ async def suggest_salary(
     client = _get_llm_client()
 
     # Sanitize inputs and strip PII before sending to external LLM
-    from packages.backend.domain.masking import strip_pii_for_llm
+    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_target_role = sanitize_input(request.target_role)
@@ -392,7 +392,7 @@ async def suggest_locations(
     client = _get_llm_client()
 
     # Strip PII before sending to external LLM
-    from packages.backend.domain.masking import strip_pii_for_llm
+    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
 
@@ -432,7 +432,7 @@ async def match_job(
     experience match, location compatibility, and any red flags.
     """
     # Sanitize inputs and strip PII before sending to external LLM
-    from packages.backend.domain.masking import strip_pii_for_llm
+    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
@@ -496,7 +496,7 @@ async def match_jobs_batch(
     client = _get_llm_client()
 
     # Sanitize inputs and strip PII before sending to external LLM
-    from packages.backend.domain.masking import strip_pii_for_llm
+    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_jobs = [sanitize_dict_input(job) for job in request.jobs]
@@ -614,8 +614,8 @@ async def semantic_match_job(
     This endpoint provides higher accuracy than keyword-based
     matching and matches the capabilities of ApplyPass/JobRight.
     """
-    from packages.backend.domain.masking import strip_pii_for_llm
-    from packages.backend.domain.semantic_matching import (
+    from backend.domain.masking import strip_pii_for_llm
+    from backend.domain.semantic_matching import (
         Dealbreakers,
         get_matching_service,
     )
@@ -710,8 +710,8 @@ async def semantic_match_batch(
     Processes up to 20 jobs in a single request for efficiency.
     Returns match scores with explanations for each job.
     """
-    from packages.backend.domain.masking import strip_pii_for_llm
-    from packages.backend.domain.semantic_matching import (
+    from backend.domain.masking import strip_pii_for_llm
+    from backend.domain.semantic_matching import (
         Dealbreakers,
         get_matching_service,
     )
@@ -923,7 +923,7 @@ async def generate_cover_letter_enhanced(
     try:
         # Fetch the user's actual profile for personalized cover letter generation
         # Strip PII (email, phone, URLs) before building the LLM prompt
-        from packages.backend.domain.masking import strip_pii_for_llm
+        from backend.domain.masking import strip_pii_for_llm
 
         profile_summary = "No profile available"
         async with db.acquire() as conn:
@@ -1068,7 +1068,7 @@ async def generate_cover_letter(
     client = _get_llm_client()
 
     # Sanitize and strip PII before sending to external LLM
-    from packages.backend.domain.masking import strip_pii_for_llm
+    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
@@ -1122,9 +1122,9 @@ async def tailor_resume(
     3. Generates a tailored summary
     4. Computes ATS optimization score
     """
-    from packages.backend.domain.resume_tailoring import get_tailoring_service
+    from backend.domain.resume_tailoring import get_tailoring_service
 
-    from packages.backend.domain.masking import strip_pii_for_llm
+    from backend.domain.masking import strip_pii_for_llm
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)
@@ -1174,7 +1174,7 @@ async def compute_ats_score(
 
     Implements 23 scoring metrics for ATS optimization analysis.
     """
-    from packages.backend.domain.resume_tailoring import ATSScorer
+    from backend.domain.resume_tailoring import ATSScorer
 
     try:
         scores = await ATSScorer.score_resume(
@@ -1241,7 +1241,7 @@ async def get_match_weights(
     - skill_match: Weight for skill keyword matching (default 0.3)
     - experience_alignment: Weight for experience level alignment (default 0.2)
     """
-    from packages.backend.domain.semantic_matching import MatchWeights
+    from backend.domain.semantic_matching import MatchWeights
 
     key = tenant_id or "default"
     if key in _match_weights_cache:
@@ -1274,7 +1274,7 @@ async def set_match_weights(
     Weights are automatically normalized to sum to 1.0.
     Requires admin privileges in production.
     """
-    from packages.backend.domain.semantic_matching import MatchWeights, get_matching_service
+    from backend.domain.semantic_matching import MatchWeights, get_matching_service
 
     # Normalize weights
     weights = MatchWeights(
@@ -1370,7 +1370,7 @@ async def submit_match_feedback(
     - remote_friendly, not_remote
     - visa_sponsored, no_visa
     """
-    from packages.backend.domain.match_feedback import (
+    from backend.domain.match_feedback import (
         MatchFeedbackCreate,
         MatchFeedbackRepo,
         validate_feedback_tags,
@@ -1428,7 +1428,7 @@ async def get_match_feedback_summary(
 
     Returns overall satisfaction metrics for the specified time period.
     """
-    from packages.backend.domain.match_feedback import MatchFeedbackRepo
+    from backend.domain.match_feedback import MatchFeedbackRepo
 
     try:
         async with db.acquire() as conn:
@@ -1453,7 +1453,7 @@ async def get_job_feedback_stats(
 
     Useful for understanding how users perceive match quality for a job.
     """
-    from packages.backend.domain.match_feedback import MatchFeedbackRepo
+    from backend.domain.match_feedback import MatchFeedbackRepo
 
     try:
         async with db.acquire() as conn:
@@ -1482,7 +1482,7 @@ async def get_llm_metrics(
     Returns latency percentiles, error rates, token usage, and cost estimates
     for all monitored models.
     """
-    from packages.backend.domain.llm_monitoring import get_llm_monitor
+    from backend.domain.llm_monitoring import get_llm_monitor
 
     try:
         monitor = get_llm_monitor()
@@ -1498,7 +1498,7 @@ async def get_llm_model_metrics(
     user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
 ):
     """Get performance metrics for a specific LLM model."""
-    from packages.backend.domain.llm_monitoring import get_llm_monitor
+    from backend.domain.llm_monitoring import get_llm_monitor
 
     try:
         monitor = get_llm_monitor()
@@ -1516,7 +1516,7 @@ async def get_llm_health(
 
     Identifies models with low success rates or recent failures.
     """
-    from packages.backend.domain.llm_monitoring import get_llm_monitor
+    from backend.domain.llm_monitoring import get_llm_monitor
 
     try:
         monitor = get_llm_monitor()
@@ -1534,7 +1534,7 @@ async def get_semantic_cache_stats(
 
     Returns cache size, hit counts, and configuration.
     """
-    from packages.backend.domain.semantic_cache import get_semantic_cache
+    from backend.domain.semantic_cache import get_semantic_cache
 
     try:
         cache = get_semantic_cache()

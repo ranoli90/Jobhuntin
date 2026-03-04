@@ -28,17 +28,17 @@ from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
 
 from backend.blueprints.registry import get_blueprint, load_default_blueprints
-from packages.backend.domain.evaluations import record_system_evaluation
-from packages.backend.domain.experiments import get_variant_for_tenant
-from packages.backend.domain.models import (
+from backend.domain.evaluations import record_system_evaluation
+from backend.domain.experiments import get_variant_for_tenant
+from backend.domain.models import (
     CanonicalProfile,
     normalize_profile,
 )
-from packages.backend.domain.notifications import (
+from backend.domain.notifications import (
     notify_application_submitted,
     notify_hold_questions,
 )
-from packages.backend.domain.repositories import (
+from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
@@ -85,7 +85,7 @@ _processing_limiter = RateLimiter(
 )
 
 
-# CanonicalProfile, FormField, LLMMapping, normalize_profile imported from packages.backend.domain
+# CanonicalProfile, FormField, LLMMapping, normalize_profile imported from backend.domain
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +107,7 @@ class FormField(TypedDict):
     options: list[FormFieldOption] | None
 
 
-# record_event imported from packages.backend.domain.repositories
+# record_event imported from backend.domain.repositories
 
 # ---------------------------------------------------------------------------
 # Database helpers

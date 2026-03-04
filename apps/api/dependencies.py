@@ -133,7 +133,7 @@ class DatabasePoolManager:
                     import pathlib
 
                     base = pathlib.Path(__file__).resolve().parent.parent
-                    from packages.backend.domain.migrations import run_migrations
+                    from backend.domain.migrations import run_migrations
 
                     await run_migrations(conn, base)
         except asyncpg.PostgresError as exc:

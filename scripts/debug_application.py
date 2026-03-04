@@ -26,7 +26,7 @@ from typing import Any
 import asyncpg
 from shared.config import get_settings
 
-from packages.backend.domain.masking import redact_event_payload
+from backend.domain.masking import redact_event_payload
 
 
 def _json_serializer(obj: Any) -> Any:

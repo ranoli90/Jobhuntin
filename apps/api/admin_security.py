@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from packages.backend.domain.data_residency import (
+from backend.domain.data_residency import (
     REGION_CONFIGS,
     DataRegion,
     DataResidencyManager,
 )
-from packages.backend.domain.ip_allowlist import IPAllowlistManager
+from backend.domain.ip_allowlist import IPAllowlistManager
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from shared.logging_config import get_logger

@@ -16,13 +16,13 @@ from backend.blueprints.grant.prompts import (
     build_grant_dom_mapping_prompt,
     build_grant_profile_parse_prompt,
 )
-from packages.backend.domain.core_models import (
+from backend.domain.core_models import (
     ActorProfile,
     DomMappingResult,
     FormField,
     UnresolvedField,
 )
-from packages.backend.domain.repositories import ApplicationRepo, EventRepo
+from backend.domain.repositories import ApplicationRepo, EventRepo
 
 
 class GrantApplicationBlueprint:

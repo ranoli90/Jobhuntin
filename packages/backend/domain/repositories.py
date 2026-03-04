@@ -13,7 +13,7 @@ from typing import Any
 
 import asyncpg
 
-from packages.backend.domain.models import (
+from backend.domain.models import (
     Application,
     ApplicationDetail,
     ApplicationEvent,

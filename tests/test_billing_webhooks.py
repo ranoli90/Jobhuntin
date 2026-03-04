@@ -109,7 +109,7 @@ class TestBillingQueries:
     @pytest.mark.asyncio
     async def test_get_user_subscription(self):
         """Should retrieve user subscription from database."""
-        from packages.backend.domain.repositories import SubscriptionRepo
+        from backend.domain.repositories import SubscriptionRepo
 
         mock_conn = MagicMock()
         mock_conn.fetchrow = AsyncMock(return_value={
@@ -130,7 +130,7 @@ class TestBillingQueries:
     @pytest.mark.asyncio
     async def test_update_subscription_tier(self):
         """Should update user subscription tier."""
-        from packages.backend.domain.repositories import SubscriptionRepo
+        from backend.domain.repositories import SubscriptionRepo
 
         mock_conn = MagicMock()
         mock_conn.execute = AsyncMock(return_value="UPDATE 1")
@@ -148,7 +148,7 @@ class TestUsageTracking:
     @pytest.mark.asyncio
     async def test_track_api_usage(self):
         """Should track API usage for billing."""
-        from packages.backend.domain.repositories import UsageRepo
+        from backend.domain.repositories import UsageRepo
 
         mock_conn = MagicMock()
         mock_conn.execute = AsyncMock(return_value="INSERT 1")
@@ -167,7 +167,7 @@ class TestUsageTracking:
     @pytest.mark.asyncio
     async def test_get_monthly_usage(self):
         """Should retrieve monthly usage totals."""
-        from packages.backend.domain.repositories import UsageRepo
+        from backend.domain.repositories import UsageRepo
 
         mock_conn = MagicMock()
         mock_conn.fetchrow = AsyncMock(return_value={

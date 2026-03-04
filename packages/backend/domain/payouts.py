@@ -12,7 +12,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from packages.backend.domain.stripe_client import (
+from backend.domain.stripe_client import (
     get_protected_stripe,
     get_stripe,
     protected_stripe_call,

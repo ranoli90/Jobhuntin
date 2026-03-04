@@ -6,7 +6,7 @@ from datetime import timezone, datetime, timedelta
 from typing import Any
 
 import asyncpg
-from packages.backend.domain.calendar import (
+from backend.domain.calendar import (
     CalendarProvider,
     GoogleCalendarClient,
     InterviewEvent,

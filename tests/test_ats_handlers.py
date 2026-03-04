@@ -5,7 +5,7 @@ Validates platform detection, CAPTCHA detection, and handler functionality.
 
 from __future__ import annotations
 
-from packages.backend.domain.ats_handlers import (
+from backend.domain.ats_handlers import (
     ATSDetectionResult,
     ATSPlatform,
     CAPTCHADetection,

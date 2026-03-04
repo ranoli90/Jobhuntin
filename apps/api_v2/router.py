@@ -88,7 +88,7 @@ async def submit_application(
     start = time.time()
     tenant_id = api_key["tenant_id"]
 
-    from packages.backend.domain.priority import compute_priority_score
+    from backend.domain.priority import compute_priority_score
     priority = compute_priority_score(api_key.get("tenant_plan", "PRO"))
 
     async with db.acquire() as conn:
@@ -194,7 +194,7 @@ async def staffing_bulk_submit(
         raise HTTPException(status_code=400, detail="Maximum 25 candidates per batch")
 
     s = get_settings()
-    from packages.backend.domain.priority import compute_priority_score
+    from backend.domain.priority import compute_priority_score
     priority = compute_priority_score(api_key.get("tenant_plan", "ENTERPRISE"), is_bulk=True)
 
     async with db.acquire() as conn:

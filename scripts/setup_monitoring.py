@@ -49,7 +49,7 @@ def setup_slack_alerts():
 
 def get_alert_rules():
     """Return built-in alert rules for production monitoring."""
-    from packages.shared.alerting import AlertRule, AlertSeverity
+    from shared.alerting import AlertRule, AlertSeverity
 
     return [
         AlertRule(

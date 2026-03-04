@@ -18,7 +18,7 @@ from typing import Any
 import asyncpg
 from shared.logging_config import get_logger
 
-from packages.backend.domain.masking import redact_event_payload
+from backend.domain.masking import redact_event_payload
 from shared.metrics import incr
 
 logger = get_logger("sorce.retention")

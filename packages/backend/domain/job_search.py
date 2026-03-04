@@ -6,7 +6,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from packages.backend.domain.job_boards import AdzunaClient
+from backend.domain.job_boards import AdzunaClient
 
 logger = get_logger("sorce.job_search")
 

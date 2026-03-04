@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from packages.backend.domain.job_alerts import (
+from backend.domain.job_alerts import (
     AlertFrequency,
     JobAlert,
     JobAlertService,
@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
-from packages.backend.domain.tenant import TenantContext
+from backend.domain.tenant import TenantContext
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.job_alerts")

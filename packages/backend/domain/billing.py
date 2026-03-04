@@ -8,8 +8,8 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from packages.backend.domain.audit import record_audit_event
-from packages.backend.domain.stripe_client import get_stripe, protected_stripe_call
+from backend.domain.audit import record_audit_event
+from backend.domain.stripe_client import get_stripe, protected_stripe_call
 
 logger = get_logger("sorce.billing")
 

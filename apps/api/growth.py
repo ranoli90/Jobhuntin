@@ -13,16 +13,16 @@ from pydantic import BaseModel
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from packages.backend.domain.email_digest import run_weekly_digest
-from packages.backend.domain.notifications import (
+from backend.domain.email_digest import run_weekly_digest
+from backend.domain.notifications import (
     deactivate_push_token,
     register_push_token,
 )
-from packages.backend.domain.referrals import (
+from backend.domain.referrals import (
     get_referral_stats,
     redeem_referral_code,
 )
-from packages.backend.domain.repositories import db_transaction
+from backend.domain.repositories import db_transaction
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.growth")
@@ -156,7 +156,7 @@ async def redeem_referral(
     # Notify referrer about the reward
     try:
         async with db.acquire() as conn:
-            from packages.backend.domain.notifications import notify_referral_reward
+            from backend.domain.notifications import notify_referral_reward
             await notify_referral_reward(conn, result["referrer_id"], result["reward_amount"])
     except Exception:
         pass  # Non-critical

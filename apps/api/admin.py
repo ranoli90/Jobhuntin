@@ -20,13 +20,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from packages.backend.domain.repositories import (
+from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     TenantRepo,
     db_transaction,
 )
-from packages.backend.domain.tenant import (
+from backend.domain.tenant import (
     TenantScopeError,
     require_role,
     require_system_admin,
@@ -248,7 +248,7 @@ async def get_tenant_application_detail(
 
     # Mask PII using the masking module unless explicitly unmasked
     if not unmask:
-        from packages.backend.domain.masking import (
+        from backend.domain.masking import (
             redact_event_payload,
             redact_profile_for_support,
         )
@@ -569,7 +569,7 @@ async def export_tenant_audit_log(
     from fastapi.responses import StreamingResponse
     from shared.validators import validate_uuid
 
-    from packages.backend.domain.audit import export_audit_log_csv
+    from backend.domain.audit import export_audit_log_csv
 
     validate_uuid(tenant_id, "tenant_id")
 
@@ -608,7 +608,7 @@ async def get_job_sync_status(
     """Get current status of JobSpy integration.
     Returns configured sources, last run stats, and circuit breaker status.
     """
-    from packages.backend.domain.job_sync_service import JobSyncService
+    from backend.domain.job_sync_service import JobSyncService
 
     async with db.acquire() as conn:
         await require_system_admin(conn, user_id)
@@ -626,7 +626,7 @@ async def trigger_job_sync(
     db: asyncpg.Pool = Depends(_get_pool),
 ):
     """Trigger a manual job sync in the background."""
-    from packages.backend.domain.job_sync_service import JobSyncService
+    from backend.domain.job_sync_service import JobSyncService
 
     async with db.acquire() as conn:
         await require_system_admin(conn, user_id)

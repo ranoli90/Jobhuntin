@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
-from packages.backend.domain.repositories import db_transaction
+from backend.domain.repositories import db_transaction
 from shared.metrics import incr
 
 logger = get_logger("sorce.gdpr")

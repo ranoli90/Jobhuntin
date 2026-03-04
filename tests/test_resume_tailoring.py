@@ -6,7 +6,7 @@ Validates dynamic resume customization and ATS scoring.
 from __future__ import annotations
 
 import pytest
-from packages.backend.domain.resume_tailoring import (
+from backend.domain.resume_tailoring import (
     ATSScorer,
     ResumeTailoringService,
     TailoredResumeResult,

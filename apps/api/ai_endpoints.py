@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
-from packages.backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
+from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
 from backend.llm.contracts import (
     JobMatchScore_V1,
@@ -386,7 +386,7 @@ async def _get_job_details(db: asyncpg.Connection, job_id: str) -> dict[str, Any
 async def emit_analytics_event(event_name: str, data: dict[str, Any]) -> None:
     """Emit analytics event."""
     try:
-        from packages.backend.domain.analytics_events import emit_analytics_event
+        from backend.domain.analytics_events import emit_analytics_event
         await emit_analytics_event(event_name, data)
     except Exception as e:
         logger.warning(f"Failed to emit analytics event {event_name}: {e}")

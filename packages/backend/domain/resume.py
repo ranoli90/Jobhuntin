@@ -11,13 +11,13 @@ from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.storage import StorageService
 
-from packages.backend.domain.analytics_events import (
+from backend.domain.analytics_events import (
     RESUME_PARSED_FAILED,
     RESUME_PARSED_SUCCESS,
     emit_analytics_event,
 )
-from packages.backend.domain.models import CanonicalProfile, normalize_profile
-from packages.backend.domain.repositories import ProfileRepo
+from backend.domain.models import CanonicalProfile, normalize_profile
+from backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
 from backend.llm.contracts import ResumeParseResponse_V2, build_resume_parse_prompt_v2
 from shared.metrics import incr, observe

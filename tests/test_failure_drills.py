@@ -31,7 +31,7 @@ from worker.agent import (
     ApplicationAgent,
 )
 
-from packages.backend.domain.repositories import record_event
+from backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Shared test fixtures (reuse from test_integration.py)
@@ -447,7 +447,7 @@ async def test_profile_with_extra_fields():
     """Verify normalize_profile handles profiles with unknown extra fields
     gracefully (forward-compatible JSON parsing).
     """
-    from packages.backend.domain.models import normalize_profile
+    from backend.domain.models import normalize_profile
 
     raw = {
         "contact": {

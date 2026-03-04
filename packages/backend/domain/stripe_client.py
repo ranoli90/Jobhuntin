@@ -123,7 +123,7 @@ def protected_stripe_call(func: Callable[[], T], fallback: T | None = None) -> T
     """Convenience function for making protected Stripe calls.
 
     Example:
-        from packages.backend.domain.stripe_client import protected_stripe_call
+        from backend.domain.stripe_client import protected_stripe_call
 
         customer = protected_stripe_call(
             lambda: stripe.Customer.create(email="test@example.com")

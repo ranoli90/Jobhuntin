@@ -26,7 +26,7 @@ from pydantic import BaseModel, ValidationError
 from shared.config import Settings
 from shared.logging_config import get_logger
 
-from packages.backend.domain.llm_monitoring import get_llm_monitor
+from backend.domain.llm_monitoring import get_llm_monitor
 from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.metrics import incr, observe
 

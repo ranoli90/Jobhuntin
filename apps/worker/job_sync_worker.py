@@ -18,7 +18,7 @@ import asyncpg  # noqa: E402
 from shared.config import get_settings  # noqa: E402
 from shared.logging_config import get_logger  # noqa: E402
 
-from packages.backend.domain.job_sync_service import JobSyncService  # noqa: E402
+from backend.domain.job_sync_service import JobSyncService  # noqa: E402
 
 logger = get_logger("sorce.job_sync_worker")
 

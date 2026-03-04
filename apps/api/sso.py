@@ -12,8 +12,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 from shared.logging_config import get_logger
 
-from packages.backend.domain.audit import record_audit_event
-from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from backend.domain.audit import record_audit_event
+from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 
 try:
     from backend.sso.saml import (
