@@ -63,7 +63,7 @@ export default function JobsView() {
                 }
             } catch (error) {
                 const err = error as Error;
-                console.error("[JobsView] Swipe failed:", err);
+                if (import.meta.env.DEV) console.error("[JobsView] Swipe failed:", err);
                 // Rollback the optimistic update
                 setSwipedJobs((prev) => {
                     const next = new Map(prev);

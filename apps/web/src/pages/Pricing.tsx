@@ -197,7 +197,7 @@ export default function Pricing() {
     try {
       await upgrade(annual ? "annual" : "monthly");
     } catch (err) {
-      console.error('Checkout failed:', err);
+      if (import.meta.env.DEV) console.error('Checkout failed:', err);
     }
   };
 

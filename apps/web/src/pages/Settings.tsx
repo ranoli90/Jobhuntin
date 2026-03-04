@@ -148,7 +148,7 @@ export default function Settings() {
       const apiErr = err as Error & { status?: number };
       const message = apiErr.message;
       const status = apiErr.status;
-      console.error("Resume upload failed:", err);
+      if (import.meta.env.DEV) console.error("Resume upload failed:", err);
       pushToast({ title: "Upload failed", description: status ? `[${status}] ${message}` : message, tone: "error" });
       setResumeError(status ? `[${status}] ${message}` : message);
     } finally {
@@ -193,7 +193,7 @@ export default function Settings() {
       
     } catch (error) {
       const err = error as Error;
-      console.error('Account deletion failed:', err);
+      if (import.meta.env.DEV) console.error('Account deletion failed:', err);
       
       telemetry.track('Account Deletion Failed', {
         error: err.message,
@@ -255,7 +255,7 @@ export default function Settings() {
       
     } catch (error) {
       const err = error as Error;
-      console.error('Export failed:', err);
+      if (import.meta.env.DEV) console.error('Export failed:', err);
 
       if (err.message.includes('401') || err.message.includes('Unauthorized')) {
         setReAuthError('Invalid password. Please try again.');

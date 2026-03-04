@@ -318,7 +318,7 @@ export default function Onboarding() {
       nextStep();
     } catch (error) {
       const err = error as Error;
-      console.error('[Onboarding] Failed to save work style:', err);
+      if (import.meta.env.DEV) console.error('[Onboarding] Failed to save work style:', err);
       let message = "Failed to save work style";
       if (typeof (err as Error).message === 'string' && !err.message.includes('[object')) {
         message = err.message;
@@ -593,7 +593,7 @@ export default function Onboarding() {
       const err = error as Error & { status?: number };
       const message = err.message;
       const status = err.status;
-      console.error("Resume upload failed:", err);
+      if (import.meta.env.DEV) console.error("Resume upload failed:", err);
 
       // Save metadata for retry
       await resumeUploadRetry.saveResumeMetadata(uploadFile, message);
@@ -648,7 +648,7 @@ export default function Onboarding() {
         const nextDelay = delay * Math.pow(2, i);
 
         if (import.meta.env.DEV) {
-          console.log("[Onboarding] Retry", i + 1 + "/" + maxRetries, "after", nextDelay, "ms:", error);
+          if (import.meta.env.DEV) console.log("[Onboarding] Retry", i + 1 + "/" + maxRetries, "after", nextDelay, "ms:", error);
         }
 
         if (isNetworkError) {
@@ -678,7 +678,7 @@ export default function Onboarding() {
       nextStep();
     } catch (error) {
       const err = error as Error & { status?: number };
-      console.error('[Onboarding] Failed to save skills:', err);
+      if (import.meta.env.DEV) console.error('[Onboarding] Failed to save skills:', err);
       const isNetworkError = !navigator.onLine || (err.status && err.status >= 500);
       let message = "Failed to save skills";
       if (isNetworkError) {
@@ -735,7 +735,7 @@ export default function Onboarding() {
 
       // Track AI learning event
       if (import.meta.env.DEV) {
-        console.log("[Telemetry] AI Learned Contact Info", {
+        if (import.meta.env.DEV) console.log("[Telemetry] AI Learned Contact Info", {
           hasFirstName: !!trimmedContact.first_name,
           hasLastName: !!trimmedContact.last_name,
           hasEmail: !!trimmedContact.email,
@@ -747,7 +747,7 @@ export default function Onboarding() {
       nextStep();
     } catch (error) {
       const err = error as Error & { status?: number };
-      console.error('[Onboarding] Failed to save contact:', err);
+      if (import.meta.env.DEV) console.error('[Onboarding] Failed to save contact:', err);
       const isNetworkError = !navigator.onLine || (err.status && err.status >= 500);
       let message = "Please try again";
       if (isNetworkError) {
@@ -857,7 +857,7 @@ export default function Onboarding() {
 
       // Track AI learning event
       if (import.meta.env.DEV) {
-        console.log("[Telemetry] AI Learned Job Preferences", {
+        if (import.meta.env.DEV) console.log("[Telemetry] AI Learned Job Preferences", {
           location: trimmedPrefs.location,
           roleType: trimmedPrefs.role_type,
           salaryMin: Number.parseInt(trimmedPrefs.salary_min, 10) || 0,
@@ -873,7 +873,7 @@ export default function Onboarding() {
       nextStep();
     } catch (error) {
       const err = error as Error & { status?: number };
-      console.error("[Onboarding] Failed to save preferences:", err);
+      if (import.meta.env.DEV) console.error("[Onboarding] Failed to save preferences:", err);
       pushToast({
         title: "Failed to save preferences",
         description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
@@ -895,7 +895,7 @@ export default function Onboarding() {
         await api.post("/onboarding/complete", {});
       } catch (growthErr) {
         // Non-critical if growth endpoint fails, but log it
-        console.warn("[Onboarding] Growth endpoint failed but profile marked complete:", growthErr);
+        if (import.meta.env.DEV) console.warn("[Onboarding] Growth endpoint failed but profile marked complete:", growthErr);
       }
 
       resetOnboarding();
@@ -906,7 +906,7 @@ export default function Onboarding() {
       navigate("/app/dashboard");
     } catch (error) {
       const err = error as Error & { status?: number };
-      console.error('[Onboarding] Failed to complete:', err);
+      if (import.meta.env.DEV) console.error('[Onboarding] Failed to complete:', err);
       pushToast({
         title: "Almost there!",
         description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.",

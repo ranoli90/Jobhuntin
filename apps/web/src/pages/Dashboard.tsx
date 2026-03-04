@@ -1328,10 +1328,10 @@ export function ApplicationsView() {
           pushToast({ title: "Application withdrawn", description: "The application has been withdrawn.", tone: "info" });
           break;
         default:
-          console.warn('Unknown action:', action);
+          if (import.meta.env.DEV) console.warn('Unknown action:', action);
       }
     } catch (error) {
-      console.error('Action failed:', error);
+      if (import.meta.env.DEV) console.error('Action failed:', error);
     }
   }, [navigate, snoozeApplication]);
 
