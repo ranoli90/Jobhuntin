@@ -51,6 +51,24 @@ export default function Login() {
   const [resendLoading, setResendLoading] = useState(false);
   const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(null);
   const [focused, setFocused] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Email domain suggestions
+  const emailDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'me.com', 'aol.com', 'protonmail.com', 'zoho.com', 'mail.com'];
+  
+  const getEmailSuggestions = () => {
+    const atIndex = email.lastIndexOf('@');
+    if (atIndex === -1) return [];
+    
+    const prefix = email.slice(0, atIndex);
+    const partialDomain = email.slice(atIndex + 1).toLowerCase();
+    
+    if (!partialDomain) return emailDomains.map(d => `${prefix}@${d}`);
+    
+    return emailDomains
+      .filter(d => d.startsWith(partialDomain))
+      .map(d => `${prefix}@${d}`);
+  };
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -348,7 +366,7 @@ export default function Login() {
                   focused && "ring-2 ring-primary-500/20"
                 )}>
                   <Mail className={cn(
-                    "absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors",
+                    "absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors z-10",
                     focused ? "text-primary-500" : "text-slate-400"
                   )} aria-hidden />
                   <input
@@ -359,12 +377,22 @@ export default function Login() {
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
+                      setShowSuggestions(e.target.value.includes('@'));
                       if (formError) setFormError(null);
                     }}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
+                    onFocus={() => {
+                      setFocused(true);
+                      setShowSuggestions(email.includes('@'));
+                    }}
+                    onBlur={() => {
+                      // Delay hiding to allow click on suggestion
+                      setTimeout(() => {
+                        setFocused(false);
+                        setShowSuggestions(false);
+                      }, 200);
+                    }}
                     className={cn(
-                      "w-full pl-12 pr-4 py-3.5 rounded-xl bg-white border transition-all",
+                      "w-full pl-12 pr-4 py-3.5 rounded-xl bg-white border transition-all relative z-20",
                       "text-slate-900 placeholder:text-slate-400",
                       "focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400",
                       formError ? "border-red-300 bg-red-50/50" : "border-slate-200"
@@ -373,6 +401,25 @@ export default function Login() {
                     aria-invalid={formError ? "true" : "false"}
                     aria-describedby={formError ? "login-email-error" : undefined}
                   />
+                  {/* Email Suggestions Dropdown */}
+                  {showSuggestions && getEmailSuggestions().length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 overflow-hidden">
+                      {getEmailSuggestions().slice(0, 5).map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => {
+                            setEmail(suggestion);
+                            setShowSuggestions(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                        >
+                          <Mail className="w-4 h-4 text-slate-400" />
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

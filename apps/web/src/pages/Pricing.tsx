@@ -208,8 +208,17 @@ export default function Pricing() {
     return t("pricing.startTrial", locale);
   };
 
-  // Show skeleton while loading auth/billing state
-  if (authLoading || billingLoading) {
+  // Show skeleton while loading auth/billing state (max 2 seconds to prevent stuck state)
+  const [showSkeleton, setShowSkeleton] = React.useState(true);
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSkeleton(false);
+    }, 1500); // Max 1.5s loading time
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if ((authLoading || billingLoading) && showSkeleton) {
     return <PricingSkeleton />;
   }
 

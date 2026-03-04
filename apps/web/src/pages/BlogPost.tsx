@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Clock, User, Tag, Share2, Twitter, Linkedin, Facebook } from 'lucide-react';
-import { XSSProtection } from '../lib/validation';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 const blogPosts: Record<string, {
   title: string;
@@ -294,9 +295,7 @@ export default function BlogPost() {
             prose-th:bg-slate-50 prose-th:p-3 prose-th:text-left
             prose-td:p-3 prose-td:border-t prose-td:border-slate-200"
           dangerouslySetInnerHTML={{
-            __html: XSSProtection.sanitizeHTML(
-              post.content.replace(/\n/g, '<br/>').replace(/## /g, '<h2>').replace(/\n## /g, '</p><h2>').replace(/### /g, '<h3>').replace(/\n### /g, '</p><h3>')
-            ),
+            __html: DOMPurify.sanitize(marked.parse(post.content, { async: false }) as string),
           }}
         />
 
