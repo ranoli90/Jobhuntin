@@ -329,10 +329,14 @@ export default function Login() {
             <motion.form 
               onSubmit={handleSubmit} 
               className="space-y-4"
-              animate={formError ? {
-                x: [0, -10, 10, -10, 10, 0],
-                transition: { duration: 0.4 }
-              } : {}}
+              animate={formError ? "shake" : "idle"}
+              variants={{
+                shake: {
+                  x: [0, -10, 10, -10, 10, 0],
+                  transition: { duration: 0.4 }
+                },
+                idle: {}
+              }}
             >
               <div className="relative">
                 <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">

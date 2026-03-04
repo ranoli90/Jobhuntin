@@ -180,23 +180,23 @@ export default function App() {
               <Route path="/" element={<RouteErrorBoundary><Homepage /></RouteErrorBoundary>} />
               <Route path="/pricing" element={<RouteErrorBoundary><Pricing /></RouteErrorBoundary>} />
               <Route path="/success-stories" element={<RouteErrorBoundary><SuccessStories /></RouteErrorBoundary>} />
-              <Route path="/chrome-extension" element={<ChromeExtension />} />
-              <Route path="/recruiters" element={<Recruiters />} />
-              <Route path="/jobs/:role/:city" element={<JobNiche />} />
-              <Route path="/vs/:competitorSlug" element={<ComparisonPage />} />
-              <Route path="/alternative-to/:competitorSlug" element={<AlternativeTo />} />
-              <Route path="/reviews/:competitorSlug" element={<ReviewPage />} />
-              <Route path="/switch-from/:competitorSlug" element={<SwitchFrom />} />
-              <Route path="/pricing-vs/:competitorSlug" element={<PricingVs />} />
-              <Route path="/best/:categorySlug" element={<CategoryHub />} />
-              <Route path="/guides" element={<GuidesHome />} />
-              <Route path="/guides/:guideSlug" element={<GuidePage />} />
-              <Route path="/blog" element={<BlogHome />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
-              <Route path="/tools" element={<ToolsHub />} />
-              <Route path="/vs/jobright" element={<JobrightVsJobhuntin />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
+              <Route path="/chrome-extension" element={<RouteErrorBoundary><ChromeExtension /></RouteErrorBoundary>} />
+              <Route path="/recruiters" element={<RouteErrorBoundary><Recruiters /></RouteErrorBoundary>} />
+              <Route path="/jobs/:role/:city" element={<RouteErrorBoundary><JobNiche /></RouteErrorBoundary>} />
+              <Route path="/vs/:competitorSlug" element={<RouteErrorBoundary><ComparisonPage /></RouteErrorBoundary>} />
+              <Route path="/alternative-to/:competitorSlug" element={<RouteErrorBoundary><AlternativeTo /></RouteErrorBoundary>} />
+              <Route path="/reviews/:competitorSlug" element={<RouteErrorBoundary><ReviewPage /></RouteErrorBoundary>} />
+              <Route path="/switch-from/:competitorSlug" element={<RouteErrorBoundary><SwitchFrom /></RouteErrorBoundary>} />
+              <Route path="/pricing-vs/:competitorSlug" element={<RouteErrorBoundary><PricingVs /></RouteErrorBoundary>} />
+              <Route path="/best/:categorySlug" element={<RouteErrorBoundary><CategoryHub /></RouteErrorBoundary>} />
+              <Route path="/guides" element={<RouteErrorBoundary><GuidesHome /></RouteErrorBoundary>} />
+              <Route path="/guides/:guideSlug" element={<RouteErrorBoundary><GuidePage /></RouteErrorBoundary>} />
+              <Route path="/blog" element={<RouteErrorBoundary><BlogHome /></RouteErrorBoundary>} />
+              <Route path="/blog/:slug" element={<RouteErrorBoundary><BlogPost /></RouteErrorBoundary>} />
+              <Route path="/tools" element={<RouteErrorBoundary><ToolsHub /></RouteErrorBoundary>} />
+              <Route path="/vs/jobright" element={<RouteErrorBoundary><JobrightVsJobhuntin /></RouteErrorBoundary>} />
+              <Route path="/privacy" element={<RouteErrorBoundary><Privacy /></RouteErrorBoundary>} />
+              <Route path="/terms" element={<RouteErrorBoundary><Terms /></RouteErrorBoundary>} />
               <Route path="/about" element={<RouteErrorBoundary><About /></RouteErrorBoundary>} />
               <Route path="/locations" element={<RouteErrorBoundary><Locations /></RouteErrorBoundary>} />
               <Route path="/topics/:slug" element={<RouteErrorBoundary><TopicPage /></RouteErrorBoundary>} />
