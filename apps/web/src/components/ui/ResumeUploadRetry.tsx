@@ -50,7 +50,7 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
         try {
           await onRetry();
         } catch (error) {
-          console.error('Auto-retry failed:', error);
+          if (import.meta.env.DEV) console.error('Auto-retry failed:', error);
         } finally {
           setIsRetrying(false);
         }
@@ -67,7 +67,7 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
     try {
       await onRetry();
     } catch (error) {
-      console.error('Manual retry failed:', error);
+      if (import.meta.env.DEV) console.error('Manual retry failed:', error);
     } finally {
       setIsRetrying(false);
     }

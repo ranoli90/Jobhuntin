@@ -64,7 +64,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem('user_preferences', JSON.stringify(newPrefs));
       } catch (error) {
-        console.warn('Failed to save user preferences:', error);
+        if (import.meta.env.DEV) console.warn('Failed to save user preferences:', error);
       }
       return newPrefs;
     });

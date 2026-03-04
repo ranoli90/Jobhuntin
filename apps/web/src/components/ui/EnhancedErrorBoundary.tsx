@@ -91,11 +91,11 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
     this.props.onError?.(error, errorInfo);
 
     // Log error for debugging
-    console.group('🚨 Enhanced Error Boundary Caught Error');
-    console.error('Error:', error);
-    console.error('Error Info:', errorInfo);
-    console.error('Error ID:', errorId);
-    console.groupEnd();
+    if (import.meta.env.DEV) console.group('🚨 Enhanced Error Boundary Caught Error');
+    if (import.meta.env.DEV) console.error('Error:', error);
+    if (import.meta.env.DEV) console.error('Error Info:', errorInfo);
+    if (import.meta.env.DEV) console.error('Error ID:', errorId);
+    if (import.meta.env.DEV) if (import.meta.env.DEV) console.groupEnd();
 
     // Send error report if enabled
     if (this.props.enableErrorReporting !== false) {
@@ -129,7 +129,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
         },
         body: JSON.stringify(report),
       }).catch(err => {
-        console.warn('Failed to send error report:', err);
+        if (import.meta.env.DEV) console.warn('Failed to send error report:', err);
       });
 
       // Also send to external service if configured
@@ -148,11 +148,11 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
         }).then(() => clearTimeout(timeoutId))
           .catch(err => {
             clearTimeout(timeoutId);
-            console.warn('Failed to send external error report:', err);
+            if (import.meta.env.DEV) console.warn('Failed to send external error report:', err);
           });
       }
     } catch (err) {
-      console.warn('Error reporting failed:', err);
+      if (import.meta.env.DEV) console.warn('Error reporting failed:', err);
     }
   };
 
@@ -175,7 +175,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
     const { retryCount, errorId } = this.state;
 
     if (retryCount >= maxRetries) {
-      console.warn('Max retries reached for error:', errorId);
+      if (import.meta.env.DEV) console.warn('Max retries reached for error:', errorId);
       return;
     }
 
@@ -233,7 +233,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
 
       pushToast({ title: 'Report sent', description: 'Thank you for your feedback.', tone: 'success' });
     } catch (err) {
-      console.error('Failed to send manual report:', err);
+      if (import.meta.env.DEV) console.error('Failed to send manual report:', err);
     }
   };
 
@@ -408,7 +408,7 @@ class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryS
 export function useErrorBoundary() {
   const handleError = (error: Error, errorInfo: ErrorInfo) => {
     // Log to external service
-    console.error('Error caught by boundary:', error, errorInfo);
+    if (import.meta.env.DEV) console.error('Error caught by boundary:', error, errorInfo);
 
     // You can integrate with Sentry, LogRocket, etc.
     if (typeof window !== 'undefined' && window.Sentry) {

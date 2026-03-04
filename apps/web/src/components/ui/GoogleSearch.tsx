@@ -47,7 +47,7 @@ export function GoogleSearch() {
       setResults(data.items || []);
     } catch (err) {
       setError('Failed to perform search. Please try again.');
-      console.error('Google Search Error:', err);
+      if (import.meta.env.DEV) console.error('Google Search Error:', err);
     } finally {
       setIsLoading(false);
     }

@@ -33,7 +33,7 @@ function loadLocalFlags(): FeatureFlags {
       return { ...DEFAULT_FLAGS, ...JSON.parse(stored) };
     }
   } catch {
-    console.warn("Failed to load feature flags from localStorage");
+    if (import.meta.env.DEV) console.warn("Failed to load feature flags from localStorage");
   }
   return DEFAULT_FLAGS;
 }
@@ -43,7 +43,7 @@ function saveLocalFlags(flags: FeatureFlags): void {
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(flags));
   } catch {
-    console.warn("Failed to save feature flags to localStorage");
+    if (import.meta.env.DEV) console.warn("Failed to save feature flags to localStorage");
   }
 }
 

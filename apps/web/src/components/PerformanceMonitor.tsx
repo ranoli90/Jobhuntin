@@ -191,7 +191,7 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
         }),
       });
     } catch (error) {
-      console.warn('Failed to report performance metrics:', error);
+      if (import.meta.env.DEV) console.warn('Failed to report performance metrics:', error);
     }
   };
 
@@ -212,7 +212,7 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
         }),
       });
     } catch (reportingError) {
-      console.warn('Failed to report performance error:', reportingError);
+      if (import.meta.env.DEV) console.warn('Failed to report performance error:', reportingError);
     }
   };
 

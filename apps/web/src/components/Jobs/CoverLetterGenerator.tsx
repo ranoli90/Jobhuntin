@@ -51,7 +51,7 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             } catch (err) {
-                console.error("Failed to copy to clipboard:", err);
+                if (import.meta.env.DEV) console.error("Failed to copy to clipboard:", err);
             }
         }
     };

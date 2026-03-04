@@ -59,7 +59,7 @@ export function useOnboarding() {
       try {
         piiData = (await securePIIStorage.get('contact_info')) || {};
       } catch (error) {
-        console.warn('[useOnboarding] Failed to load PII from secure storage:', error);
+        if (import.meta.env.DEV) console.warn('[useOnboarding] Failed to load PII from secure storage:', error);
       }
       
       // Merge the data
@@ -67,7 +67,7 @@ export function useOnboarding() {
       
       return storedState ? { ...storedState, formData: mergedFormData } : null;
     } catch (e) {
-      console.warn('[useOnboarding] Corrupted storage, resetting:', e);
+      if (import.meta.env.DEV) console.warn('[useOnboarding] Corrupted storage, resetting:', e);
       try {
         localStorage.removeItem(STORAGE_KEY);
         securePIIStorage.clear();
@@ -111,7 +111,7 @@ export function useOnboarding() {
         if (import.meta.env.DEV) console.log('[useOnboarding] Saved PII to secure storage');
       }
     } catch (error) {
-      console.error('[useOnboarding] Failed to save state:', error);
+      if (import.meta.env.DEV) console.error('[useOnboarding] Failed to save state:', error);
       // Attempt to clear corrupted data and save minimal state
       try {
         localStorage.removeItem(STORAGE_KEY);
@@ -120,7 +120,7 @@ export function useOnboarding() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(minimalState));
         if (import.meta.env.DEV) console.log('[useOnboarding] Recovered with minimal state');
       } catch (recoveryError) {
-        console.error('[useOnboarding] Failed to recover state:', recoveryError);
+        if (import.meta.env.DEV) console.error('[useOnboarding] Failed to recover state:', recoveryError);
       }
     }
   }, [currentStep, completedSteps, formData]);
@@ -247,7 +247,7 @@ export function useOnboarding() {
         window.dispatchEvent(new CustomEvent("offline_queue:retry", { detail: valid }));
         localStorage.removeItem("offline_queue");
       } catch (error) {
-        console.error("[useOnboarding] Failed to process offline queue:", error);
+        if (import.meta.env.DEV) console.error("[useOnboarding] Failed to process offline queue:", error);
         try {
           localStorage.removeItem("offline_queue");
         } catch {
@@ -267,14 +267,14 @@ export function useOnboarding() {
       queue.push({ ...action, timestamp: Date.now() });
       localStorage.setItem("offline_queue", JSON.stringify(queue));
     } catch (error) {
-      console.error('[useOnboarding] Failed to queue offline action:', error);
+      if (import.meta.env.DEV) console.error('[useOnboarding] Failed to queue offline action:', error);
       // Try to clear and retry
       try {
         localStorage.removeItem("offline_queue");
         const newQueue = [{ ...action, timestamp: Date.now() }];
         localStorage.setItem("offline_queue", JSON.stringify(newQueue));
       } catch (retryError) {
-        console.error('[useOnboarding] Failed to retry offline action queue:', retryError);
+        if (import.meta.env.DEV) console.error('[useOnboarding] Failed to retry offline action queue:', retryError);
       }
     }
   }, []);

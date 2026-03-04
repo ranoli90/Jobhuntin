@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Helper to fetch user profile
     const fetchUser = useCallback(async (isInitialLoad = false) => {
-        if (import.meta.env.DEV) console.log('[AUTH] Fetching user profile...');
+        if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Fetching user profile...');
         try {
             let profile: User;
 
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 });
                 if (!resp.ok) {
                     // Silently handle 401 on initial load — user simply isn't logged in yet
-                    if (import.meta.env.DEV) console.log('[AUTH] Initial profile check returned', resp.status);
+                    if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Initial profile check returned', resp.status);
                     setUser(null);
                     sessionExpiryRef.current = null;
                     return;
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             setUser(profile);
             if (import.meta.env.DEV) {
-                console.log('[AUTH] User profile loaded:', {
+                if (import.meta.env.DEV) console.log('[AUTH] User profile loaded:', {
                     id: profile.id,
                     email: profile.email,
                     has_completed_onboarding: profile.has_completed_onboarding
@@ -162,7 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Initialize auth
     useEffect(() => {
         const initAuth = async () => {
-            if (import.meta.env.DEV) console.log('[AUTH] Initializing auth...');
+            if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Initializing auth...');
 
             // 1. Check for token in URL (legacy magic link flow — used when API_PUBLIC_URL is not set)
             //    When API_PUBLIC_URL IS set, the backend redirects the user BEFORE they hit the
@@ -172,7 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const tokenFromUrl = params.get("token");
 
             if (tokenFromUrl) {
-                if (import.meta.env.DEV) console.log('[AUTH] Token found in URL (legacy flow), redirecting to backend verify...');
+                if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Token found in URL (legacy flow), redirecting to backend verify...');
 
                 // IMPORTANT: We must NOT use fetch() here. fetch() follows redirects internally
                 // and httpOnly cookies set on the API domain during a redirect are blocked by
@@ -184,22 +184,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const returnTo = params.get("returnTo") || sessionStorage.getItem('returnTo') || "/app/dashboard";
                 if (base) {
                     const verifyUrl = `${base.replace(/\/$/, "")}/auth/verify-magic?token=${encodeURIComponent(tokenFromUrl)}&returnTo=${encodeURIComponent(returnTo)}`;
-                    if (import.meta.env.DEV) console.log('[AUTH] Navigating to verify-magic:', verifyUrl);
+                    if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Navigating to verify-magic:', verifyUrl);
                     window.location.href = verifyUrl;
                     return; // Stop execution — browser will navigate away
                 }
             }
 
             // 2. Check for existing session via httpOnly cookie
-            if (import.meta.env.DEV) console.log('[AUTH] Checking for existing session...');
+            if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Checking for existing session...');
             await ensureCsrfCookie();
             await fetchUser(true);
             setLoading(false);
-            if (import.meta.env.DEV) console.log('[AUTH] Auth initialization complete');
+            if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Auth initialization complete');
         };
 
         const handleUnauthorized = (event: Event) => {
-            if (import.meta.env.DEV) console.log('[AUTH] Unauthorized event received, clearing session');
+            if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Unauthorized event received, clearing session');
             const detail = (event as CustomEvent<{ returnTo?: string }>).detail;
             setUser(null);
             sessionExpiryRef.current = null;

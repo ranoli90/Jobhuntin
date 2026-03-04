@@ -74,7 +74,7 @@ export function useJobMatchScores() {
 
     const scoreJobs = useCallback(async (jobs: JobPosting[]) => {
         if (!profileRef.current) {
-            console.warn("No profile set for job scoring");
+            if (import.meta.env.DEV) console.warn("No profile set for job scoring");
             return;
         }
 

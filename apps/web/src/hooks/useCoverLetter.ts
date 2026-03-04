@@ -115,7 +115,7 @@ export function useCoverLetter() {
       return data;
     } catch (error) {
       const err = error as Error;
-      console.error(err);
+      if (import.meta.env.DEV) console.error(err);
       setError(err.message || "Failed to generate cover letter");
       throw err;
     } finally {
@@ -128,7 +128,7 @@ export function useCoverLetter() {
     request: CoverLetterGenerationRequest
   ): Promise<GeneratedCoverLetter | null> => {
     if (!profile) {
-      console.error("Cannot generate cover letter: no user profile");
+      if (import.meta.env.DEV) console.error("Cannot generate cover letter: no user profile");
       return null;
     }
 
@@ -190,7 +190,7 @@ export function useCoverLetter() {
     } catch (error) {
       clearInterval(progressInterval);
       const message = error instanceof Error ? error.message : "Failed to generate cover letter";
-      console.error("Failed to generate cover letter:", error);
+      if (import.meta.env.DEV) console.error("Failed to generate cover letter:", error);
       setError(message);
       setGenerationState({
         isGenerating: false,

@@ -54,9 +54,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   _reportError = async (errorDetails: { error: Error; errorInfo: React.ErrorInfo }) => {
     try {
       // Here you could integrate with error reporting services like Sentry
-      console.error('Error reported:', errorDetails);
+      if (import.meta.env.DEV) console.error('Error reported:', errorDetails);
     } catch (reportingError) {
-      console.error('Failed to report error:', reportingError);
+      if (import.meta.env.DEV) console.error('Failed to report error:', reportingError);
     }
   };
 
