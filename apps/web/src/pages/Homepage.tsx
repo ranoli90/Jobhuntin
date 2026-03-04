@@ -47,10 +47,13 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
   const { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit } = useEmailCapture();
   if (sentEmail) {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 bg-white">
-        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-indigo-100"><MailCheck className="w-5 h-5 text-indigo-600" /></div>
-        <div className="min-w-0"><p className="text-sm font-semibold text-gray-900">Check your inbox</p><p className="text-xs truncate text-gray-500">{sentEmail}</p></div>
-        <button onClick={() => setSentEmail(null)} className="text-xs ml-auto shrink-0 hover:underline text-gray-400">Change</button>
+      <div className="flex items-center gap-3 p-5 rounded-2xl border border-indigo-100 bg-indigo-50/50 shadow-sm">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-indigo-100"><MailCheck className="w-6 h-6 text-indigo-600" /></div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-gray-900">Check your inbox</p>
+          <p className="text-xs truncate text-gray-500 mt-0.5">{sentEmail}</p>
+        </div>
+        <button onClick={() => setSentEmail(null)} className="text-xs shrink-0 font-medium hover:underline text-indigo-600">Change</button>
       </div>
     );
   }
@@ -171,25 +174,25 @@ export default function Homepage() {
         {/* Soft gradient bg */}
         <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/60 via-white to-white" />
 
-        <div className="relative max-w-7xl mx-auto px-6 pt-16 sm:pt-24 pb-12">
+        <div className="relative max-w-7xl mx-auto px-6 pt-28 sm:pt-36 pb-12">
           <div className="max-w-3xl mx-auto text-center">
             <FadeIn>
-              <h1 className="text-[clamp(2.75rem,7vw,5.5rem)] font-extrabold leading-[1.02] tracking-[-0.045em] text-gray-900">
-                The automation platform for<br />
-                <span className="text-slate-900 underline decoration-slate-900/20 underline-offset-[12px]">job seekers</span>
+              <h1 className="text-[clamp(2.2rem,6vw,5.5rem)] font-extrabold leading-[1.05] tracking-[-0.04em] text-gray-900">
+                The automation platform for<br className="hidden sm:block" />
+                <span className="text-slate-900 underline decoration-slate-900/20 underline-offset-[8px] sm:underline-offset-[12px]">job seekers</span>
               </h1>
             </FadeIn>
             <FadeIn delay={80}>
-              <p className="mt-7 text-xl sm:text-[1.4rem] text-gray-500 max-w-2xl mx-auto leading-relaxed">
+              <p className="mt-6 text-lg sm:text-xl sm:text-[1.35rem] text-gray-500 max-w-xl mx-auto leading-relaxed">
                 Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep.
               </p>
             </FadeIn>
             <FadeIn delay={160}>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/login" className="h-14 px-10 rounded-full text-base font-semibold bg-gray-900 text-white hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                <Link to="/login" className="h-14 px-10 rounded-full text-base font-semibold bg-gray-900 text-white hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   Get Started Free <ArrowRight className="w-4 h-4" />
                 </Link>
-                <a href="#how-it-works" className="h-14 px-10 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+                <a href="#how-it-works" className="h-14 px-10 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   See How It Works
                 </a>
               </div>

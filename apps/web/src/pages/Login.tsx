@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { pushToast } from '../lib/toast';
 import {
-  ArrowRight, Mail, Sparkles, AlertCircle,
+  ArrowRight, Mail, AlertCircle,
   CheckCircle, ShieldCheck, MailCheck,
-  Briefcase, Send, Zap
+  Briefcase, Send, Zap, Loader2
 } from 'lucide-react';
 import { Logo } from '../components/brand/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -118,8 +118,8 @@ export default function Login() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center" role="status" aria-label="Checking sign-in">
-        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} aria-hidden>
-          <Sparkles className="w-8 h-8 text-blue-500" />
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} aria-hidden>
+          <Loader2 className="w-8 h-8 text-gray-400" />
         </motion.div>
       </div>
     );
@@ -134,13 +134,13 @@ export default function Login() {
           className="w-full max-w-md"
         >
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
+            <div className="w-16 h-16 rounded-2xl bg-gray-900 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-gray-900/15">
               <MailCheck className="w-8 h-8 text-white" />
             </div>
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3 tracking-tight">
               {t("login.checkInbox", getLocale())}
             </h1>
-              <p className="text-slate-500 leading-relaxed">
+            <p className="text-slate-500 leading-relaxed">
               {t("login.sentTo", getLocale())}<br />
               <span className="font-semibold text-slate-900 dark:text-slate-100">{successState.email}</span>
             </p>
@@ -163,7 +163,7 @@ export default function Login() {
                   transition={{ delay: 0.1 + i * 0.1 }}
                   className="flex items-start gap-3"
                 >
-                  <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {i + 1}
                   </div>
                   <span className="text-slate-600 dark:text-slate-300 text-sm">{step}</span>
@@ -199,7 +199,7 @@ export default function Login() {
                 }
               }}
               disabled={resendLoading || !!rateLimitCountdown}
-              className="w-full text-blue-600 hover:bg-blue-50"
+              className="w-full text-gray-700 hover:bg-gray-50"
             >
               {resendLoading ? t("login.sending", getLocale()) : rateLimitCountdown ? formatT("login.resendIn", { seconds: String(rateLimitCountdown) }, getLocale()) : t("login.resendLink", getLocale())}
             </Button>
@@ -217,8 +217,8 @@ export default function Login() {
       {/* Left Side - Desktop Only */}
       <div className="hidden lg:flex lg:w-1/2 bg-slate-900 relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/20 to-violet-500/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-gradient-to-tr from-pink-500/10 to-amber-500/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-slate-700/30 to-slate-900/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-gradient-to-tr from-slate-600/15 to-slate-800/10 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
@@ -255,7 +255,7 @@ export default function Login() {
                   className="flex items-center gap-4"
                 >
                   <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-blue-400" />
+                    <item.icon className="w-5 h-5 text-slate-400" />
                   </div>
                   <span className="text-slate-300">{item.text}</span>
                 </motion.div>
@@ -278,11 +278,12 @@ export default function Login() {
         </div>
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-10">
-            <Logo className="mx-auto mb-4" />
-            <h1 className="font-sans text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+          <div className="lg:hidden text-center mb-6">
+            <Logo className="mx-auto mb-3" />
+            <h1 className="font-sans text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
               {t("login.welcomeBack", getLocale())}
             </h1>
+            <p className="text-sm text-slate-500 mt-1">Enter your email to get started</p>
           </div>
 
           <motion.div
@@ -354,7 +355,7 @@ export default function Login() {
               >
                 {isLoading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                    <Sparkles className="w-5 h-5" />
+                    <Loader2 className="w-5 h-5" />
                   </motion.div>
                 ) : (
                   <span className="flex items-center gap-2">

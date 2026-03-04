@@ -48,7 +48,7 @@ export function MarketingNavbar() {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         shouldBeTransparent
-          ? "bg-transparent py-2"
+          ? "bg-white/80 backdrop-blur-xl border-b border-gray-100/60 py-2"
           : "bg-white/95 backdrop-blur-xl border-b border-gray-200/60 shadow-sm py-0"
       )}
     >
@@ -67,7 +67,7 @@ export function MarketingNavbar() {
               className={cn(
                 "text-[15px] font-semibold transition-all hover:opacity-100 active:scale-95 px-2 py-1 rounded-lg",
                 shouldBeTransparent
-                  ? "text-white/80 hover:text-white"
+                  ? "text-gray-500 hover:text-gray-900"
                   : location.pathname === link.path ? "text-gray-900" : "text-gray-500 hover:text-gray-900"
               )}
             >
@@ -85,7 +85,7 @@ export function MarketingNavbar() {
                 to="/app/dashboard"
                 className={cn(
                   "text-[15px] font-semibold transition-colors flex items-center gap-2",
-                  shouldBeTransparent ? "text-white/80 hover:text-white" : "text-gray-500 hover:text-gray-900"
+                  shouldBeTransparent ? "text-gray-500 hover:text-gray-900" : "text-gray-500 hover:text-gray-900"
                 )}
               >
                 <LayoutDashboard className="w-4 h-4" />
@@ -101,7 +101,7 @@ export function MarketingNavbar() {
                 to="/login?mode=login"
                 className={cn(
                   "text-[15px] font-semibold transition-colors",
-                  shouldBeTransparent ? "text-white/80 hover:text-white" : "text-gray-500 hover:text-gray-900"
+                  shouldBeTransparent ? "text-gray-500 hover:text-gray-900" : "text-gray-500 hover:text-gray-900"
                 )}
               >
                 Log in
@@ -109,7 +109,7 @@ export function MarketingNavbar() {
               <Link to="/login" className={cn(
                 "h-10 px-6 rounded-full text-sm font-bold transition-all flex items-center gap-2",
                 shouldBeTransparent
-                  ? "bg-white text-gray-900 hover:bg-gray-100"
+                  ? "bg-gray-900 text-white hover:bg-gray-800"
                   : "bg-primary-600 text-white hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-600/25 hover:-translate-y-0.5"
               )}>
                 Get Started Free <ArrowRight className="w-3.5 h-3.5" />
@@ -123,7 +123,7 @@ export function MarketingNavbar() {
           className={cn(
             "lg:hidden p-2.5 -mr-2 rounded-xl transition-all active:scale-90",
             shouldBeTransparent
-              ? "text-white hover:bg-white/10"
+              ? "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
               : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
           )}
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
