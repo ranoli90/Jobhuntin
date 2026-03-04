@@ -1,4 +1,4 @@
-import { Briefcase as BriefcaseIcon, CheckCircle, Clock, Zap, Rocket, Radar, MoreVertical, Eye, Pause, Trash2 } from "lucide-react";
+import { Briefcase as BriefcaseIcon, CheckCircle, Clock, Zap, Rocket, Radar, MoreVertical, Eye, Pause, Trash2, X } from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -101,21 +101,33 @@ export default function ApplicationsView() {
   const navigate = useNavigate();
   const { applications, isLoading, answerHold, snoozeApplication, isSubmitting } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const locale = getLocale();
   const [displayedCount, setDisplayedCount] = useState(APPLICATIONS_PAGE_SIZE);
 
+  const STATUS_FILTERS = [
+    { label: 'All', value: null },
+    { label: 'Applied', value: 'APPLIED' },
+    { label: 'Hold', value: 'HOLD' },
+    { label: 'Failed', value: 'FAILED' },
+    { label: 'Rejected', value: 'REJECTED' },
+  ] as const;
+
   const filteredApps = useMemo(
-    () => applications.filter(app =>
-      app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.job_title.toLowerCase().includes(searchTerm.toLowerCase())
-    ),
-    [applications, searchTerm]
+    () => applications.filter(app => {
+      const matchesSearch = !searchTerm ||
+        app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.job_title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = !statusFilter || app.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    }),
+    [applications, searchTerm, statusFilter]
   );
 
   const loadMoreApps = filteredApps.slice(0, displayedCount);
   const hasMoreToLoad = displayedCount < filteredApps.length;
 
-  useEffect(() => { setDisplayedCount(APPLICATIONS_PAGE_SIZE); }, [searchTerm]);
+  useEffect(() => { setDisplayedCount(APPLICATIONS_PAGE_SIZE); }, [searchTerm, statusFilter]);
 
   const handleApplicationAction = useCallback(async (action: string, appId: string) => {
     try {
@@ -208,12 +220,42 @@ export default function ApplicationsView() {
             placeholder="Search company or title..."
             aria-label="Search applications by company or title"
             aria-describedby="applications-search-hint"
-            className="w-full px-10 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium shadow-sm"
+            className="w-full px-10 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium shadow-sm pr-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Status filter tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        {STATUS_FILTERS.map(({ label, value }) => (
+          <button
+            key={label}
+            onClick={() => setStatusFilter(value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${statusFilter === value
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+              }`}
+          >
+            {label}
+            {value !== null && (
+              <span className="ml-1.5 text-[10px] opacity-60">
+                ({applications.filter(a => a.status === value).length})
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       <div className="grid gap-3 md:hidden">
