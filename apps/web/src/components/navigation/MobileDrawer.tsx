@@ -32,11 +32,13 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
       document.body.style.touchAction = 'none';
       document.body.classList.add('menu-open');
     } else {
+      // Immediately unlock on close
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
       document.body.classList.remove('menu-open');
     }
     return () => {
+      // Always clean up on unmount or re-render
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
       document.body.classList.remove('menu-open');
@@ -113,7 +115,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
   if (!mounted) return null;
 
   return createPortal(
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {isOpen && (
         <div
           id={drawerId}
@@ -128,7 +130,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -144,7 +146,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
             animate={{ x: 0 }}
             exit={{ x: side === "left" ? "-100%" : "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
-            className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[340px] flex flex-col bg-white dark:bg-slate-900 shadow-2xl shadow-gray-900/10 dark:shadow-black/40 border-gray-200 dark:border-slate-700 ring-1 ring-gray-100 dark:ring-slate-800`}
+            className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[360px] flex flex-col bg-white dark:bg-slate-900 shadow-2xl shadow-gray-900/20 dark:shadow-black/40 border-gray-100 dark:border-slate-700`}
             onClick={(e) => e.stopPropagation()}
           >
             {children}

@@ -16,7 +16,7 @@ interface SEOProps {
   includeDate?: boolean;
 }
 
-const DEFAULT_OG_IMAGE = "https://jobhuntin.com/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global";
+const DEFAULT_OG_IMAGE = "https://jobhuntin.com/og-image.png";
 const BASE_URL = "https://jobhuntin.com";
 
 const getDynamicDate = () => {
@@ -40,7 +40,7 @@ export const SEO = ({
   ogImageHeight = "630",
   canonicalUrl,
   robots = "index,follow",
-  themeColor = "#FF6B35",
+  themeColor = "#1e293b",
   schema,
   includeDate = false
 }: SEOProps) => {

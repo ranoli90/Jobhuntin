@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Bot, Search, FileText, Send, Sparkles, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { Briefcase, Search, FileText, Send, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { SEO } from '../components/marketing/SEO';
 import { t, getLocale } from '../lib/i18n';
@@ -90,7 +90,7 @@ export default function About() {
                 title="About JobHuntin | AI Job Search Automation That Works While You Sleep"
                 description="JobHuntin is an AI-powered job search automation platform. Our autonomous agent discovers jobs, tailors resumes, and auto-applies 24/7. Built by job seekers, for job seekers."
                 ogTitle="About JobHuntin | AI Job Search Automation"
-                ogImage="https://jobhuntin.com/og/about.png"
+                ogImage="https://jobhuntin.com/og-image.png"
                 canonicalUrl="https://jobhuntin.com/about"
                 includeDate={true}
                 schema={[
@@ -124,7 +124,7 @@ export default function About() {
                 ]}
             />
             {/* --- HERO SECTION --- */}
-            <section className="relative min-h-[90vh] flex items-center justify-center pt-24 px-6">
+            <section className="relative min-h-[80vh] flex items-center justify-center pt-32 px-6">
                 <div className="absolute inset-0 z-0">
                     <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-[120px] animate-pulse" />
                     <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
@@ -139,7 +139,7 @@ export default function About() {
                         animate={{ opacity: 1, y: 0 }}
                         className="inline-flex items-center gap-2 bg-slate-900/5 backdrop-blur-sm border border-slate-900/10 px-4 py-2 rounded-full text-sm font-bold text-slate-800 mb-8"
                     >
-                        <Sparkles className="w-4 h-4 text-primary-600" />
+                        <Briefcase className="w-4 h-4 text-gray-700" />
                         <span>{t("about.badge", locale)}</span>
                     </motion.div>
 
@@ -234,7 +234,7 @@ export default function About() {
 
                     <div className="grid md:grid-cols-4 gap-12">
                         <ProcessStep
-                            icon={Bot}
+                            icon={Briefcase}
                             title={t("about.parse", locale)}
                             desc={t("about.parseDesc", locale)}
                             delay={0.1}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, Twitter, Linkedin, Github, Heart } from 'lucide-react';
+import { Briefcase, Twitter, Linkedin, Github, Heart } from 'lucide-react';
 
 export function MarketingFooter() {
   const footerSections = [
@@ -64,13 +64,13 @@ export function MarketingFooter() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-12 mb-16">
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
             <Link to="/" className="flex items-center gap-2.5 group mb-5">
-              <div className="bg-primary-600 p-2 rounded-xl shadow-lg shadow-primary-600/20 group-hover:bg-primary-700 transition-colors duration-300">
-                <Bot className="text-white w-5 h-5" aria-hidden />
+              <div className="bg-gray-900 p-2 rounded-xl shadow-lg shadow-gray-900/10 group-hover:bg-gray-800 transition-colors duration-300">
+                <Briefcase className="text-white w-5 h-5" aria-hidden />
               </div>
               <span className="text-lg font-black text-gray-900 dark:text-slate-100 tracking-tight">JobHuntin</span>
             </Link>
             <p className="text-gray-500 dark:text-slate-400 text-sm mb-6 max-w-xs leading-relaxed font-medium">
-              The AI agent that applies to jobs while you sleep.
+              The automation platform for job seekers.
             </p>
             <div className="flex gap-2.5">
               <a href="#" aria-label="Follow us on Twitter" className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all">
@@ -106,7 +106,7 @@ export function MarketingFooter() {
 
         <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} JobHuntin AI Inc.
+            &copy; {new Date().getFullYear()} JobHuntin Inc.
           </p>
           <p className="text-gray-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
             Made with <Heart className="w-3.5 h-3.5 text-primary-500 fill-current" aria-hidden /> in Denver

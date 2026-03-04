@@ -100,7 +100,7 @@ export default function Pricing() {
         title="Pricing | JobHuntin AI: Free to Start, $19/mo Pro for Unlimited Auto-Apply"
         description="JobHuntin pricing: Free tier to start, Pro at $19/month for unlimited AI job applications, resume tailoring, and stealth mode. One interview pays for a lifetime."
         ogTitle="JobHuntin Pricing: Free to Start"
-        ogImage="https://jobhuntin.com/og/pricing.png"
+        ogImage="https://jobhuntin.com/og-image.png"
         canonicalUrl="https://jobhuntin.com/pricing"
         includeDate={true}
         schema={[
@@ -143,7 +143,7 @@ export default function Pricing() {
         ]}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-24 sm:py-32">
+      <main className="max-w-7xl mx-auto px-6 py-28 sm:py-36">
         <div className="text-center mb-24 relative">
           <FadeIn>
             <div className="text-primary-600 font-black text-[10px] uppercase tracking-[0.3em] mb-4">Investment in you</div>

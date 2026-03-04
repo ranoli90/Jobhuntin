@@ -8,14 +8,14 @@ export default function Terms() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
-      <SEO 
+      <SEO
         title="Terms of Service | JobHuntin AI"
         description="Read the terms and conditions for using JobHuntin's AI job hunting services. Understanding your rights and responsibilities."
         ogTitle="Terms of Service | JobHuntin AI"
         canonicalUrl="https://jobhuntin.com/terms"
       />
-      
-      <main className="max-w-4xl mx-auto px-6 py-20">
+
+      <main className="max-w-4xl mx-auto px-6 py-28 sm:py-32">
         <div className="mb-12 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-50 rounded-2xl mb-6">
             <FileText className="w-8 h-8 text-primary-600" />
@@ -28,7 +28,7 @@ export default function Terms() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 md:p-12 border border-slate-100 prose prose-slate prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-primary-600 prose-a:no-underline hover:prose-a:underline prose-li:marker:text-primary-500">
-          
+
           <section>
             <h2>1. Description of Service</h2>
             <p>

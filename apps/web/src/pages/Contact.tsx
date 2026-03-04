@@ -21,10 +21,10 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     setIsSubmitting(false);
     setSubmitted(true);
     setFormData({
@@ -86,7 +86,7 @@ export default function Contact() {
         }}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-16 sm:py-24">
+      <main className="max-w-7xl mx-auto px-6 py-28 sm:py-32">
         {/* Header */}
         <div className="text-center mb-16">
           <motion.div
@@ -115,7 +115,7 @@ export default function Contact() {
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{t("contact.sendMessage", locale)}</h2>
-              
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
@@ -133,7 +133,7 @@ export default function Contact() {
                       placeholder="John Doe"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       {t("contact.email", locale)} *
@@ -231,7 +231,7 @@ export default function Contact() {
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{t("contact.otherWays", locale)}</h2>
-              
+
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0">

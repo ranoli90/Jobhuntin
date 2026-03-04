@@ -8,16 +8,16 @@ export default function Privacy() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
-      <SEO 
+      <SEO
         title="Privacy Policy | JobHuntin AI"
         description="Comprehensive details on how JobHuntin collects, uses, and protects your personal data. Compliant with GDPR, CCPA, and global privacy standards."
         ogTitle="Privacy Policy | JobHuntin AI"
         canonicalUrl="https://jobhuntin.com/privacy"
       />
-      
+
       {/* Header handled by Layout, but keeping independent nav if accessed directly or for print styles */}
-      
-      <main className="max-w-4xl mx-auto px-6 py-20">
+
+      <main className="max-w-4xl mx-auto px-6 py-28 sm:py-32">
         <div className="mb-12 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-50 rounded-2xl mb-6">
             <Shield className="w-8 h-8 text-primary-600" />
@@ -30,7 +30,7 @@ export default function Privacy() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 md:p-12 border border-slate-100 prose prose-slate prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-primary-600 prose-a:no-underline hover:prose-a:underline prose-li:marker:text-primary-500">
-          
+
           <section>
             <h2>1. Introduction</h2>
             <p>
@@ -41,7 +41,7 @@ export default function Privacy() {
           <section>
             <h2>2. The Data We Collect & Where It Lives</h2>
             <p>We collect data to power our <strong>Autonomous Job Application Agent</strong>.</p>
-            
+
             <div className="space-y-6 my-8 not-prose">
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3 mb-3">
@@ -84,7 +84,7 @@ export default function Privacy() {
           <section>
             <h2>3. How We Use Artificial Intelligence (AI)</h2>
             <p>We use "High-Risk" AI systems (Generative AI & LLMs) to analyze your profile and write content.</p>
-            
+
             <h3>3.1 Sub-Processors & Vendors</h3>
             <p>We transmit data to the following third-party AI providers:</p>
             <ul>
@@ -94,30 +94,30 @@ export default function Privacy() {
             </ul>
 
             <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 my-6 not-prose">
-               <div className="flex items-start gap-3">
-                 <Lock className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                 <div>
-                   <h4 className="font-bold text-blue-900 text-lg mb-2">Privacy-by-Design: PII Stripping</h4>
-                   <p className="text-blue-800 text-sm leading-relaxed">
-                     Before sending your data to any AI provider (e.g., for <code>suggest-roles</code> or <code>generate-cover-letter</code>), our system <strong>automatically strips</strong> the following Personally Identifiable Information (PII) to protect your anonymity:
-                   </p>
-                   <ul className="grid grid-cols-2 gap-2 mt-4 text-sm text-blue-800 font-medium">
-                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Email Address</li>
-                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Phone Number</li>
-                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Physical Address</li>
-                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Social URLs</li>
-                   </ul>
-                   <p className="text-xs text-blue-600 mt-4 italic">
-                     *Codebase Verification: This is enforced by our <code>strip_pii_for_llm</code> middleware function.
-                   </p>
-                 </div>
-               </div>
+              <div className="flex items-start gap-3">
+                <Lock className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h4 className="font-bold text-blue-900 text-lg mb-2">Privacy-by-Design: PII Stripping</h4>
+                  <p className="text-blue-800 text-sm leading-relaxed">
+                    Before sending your data to any AI provider (e.g., for <code>suggest-roles</code> or <code>generate-cover-letter</code>), our system <strong>automatically strips</strong> the following Personally Identifiable Information (PII) to protect your anonymity:
+                  </p>
+                  <ul className="grid grid-cols-2 gap-2 mt-4 text-sm text-blue-800 font-medium">
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Email Address</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Phone Number</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Physical Address</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Social URLs</li>
+                  </ul>
+                  <p className="text-xs text-blue-600 mt-4 italic">
+                    *Codebase Verification: This is enforced by our <code>strip_pii_for_llm</code> middleware function.
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
 
           <section>
             <h2>4. Automated Decision-Making Technology (ADMT)</h2>
-            
+
             <h3>4.1 Scoring & Ranking (<code>match-job</code>)</h3>
             <ul>
               <li><strong>Usage:</strong> We use an algorithm to assign a "Match Score" (0-100) to job postings.</li>
