@@ -143,8 +143,8 @@ async def create_checkout(
     stripe = get_stripe()
     
     async with db.acquire() as conn:
-        # Ensure customer exists
-        customer_id = await ensure_stripe_customer(conn, tenant_ctx.tenant_id, tenant_ctx.user_email)
+        # Ensure customer exists (user_email not available in TenantContext, will be updated after checkout)
+        customer_id = await ensure_stripe_customer(conn, tenant_ctx.tenant_id, None)
         
         # Determine price ID based on billing period
         if body.billing_period == "annual":
