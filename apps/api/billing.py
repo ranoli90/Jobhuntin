@@ -9,10 +9,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
-from shared.middleware import get_tenant_context
 
 from backend.domain.billing import ensure_stripe_customer, update_subscription_state
 from backend.domain.stripe_client import get_stripe, protected_stripe_call
+from packages.backend.domain.tenant import TenantContext
 
 logger = get_logger("sorce.api.billing")
 
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 async def _get_pool():
     raise NotImplementedError("Pool dependency not injected")
 
-async def _get_tenant_ctx():
+async def _get_tenant_ctx() -> TenantContext:
     raise NotImplementedError("Tenant context dependency not injected")
 
 
