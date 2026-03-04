@@ -146,45 +146,48 @@ export default function AppLayout() {
         </MobileDrawerFooter>
       </MobileDrawer>
 
-      <div className="flex flex-1 flex-col h-screen overflow-hidden">
-        <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-900/90 backdrop-blur-xl px-6 shrink-0 z-50 sticky top-0">
-          <div className="flex items-center gap-4">
+      <div className="flex flex-1 flex-col h-screen h-[100svh] overflow-hidden lg:h-auto lg:overflow-visible">
+        <header className="flex h-16 sm:h-20 items-center justify-between border-b border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-900/80 backdrop-blur-2xl px-4 sm:px-6 shrink-0 z-50 sticky top-0">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
-              className="lg:hidden p-2.5 -ml-2 text-slate-600 bg-slate-100 rounded-xl active:scale-90 transition-all"
+              className="lg:hidden p-2 text-slate-600 bg-slate-100 rounded-lg active:scale-95 transition-all outline-none focus:ring-2 focus:ring-primary-500"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
               aria-expanded={mobileMenuOpen}
               aria-controls="app-mobile-drawer"
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
             <div className="flex items-center gap-2">
               <div className="hidden lg:block">
-                <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400 font-black">Dashboard</p>
-                <p className="text-sm font-black text-slate-900 dark:text-slate-100">Dashboard</p>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-slate-400 font-bold mb-0.5">Application</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-black text-slate-900 dark:text-slate-100">JobHuntin Agent</p>
+                  <Badge variant="outline" size="sm" className="bg-slate-50 text-[10px] h-5 border-slate-200 px-1.5">v2.4.0</Badge>
+                </div>
               </div>
               <div className="lg:hidden">
                 <Logo iconOnly size="sm" />
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle className="text-slate-600 dark:text-slate-400" />
-            <Badge variant="primary" size="sm" className="font-black px-3">
-              {plan ?? "Free"}
-            </Badge>
-            <div className="flex items-center gap-3">
-              <div className="hidden text-right md:block">
-                <p className="text-sm font-black text-slate-900">{user?.email?.split('@')[0] ?? "User"}</p>
-                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Account Active</p>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <ThemeToggle className="text-slate-500 hover:text-slate-900 transition-colors" />
+            <div className="hidden sm:flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-sm font-black text-slate-900 leading-tight">{user?.email?.split('@')[0] ?? "User"}</p>
+                <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest">Account Live</p>
               </div>
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-50 border border-slate-200 text-primary-600 font-black shadow-sm">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 text-primary-600 font-black shadow-sm group-hover:shadow-md transition-shadow">
                 {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
               </div>
             </div>
+            <div className="sm:hidden grid h-9 w-9 place-items-center rounded-lg bg-slate-100 border border-slate-200 text-primary-600 font-black">
+              {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
+            </div>
           </div>
         </header>
-        <main id="main-content" className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-950/50 pb-20">
+        <main id="main-content" className="flex-1 overflow-y-auto bg-slate-50/30 dark:bg-slate-950/30 pb-24 sm:pb-8 relative">
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname} className="h-full">
               <Outlet />
@@ -193,8 +196,8 @@ export default function AppLayout() {
         </main>
 
         {/* Mobile bottom navigation: 4 main + More (opens full menu) */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)]" aria-label="Main navigation">
-          <div className="grid grid-cols-5 gap-1">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 pb-safe-area shadow-[0_-8px_24px_rgba(15,23,42,0.06)]" aria-label="Main navigation">
+          <div className="grid grid-cols-5 gap-1 pt-2 pb-4">
             {NAV_ITEMS.slice(0, 4).map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname.startsWith(item.to);
@@ -204,13 +207,14 @@ export default function AppLayout() {
                   to={item.to}
                   onClick={closeMobile}
                   className={cn(
-                    "flex flex-col items-center justify-center rounded-xl px-1 py-3 text-[10px] font-bold transition-all min-h-[44px]",
-                    isActive ? "bg-primary-50 text-primary-700 ring-1 ring-primary-100" : "text-slate-500 hover:text-slate-900"
+                    "flex flex-col items-center justify-center rounded-xl px-1 py-1.5 transition-all min-h-[48px]",
+                    isActive ? "text-primary-700 font-bold" : "text-slate-500 hover:text-slate-900"
                   )}
                   aria-label={item.label}
                 >
-                  <Icon className="h-5 w-5" aria-hidden />
-                  <span className="mt-1 leading-none">{item.label}</span>
+                  <Icon className={cn("h-5 w-5 mb-1 transition-transform", isActive && "scale-110")} aria-hidden />
+                  <span className="text-[10px] tracking-tight">{item.label}</span>
+                  {isActive && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary-600" />}
                 </NavLink>
               );
             })}
@@ -218,17 +222,16 @@ export default function AppLayout() {
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               className={cn(
-                "relative flex flex-col items-center justify-center rounded-xl px-1 py-3 text-[10px] font-bold transition-all min-h-[44px]",
+                "relative flex flex-col items-center justify-center rounded-xl px-1 py-1.5 transition-all min-h-[48px]",
                 NAV_ITEMS.slice(4).some((i) => location.pathname.startsWith(i.to))
-                  ? "bg-primary-50 text-primary-700 ring-1 ring-primary-100"
+                  ? "text-primary-700 font-bold"
                   : "text-slate-500 hover:text-slate-900"
               )}
-              aria-label="More menu: Team, Billing, Sources, Settings"
-              title="Team, Billing, Sources, Settings"
+              aria-label="More menu"
             >
-              <MoreHorizontal className="h-5 w-5" aria-hidden />
-              <span className="mt-1 leading-none">More</span>
-              <span className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-primary-500 text-[9px] font-black text-white px-1" aria-hidden>
+              <MoreHorizontal className="h-5 w-5 mb-1" aria-hidden />
+              <span className="text-[10px] tracking-tight">More</span>
+              <span className="absolute top-1 right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-600 text-[8px] font-black text-white px-1 border-2 border-white" aria-hidden>
                 {NAV_ITEMS.slice(4).length}
               </span>
             </button>

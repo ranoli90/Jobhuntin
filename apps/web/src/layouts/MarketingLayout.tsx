@@ -3,6 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { MarketingNavbar } from "../components/marketing/MarketingNavbar";
 import { MarketingFooter } from "../components/marketing/MarketingFooter";
 import { PageTransition } from "../components/navigation/PageTransition";
+import { cn } from "../lib/utils";
 
 export default function MarketingLayout() {
   const location = useLocation();
@@ -13,7 +14,7 @@ export default function MarketingLayout() {
         Skip to content
       </a>
       <MarketingNavbar />
-      <main id="main-content" className="flex-1 pt-[72px]">
+      <main id="main-content" className={cn("flex-1", location.pathname !== "/" && "pt-[72px] sm:pt-20")}>
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname} className="h-full">
             <Outlet />

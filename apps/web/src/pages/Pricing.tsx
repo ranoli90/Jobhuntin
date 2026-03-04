@@ -92,7 +92,7 @@ export default function Pricing() {
     return t("pricing.startTrial", locale);
   };
 
-    return (
+  return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700 pb-20">
       <SEO
         title="Pricing | JobHuntin AI: Free to Start, $19/mo Pro for Unlimited Auto-Apply"
@@ -141,182 +141,149 @@ export default function Pricing() {
         ]}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-16 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-block"
-          >
-            <h1 className="text-5xl md:text-7xl font-sans font-black text-slate-900 dark:text-slate-100 mb-6 tracking-tight">
+      <main className="max-w-7xl mx-auto px-6 py-24 sm:py-32">
+        <div className="text-center mb-24 relative">
+          <FadeIn>
+            <div className="text-primary-600 font-black text-[10px] uppercase tracking-[0.3em] mb-4">Investment in you</div>
+            <h1 className="text-[clamp(3.5rem,8vw,7rem)] font-extrabold text-slate-950 dark:text-slate-100 mb-8 tracking-[-0.05em] leading-[0.9]">
               Pricing that <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">pays for itself.</span>
+              <span className="text-primary-500">pays for itself.</span>
             </h1>
-          </motion.div>
+          </FadeIn>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto mb-10"
-          >
-            {t("pricing.subtitle", locale)}
-          </motion.p>
+          <FadeIn delay={100}>
+            <p className="text-xl text-gray-500 dark:text-slate-400 max-w-2xl mx-auto mb-12 font-medium">
+              Join thousands of professionals automating their career growth with JobHuntin Intelligence.
+            </p>
+          </FadeIn>
 
           {/* Toggle */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-12">
-            <span className={`text-sm font-bold ${!annual ? 'text-gray-900 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>{t("pricing.monthly", locale)}</span>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <span className={`text-xs font-black uppercase tracking-widest ${!annual ? 'text-slate-950 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>Monthly</span>
             <button
               onClick={() => setAnnual(!annual)}
-              className="w-16 h-8 bg-gray-200 rounded-full p-1 relative transition-colors duration-300 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              aria-label={`Switch to ${annual ? 'monthly' : 'annual'} billing`}
-              aria-live="polite"
+              className="w-14 h-8 bg-slate-200 dark:bg-slate-800 rounded-full p-1 relative transition-all hover:scale-105"
             >
               <motion.div
-                className="w-6 h-6 bg-white rounded-full shadow-md"
-                animate={{ x: shouldReduceMotion ? (annual ? 32 : 0) : undefined, translateX: shouldReduceMotion ? 0 : (annual ? 32 : 0) }}
+                className="w-6 h-6 bg-white dark:bg-slate-100 rounded-full shadow-sm"
+                animate={{ x: annual ? 24 : 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </button>
-            <span className={`text-sm font-bold ${annual ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}>
-              {t("pricing.annual", locale)} <span className="text-white text-xs ml-1 bg-primary-600 px-2 py-0.5 rounded-full shadow-sm" aria-label={t("pricing.save20", locale)}>-20%</span>
+            <span className={`text-xs font-black uppercase tracking-widest flex items-center gap-2 ${annual ? 'text-slate-950 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'}`}>
+              Annual <span className="bg-primary-600 text-white text-[9px] px-2 py-0.5 rounded-full shadow-lg shadow-primary-600/20">Save 25%</span>
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-          {/* Free Tier - Refactored to Standard Card */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">
+          {/* Starter Tier */}
           <motion.div
-            whileHover={{ y: shouldReduceMotion ? 0 : -10 }}
-            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative overflow-hidden group max-w-md mx-auto w-full lg:max-w-none min-h-[500px] lg:min-h-0"
+            whileHover={{ y: -8 }}
+            className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col h-full"
           >
-            <div className="h-full flex flex-col">
-              <div>
-                <h3 className="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">{t("pricing.starter", locale)}</h3>
-                <div className="text-4xl font-bold mb-6 text-slate-900 dark:text-slate-100">$0<span className="text-lg text-slate-500 dark:text-slate-400 font-normal">{t("pricing.perMonth", locale)}</span></div>
-              </div>
-
-              <div className="space-y-4 mb-8">
-                {[
-                  "5 AI Applications",
-                  "Basic Resume Parsing",
-                  "Job Tracker",
-                  "Email Support"
-                ].map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="bg-slate-100 p-1 rounded-full">
-                      <CheckCircle className="w-4 h-4 text-slate-400" aria-hidden="true" />
-                    </div>
-                    <span className="text-slate-600 font-medium">{feature}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-auto">
-                <button
-                  onClick={handleFreeCta}
-                  className="block w-full py-3 border-2 border-slate-200 text-center font-bold rounded-xl hover:border-slate-900 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
-                  aria-label={isLoggedIn ? t("pricing.goToDashboard", locale) : t("pricing.startFree", locale)}
-                >
-                  {isLoggedIn ? t("pricing.goToDashboard", locale) : t("pricing.startFree", locale)}
-                </button>
+            <div className="mb-10">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Starter</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="text-5xl font-black text-slate-950">$0</span>
+                <span className="text-sm font-bold text-gray-400">/mo</span>
               </div>
             </div>
-          </motion.div>
 
-          {/* Pro Tier - Floating Holographic */}
-          <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            whileHover={{ scale: shouldReduceMotion ? 1 : 1.05 }}
-            className="relative z-10 max-w-md mx-auto w-full lg:max-w-none"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-blue-400 rounded-3xl blur-xl opacity-30 animate-pulse"></div>
-            <div className="bg-[#1a1a1a] text-white rounded-3xl p-8 border border-gray-800 shadow-2xl relative overflow-hidden h-full">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-2xl font-bold">{t("pricing.proHunter", locale)}</h3>
-                <Crown className="text-primary-500 w-6 h-6" aria-hidden="true" />
-              </div>
-
-              <div className="text-5xl font-bold mb-2">
-                ${annual ? '24' : '29'}
-                <span className="text-lg text-gray-400 font-normal">/mo</span>
-              </div>
-              <p className="text-gray-400 text-sm mb-8">{annual ? t("pricing.billedAnnually", locale) : t("pricing.billedMonthly", locale)}</p>
-
-              <div className="mb-8">
-                <button
-                  onClick={handleProCta}
-                  disabled={isProOrHigher && isLoggedIn}
-                  className={`block w-full py-4 rounded-xl text-center font-bold text-lg shadow-lg transition-all transform focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-[#1a1a1a] ${isProOrHigher && isLoggedIn
-                    ? 'bg-gray-600 cursor-default shadow-none hover:translate-y-0'
-                    : 'bg-gradient-to-r from-primary-600 to-primary-500 shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1'
-                    }`}
-                  aria-label={getProCtaLabel()}
-                >
-                  {getProCtaLabel()}
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  "Unlimited AI Applications",
-                  "Custom Cover Letters",
-                  "Priority Queue (Skip the Line)",
-                  "LinkedIn Optimization",
-                  "Interview Coaching Bot"
-                ].map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="bg-white/10 p-1 rounded-full">
-                      <CheckCircle className="w-4 h-4 text-primary-500" aria-hidden="true" />
-                    </div>
-                    <span className="text-gray-200 font-medium">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Agency - Corporate Card */}
-          <motion.div
-            whileHover={{ y: shouldReduceMotion ? 0 : -10 }}
-            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl relative overflow-hidden group max-w-md mx-auto w-full lg:max-w-none min-h-[500px] lg:min-h-0"
-          >
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-blue-400"></div>
-            <div className="h-full flex flex-col">
-              <div>
-                <h3 className="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">{t("pricing.agency", locale)}</h3>
-                <div className="text-4xl font-bold mb-6 text-slate-900 dark:text-slate-100">$199<span className="text-lg text-slate-500 dark:text-slate-400 font-normal">{t("pricing.perMonth", locale)}</span></div>
-              </div>
-
-              <div className="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-100">
-                <div className="flex items-center gap-3 mb-2">
-                  <CreditCard className="w-5 h-5 text-gray-400" aria-hidden="true" />
-                  <span className="font-mono text-sm text-gray-500">**** 4242</span>
+            <div className="space-y-5 mb-12 flex-1">
+              {[
+                "10 Active Applications",
+                "Basic Profile Parsing",
+                "Personal CRM",
+                "Daily Market Insights"
+              ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <CheckCircle className="w-4 h-4 text-primary-500" />
+                  <span className="text-sm font-bold text-gray-600">{feature}</span>
                 </div>
-                <p className="text-xs text-gray-400">Corporate billing available</p>
-              </div>
+              ))}
+            </div>
 
-              <div className="mb-8">
-                <a
-                  href="mailto:sales@jobhuntin.com"
-                  className="block w-full py-3 border-2 border-slate-200 text-center font-bold rounded-xl hover:border-primary-500 hover:text-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                  aria-label={t("pricing.contactSales", locale)}
-                >
-                  {t("pricing.contactSales", locale)}
-                </a>
-              </div>
+            <button
+              onClick={handleFreeCta}
+              className="w-full py-4 rounded-2xl border-2 border-slate-100 text-slate-950 font-bold hover:bg-slate-50 transition-all active:scale-95"
+            >
+              Start Hunting
+            </button>
+          </motion.div>
 
-              <div className="mt-auto">
-                <ul className="space-y-4 opacity-80">
-                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" aria-hidden="true" /> 3 Team Seats</li>
-                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" aria-hidden="true" /> White-label Reports</li>
-                  <li className="flex items-center gap-3"><Zap className="w-5 h-5 text-primary-500" aria-hidden="true" /> API Access</li>
-                </ul>
+          {/* Pro Tier — Dark Editorial */}
+          <motion.div
+            initial={{ scale: 0.95 }}
+            animate={{ scale: 1 }}
+            whileHover={{ y: -12, scale: 1.02 }}
+            className="bg-slate-950 rounded-[2.5rem] p-10 border border-white/10 shadow-3xl shadow-slate-900/40 flex flex-col h-full relative overflow-hidden"
+          >
+            {/* Subtle flare */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600/20 blur-3xl -mr-16 -mt-16" />
+
+            <div className="mb-10 relative z-10">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary-500">Pro Hunter</h3>
+                <Crown className="w-4 h-4 text-primary-500" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-5xl font-black text-white">${annual ? '22' : '29'}</span>
+                <span className="text-sm font-bold text-white/40">/mo</span>
+              </div>
+              <p className="text-[10px] text-white/30 uppercase font-black tracking-widest mt-2">{annual ? "Billed annually" : "Billed monthly"}</p>
+            </div>
+
+            <div className="space-y-5 mb-12 flex-1 relative z-10">
+              {[
+                "Unlimited AI Applications",
+                "High-Fidelity Resume Tailoring",
+                "Custom Cover Letters",
+                "Priority Agent Queue",
+                "LinkedIn Identity Sync",
+                "Direct Recruiter Outreach"
+              ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <CheckCircle className="w-4 h-4 text-primary-500" />
+                  <span className="text-sm font-bold text-white/80">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleProCta}
+              className="w-full py-4 rounded-2xl bg-primary-600 text-white font-bold hover:bg-primary-500 transform transition-all shadow-xl shadow-primary-600/20 active:scale-95 hover:shadow-primary-600/40"
+            >
+              {getProCtaLabel()}
+            </button>
+          </motion.div>
+
+          {/* Agency/Team Tier */}
+          <motion.div
+            whileHover={{ y: -8 }}
+            className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col h-full"
+          >
+            <div className="mb-10">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Agency</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="text-5xl font-black text-slate-950">$199</span>
+                <span className="text-sm font-bold text-gray-400">/mo</span>
               </div>
             </div>
+
+            <div className="space-y-5 mb-12 flex-1 text-sm font-bold text-gray-500">
+              <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary-500" /> 5 Team Seats</li>
+              <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary-500" /> Custom Domain Integration</li>
+              <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary-500" /> Full API Access</li>
+              <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary-500" /> White-label Reporting</li>
+            </div>
+
+            <button
+              onClick={() => window.location.href = 'mailto:sales@jobhuntin.com'}
+              className="w-full py-4 rounded-2xl border-2 border-slate-100 text-slate-950 font-bold hover:bg-slate-50 transition-all"
+            >
+              Talk to Sales
+            </button>
           </motion.div>
         </div>
 

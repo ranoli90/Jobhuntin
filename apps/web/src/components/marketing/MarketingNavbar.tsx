@@ -38,18 +38,23 @@ export function MarketingNavbar() {
 
   const isLoggedIn = !loading && user;
 
+  const isHomePage = location.pathname === '/';
+  const shouldBeTransparent = isHomePage && !isScrolled && !isMobileMenuOpen;
+
   return (
     <nav
       aria-label="Main navigation"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isMobileMenuOpen
-        ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200/60 shadow-sm'
-        : 'bg-white/80 backdrop-blur-sm'
-        }`}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+        shouldBeTransparent
+          ? "bg-transparent py-2"
+          : "bg-white/95 backdrop-blur-xl border-b border-gray-200/60 shadow-sm py-0"
+      )}
     >
-      <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between">
         {/* Logo */}
         <div className="relative">
-          <Logo to="/" onClick={closeMenu} variant="light" />
+          <Logo to="/" onClick={closeMenu} variant={shouldBeTransparent ? "dark" : "light"} />
         </div>
 
         {/* Desktop Nav */}
@@ -58,8 +63,12 @@ export function MarketingNavbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`text-[15px] font-medium transition-all hover:text-gray-900 active:scale-95 ${location.pathname === link.path ? 'text-gray-900' : 'text-gray-500'
-                }`}
+              className={cn(
+                "text-[15px] font-semibold transition-all hover:opacity-100 active:scale-95 px-2 py-1 rounded-lg",
+                shouldBeTransparent
+                  ? "text-white/80 hover:text-white"
+                  : location.pathname === link.path ? "text-gray-900" : "text-gray-500 hover:text-gray-900"
+              )}
             >
               {link.name}
             </Link>
@@ -68,24 +77,41 @@ export function MarketingNavbar() {
 
         {/* CTA Buttons */}
         <div className="hidden lg:flex items-center gap-5">
-          <ThemeToggle />
+          <ThemeToggle className={shouldBeTransparent ? "text-white/80 hover:text-white" : ""} />
           {isLoggedIn ? (
             <>
-              <Link to="/app/dashboard" className="text-[15px] font-medium text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-2">
+              <Link
+                to="/app/dashboard"
+                className={cn(
+                  "text-[15px] font-semibold transition-colors flex items-center gap-2",
+                  shouldBeTransparent ? "text-white/80 hover:text-white" : "text-gray-500 hover:text-gray-900"
+                )}
+              >
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </Link>
-              <Link to="/app/jobs" className="h-10 px-6 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center gap-2">
-                  View Jobs <ArrowRight className="w-4 h-4" />
+              <Link to="/app/jobs" className="h-10 px-6 rounded-full text-sm font-bold bg-primary-600 text-white hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-600/25 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                View Jobs <ArrowRight className="w-4 h-4" />
               </Link>
             </>
           ) : (
             <>
-              <Link to="/login?mode=login" className="text-[15px] font-medium text-gray-500 hover:text-gray-900 transition-colors">
+              <Link
+                to="/login?mode=login"
+                className={cn(
+                  "text-[15px] font-semibold transition-colors",
+                  shouldBeTransparent ? "text-white/80 hover:text-white" : "text-gray-500 hover:text-gray-900"
+                )}
+              >
                 Log in
               </Link>
-              <Link to="/login" className="h-10 px-6 rounded-full text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center gap-2">
-                  Get Started Free <ArrowRight className="w-3.5 h-3.5" />
+              <Link to="/login" className={cn(
+                "h-10 px-6 rounded-full text-sm font-bold transition-all flex items-center gap-2",
+                shouldBeTransparent
+                  ? "bg-white text-gray-900 hover:bg-gray-100"
+                  : "bg-primary-600 text-white hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-600/25 hover:-translate-y-0.5"
+              )}>
+                Get Started Free <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </>
           )}
@@ -93,7 +119,12 @@ export function MarketingNavbar() {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="lg:hidden p-2.5 -mr-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all active:scale-90"
+          className={cn(
+            "lg:hidden p-2.5 -mr-2 rounded-xl transition-all active:scale-90",
+            shouldBeTransparent
+              ? "text-white hover:bg-white/10"
+              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+          )}
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
@@ -121,9 +152,9 @@ export function MarketingNavbar() {
                 key={link.path}
                 to={link.path}
                 onClick={closeMenu}
-                className={`text-lg font-medium block py-4 px-4 rounded-xl transition-all active:scale-[0.98] ${location.pathname === link.path
-                  ? 'bg-purple-50 text-purple-700'
-                  : 'text-gray-600 hover:bg-gray-50'
+                className={`text-lg font-black tracking-tight block py-4 px-4 rounded-xl transition-all active:scale-[0.98] ${location.pathname === link.path
+                  ? 'bg-primary-50 text-primary-900'
+                  : 'text-gray-950 hover:bg-gray-50'
                   }`}
               >
                 {link.name}
@@ -133,7 +164,7 @@ export function MarketingNavbar() {
               <Link
                 to="/app/dashboard"
                 onClick={closeMenu}
-                className="text-lg font-medium block py-4 px-4 rounded-xl transition-all active:scale-[0.98] text-gray-600 hover:bg-gray-50 flex items-center gap-2"
+                className="text-lg font-black tracking-tight block py-4 px-4 rounded-xl transition-all active:scale-[0.98] text-gray-950 hover:bg-gray-50 flex items-center gap-2"
               >
                 <LayoutDashboard className="w-5 h-5" />
                 Dashboard
@@ -143,30 +174,30 @@ export function MarketingNavbar() {
         </MobileDrawerBody>
 
         <MobileDrawerFooter>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 text-center">
             {isLoggedIn ? (
               <Link
                 to="/app/jobs"
                 onClick={closeMenu}
-                className="block w-full h-12 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-all flex items-center justify-center"
+                className="block w-full h-14 rounded-2xl text-base font-bold bg-primary-600 text-white hover:bg-primary-500 transition-all flex items-center justify-center"
               >
-                  View Jobs
+                View Jobs
               </Link>
             ) : (
               <>
                 <Link
                   to="/login?mode=login"
                   onClick={closeMenu}
-                  className="block w-full h-12 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center"
+                  className="block w-full h-14 rounded-2xl text-base font-bold border-2 border-gray-100 text-gray-950 hover:bg-gray-50 transition-all flex items-center justify-center"
                 >
-                    Log in
+                  Log in
                 </Link>
                 <Link
                   to="/login"
                   onClick={closeMenu}
-                  className="block w-full h-12 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-all flex items-center justify-center"
+                  className="block w-full h-14 rounded-2xl text-base font-bold bg-primary-600 text-white hover:bg-primary-500 transition-all flex items-center justify-center shadow-xl shadow-primary-600/20"
                 >
-                    Get Started Free
+                  Get Started Free
                 </Link>
               </>
             )}
