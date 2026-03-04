@@ -78,7 +78,7 @@ export function MarketingFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow us on Twitter (opens in new tab)" 
-                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <Twitter className="w-4 h-4" aria-hidden />
               </a>
@@ -87,7 +87,7 @@ export function MarketingFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow us on LinkedIn (opens in new tab)" 
-                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <Linkedin className="w-4 h-4" aria-hidden />
               </a>
@@ -96,7 +96,7 @@ export function MarketingFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="View our GitHub (opens in new tab)" 
-                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <Github className="w-4 h-4" aria-hidden />
               </a>
@@ -123,7 +123,7 @@ export function MarketingFooter() {
         </div>
 
         <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-gray-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">
+          <p className="text-gray-500 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">
             &copy; {new Date().getFullYear()} JobHuntin Inc.
           </p>
           <p className="text-gray-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">

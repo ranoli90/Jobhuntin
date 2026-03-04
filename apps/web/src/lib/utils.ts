@@ -32,11 +32,18 @@ export function sanitizeHtml(html: string): string {
 /**
  * Escape HTML special characters to prevent XSS.
  * Use this when rendering plain text that might contain HTML.
+ * Works in both browser and Node.js environments.
  */
 export function escapeHtml(text: string): string {
   if (!text) return "";
   
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+  const htmlEscapes: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  
+  return text.replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
 }

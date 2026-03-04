@@ -145,7 +145,7 @@ export default function Login() {
               {t("login.sentTo", getLocale())}<br />
               <span className="font-semibold text-slate-900 dark:text-slate-100">{successState.email}</span>
             </p>
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-xs text-slate-500 mt-2">
               {t("login.checkSpam", getLocale())}
             </p>
           </div>
@@ -237,7 +237,7 @@ export default function Login() {
                   {t("login.sidebarTitleLine2", getLocale())}
                 </span>
               </h2>
-              <p className="text-slate-400 text-lg leading-relaxed max-w-md">
+              <p className="text-slate-500 text-lg leading-relaxed max-w-md">
                 {t("login.sidebarSubtitle", getLocale())}
               </p>
             </div>
@@ -256,7 +256,7 @@ export default function Login() {
                   className="flex items-center gap-4"
                 >
                   <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-slate-400" />
+                    <item.icon className="w-5 h-5 text-slate-500" />
                   </div>
                   <span className="text-slate-300">{item.text}</span>
                 </motion.div>
@@ -296,7 +296,7 @@ export default function Login() {
               <h1 className="font-sans text-3xl font-extrabold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
                 {t("login.signInTitle", getLocale())}
               </h1>
-              <p className="text-slate-500 dark:text-slate-400">
+              <p className="text-slate-500 dark:text-slate-500">
                 {t("login.magicLinkHint", getLocale())}
               </p>
             </div>
@@ -313,7 +313,7 @@ export default function Login() {
                 )}>
                   <Mail className={cn(
                     "absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors",
-                    focused ? "text-primary-500" : "text-slate-400"
+                    focused ? "text-primary-500" : "text-slate-500"
                   )} aria-hidden />
                   <input
                     type="email"
@@ -329,7 +329,7 @@ export default function Login() {
                     onBlur={() => setFocused(false)}
                     className={cn(
                       "w-full pl-12 pr-4 py-4 rounded-xl bg-slate-50 border transition-all",
-                      "text-slate-900 placeholder:text-slate-400",
+                      "text-slate-900 placeholder:text-slate-500",
                       "focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400",
                       formError ? "border-red-300 bg-red-50/50" : "border-slate-200"
                     )}
@@ -393,21 +393,21 @@ export default function Login() {
             />
 
             <div className="space-y-4">
-              <p className="text-center text-xs text-slate-400">
+              <p className="text-center text-xs text-slate-500">
                 By continuing, you agree to our{' '}
                 <Link to="/terms" className="underline hover:text-slate-600">Terms</Link>
                 {' '}and{' '}
                 <Link to="/privacy" className="underline hover:text-slate-600">Privacy Policy</Link>
               </p>
 
-              <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+              <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" aria-hidden />
                 <span>{t("login.secure", getLocale())}</span>
               </div>
             </div>
 
             {/* Mobile footer links */}
-            <div className="lg:hidden flex items-center justify-center gap-6 text-sm text-slate-400 pt-4 border-t border-slate-100">
+            <div className="lg:hidden flex items-center justify-center gap-6 text-sm text-slate-500 pt-4 border-t border-slate-100">
               <Link to="/terms" className="hover:text-slate-600">Terms</Link>
               <Link to="/privacy" className="hover:text-slate-600">Privacy</Link>
               <a href="mailto:support@jobhuntin.com" className="hover:text-slate-600">Support</a>
