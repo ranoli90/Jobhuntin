@@ -9,8 +9,9 @@ declare global {
   }
 }
 
-const CONSENT_KEY = 'jobhuntin-cookie-consent';
-const CONSENT_EXPIRY_MONTHS = 12; // L4: GDPR - re-prompt after 12 months
+const CONSENT_KEY = 'jobhuntin-cookie-consent-v2';
+const CONSENT_EXPIRY_MONTHS = 12;
+const CONSENT_VERSION = '2.0';
 
 interface ConsentPreferences {
   essential: boolean; // Always true for functionality
@@ -37,19 +38,29 @@ export function CookieConsent() {
     try {
       const consent = JSON.parse(raw);
       const ts = consent?.ts;
+      // Check if consent is outdated (version or expiry)
+      const isVersionOutdated = consent?.version !== CONSENT_VERSION;
+      const ts = consent?.ts;
+      let isExpired = false;
+      
       if (ts && typeof ts === 'number') {
         const expiry = ts + CONSENT_EXPIRY_MONTHS * 30 * 24 * 60 * 60 * 1000;
-        if (Date.now() > expiry) {
-          localStorage.removeItem(CONSENT_KEY);
-          setVisible(true);
-        } else {
-          // Load existing preferences
-          setPreferences({
-            essential: true,
-            analytics: consent.analytics || false,
-            marketing: consent.marketing || false,
-          });
-        }
+        isExpired = Date.now() > expiry;
+      }
+      
+      if (isVersionOutdated || isExpired) {
+        localStorage.removeItem(CONSENT_KEY);
+        setVisible(true);
+      } else if (ts) {
+        // Load existing preferences
+        setPreferences({
+          essential: true,
+          analytics: consent.analytics || false,
+          marketing: consent.marketing || false,
+        });
+      } else {
+        setVisible(true);
+      }
       }
     } catch {
       setVisible(true);
@@ -69,16 +80,24 @@ export function CookieConsent() {
     localStorage.setItem(CONSENT_KEY, JSON.stringify({
       analytics: prefs.analytics,
       marketing: prefs.marketing,
-      ts: Date.now()
+      ts: Date.now(),
+      version: CONSENT_VERSION
     }));
 
     // Update Google Analytics consent
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('consent', 'update', {
         analytics_storage: prefs.analytics ? 'granted' : 'denied',
-        ad_storage: prefs.marketing ? 'granted' : 'denied'
+        ad_storage: prefs.marketing ? 'granted' : 'denied',
+        ad_user_data: prefs.marketing ? 'granted' : 'denied',
+        ad_personalization: prefs.marketing ? 'granted' : 'denied',
       });
     }
+
+    // Dispatch custom event for other components
+    window.dispatchEvent(new CustomEvent('cookieConsentChanged', { 
+      detail: prefs 
+    }));
 
     setPreferences(prefs);
     setVisible(false);
