@@ -46,7 +46,11 @@ class AlertResponse:
     last_sent_at: str | None
 
 
-def get_alert_service(pool: asyncpg.Pool = Depends) -> JobAlertService:
+def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+
+def get_alert_service(pool: asyncpg.Pool = Depends(_get_pool)) -> JobAlertService:
     return JobAlertService(pool)
 
 
@@ -123,7 +127,7 @@ async def delete_alert(
 @router.post("/process/{frequency}")
 async def process_alerts(
     frequency: str,
-    pool: asyncpg.Pool = Depends,
+    pool: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, int]:
     incr("api.job_alerts.process", tags={"frequency": frequency})
 

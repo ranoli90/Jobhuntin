@@ -448,8 +448,21 @@ def _mount_sub_routers() -> None:
     import api.dashboard as dashboard_mod
 
     app.dependency_overrides[dashboard_mod._get_pool] = get_pool
+    app.dependency_overrides[dashboard_mod._get_tenant_ctx] = get_tenant_context
     app.dependency_overrides[dashboard_mod._get_admin_user_id] = get_current_user_id
     app.include_router(dashboard_mod.router)
+
+    import api.sessions as sessions_mod
+
+    app.dependency_overrides[sessions_mod._get_pool] = get_pool
+    app.dependency_overrides[sessions_mod._get_tenant_ctx] = get_tenant_context
+    app.dependency_overrides[sessions_mod._get_user_id] = get_current_user_id
+    app.include_router(sessions_mod.router)
+
+    import api.job_alerts as job_alerts_mod
+
+    app.dependency_overrides[job_alerts_mod._get_pool] = get_pool
+    app.include_router(job_alerts_mod.router)
 
     import api.mfa as mfa_mod
 
