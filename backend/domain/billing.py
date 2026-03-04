@@ -1,22 +1,52 @@
+"""Billing domain functions (no FastAPI dependencies to avoid circular imports)."""
 import asyncpg
-import stripe
-from fastapi import APIRouter, Depends, HTTPException
-
-from apps.api.dependencies import get_current_user_id, get_pool
-from backend.domain.services.user_service import get_current_user
-
-router = APIRouter()
 
 
-@router.get("/invoices")
-async def get_invoices(user_id: str = Depends(get_current_user_id), pool: asyncpg.Pool = Depends(get_pool)):
-    async with pool.acquire() as conn:
-        user = await get_current_user(user_id, conn)
-        if not user.get("stripe_customer_id"):
-            return []
+async def ensure_stripe_customer(conn: asyncpg.Connection, tenant_id: str, user_email: str | None) -> str:
+    """Ensure a Stripe customer exists for the tenant."""
+    from backend.domain.stripe_client import get_stripe
+    stripe = get_stripe()
+    
+    row = await conn.fetchrow(
+        "SELECT provider_customer_id FROM public.billing_customers WHERE tenant_id = $1",
+        tenant_id,
+    )
+    
+    if row and row["provider_customer_id"]:
+        return row["provider_customer_id"]
+    
+    # Create new customer
+    customer = stripe.Customer.create(
+        email=user_email,
+        metadata={"tenant_id": tenant_id},
+    )
+    
+    await conn.execute(
+        """INSERT INTO public.billing_customers (tenant_id, provider, provider_customer_id)
+            VALUES ($1, 'STRIPE', $2)
+            ON CONFLICT (tenant_id) DO UPDATE SET
+            provider = 'STRIPE',
+            provider_customer_id = $2""",
+        tenant_id,
+        customer.id,
+    )
+    
+    return customer.id
 
-        try:
-            invoices = stripe.Invoice.list(customer=user["stripe_customer_id"])
-            return invoices["data"]
-        except stripe.error.StripeError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+
+async def update_subscription_state(
+    conn: asyncpg.Connection, 
+    customer_id: str, 
+    status: str,
+    subscription_id: str | None = None
+):
+    """Update subscription state in database."""
+    await conn.execute(
+        """UPDATE public.billing_customers
+            SET current_subscription_status = $1,
+                current_subscription_id = COALESCE($2, current_subscription_id)
+            WHERE provider_customer_id = $3""",
+        status,
+        subscription_id,
+        customer_id,
+    )

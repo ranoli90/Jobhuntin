@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
-from apps.api.dependencies import get_current_user_id, get_pool
-from packages.backend.domain.ccpa import CCPAComplianceManager
+from api.dependencies import get_current_user_id, get_pool
+from backend.domain.ccpa import CCPAComplianceManager
 
 router = APIRouter()
 

@@ -12,7 +12,7 @@ from shared.logging_config import get_logger
 
 from backend.domain.billing import ensure_stripe_customer, update_subscription_state
 from backend.domain.stripe_client import get_stripe, protected_stripe_call
-from packages.backend.domain.tenant import TenantContext
+from backend.domain.tenant import TenantContext
 
 logger = get_logger("sorce.api.billing")
 
