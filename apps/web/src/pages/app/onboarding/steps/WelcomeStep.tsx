@@ -47,9 +47,9 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                     <motion.div
                         animate={shouldReduceMotion ? undefined : { rotate: 360 }}
                         transition={shouldReduceMotion ? undefined : { duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 rounded-2xl border-2 border-dashed border-indigo-500/20 hidden md:block"
+                        className="absolute inset-0 rounded-2xl border-2 border-dashed border-primary-500/20 hidden md:block"
                     />
-                    <div className="relative mx-auto flex h-14 w-14 md:h-20 md:w-20 items-center justify-center rounded-[1.25rem] md:rounded-[2rem] bg-indigo-600 shadow-2xl shadow-indigo-500/40">
+                    <div className="relative mx-auto flex h-14 w-14 md:h-20 md:w-20 items-center justify-center rounded-[1.25rem] md:rounded-[2rem] bg-primary-600 shadow-2xl shadow-primary-500/40">
                         <Rocket className="h-7 w-7 md:h-10 md:w-10 text-white" />
                     </div>
                 </div>
@@ -59,7 +59,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                         initial={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="mb-1 text-sm font-black text-indigo-600 uppercase tracking-widest"
+                        className="mb-1 text-sm font-black text-primary-600 uppercase tracking-widest"
                     >
                         {personalGreeting}
                     </motion.p>
@@ -67,7 +67,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
 
                 <h1 className="mb-2 md:mb-3 font-display text-2xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
                     {titleStart}{" "}
-                    <span className="text-indigo-600 italic">
+                    <span className="text-primary-600 italic">
                         {titleEnd}.
                     </span>
                 </h1>
@@ -81,9 +81,9 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                             initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={shouldReduceMotion ? undefined : { delay: 0.2 + i * 0.1 }}
-                            className="flex items-center gap-3 md:gap-4 p-4 md:p-5 rounded-2xl bg-white border border-slate-100 hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-500/5 transition-all group"
+                            className="flex items-center gap-3 md:gap-4 p-4 md:p-5 rounded-2xl bg-white border border-slate-100 hover:border-primary-100 hover:shadow-xl hover:shadow-primary-500/5 transition-all group"
                         >
-                            <div className="flex h-10 w-10 md:h-12 md:w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                            <div className="flex h-10 w-10 md:h-12 md:w-12 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all">
                                 <item.icon className="h-5 w-5 md:h-6 md:w-6" />
                             </div>
                             <div className="text-left min-w-0">
@@ -102,7 +102,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
             <Button
                 type="button"
                 onClick={onNext}
-                className="w-full h-14 md:h-16 rounded-[1.25rem] md:rounded-[2rem] font-black text-lg md:text-xl shadow-xl shadow-indigo-600/20 bg-indigo-600 hover:bg-indigo-500 group overflow-hidden relative"
+                className="w-full h-14 md:h-16 rounded-[1.25rem] md:rounded-[2rem] font-black text-lg md:text-xl shadow-xl shadow-primary-600/20 bg-primary-600 hover:bg-primary-500 group overflow-hidden relative"
                 aria-label={t("onboarding.startSetup", locale)}
                 data-onboarding-next
             >

@@ -83,7 +83,7 @@ export default function Billing() {
                           href={invoice.invoice_pdf} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium text-sm hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded"
+                          className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-medium text-sm hover:underline focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
                           aria-label={`Download invoice from ${new Date(invoice.created * 1000).toLocaleDateString()}`}
                         >
                           <Download className="w-4 h-4" />

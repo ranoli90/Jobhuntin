@@ -62,7 +62,7 @@ export default function AppLayout() {
       {/* Skip to content link for accessibility */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium z-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary-600 text-white px-4 py-2 rounded-lg font-medium z-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         aria-label="Skip to main content"
       >
         Skip to main content
@@ -81,7 +81,7 @@ export default function AppLayout() {
                 cn(
                   "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98]",
                   isActive
-                    ? "bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-100"
+                    ? "bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-100"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                 )}>
                 <Icon className="h-4 w-4" aria-hidden />
@@ -92,7 +92,7 @@ export default function AppLayout() {
         </nav>
         <div className="border-t border-slate-200 px-4 py-6">
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/50">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white font-black grid place-items-center shadow-lg shadow-indigo-500/20">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white font-black grid place-items-center shadow-lg shadow-primary-500/20">
               {user?.email?.slice(0, 1).toUpperCase() ?? "J"}
             </div>
             <div className="flex-1 overflow-hidden">
@@ -215,14 +215,14 @@ export default function AppLayout() {
                   className={({ isActive }) =>
                     cn(
                       "flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95",
-                      isActive ? "text-indigo-700 font-bold" : "text-slate-500 hover:text-slate-900"
+                      isActive ? "text-primary-700 font-bold" : "text-slate-500 hover:text-slate-900"
                     )
                   }
                   aria-label={item.label}
                 >
                   <Icon className={cn("h-6 w-6 mb-1.5 transition-transform", isActive && "scale-110")} aria-hidden />
                   <span className="text-[11px] tracking-tight font-medium">{item.label}</span>
-                  {isActive && <span className="absolute bottom-1.5 w-1 h-1 rounded-full bg-indigo-600" />}
+                  {isActive && <span className="absolute bottom-1.5 w-1 h-1 rounded-full bg-primary-600" />}
                 </NavLink>
               );
             })}
@@ -232,14 +232,14 @@ export default function AppLayout() {
               className={cn(
                 "relative flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95",
                 NAV_ITEMS.slice(4).some((i) => location.pathname.startsWith(i.to))
-                  ? "text-indigo-700 font-bold"
+                  ? "text-primary-700 font-bold"
                   : "text-slate-500 hover:text-slate-900"
               )}
               aria-label="More menu"
             >
               <MoreHorizontal className="h-6 w-6 mb-1.5" aria-hidden />
               <span className="text-[11px] tracking-tight font-medium">More</span>
-              <span className="absolute top-1 right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-indigo-600 text-[10px] font-black text-white px-1.5 border-2 border-white" aria-hidden>
+              <span className="absolute top-1 right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary-600 text-[10px] font-black text-white px-1.5 border-2 border-white" aria-hidden>
                 {NAV_ITEMS.slice(4).length}
               </span>
             </button>

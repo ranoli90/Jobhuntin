@@ -109,8 +109,8 @@ export function MarketingNavbar() {
               <Link to="/login" className={cn(
                 "h-11 px-6 rounded-full text-[15px] font-bold transition-all flex items-center gap-2",
                 shouldBeTransparent
-                  ? "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/30"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-0.5"
+                  ? "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30"
+                  : "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5"
               )}>
                 Start Free <ArrowRight className="w-4 h-4" />
               </Link>
@@ -164,7 +164,7 @@ export function MarketingNavbar() {
                 className={cn(
                   "text-[15px] font-bold block py-4 px-5 rounded-2xl transition-all active:scale-[0.98]",
                   location.pathname === link.path || (link.path.startsWith('/#') && location.pathname === '/')
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-primary-50 text-primary-700'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 )}
               >
@@ -190,7 +190,7 @@ export function MarketingNavbar() {
               <Link
                 to="/app/jobs"
                 onClick={closeMenu}
-                className="block w-full h-14 rounded-2xl text-[15px] font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center justify-center shadow-lg shadow-indigo-600/20"
+                className="block w-full h-14 rounded-2xl text-[15px] font-bold bg-primary-600 text-white hover:bg-primary-700 transition-all flex items-center justify-center shadow-lg shadow-primary-600/20"
               >
                 Go to Dashboard
               </Link>
@@ -206,7 +206,7 @@ export function MarketingNavbar() {
                 <Link
                   to="/login"
                   onClick={closeMenu}
-                  className="block w-full h-14 rounded-2xl text-[15px] font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center justify-center shadow-lg shadow-indigo-600/20"
+                  className="block w-full h-14 rounded-2xl text-[15px] font-bold bg-primary-600 text-white hover:bg-primary-700 transition-all flex items-center justify-center shadow-lg shadow-primary-600/20"
                 >
                   Start Applying Free
                 </Link>

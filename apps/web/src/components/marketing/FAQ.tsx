@@ -44,7 +44,7 @@ const FAQS = [
     question: "How much does it cost?",
     answer: "Free to start — 10 applications on us, no credit card. Pro is $19/mo for unlimited, Teams $49/seat. One interview covers it for life.",
     icon: CreditCard,
-    color: "from-blue-500 to-indigo-600",
+    color: "from-blue-500 to-primary-600",
     highlight: "Start free",
   },
 ];

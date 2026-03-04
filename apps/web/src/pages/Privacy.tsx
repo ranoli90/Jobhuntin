@@ -58,7 +58,7 @@ export default function Privacy() {
 
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-3 mb-3">
-                  <Bot className="w-5 h-5 text-indigo-500" />
+                  <Bot className="w-5 h-5 text-primary-500" />
                   <h4 className="font-bold text-slate-900 m-0">"Smart Pre-Fill" Memory (<code>Application Memory</code>)</h4>
                 </div>
                 <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">

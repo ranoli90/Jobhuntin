@@ -276,7 +276,7 @@ export default function MatchesPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-primary-50/50">
         <div className="max-w-4xl mx-auto p-6 space-y-8">
           <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
             <div className="flex items-center gap-4">
@@ -314,7 +314,7 @@ export default function MatchesPage() {
             <Card className="p-12 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-xl" aria-busy="true" aria-label="Loading match analysis">
               <div className="text-center space-y-6">
                 <div className="w-20 h-20 mx-auto">
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center shadow-2xl animate-pulse">
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-2xl animate-pulse">
                     <Brain className="w-10 h-10 text-white animate-bounce" />
                   </div>
                 </div>
@@ -323,7 +323,7 @@ export default function MatchesPage() {
                   <p className="text-slate-600">AI is processing your resume against this job...</p>
                 </div>
                 <div className="w-64 h-2 bg-slate-200 rounded-full mx-auto overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full animate-pulse" style={{ width: '60%' }} />
+                  <div className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full animate-pulse" style={{ width: '60%' }} />
                 </div>
               </div>
             </Card>
@@ -417,9 +417,9 @@ export default function MatchesPage() {
 
               <DealbreakerWarnings reasons={match.data.dealbreaker_reasons} />
 
-              <Card className="p-6 bg-gradient-to-br from-blue-50 via-white to-indigo-50 border-0 shadow-lg">
+              <Card className="p-6 bg-gradient-to-br from-blue-50 via-white to-primary-50 border-0 shadow-lg">
                 <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-primary-600 flex items-center justify-center shadow-lg">
                     <Brain className="w-5 h-5 text-white" />
                   </div>
                   Skill Analysis

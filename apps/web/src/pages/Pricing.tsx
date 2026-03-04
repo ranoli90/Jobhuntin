@@ -281,7 +281,7 @@ export default function Pricing() {
             <div className="text-primary-600 font-black text-[10px] uppercase tracking-[0.3em] mb-4">Investment in you</div>
             <h1 className="text-[clamp(3rem,7vw,6.5rem)] font-black text-slate-900 dark:text-slate-100 mb-8 tracking-[-0.05em] leading-[0.95]">
               Get hired, <br />
-              <span className="text-indigo-600">for the price of lunch.</span>
+              <span className="text-primary-600">for the price of lunch.</span>
             </h1>
           </FadeIn>
 
@@ -353,7 +353,7 @@ export default function Pricing() {
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             whileHover={{ y: -12, scale: 1.02 }}
-            className="bg-indigo-600 rounded-[2.5rem] p-10 shadow-3xl shadow-indigo-600/30 flex flex-col h-full relative overflow-hidden"
+            className="bg-primary-600 rounded-[2.5rem] p-10 shadow-3xl shadow-primary-600/30 flex flex-col h-full relative overflow-hidden"
           >
             {/* Glossy overlay effect */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl -mr-16 -mt-16" />
@@ -380,7 +380,7 @@ export default function Pricing() {
                 "Stealth Mode"
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <CheckCircle className="w-4 h-4 text-indigo-200" />
+                  <CheckCircle className="w-4 h-4 text-primary-200" />
                   <span className="text-sm font-bold text-white leading-tight">{feature}</span>
                 </div>
               ))}
@@ -388,7 +388,7 @@ export default function Pricing() {
 
             <button
               onClick={handleProCta}
-              className="w-full py-5 rounded-2xl bg-white text-indigo-600 font-bold hover:bg-slate-50 transform transition-all shadow-xl active:scale-95"
+              className="w-full py-5 rounded-2xl bg-white text-primary-600 font-bold hover:bg-slate-50 transform transition-all shadow-xl active:scale-95"
             >
               Start Free Trial
             </button>

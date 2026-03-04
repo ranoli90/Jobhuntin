@@ -52,7 +52,7 @@ export function Logo({
                 className={cn(
                     variant === 'dark'
                         ? "bg-white/10 shadow-sm transition-all duration-300 group-hover:bg-white/20"
-                        : "bg-gradient-to-br from-indigo-600 to-indigo-700 shadow-xl shadow-indigo-600/20 transition-all duration-300 group-hover:shadow-indigo-600/30",
+                        : "bg-gradient-to-br from-primary-600 to-primary-700 shadow-xl shadow-primary-600/20 transition-all duration-300 group-hover:shadow-primary-600/30",
                     currentSize.iconBox,
                     "relative overflow-hidden"
                 )}
@@ -66,8 +66,8 @@ export function Logo({
                 <span className={cn(
                     "font-black tracking-[-0.04em] transition-all duration-300",
                     variant === 'dark'
-                        ? "text-white group-hover:text-indigo-400"
-                        : "text-slate-900 group-hover:text-indigo-600 group-hover:tracking-[-0.03em]",
+                        ? "text-white group-hover:text-primary-400"
+                        : "text-slate-900 group-hover:text-primary-600 group-hover:tracking-[-0.03em]",
                     currentSize.text
                 )}>
                     JobHuntin
