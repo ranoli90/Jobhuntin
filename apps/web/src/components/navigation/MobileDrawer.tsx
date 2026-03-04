@@ -130,7 +130,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -146,7 +146,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
             animate={{ x: 0 }}
             exit={{ x: side === "left" ? "-100%" : "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
-            className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[360px] flex flex-col bg-white dark:bg-slate-900 shadow-2xl shadow-gray-900/20 dark:shadow-black/40 border-gray-100 dark:border-slate-700`}
+            className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[360px] flex flex-col bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/20 dark:shadow-black/40 border-slate-100 dark:border-slate-700`}
             onClick={(e) => e.stopPropagation()}
           >
             {children}
@@ -160,7 +160,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
 
 export function MobileDrawerHeader({ children, onClose }: { children: ReactNode; onClose?: () => void }) {
   return (
-    <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-700 px-6 py-5">
+    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-6 py-5">
       {children}
       {onClose && (
         <button
@@ -170,7 +170,7 @@ export function MobileDrawerHeader({ children, onClose }: { children: ReactNode;
             e.stopPropagation();
             onClose();
           }}
-          className="p-3 -mr-3 text-gray-400 hover:text-gray-900 dark:hover:text-slate-100 bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-all active:scale-90 touch-manipulation"
+          className="p-3 -mr-3 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-all active:scale-90 touch-manipulation"
           aria-label="Close menu"
         >
           <X className="h-6 w-6" aria-hidden />
@@ -190,7 +190,7 @@ export function MobileDrawerBody({ children }: { children: ReactNode }) {
 
 export function MobileDrawerFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="border-t border-gray-100 dark:border-slate-700 px-5 py-5 bg-gray-50/50 dark:bg-slate-800/50">
+    <div className="border-t border-slate-100 dark:border-slate-700 px-5 py-5 bg-slate-50/50 dark:bg-slate-800/50">
       {children}
     </div>
   );

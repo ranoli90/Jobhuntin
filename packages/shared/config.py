@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     # ── Core ─────────────────────────────────────────────────────
     env: Environment = Environment.LOCAL
 
+    @property
+    def is_local_dev(self) -> bool:
+        return self.env == Environment.LOCAL
+
+    @property
+    def is_prod(self) -> bool:
+        return self.env == Environment.PROD
+
     # ── Database ─────────────────────────────────────────────────
     # SECURITY: Database URL must be provided via DATABASE_URL environment variable
     # Hardcoded credentials are a critical security vulnerability

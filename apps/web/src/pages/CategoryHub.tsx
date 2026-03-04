@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Trophy, Star, Sparkles, Check, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Trophy, Star, Layers, Check, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
 import { ConversionCTA } from '../components/seo/ConversionCTA';

@@ -108,7 +108,10 @@ def setup_csrf_middleware(app, secret: str) -> None:
 
         exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
         s = get_settings()
-        is_cross_origin = s.app_base_url and "jobhuntin.com" in s.app_base_url
+        from urllib.parse import urlparse
+        api_host = urlparse(s.api_public_url).hostname if s.api_public_url else ""
+        app_host = urlparse(s.app_base_url).hostname if s.app_base_url else ""
+        is_cross_origin = api_host != app_host and api_host and app_host
 
         class CSRFForCORSMiddleware(StarletteCSRF):
             def _get_error_response(self, request: Request) -> Response:
@@ -123,11 +126,15 @@ def setup_csrf_middleware(app, secret: str) -> None:
                     response.headers["Access-Control-Allow-Credentials"] = "true"
                 return response
 
+        is_prod = s.env.value in ("prod", "staging")
+        # Secure=True is ONLY allowed over HTTPS. In local dev, it must be False.
+        cookie_secure = is_prod or (s.app_base_url and s.app_base_url.startswith("https"))
+
         app.add_middleware(
             CSRFForCORSMiddleware,
             secret=secret,
             cookie_name="csrftoken",
-            cookie_secure=True,
+            cookie_secure=cookie_secure,
             cookie_samesite="none" if is_cross_origin else "lax",
             exempt_urls=exempt_patterns,
         )
@@ -190,13 +197,20 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             # Fallback to 'unsafe-eval' only when nonce not available (rare)
             csp_script_src += " 'unsafe-eval'"
 
+        # CSP connect-src: must include API URL if it's cross-origin, and analytics
+        connect_src = "'self' https://www.google-analytics.com https://www.googletagmanager.com https://api.resend.com"
+        if s.api_public_url:
+            connect_src += f" {s.api_public_url}"
+        if s.app_base_url:
+            connect_src += f" {s.app_base_url}"
+
         response.headers["Content-Security-Policy"] = (
             f"default-src 'self'; "
             f"script-src {csp_script_src}; "
-            "style-src 'self' https://fonts.googleapis.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: https: blob:; "
-            "connect-src 'self' https://api.resend.com https://www.google-analytics.com https://www.googletagmanager.com; "
+            f"connect-src {connect_src}; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
             "form-action 'self'; "

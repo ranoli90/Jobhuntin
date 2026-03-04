@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bot, ArrowLeft, Sparkles, Shield, Zap, Target, TrendingUp, ArrowRight } from 'lucide-react';
+import { Bot, ArrowLeft, BarChart3, Shield, Zap, Target, TrendingUp, ArrowRight } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { ComparisonTable } from '../components/seo/ComparisonTable';
 import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
@@ -195,7 +195,7 @@ export default function ComparisonPage() {
           className="text-center mb-16 sm:mb-20"
         >
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-blue-100">
-            <Sparkles className="w-4 h-4" aria-hidden="true" />
+            <BarChart3 className="w-4 h-4" aria-hidden="true" />
             Head-to-Head Comparison
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-black mb-6 leading-tight text-slate-900 text-balance">

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Sparkles } from "lucide-react";
+import { CheckCircle2, Zap } from "lucide-react";
 import { Logo } from "../../components/brand/Logo";
 import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
@@ -188,7 +188,7 @@ export default function Onboarding() {
   const [showRetryComponent, setShowRetryComponent] = React.useState(false);
 
   // Skeleton loading states for better UX
-  const [stepLoadingStates] = React.useState<Record<string, boolean>>({});
+  const stepLoadingStates: Record<string, boolean> = {};
 
   // Helper function to determine if current step should show skeleton
   const shouldShowSkeleton = React.useCallback(() => {
@@ -319,7 +319,10 @@ export default function Onboarding() {
     } catch (error) {
       const err = error as Error;
       console.error('[Onboarding] Failed to save work style:', err);
-      const message = (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to save work style";
+      let message = "Failed to save work style";
+      if (typeof (err as Error).message === 'string' && !err.message.includes('[object')) {
+        message = err.message;
+      }
       pushToast({ title: "Failed to save work style", description: message, tone: "error" });
     } finally {
       setIsSavingWorkStyle(false);
@@ -405,22 +408,22 @@ export default function Onboarding() {
 
       if (e.ctrlKey && e.key === 'Enter') {
         if (isLastStep) {
-          window.dispatchEvent(new CustomEvent('onboarding:complete'));
+          globalThis.dispatchEvent(new CustomEvent('onboarding:complete'));
         } else {
           const nextBtn = stepContainerRef.current?.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
           if (nextBtn) nextBtn.click();
-          else window.dispatchEvent(new CustomEvent('onboarding:next'));
+          else globalThis.dispatchEvent(new CustomEvent('onboarding:next'));
         }
       } else if (e.altKey && e.key === 'ArrowLeft') {
-        if (!isFirstStep) window.dispatchEvent(new CustomEvent('onboarding:prev'));
+        if (!isFirstStep) globalThis.dispatchEvent(new CustomEvent('onboarding:prev'));
       } else if (e.altKey && e.key === 'ArrowRight') {
         const nextBtn = stepContainerRef.current?.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
         if (nextBtn) nextBtn.click();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [isLastStep, isFirstStep]);
 
   // Onboarding completion guard - redirect if already completed
@@ -677,9 +680,12 @@ export default function Onboarding() {
       const err = error as Error & { status?: number };
       console.error('[Onboarding] Failed to save skills:', err);
       const isNetworkError = !navigator.onLine || (err.status && err.status >= 500);
-      const message = isNetworkError
-        ? "Network error. Please check your connection and try again."
-        : (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to save skills";
+      let message = "Failed to save skills";
+      if (isNetworkError) {
+        message = "Network error. Please check your connection and try again.";
+      } else if (typeof (err as Error).message === 'string' && !err.message.includes('[object')) {
+        message = err.message;
+      }
       pushToast({
         title: "Failed to save skills",
         description: message,
@@ -743,9 +749,12 @@ export default function Onboarding() {
       const err = error as Error & { status?: number };
       console.error('[Onboarding] Failed to save contact:', err);
       const isNetworkError = !navigator.onLine || (err.status && err.status >= 500);
-      const message = isNetworkError
-        ? "Network error. Please check your connection and try again."
-        : (typeof (err as Error).message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again";
+      let message = "Please try again";
+      if (isNetworkError) {
+        message = "Network error. Please check your connection and try again.";
+      } else if (typeof (err as Error).message === 'string' && !err.message.includes('[object')) {
+        message = err.message;
+      }
       pushToast({
         title: "Failed to save contact info",
         description: message,
@@ -782,17 +791,17 @@ export default function Onboarding() {
 
     const SALARY_CAP = 10_000_000;
     if (preferences.salary_min?.trim()) {
-      const salaryNum = parseInt(preferences.salary_min.trim());
-      if (isNaN(salaryNum) || salaryNum < 0) {
+      const salaryNum = Number.parseInt(preferences.salary_min.trim());
+      if (Number.isNaN(salaryNum) || salaryNum < 0) {
         errors.salary_min = "Must be a valid number";
       } else if (salaryNum > SALARY_CAP) {
         errors.salary_min = `Min salary cannot exceed $${(SALARY_CAP / 1_000_000).toFixed(0)}M`;
       }
     }
     if (preferences.salary_max?.trim()) {
-      const maxNum = parseInt(preferences.salary_max.trim());
-      const minNum = preferences.salary_min?.trim() ? parseInt(preferences.salary_min.trim()) : 0;
-      if (isNaN(maxNum) || maxNum < 0) {
+      const maxNum = Number.parseInt(preferences.salary_max.trim());
+      const minNum = preferences.salary_min?.trim() ? Number.parseInt(preferences.salary_min.trim()) : 0;
+      if (Number.isNaN(maxNum) || maxNum < 0) {
         errors.salary_max = "Must be a valid number";
       } else if (maxNum > SALARY_CAP) {
         errors.salary_max = `Max salary cannot exceed $${(SALARY_CAP / 1_000_000).toFixed(0)}M`;
@@ -851,7 +860,7 @@ export default function Onboarding() {
         console.log("[Telemetry] AI Learned Job Preferences", {
           location: trimmedPrefs.location,
           roleType: trimmedPrefs.role_type,
-          salaryMin: parseInt(trimmedPrefs.salary_min, 10) || 0,
+          salaryMin: Number.parseInt(trimmedPrefs.salary_min, 10) || 0,
           remoteOnly: trimmedPrefs.remote_only,
           onsiteOnly: trimmedPrefs.onsite_only,
           workAuthorized: trimmedPrefs.work_authorized,
@@ -878,7 +887,17 @@ export default function Onboarding() {
   const handleComplete = async () => {
     try {
       setIsCompleting(true);
+      // O20: Validation before completion (names, email) handled by useProfile hook
       await completeOnboarding();
+
+      // NEW: Call the growth endpoint to process referrals and bonus apps
+      try {
+        await api.post("/onboarding/complete", {});
+      } catch (growthErr) {
+        // Non-critical if growth endpoint fails, but log it
+        console.warn("[Onboarding] Growth endpoint failed but profile marked complete:", growthErr);
+      }
+
       resetOnboarding();
       sessionStorage.setItem("onboarding_just_completed", "true");
       sessionStorage.setItem("show_first_steps", "true");
@@ -937,7 +956,7 @@ export default function Onboarding() {
         <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8 bg-grid-premium">
           <div className="w-full max-w-xl lg:max-w-4xl xl:max-w-5xl">
             {/* Progress bar */}
-            <div className="mb-4 md:mb-6" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`Setup progress: step ${currentStep + 1} of ${steps.length}`}>
+            <div className="mb-4 md:mb-6" /* using native progress */ aria-label={`Setup progress: step ${currentStep + 1} of ${steps.length}`}>
               <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
                   Step {currentStep + 1} of {steps.length} — {(progress).toFixed(0)}%
@@ -974,7 +993,7 @@ export default function Onboarding() {
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2 md:gap-3">
                         <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                          <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" aria-hidden />
+                          <Zap className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" aria-hidden />
                         </div>
                         <div>
                           <span className="block text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Profile Strength</span>

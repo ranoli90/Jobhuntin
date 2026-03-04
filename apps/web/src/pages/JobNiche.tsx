@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bot, ArrowLeft, MapPin, Sparkles, Briefcase, Zap, TrendingUp, DollarSign, Globe, CheckCircle2, Menu, X } from 'lucide-react';
+import { Bot, ArrowLeft, MapPin, Target, Briefcase, Zap, TrendingUp, DollarSign, Globe, CheckCircle2, Menu, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
 import rolesData from '../data/roles.json';

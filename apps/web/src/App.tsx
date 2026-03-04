@@ -158,17 +158,17 @@ export default function App() {
     <>
       <OfflineBanner />
       <Helmet>
-        <title>JobHuntin | AI Job Search Automation & Auto-Apply</title>
-        <meta name="description" content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily. Built for high-volume, high-quality hunting." />
+        <title>JobHuntin — The automation platform for job seekers</title>
+        <meta name="description" content="Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={config.urls.homepage} />
-        <meta property="og:title" content="JobHuntin | AI Job Search Automation & Auto-Apply" />
-        <meta property="og:description" content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily." />
-        <meta property="og:image" content={`${config.urls.og}/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global`} />
+        <meta property="og:title" content="JobHuntin — The automation platform for job seekers" />
+        <meta property="og:description" content="Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep." />
+        <meta property="og:image" content={`${config.urls.homepage}/og-image.png`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JobHuntin | AI Job Search Automation & Auto-Apply" />
-        <meta name="twitter:description" content="Land your dream job with JobHuntin. Our AI agent swipes, tailors your resume, and auto-applies to 100s of jobs daily." />
-        <meta name="twitter:image" content={`${config.urls.og}/api/og?job=AI%20Job%20Hunter&company=JobHuntin&score=100&location=Global`} />
+        <meta name="twitter:title" content="JobHuntin — The automation platform for job seekers" />
+        <meta name="twitter:description" content="Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep." />
+        <meta name="twitter:image" content={`${config.urls.homepage}/og-image.png`} />
         {location.pathname.startsWith("/app") && <meta name="robots" content="noindex, nofollow" />}
         <link rel="canonical" href={`${config.urls.homepage}${location.pathname === "/" ? "" : location.pathname}`} />
         <link rel="alternate" hrefLang="en" href={`${config.urls.homepage}${location.pathname}`} />

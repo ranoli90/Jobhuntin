@@ -1,7 +1,7 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FocusTrap } from "focus-trap-react";
-import { Upload, FileText, X, Sparkles, User, ArrowLeft, ArrowRight, Briefcase } from "lucide-react";
+import { Upload, FileText, X, User, ArrowLeft, ArrowRight, Briefcase } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Input } from "../../../../components/ui/Input";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
@@ -220,7 +220,7 @@ export function ResumeStep({
                     <div className={`flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-xl md:rounded-2xl bg-white shadow-sm border border-slate-100 transition-all ${isUploading ? 'animate-pulse' : 'group-hover:scale-105'}`}>
                         {isUploading ? (
                             <div className="relative">
-                                <Sparkles className="h-7 w-7 md:h-8 md:w-8 text-primary-400" />
+                                <FileText className="h-7 w-7 md:h-8 md:w-8 text-primary-400" />
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                                 </div>
@@ -307,7 +307,7 @@ export function ResumeStep({
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                                            <Sparkles className="h-4 w-4 text-white" />
+                                            <FileText className="h-4 w-4 text-white" />
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-white text-sm">{t("onboarding.parsingSuccess", locale) || "Resume Parsed Successfully"}</h3>
@@ -353,7 +353,7 @@ export function ResumeStep({
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <Sparkles className="h-4 w-4 text-primary-500" />
+                                            <FileText className="h-4 w-4 text-primary-500" />
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                                                 {t("onboarding.skillsDetected", locale) || "Skills"}
                                             </span>

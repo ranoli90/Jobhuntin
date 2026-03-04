@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles, ArrowRight, Star, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, ArrowLeftRight, ArrowRight, Star, CheckCircle2, XCircle } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { ComparisonTable } from '../components/seo/ComparisonTable';
 import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
@@ -126,7 +126,7 @@ export default function AlternativeTo() {
                     className="text-center mb-20"
                 >
                     <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-emerald-100">
-                        <Sparkles className="w-4 h-4" />
+                        <ArrowLeftRight className="w-4 h-4" />
                         #1 Alternative
                     </div>
                     <h1 className="text-4xl md:text-6xl font-sans font-black mb-6 leading-tight text-slate-900">

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Sparkles, FileText, Send, MessageCircle } from "lucide-react";
+import { Zap, FileText, Send, MessageCircle, Sparkles } from "lucide-react";
 import { Card } from "../ui/Card";
 
 const STEPS = [

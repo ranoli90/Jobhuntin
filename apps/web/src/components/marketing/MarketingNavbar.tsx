@@ -107,12 +107,12 @@ export function MarketingNavbar() {
                 Log in
               </Link>
               <Link to="/login" className={cn(
-                "h-10 px-6 rounded-full text-sm font-bold transition-all flex items-center gap-2",
+                "h-11 px-6 rounded-full text-[15px] font-bold transition-all flex items-center gap-2",
                 shouldBeTransparent
-                  ? "bg-gray-900 text-white hover:bg-gray-800"
-                  : "bg-primary-600 text-white hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-600/25 hover:-translate-y-0.5"
+                  ? "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/30"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-0.5"
               )}>
-                Get Started Free <ArrowRight className="w-3.5 h-3.5" />
+                Start Free <ArrowRight className="w-4 h-4" />
               </Link>
             </>
           )}
@@ -143,7 +143,7 @@ export function MarketingNavbar() {
         drawerId="marketing-mobile-drawer"
       >
         <MobileDrawerHeader onClose={closeMenu}>
-          <Logo to="/" onClick={closeMenu} size="sm" variant="light" />
+          <Logo to="/" onClick={closeMenu} size="md" variant="light" />
         </MobileDrawerHeader>
 
         <MobileDrawerBody>
@@ -177,30 +177,30 @@ export function MarketingNavbar() {
         </MobileDrawerBody>
 
         <MobileDrawerFooter>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {isLoggedIn ? (
               <Link
                 to="/app/jobs"
                 onClick={closeMenu}
-                className="block w-full h-12 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-all flex items-center justify-center"
+                className="block w-full h-14 rounded-2xl text-[15px] font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center justify-center shadow-lg shadow-indigo-600/20"
               >
-                View Jobs
+                Go to Dashboard
               </Link>
             ) : (
               <>
                 <Link
                   to="/login?mode=login"
                   onClick={closeMenu}
-                  className="block w-full h-12 rounded-xl text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center"
+                  className="block w-full h-14 rounded-2xl text-[15px] font-bold border-2 border-slate-200 text-slate-700 hover:bg-slate-50 transition-all flex items-center justify-center"
                 >
                   Log in
                 </Link>
                 <Link
                   to="/login"
                   onClick={closeMenu}
-                  className="block w-full h-12 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-all flex items-center justify-center"
+                  className="block w-full h-14 rounded-2xl text-[15px] font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center justify-center shadow-lg shadow-indigo-600/20"
                 >
-                  Get Started Free
+                  Start Applying Free
                 </Link>
               </>
             )}

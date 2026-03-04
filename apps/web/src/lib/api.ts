@@ -103,7 +103,7 @@ export function getAuthToken(): string | null {
 
   // For now, check if we have a session indicator cookie that tells us server has auth
   const hasSession = document.cookie.split(';').some(cookie =>
-    cookie.trim().startsWith('jobhuntin_session=')
+    cookie.trim().startsWith('jobhuntin_auth=')
   );
 
   if (hasSession) {

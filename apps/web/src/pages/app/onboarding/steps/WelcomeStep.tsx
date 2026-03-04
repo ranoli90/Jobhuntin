@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Rocket, Sparkles, MapPin, ArrowRight } from "lucide-react";
+import { Rocket, MapPin, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { t, getLocale } from "../../../../lib/i18n";
 

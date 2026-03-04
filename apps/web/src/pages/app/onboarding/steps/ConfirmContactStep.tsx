@@ -1,5 +1,5 @@
 import * as React from "react";
-import { User, Mail, Phone, Sparkles, ArrowLeft } from "lucide-react";
+import { User, Mail, Phone, UserCheck, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPhoneNumber, isValidPhoneNumber } from "../../../../lib/phoneUtils";
 import { Button } from "../../../../components/ui/Button";
@@ -190,7 +190,7 @@ export function ConfirmContactStep({
                 {parsedResume && (
                     <div className="p-3 md:p-4 rounded-xl bg-emerald-50 border border-emerald-100">
                         <div className="flex items-center gap-2 mb-1">
-                            <Sparkles className="h-4 w-4 text-emerald-600" />
+                            <UserCheck className="h-4 w-4 text-emerald-600" />
                             <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{t("onboarding.aiExtracted", locale) || "AI-Extracted From Resume"}</p>
                         </div>
                         <p className="text-xs text-emerald-800 font-medium">{t("onboarding.verifyDetails", locale) || "We pre-filled these from your resume. Please verify details."}</p>

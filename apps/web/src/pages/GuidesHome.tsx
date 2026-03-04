@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, ArrowLeft, BookOpen, Zap, Shield, Search, Sparkles, ChevronRight, Target, Menu, X } from 'lucide-react';
+import { Bot, ArrowLeft, BookOpen, Zap, Shield, Search, ChevronRight, Target, Menu, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { motion, useReducedMotion } from 'framer-motion';
 import { GoogleSearch } from '../components/ui/GoogleSearch';

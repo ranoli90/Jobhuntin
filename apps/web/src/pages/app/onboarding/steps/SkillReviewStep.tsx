@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Star, Edit2, Trash2, Plus, Check, X, AlertCircle, Sparkles, ArrowLeft, ArrowRight } from "lucide-react";
+import { Star, Edit2, Trash2, Plus, Check, X, AlertCircle, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { pushToast } from "../../../../lib/toast";
 import { Button } from "../../../../components/ui/Button";
@@ -242,7 +242,7 @@ export function SkillReviewStep({
         <div>
             <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
                 <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
-                    <Sparkles className="h-5 w-5 md:h-6 md:w-6" />
+                    <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div className="min-w-0">
                     <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">

@@ -48,17 +48,17 @@ export function Logo({
             <div className={cn(
                 variant === 'dark'
                     ? "bg-white/10 shadow-sm transition-all duration-300 group-hover:bg-white/20"
-                    : "bg-primary-600 shadow-lg shadow-primary-600/20 transition-all duration-300 group-hover:bg-primary-700",
+                    : "bg-gradient-to-br from-indigo-600 to-indigo-700 shadow-xl shadow-indigo-600/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-indigo-600/30",
                 currentSize.iconBox
             )}>
-                <Bot className={cn("text-white", currentSize.bot)} aria-hidden />
+                <Bot className={cn("text-white drop-shadow-sm", currentSize.bot)} aria-hidden />
             </div>
             {!iconOnly && (
                 <span className={cn(
-                    "font-black tracking-[-0.03em] transition-colors",
+                    "font-black tracking-[-0.04em] transition-colors",
                     variant === 'dark'
-                        ? "text-white group-hover:text-primary-400"
-                        : "text-slate-900 group-hover:text-primary-600",
+                        ? "text-white group-hover:text-indigo-400"
+                        : "text-slate-900 group-hover:text-indigo-600",
                     currentSize.text
                 )}>
                     JobHuntin

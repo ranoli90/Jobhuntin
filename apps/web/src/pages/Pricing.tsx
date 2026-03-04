@@ -147,9 +147,9 @@ export default function Pricing() {
         <div className="text-center mb-24 relative">
           <FadeIn>
             <div className="text-primary-600 font-black text-[10px] uppercase tracking-[0.3em] mb-4">Investment in you</div>
-            <h1 className="text-[clamp(3.5rem,8vw,7rem)] font-extrabold text-slate-950 dark:text-slate-100 mb-8 tracking-[-0.05em] leading-[0.9]">
-              Pricing that <br />
-              <span className="text-primary-500">pays for itself.</span>
+            <h1 className="text-[clamp(3rem,7vw,6.5rem)] font-black text-slate-900 dark:text-slate-100 mb-8 tracking-[-0.05em] leading-[0.95]">
+              Get hired, <br />
+              <span className="text-indigo-600">for the price of lunch.</span>
             </h1>
           </FadeIn>
 
@@ -214,49 +214,49 @@ export default function Pricing() {
             </button>
           </motion.div>
 
-          {/* Pro Tier — Dark Editorial */}
+          {/* Pro Tier — Vibrant Indigo */}
           <motion.div
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             whileHover={{ y: -12, scale: 1.02 }}
-            className="bg-slate-950 rounded-[2.5rem] p-10 border border-white/10 shadow-3xl shadow-slate-900/40 flex flex-col h-full relative overflow-hidden"
+            className="bg-indigo-600 rounded-[2.5rem] p-10 shadow-3xl shadow-indigo-600/30 flex flex-col h-full relative overflow-hidden"
           >
-            {/* Subtle flare */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600/20 blur-3xl -mr-16 -mt-16" />
+            {/* Glossy overlay effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl -mr-16 -mt-16" />
 
             <div className="mb-10 relative z-10">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary-500">Pro Hunter</h3>
-                <Crown className="w-4 h-4 text-primary-500" />
+              <div className="flex justify-between items-center mb-4 text-white">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Pro Hunter</h3>
+                <Zap className="w-4 h-4" />
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-black text-white">${annual ? '22' : '29'}</span>
-                <span className="text-sm font-bold text-white/40">/mo</span>
+              <div className="flex items-baseline gap-1 text-white">
+                <span className="text-6xl font-black">${annual ? '22' : '29'}</span>
+                <span className="text-sm font-bold opacity-60">/mo</span>
               </div>
-              <p className="text-[10px] text-white/30 uppercase font-black tracking-widest mt-2">{annual ? "Billed annually" : "Billed monthly"}</p>
+              <p className="text-[10px] text-white/40 uppercase font-black tracking-widest mt-2">{annual ? "Billed annually" : "Billed monthly"}</p>
             </div>
 
             <div className="space-y-5 mb-12 flex-1 relative z-10">
               {[
                 "Unlimited AI Applications",
-                "High-Fidelity Resume Tailoring",
+                "Resume rewritten for every job",
                 "Custom Cover Letters",
-                "Priority Agent Queue",
-                "LinkedIn Identity Sync",
-                "Direct Recruiter Outreach"
+                "Priority Support",
+                "LinkedIn Sync",
+                "Stealth Mode"
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <CheckCircle className="w-4 h-4 text-primary-500" />
-                  <span className="text-sm font-bold text-white/80">{feature}</span>
+                  <CheckCircle className="w-4 h-4 text-indigo-200" />
+                  <span className="text-sm font-bold text-white leading-tight">{feature}</span>
                 </div>
               ))}
             </div>
 
             <button
               onClick={handleProCta}
-              className="w-full py-4 rounded-2xl bg-primary-600 text-white font-bold hover:bg-primary-500 transform transition-all shadow-xl shadow-primary-600/20 active:scale-95 hover:shadow-primary-600/40"
+              className="w-full py-5 rounded-2xl bg-white text-indigo-600 font-bold hover:bg-slate-50 transform transition-all shadow-xl active:scale-95"
             >
-              {getProCtaLabel()}
+              Start Free Trial
             </button>
           </motion.div>
 

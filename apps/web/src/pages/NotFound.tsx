@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp, Briefcase, Sparkles } from 'lucide-react';
+import { ArrowRight, TrendingUp, Briefcase, Compass } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { Button } from '../components/ui/Button';
 import { t, getLocale } from '../lib/i18n';
@@ -60,7 +60,7 @@ export default function NotFound() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
             <Link to="/login" aria-label={t("404.startFree", getLocale())}>
               <Button size="lg" className="rounded-xl px-8 shadow-xl shadow-primary-500/20 font-bold">
-                <Sparkles className="w-4 h-4 mr-2" aria-hidden />
+                <Compass className="w-4 h-4 mr-2" aria-hidden />
                 {t("404.startFree", getLocale())}
               </Button>
             </Link>
