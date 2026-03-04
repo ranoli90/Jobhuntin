@@ -14,6 +14,7 @@ from packages.backend.domain.job_alerts import (
     JobAlertService,
 )
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
 
 from packages.backend.domain.tenant import TenantContext
@@ -23,27 +24,27 @@ logger = get_logger("sorce.api.job_alerts")
 router = APIRouter(prefix="/v1/alerts", tags=["Job Alerts"])
 
 
-class CreateAlertRequest:
+class CreateAlertRequest(BaseModel):
     name: str = "Job Alert"
-    keywords: list[str] = []
-    locations: list[str] = []
+    keywords: list[str] = Field(default_factory=list)
+    locations: list[str] = Field(default_factory=list)
     salary_min: int | None = None
     salary_max: int | None = None
-    companies_include: list[str] = []
-    companies_exclude: list[str] = []
-    job_types: list[str] = []
+    companies_include: list[str] = Field(default_factory=list)
+    companies_exclude: list[str] = Field(default_factory=list)
+    job_types: list[str] = Field(default_factory=list)
     remote_only: bool = False
     frequency: str = "daily"
 
 
-class AlertResponse:
+class AlertResponse(BaseModel):
     id: str
     name: str
     keywords: list[str]
     locations: list[str]
     frequency: str
     is_active: bool
-    last_sent_at: str | None
+    last_sent_at: str | None = None
 
 
 def _get_pool():
