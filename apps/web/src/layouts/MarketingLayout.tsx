@@ -3,6 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { MarketingNavbar } from "../components/marketing/MarketingNavbar";
 import { MarketingFooter } from "../components/marketing/MarketingFooter";
 import { PageTransition } from "../components/navigation/PageTransition";
+import { HelpButton } from "../components/HelpButton";
 import { cn } from "../lib/utils";
 
 export default function MarketingLayout() {
@@ -22,6 +23,7 @@ export default function MarketingLayout() {
         </AnimatePresence>
       </main>
       <MarketingFooter />
+      <HelpButton />
     </div>
   );
 }
