@@ -7,7 +7,7 @@ import {
   ArrowRight, Mail, AlertCircle,
   CheckCircle, ShieldCheck, MailCheck,
   Briefcase, Send, Zap, Loader2,
-  Lock, Server, EyeOff
+  Lock
 } from 'lucide-react';
 import { Logo } from '../components/brand/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';

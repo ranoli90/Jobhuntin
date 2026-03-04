@@ -11,7 +11,6 @@ import {
   Mail,
   Calendar,
   Sparkles,
-  ArrowRight,
   Plus
 } from "lucide-react";
 import { Button } from "./Button";

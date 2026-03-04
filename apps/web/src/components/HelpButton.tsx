@@ -9,14 +9,43 @@ interface HelpButtonProps {
 
 export function HelpButton({ className }: HelpButtonProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
   
   // Don't show on app pages (they have their own navigation)
   const isAppPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/app');
   
+  // Close on Escape key
+  React.useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
+  
+  // Close on click outside
+  React.useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+  
   if (isAppPage) return null;
 
   return (
-    <div className={cn("fixed bottom-6 right-6 z-50", className)}>
+    <div ref={menuRef} className={cn("fixed bottom-6 right-6 z-50", className)}>
       <AnimatePresence>
         {isOpen && (
           <motion.div
