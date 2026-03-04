@@ -264,15 +264,15 @@ class PasswordValidator:
                 "company",
                 "phone",
             ]
-            for field in personal_fields:
-                value = user_info.get(field, "")
+            for personal_field in personal_fields:
+                value = user_info.get(personal_field, "")
                 if (
                     value
                     and len(str(value)) >= 3
                     and str(value).lower() in lower_password
                 ):
                     errors.append(
-                        f"Password should not contain your {field.replace('_', ' ')}"
+                        f"Password should not contain your {personal_field.replace('_', ' ')}"
                     )
                     score = max(0, score - 10)
                     break

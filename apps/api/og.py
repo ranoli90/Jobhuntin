@@ -100,7 +100,6 @@ async def generate_og_image(
     # We'll simulate a gradient by drawing multiple lines or circles
     # Background swipe trail
     for i in range(200):
-        _alpha = int(255 * (1 - i/200))  # kept for future gradient opacity
         color = (255, 107, 53) # RGB for #FF6B35
         # Interpolate towards blue
         if i > 100:

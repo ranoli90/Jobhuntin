@@ -125,13 +125,6 @@ async def suggest_roles(
         # Get LLM client
         llm = _get_llm_client()
 
-        # Build prompt
-        profile_dict = {
-            "resume_text": sanitized_text,
-            "skills": request.skills,
-            "experience_years": request.experience_years,
-            "education_level": request.education_level,
-        }
         prompt = build_role_suggestion_prompt(
             resume_text=sanitized_text,
             skills=request.skills,
@@ -177,12 +170,6 @@ async def suggest_salary(
         # Get LLM client
         llm = _get_llm_client()
 
-        # Build prompt
-        profile_dict = {
-            "skills": request.skills,
-            "experience_years": request.experience_years,
-            "education_level": request.education_level,
-        }
         prompt = build_salary_suggestion_prompt(
             skills=request.skills,
             experience_years=request.experience_years,
@@ -229,13 +216,6 @@ async def suggest_locations(
         # Get LLM client
         llm = _get_llm_client()
 
-        # Build prompt
-        profile_dict = {
-            "skills": sanitized_skills,
-            "role": sanitized_role,
-            "experience_years": request.experience_years,
-            "remote_preference": request.remote_preference,
-        }
         prompt = build_location_suggestion_prompt(
             skills=sanitized_skills,
             role=sanitized_role,
@@ -348,11 +328,6 @@ async def generate_onboarding_questions(
         # Get LLM client
         llm = _get_llm_client()
 
-        # Build prompt
-        profile_dict = {
-            "resume_text": sanitized_text,
-            "current_step": sanitized_step,
-        }
         prompt = build_onboarding_questions_prompt(
             resume_text=sanitized_text,
             current_step=sanitized_step,

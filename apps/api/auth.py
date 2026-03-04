@@ -5,14 +5,14 @@ from __future__ import annotations
 import asyncio
 import math
 import time
-from datetime import datetime, timezone
+from datetime import timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr
 from shared.config import Settings, settings_dependency

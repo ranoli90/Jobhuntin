@@ -17,7 +17,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from shared.logging_config import get_logger
 
 from packages.backend.domain.tenant import TenantContext
-from api.dependencies import get_tenant_context
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.job_alerts")

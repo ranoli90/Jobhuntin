@@ -410,7 +410,7 @@ class JobAlertService:
                         },
                     )
                     return resp.status_code in (200, 201)
-        except CircuitBreakerOpenError:
+        except CircuitBreakerOpen:
             logger.warning("Resend circuit breaker open")
             return False
         except Exception as e:

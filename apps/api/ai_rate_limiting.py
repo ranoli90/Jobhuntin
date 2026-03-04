@@ -17,7 +17,7 @@ from shared.metrics import incr
 logger = get_logger("sorce.api.ai_rate_limiting")
 
 
-class RateLimitExceededErrorError(Exception):
+class RateLimitExceededError(Exception):
     """Raised when rate limit is exceeded."""
 
     pass

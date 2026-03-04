@@ -539,9 +539,9 @@ class SlackIntegrationManager:
                     )
 
             if "fields" in block_copy:
-                for field in block_copy["fields"]:
-                    if "text" in field:
-                        field["text"] = self._interpolate(field["text"], template_vars)
+                for block_field in block_copy["fields"]:
+                    if "text" in block_field:
+                        block_field["text"] = self._interpolate(block_field["text"], template_vars)
 
             if "elements" in block_copy:
                 for element in block_copy["elements"]:
