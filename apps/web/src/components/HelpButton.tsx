@@ -9,10 +9,13 @@ interface HelpButtonProps {
 
 export function HelpButton({ className }: HelpButtonProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isAppPage, setIsAppPage] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
   
-  // Don't show on app pages (they have their own navigation)
-  const isAppPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/app');
+  // Check if on app page (client-side only to avoid hydration mismatch)
+  React.useEffect(() => {
+    setIsAppPage(window.location.pathname.startsWith('/app'));
+  }, []);
   
   // Close on Escape key
   React.useEffect(() => {
