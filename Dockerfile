@@ -31,6 +31,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code in dependency order
 # Shared packages first (most stable)
+COPY packages/ ./packages/
 COPY packages/shared/ ./shared/
 COPY packages/backend/ ./backend/
 COPY packages/blueprints/ ./blueprints/
