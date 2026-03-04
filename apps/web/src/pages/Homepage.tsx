@@ -2,16 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
-import { t, getLocale } from '../lib/i18n';
 import {
   ArrowRight, MailCheck, Target, Sparkles, Activity,
   Upload, SlidersHorizontal, Send, Trophy,
   ChevronRight, Check, Star, Briefcase, TrendingUp
 } from 'lucide-react';
 import { pushToast } from '../lib/toast';
-import { ThemeToggle } from '../components/ThemeToggle';
-import { FadeIn } from '../components/animations/FadeIn';
-import { useAuth } from '../hooks/useAuth';
 import { SEO } from '../components/marketing/SEO';
 import { cn } from '../lib/utils';
 import { ValidationUtils } from '../lib/validation';
@@ -22,77 +18,39 @@ function useEmailCapture() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
-  const [showResend, setShowResend] = useState(false);
-
-  useEffect(() => {
-    if (sentEmail) {
-      const timer = setTimeout(() => {
-        setShowResend(true);
-      }, 30000); // Show after 30 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [sentEmail]);
-
   const validateEmail = (e: string) => ValidationUtils.validate.email(e.trim()).isValid;
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-    if (!validateEmail(email)) { setEmailError(t("homepage.enterValidEmail", getLocale())); return; }
+    if (!validateEmail(email)) { setEmailError("Enter a valid email"); return; }
     setEmailError("");
     setIsSubmitting(true);
     setSentEmail(null);
-    setShowResend(false);
     try {
       const result = await magicLinkService.sendMagicLink(email, "/app/onboarding");
-      if (!result.success) throw new Error(result.error || "Failed to send magic link. Please try again.");
+      if (!result.success) throw new Error(result.error || "Failed");
       telemetry.track("login_magic_link_requested", { source: "homepage" });
-      pushToast({ title: t("homepage.checkInbox", getLocale()), description: t("homepage.magicLinkSent", getLocale()), tone: "success" });
+      pushToast({ title: "Check your inbox", description: "Magic link sent!", tone: "success" });
       setSentEmail(result.email);
       setEmail("");
-    } catch (error) {
-      const err = error as Error;
+    } catch (err: any) {
       const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
       setEmailError(msg);
       pushToast({ title: "Error", description: msg, tone: "error" });
     } finally { setIsSubmitting(false); }
   };
-
-  const onResend = async () => {
-    if (isSubmitting || !sentEmail) return;
-    setIsSubmitting(true);
-    setShowResend(false);
-    try {
-      const result = await magicLinkService.sendMagicLink(sentEmail, "/app/onboarding");
-      if (!result.success) throw new Error(result.error || "Failed to resend magic link. Please try again.");
-      telemetry.track("login_magic_link_resent", { source: "homepage" });
-      pushToast({ title: t("homepage.checkInbox", getLocale()), description: t("homepage.magicLinkResent", getLocale()), tone: "success" });
-    } catch (error) {
-      const err = error as Error;
-      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
-      pushToast({ title: "Error", description: msg, tone: "error" });
-    } finally { setIsSubmitting(false); }
-  }
-
-  return { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, showResend, onSubmit, onResend };
+  return { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit };
 }
 
 /* ─── Email form ─── */
 function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
-  const { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, showResend, onSubmit, onResend } = useEmailCapture();
+  const { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit } = useEmailCapture();
   if (sentEmail) {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-purple-100 dark:bg-purple-900/30"><MailCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" /></div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t("homepage.checkInbox", getLocale())}</p>
-          <p className="text-xs truncate text-gray-500 dark:text-slate-400">{sentEmail}</p>
-          {showResend && (
-            <button onClick={onResend} disabled={isSubmitting} className="text-xs text-purple-600 hover:underline mt-1">
-              {isSubmitting ? 'Resending...' : 'Resend Link'}
-            </button>
-          )}
-        </div>
-        <button onClick={() => setSentEmail(null)} className="min-h-[44px] min-w-[44px] px-3 py-2 -m-2 text-xs ml-auto shrink-0 hover:underline text-gray-400 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Change email address">Change</button>
+      <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 bg-white">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-purple-100"><MailCheck className="w-5 h-5 text-purple-600" /></div>
+        <div className="min-w-0"><p className="text-sm font-semibold text-gray-900">Check your inbox</p><p className="text-xs truncate text-gray-500">{sentEmail}</p></div>
+        <button onClick={() => setSentEmail(null)} className="text-xs ml-auto shrink-0 hover:underline text-gray-400">Change</button>
       </div>
     );
   }
@@ -100,16 +58,34 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
     <div>
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
         <input type="email" placeholder="you@example.com" aria-label="Email address"
-          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-white/40 focus:border-purple-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-purple-400 shadow-sm", emailError && "border-red-400")}
+          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all outline-none", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-white/40 focus:border-purple-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-purple-400 shadow-sm", emailError && "border-red-400")}
           value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />
         <button type="submit" disabled={isSubmitting}
           className="h-14 px-8 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 active:translate-y-0"
         >
-          {isSubmitting ? t("homepage.sending", getLocale()) : t("homepage.startFree", getLocale())} {!isSubmitting && <ArrowRight className="w-4 h-4" aria-hidden />}
+          {isSubmitting ? "Sending…" : "Start free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
         </button>
       </form>
       {emailError && <p className="mt-2 text-xs text-red-500 pl-6">{emailError}</p>}
+    </div>
+  );
+}
+
+/* ─── Fade-in on scroll ─── */
+function FadeIn({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.08 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={cn("transition-all duration-700 ease-out", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10", className)} style={{ transitionDelay: `${delay}ms` }}>
+      {children}
     </div>
   );
 }
@@ -141,7 +117,7 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   for (let i = 0; i < count; i++) visibleItems.push(activities[(currentIdx + i) % activities.length]);
   return (
     <div className="space-y-2">
-      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Sample activity — not live</p>
+      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Demo activity</p>
       {visibleItems.map((item, idx) => (
         <div key={`${item.role}-${idx}-${currentIdx}`} className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-500" style={{ opacity: 1 - idx * 0.15 }}>
           <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-400" : "bg-purple-400")} />
@@ -181,229 +157,318 @@ export default function Homepage() {
   return (
     <>
       <SEO
-        title="JobHuntin | AI That Applies to Jobs While You Sleep"
+        title="JobHuntin — AI That Applies to Jobs While You Sleep"
         description="Upload your resume. Our AI agent tailors every application and applies to hundreds of jobs daily. More interviews, zero effort."
-        ogTitle="JobHuntin | AI That Applies to Jobs While You Sleep"
+        ogTitle="JobHuntin — AI That Applies to Jobs While You Sleep"
         canonicalUrl="https://jobhuntin.com/"
         schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "AI agent that tailors and submits job applications autonomously." }}
       />
 
       {/* ═══════════════════════════════════════════════════════════════
-          §1  HERO — Editorial, High-Contrast, Professional
+          §1  HERO — centered, big headline, CTA, then visual showcase below
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-slate-950 text-white overflow-hidden relative min-h-[90vh] flex items-center">
-        {/* Brand Flare: Grainy Radial Glow */}
-        <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-primary-600/10 to-transparent blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-1/4 -left-1/4 w-1/2 h-full bg-primary-500/10 blur-[150px] pointer-events-none rounded-full" />
+      <section className="relative overflow-hidden">
+        {/* Soft gradient bg */}
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-50/60 via-white to-white" />
 
-        {/* Flare: Subtle Grid Interface */}
-        <div className="absolute inset-0 bg-grid-premium opacity-10 pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-6 pt-32 sm:pt-40 pb-24 relative z-10 w-full">
-          <div className="grid lg:grid-cols-12 gap-16 items-center">
-            <div className="lg:col-span-12 text-center lg:text-left">
-              <FadeIn>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-8">
-                  <Sparkles className="w-3 h-3 text-primary-400" /> AI-Powered Career Growth
-                </div>
-                <h1 className="text-[clamp(3.5rem,10vw,8rem)] font-extrabold leading-[0.88] tracking-[-0.06em] text-white">
-                  The End of<br />
-                  <span className="text-primary-500">Job Hunting.</span>
-                </h1>
-              </FadeIn>
-              <FadeIn delay={100}>
-                <p className="mt-10 text-lg sm:text-2xl text-white/50 max-w-2xl leading-relaxed font-medium">
-                  Upload your resume. Our AI agent maps the market, tailors your identity, and secures interviews while you live your life.
-                </p>
-              </FadeIn>
-              <FadeIn delay={200}>
-                <div className="mt-12 flex flex-col sm:flex-row gap-5">
-                  <Link
-                    to="/login"
-                    className="h-16 px-10 rounded-2xl text-lg font-bold bg-white text-slate-950 hover:bg-primary-500 hover:text-white transform transition-all flex items-center justify-center gap-3 shadow-2xl shadow-white/10"
-                  >
-                    Get Started Free <ArrowRight className="w-5 h-5" />
-                  </Link>
-                  <a
-                    href="#how-it-works"
-                    className="h-16 px-10 rounded-2xl text-lg font-bold border border-white/20 text-white hover:bg-white/5 transition-all flex items-center justify-center"
-                  >
-                    The Strategy
-                  </a>
-                </div>
-                <div className="mt-8 flex items-center gap-4 text-xs font-bold text-white/30 uppercase tracking-widest justify-center lg:justify-start">
-                  <span>Privacy First</span>
-                  <span className="w-1 h-1 rounded-full bg-white/20" />
-                  <span>No Subscription Required</span>
-                </div>
-              </FadeIn>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ TRUST BAR — Minimalist ═══ */}
-      <section className="bg-slate-50 border-b border-gray-200 py-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-10">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em]">Trusted by hunters at</p>
-            <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-40 grayscale contrast-125">
-              {["Google", "Stripe", "Airbnb", "Netflix", "SpaceX", "Apple"].map((name) => (
-                <span key={name} className="text-xl font-black text-gray-900 tracking-tighter select-none">{name}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §2  THE CORE VALUE — Sharp, Bento-style
-          ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-24 sm:py-32">
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeIn>
-            <div className="text-center max-w-3xl mx-auto mb-24">
-              <div className="text-primary-600 font-black text-[10px] uppercase tracking-[0.3em] mb-4">Precision First</div>
-              <h2 className="text-[clamp(2.5rem,5vw,4rem)] font-extrabold tracking-[-0.04em] text-gray-950 leading-[1] mb-8">
-                Designed for character.<br />Built for results.
-              </h2>
-              <p className="text-gray-500 font-medium text-lg leading-relaxed">
-                We've combined deep LLM reasoning with a high-fidelity automation engine to handle every layer of the application stack.
+        <div className="relative max-w-7xl mx-auto px-6 pt-16 sm:pt-24 pb-12">
+          <div className="max-w-3xl mx-auto text-center">
+            <FadeIn>
+              <h1 className="text-[clamp(2.75rem,7vw,5.5rem)] font-extrabold leading-[1.02] tracking-[-0.045em] text-gray-900">
+                The all-in-one for<br />
+                <span className="bg-gradient-to-r from-purple-600 to-violet-500 bg-clip-text text-transparent">job seekers</span>
+              </h1>
+            </FadeIn>
+            <FadeIn delay={80}>
+              <p className="mt-7 text-xl sm:text-[1.4rem] text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                Upload your resume. Our AI tailors every application and submits to hundreds of jobs daily — while you sleep.
               </p>
-            </div>
-          </FadeIn>
-
-          <div className="grid md:grid-cols-12 gap-4">
-            {/* Precision Matching — Big Feature */}
-            <div className="md:col-span-8 group rounded-[2.5rem] bg-slate-50 border border-slate-200 p-10 flex flex-col md:flex-row items-center gap-12 overflow-hidden transition-all hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50">
-              <div className="flex-1">
-                <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center mb-8 shadow-xl shadow-slate-900/20">
-                  <Target className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-3xl font-extrabold text-gray-950 mb-4 tracking-tight">Market Intelligence</h3>
-                <p className="text-gray-500 font-medium leading-relaxed mb-8"> Our AI doesn&apos;t just scrape; it understands. It cross-references your career trajectory with company growth to find the perfect bridge.</p>
-                <ul className="space-y-3">
-                  {["Contextual role mapping", "Real-time growth signals", "Salary parity checks"].map(i => (
-                    <li key={i} className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                      <div className="w-1 h-1 rounded-full bg-primary-500" /> {i}
-                    </li>
-                  ))}
-                </ul>
+            </FadeIn>
+            <FadeIn delay={160}>
+              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/login" className="h-14 px-10 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                  Get Started Free <ArrowRight className="w-4 h-4" />
+                </Link>
+                <a href="#how-it-works" className="h-14 px-10 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+                  See How It Works
+                </a>
               </div>
-              <div className="flex-1 w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-6 relative">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="text-[10px] font-black uppercase text-gray-400">Match Accuracy</div>
-                  <div className="text-sm font-black text-primary-600">98%</div>
-                </div>
-                <div className="space-y-4">
-                  {[100, 85, 92].map((w, i) => (
-                    <div key={i} className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-slate-900 rounded-full" style={{ width: `${w}%` }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Quality — Square Feature */}
-            <div className="md:col-span-4 group rounded-[2.5rem] bg-slate-950 p-10 flex flex-col transition-all hover:-translate-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-8">
-                <Sparkles className="w-6 h-6 text-primary-400" />
-              </div>
-              <h3 className="text-2xl font-extrabold text-white mb-4 tracking-tight">High-Fidelity Tailoring</h3>
-              <p className="text-white/40 text-sm font-medium leading-relaxed mb-auto"> Every resume is rebuilt from the ground up for every single application. No templates, just strategy.</p>
-              <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between">
-                <div className="text-[10px] font-black text-white/20 uppercase tracking-widest">ATS Verified</div>
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-950 bg-slate-800" />)}
-                </div>
-              </div>
-            </div>
-
-            {/* Automation — Row Feature */}
-            <div className="md:col-span-4 group rounded-[2.5rem] bg-primary-600 p-10 flex flex-col text-white transition-all hover:bg-primary-500">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-8">
-                <Send className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-2xl font-extrabold mb-4 tracking-tight">Stealth Submission</h3>
-              <p className="text-white/70 text-sm font-medium leading-relaxed"> Applications are submitted through verified channels at the optimal time for recruiter visibility.</p>
-            </div>
-
-            {/* Global Reach — Row Feature */}
-            <div className="md:col-span-8 group rounded-[2.5rem] bg-slate-50 border border-slate-200 p-10 flex items-center justify-between transition-all hover:bg-white hover:border-primary-200">
-              <div>
-                <h3 className="text-2xl font-extrabold text-gray-950 mb-4 tracking-tight">Global Infrastructure</h3>
-                <p className="text-gray-500 text-sm font-medium leading-relaxed max-w-sm"> Our network covers top job boards and company portals across 80+ countries and 20+ industries.</p>
-              </div>
-              <div className="hidden sm:flex gap-3">
-                {[1, 2, 3, 4].map(i => <div key={i} className="w-12 h-12 rounded-2xl bg-white border border-slate-200" />)}
-              </div>
-            </div>
+              <p className="mt-5 text-sm text-gray-400">Free to start · No credit card required</p>
+            </FadeIn>
           </div>
         </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          §3  TESTIMONIAL — Editorial Quote
-          ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-slate-950 py-32 sm:py-48 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary-600/5 blur-[120px] pointer-events-none" />
-        <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
-          <FadeIn>
-            <blockquote className="text-[clamp(1.75rem,4.5vw,4rem)] font-extrabold text-white leading-[1.05] tracking-[-0.05em] mb-16">
-              "It felt like I finally had a personal assistant who actually understood my career goals better than I did."
-            </blockquote>
-            <div className="flex flex-col items-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-slate-800 to-slate-700 mb-6 border-2 border-white/10" />
-              <p className="text-xl font-bold text-white mb-1">Marcus Thorne</p>
-              <p className="text-sm font-black text-primary-500 uppercase tracking-widest">Senior Software Engineer · Now at Stripe</p>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §4  HOW IT WORKS — Sophisticated Steps
-          ═══════════════════════════════════════════════════════════════ */}
-      <section id="how-it-works" className="bg-white py-24 sm:py-40">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row gap-20">
-            <div className="lg:w-1/3">
-              <div className="sticky top-40">
-                <div className="text-primary-600 font-black text-[10px] uppercase tracking-[0.3em] mb-4">The Protocol</div>
-                <h2 className="text-5xl font-extrabold text-gray-950 tracking-[-0.04em] leading-[1] mb-8">
-                  From setup to interview in 4 steps.
-                </h2>
-                <p className="text-gray-500 font-medium text-lg mb-10">
-                  We&apos;ve condensed months of career effort into a 2-minute configuration.
-                </p>
-                <Link to="/login" className="inline-flex h-14 px-8 rounded-2xl bg-slate-950 text-white font-bold items-center gap-2 hover:bg-primary-600 transition-colors">
-                  Start Setup <ArrowRight className="w-4 h-4" />
-                </Link>
+        {/* ── HERO VISUAL SHOWCASE — overlapping angled cards with mock UI ── */}
+        <FadeIn delay={300}>
+          <div className="relative max-w-6xl mx-auto px-6 pb-8">
+            <div className="relative h-[420px] sm:h-[520px] lg:h-[580px]">
+              {/* Card 1 — Purple — Dashboard (center-left, tilted) */}
+              <div className="absolute left-[2%] sm:left-[5%] top-[8%] w-[55%] sm:w-[45%] transform -rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-purple-500/30">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /><div className="w-2.5 h-2.5 rounded-full bg-amber-400" /><div className="w-2.5 h-2.5 rounded-full bg-green-400" /></div>
+                      <div className="flex-1 h-4 bg-gray-100 rounded-full mx-4" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className="bg-purple-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-purple-600">127</div><div className="text-[8px] sm:text-[9px] text-gray-500">Applied</div></div>
+                      <div className="bg-green-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-green-600">23</div><div className="text-[8px] sm:text-[9px] text-gray-500">Responses</div></div>
+                      <div className="bg-amber-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-amber-600">7</div><div className="text-[8px] sm:text-[9px] text-gray-500">Interviews</div></div>
+                    </div>
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-50">
+                        <div className="w-6 h-6 rounded bg-gray-100 shrink-0" />
+                        <div className="flex-1"><div className="h-2 bg-gray-100 rounded-full w-3/4" /><div className="h-1.5 bg-gray-50 rounded-full w-1/2 mt-1" /></div>
+                        <div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-bold", i === 1 ? "bg-green-100 text-green-700" : i === 2 ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700")}>{i === 1 ? "Interview" : i === 2 ? "Applied" : "Viewed"}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="lg:w-2/3 space-y-32">
-              {[
-                { title: "The Career Sync", desc: "Upload your resume and define your trajectory. Our agent maps your technical DNA against market demand.", icon: Upload },
-                { title: "The Strategic Filter", desc: "Establish your boundaries — salary, culture, location, tech stack. We only engage with what makes sense.", icon: Target },
-                { title: "The Tailored Engagement", desc: "For every role, our LLMs rebuild your narrative to match the specific tone and requirements of the portal.", icon: Sparkles },
-                { title: "The Infinite Feed", desc: "Watch in real-time as your dashboard fills with tracking data, responses, and interview invitations.", icon: Activity },
-              ].map((step, i) => (
-                <FadeIn key={i}>
-                  <div className="flex gap-10 group items-start">
-                    <div className="text-7xl font-black text-slate-100 group-hover:text-primary-100 transition-colors leading-none shrink-0">{i + 1}</div>
-                    <div>
-                      <h3 className="text-2xl font-extrabold text-gray-950 mb-4 tracking-tight flex items-center gap-3">
-                        <step.icon className="w-6 h-6 text-primary-500" /> {step.title}
-                      </h3>
-                      <p className="text-gray-500 font-medium text-lg leading-relaxed max-w-xl">{step.desc}</p>
+              {/* Card 2 — Coral/Orange — Resume (center-right, tilted other way) */}
+              <div className="absolute right-[2%] sm:right-[5%] top-[2%] w-[50%] sm:w-[40%] transform rotate-3 z-30 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
+                <div className="bg-gradient-to-br from-orange-400 to-rose-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-orange-500/30">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-xs font-bold text-gray-900">Resume Preview</div>
+                      <div className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[8px] font-bold">ATS: 94%</div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-900 rounded-full w-2/3" />
+                      <div className="h-2.5 bg-gray-200 rounded-full w-full" />
+                      <div className="h-2.5 bg-gray-200 rounded-full w-5/6" />
+                      <div className="h-2.5 bg-gray-200 rounded-full w-4/5" />
+                      <div className="h-px bg-gray-100 my-2" />
+                      <div className="h-3 bg-gray-800 rounded-full w-2/5" />
+                      <div className="h-2 bg-gray-100 rounded-full w-full" />
+                      <div className="h-2 bg-gray-100 rounded-full w-3/4" />
+                    </div>
+                    <div className="mt-3 flex gap-1.5 flex-wrap">
+                      <div className="px-2 py-1 rounded bg-purple-50 text-purple-700 text-[7px] sm:text-[8px] font-bold">React</div>
+                      <div className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[7px] sm:text-[8px] font-bold">TypeScript</div>
+                      <div className="px-2 py-1 rounded bg-green-50 text-green-700 text-[7px] sm:text-[8px] font-bold">Node.js</div>
                     </div>
                   </div>
-                </FadeIn>
-              ))}
+                </div>
+              </div>
+
+              {/* Card 3 — Blue — Live Feed (bottom center) */}
+              <div className="absolute left-[15%] sm:left-[22%] bottom-[0%] w-[55%] sm:w-[42%] transform rotate-1 z-10 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02]">
+                <div className="bg-gradient-to-br from-sky-400 to-blue-600 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-blue-500/30">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                      <span className="text-[10px] font-semibold text-gray-700">Live Activity</span>
+                    </div>
+                    <LiveActivityFeed compact />
+                  </div>
+                </div>
+              </div>
+
+              {/* Small accent shapes */}
+              <div className="absolute top-0 right-[35%] w-20 h-20 bg-gradient-to-br from-teal-300 to-emerald-400 rounded-2xl rotate-12 opacity-60 z-0" />
+              <div className="absolute bottom-[15%] left-0 w-16 h-16 bg-gradient-to-br from-amber-300 to-orange-400 rounded-xl -rotate-12 opacity-50 z-0" />
+              <div className="absolute top-[30%] right-0 w-14 h-14 bg-gradient-to-br from-purple-300 to-violet-400 rounded-lg rotate-6 opacity-40 z-0" />
             </div>
           </div>
+        </FadeIn>
+      </section>
+
+      {/* ═══ TRUST BAR ═══ */}
+      <section className="bg-white border-y border-gray-100 py-10">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center mb-6">Trusted by job seekers landing roles at</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
+            {["Google", "Amazon", "Meta", "Stripe", "Shopify", "Netflix"].map((name) => (
+              <span key={name} className="text-xl font-bold text-gray-300 tracking-tight select-none">{name}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          §2  THREE COLORFUL PRODUCT CARDS
+          ═══════════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-24 sm:py-36">
+        <div className="max-w-7xl mx-auto px-6">
+          <FadeIn>
+            <div className="text-center max-w-3xl mx-auto mb-20">
+              <p className="text-purple-600 font-semibold text-sm uppercase tracking-wider mb-4">How JobHuntin works for you</p>
+              <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
+                Everything you need to<br />land more interviews
+              </h2>
+            </div>
+          </FadeIn>
+
+          <div className="grid md:grid-cols-3 gap-7">
+            {/* ── Card 1: Precision Matching (Purple) ── */}
+            <FadeIn delay={0}>
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700 shadow-purple-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="flex-1">
+                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <Target className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Precision Matching</h3>
+                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">AI analyzes thousands of listings and only applies to roles that truly fit your skills and goals.</p>
+                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  </a>
+                </div>
+                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Top Matches</span>
+                    <span className="text-[9px] text-white/40">3 of 47 found</span>
+                  </div>
+                  {[
+                    { role: "Sr. Frontend Eng", co: "Stripe", match: 98, salary: "$180k–$220k" },
+                    { role: "Product Manager", co: "Airbnb", match: 95, salary: "$165k–$200k" },
+                    { role: "UX Designer", co: "Figma", match: 92, salary: "$140k–$175k" },
+                  ].map((j, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-white/[0.06] rounded-xl p-3 mb-2 last:mb-0">
+                      <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-[11px] font-black text-white/60 shrink-0">{j.co.charAt(0)}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-white truncate">{j.role}</p>
+                        <p className="text-[9px] text-white/40">{j.co} · {j.salary}</p>
+                        <div className="mt-1.5 h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full bg-green-400/60 rounded-full" style={{ width: `${j.match}%` }} />
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-[13px] font-extrabold text-green-300">{j.match}%</div>
+                        <div className="text-[7px] text-white/30 uppercase">match</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* ── Card 2: Curated Quality (Orange) ── */}
+            <FadeIn delay={120}>
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-orange-400 to-rose-500 shadow-orange-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="flex-1">
+                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <Sparkles className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Curated Quality</h3>
+                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">Every resume &amp; cover letter is custom-tailored, ATS-optimized, and company-tone matched.</p>
+                  <a href="#features" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  </a>
+                </div>
+                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                  {/* Mini resume document mock */}
+                  <div className="bg-white/[0.06] rounded-xl p-3.5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="h-3 w-24 bg-white/30 rounded-full mb-1" />
+                        <div className="h-2 w-16 bg-white/15 rounded-full" />
+                      </div>
+                      <div className="px-2.5 py-1 rounded-lg bg-green-400/20 text-[9px] font-bold text-green-200 flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3" /> ATS 94%
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="h-1.5 bg-white/20 rounded-full w-full" />
+                      <div className="h-1.5 bg-white/15 rounded-full w-[90%]" />
+                      <div className="h-1.5 bg-white/10 rounded-full w-[75%]" />
+                    </div>
+                    <div className="mt-2.5 pt-2.5 border-t border-white/5">
+                      <div className="h-2 w-14 bg-white/20 rounded-full mb-1.5" />
+                      <div className="space-y-1">
+                        <div className="h-1.5 bg-white/10 rounded-full w-full" />
+                        <div className="h-1.5 bg-white/10 rounded-full w-[85%]" />
+                      </div>
+                    </div>
+                    <div className="mt-2.5 flex gap-1.5 flex-wrap">
+                      {["React", "TS", "Node", "AWS"].map((s) => (
+                        <span key={s} className="px-2 py-0.5 rounded bg-white/10 text-[7px] font-bold text-white/60">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Quality metrics */}
+                  <div className="mt-2.5 grid grid-cols-3 gap-1.5">
+                    {[
+                      { label: "Tone", icon: "✓", color: "bg-green-400/15 text-green-200" },
+                      { label: "Keywords", icon: "✓", color: "bg-green-400/15 text-green-200" },
+                      { label: "Format", icon: "✓", color: "bg-green-400/15 text-green-200" },
+                    ].map((m) => (
+                      <div key={m.label} className={cn("rounded-lg px-2 py-1.5 text-center text-[8px] font-bold", m.color)}>
+                        {m.icon} {m.label}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* ── Card 3: Live Tracking (Blue) ── */}
+            <FadeIn delay={240}>
+              <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-sky-400 to-blue-600 shadow-blue-500/25 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <div className="flex-1">
+                  <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
+                    <Activity className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Live Tracking</h3>
+                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">Watch applications go out in real-time. See matches, responses, and interview invites instantly.</p>
+                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
+                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  </a>
+                </div>
+                <div className="mt-6 bg-white/[0.08] backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-white/10">
+                  {/* Mini stats row */}
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
+                      <div className="text-[15px] font-extrabold text-white">18</div>
+                      <div className="text-[7px] text-white/40 uppercase tracking-wide">Today</div>
+                    </div>
+                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
+                      <div className="text-[15px] font-extrabold text-white">127</div>
+                      <div className="text-[7px] text-white/40 uppercase tracking-wide">This week</div>
+                    </div>
+                    <div className="bg-white/[0.06] rounded-lg p-2 text-center">
+                      <div className="text-[15px] font-extrabold text-green-300">4</div>
+                      <div className="text-[7px] text-white/40 uppercase tracking-wide">Interviews</div>
+                    </div>
+                  </div>
+                  {/* Activity bar chart */}
+                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span className="text-[8px] text-white/40 uppercase tracking-wider font-bold">Activity This Week</span></div>
+                  <div className="flex items-end gap-1 h-10 mb-1">
+                    {[40, 65, 55, 80, 70, 90, 45].map((h, i) => (
+                      <div key={i} className="flex-1 rounded-t bg-white/15 hover:bg-white/25 transition-colors" style={{ height: `${h}%` }} />
+                    ))}
+                  </div>
+                  <div className="flex justify-between text-[7px] text-white/25 font-medium">
+                    {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          §3  BIG TESTIMONIAL QUOTE
+          ═══════════════════════════════════════════════════════════════ */}
+      <section className="bg-gray-50 py-24 sm:py-32">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <FadeIn>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 mb-8">
+              <span className="text-3xl text-purple-600 font-serif leading-none">"</span>
+            </div>
+            <blockquote className="text-[clamp(1.5rem,3.5vw,2.75rem)] font-bold text-gray-900 leading-snug tracking-tight">
+              That first week I literally did nothing and got 4 interview callbacks. This is the future of job hunting.
+            </blockquote>
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center text-lg font-bold text-purple-700">SK</div>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900 text-lg">Sarah K.</p>
+                <p className="text-sm text-gray-500">Marketing Manager · Landed at HubSpot</p>
+              </div>
+            </div>
+          </FadeIn>
         </div>
       </section>
 
