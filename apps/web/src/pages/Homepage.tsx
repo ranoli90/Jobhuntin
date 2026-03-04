@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
 import {
-  ArrowRight, MailCheck, Target, Sparkles, Activity,
+  ArrowRight, MailCheck, Target, Activity,
   Upload, SlidersHorizontal, Send, Trophy,
-  ChevronRight, Check, Star, Briefcase, TrendingUp
+  ChevronRight, Check, Star, Briefcase, TrendingUp, PenTool
 } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
@@ -157,11 +157,11 @@ export default function Homepage() {
   return (
     <>
       <SEO
-        title="JobHuntin — AI That Applies to Jobs While You Sleep"
-        description="Upload your resume. Our AI agent tailors every application and applies to hundreds of jobs daily. More interviews, zero effort."
-        ogTitle="JobHuntin — AI That Applies to Jobs While You Sleep"
+        title="JobHuntin — The Application Engine That Runs While You Sleep"
+        description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily. More interviews, zero effort."
+        ogTitle="JobHuntin — The Application Engine That Runs While You Sleep"
         canonicalUrl="https://jobhuntin.com/"
-        schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "AI agent that tailors and submits job applications autonomously." }}
+        schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }}
       />
 
       {/* ═══════════════════════════════════════════════════════════════
@@ -175,18 +175,18 @@ export default function Homepage() {
           <div className="max-w-3xl mx-auto text-center">
             <FadeIn>
               <h1 className="text-[clamp(2.75rem,7vw,5.5rem)] font-extrabold leading-[1.02] tracking-[-0.045em] text-gray-900">
-                The all-in-one for<br />
-                <span className="bg-gradient-to-r from-purple-600 to-violet-500 bg-clip-text text-transparent">job seekers</span>
+                The automation platform for<br />
+                <span className="text-slate-900 underline decoration-slate-900/20 underline-offset-[12px]">job seekers</span>
               </h1>
             </FadeIn>
             <FadeIn delay={80}>
               <p className="mt-7 text-xl sm:text-[1.4rem] text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                Upload your resume. Our AI tailors every application and submits to hundreds of jobs daily — while you sleep.
+                Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep.
               </p>
             </FadeIn>
             <FadeIn delay={160}>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/login" className="h-14 px-10 rounded-full text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-600/25 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                <Link to="/login" className="h-14 px-10 rounded-full text-base font-semibold bg-gray-900 text-white hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
                   Get Started Free <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a href="#how-it-works" className="h-14 px-10 rounded-full text-base font-semibold border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
@@ -273,10 +273,10 @@ export default function Homepage() {
             </div>
           </div>
         </FadeIn>
-      </section>
+      </section >
 
       {/* ═══ TRUST BAR ═══ */}
-      <section className="bg-white border-y border-gray-100 py-10">
+      < section className="bg-white border-y border-gray-100 py-10" >
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center mb-6">Trusted by job seekers landing roles at</p>
           <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
@@ -285,12 +285,12 @@ export default function Homepage() {
             ))}
           </div>
         </div>
-      </section>
+      </section >
 
       {/* ═══════════════════════════════════════════════════════════════
           §2  THREE COLORFUL PRODUCT CARDS
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-24 sm:py-36">
+      < section className="bg-white py-24 sm:py-36" >
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="text-center max-w-3xl mx-auto mb-20">
@@ -310,7 +310,7 @@ export default function Homepage() {
                     <Target className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-3">Precision Matching</h3>
-                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">AI analyzes thousands of listings and only applies to roles that truly fit your skills and goals.</p>
+                  <p className="text-white/75 leading-relaxed text-[15px] mb-2">The matching engine analyzes thousands of listings and only applies to roles that truly fit your skills and goals.</p>
                   <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white font-semibold text-sm mt-2 group/l">
                     Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
@@ -349,7 +349,7 @@ export default function Homepage() {
               <div className="group rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-zinc-900/20 border border-zinc-700/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
                 <div className="flex-1">
                   <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <Sparkles className="w-7 h-7 text-white" />
+                    <PenTool className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-3">Curated Quality</h3>
                   <p className="text-white/75 leading-relaxed text-[15px] mb-2">Every resume &amp; cover letter is custom-tailored, ATS-optimized, and company-tone matched.</p>
@@ -447,12 +447,12 @@ export default function Homepage() {
             </FadeIn>
           </div>
         </div>
-      </section>
+      </section >
 
       {/* ═══════════════════════════════════════════════════════════════
           §3  BIG TESTIMONIAL QUOTE
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-gray-50 py-24 sm:py-32">
+      < section className="bg-gray-50 py-24 sm:py-32" >
         <div className="max-w-4xl mx-auto px-6 text-center">
           <FadeIn>
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 mb-8">
@@ -470,12 +470,12 @@ export default function Homepage() {
             </div>
           </FadeIn>
         </div>
-      </section>
+      </section >
 
       {/* ═══════════════════════════════════════════════════════════════
           §4  FEATURE SHOWCASE ROWS — large mockups on colored backgrounds
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-24 sm:py-36">
+      < section className="bg-white py-24 sm:py-36" >
         <div className="max-w-7xl mx-auto px-6 space-y-32 sm:space-y-44">
 
           {/* Row 1 — Dashboard */}
@@ -618,12 +618,12 @@ export default function Homepage() {
             </div>
           </FadeIn>
         </div>
-      </section>
+      </section >
 
       {/* ═══════════════════════════════════════════════════════════════
           §5  HOW IT WORKS — colorful step cards
           ═══════════════════════════════════════════════════════════════ */}
-      <section id="how-it-works" className="bg-gray-50 py-24 sm:py-36">
+      < section id="how-it-works" className="bg-gray-50 py-24 sm:py-36" >
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="text-center max-w-2xl mx-auto mb-20">
@@ -701,7 +701,7 @@ export default function Homepage() {
                     <Send className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 3</div>
-                  <h3 className="text-xl font-bold mb-3">AI applies for you</h3>
+                  <h3 className="text-xl font-bold mb-3">Automated submissions</h3>
                   <p className="text-white/70 text-[13px] leading-relaxed mb-5">Every application is individually tailored with a custom resume and cover letter.</p>
                 </div>
                 <div className="mt-auto relative bg-white/[0.08] rounded-xl p-3 border border-white/[0.06]">
@@ -731,7 +731,7 @@ export default function Homepage() {
                   </div>
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-2">Step 4</div>
                   <h3 className="text-xl font-bold mb-3">Get interviews</h3>
-                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Track responses, prep for interviews with AI insights, and land your dream role.</p>
+                  <p className="text-white/70 text-[13px] leading-relaxed mb-5">Track responses, prep for interviews with data-driven insights, and land your dream role.</p>
                 </div>
                 <div className="mt-auto relative grid grid-cols-3 gap-2">
                   <div className="bg-white/[0.08] rounded-xl p-2.5 text-center border border-white/[0.06]">
@@ -760,12 +760,12 @@ export default function Homepage() {
             </div>
           </FadeIn>
         </div>
-      </section>
+      </section >
 
       {/* ═══════════════════════════════════════════════════════════════
           §6  TESTIMONIALS GRID
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-24 sm:py-36">
+      < section className="bg-white py-24 sm:py-36" >
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="text-center max-w-2xl mx-auto mb-20">
@@ -796,7 +796,7 @@ export default function Homepage() {
             ))}
           </div>
         </div>
-      </section>
+      </section >
 
       {/* ═══════════════════════════════════════════════════════════════
           §7  FEATURES GRID
@@ -805,7 +805,7 @@ export default function Homepage() {
         <div className="max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="text-center max-w-3xl mx-auto mb-8">
-              <p className="text-purple-600 font-semibold text-sm uppercase tracking-wider mb-4">Full feature set</p>
+              <p className="text-slate-600 font-semibold text-sm uppercase tracking-wider mb-4">Full feature set</p>
               <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
                 Everything you need,<br />right out of the box
               </h2>
@@ -819,9 +819,9 @@ export default function Homepage() {
           </FadeIn>
           <FadeIn delay={200}>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {["AI resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep insights", "Personalized applications", "Salary filtering", "Company size filters", "Location preferences", "Role matching AI", "Auto-apply engine", "Application dashboard", "Response tracking", "Resume versioning", "Email notifications", "Mobile dashboard", "Data encryption", "Bulk applications", "Smart scheduling", "Company research", "Skills gap analysis", "Application analytics", "Priority support"].map((feature) => (
-                <div key={feature} className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white border border-gray-100 hover:border-purple-200 hover:shadow-sm transition-all">
-                  <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Check className="w-3 h-3 text-purple-600" /></div>
+              {["Smart resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep insights", "Personalized applications", "Salary filtering", "Company size filters", "Location preferences", "Role matching engine", "Auto-apply engine", "Application dashboard", "Response tracking", "Resume versioning", "Email notifications", "Mobile dashboard", "Data encryption", "Bulk applications", "Smart scheduling", "Company research", "Skills gap analysis", "Application analytics", "Priority support"].map((feature) => (
+                <div key={feature} className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white border border-gray-100 hover:border-slate-300 hover:shadow-sm transition-all">
+                  <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0"><Check className="w-3 h-3 text-slate-800" /></div>
                   <span className="text-sm font-medium text-gray-700">{feature}</span>
                 </div>
               ))}
@@ -833,18 +833,19 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §8  FINAL CTA — colorful bg with floating shapes
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-blue-50/80 to-teal-50 py-28 sm:py-40">
+      <section className="relative overflow-hidden bg-slate-50 py-28 sm:py-40">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[10%] left-[3%] w-[220px] h-[170px] bg-gradient-to-br from-purple-300 to-purple-500 rounded-3xl rotate-12 opacity-[0.1]" />
-          <div className="absolute bottom-[8%] right-[3%] w-[260px] h-[200px] bg-gradient-to-br from-blue-300 to-sky-500 rounded-3xl -rotate-6 opacity-[0.1]" />
-          <div className="absolute top-[35%] right-[12%] w-[180px] h-[140px] bg-gradient-to-br from-orange-300 to-rose-400 rounded-2xl rotate-6 opacity-[0.08]" />
-          <div className="absolute bottom-[30%] left-[10%] w-[200px] h-[160px] bg-gradient-to-br from-teal-300 to-emerald-400 rounded-2xl -rotate-12 opacity-[0.08]" />
+          {/* Subtle geometric shapes instead of vibrant blobs */}
+          <div className="absolute top-[10%] left-[3%] w-[220px] h-[170px] bg-slate-200 rounded-3xl rotate-12 opacity-[0.4]" />
+          <div className="absolute bottom-[8%] right-[3%] w-[260px] h-[200px] bg-slate-200 rounded-3xl -rotate-6 opacity-[0.4]" />
+          <div className="absolute top-[35%] right-[12%] w-[180px] h-[140px] bg-slate-200 rounded-2xl rotate-6 opacity-[0.3]" />
+          <div className="absolute bottom-[30%] left-[10%] w-[200px] h-[160px] bg-slate-200 rounded-2xl -rotate-12 opacity-[0.3]" />
         </div>
         <div className="relative max-w-7xl mx-auto px-6">
           <FadeIn>
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-[clamp(2.25rem,5vw,3.75rem)] font-extrabold tracking-tight text-gray-900 leading-[1.08]">
-                Job searching is simpler when AI does the heavy lifting
+                Job searching is simpler when automation does the heavy lifting
               </h2>
               <p className="mt-7 text-xl text-gray-500 max-w-lg mx-auto leading-relaxed">
                 Stop applying manually. Set it up in 2 minutes and your first applications go out today.
@@ -854,7 +855,7 @@ export default function Homepage() {
               </div>
               <div className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm text-gray-400">
                 {["Free plan", "No credit card", "Cancel anytime"].map((t) => (
-                  <span key={t} className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> {t}</span>
+                  <span key={t} className="flex items-center gap-2"><Check className="w-4 h-4 text-slate-400" /> {t}</span>
                 ))}
               </div>
             </div>
@@ -866,13 +867,15 @@ export default function Homepage() {
       <div ref={footerSentinelRef} className="h-px w-full" aria-hidden />
 
       {/* ── Sticky mobile CTA ── */}
-      {stickyVisible && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-gray-200 p-3 shadow-lg">
-          <Link to="/login" className="flex items-center justify-center gap-2 w-full h-12 rounded-full text-[15px] font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-colors">
-            Get Started Free <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      )}
+      {
+        stickyVisible && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-gray-200 p-3 shadow-lg">
+            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-12 rounded-full text-[15px] font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+              Get Started Free <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )
+      }
     </>
   );
 }
