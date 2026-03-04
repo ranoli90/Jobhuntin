@@ -107,8 +107,6 @@ const dictionaries: Dict = {
     // Onboarding - Work Style Step
     "onboarding.workStyleTitle": "Work style",
     "onboarding.workStyleSubtitle": "Help us find your ideal environment",
-    "onboarding.workStyleTitle": "Work Style",
-    "onboarding.workStyleSubtitle": "Help us find your ideal environment",
     "onboarding.workStyleQuestion1": "Your team is blocked by a dependency. You:",
     "onboarding.workStyleQ1Option1": "Build a workaround and move forward",
     "onboarding.workStyleQ1Option2": "Escalate to get unblocked",
@@ -188,7 +186,6 @@ const dictionaries: Dict = {
     "onboarding.step": "Step",
     "onboarding.of": "of",
     "onboarding.restart": "Restart",
-    "onboarding.welcomeBack": "Welcome back!",
     "onboarding.pickingUp": "Picking up at",
 
     "holds.responseRequired": "RESPONSE REQUIRED",

@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useJobs, type JobFilters } from "../../hooks/useJobs";
 import { Button } from "../../components/ui/Button";
-import { SwipeInstruction } from "../../components/ui/SwipeInstruction";
+
 import { Card } from "../../components/ui/Card";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { AnimatedNumber } from "./shared";
@@ -178,7 +178,7 @@ export default function JobsView() {
                         </Card>
                     </motion.div>
                 ))}
-                {visibleJobs.length > 0 && <SwipeInstruction />}
+
             </div>
 
             <div className="flex justify-center gap-4 mt-4">

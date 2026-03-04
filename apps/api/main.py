@@ -485,7 +485,7 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[career_mod._get_user_id] = get_current_user_id
     app.include_router(career_mod.router)
 
-    import api.calendar as calendar_mod
+    import api.calendar_api as calendar_mod
 
     async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
         return ctx.tenant_id
@@ -1071,7 +1071,7 @@ async def _nudge_worker(application_id: str) -> None:
 
 @app.get("/applications/{application_id}", response_model=ApplicationDetailResponse)
 async def get_application_detail(
-    application_id: str = Path(...),
+    application_id: str = FastAPIPath(...),
     ctx: TenantContext = Depends(get_tenant_context),
     db: asyncpg.Pool = Depends(get_pool),
 ) -> ApplicationDetailResponse:
