@@ -16,7 +16,8 @@ from packages.backend.domain.job_alerts import (
 from fastapi import APIRouter, Depends, HTTPException
 from shared.logging_config import get_logger
 
-from packages.backend.domain.tenant import TenantContext, get_tenant_context
+from packages.backend.domain.tenant import TenantContext
+from api.dependencies import get_tenant_context
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.job_alerts")
@@ -54,10 +55,14 @@ def get_alert_service(pool: asyncpg.Pool = Depends(_get_pool)) -> JobAlertServic
     return JobAlertService(pool)
 
 
+def _get_tenant_ctx() -> TenantContext:
+    raise NotImplementedError("TenantContext dependency not injected")
+
+
 @router.post("", response_model=dict[str, Any])
 async def create_alert(
     request: CreateAlertRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     service: JobAlertService = Depends(get_alert_service),
 ) -> dict[str, Any]:
     incr("api.job_alerts.create", tags={"tenant_id": ctx.tenant_id})
@@ -89,7 +94,7 @@ async def create_alert(
 
 @router.get("", response_model=list[dict[str, Any]])
 async def list_alerts(
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     service: JobAlertService = Depends(get_alert_service),
 ) -> list[dict[str, Any]]:
     incr("api.job_alerts.list", tags={"tenant_id": ctx.tenant_id})
@@ -112,7 +117,7 @@ async def list_alerts(
 @router.delete("/{alert_id}")
 async def delete_alert(
     alert_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     service: JobAlertService = Depends(get_alert_service),
 ) -> dict[str, str]:
     incr("api.job_alerts.delete", tags={"tenant_id": ctx.tenant_id})
