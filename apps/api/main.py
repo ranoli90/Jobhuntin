@@ -46,24 +46,24 @@ from shared.redis_client import close_redis, get_redis
 from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
 
-from packages.backend.domain.analytics_events import (
+from backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
 )
-from packages.backend.domain.models import (
+from backend.domain.models import (
     CanonicalProfile,
     ErrorDetail,
     ErrorResponse,
 )
-from packages.backend.domain.repositories import (
+from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
     JobRepo,
     db_transaction,
 )
-from packages.backend.domain.resume import process_resume_upload
-from packages.backend.domain.tenant import (
+from backend.domain.resume import process_resume_upload
+from backend.domain.tenant import (
     TenantContext,
     resolve_tenant_context,
 )
