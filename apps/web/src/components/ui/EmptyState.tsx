@@ -1,11 +1,11 @@
 import * as React from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { 
-  Search, 
-  FileText, 
-  Briefcase, 
-  Inbox, 
-  Bell, 
+import {
+  Search,
+  FileText,
+  Briefcase,
+  Inbox,
+  Bell,
   FolderOpen,
   Users,
   Mail,
@@ -42,12 +42,12 @@ interface EmptyStateProps {
   onSecondaryAction?: () => void;
 }
 
-export function EmptyState({ 
-  title, 
-  description, 
-  actionLabel, 
-  onAction, 
-  icon, 
+export function EmptyState({
+  title,
+  description,
+  actionLabel,
+  onAction,
+  icon,
   iconName,
   className,
   compact = false,
@@ -55,10 +55,10 @@ export function EmptyState({
   onSecondaryAction
 }: EmptyStateProps) {
   const shouldReduceMotion = useReducedMotion();
-  
+
   // Get icon component if iconName is provided
   const IconComponent = iconName ? iconMap[iconName] : null;
-  
+
   return (
     <motion.div
       role="status"
@@ -92,14 +92,14 @@ export function EmptyState({
         <div className={cn("flex gap-3 justify-center", compact ? "mt-4" : "mt-6", secondaryActionLabel ? "flex-col sm:flex-row" : "")}>
           {actionLabel ? (
             <motion.div whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}>
-              <Button className="shadow-lg shadow-primary-500/10" onClick={onAction} size={compact ? "sm" : "default"}>
+              <Button className="shadow-lg shadow-primary-500/10" onClick={onAction} size={compact ? "sm" : "md"}>
                 <Plus className="w-4 h-4 mr-2" />
                 {actionLabel}
               </Button>
             </motion.div>
           ) : null}
           {secondaryActionLabel ? (
-            <Button variant="outline" onClick={onSecondaryAction} size={compact ? "sm" : "default"}>
+            <Button variant="outline" onClick={onSecondaryAction} size={compact ? "sm" : "md"}>
               {secondaryActionLabel}
             </Button>
           ) : null}

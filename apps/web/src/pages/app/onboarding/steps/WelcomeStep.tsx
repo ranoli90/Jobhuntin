@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Rocket, MapPin, ArrowRight, Sparkles } from "lucide-react";
+import { Rocket, MapPin, ArrowRight, Sparkles, Clock, Zap, Target } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { t, getLocale } from "../../../../lib/i18n";
 import { cn } from "../../../../lib/utils";
@@ -13,11 +13,12 @@ interface WelcomeStepProps {
 
 export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeStepProps) {
     const locale = getLocale();
+    const [titleRevealed, setTitleRevealed] = React.useState(shouldReduceMotion ?? false);
 
     const features = [
-        { titleKey: "onboarding.feature1Title", descKey: "onboarding.feature1Desc", icon: Sparkles },
-        { titleKey: "onboarding.feature2Title", descKey: "onboarding.feature2Desc", icon: MapPin },
-        { titleKey: "onboarding.feature3Title", descKey: "onboarding.feature3Desc", icon: Rocket },
+        { titleKey: "onboarding.feature1Title", descKey: "onboarding.feature1Desc", icon: Sparkles, color: "from-violet-500 to-purple-600" },
+        { titleKey: "onboarding.feature2Title", descKey: "onboarding.feature2Desc", icon: Target, color: "from-blue-500 to-cyan-500" },
+        { titleKey: "onboarding.feature3Title", descKey: "onboarding.feature3Desc", icon: Zap, color: "from-amber-500 to-orange-500" },
     ];
 
     const welcomeTitle = t("onboarding.welcomeTitle", locale);
@@ -25,25 +26,79 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
     const titleStart = titleWords.slice(0, -1).join(" ");
     const titleEnd = titleWords.pop()?.replace(".", "") || "";
 
-    const personalGreeting = firstName ? `Hey ${firstName} 👋` : null;
+    const personalGreeting = firstName ? `Hey ${firstName}` : null;
+
+    // Typewriter reveal
+    React.useEffect(() => {
+        if (shouldReduceMotion) {
+            setTitleRevealed(true);
+            return;
+        }
+        const timer = setTimeout(() => setTitleRevealed(true), 600);
+        return () => clearTimeout(timer);
+    }, [shouldReduceMotion]);
 
     return (
         <div>
             <div className="text-center py-4">
-                {/* Animated Icon */}
+                {/* Animated Icon with sparkle background */}
                 <div className="mx-auto mb-6 relative font-display">
+                    {/* Sparkle particles */}
+                    {!shouldReduceMotion && (
+                        <>
+                            {[...Array(6)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    className="absolute w-1.5 h-1.5 rounded-full bg-primary-400/60"
+                                    style={{
+                                        left: `${30 + Math.cos((i * 60 * Math.PI) / 180) * 40}%`,
+                                        top: `${30 + Math.sin((i * 60 * Math.PI) / 180) * 40}%`,
+                                    }}
+                                    animate={{
+                                        scale: [0, 1, 0],
+                                        opacity: [0, 0.8, 0],
+                                    }}
+                                    transition={{
+                                        duration: 2,
+                                        delay: i * 0.3,
+                                        repeat: Infinity,
+                                        ease: "easeInOut",
+                                    }}
+                                />
+                            ))}
+                        </>
+                    )}
                     <motion.div
                         animate={shouldReduceMotion ? undefined : { rotate: 360 }}
                         transition={shouldReduceMotion ? undefined : { duration: 20, repeat: Infinity, ease: "linear" }}
                         className="absolute inset-0 rounded-2xl border-2 border-dashed border-primary-500/20"
                     />
-                    <div className={cn(
-                        "relative mx-auto flex h-20 w-20 items-center justify-center",
-                        "rounded-[2rem] bg-primary-600 shadow-2xl shadow-primary-500/40"
-                    )}>
+                    <motion.div
+                        initial={shouldReduceMotion ? undefined : { scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={shouldReduceMotion ? undefined : { type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
+                        className={cn(
+                            "relative mx-auto flex h-20 w-20 items-center justify-center",
+                            "rounded-[2rem] bg-gradient-to-br from-primary-600 to-purple-600 shadow-2xl shadow-primary-500/40",
+                            !shouldReduceMotion && "animate-pulse-glow"
+                        )}
+                    >
                         <Rocket className="h-10 w-10 text-white" />
-                    </div>
+                    </motion.div>
                 </div>
+
+                {/* Time badge */}
+                <motion.div
+                    initial={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 mb-4"
+                >
+                    <Clock className="w-3 h-3 text-emerald-600" />
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                        {t("onboarding.setupTime", locale) || "Takes about 2 min"}
+                    </span>
+                </motion.div>
 
                 {/* Personal Greeting */}
                 {personalGreeting && (
@@ -57,43 +112,70 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                     </motion.p>
                 )}
 
-                {/* Title */}
+                {/* Title with typewriter effect */}
                 <h1 className="mb-3 font-display text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-                    {titleStart}{" "}
-                    <span className="text-primary-600 italic">{titleEnd}.</span>
+                    <motion.span
+                        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+                        animate={{ opacity: titleRevealed ? 1 : 0 }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        {titleStart}{" "}
+                    </motion.span>
+                    <motion.span
+                        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+                        animate={{ opacity: titleRevealed ? 1 : 0, y: titleRevealed ? 0 : 10 }}
+                        transition={{ duration: 0.4, delay: 0.3 }}
+                        className="text-primary-600 italic"
+                    >
+                        {titleEnd}.
+                    </motion.span>
+                    {!titleRevealed && !shouldReduceMotion && (
+                        <span className="inline-block w-0.5 h-8 ml-1 bg-primary-600 align-middle animate-typewriter-cursor" />
+                    )}
                 </h1>
 
                 {/* Subtitle */}
-                <p className={cn(
-                    "mb-8 text-slate-500 font-bold leading-relaxed max-w-sm mx-auto",
-                    "text-base md:text-lg"
-                )}>
+                <motion.p
+                    initial={shouldReduceMotion ? undefined : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                    className={cn(
+                        "mb-8 text-slate-500 font-bold leading-relaxed max-w-sm mx-auto",
+                        "text-base md:text-lg"
+                    )}
+                >
                     {t("onboarding.welcomeSubtitle", locale)}
-                </p>
+                </motion.p>
 
-                {/* Feature Cards */}
+                {/* Feature Cards with enhanced animations */}
                 <div className="grid gap-3 mb-10 text-left">
                     {features.map((item, i) => (
                         <motion.div
                             key={i}
-                            initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={shouldReduceMotion ? undefined : { delay: 0.2 + i * 0.1 }}
+                            initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            transition={shouldReduceMotion ? undefined : { delay: 0.5 + i * 0.15, type: "spring", stiffness: 300, damping: 20 }}
+                            whileHover={shouldReduceMotion ? undefined : { scale: 1.02, y: -2 }}
                             className={cn(
                                 "flex items-center gap-4 p-5 rounded-2xl",
                                 "bg-white border border-slate-100",
                                 "hover:border-primary-100 hover:shadow-xl hover:shadow-primary-500/5",
-                                "transition-all group"
+                                "transition-all group cursor-default"
                             )}
                         >
-                            <div className={cn(
-                                "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
-                                "bg-primary-50 text-primary-600",
-                                "group-hover:bg-primary-600 group-hover:text-white",
-                                "transition-all"
-                            )}>
+                            <motion.div
+                                whileHover={shouldReduceMotion ? undefined : { rotate: [0, -10, 10, 0] }}
+                                transition={{ duration: 0.4 }}
+                                className={cn(
+                                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
+                                    "bg-gradient-to-br", item.color,
+                                    "text-white shadow-lg",
+                                    "group-hover:shadow-xl",
+                                    "transition-all"
+                                )}
+                            >
                                 <item.icon className="h-6 w-6" />
-                            </div>
+                            </motion.div>
                             <div className="text-left min-w-0">
                                 <p className="text-sm font-black text-slate-900 uppercase tracking-wider">
                                     {t(item.titleKey, locale)}
@@ -107,14 +189,14 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                 </div>
             </div>
 
-            {/* Start Button */}
+            {/* Start Button with shimmer */}
             <Button
                 type="button"
                 onClick={onNext}
                 className={cn(
                     "w-full h-16 rounded-[2rem] font-black text-xl",
                     "shadow-xl shadow-primary-600/20",
-                    "bg-primary-600 hover:bg-primary-500",
+                    "bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500",
                     "group overflow-hidden relative"
                 )}
                 aria-label={t("onboarding.startSetup", locale)}
@@ -124,11 +206,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                     {t("onboarding.startSetup", locale)}
                     <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-2 transition-transform" />
                 </span>
-                <motion.div
-                    animate={shouldReduceMotion ? undefined : { x: ['-100%', '200%'] }}
-                    transition={shouldReduceMotion ? undefined : { duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
-                />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
             </Button>
         </div>
     );

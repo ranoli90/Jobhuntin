@@ -2,6 +2,7 @@
 """Run SQL migration against Render PostgreSQL database."""
 
 import asyncio
+import os
 
 import asyncpg
 

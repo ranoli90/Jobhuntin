@@ -68,7 +68,7 @@ function SkillRow({ skill, onEdit, onDelete, locale }: SkillRowProps) {
                     )}
                 </div>
             </div>
-            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <div className="flex gap-0.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                 <button
                     onClick={onEdit}
                     className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"

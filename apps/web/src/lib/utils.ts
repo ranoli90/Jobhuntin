@@ -13,7 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function sanitizeHtml(html: string): string {
   if (!html) return "";
-  
+
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [
       'p', 'br', 'strong', 'b', 'em', 'i', 'u', 'strike', 'del',
@@ -30,8 +30,8 @@ export function sanitizeHtml(html: string): string {
     SANITIZE_DOM: true,
     // Force all links to open in new tab with no opener
     FORBID_ATTR: ['onerror', 'onload', 'onclick'],
-    // Remove any javascript: URLs
-    FORBID_PROTOCOLS: ['javascript:', 'vbscript:', 'data:']
+    // Only allow safe URI schemes (blocks javascript:, vbscript:, data: etc.)
+    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
   });
 }
 
@@ -42,7 +42,7 @@ export function sanitizeHtml(html: string): string {
  */
 export function escapeHtml(text: string): string {
   if (!text) return "";
-  
+
   const htmlEscapes: Record<string, string> = {
     '&': '&amp;',
     '<': '&lt;',
@@ -50,6 +50,6 @@ export function escapeHtml(text: string): string {
     '"': '&quot;',
     "'": '&#39;'
   };
-  
+
   return text.replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
 }

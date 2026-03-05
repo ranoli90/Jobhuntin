@@ -133,9 +133,7 @@ export function clearAuthToken() {
 export async function getAuthHeaders(): Promise<HeadersInit> {
   const token = getAuthToken();
   const csrf = getCsrfToken();
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
+  const headers: HeadersInit = {};
   if (token) {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
@@ -249,8 +247,8 @@ function handleApiError(resp: Response, body: string): never {
       }
       // Fallback hard redirect after a short delay if event wasn't handled
       setTimeout(() => {
-        if (_redirecting) {
-          _redirecting = false;
+        _redirecting = false;
+        if (typeof window !== "undefined") {
           window.location.href = `/login?returnTo=${returnTo}`;
         }
       }, 200);

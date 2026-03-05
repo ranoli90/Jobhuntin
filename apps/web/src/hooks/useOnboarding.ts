@@ -38,12 +38,13 @@ const STEPS: OnboardingStep[] = [
   { id: "confirm-contact", title: "Confirm your details", description: "Verify the info we extracted" },
   { id: "preferences", title: "Job preferences", description: "Tell us what you're looking for" },
   { id: "work-style", title: "Work style", description: "Help us find your ideal environment" },
+  { id: "career-goals", title: "Career goals", description: "Where are you headed?" },
   { id: "ready", title: "You're ready!", description: "Time to start job hunting" },
 ];
 
 export function useOnboarding() {
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Parse localStorage and secure storage once on mount for all state initializers
   const loadInitialState = useCallback(async () => {
     try {
@@ -53,7 +54,7 @@ export function useOnboarding() {
       if (stored) {
         storedState = JSON.parse(stored);
       }
-      
+
       // Get PII data from secure storage
       let piiData: Partial<OnboardingFormData> = {};
       try {
@@ -61,10 +62,10 @@ export function useOnboarding() {
       } catch (error) {
         if (import.meta.env.DEV) console.warn('[useOnboarding] Failed to load PII from secure storage:', error);
       }
-      
+
       // Merge the data
       const mergedFormData = { ...(storedState?.formData || {}), ...piiData };
-      
+
       return storedState ? { ...storedState, formData: mergedFormData } : null;
     } catch (e) {
       if (import.meta.env.DEV) console.warn('[useOnboarding] Corrupted storage, resetting:', e);
@@ -95,7 +96,7 @@ export function useOnboarding() {
   const saveState = useCallback(async () => {
     try {
       const { pii, nonPii } = separatePII(formData);
-      
+
       // Save non-PII data to localStorage
       const state: OnboardingState = {
         currentStep,
@@ -104,7 +105,7 @@ export function useOnboarding() {
       };
       if (import.meta.env.DEV) console.log('[useOnboarding] Saving non-PII state:', state);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      
+
       // Save PII data to secure storage
       if (Object.keys(pii).length > 0) {
         await securePIIStorage.set('contact_info', pii);
@@ -150,15 +151,16 @@ export function useOnboarding() {
   const currentSteps = useMemo(() => {
     if (abVariant === "role_first") {
       // Swap Resume and Preferences to test "Intent vs Payload"
-      // New STEPS order: Welcome, Preferences, Resume, SkillReview, Contact, WorkStyle, Ready
+      // New STEPS order: Welcome, Preferences, Resume, SkillReview, Contact, WorkStyle, CareerGoals, Ready
       return [
-        STEPS[0], // Welcome (index 0)
-        STEPS[4], // Preferences (index 4 in original)
-        STEPS[1], // Resume (index 1)
-        STEPS[2], // SkillReview (index 2)
-        STEPS[3], // ConfirmContact (index 3)
-        STEPS[5], // WorkStyle (index 5)
-        STEPS[6]  // Ready (index 6)
+        STEPS[0], // Welcome
+        STEPS[4], // Preferences
+        STEPS[1], // Resume
+        STEPS[2], // SkillReview
+        STEPS[3], // ConfirmContact
+        STEPS[5], // WorkStyle
+        STEPS[6], // CareerGoals
+        STEPS[7], // Ready
       ];
     }
     return STEPS;

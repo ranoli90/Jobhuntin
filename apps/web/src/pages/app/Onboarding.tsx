@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Zap } from "lucide-react";
+import { CheckCircle2, Zap, Sparkles } from "lucide-react";
 import { Logo } from "../../components/brand/Logo";
 import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
@@ -9,9 +9,11 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { ProgressRing } from "../../components/ui/ProgressRing";
+import { Confetti } from "../../components/ui/Confetti";
 import { pushToast } from "../../lib/toast";
 import { t, getLocale } from "../../lib/i18n";
-import { api } from "../../lib/api";
+import { api, withRetry } from "../../lib/api";
 import { telemetry } from "../../lib/telemetry";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { BrowserCacheService } from "../../lib/browserCache";
@@ -28,6 +30,7 @@ import { SkillReviewStep } from "./onboarding/steps/SkillReviewStep";
 import { ConfirmContactStep } from "./onboarding/steps/ConfirmContactStep";
 import { PreferencesStep } from "./onboarding/steps/PreferencesStep";
 import { WorkStyleStep } from "./onboarding/steps/WorkStyleStep";
+import { CareerGoalsStep } from "./onboarding/steps/CareerGoalsStep";
 import { ReadyStep } from "./onboarding/steps/ReadyStep";
 
 // Types
@@ -52,6 +55,7 @@ export default function Onboarding() {
   const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding, formData, updateFormData } = useOnboarding();
   const { profile, loading, uploadResume, savePreferences, completeOnboarding, updateProfile } = useProfile();
   const aiSuggestions = useAISuggestions();
+  const locale = getLocale();
   const [isLowPowerMode, setIsLowPowerMode] = React.useState(false);
   const cacheService = React.useMemo(() => BrowserCacheService.getInstance(), []);
 
@@ -184,11 +188,43 @@ export default function Onboarding() {
   });
   const [isSavingWorkStyle, setIsSavingWorkStyle] = React.useState(false);
 
+  // Career goals state
+  const [careerGoals, setCareerGoals] = React.useState({
+    experience_level: "",
+    urgency: "",
+    primary_goal: "",
+    why_leaving: "",
+  });
+  const [isSavingCareerGoals, setIsSavingCareerGoals] = React.useState(false);
+
+  // Step completion confetti
+  const [showStepConfetti, setShowStepConfetti] = React.useState(false);
+  const prevStepRef = React.useRef(currentStep);
+
+  // Motivational copy per step
+  const stepMotivationalCopy: Record<string, string> = {
+    welcome: "Your career transformation starts here",
+    resume: "Upload once, never fill out forms again",
+    "skill-review": "Your unfair advantage, catalogued",
+    "confirm-contact": "So employers can reach out to you",
+    preferences: "Tell us your dream, we'll find the match",
+    "work-style": "We're learning how you tick",
+    "career-goals": "Tell us where you're headed",
+    ready: "Your AI job hunter is armed and ready",
+  };
+
+  // Trigger confetti when stepping forward
+  React.useEffect(() => {
+    if (currentStep > prevStepRef.current && !shouldReduceMotion) {
+      setShowStepConfetti(true);
+    }
+    prevStepRef.current = currentStep;
+  }, [currentStep, shouldReduceMotion]);
+
   // Resume upload retry state
   const [showRetryComponent, setShowRetryComponent] = React.useState(false);
 
-  // Skeleton loading states for better UX
-  const stepLoadingStates: Record<string, boolean> = {};
+  // Skeleton loading states removed — shouldShowSkeleton uses direct state instead
 
   // Helper function to determine if current step should show skeleton
   const shouldShowSkeleton = React.useCallback(() => {
@@ -197,18 +233,18 @@ export default function Onboarding() {
     // Show skeleton during specific loading states
     switch (stepId) {
       case 'resume':
-        return isUploading || stepLoadingStates[stepId];
+        return isUploading;
       case 'preferences':
-        return isSavingPreferences || stepLoadingStates[stepId] ||
+        return isSavingPreferences ||
           aiSuggestions.roles.loading || aiSuggestions.locations.loading || aiSuggestions.salary.loading;
       case 'skill-review':
-        return isSavingSkills || stepLoadingStates[stepId];
+        return isSavingSkills;
       case 'confirm-contact':
-        return isSavingContact || stepLoadingStates[stepId];
+        return isSavingContact;
       case 'work-style':
-        return isSavingWorkStyle || stepLoadingStates[stepId];
+        return isSavingWorkStyle;
       default:
-        return stepLoadingStates[stepId];
+        return false;
     }
   }, [
     currentStepData.id,
@@ -217,7 +253,6 @@ export default function Onboarding() {
     isSavingSkills,
     isSavingContact,
     isSavingWorkStyle,
-    stepLoadingStates,
     aiSuggestions.roles.loading,
     aiSuggestions.locations.loading,
     aiSuggestions.salary.loading
@@ -632,33 +667,24 @@ export default function Onboarding() {
     nextStep();
   };
 
+  // Using withRetry from api.ts for consistent retry logic with network error handling
   const retryWithBackoff = async <T,>(
     fn: () => Promise<T>,
     maxRetries: number = 3,
     delay: number = 1000
   ): Promise<T> => {
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await fn();
-      } catch (error) {
-        const err = error as Error & { status?: number };
-        if (i === maxRetries - 1) throw err;
-
-        const isNetworkError = !navigator.onLine || (err.status && err.status >= 500);
-        const nextDelay = delay * Math.pow(2, i);
-
-        if (import.meta.env.DEV) {
-          if (import.meta.env.DEV) console.log("[Onboarding] Retry", i + 1 + "/" + maxRetries, "after", nextDelay, "ms:", error);
-        }
-
-        if (isNetworkError) {
-          await new Promise(resolve => setTimeout(resolve, nextDelay));
-        } else {
-          throw error; // Don't retry client errors
-        }
-      }
-    }
-    throw new Error('Max retries exceeded');
+    return withRetry(fn, {
+      maxRetries,
+      baseDelayMs: delay,
+      shouldRetry: (err: Error & { status?: number }) => {
+        const isNetworkError = !navigator.onLine || (err.status !== undefined && err.status >= 500);
+        if (!isNetworkError) return false; // Don't retry client errors
+        return true;
+      },
+      onRetry: (err, attempt) => {
+        if (import.meta.env.DEV) console.log("[Onboarding] Retry", attempt + 1 + "/" + maxRetries, ":", err);
+      },
+    });
   };
 
   const handleSaveSkills = async () => {
@@ -734,15 +760,13 @@ export default function Onboarding() {
       pushToast({ title: "Contact info saved!", tone: "success" });
 
       // Track AI learning event
-      if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) console.log("[Telemetry] AI Learned Contact Info", {
-          hasFirstName: !!trimmedContact.first_name,
-          hasLastName: !!trimmedContact.last_name,
-          hasEmail: !!trimmedContact.email,
-          hasPhone: !!trimmedContact.phone,
-          hasLinkedIn: !!linkedinUrl,
-        });
-      }
+      if (import.meta.env.DEV) console.log("[Telemetry] AI Learned Contact Info", {
+        hasFirstName: !!trimmedContact.first_name,
+        hasLastName: !!trimmedContact.last_name,
+        hasEmail: !!trimmedContact.email,
+        hasPhone: !!trimmedContact.phone,
+        hasLinkedIn: !!linkedinUrl,
+      });
 
       nextStep();
     } catch (error) {
@@ -884,6 +908,34 @@ export default function Onboarding() {
     }
   };
 
+  const handleSaveCareerGoals = async () => {
+    try {
+      setIsSavingCareerGoals(true);
+      // Save career goals to profile
+      await updateProfile({
+        career_goals: {
+          experience_level: careerGoals.experience_level,
+          urgency: careerGoals.urgency,
+          primary_goal: careerGoals.primary_goal,
+          why_leaving: careerGoals.why_leaving,
+        }
+      });
+      updateFormData({ careerGoals });
+      pushToast({ title: "Career goals saved!", tone: "success" });
+      nextStep();
+    } catch (error) {
+      const err = error as Error & { status?: number };
+      if (import.meta.env.DEV) console.error('[Onboarding] Failed to save career goals:', err);
+      pushToast({
+        title: "Failed to save career goals",
+        description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
+        tone: "error"
+      });
+    } finally {
+      setIsSavingCareerGoals(false);
+    }
+  };
+
   const handleComplete = async () => {
     try {
       setIsCompleting(true);
@@ -902,14 +954,14 @@ export default function Onboarding() {
       sessionStorage.setItem("onboarding_just_completed", "true");
       sessionStorage.setItem("show_first_steps", "true");
       telemetry.track("onboarding_completed", { step: "ready" });
-      pushToast({ title: "You're all set! Let's job hunt!", tone: "success" });
+      pushToast({ title: t("onboarding.allSet", locale) || "You're all set! Let's job hunt!", tone: "success" });
       navigate("/app/dashboard");
     } catch (error) {
       const err = error as Error & { status?: number };
       if (import.meta.env.DEV) console.error('[Onboarding] Failed to complete:', err);
       pushToast({
-        title: "Almost there!",
-        description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.",
+        title: t("onboarding.almostThere", locale) || "Almost there!",
+        description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : (t("onboarding.somethingWrong", locale) || "Something went wrong. Please try again."),
         tone: "error"
       });
     } finally {
@@ -935,20 +987,21 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative">
       <ErrorBoundary>
+        <Confetti active={showStepConfetti} onComplete={() => setShowStepConfetti(false)} />
         {/* Minimal Header */}
         <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50 sticky top-0">
           <Logo to="/app/onboarding" size="sm" />
           <div className="flex items-center gap-2 md:gap-4">
             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
               <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" aria-hidden />
-              <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">Setting up your profile</span>
+              <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">{t("onboarding.settingUpProfile", locale) || "Setting up your profile"}</span>
             </div>
             <div className="lg:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary-50 border border-primary-100">
               <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" aria-hidden />
-              <span className="text-[9px] font-black text-primary-700 uppercase tracking-wider">Setup</span>
+              <span className="text-[9px] font-black text-primary-700 uppercase tracking-wider">{t("onboarding.setup", locale) || "Setup"}</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => { if (globalThis.confirm('Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100 dark:hover:bg-slate-800" title="Clear progress and start over" aria-label="Restart onboarding and clear progress">
-              Restart
+            <Button variant="ghost" size="sm" onClick={() => { if (globalThis.confirm(t("onboarding.confirmRestart", locale) || 'Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100 dark:hover:bg-slate-800" title={t("onboarding.clearProgress", locale) || "Clear progress and start over"} aria-label={t("onboarding.restartOnboarding", locale) || "Restart onboarding and clear progress"}>
+              {t("onboarding.restart", locale) || "Restart"}
             </Button>
           </div>
         </header>
@@ -959,7 +1012,7 @@ export default function Onboarding() {
             <div className="mb-4 md:mb-6" /* using native progress */ aria-label={`Setup progress: step ${currentStep + 1} of ${steps.length}`}>
               <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Step {currentStep + 1} of {steps.length} — {(progress).toFixed(0)}%
+                  {t("onboarding.step", locale) || "Step"} {currentStep + 1} {t("onboarding.of", locale) || "of"} {steps.length} — {(progress).toFixed(0)}%
                 </span>
                 <span className="text-[10px] md:text-xs font-bold text-primary-600 uppercase tracking-wider">{currentStepData.title}</span>
               </div>
@@ -984,53 +1037,41 @@ export default function Onboarding() {
                 className="w-full"
               >
                 <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
-                  {/* Profile completeness indicator - O22: tooltip explains calculation */}
-                  <div
-                    className="mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-slate-900 border border-slate-800 p-3 md:p-4 shadow-lg"
-                    title="Resume 20%, Contact 15%, Location 10%, Role 10%, Salary 5%, Work auth 5%, Skills up to 15%, Work style up to 15%"
-                    aria-describedby="profile-strength-hint"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-2 md:gap-3">
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                          <Zap className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" aria-hidden />
-                        </div>
-                        <div>
-                          <span className="block text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Profile Strength</span>
-                          <span id="profile-strength-hint" className="sr-only">Resume 20%, Contact 15%, Location 10%, Role 10%, Salary 5%, Work auth 5%, Skills up to 15%, Work style up to 15%</span>
-                          <span className="text-xs md:text-sm font-bold text-white">Setup Progress</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 md:gap-4">
-                        <div className="flex-1 md:w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${completeness}%` }}
-                            className="h-full bg-emerald-500"
-                            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                          />
-                        </div>
-                        <span className="text-lg md:text-2xl font-black text-white">{completeness}%</span>
-                      </div>
-                    </div>
-                    {/* Badges row */}
-                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
+                  {/* ProgressRing + Motivational Copy */}
+                  <div className="mb-4 md:mb-6 flex flex-col items-center">
+                    <ProgressRing
+                      progress={completeness}
+                      stepLabel={`${currentStep + 1} of ${steps.length}`}
+                      size={100}
+                      strokeWidth={5}
+                    />
+                    <p className="mt-2 text-xs md:text-sm font-bold text-slate-500 text-center max-w-xs">
+                      {stepMotivationalCopy[currentStepData.id] || t("onboarding.buildingProfile", locale) || "Building your profile"}
+                    </p>
+                    {/* Completion badges */}
+                    <div className="flex flex-wrap gap-1.5 mt-3 justify-center">
                       {(profile?.resume_url || resumeFile) && (
-                        <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
-                          Resume Added
+                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-1.5 py-0.5">
+                          <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" aria-hidden />
+                          {t("onboarding.resumeBadge", locale) || "Resume"}
                         </Badge>
                       )}
                       {preferences.location && (
-                        <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
-                          Location Set
+                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-1.5 py-0.5">
+                          <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" aria-hidden />
+                          {t("onboarding.locationBadge", locale) || "Location"}
                         </Badge>
                       )}
                       {preferences.role_type && (
-                        <Badge className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-1">
-                          <CheckCircle2 className="mr-1 h-3 w-3" aria-hidden />
-                          Job Title Set
+                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-1.5 py-0.5">
+                          <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" aria-hidden />
+                          {t("onboarding.roleBadge", locale) || "Role"}
+                        </Badge>
+                      )}
+                      {richSkills.length > 0 && (
+                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-1.5 py-0.5">
+                          <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" aria-hidden />
+                          {t("onboarding.skillsBadge", locale) || "Skills"}
                         </Badge>
                       )}
                     </div>
@@ -1177,6 +1218,16 @@ export default function Onboarding() {
                             answers={workStyleAnswers}
                             setAnswers={setWorkStyleAnswers}
                             isSaving={isSavingWorkStyle}
+                          />
+                        )}
+
+                        {currentStepData.id === "career-goals" && (
+                          <CareerGoalsStep
+                            onNext={handleSaveCareerGoals}
+                            onPrev={prevStep}
+                            careerGoals={careerGoals}
+                            setCareerGoals={setCareerGoals}
+                            isSaving={isSavingCareerGoals}
                           />
                         )}
 

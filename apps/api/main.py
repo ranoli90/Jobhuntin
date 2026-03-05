@@ -864,6 +864,22 @@ async def save_work_style(
             user_id,
         )
 
+        # Sync work_style to profile_data JSONB so the scoring engine can read it
+        existing = await conn.fetchrow(
+            "SELECT profile_data FROM public.profiles WHERE user_id = $1",
+            user_id,
+        )
+        if existing:
+            import json as _json
+            pd = existing["profile_data"]
+            profile_data = _json.loads(pd) if isinstance(pd, str) else (pd or {})
+            profile_data["work_style"] = body.model_dump()
+            await conn.execute(
+                "UPDATE public.profiles SET profile_data = $1 WHERE user_id = $2",
+                _json.dumps(profile_data),
+                user_id,
+            )
+
     logger.info("[WORK_STYLE] Saved successfully", extra={"user_id": user_id})
     return {"status": "saved"}
 

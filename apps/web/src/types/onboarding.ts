@@ -44,6 +44,12 @@ export interface OnboardingFormData {
         phone: string;
     };
     showParsingPreview?: boolean;
+    careerGoals?: {
+        experience_level: string;
+        urgency: string;
+        primary_goal: string;
+        why_leaving: string;
+    };
 }
 
 export interface OnboardingState {

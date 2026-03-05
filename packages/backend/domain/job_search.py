@@ -10,6 +10,39 @@ from backend.domain.job_boards import AdzunaClient
 
 logger = get_logger("sorce.job_search")
 
+
+async def search_jobs_for_profile(
+    db_pool: asyncpg.Pool,
+    profile: "DeepProfile",
+    *,
+    limit: int = 25,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Profile-aware job search: fetch, filter by dealbreakers, score, and rank.
+
+    1. Fetches candidate jobs using the standard SQL query with profile preferences.
+    2. Applies hard dealbreaker filters (excluded companies, keywords, salary floor).
+    3. Scores every remaining job against the user's deep profile.
+    4. Returns top results sorted by match score descending.
+    """
+    from backend.domain.deep_profile import DeepProfile  # noqa: F811
+    from backend.domain.job_scoring import apply_dealbreaker_filters, score_job_match
+
+    raw_jobs = await search_and_list_jobs(
+        db_pool,
+        location=profile.preferences.get("location"),
+        min_salary=profile.dealbreakers.min_salary,
+        keywords=profile.preferences.get("role_type"),
+        is_remote=profile.dealbreakers.remote_only or None,
+        user_id=profile.user_id,
+        limit=limit * 3,  # over-fetch to allow for filtering
+    )
+
+    filtered = apply_dealbreaker_filters(raw_jobs, profile.dealbreakers)
+    scored = [score_job_match(job, profile) for job in filtered]
+    scored.sort(key=lambda x: x.get("match_score", 0), reverse=True)
+    return scored[offset : offset + limit]
+
 async def search_and_list_jobs(
     db_pool: asyncpg.Pool,
     location: str | None = None,

@@ -39,9 +39,7 @@ const BILLING_TIERS = [
   { name: "TEAM" as const, price: "$49", features: ["10 team seats", "API access", "White-label reports"], actionKey: "addSeats" as const, recommended: false },
 ] as const;
 
-// N-2: Shared locale helper – used by all sub-views
-const sharedLocale = getLocale();
-const sharedRtl = isRTLLanguage(sharedLocale);
+// N-2: Locale helpers — called inside components via useMemo to stay reactive
 
 // M-12: Page size for ApplicationsView pagination
 const APPLICATIONS_PAGE_SIZE = 20;
@@ -198,9 +196,8 @@ export default function Dashboard() {
 
   const shouldReduceMotion = useReducedMotion();
 
-  // N-2: Use shared locale instead of duplicating detection
-  const locale = sharedLocale;
-  const rtl = sharedRtl;
+  // N-2: Reactive locale
+  const locale = useMemo(() => getLocale(), []);
 
   // L-2: Compute data-driven progress values
   const totalApps = applications.length || 1; // avoid /0
@@ -617,9 +614,9 @@ export function JobsView() {
       setShowFirstStepsModal(true);
     }
   }, []);
-  // N-2: Use shared locale
-  const locale = sharedLocale;
-  const rtl = sharedRtl;
+  // N-2: Reactive locale
+  const locale = useMemo(() => getLocale(), []);
+  const rtl = useMemo(() => isRTLLanguage(locale), [locale]);
 
   // Undo functionality state
   const [lastSwipe, setLastSwipe] = useState<{
@@ -1106,10 +1103,10 @@ export function JobsView() {
 
                   <div className="p-8 flex-1 bg-white overflow-y-auto no-scrollbar">
                     <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Role Analysis</h4>
-                    <p 
+                    <p
                       className="text-slate-600 font-medium leading-relaxed mb-6"
-                      dangerouslySetInnerHTML={{ 
-                        __html: job.description ? sanitizeHtml(job.description) : "No description provided." 
+                      dangerouslySetInnerHTML={{
+                        __html: job.description ? sanitizeHtml(job.description) : "No description provided."
                       }}
                     />
 
@@ -1120,7 +1117,7 @@ export function JobsView() {
                             <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <CheckCircle className="w-3 h-3 text-emerald-600" />
                             </div>
-                            <p 
+                            <p
                               className="text-sm text-slate-700 font-medium"
                               dangerouslySetInnerHTML={{ __html: sanitizeHtml(req || "") }}
                             />
@@ -1282,7 +1279,7 @@ export function ApplicationsView() {
   const navigate = useNavigate();
   const { applications, isLoading, answerHold, snoozeApplication, isSubmitting } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
-  const locale = sharedLocale; // N-2: shared locale
+  const locale = useMemo(() => getLocale(), []); // N-2: reactive locale
   // M-12: Client-side Load more (D16)
   const [displayedCount, setDisplayedCount] = useState(APPLICATIONS_PAGE_SIZE);
 

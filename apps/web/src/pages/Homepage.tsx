@@ -110,7 +110,7 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
-    const start = () => { 
+    const start = () => {
       interval = setInterval(() => {
         setCurrentIdx((prev) => {
           const next = (prev + 1) % activities.length;
@@ -118,7 +118,7 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
           setAnnouncement(`${item.role} at ${item.company} - ${item.type}`);
           return next;
         });
-      }, 3000); 
+      }, 3000);
     };
     const stop = () => { if (interval) clearInterval(interval); interval = null; };
     const onVisibility = () => (document.hidden ? stop() : start());
@@ -212,7 +212,7 @@ export default function Homepage() {
                 <div className="flex -space-x-2 mr-2">
                   {[1, 2, 3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-200" />)}
                 </div>
-      <p className="text-xs sm:text-sm font-medium text-slate-500">
+                <p className="text-xs sm:text-sm font-medium text-slate-500">
                   <span className="text-slate-900 font-bold">10,000+</span> seekers already hired
                 </p>
               </div>
@@ -303,8 +303,8 @@ export default function Homepage() {
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-center mb-6">Trusted by job seekers landing roles at</p>
           <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
             {["Google", "Amazon", "Meta", "Stripe", "Shopify", "Netflix"].map((name) => (
-              <span 
-                key={name} 
+              <span
+                key={name}
                 className="text-xl font-bold text-gray-500 tracking-tight select-none px-4 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-500 transition-all cursor-default"
                 aria-label={`Trusted employer: ${name}`}
               >
@@ -849,7 +849,7 @@ export default function Homepage() {
                       { n: "Alex J.", c: "Vercel", r: "Front End", t: "42m ago" },
                     ]
                   ].map((win, i) => (
-                    <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                    <div key={`win-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
                         {win.n.split(' ').map(x => x[0]).join('')}
                       </div>
@@ -864,7 +864,7 @@ export default function Homepage() {
                   ))}
                 </div>
                 {/* Fade overlays */}
-                <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-slate-900/0 via-slate-900/0 to-transparent pointer-events-none" />
+                <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-slate-800/50 to-transparent pointer-events-none" />
                 <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
               </div>
 

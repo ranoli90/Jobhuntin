@@ -137,20 +137,15 @@ html.dark :focus-visible {
   outline-color: #fafaf9;
 }
 
-/* Prevent iOS auto-zoom on inputs */
-input,
-textarea,
-select {
-  font-size: 16px !important;
-}
-
-/* Ensure inputs don't zoom on focus on iOS */
+/* Prevent iOS auto-zoom on inputs (mobile only) */
 @supports (-webkit-touch-callout: none) {
+  @media (max-width: 768px) {
 
-  input,
-  textarea,
-  select {
-    font-size: 16px !important;
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -764,5 +759,132 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 
   .animate-scroll-v:hover {
     animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-scroll-v {
+      animation: none;
+    }
+  }
+}
+
+/* ── Onboarding Animations ───────────────────────────────── */
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100vh) rotate(720deg) scale(0.3);
+    opacity: 0;
+  }
+}
+
+.animate-confetti-fall {
+  animation: confetti-fall 2s ease-in forwards;
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100%);
+    opacity: 0.3;
+  }
+}
+
+.animate-scan-line {
+  animation: scan-line 1.8s ease-in-out infinite;
+}
+
+@keyframes typewriter-cursor {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-typewriter-cursor {
+  animation: typewriter-cursor 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 24px 8px rgba(99, 102, 241, 0.15);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes lift-off {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  60% {
+    transform: translateY(-30px) scale(1.02);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-120px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+.animate-lift-off {
+  animation: lift-off 1.2s ease-in forwards;
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+
+  100% {
+    transform: translateX(200%) skewX(-12deg);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer-slide 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .animate-confetti-fall,
+  .animate-scan-line,
+  .animate-pulse-glow,
+  .animate-lift-off,
+  .animate-shimmer {
+    animation: none;
+  }
+
+  .animate-typewriter-cursor {
+    animation: none;
+    opacity: 1;
   }
 }

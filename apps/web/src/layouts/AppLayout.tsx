@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useBilling } from "../hooks/useBilling";
 import { Button } from "../components/ui/Button";
@@ -121,7 +121,7 @@ export default function AppLayout() {
 
         <MobileDrawerBody>
           <nav className="space-y-1 mt-2">
-            {NAV_ITEMS.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <NavLink
@@ -204,7 +204,7 @@ export default function AppLayout() {
         {/* Mobile bottom navigation: 4 main + More (opens full menu) */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 pb-safe-area shadow-[0_-8px_24px_rgba(15,23,42,0.06)]" aria-label="Main navigation">
           <div className="grid grid-cols-5 gap-1 pt-2 pb-5">
-            {NAV_ITEMS.slice(0, 4).map((item) => {
+            {visibleNavItems.slice(0, 4).map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname.startsWith(item.to);
               return (
@@ -214,7 +214,7 @@ export default function AppLayout() {
                   onClick={closeMobile}
                   className={({ isActive }) =>
                     cn(
-                      "flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95",
+                      "flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95 relative",
                       isActive ? "text-primary-700 font-bold" : "text-slate-500 hover:text-slate-900"
                     )
                   }
@@ -240,7 +240,7 @@ export default function AppLayout() {
               <MoreHorizontal className="h-6 w-6 mb-1.5" aria-hidden />
               <span className="text-[11px] tracking-tight font-medium">More</span>
               <span className="absolute top-1 right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary-600 text-[10px] font-black text-white px-1.5 border-2 border-white" aria-hidden>
-                {NAV_ITEMS.slice(4).length}
+                {visibleNavItems.slice(4).length}
               </span>
             </button>
           </div>

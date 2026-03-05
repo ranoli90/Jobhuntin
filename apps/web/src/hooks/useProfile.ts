@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { apiGet, apiPatch, apiPostFormData } from "../lib/api";
 
 export interface Preferences {
@@ -47,6 +47,12 @@ export interface ProfileUpdatePayload {
   contact?: ContactInfo;
   avatar_url?: string;
   resume_url?: string;
+  career_goals?: {
+    experience_level: string;
+    urgency: string;
+    primary_goal: string;
+    why_leaving?: string;
+  };
 }
 
 interface ParsedProfile {
@@ -83,6 +89,10 @@ export function useProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Ref to track latest profile value to avoid stale closures in async functions
+  const profileRef = useRef(profile);
+  useEffect(() => { profileRef.current = profile; }, [profile]);
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -171,7 +181,7 @@ export function useProfile() {
         };
       });
       // If we didn't have a profile before, refresh to get the full object
-      if (!profile) {
+      if (!profileRef.current) {
         await refreshProfile();
       }
       return data;

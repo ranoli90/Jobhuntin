@@ -78,7 +78,7 @@ export function MarketingNavbar() {
 
         {/* CTA Buttons */}
         <div className="hidden lg:flex items-center gap-5">
-          <ThemeToggle className={shouldBeTransparent ? "text-white/80 hover:text-white" : ""} />
+          <ThemeToggle className="text-slate-500 hover:text-slate-900 transition-colors" />
           {isLoggedIn ? (
             <>
               <Link
@@ -122,14 +122,12 @@ export function MarketingNavbar() {
         <button
           className={cn(
             "lg:hidden p-2.5 -mr-2 rounded-xl transition-all active:scale-90",
-            shouldBeTransparent
-              ? "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+            "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
           )}
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
-          aria-controls="mobile-marketing-drawer"
+          aria-controls="marketing-mobile-drawer"
         >
           <Menu className="w-6 h-6" />
         </button>
