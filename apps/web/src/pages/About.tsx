@@ -11,8 +11,8 @@ import { t, getLocale } from '../lib/i18n';
 const SimulationLog = () => {
     const [logs, setLogs] = useState<string[]>([
         "Initializing JobHuntin Engine v2.4...",
-        "Scanning LinkedIn for 'Senior React Engineer'...",
-        "Found matching job at Vercel (Score: 94%)",
+        "Scanning for 'Retail Jobs' near you...",
+        "Found matching job at Walmart (Score: 94%)",
         "Tailoring cover letter based on summary..."
     ]);
 
@@ -20,8 +20,8 @@ const SimulationLog = () => {
         const timer = setInterval(() => {
             const newLogs = [
                 "Analyzing req: 'Must have Framer Motion exp'...",
-                "Updating resume skillset: +Advanced Animation",
-                "Submitting application to Stripe...",
+                "Updating resume skillset: +Customer Service",
+                "Submitting application to Walmart...",
                 "Success! ID: app_492013",
                 "Next scan in 3.4s..."
             ];

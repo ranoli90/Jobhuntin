@@ -18,36 +18,36 @@ const testimonials: Testimonial[] = [
   {
     id: "1",
     quote: "I was skeptical at first, but JobHuntin landed me 3 interviews in my first week. The AI tailoring is incredible - each application felt personalized.",
-    author: "Sarah Chen",
-    role: "Senior Product Manager",
-    company: "Previously at Startup",
+    author: "Maria Garcia",
+    role: "Cashier",
+    company: "Now at Walmart",
     rating: 5,
     avatarGradient: "from-rose-400 to-orange-500"
   },
   {
     id: "2",
-    quote: "Applied to 200+ jobs while I slept. Woke up to 12 responses. This is the future of job searching.",
-    author: "Marcus Johnson",
-    role: "Full Stack Developer",
-    company: "Now at Stripe",
+    quote: "Applied to tons of jobs while I worked my shift. Woke up to multiple responses. This is exactly what I needed.",
+    author: "James Wilson",
+    role: "Sales Associate",
+    company: "Now at Target",
     rating: 5,
     avatarGradient: "from-blue-400 to-indigo-600"
   },
   {
     id: "3",
     quote: "The resume tailoring alone is worth it. My callback rate went from 2% to 15% after switching to JobHuntin.",
-    author: "Emily Rodriguez",
-    role: "UX Designer",
-    company: "Now at Figma",
+    author: "Lisa Thompson",
+    role: "Retail Manager",
+    company: "Now at Home Depot",
     rating: 5,
     avatarGradient: "from-purple-400 to-pink-500"
   },
   {
     id: "4",
-    quote: "As a career changer, I needed help positioning my skills. JobHuntin's AI understood my transferable experience better than I did.",
-    author: "David Park",
-    role: "Data Scientist",
-    company: "Now at Netflix",
+    quote: "As a first-time job seeker, I needed help positioning myself. JobHuntin's AI helped me apply to more jobs in a week than I could in a month.",
+    author: "David Lee",
+    role: "Customer Service Rep",
+    company: "Now at Amazon",
     rating: 5,
     avatarGradient: "from-emerald-400 to-teal-600"
   }

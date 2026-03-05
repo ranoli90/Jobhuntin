@@ -148,6 +148,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
             transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
             className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[360px] flex flex-col bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/20 dark:shadow-black/40 border-slate-100 dark:border-slate-700`}
             onClick={(e) => e.stopPropagation()}
+            style={{ zIndex: 9999 }}
           >
             {children}
           </motion.div>

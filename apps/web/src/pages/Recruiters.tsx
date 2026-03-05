@@ -109,7 +109,7 @@ export default function Recruiters() {
                       <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&q=80" alt="Michael Chen - Top Talent Candidate" className="w-12 h-12 rounded-full ring-2 ring-white shadow-sm" loading="lazy" />
                       <div>
                         <h3 className="font-bold text-slate-900">Michael Chen</h3>
-                        <p className="text-sm text-slate-500">Senior React Developer</p>
+                        <p className="text-sm text-slate-500">Warehouse Supervisor</p>
                       </div>
                       <div className="ml-auto bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">
                         98% Match
@@ -117,12 +117,12 @@ export default function Recruiters() {
                     </div>
                     <div className="space-y-4">
                       <div className="bg-slate-50 p-4 rounded-xl">
-                        <p className="text-xs font-bold text-slate-400 uppercase mb-1">Q: Experience with High Scale?</p>
-                        <p className="text-sm text-slate-800 font-medium">"Yes, at CloudScale I optimized a dashboard handling 50k WS connections..."</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase mb-1">Q: Experience with Leadership?</p>
+                        <p className="text-sm text-slate-800 font-medium">"Yes, I've managed a team of 15 warehouse workers for 3 years..."</p>
                       </div>
                       <div className="bg-slate-50 p-4 rounded-xl">
                         <p className="text-xs font-bold text-slate-400 uppercase mb-1">Q: Salary Expectations?</p>
-                        <p className="text-sm text-slate-800 font-medium">$160k - $180k (Remote)</p>
+                        <p className="text-sm text-slate-800 font-medium">$22 - $25/hr (Full Time)</p>
                       </div>
                     </div>
                   </div>

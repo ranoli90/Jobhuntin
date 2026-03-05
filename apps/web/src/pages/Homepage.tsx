@@ -106,14 +106,14 @@ function FadeIn({ children, className = "", delay = 0 }: { children: React.React
 function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
   const [announcement, setAnnouncement] = useState("");
   const activities = [
-    { role: "Senior Frontend Engineer", company: "Stripe", time: "2s ago", type: "applied" },
-    { role: "Product Manager", company: "Airbnb", time: "15s ago", type: "applied" },
-    { role: "Data Scientist", company: "Netflix", time: "32s ago", type: "matched" },
-    { role: "UX Designer", company: "Figma", time: "1m ago", type: "applied" },
-    { role: "Backend Engineer", company: "Shopify", time: "1m ago", type: "applied" },
-    { role: "ML Engineer", company: "OpenAI", time: "2m ago", type: "matched" },
-    { role: "DevOps Engineer", company: "Datadog", time: "2m ago", type: "applied" },
-    { role: "Full Stack Developer", company: "Vercel", time: "3m ago", type: "applied" },
+    { role: "Cashier", company: "Walmart", time: "2s ago", type: "applied" },
+    { role: "Sales Associate", company: "Target", time: "15s ago", type: "applied" },
+    { role: "Customer Rep", company: "Amazon", time: "32s ago", type: "matched" },
+    { role: "Warehouse Worker", company: "Costco", time: "1m ago", type: "applied" },
+    { role: "Delivery Driver", company: "FedEx", time: "1m ago", type: "applied" },
+    { role: "Retail Manager", company: "Home Depot", time: "2m ago", type: "matched" },
+    { role: "Server", company: "Olive Garden", time: "2m ago", type: "applied" },
+    { role: " stocker", company: "Best Buy", time: "3m ago", type: "applied" },
   ];
   const [currentIdx, setCurrentIdx] = useState(0);
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -334,9 +334,9 @@ export default function Homepage() {
                   </div>
                   {/* Application rows */}
                   {[
-                    { name: "Stripe", status: "Interview", color: "from-brand-lagoon to-brand-plum" },
-                    { name: "Airbnb", status: "Applied", color: "from-brand-sunrise to-brand-mango" },
-                    { name: "Figma", status: "Viewed", color: "from-brand-plum to-brand-lagoon" },
+                    { name: "Walmart", status: "Interview", color: "from-brand-lagoon to-brand-plum" },
+                    { name: "Target", status: "Applied", color: "from-brand-sunrise to-brand-mango" },
+                    { name: "Amazon", status: "Viewed", color: "from-brand-plum to-brand-lagoon" },
                   ].map((app, i) => (
                     <motion.div 
                       key={i} 
@@ -489,7 +489,7 @@ export default function Homepage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-sm font-medium text-[#78716C] text-center mb-6">Trusted by job seekers landing roles at</p>
           <div className="flex flex-wrap justify-center gap-x-6 sm:gap-x-10 gap-y-3">
-            {['Google', 'Stripe', 'Airbnb', 'Netflix', 'Shopify', 'Figma'].map((company) => (
+            {['Walmart', 'Target', 'Amazon', 'Costco', 'Home Depot', 'Best Buy'].map((company) => (
               <span key={company} className="text-base sm:text-lg font-semibold text-[#A8A29E]">
                 {company}
               </span>
@@ -532,9 +532,9 @@ export default function Homepage() {
                     <span className="text-[9px] text-gray-500">3 of 47 found</span>
                   </div>
                   {[
-                    { role: "Sr. Frontend Eng", co: "Stripe", match: 98, salary: "$180k–$220k" },
-                    { role: "Product Manager", co: "Airbnb", match: 95, salary: "$165k–$200k" },
-                    { role: "UX Designer", co: "Figma", match: 92, salary: "$140k–$175k" },
+                    { role: "Retail Associate", co: "Target", match: 98, salary: "$15–$18/hr" },
+                    { role: "Cashier", co: "Walmart", match: 95, salary: "$14–$16/hr" },
+                    { role: "Sales Rep", co: "Best Buy", match: 92, salary: "$16–$20/hr" },
                   ].map((j, i) => (
                     <div key={i} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 mb-2 last:mb-0">
                       <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center text-[11px] font-black text-primary-700 shrink-0">{j.co.charAt(0)}</div>
@@ -675,8 +675,8 @@ export default function Homepage() {
             <div className="mt-10 flex items-center justify-center gap-4">
               <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center text-lg font-bold text-primary-700">SK</div>
               <div className="text-left">
-                <p className="font-semibold text-gray-900 text-lg">Sarah K.</p>
-                <p className="text-sm text-gray-500">Marketing Manager · Landed at HubSpot</p>
+                <p className="font-semibold text-gray-900 text-lg">Maria G.</p>
+                <p className="text-sm text-gray-500">Cashier · Landed at Walmart</p>
               </div>
             </div>
           </FadeIn>
@@ -706,10 +706,10 @@ export default function Homepage() {
                     </div>
                     <div className="space-y-0">
                       {[
-                        { role: "Senior Frontend Engineer", co: "Stripe", status: "Interview", color: "bg-green-100 text-green-700" },
-                        { role: "Product Manager", co: "Airbnb", status: "Applied", color: "bg-primary-100 text-primary-700" },
-                        { role: "Data Scientist", co: "Netflix", status: "Viewed", color: "bg-amber-100 text-amber-700" },
-                        { role: "UX Designer", co: "Figma", status: "Applied", color: "bg-primary-100 text-primary-700" },
+                        { role: "Cashier", co: "Walmart", status: "Interview", color: "bg-green-100 text-green-700" },
+                        { role: "Sales Associate", co: "Target", status: "Applied", color: "bg-primary-100 text-primary-700" },
+                        { role: "Customer Rep", co: "Amazon", status: "Viewed", color: "bg-amber-100 text-amber-700" },
+                        { role: "Warehouse Worker", co: "Costco", status: "Applied", color: "bg-primary-100 text-primary-700" },
                       ].map((row, i) => (
                         <div key={i} className="flex items-center gap-3 py-3 border-t border-gray-50">
                           <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Briefcase className="w-4 h-4 text-gray-500" /></div>
@@ -887,8 +887,8 @@ export default function Homepage() {
                 </div>
                 <div className="mt-auto relative space-y-2">
                   {[
-                    { label: "Role", value: "Designer" },
-                    { label: "Salary", value: "$150k+" },
+                    { label: "Role", value: "Sales" },
+                    { label: "Salary", value: "$16/hr" },
                     { label: "Remote", value: "Yes" },
                   ].map((f) => (
                     <div key={f.label} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
@@ -1012,8 +1012,8 @@ export default function Homepage() {
                     <span className="text-slate-400">Trusted by job seekers at</span>
                     <div className="flex gap-4 text-slate-500 font-medium">
                       <span>Google</span>
-                      <span>Meta</span>
-                      <span>Stripe</span>
+                      <span>Amazon</span>
+                      <span>Target</span>
                       <span>+50 more</span>
                     </div>
                   </div>
@@ -1025,14 +1025,14 @@ export default function Homepage() {
               <div className="absolute inset-0 bg-slate-800/50 rounded-[2.5rem] border border-white/5 backdrop-blur-sm overflow-hidden p-6 sm:p-8">
                 <div className="space-y-4 animate-scroll-v">
                   {[
-                    { n: "Sarah K.", c: "Stripe", r: "Software Engineer", t: "2m ago" },
-                    { n: "Marcus T.", c: "Google", r: "Product Manager", t: "5m ago" },
-                    { n: "James L.", c: "Airbnb", r: "UX Designer", t: "12m ago" },
-                    { n: "Priya R.", c: "Meta", r: "Data Scientist", t: "15m ago" },
-                    { n: "Elena M.", c: "Figma", r: "Product Lead", t: "22m ago" },
-                    { n: "David C.", c: "Shopify", r: "Backend Dev", t: "28m ago" },
-                    { n: "Chris B.", c: "Netflix", r: "SRE", t: "35m ago" },
-                    { n: "Alex J.", c: "Vercel", r: "Front End", t: "42m ago" },
+                    { n: "Maria G.", c: "Walmart", r: "Cashier", t: "2m ago" },
+                    { n: "James T.", c: "Target", r: "Sales Associate", t: "5m ago" },
+                    { n: "Lisa R.", c: "Amazon", r: "Customer Rep", t: "12m ago" },
+                    { n: "Tom B.", c: "Costco", r: "Warehouse", t: "15m ago" },
+                    { n: "Sara M.", c: "Home Depot", r: "Retail Manager", t: "22m ago" },
+                    { n: "Mike C.", c: "FedEx", r: "Driver", t: "28m ago" },
+                    { n: "Anna L.", c: "Starbucks", r: "Shift Lead", t: "35m ago" },
+                    { n: "John D.", c: "McDonald's", r: "Crew Member", t: "42m ago" },
                   ].map((win, i) => (
                     <div key={`win-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -1078,8 +1078,8 @@ export default function Homepage() {
           </FadeIn>
           <FadeIn delay={100}>
             <div className="text-center max-w-xl mx-auto mb-16 px-4">
-              <p className="text-slate-600 italic text-base leading-relaxed">"Instead of worrying about 20 different tools… I just run my career searches from JobHuntin."</p>
-              <p className="mt-4 text-sm text-slate-400 font-bold uppercase tracking-wider">– Sarah K., Marketing Manager</p>
+              <p className="text-slate-600 italic text-base leading-relaxed">"Instead of spending hours applying to jobs… I just set it up and get calls back."</p>
+              <p className="mt-4 text-sm text-slate-400 font-bold uppercase tracking-wider">– Maria G., Cashier</p>
             </div>
           </FadeIn>
           <FadeIn delay={200}>

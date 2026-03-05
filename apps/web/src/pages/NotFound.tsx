@@ -11,10 +11,10 @@ export default function NotFound() {
   const [searchQuery, setSearchQuery] = useState("");
   
   const trendingSearches = [
-    { label: "Software Engineer Jobs", path: "/app/jobs?role=software-engineer" },
-    { label: "Product Manager Jobs", path: "/app/jobs?role=product-manager" },
-    { label: "Data Scientist Jobs", path: "/app/jobs?role=data-scientist" },
-    { label: "Marketing Manager Jobs", path: "/app/jobs?role=marketing-manager" },
+    { label: "Cashier Jobs", path: "/app/jobs?role=cashier" },
+    { label: "Sales Associate Jobs", path: "/app/jobs?role=sales-associate" },
+    { label: "Customer Service Jobs", path: "/app/jobs?role=customer-service" },
+    { label: "Retail Jobs", path: "/app/jobs?role=retail" },
   ];
   
   const handleSearch = (e: React.FormEvent) => {

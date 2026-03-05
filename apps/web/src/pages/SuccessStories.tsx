@@ -36,26 +36,26 @@ export default function SuccessStories() {
     },
     {
       name: "Michael Chen",
-      role: "Senior Developer",
-      company: "CloudScale",
+      role: "Warehouse Supervisor",
+      company: "Costco",
       image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
-      quote: "The cover letters it generates are actually better than what I write myself. It picked up nuances in my resume I forgot about.",
-      stat: "3 Offers Received",
+      quote: "I work long hours at the warehouse. JobHuntin applied to jobs for me while I was at work. Got a better position in 2 weeks.",
+      stat: "Hired in 14 days",
       audio: "michael_clip.mp3"
     },
     {
       name: "Jessica Alvarez",
-      role: "Sales Executive",
-      company: "Global Sales",
+      role: "Sales Associate",
+      company: "Target",
       image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
       quote: "Being in sales, I know it's a numbers game. JobHuntin maximized my volume without sacrificing quality.",
-      stat: "$20k Salary Bump",
+      stat: "$5k Salary Bump",
       audio: "jessica_clip.mp3"
     },
     {
       name: "David Ross",
-      role: "Product Manager",
-      company: "InnovateLabs",
+      role: "Customer Service Lead",
+      company: "Amazon",
       image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
       quote: "I didn't believe it at first. Then I woke up to an inbox full of 'Let's chat' emails. Game changer.",
       stat: "Remote Role Landed",
@@ -63,11 +63,11 @@ export default function SuccessStories() {
     },
     {
       name: "Emily Zhang",
-      role: "UX Designer",
-      company: "Creative Co",
+      role: "Retail Manager",
+      company: "Home Depot",
       image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
-      quote: "My portfolio got more views in 3 days with JobHuntin than in 3 months of manual applying.",
-      stat: "Dream Job Secured",
+      quote: "My application volume went through the roof. Got promoted to manager in less than a month.",
+      stat: "Promoted to Manager",
       audio: "emily_clip.mp3"
     }
   ];

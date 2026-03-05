@@ -171,8 +171,8 @@ export default function GuidesHome() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full lg:w-auto">
-              <Link to="/jobs/software-engineer/remote" className="bg-white/10 hover:bg-white/20 px-4 sm:px-6 py-3 rounded-xl sm:rounded-2xl text-sm font-bold transition-colors border border-white/5 text-center">Software Engineer Jobs</Link>
-              <Link to="/jobs/marketing-manager/denver" className="bg-white/10 hover:bg-white/20 px-4 sm:px-6 py-3 rounded-xl sm:rounded-2xl text-sm font-bold transition-colors border border-white/5 text-center">Marketing Manager Denver</Link>
+              <Link to="/jobs/cashier/remote" className="bg-white/10 hover:bg-white/20 px-4 sm:px-6 py-3 rounded-xl sm:rounded-2xl text-sm font-bold transition-colors border border-white/5 text-center">Cashier Jobs</Link>
+              <Link to="/jobs/sales-associate/denver" className="bg-white/10 hover:bg-white/20 px-4 sm:px-6 py-3 rounded-xl sm:rounded-2xl text-sm font-bold transition-colors border border-white/5 text-center">Sales Associate Denver</Link>
             </div>
           </div>
         </div>

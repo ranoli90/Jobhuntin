@@ -44,11 +44,11 @@ interface MatchesData {
 
 const mockMatchesData: MatchesData = {
   matches: [
-    { id: "1", job_id: "j1", job_title: "Senior Engineer", company: "Acme Corp", tenant_id: "t1", tenant_name: "Acme Corp", user_id: "u1", score: 92, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T10:30:00Z" },
-    { id: "2", job_id: "j2", job_title: "Product Manager", company: "TechStart", tenant_id: "t2", tenant_name: "TechStart Inc", user_id: "u2", score: 78, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T09:45:00Z" },
-    { id: "3", job_id: "j3", job_title: "Data Analyst", company: "Global Systems", tenant_id: "t3", tenant_name: "Global Systems", user_id: "u3", score: 45, passed_dealbreakers: false, status: "completed", created_at: "2026-02-12T09:30:00Z" },
-    { id: "4", job_id: "j4", job_title: "DevOps Engineer", company: "StartupXYZ", tenant_id: "t4", tenant_name: "StartupXYZ", user_id: "u4", score: 0, passed_dealbreakers: false, status: "failed", created_at: "2026-02-12T09:15:00Z" },
-    { id: "5", job_id: "j5", job_title: "Frontend Developer", company: "Acme Corp", tenant_id: "t1", tenant_name: "Acme Corp", user_id: "u1", score: 85, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T08:00:00Z" },
+    { id: "1", job_id: "j1", job_title: "Retail Associate", company: "Walmart", tenant_id: "t1", tenant_name: "Walmart", user_id: "u1", score: 92, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T10:30:00Z" },
+    { id: "2", job_id: "j2", job_title: "Cashier", company: "Target", tenant_id: "t2", tenant_name: "Target Inc", user_id: "u2", score: 78, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T09:45:00Z" },
+    { id: "3", job_id: "j3", job_title: "Sales Associate", company: "Best Buy", tenant_id: "t3", tenant_name: "Best Buy", user_id: "u3", score: 45, passed_dealbreakers: false, status: "completed", created_at: "2026-02-12T09:30:00Z" },
+    { id: "4", job_id: "j4", job_title: "Customer Service", company: "Amazon", tenant_id: "t4", tenant_name: "Amazon", user_id: "u4", score: 0, passed_dealbreakers: false, status: "failed", created_at: "2026-02-12T09:15:00Z" },
+    { id: "5", job_id: "j5", job_title: "Warehouse Worker", company: "Costco", tenant_id: "t1", tenant_name: "Costco", user_id: "u1", score: 85, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T08:00:00Z" },
   ],
   total: 1250,
   page: 1,

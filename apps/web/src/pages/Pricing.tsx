@@ -388,7 +388,7 @@ export default function Pricing() {
         <div className="mt-16 text-center">
           <p className="text-sm text-slate-500 mb-4">Trusted by job seekers at</p>
           <div className="flex justify-center gap-8 opacity-40">
-            {['Google', 'Amazon', 'Meta', 'Stripe', 'Netflix'].map((company) => (
+            {['Walmart', 'Target', 'Amazon', 'Costco', 'Home Depot'].map((company) => (
               <span key={company} className="text-lg font-bold text-slate-600">{company}</span>
             ))}
           </div>

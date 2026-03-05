@@ -11,11 +11,16 @@ export function ThemeToggle({ className }: { className?: string }) {
   const [theme, setTheme] = useState<ThemeMode>(() => {
     if (typeof globalThis.window === 'undefined') return 'system';
     const stored = localStorage.getItem(THEME_KEY);
-    if (stored === 'dark' || stored === 'light' || stored === 'system') return stored as ThemeMode;
+    if (stored === 'dark' || stored === 'light') return stored as ThemeMode;
     return 'system';
   });
 
-  const resolvedDark = theme === 'dark' || (theme === 'system' && typeof globalThis.window !== 'undefined' && globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const getSystemTheme = () => {
+    if (typeof globalThis.window === 'undefined') return false;
+    return globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches;
+  };
+
+  const resolvedDark = theme === 'dark' || (theme === 'system' && getSystemTheme());
 
   useEffect(() => {
     const root = document.documentElement;
