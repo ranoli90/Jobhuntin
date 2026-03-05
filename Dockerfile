@@ -29,6 +29,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy root markers for find_repo_root to correctly identify /app as the root
+COPY pyproject.toml render.yaml ./
+
 # Copy application code in dependency order
 # Shared packages first (most stable)
 COPY packages/shared/ ./shared/
