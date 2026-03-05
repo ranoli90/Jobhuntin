@@ -19,7 +19,7 @@ try:
     response = requests.delete(
         f"https://api.render.com/v1/services/{PGHERO_SERVICE_ID}",
         headers=headers,
-        timeout=10
+        timeout=10,
     )
 
     if response.status_code == 204:

@@ -1,4 +1,5 @@
 """Set missing environment variables on Render for sorce-api."""
+
 import os
 
 import httpx
@@ -8,6 +9,7 @@ load_dotenv()
 
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 SERVICE_ID = "srv-d63l79hr0fns73boblag"
+
 
 def set_env_var(key: str, value: str):
     """Set or update an environment variable on Render web service."""
@@ -26,16 +28,16 @@ def set_env_var(key: str, value: str):
         list_resp = httpx.get(
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
             headers=headers,
-            timeout=10
+            timeout=10,
         )
 
         existing_id = None
         if list_resp.status_code == 200:
             data = list_resp.json()
             for item in data:
-                ev = item.get('envVar', {})
-                if ev.get('key') == key:
-                    existing_id = ev.get('id')
+                ev = item.get("envVar", {})
+                if ev.get("key") == key:
+                    existing_id = ev.get("id")
                     break
 
         if existing_id:
@@ -44,7 +46,7 @@ def set_env_var(key: str, value: str):
                 f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars/{existing_id}",
                 headers=headers,
                 json={"value": value},
-                timeout=10
+                timeout=10,
             )
             if resp.status_code in (200, 201, 204):
                 print(f"  [UPDATED] {key}")
@@ -58,7 +60,7 @@ def set_env_var(key: str, value: str):
                 f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
                 headers=headers,
                 json={"key": key, "value": value},
-                timeout=10
+                timeout=10,
             )
             if resp.status_code in (200, 201, 204):
                 print(f"  [CREATED] {key}")
@@ -75,6 +77,7 @@ def set_env_var(key: str, value: str):
         print(f"  [ERROR] {key}: {e}")
         return False
 
+
 def main():
     print("Setting missing environment variables for sorce-api...")
 
@@ -82,7 +85,10 @@ def main():
     env_vars = [
         ("APP_BASE_URL", "https://sorce-web.onrender.com"),
         ("ENV", "prod"),
-        ("SUPABASE_URL", os.environ.get("SUPABASE_URL", "https://zglovpfwyobbbaaocawz.supabase.co")),
+        (
+            "SUPABASE_URL",
+            os.environ.get("SUPABASE_URL", "https://zglovpfwyobbbaaocawz.supabase.co"),
+        ),
         ("SUPABASE_SERVICE_KEY", os.environ.get("SUPABASE_SERVICE_KEY", "")),
         ("SUPABASE_JWT_SECRET", os.environ.get("SUPABASE_JWT_SECRET", "")),
         ("SUPABASE_STORAGE_BUCKET", "resumes"),
@@ -118,7 +124,10 @@ def main():
 
     if failed > 0:
         print("\nFailed to set some variables via API.")
-        print("Please manually add them at: https://dashboard.render.com/web/sorce-api/env-vars")
+        print(
+            "Please manually add them at: https://dashboard.render.com/web/sorce-api/env-vars"
+        )
+
 
 if __name__ == "__main__":
     main()

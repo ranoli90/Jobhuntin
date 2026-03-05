@@ -12,6 +12,7 @@ import json
 from typing import Any
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -23,6 +24,7 @@ EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 # ---------------------------------------------------------------------------
 # Token management
 # ---------------------------------------------------------------------------
+
 
 async def register_push_token(
     conn: asyncpg.Connection,
@@ -39,7 +41,10 @@ async def register_push_token(
         ON CONFLICT (user_id, token) DO UPDATE
             SET is_active = true, platform = $3, updated_at = now()
         """,
-        user_id, token, platform, tenant_id,
+        user_id,
+        token,
+        platform,
+        tenant_id,
     )
 
 
@@ -54,7 +59,8 @@ async def deactivate_push_token(
         UPDATE public.push_tokens SET is_active = false, updated_at = now()
         WHERE user_id = $1 AND token = $2
         """,
-        user_id, token,
+        user_id,
+        token,
     )
 
 
@@ -73,6 +79,7 @@ async def get_active_tokens(
 # ---------------------------------------------------------------------------
 # Send push notification
 # ---------------------------------------------------------------------------
+
 
 async def send_push_to_user(
     conn: asyncpg.Connection,
@@ -107,7 +114,11 @@ async def send_push_to_user(
             (user_id, tenant_id, channel, notification_type, title, body, metadata)
         VALUES ($1, $2, 'push', $3, $4, $5, $6::jsonb)
         """,
-        user_id, tenant_id, notification_type, title, body,
+        user_id,
+        tenant_id,
+        notification_type,
+        title,
+        body,
         json.dumps(data or {}),
     )
 
@@ -156,7 +167,9 @@ async def _send_expo_push(
                     logger.warning("Push send: %d ok, %d errors", ok_count, err_count)
                 return ok_count
             else:
-                logger.error("Expo push API error: %d %s", resp.status_code, resp.text[:200])
+                logger.error(
+                    "Expo push API error: %d %s", resp.status_code, resp.text[:200]
+                )
                 return 0
     except Exception as exc:
         logger.error("Expo push send failed: %s", exc)
@@ -166,6 +179,7 @@ async def _send_expo_push(
 # ---------------------------------------------------------------------------
 # Pre-built notification templates
 # ---------------------------------------------------------------------------
+
 
 async def notify_application_submitted(
     conn: asyncpg.Connection,
@@ -177,7 +191,8 @@ async def notify_application_submitted(
 ) -> int:
     """Notify user that their application was submitted successfully."""
     return await send_push_to_user(
-        conn, user_id,
+        conn,
+        user_id,
         title="Application Submitted!",
         body=f"Your application to {company} for {job_title} was submitted.",
         notification_type="application_submitted",
@@ -196,7 +211,8 @@ async def notify_hold_questions(
 ) -> int:
     """Notify user that the agent needs their input."""
     return await send_push_to_user(
-        conn, user_id,
+        conn,
+        user_id,
         title="Input Needed",
         body=f"Your {company} application has {question_count} question(s) that need your answer.",
         notification_type="hold_questions",
@@ -213,7 +229,8 @@ async def notify_referral_reward(
 ) -> int:
     """Notify user they received referral bonus credits."""
     return await send_push_to_user(
-        conn, user_id,
+        conn,
+        user_id,
         title="Referral Reward!",
         body=f"You earned {bonus_apps} bonus applications from a referral!",
         notification_type="referral_reward",

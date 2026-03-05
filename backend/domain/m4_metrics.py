@@ -26,7 +26,9 @@ async def get_expansion_revenue(conn: asyncpg.Connection) -> list[dict[str, Any]
     return [dict(r) for r in rows]
 
 
-async def get_churn_prediction(conn: asyncpg.Connection, limit: int = 30) -> list[dict[str, Any]]:
+async def get_churn_prediction(
+    conn: asyncpg.Connection, limit: int = 30
+) -> list[dict[str, Any]]:
     rows = await conn.fetch(
         "SELECT * FROM public.mv_churn_prediction ORDER BY churn_risk_level DESC, days_since_last_activity DESC LIMIT $1",
         limit,
@@ -51,7 +53,8 @@ async def get_ltv_cac_estimate(conn: asyncpg.Connection) -> dict[str, Any]:
     CAC approximated from marketing spend (hardcoded placeholder).
     """
     # Current ARPU
-    arpu_row = await conn.fetchrow("""
+    arpu_row = await conn.fetchrow(
+        """
         SELECT
             COUNT(*) FILTER (WHERE plan != 'FREE')::int AS paying_tenants,
             SUM(CASE
@@ -62,19 +65,25 @@ async def get_ltv_cac_estimate(conn: asyncpg.Connection) -> dict[str, Any]:
             END)::int AS total_mrr
         FROM public.tenants
         WHERE plan != 'FREE'
-    """)
+    """
+    )
 
     paying = arpu_row["paying_tenants"] or 1
     total_mrr = arpu_row["total_mrr"] or 0
     arpu = round(total_mrr / max(paying, 1), 2)
 
     # Churn rate approximation (tenants that went FREE in last 30 days / total paying)
-    churned = await conn.fetchval("""
+    churned = (
+        await conn.fetchval(
+            """
         SELECT COUNT(*)::int FROM public.audit_log
         WHERE action = 'billing.changed'
           AND details->>'new_plan' = 'FREE'
           AND created_at >= now() - interval '30 days'
-    """) or 0
+    """
+        )
+        or 0
+    )
     monthly_churn_rate = round(churned / max(paying, 1), 4)
 
     gross_margin = 0.85  # 85% assumed
@@ -116,12 +125,16 @@ async def get_m4_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
         "mrr_current": m3.get("total_mrr", 0),
         "subscribers_target": 2_000,
         "subscribers_current": sum(
-            r.get("tenant_count", 0) for r in m3.get("mrr_by_plan", []) if r.get("plan") != "FREE"
+            r.get("tenant_count", 0)
+            for r in m3.get("mrr_by_plan", [])
+            if r.get("plan") != "FREE"
         ),
         "team_accounts_target": 50,
         "team_accounts_current": m3.get("team_metrics", {}).get("total_teams", 0),
         "enterprise_pilots_target": 3,
-        "enterprise_pilots_current": len([p for p in pipeline if p.get("plan") == "ENTERPRISE"]),
+        "enterprise_pilots_current": len(
+            [p for p in pipeline if p.get("plan") == "ENTERPRISE"]
+        ),
         "nrr_target": 110,
         "nrr_current": nrr[-1]["nrr_pct"] if nrr and nrr[-1].get("nrr_pct") else 0,
     }
@@ -131,7 +144,11 @@ async def get_m4_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
         "high_risk": len([c for c in churn if c.get("churn_risk_level") == "high"]),
         "medium_risk": len([c for c in churn if c.get("churn_risk_level") == "medium"]),
         "low_risk": len([c for c in churn if c.get("churn_risk_level") == "low"]),
-        "total_mrr_at_risk": sum(c.get("mrr_at_risk", 0) for c in churn if c.get("churn_risk_level") in ("high", "medium")),
+        "total_mrr_at_risk": sum(
+            c.get("mrr_at_risk", 0)
+            for c in churn
+            if c.get("churn_risk_level") in ("high", "medium")
+        ),
     }
 
     return {

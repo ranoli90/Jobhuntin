@@ -16,9 +16,14 @@ async def get_conversion_funnel(conn: asyncpg.Connection) -> dict[str, Any]:
     row = await conn.fetchrow("SELECT * FROM public.mv_conversion_funnel")
     if not row:
         return {
-            "total_signups": 0, "onboarded": 0, "uploaded_resume": 0,
-            "first_application": 0, "converted_pro": 0,
-            "onboarding_rate": 0, "activation_rate": 0, "conversion_rate": 0,
+            "total_signups": 0,
+            "onboarded": 0,
+            "uploaded_resume": 0,
+            "first_application": 0,
+            "converted_pro": 0,
+            "onboarding_rate": 0,
+            "activation_rate": 0,
+            "conversion_rate": 0,
         }
     return dict(row)
 
@@ -45,8 +50,11 @@ async def get_referral_performance(conn: asyncpg.Connection) -> dict[str, Any]:
     row = await conn.fetchrow("SELECT * FROM public.mv_referral_stats")
     if not row:
         return {
-            "total_referrals": 0, "successful": 0, "pending": 0,
-            "total_bonus_apps_granted": 0, "unique_referrers": 0,
+            "total_referrals": 0,
+            "successful": 0,
+            "pending": 0,
+            "total_bonus_apps_granted": 0,
+            "unique_referrers": 0,
         }
     return dict(row)
 
@@ -71,20 +79,24 @@ async def get_m2_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     sources = await get_signup_sources(conn)
 
     # Live push notification stats
-    push_stats = await conn.fetchrow("""
+    push_stats = await conn.fetchrow(
+        """
         SELECT
             COUNT(DISTINCT user_id)::int AS users_with_push,
             COUNT(*)::int AS total_tokens
         FROM public.push_tokens WHERE is_active = true
-    """)
+    """
+    )
 
     # Live digest stats
-    digest_stats = await conn.fetchrow("""
+    digest_stats = await conn.fetchrow(
+        """
         SELECT
             COUNT(*)::int AS digests_sent_this_week
         FROM public.email_digest_log
         WHERE sent_at >= now() - interval '7 days'
-    """)
+    """
+    )
 
     # M2 targets
     m2_targets = {
@@ -106,8 +118,14 @@ async def get_m2_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
         "weekly_cohorts": cohorts,
         "referral_performance": referrals,
         "signup_sources": sources,
-        "push_stats": dict(push_stats) if push_stats else {"users_with_push": 0, "total_tokens": 0},
-        "digest_stats": dict(digest_stats) if digest_stats else {"digests_sent_this_week": 0},
+        "push_stats": (
+            dict(push_stats)
+            if push_stats
+            else {"users_with_push": 0, "total_tokens": 0}
+        ),
+        "digest_stats": (
+            dict(digest_stats) if digest_stats else {"digests_sent_this_week": 0}
+        ),
         "m2_targets": m2_targets,
     }
 

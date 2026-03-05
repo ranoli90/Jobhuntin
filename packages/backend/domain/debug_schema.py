@@ -1,4 +1,5 @@
 """Debug DDL statements for manual schema verification/fixing."""
+
 from __future__ import annotations
 
 import asyncpg
@@ -7,7 +8,8 @@ import asyncpg
 async def debug_auth_shim(conn: asyncpg.Connection, log_lines: list[str]) -> None:
     try:
         await conn.execute("CREATE SCHEMA IF NOT EXISTS auth")
-        await conn.execute("""
+        await conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS auth.users (
                 id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
                 email text, encrypted_password text,
@@ -16,10 +18,12 @@ async def debug_auth_shim(conn: asyncpg.Connection, log_lines: list[str]) -> Non
                 updated_at timestamptz NOT NULL DEFAULT now(),
                 raw_user_meta_data jsonb DEFAULT '{}'::jsonb
             )
-        """)
+        """
+        )
         log_lines.append("auth shim: OK")
     except Exception as e:
         log_lines.append(f"auth shim: FAIL {e}")
+
 
 async def debug_critical_tables(conn: asyncpg.Connection, log_lines: list[str]) -> None:
     critical_stmts = [
@@ -92,10 +96,15 @@ async def debug_critical_tables(conn: asyncpg.Connection, log_lines: list[str]) 
     for stmt in critical_stmts:
         try:
             await conn.execute(stmt)
-            name = stmt.split("(")[0].strip().split()[-1] if "TABLE" in stmt else stmt.split("(")[0].strip().split()[-1]
+            name = (
+                stmt.split("(")[0].strip().split()[-1]
+                if "TABLE" in stmt
+                else stmt.split("(")[0].strip().split()[-1]
+            )
             log_lines.append(f"  created: {name}")
         except Exception as e:
             log_lines.append(f"  FAIL: {str(e)[:120]}")
+
 
 async def debug_alter_stmts(conn: asyncpg.Connection, log_lines: list[str]) -> None:
     alter_stmts = [

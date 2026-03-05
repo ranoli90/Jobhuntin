@@ -37,7 +37,8 @@ playwright>=1.43,<2
 stripe>=8.0,<12
 
 # ── Image Processing (OG images) ─────────────────────────────────
-Pillow>=10.3.0,<11
+# Pillow >=12.1.1 fixes CVE-2026-25990
+Pillow>=12.1.1
 
 # ── Caching ──────────────────────────────────────────────────────
 redis>=5.0.0
@@ -57,3 +58,6 @@ sentry-sdk[fastapi]>=2.0.0
 # ── Job Aggregation ──────────────────────────────────────────────
 python-jobspy>=1.1.82
 pandas>=2.3.0
+# markdownify is a transitive dependency from python-jobspy
+# >=0.14.1 fixes CVE-2025-46656
+markdownify>=0.14.1

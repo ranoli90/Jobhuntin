@@ -1,5 +1,5 @@
 import requests
-import json
+
 
 def get_data():
     api_token = "rnd_V3u4rM4GNZcTQXSWUzNjv375AVdY"
@@ -8,6 +8,7 @@ def get_data():
     headers = {"Authorization": f"Bearer {api_token}"}
     r = requests.get(url, headers=headers)
     print(r.text)
+
 
 if __name__ == "__main__":
     get_data()

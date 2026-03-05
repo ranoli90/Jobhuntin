@@ -157,7 +157,7 @@ def sanitize_dict_for_ai(
     warnings: list[str] = []
 
     def sanitize_value(value: Any, path: str = "") -> Any:
-        nonlocal warnings
+        # warnings is accessed but not reassigned in this nested function
 
         if isinstance(value, str):
             result = sanitize_for_ai(value, AIValidationConfig.MAX_TEXT_FIELD_SIZE)
@@ -192,6 +192,27 @@ def sanitize_dict_for_ai(
     )
 
 
+import json as _json
+
+
+def _check_single_size(
+    name: str,
+    data: dict | str,
+    max_size: int,
+    error_code: str,
+    is_json: bool = True,
+) -> tuple[int, ValidationResult | None]:
+    """Check size of a single item and return size or error."""
+    size = len(_json.dumps(data)) if is_json else len(data)
+    if size > max_size:
+        return size, ValidationResult(
+            is_valid=False,
+            error_message=f"{name} too large ({size} bytes). Maximum {max_size} bytes.",
+            error_code=error_code,
+        )
+    return size, None
+
+
 def validate_ai_request_size(
     profile: dict | None = None,
     job: dict | None = None,
@@ -199,32 +220,26 @@ def validate_ai_request_size(
     additional_text: str | None = None,
 ) -> ValidationResult:
     """Validate the total size of an AI request."""
-    import json
-
     total_size = 0
     components: dict[str, int] = {}
 
     if profile:
-        profile_size = len(json.dumps(profile))
-        if profile_size > AIValidationConfig.MAX_PROFILE_SIZE:
-            return ValidationResult(
-                is_valid=False,
-                error_message=f"Profile too large ({profile_size} bytes). Maximum {AIValidationConfig.MAX_PROFILE_SIZE} bytes.",
-                error_code="PROFILE_TOO_LARGE",
-            )
-        components["profile"] = profile_size
-        total_size += profile_size
+        size, error = _check_single_size(
+            "Profile", profile, AIValidationConfig.MAX_PROFILE_SIZE, "PROFILE_TOO_LARGE"
+        )
+        if error:
+            return error
+        components["profile"] = size
+        total_size += size
 
     if job:
-        job_size = len(json.dumps(job))
-        if job_size > AIValidationConfig.MAX_JOB_SIZE:
-            return ValidationResult(
-                is_valid=False,
-                error_message=f"Job data too large ({job_size} bytes). Maximum {AIValidationConfig.MAX_JOB_SIZE} bytes.",
-                error_code="JOB_TOO_LARGE",
-            )
-        components["job"] = job_size
-        total_size += job_size
+        size, error = _check_single_size(
+            "Job data", job, AIValidationConfig.MAX_JOB_SIZE, "JOB_TOO_LARGE"
+        )
+        if error:
+            return error
+        components["job"] = size
+        total_size += size
 
     if jobs:
         if len(jobs) > AIValidationConfig.MAX_BATCH_SIZE:
@@ -235,27 +250,27 @@ def validate_ai_request_size(
             )
 
         for i, j in enumerate(jobs):
-            job_size = len(json.dumps(j))
-            if job_size > AIValidationConfig.MAX_JOB_SIZE:
-                return ValidationResult(
-                    is_valid=False,
-                    error_message=f"Job {i} too large ({job_size} bytes). Maximum {AIValidationConfig.MAX_JOB_SIZE} bytes.",
-                    error_code="JOB_TOO_LARGE",
-                )
-            total_size += job_size
+            size, error = _check_single_size(
+                f"Job {i}", j, AIValidationConfig.MAX_JOB_SIZE, "JOB_TOO_LARGE"
+            )
+            if error:
+                return error
+            total_size += size
 
         components["jobs"] = len(jobs)
 
     if additional_text:
-        text_size = len(additional_text)
-        if text_size > AIValidationConfig.MAX_TEXT_FIELD_SIZE:
-            return ValidationResult(
-                is_valid=False,
-                error_message=f"Text field too large ({text_size} bytes). Maximum {AIValidationConfig.MAX_TEXT_FIELD_SIZE} bytes.",
-                error_code="TEXT_TOO_LARGE",
-            )
-        components["text"] = text_size
-        total_size += text_size
+        size, error = _check_single_size(
+            "Text field",
+            additional_text,
+            AIValidationConfig.MAX_TEXT_FIELD_SIZE,
+            "TEXT_TOO_LARGE",
+            is_json=False,
+        )
+        if error:
+            return error
+        components["text"] = size
+        total_size += size
 
     return ValidationResult(
         is_valid=True,
@@ -406,6 +421,76 @@ def get_ai_rate_limiter() -> AIRateLimiter:
         return _ai_rate_limiter
 
 
+def _sanitize_single_job(
+    job: dict, index: int, warnings: list[str]
+) -> ValidationResult:
+    """Sanitize a single job and append warnings."""
+    job_result = sanitize_dict_for_ai(job, AIValidationConfig.MAX_JOB_SIZE)
+    if not job_result.is_valid:
+        job_result.error_message = f"Job {index}: {job_result.error_message}"
+        return job_result
+    if job_result.warnings:
+        warnings.extend([f"Job {index}: {w}" for w in job_result.warnings])
+    return ValidationResult(is_valid=True, sanitized_input=job_result.sanitized_input)
+
+
+def _sanitize_jobs(jobs: list[dict], warnings: list[str]) -> ValidationResult:
+    """Sanitize all jobs in a list."""
+    sanitized_jobs = []
+    for i, job in enumerate(jobs):
+        result = _sanitize_single_job(job, i, warnings)
+        if not result.is_valid:
+            return result
+        sanitized_jobs.append(result.sanitized_input)
+    return ValidationResult(is_valid=True, sanitized_input=sanitized_jobs)
+
+
+def _sanitize_text_fields(
+    text_fields: dict[str, str], warnings: list[str]
+) -> ValidationResult:
+    """Sanitize text fields."""
+    sanitized_texts = {}
+    for field_name, text in text_fields.items():
+        text_result = sanitize_for_ai(text)
+        if not text_result.is_valid:
+            text_result.error_message = (
+                f"Field '{field_name}': {text_result.error_message}"
+            )
+            return text_result
+        sanitized_texts[field_name] = text_result.sanitized_input
+        if text_result.warnings:
+            warnings.extend([f"{field_name}: {w}" for w in text_result.warnings])
+    return ValidationResult(is_valid=True, sanitized_input=sanitized_texts)
+
+
+def _check_rate_limit(
+    user_id: str, tier: str, sanitized_data: dict[str, Any]
+) -> ValidationResult:
+    """Check rate limit for user."""
+    rate_limiter = get_ai_rate_limiter()
+    allowed, rate_info = rate_limiter.check_rate_limit(user_id, tier, "ai")
+    if not allowed:
+        return ValidationResult(
+            is_valid=False,
+            error_message=f"Rate limit exceeded: {rate_info.get('reason', 'unknown')}. Try again in {rate_info.get('reset_in', 60)} seconds.",
+            error_code="RATE_LIMIT_EXCEEDED",
+        )
+    sanitized_data["rate_limit_info"] = rate_info
+    return ValidationResult(is_valid=True, sanitized_input=sanitized_data)
+
+
+def _sanitize_single_dict(
+    data: dict, max_size: int, warnings: list[str]
+) -> ValidationResult:
+    """Sanitize a single dictionary and collect warnings."""
+    result = sanitize_dict_for_ai(data, max_size)
+    if not result.is_valid:
+        return result
+    if result.warnings:
+        warnings.extend(result.warnings)
+    return ValidationResult(is_valid=True, sanitized_input=result.sanitized_input)
+
+
 def validate_and_sanitize_ai_input(
     profile: dict | None = None,
     job: dict | None = None,
@@ -432,59 +517,35 @@ def validate_and_sanitize_ai_input(
     sanitized_data: dict[str, Any] = {}
 
     if profile:
-        profile_result = sanitize_dict_for_ai(
-            profile, AIValidationConfig.MAX_PROFILE_SIZE
+        result = _sanitize_single_dict(
+            profile, AIValidationConfig.MAX_PROFILE_SIZE, warnings
         )
-        if not profile_result.is_valid:
-            return profile_result
-        sanitized_data["profile"] = profile_result.sanitized_input
-        if profile_result.warnings:
-            warnings.extend(profile_result.warnings)
+        if not result.is_valid:
+            return result
+        sanitized_data["profile"] = result.sanitized_input
 
     if job:
-        job_result = sanitize_dict_for_ai(job, AIValidationConfig.MAX_JOB_SIZE)
-        if not job_result.is_valid:
-            return job_result
-        sanitized_data["job"] = job_result.sanitized_input
-        if job_result.warnings:
-            warnings.extend(job_result.warnings)
+        result = _sanitize_single_dict(job, AIValidationConfig.MAX_JOB_SIZE, warnings)
+        if not result.is_valid:
+            return result
+        sanitized_data["job"] = result.sanitized_input
 
     if jobs:
-        sanitized_jobs = []
-        for i, j in enumerate(jobs):
-            job_result = sanitize_dict_for_ai(j, AIValidationConfig.MAX_JOB_SIZE)
-            if not job_result.is_valid:
-                job_result.error_message = f"Job {i}: {job_result.error_message}"
-                return job_result
-            sanitized_jobs.append(job_result.sanitized_input)
-            if job_result.warnings:
-                warnings.extend([f"Job {i}: {w}" for w in job_result.warnings])
-        sanitized_data["jobs"] = sanitized_jobs
+        result = _sanitize_jobs(jobs, warnings)
+        if not result.is_valid:
+            return result
+        sanitized_data["jobs"] = result.sanitized_input
 
     if text_fields:
-        sanitized_texts = {}
-        for field_name, text in text_fields.items():
-            text_result = sanitize_for_ai(text)
-            if not text_result.is_valid:
-                text_result.error_message = (
-                    f"Field '{field_name}': {text_result.error_message}"
-                )
-                return text_result
-            sanitized_texts[field_name] = text_result.sanitized_input
-            if text_result.warnings:
-                warnings.extend([f"{field_name}: {w}" for w in text_result.warnings])
-        sanitized_data["text_fields"] = sanitized_texts
+        result = _sanitize_text_fields(text_fields, warnings)
+        if not result.is_valid:
+            return result
+        sanitized_data["text_fields"] = result.sanitized_input
 
     if user_id:
-        rate_limiter = get_ai_rate_limiter()
-        allowed, rate_info = rate_limiter.check_rate_limit(user_id, tier, "ai")
-        if not allowed:
-            return ValidationResult(
-                is_valid=False,
-                error_message=f"Rate limit exceeded: {rate_info.get('reason', 'unknown')}. Try again in {rate_info.get('reset_in', 60)} seconds.",
-                error_code="RATE_LIMIT_EXCEEDED",
-            )
-        sanitized_data["rate_limit_info"] = rate_info
+        result = _check_rate_limit(user_id, tier, sanitized_data)
+        if not result.is_valid:
+            return result
 
     return ValidationResult(
         is_valid=True,

@@ -4,7 +4,9 @@ import pathlib
 from collections.abc import Iterable
 
 
-def find_repo_root(start: pathlib.Path, markers: Iterable[str] | None = None) -> pathlib.Path:
+def find_repo_root(
+    start: pathlib.Path, markers: Iterable[str] | None = None
+) -> pathlib.Path:
     """Find the repository root by walking parents until a marker file/dir is found.
 
     This is used to make runtime file lookups resilient to repo restructures.

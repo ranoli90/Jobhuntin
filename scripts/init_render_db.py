@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Initialize fresh database schema on Render."""
+
 import logging
 import sys
 from pathlib import Path
@@ -10,10 +11,13 @@ import asyncpg
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 async def init_schema(conn):
     """Initialize database schema."""
     # Get schema from file
-    schema_file = Path(__file__).parent.parent.parent / "infra" / "supabase" / "schema.sql"
+    schema_file = (
+        Path(__file__).parent.parent.parent / "infra" / "supabase" / "schema.sql"
+    )
     if not schema_file.exists():
         raise FileNotFoundError(f"Schema file not found: {schema_file}")
 
@@ -26,6 +30,7 @@ async def init_schema(conn):
     # Execute schema
     await conn.execute(schema_sql)
     logger.info("Database schema initialized")
+
 
 async def main():
     """Main execution."""
@@ -45,6 +50,8 @@ async def main():
         logger.error(f"Failed to initialize schema: {e}")
         raise
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

@@ -15,9 +15,10 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 import asyncpg
+from signxml import XMLVerifier
+
 from shared.config import Environment, get_settings
 from shared.logging_config import get_logger
-from signxml import XMLVerifier
 
 logger = get_logger("sorce.sso.saml")
 
@@ -25,6 +26,7 @@ logger = get_logger("sorce.sso.saml")
 # ---------------------------------------------------------------------------
 # SAML metadata generation
 # ---------------------------------------------------------------------------
+
 
 def generate_sp_metadata() -> str:
     """Generate SAML Service Provider metadata XML."""
@@ -50,6 +52,7 @@ def generate_sp_metadata() -> str:
 # SAML response parsing with signature verification via signxml
 # ---------------------------------------------------------------------------
 
+
 def _load_idp_certificate(cert_pem: str) -> bytes:
     """Normalize an IdP X.509 certificate PEM bytes payload."""
     pem = cert_pem.strip()
@@ -65,14 +68,20 @@ def _verify_xml_signature(xml_bytes: bytes, certificate_pem: str) -> ET.Element:
     Raises Exception on verification failure.
     """
     cert_pem = _load_idp_certificate(certificate_pem)
-    verified_root = XMLVerifier().verify(
-        xml_bytes,
-        x509_cert=cert_pem,
-    ).signed_xml
+    verified_root = (
+        XMLVerifier()
+        .verify(
+            xml_bytes,
+            x509_cert=cert_pem,
+        )
+        .signed_xml
+    )
     return verified_root
 
 
-def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[str, Any] | None:
+def parse_saml_response(
+    saml_response_b64: str, certificate: str = ""
+) -> dict[str, Any] | None:
     """Parse a SAML Response and extract user attributes.
 
     Args:
@@ -126,7 +135,11 @@ def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[s
         }
 
         name_id_el = root.find(".//saml2:NameID", ns)
-        email = name_id_el.text.strip() if name_id_el is not None and name_id_el.text else None
+        email = (
+            name_id_el.text.strip()
+            if name_id_el is not None and name_id_el.text
+            else None
+        )
 
         if not email:
             logger.warning("SAML response missing NameID")
@@ -140,15 +153,28 @@ def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[s
                 attributes[attr_name] = value_el.text.strip()
 
         authn_stmt = root.find(".//saml2:AuthnStatement", ns)
-        session_index = authn_stmt.get("SessionIndex", "") if authn_stmt is not None else ""
+        session_index = (
+            authn_stmt.get("SessionIndex", "") if authn_stmt is not None else ""
+        )
 
         return {
             "email": email,
             "name_id": email,
             "attributes": attributes,
             "session_index": session_index,
-            "first_name": attributes.get("firstName", attributes.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname", "")),
-            "last_name": attributes.get("lastName", attributes.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname", "")),
+            "first_name": attributes.get(
+                "firstName",
+                attributes.get(
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname",
+                    "",
+                ),
+            ),
+            "last_name": attributes.get(
+                "lastName",
+                attributes.get(
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname", ""
+                ),
+            ),
         }
     except Exception as exc:
         logger.error("SAML claim extraction error: %s", exc)
@@ -158,6 +184,7 @@ def parse_saml_response(saml_response_b64: str, certificate: str = "") -> dict[s
 # ---------------------------------------------------------------------------
 # SSO session token
 # ---------------------------------------------------------------------------
+
 
 def create_sso_session_token(tenant_id: str, email: str, user_id: str) -> str:
     """Create a signed SSO session token for post-ACS redirect.
@@ -173,15 +200,19 @@ def create_sso_session_token(tenant_id: str, email: str, user_id: str) -> str:
                 "An empty secret produces forgeable SSO tokens."
             )
         logger.warning("SSO session secret is empty — tokens are trivially forgeable")
-    payload = json.dumps({
-        "tenant_id": tenant_id,
-        "email": email,
-        "user_id": user_id,
-        "iat": int(time.time()),
-        "exp": int(time.time()) + 300,  # 5 min validity
-    })
+    payload = json.dumps(
+        {
+            "tenant_id": tenant_id,
+            "email": email,
+            "user_id": user_id,
+            "iat": int(time.time()),
+            "exp": int(time.time()) + 300,  # 5 min validity
+        }
+    )
     payload_b64 = base64.urlsafe_b64encode(payload.encode()).decode()
-    sig = hmac.new(s.sso_session_secret.encode(), payload_b64.encode(), hashlib.sha256).hexdigest()
+    sig = hmac.new(
+        s.sso_session_secret.encode(), payload_b64.encode(), hashlib.sha256
+    ).hexdigest()
     return f"{payload_b64}.{sig}"
 
 
@@ -190,7 +221,9 @@ def verify_sso_session_token(token: str) -> dict[str, Any] | None:
     s = get_settings()
     try:
         payload_b64, sig = token.rsplit(".", 1)
-        expected = hmac.new(s.sso_session_secret.encode(), payload_b64.encode(), hashlib.sha256).hexdigest()
+        expected = hmac.new(
+            s.sso_session_secret.encode(), payload_b64.encode(), hashlib.sha256
+        ).hexdigest()
         if not hmac.compare_digest(sig, expected):
             return None
         payload = json.loads(base64.urlsafe_b64decode(payload_b64))
@@ -206,7 +239,10 @@ def verify_sso_session_token(token: str) -> dict[str, Any] | None:
 # SSO config management
 # ---------------------------------------------------------------------------
 
-async def get_sso_config(conn: asyncpg.Connection, tenant_id: str) -> dict[str, Any] | None:
+
+async def get_sso_config(
+    conn: asyncpg.Connection, tenant_id: str
+) -> dict[str, Any] | None:
     """Get SSO configuration for a tenant."""
     row = await conn.fetchrow(
         "SELECT * FROM public.sso_configs WHERE tenant_id = $1 AND is_active = true",
@@ -238,15 +274,21 @@ async def upsert_sso_config(
             is_active = true, updated_at = now()
         RETURNING *
         """,
-        tenant_id, provider,
-        fields.get("entity_id", ""), fields.get("sso_url", ""),
-        fields.get("certificate", ""), fields.get("oidc_client_id", ""),
-        fields.get("oidc_client_secret", ""), fields.get("oidc_issuer", ""),
+        tenant_id,
+        provider,
+        fields.get("entity_id", ""),
+        fields.get("sso_url", ""),
+        fields.get("certificate", ""),
+        fields.get("oidc_client_id", ""),
+        fields.get("oidc_client_secret", ""),
+        fields.get("oidc_issuer", ""),
     )
     return dict(row)
 
 
-async def find_tenant_by_sso_domain(conn: asyncpg.Connection, email_domain: str) -> str | None:
+async def find_tenant_by_sso_domain(
+    conn: asyncpg.Connection, email_domain: str
+) -> str | None:
     """Find tenant ID by SSO email domain (from enterprise_settings.custom_domain)."""
     row = await conn.fetchrow(
         """

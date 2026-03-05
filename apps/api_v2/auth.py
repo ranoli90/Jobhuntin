@@ -14,6 +14,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import HTTPException, Request
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api_v2.auth")
@@ -111,7 +112,12 @@ async def record_api_usage(
                 """INSERT INTO public.api_usage
                        (api_key_id, tenant_id, endpoint, method, status_code, latency_ms)
                    VALUES ($1, $2, $3, $4, $5, $6)""",
-                api_key_id, tenant_id, endpoint, method, status_code, latency_ms,
+                api_key_id,
+                tenant_id,
+                endpoint,
+                method,
+                status_code,
+                latency_ms,
             )
     except Exception as exc:
         logger.warning("Failed to record API usage: %s", exc)
@@ -121,16 +127,21 @@ async def record_api_usage(
 # Webhook signing
 # ---------------------------------------------------------------------------
 
+
 def sign_webhook_payload(payload: bytes, secret: str) -> str:
     """Sign a webhook payload with HMAC-SHA256."""
     ts = str(int(time.time()))
     sig = hmac.new(
-        secret.encode(), f"{ts}.".encode() + payload, hashlib.sha256,
+        secret.encode(),
+        f"{ts}.".encode() + payload,
+        hashlib.sha256,
     ).hexdigest()
     return f"t={ts},v1={sig}"
 
 
-def verify_webhook_signature(payload: bytes, signature: str, secret: str, tolerance: int = 300) -> bool:
+def verify_webhook_signature(
+    payload: bytes, signature: str, secret: str, tolerance: int = 300
+) -> bool:
     """Verify a webhook signature."""
     parts = dict(p.split("=", 1) for p in signature.split(",") if "=" in p)
     ts = parts.get("t", "")
@@ -140,6 +151,8 @@ def verify_webhook_signature(payload: bytes, signature: str, secret: str, tolera
     if abs(time.time() - int(ts)) > tolerance:
         return False
     expected = hmac.new(
-        secret.encode(), f"{ts}.".encode() + payload, hashlib.sha256,
+        secret.encode(),
+        f"{ts}.".encode() + payload,
+        hashlib.sha256,
     ).hexdigest()
     return hmac.compare_digest(sig, expected)

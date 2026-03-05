@@ -15,12 +15,12 @@ import jwt as pyjwt
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr
+
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
+from shared.metrics import RateLimiter, get_rate_limiter, incr
 from shared.middleware import get_client_ip
 from shared.repo_root import find_repo_root
-
-from shared.metrics import RateLimiter, get_rate_limiter, incr
 
 logger = get_logger("sorce.api.auth")
 
@@ -104,7 +104,9 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
             ok = await r.set(key, "1", nx=True, ex=_CONSUMED_TOKEN_TTL)
             return bool(ok)
         except Exception as e:
-            logger.warning("Redis consumed-token check failed, falling back to in-memory: %s", e)
+            logger.warning(
+                "Redis consumed-token check failed, falling back to in-memory: %s", e
+            )
 
     # In-memory fallback (single-instance only) - NOT safe for multi-worker deployments
     if settings.env.value == "prod":
@@ -114,7 +116,8 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
             "Set REDIS_URL for multi-instance deployments. This is a security risk."
         )
         raise RuntimeError(
-            "Redis required for production token replay protection. Set REDIS_URL environment variable."
+            "Redis required for production token replay protection. "
+            "Set REDIS_URL environment variable."
         )
 
     if not hasattr(_mark_token_consumed, "_warned_no_redis"):
@@ -125,7 +128,9 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
         _mark_token_consumed._warned_no_redis = True  # type: ignore
 
     now = time.monotonic()
-    expired = [k for k, ts in _consumed_tokens.items() if now - ts > _CONSUMED_TOKEN_TTL]
+    expired = [
+        k for k, ts in _consumed_tokens.items() if now - ts > _CONSUMED_TOKEN_TTL
+    ]
     for k in expired:
         _consumed_tokens.pop(k, None)
     if jti in _consumed_tokens:
@@ -260,8 +265,10 @@ def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
     base = settings.app_base_url.rstrip("/")
     if not base or base == "http://localhost:5173":
         logger.warning(
-            "[MAGIC_LINK] APP_BASE_URL not configured properly, magic links may not work in production. "
-            "Set APP_BASE_URL environment variable to your production URL (e.g., https://jobhuntin.com)"
+            "[MAGIC_LINK] APP_BASE_URL not configured properly, "
+            "magic links may not work in production. "
+            "Set APP_BASE_URL environment variable to your "
+            "production URL (e.g., https://jobhuntin.com)"
         )
     if not base:
         base = "http://localhost:5173"
@@ -282,19 +289,17 @@ async def _find_or_create_user_by_email(
 ) -> tuple[str, bool]:
     """
     Find existing user or create new one on verification.
-    
+
     Returns tuple of (user_id, is_new_user).
     """
     import uuid
 
     # First try to find existing user
-    user_id = await conn.fetchval(
-        "SELECT id FROM public.users WHERE email = $1", email
-    )
-    
+    user_id = await conn.fetchval("SELECT id FROM public.users WHERE email = $1", email)
+
     if user_id:
         return str(user_id), False
-    
+
     # Create new user on verification
     logger.info("[MAGIC_LINK] Creating new user for email: %s", _mask_email(email))
     user_id = await conn.fetchval(
@@ -306,7 +311,7 @@ async def _find_or_create_user_by_email(
         str(uuid.uuid4()),
         email,
     )
-    
+
     # Create profile for new user (ON CONFLICT to handle race conditions)
     await conn.execute(
         """
@@ -316,7 +321,7 @@ async def _find_or_create_user_by_email(
     """,
         user_id,
     )
-    
+
     logger.info(
         "[MAGIC_LINK] New user created with ID %s for email: %s",
         str(user_id),
@@ -326,14 +331,19 @@ async def _find_or_create_user_by_email(
 
 
 async def _generate_magic_link(
-    settings: Settings, email: str, redirect_to: str, db: Any, return_to: str | None = None, client_ip: str | None = None
+    settings: Settings,
+    email: str,
+    redirect_to: str,
+    db: Any,
+    return_to: str | None = None,
+    client_ip: str | None = None,
 ) -> tuple[str, str]:
     """
     Generate a magic link with a signed JWT.
-    
+
     Returns tuple of (magic_link_url, pending_user_id_or_email).
     The user_id is stored in the token for existing users, or email for new users.
-    
+
     If MAGIC_LINK_BIND_TO_IP is enabled, the token will be bound to the requesting IP.
     """
     import uuid
@@ -352,7 +362,7 @@ async def _generate_magic_link(
         existing_user_id = await conn.fetchval(
             "SELECT id FROM public.users WHERE email = $1", email
         )
-        
+
         if existing_user_id:
             user_identifier = str(existing_user_id)
             logger.info(
@@ -372,15 +382,16 @@ async def _generate_magic_link(
     ttl_seconds = getattr(settings, "magic_link_token_ttl_seconds", 3600)
     token_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
-    
+
     # Optional: Bind token to requesting IP for additional security
     # This prevents token theft and use from different IP addresses
     bind_to_ip = getattr(settings, "magic_link_bind_to_ip", False)
     ip_hash = None
     if bind_to_ip and client_ip:
         import hashlib
+
         ip_hash = hashlib.sha256(client_ip.encode()).hexdigest()[:16]
-    
+
     payload = {
         "sub": str(user_identifier),
         "email": email,
@@ -391,7 +402,7 @@ async def _generate_magic_link(
         "exp": now + timedelta(seconds=ttl_seconds),
         "new_user": existing_user_id is None,
     }
-    
+
     # Add IP binding if enabled
     if ip_hash:
         payload["ip_hash"] = ip_hash
@@ -464,8 +475,12 @@ def _get_app_branding(settings: Settings) -> dict[str, str]:
     """Get app branding values from settings or defaults."""
     base_url = settings.app_base_url.rstrip("/")
     api_url = getattr(settings, "api_public_url", "").rstrip("/")
-    domain = base_url.replace("https://", "").replace("http://", "") if base_url else "jobhuntin.com"
-    
+    domain = (
+        base_url.replace("https://", "").replace("http://", "")
+        if base_url
+        else "jobhuntin.com"
+    )
+
     return {
         "app_name": getattr(settings, "app_name", "JobHuntin"),
         "app_initials": getattr(settings, "app_initials", "JH"),
@@ -483,20 +498,18 @@ def _render_email_html(
     """Render HTML email with template variables."""
     expires_minutes = max(1, settings.magic_link_token_ttl_seconds // 60)
     branding = _get_app_branding(settings)
-    
+
     # Simplify the link display to show the main domain, not the API URL
     # Extract just the domain part for cleaner display
     display_link = action_link
     if branding["app_base_url"] and branding["api_public_url"]:
         # Replace API URL with main domain for display purposes
         display_link = action_link.replace(
-            branding["api_public_url"], 
-            branding["app_base_url"]
+            branding["api_public_url"], branding["app_base_url"]
         )
-    
+
     html = (
-        MAGIC_LINK_TEMPLATE_HTML
-        .replace("$action_link", action_link)
+        MAGIC_LINK_TEMPLATE_HTML.replace("$action_link", action_link)
         .replace("$display_link", display_link)
         .replace("$expires_minutes", str(expires_minutes))
         .replace("$app_name", branding["app_name"])
@@ -512,18 +525,16 @@ def _render_email_text(
     """Render plain text email with template variables."""
     expires_minutes = max(1, settings.magic_link_token_ttl_seconds // 60)
     branding = _get_app_branding(settings)
-    
+
     # Simplify the link display to show the main domain
     display_link = action_link
     if branding["app_base_url"] and branding["api_public_url"]:
         display_link = action_link.replace(
-            branding["api_public_url"], 
-            branding["app_base_url"]
+            branding["api_public_url"], branding["app_base_url"]
         )
-    
+
     text = (
-        MAGIC_LINK_TEMPLATE_TXT
-        .replace("$action_link", display_link)
+        MAGIC_LINK_TEMPLATE_TXT.replace("$action_link", display_link)
         .replace("$expires_minutes", str(expires_minutes))
         .replace("$app_name", branding["app_name"])
         .replace("$app_domain", branding["app_domain"])
@@ -578,14 +589,16 @@ async def _send_magic_link_email(
     if not settings.resend_api_key:
         # In production, email must be configured. In local/dev, log the link instead.
         if settings.env.value == "prod":
-            raise HTTPException(status_code=500, detail="Email service is not configured")
+            raise HTTPException(
+                status_code=500, detail="Email service is not configured"
+            )
         # LOCAL DEV FALLBACK: print magic link to server logs so devs can click it
         logger.warning(
-            "\n" + "="*70 + "\n"
+            "\n" + "=" * 70 + "\n"
             "[DEV] RESEND_API_KEY not set — magic link NOT sent by email.\n"
             "[DEV] Click this link to authenticate:\n"
             "[DEV] %s\n"
-            "="*70,
+            "=" * 70,
             action_link,
         )
         return
@@ -593,7 +606,7 @@ async def _send_magic_link_email(
     # Render email content using templates
     html = _render_email_html(settings, action_link, return_to)
     text_content = _render_email_text(settings, action_link, return_to)
-    
+
     # Get destination for logging
     destination_path = return_to or "/app/dashboard"
     destination_label = _get_destination_label(destination_path)
@@ -624,14 +637,14 @@ async def _send_magic_link_email(
     # Retry logic with exponential backoff
     max_retries = 3
     base_delay = 1.0
-    
+
     for attempt in range(max_retries):
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.post(
                     "https://api.resend.com/emails", headers=headers, json=payload
                 )
-            
+
             if resp.status_code in (200, 201):
                 # Success - log and return
                 logger.info(
@@ -644,14 +657,17 @@ async def _send_magic_link_email(
                     },
                 )
                 return
-            
+
             # Check if error is retryable
             if resp.status_code >= 500 or resp.status_code == 429:
                 # Server error or rate limit - retry
                 if attempt < max_retries - 1:
-                    delay = base_delay * (2 ** attempt) + (hash(email) % 100) / 100  # Add jitter
+                    delay = (
+                        base_delay * (2**attempt) + (hash(email) % 100) / 100
+                    )  # Add jitter
                     logger.warning(
-                        f"[MAGIC_LINK] Resend returned {resp.status_code}, retrying in {delay:.2f}s",
+                        f"[MAGIC_LINK] Resend returned {resp.status_code}, "
+                        f"retrying in {delay:.2f}s",
                         extra={
                             "email": _mask_email(email),
                             "attempt": attempt + 1,
@@ -660,7 +676,7 @@ async def _send_magic_link_email(
                     )
                     await asyncio.sleep(delay)
                     continue
-            
+
             # Non-retryable error or retries exhausted
             logger.error(
                 "[MAGIC_LINK] Resend email failed",
@@ -672,13 +688,13 @@ async def _send_magic_link_email(
                 },
             )
             raise HTTPException(
-                status_code=502, 
-                detail=f"Failed to send magic link email (status {resp.status_code})"
+                status_code=502,
+                detail=f"Failed to send magic link email (status {resp.status_code})",
             )
-            
+
         except httpx.TimeoutException:
             if attempt < max_retries - 1:
-                delay = base_delay * (2 ** attempt)
+                delay = base_delay * (2**attempt)
                 logger.warning(
                     f"[MAGIC_LINK] Resend timeout, retrying in {delay:.2f}s",
                     extra={"email": _mask_email(email), "attempt": attempt + 1},
@@ -690,13 +706,15 @@ async def _send_magic_link_email(
                     extra={"email": _mask_email(email)},
                 )
                 raise HTTPException(status_code=504, detail="Email service timeout")
-        
+
         except Exception as e:
             logger.error(
                 "[MAGIC_LINK] Unexpected error sending email",
                 extra={"email": _mask_email(email), "error": str(e)},
             )
-            raise HTTPException(status_code=502, detail="Failed to send magic link email")
+            raise HTTPException(
+                status_code=502, detail="Failed to send magic link email"
+            )
 
 
 AUTH_COOKIE_NAME = "jobhuntin_auth"
@@ -729,7 +747,7 @@ async def verify_magic_link(
         jti = payload.get("jti")
         is_new_user_flag = payload.get("new_user", False)
         ip_hash = payload.get("ip_hash")  # Optional IP binding
-        
+
         if not user_identifier or not jti or not email:
             raise ValueError("Missing sub, email, or jti")
     except pyjwt.PyJWTError as exc:
@@ -742,6 +760,7 @@ async def verify_magic_link(
     if ip_hash:
         client_ip = get_client_ip(request)
         import hashlib
+
         current_ip_hash = hashlib.sha256(client_ip.encode()).hexdigest()[:16]
         if current_ip_hash != ip_hash:
             logger.warning(
@@ -750,7 +769,9 @@ async def verify_magic_link(
                 extra={"expected_ip_hash": ip_hash, "actual_ip_hash": current_ip_hash},
             )
             # SECURITY: Use generic error to prevent IP binding enumeration
-            redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
+            redirect_url = (
+                f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
+            )
             return RedirectResponse(url=redirect_url, status_code=302)
 
     if not await _mark_token_consumed(jti, settings):
@@ -763,7 +784,9 @@ async def verify_magic_link(
     async with db.acquire() as conn:
         if is_new_user_flag or "@" in user_identifier:
             # This is a new user - create them now
-            user_id, created = await _find_or_create_user_by_email(conn, email, settings)
+            user_id, created = await _find_or_create_user_by_email(
+                conn, email, settings
+            )
             if created:
                 logger.info(
                     "[MAGIC_LINK] New user created on verification: %s",
@@ -780,7 +803,7 @@ async def verify_magic_link(
             # Existing user - verify the user still exists
             user_exists = await conn.fetchval(
                 "SELECT EXISTS(SELECT 1 FROM public.users WHERE id = $1)",
-                user_identifier
+                user_identifier,
             )
             if not user_exists:
                 logger.warning(
@@ -788,7 +811,9 @@ async def verify_magic_link(
                     user_identifier,
                 )
                 # SECURITY: Use generic error to prevent user existence enumeration
-                redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
+                redirect_url = (
+                    f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
+                )
                 return RedirectResponse(url=redirect_url, status_code=302)
             user_id = user_identifier
 
@@ -800,12 +825,15 @@ async def verify_magic_link(
         user_id,
         jti,
     )
-    
+
     # Track verification success metrics
-    incr("auth.magic_link.verified", tags={
-        "is_new_user": str(is_new_user_flag),
-        "destination": dest,
-    })
+    incr(
+        "auth.magic_link.verified",
+        tags={
+            "is_new_user": str(is_new_user_flag),
+            "destination": dest,
+        },
+    )
     redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}"
 
     # ----------------------------------------------------------------
@@ -817,8 +845,11 @@ async def verify_magic_link(
     # ----------------------------------------------------------------
     SESSION_TTL_SECONDS = 7 * 24 * 3600  # 7 days
     import uuid as _uuid_mod
-    from datetime import datetime as _dt, timedelta as _td
+    from datetime import datetime as _dt
+    from datetime import timedelta as _td
+
     import jwt as _jwt
+
     _now = _dt.now(timezone.utc)
     session_payload = {
         "sub": str(user_id),
@@ -876,7 +907,9 @@ async def _verify_captcha(settings: Settings, token: str, client_ip: str) -> boo
     if not settings.recaptcha_secret_key:
         # In production, CAPTCHA is mandatory. Fail closed for security.
         if settings.env.value == "prod":
-            logger.error("RECAPTCHA_SECRET_KEY not set in production - rejecting request")
+            logger.error(
+                "RECAPTCHA_SECRET_KEY not set in production - rejecting request"
+            )
             return False
         logger.warning("RECAPTCHA_SECRET_KEY not set, skipping verification.")
         return True
@@ -910,7 +943,9 @@ async def _verify_captcha(settings: Settings, token: str, client_ip: str) -> boo
             logger.error("HTTP error while verifying reCAPTCHA token: %s", e)
             return False
         except Exception as e:
-            logger.error("An unexpected error occurred during reCAPTCHA verification: %s", e)
+            logger.error(
+                "An unexpected error occurred during reCAPTCHA verification: %s", e
+            )
             return False
 
 
@@ -967,7 +1002,11 @@ async def request_magic_link(
             "Magic link rate limit hit",
             extra={"email": body.email, "retry_after": retry_after},
         )
-        incr("auth.magic_link.rate_limited", 1, tags={"email_domain": body.email.split("@")[-1]})
+        incr(
+            "auth.magic_link.rate_limited",
+            tags={"email_domain": body.email.split("@")[-1]},
+            value=1,
+        )
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait before requesting another magic link.",
@@ -975,7 +1014,9 @@ async def request_magic_link(
         )
 
     redirect = _build_redirect_url(settings, body.return_to)
-    action_link, _ = await _generate_magic_link(settings, body.email, redirect, db, body.return_to, client_ip)
+    action_link, _ = await _generate_magic_link(
+        settings, body.email, redirect, db, body.return_to, client_ip
+    )
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
     incr("auth.magic_link.sent", tags={"email_domain": body.email.split("@")[-1]})
     return MagicLinkResponse()
@@ -984,6 +1025,7 @@ async def request_magic_link(
 # ---------------------------------------------------------------------------
 # Email Delivery Webhook (Resend)
 # ---------------------------------------------------------------------------
+
 
 class ResendWebhookPayload(BaseModel):
     type: str
@@ -998,27 +1040,31 @@ async def resend_webhook(
 ) -> JSONResponse:
     """
     Handle Resend email delivery webhooks.
-    
+
     Tracks: delivered, bounced, complained, opened, clicked
     Resend docs: https://resend.com/docs/dashboard/webhooks
     """
     # Verify webhook signature if configured
     # Resend signs webhooks with a secret when configured
-    webhook_secret = getattr(settings, 'resend_webhook_secret', None)
+    webhook_secret = getattr(settings, "resend_webhook_secret", None)
     if webhook_secret:
-        signature = request.headers.get('resend-signature')
+        signature = request.headers.get("resend-signature")
         if not signature:
             logger.warning("Resend webhook missing signature")
             raise HTTPException(status_code=401, detail="Missing signature")
         # TODO: Implement signature verification when Resend adds it
-    
+
     event_type = payload.type
     data = payload.data
-    
+
     # Extract email info
-    email_to = data.get('to', ['unknown'])[0] if isinstance(data.get('to'), list) else data.get('to', 'unknown')
-    email_id = data.get('email_id') or data.get('id', 'unknown')
-    
+    email_to = (
+        data.get("to", ["unknown"])[0]
+        if isinstance(data.get("to"), list)
+        else data.get("to", "unknown")
+    )
+    email_id = data.get("email_id") or data.get("id", "unknown")
+
     # Log the event
     logger.info(
         f"Resend webhook: {event_type}",
@@ -1026,9 +1072,9 @@ async def resend_webhook(
             "event_type": event_type,
             "email_id": email_id,
             "email": _mask_email(email_to),
-        }
+        },
     )
-    
+
     # Track metrics
     if event_type == "email.delivered":
         incr("email.delivered", tags={"provider": "resend"})
@@ -1036,13 +1082,12 @@ async def resend_webhook(
         incr("email.bounced", tags={"provider": "resend"})
         logger.warning(
             f"Email bounced: {_mask_email(email_to)}",
-            extra={"bounce_reason": data.get('bounce_type'), "email_id": email_id}
+            extra={"bounce_reason": data.get("bounce_type"), "email_id": email_id},
         )
     elif event_type == "email.complained":
         incr("email.complained", tags={"provider": "resend"})
         logger.warning(
-            f"Email complaint: {_mask_email(email_to)}",
-            extra={"email_id": email_id}
+            f"Email complaint: {_mask_email(email_to)}", extra={"email_id": email_id}
         )
     elif event_type == "email.opened":
         incr("email.opened", tags={"provider": "resend"})
@@ -1054,9 +1099,9 @@ async def resend_webhook(
         incr("email.delivery_delayed", tags={"provider": "resend"})
         logger.warning(
             f"Email delivery delayed: {_mask_email(email_to)}",
-            extra={"email_id": email_id, "delay_reason": data.get('reason')}
+            extra={"email_id": email_id, "delay_reason": data.get("reason")},
         )
     else:
         logger.info(f"Unknown Resend event type: {event_type}")
-    
+
     return JSONResponse({"status": "ok"})

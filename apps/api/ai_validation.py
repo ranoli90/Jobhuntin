@@ -25,70 +25,73 @@ class AIInputValidator:
 
     # Patterns for detecting malicious content
     MALICIOUS_PATTERNS = [
-        r'<script[^>]*>.*?</script>',  # Script tags
-        r'javascript:',  # JavaScript URLs
-        r'on\w+\s*=',  # Event handlers
-        r'eval\s*\(',  # eval() calls
-        r'exec\s*\(',  # exec() calls
-        r'system\s*\(',  # system() calls
-        r'__import__',  # Python imports
-        r'from\s+\w+\s+import',  # Python imports
-        r'open\s*\(',  # File operations
-        r'file\s*\(',  # File operations
-        r'os\.',  # OS module calls
-        r'subprocess\.',  # Subprocess calls
-        r'pickle\.',  # Pickle operations
-        r'base64',  # Base64 encoding
-        r'rot13',  # ROT13 encoding
-        r'caesar\s+cipher',  # Caesar cipher
-        r'sql\s+injection',  # SQL injection
-        r'union\s+select',  # SQL union
-        r'drop\s+table',  # SQL drop
-        r'insert\s+into',  # SQL insert
-        r'update\s+set',  # SQL update
-        r'delete\s+from',  # SQL delete
-        r'<iframe[^>]*>',  # Iframe tags
-        r'<object[^>]*>',  # Object tags
-        r'<embed[^>]*>',  # Embed tags
-        r'<link[^>]*>',  # Link tags
-        r'<meta[^>]*>',  # Meta tags
-        r'content-security-policy',  # CSP bypass
-        r'cross-origin',  # CORS bypass
-        r'access-control',  # CORS headers
-        r'cookie\s*=',  # Cookie manipulation
-        r'document\.cookie',  # Cookie access
-        r'localStorage\.',  # LocalStorage access
-        r'sessionStorage\.',  # SessionStorage access
-        r'window\.',  # Window object access
-        r'document\.',  # Document object access
-        r'location\.',  # Location object access
-        r'navigator\.',  # Navigator object access
+        r"<script[^>]*>.*?</script>",  # Script tags
+        r"javascript:",  # JavaScript URLs
+        r"on\w+\s*=",  # Event handlers
+        r"eval\s*\(",  # eval() calls
+        r"exec\s*\(",  # exec() calls
+        r"system\s*\(",  # system() calls
+        r"__import__",  # Python imports
+        r"from\s+\w+\s+import",  # Python imports
+        r"open\s*\(",  # File operations
+        r"file\s*\(",  # File operations
+        r"os\.",  # OS module calls
+        r"subprocess\.",  # Subprocess calls
+        r"pickle\.",  # Pickle operations
+        r"base64",  # Base64 encoding
+        r"rot13",  # ROT13 encoding
+        r"caesar\s+cipher",  # Caesar cipher
+        r"sql\s+injection",  # SQL injection
+        r"union\s+select",  # SQL union
+        r"drop\s+table",  # SQL drop
+        r"insert\s+into",  # SQL insert
+        r"update\s+set",  # SQL update
+        r"delete\s+from",  # SQL delete
+        r"<iframe[^>]*>",  # Iframe tags
+        r"<object[^>]*>",  # Object tags
+        r"<embed[^>]*>",  # Embed tags
+        r"<link[^>]*>",  # Link tags
+        r"<meta[^>]*>",  # Meta tags
+        r"content-security-policy",  # CSP bypass
+        r"cross-origin",  # CORS bypass
+        r"access-control",  # CORS headers
+        r"cookie\s*=",  # Cookie manipulation
+        r"document\.cookie",  # Cookie access
+        r"localStorage\.",  # LocalStorage access
+        r"sessionStorage\.",  # SessionStorage access
+        r"window\.",  # Window object access
+        r"document\.",  # Document object access
+        r"location\.",  # Location object access
+        r"navigator\.",  # Navigator object access
     ]
 
     # Allowed characters for text input
-    ALLOWED_CHARS = re.compile(r'^[a-zA-Z0-9\s\.,;:!?\'"()\-_\n\r@#$%&*+=/\\<>[\]{}|`~^]+$')
+    ALLOWED_CHARS = re.compile(
+        r'^[a-zA-Z0-9\s\.,;:!?\'"()\-_\n\r@#$%&*+=/\\<>[\]{}|`~^]+$'
+    )
 
     # Length limits for different input types
     LENGTH_LIMITS = {
-        'resume_text': 10000,
-        'skills': 1000,
-        'role': 100,
-        'location': 100,
-        'job_title': 100,
-        'job_description': 5000,
-        'company_name': 100,
-        'question': 500,
-        'answer': 1000,
-        'general_text': 1000,
+        "resume_text": 10000,
+        "skills": 1000,
+        "role": 100,
+        "location": 100,
+        "job_title": 100,
+        "job_description": 5000,
+        "company_name": 100,
+        "question": 500,
+        "answer": 1000,
+        "general_text": 1000,
     }
 
     def __init__(self):
         self.malicious_pattern = re.compile(
-            '|'.join(self.MALICIOUS_PATTERNS),
-            re.IGNORECASE | re.MULTILINE | re.DOTALL
+            "|".join(self.MALICIOUS_PATTERNS), re.IGNORECASE | re.MULTILINE | re.DOTALL
         )
 
-    def validate_and_sanitize(self, input_text: str, input_type: str = 'general_text') -> str:
+    def validate_and_sanitize(
+        self, input_text: str, input_type: str = "general_text"
+    ) -> str:
         """Validate and sanitize AI input text.
 
         Args:
@@ -106,9 +109,13 @@ class AIInputValidator:
             raise AIValidationError("Input must be a string")
 
         # Check length limits
-        max_length = self.LENGTH_LIMITS.get(input_type, self.LENGTH_LIMITS['general_text'])
+        max_length = self.LENGTH_LIMITS.get(
+            input_type, self.LENGTH_LIMITS["general_text"]
+        )
         if len(input_text) > max_length:
-            raise AIValidationError(f"Input too long for {input_type}. Max length: {max_length}")
+            raise AIValidationError(
+                f"Input too long for {input_type}. Max length: {max_length}"
+            )
 
         if len(input_text) == 0:
             raise AIValidationError("Input cannot be empty")
@@ -122,7 +129,11 @@ class AIInputValidator:
         if not self.ALLOWED_CHARS.fullmatch(input_text):
             logger.warning(f"Invalid characters detected in {input_type} input")
             # Sanitize by removing disallowed characters
-            sanitized = re.sub(r'[^a-zA-Z0-9\s\.,;:!?\'"()\-_\n\r@#$%&*+=/\\<>[\]{}|`~^]', '', input_text)
+            sanitized = re.sub(
+                r'[^a-zA-Z0-9\s\.,;:!?\'"()\-_\n\r@#$%&*+=/\\<>[\]{}|`~^]',
+                "",
+                input_text,
+            )
             if len(sanitized) == 0:
                 raise AIValidationError("Input contains only invalid characters")
             return sanitized
@@ -140,7 +151,7 @@ class AIInputValidator:
     def _normalize_whitespace(self, text: str) -> str:
         """Normalize whitespace in text."""
         # Replace multiple spaces with single space
-        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r"\s+", " ", text)
         # Remove leading/trailing whitespace
         text = text.strip()
         return text
@@ -148,37 +159,37 @@ class AIInputValidator:
     def _sanitize_html(self, text: str) -> str:
         """Sanitize HTML-like content."""
         # Remove HTML tags
-        text = re.sub(r'<[^>]+>', '', text)
+        text = re.sub(r"<[^>]+>", "", text)
         # Remove HTML entities
-        text = re.sub(r'&[a-zA-Z0-9#]+;', '', text)
+        text = re.sub(r"&[a-zA-Z0-9#]+;", "", text)
         return text
 
     def _sanitize_urls(self, text: str) -> str:
         """Sanitize URLs and links."""
         # Remove http/https URLs
-        text = re.sub(r'https?://[^\s]+', '', text)
+        text = re.sub(r"https?://[^\s]+", "", text)
         # Remove www URLs
-        text = re.sub(r'www\.[^\s]+', '', text)
+        text = re.sub(r"www\.[^\s]+", "", text)
         # Remove email addresses
-        text = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', '', text)
+        text = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "", text)
         return text
 
     def _sanitize_code_like_content(self, text: str) -> str:
         """Sanitize code-like content."""
         # Remove common programming constructs
-        text = re.sub(r'\bdef\s+\w+\s*\([^)]*\)\s*:', '', text)  # Function definitions
-        text = re.sub(r'\bclass\s+\w+\s*:', '', text)  # Class definitions
-        text = re.sub(r'\bimport\s+\w+', '', text)  # Import statements
-        text = re.sub(r'\bfrom\s+\w+\s+import', '', text)  # From imports
-        text = re.sub(r'\bprint\s*\(', '', text)  # Print statements
-        text = re.sub(r'\breturn\s+', '', text)  # Return statements
-        text = re.sub(r'\bif\s+.*:', '', text)  # If statements
-        text = re.sub(r'\bfor\s+.*:', '', text)  # For loops
-        text = re.sub(r'\bwhile\s+.*:', '', text)  # While loops
-        text = re.sub(r'\btry\s*:', '', text)  # Try blocks
-        text = re.sub(r'\bexcept\s+.*:', '', text)  # Except blocks
-        text = re.sub(r'\bfinally\s*:', '', text)  # Finally blocks
-        text = re.sub(r'\bwith\s+.*:', '', text)  # With statements
+        text = re.sub(r"\bdef\s+\w+\s*\([^)]*\)\s*:", "", text)  # Function definitions
+        text = re.sub(r"\bclass\s+\w+\s*:", "", text)  # Class definitions
+        text = re.sub(r"\bimport\s+\w+", "", text)  # Import statements
+        text = re.sub(r"\bfrom\s+\w+\s+import", "", text)  # From imports
+        text = re.sub(r"\bprint\s*\(", "", text)  # Print statements
+        text = re.sub(r"\breturn\s+", "", text)  # Return statements
+        text = re.sub(r"\bif\s+.*:", "", text)  # If statements
+        text = re.sub(r"\bfor\s+.*:", "", text)  # For loops
+        text = re.sub(r"\bwhile\s+.*:", "", text)  # While loops
+        text = re.sub(r"\btry\s*:", "", text)  # Try blocks
+        text = re.sub(r"\bexcept\s+.*:", "", text)  # Except blocks
+        text = re.sub(r"\bfinally\s*:", "", text)  # Finally blocks
+        text = re.sub(r"\bwith\s+.*:", "", text)  # With statements
         return text
 
     def validate_email(self, email: str) -> str:
@@ -189,13 +200,13 @@ class AIInputValidator:
         email = email.strip().lower()
 
         # Basic email validation
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, email):
             raise AIValidationError("Invalid email format")
 
         # Check for suspicious domains
-        suspicious_domains = ['tempmail.com', '10minutemail.com', 'guerrillamail.com']
-        domain = email.split('@')[-1]
+        suspicious_domains = ["tempmail.com", "10minutemail.com", "guerrillamail.com"]
+        domain = email.split("@")[-1]
         if domain in suspicious_domains:
             raise AIValidationError("Suspicious email domain detected")
 
@@ -220,7 +231,7 @@ class AIInputValidator:
 
             # Validate and sanitize each skill
             try:
-                sanitized_skill = self.validate_and_sanitize(skill, 'general_text')
+                sanitized_skill = self.validate_and_sanitize(skill, "general_text")
                 validated_skills.append(sanitized_skill)
             except AIValidationError:
                 logger.warning(f"Invalid skill skipped: {skill}")
@@ -246,7 +257,7 @@ class AIInputValidator:
                 continue
 
             # Check for valid ID format (alphanumeric with some special chars)
-            if not re.match(r'^[a-zA-Z0-9_-]+$', job_id):
+            if not re.match(r"^[a-zA-Z0-9_-]+$", job_id):
                 logger.warning(f"Invalid job ID format skipped: {job_id}")
                 continue
 
@@ -269,11 +280,13 @@ class AIInputValidator:
         if not isinstance(level, str):
             raise AIValidationError("Education level must be a string")
 
-        valid_levels = ['high_school', 'bachelor', 'master', 'phd', 'other']
+        valid_levels = ["high_school", "bachelor", "master", "phd", "other"]
         level = level.strip().lower()
 
         if level not in valid_levels:
-            raise AIValidationError(f"Invalid education level. Must be one of: {', '.join(valid_levels)}")
+            raise AIValidationError(
+                f"Invalid education level. Must be one of: {', '.join(valid_levels)}"
+            )
 
         return level
 
@@ -289,7 +302,10 @@ class AIInputValidator:
 # Convenience Functions
 # ---------------------------------------------------------------------------
 
-def validate_and_sanitize_ai_input(input_text: str, input_type: str = 'general_text') -> str:
+
+def validate_and_sanitize_ai_input(
+    input_text: str, input_type: str = "general_text"
+) -> str:
     """Convenience function to validate and sanitize AI input.
 
     Args:
@@ -307,18 +323,20 @@ def validate_and_sanitize_ai_input(input_text: str, input_type: str = 'general_t
     return validator.validate_and_sanitize(input_text, input_type)
 
 
-def _validate_field(validator: AIInputValidator, key: str, value: Any) -> tuple[str, Any] | None:
+def _validate_field(
+    validator: AIInputValidator, key: str, value: Any
+) -> tuple[str, Any] | None:
     """Validate a single field based on its key. Returns (key, validated_value) or None."""
     validation_map = {
-        'resume_text': lambda v: validator.validate_and_sanitize(v, 'resume_text'),
-        'skills': lambda v: validator.validate_skills_list(v),
-        'role': lambda v: validator.validate_and_sanitize(v, 'role'),
-        'location': lambda v: validator.validate_and_sanitize(v, 'location'),
-        'experience_years': lambda v: validator.validate_experience_years(v),
-        'education_level': lambda v: validator.validate_education_level(v),
-        'remote_preference': lambda v: validator.validate_remote_preference(v),
-        'job_ids': lambda v: validator.validate_job_ids_list(v),
-        'email': lambda v: validator.validate_email(v),
+        "resume_text": lambda v: validator.validate_and_sanitize(v, "resume_text"),
+        "skills": lambda v: validator.validate_skills_list(v),
+        "role": lambda v: validator.validate_and_sanitize(v, "role"),
+        "location": lambda v: validator.validate_and_sanitize(v, "location"),
+        "experience_years": lambda v: validator.validate_experience_years(v),
+        "education_level": lambda v: validator.validate_education_level(v),
+        "remote_preference": lambda v: validator.validate_remote_preference(v),
+        "job_ids": lambda v: validator.validate_job_ids_list(v),
+        "email": lambda v: validator.validate_email(v),
     }
 
     if key in validation_map:

@@ -15,7 +15,6 @@ from datetime import datetime, timezone
 from typing import Any, TypeVar
 
 from shared.logging_config import get_logger
-
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.batch_llm")
@@ -87,9 +86,7 @@ class BatchProcessor:
                     latency_ms=latency,
                 )
 
-    async def process_batch(
-        self, requests: list[BatchRequest]
-    ) -> list[BatchResult]:
+    async def process_batch(self, requests: list[BatchRequest]) -> list[BatchResult]:
         sorted_requests = sorted(requests, key=lambda r: -r.priority)
 
         tasks = [self.process_single(req) for req in sorted_requests]

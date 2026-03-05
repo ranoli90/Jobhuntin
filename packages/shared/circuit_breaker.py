@@ -18,12 +18,12 @@ from shared.logging_config import get_logger
 
 logger = get_logger("sorce.circuit_breaker")
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class CircuitState(Enum):
-    CLOSED = "closed"      # Normal operation, requests flow through
-    OPEN = "open"          # Circuit tripped, requests fail fast
+    CLOSED = "closed"  # Normal operation, requests flow through
+    OPEN = "open"  # Circuit tripped, requests fail fast
     HALF_OPEN = "half_open"  # Testing if service recovered
 
 
@@ -32,10 +32,10 @@ class CircuitBreakerConfig:
     """Configuration for a circuit breaker."""
 
     name: str
-    failure_threshold: int = 5       # Number of failures before opening
-    success_threshold: int = 2       # Successes needed to close in half-open
-    timeout_seconds: float = 30.0    # How long to wait before trying again
-    half_open_max_calls: int = 3     # Max concurrent calls in half-open state
+    failure_threshold: int = 5  # Number of failures before opening
+    success_threshold: int = 2  # Successes needed to close in half-open
+    timeout_seconds: float = 30.0  # How long to wait before trying again
+    half_open_max_calls: int = 3  # Max concurrent calls in half-open state
 
 
 @dataclass
@@ -58,7 +58,9 @@ class CircuitBreakerOpenError(Exception):
     def __init__(self, name: str, retry_after: float):
         self.name = name
         self.retry_after = retry_after
-        super().__init__(f"Circuit breaker '{name}' is open. Retry after {retry_after:.1f}s")
+        super().__init__(
+            f"Circuit breaker '{name}' is open. Retry after {retry_after:.1f}s"
+        )
 
 
 @dataclass
@@ -106,7 +108,7 @@ class CircuitBreaker:
                 if now - self._opened_at >= self.config.timeout_seconds:
                     logger.info(
                         "Circuit %s transitioning to half-open after timeout",
-                        self.config.name
+                        self.config.name,
                     )
                     self.state = CircuitState.HALF_OPEN
                     self.stats.half_open_calls = 0
@@ -132,7 +134,7 @@ class CircuitBreaker:
                     logger.info(
                         "Circuit %s closing after %d successes",
                         self.config.name,
-                        self.stats.successes
+                        self.stats.successes,
                     )
                     self.state = CircuitState.CLOSED
                     self.stats.failures = 0
@@ -153,14 +155,14 @@ class CircuitBreaker:
                 "Circuit %s recorded failure #%d: %s",
                 self.config.name,
                 self.stats.failures,
-                str(error)[:100]
+                str(error)[:100],
             )
 
             if self.state == CircuitState.HALF_OPEN:
                 # Any failure in half-open goes back to open
                 logger.warning(
                     "Circuit %s reopening after failure in half-open state",
-                    self.config.name
+                    self.config.name,
                 )
                 self.state = CircuitState.OPEN
                 self._opened_at = time.monotonic()
@@ -171,17 +173,19 @@ class CircuitBreaker:
                     logger.error(
                         "Circuit %s opening after %d failures",
                         self.config.name,
-                        self.stats.failures
+                        self.stats.failures,
                     )
                     self.state = CircuitState.OPEN
                     self._opened_at = time.monotonic()
 
     def protect(self, func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
         """Decorator to protect an async function with this circuit breaker."""
+
         @wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> T:
             async with self:
                 return await func(*args, **kwargs)
+
         return wrapper
 
     def get_status(self) -> dict:

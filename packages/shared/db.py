@@ -41,7 +41,9 @@ def resolve_dsn_ipv4(dsn: str) -> str:
             return urlunparse(updated)
 
         infos = socket.getaddrinfo(
-            parsed.hostname, parsed.port or 5432, socket.AF_INET,
+            parsed.hostname,
+            parsed.port or 5432,
+            socket.AF_INET,
         )
         if not infos:
             updated = parsed._replace(query=urlencode(query_params))
@@ -49,8 +51,14 @@ def resolve_dsn_ipv4(dsn: str) -> str:
 
         ipv4_addr = infos[0][4][0]
         netloc = parsed.netloc.replace(parsed.hostname, ipv4_addr)
-        resolved = urlunparse(parsed._replace(netloc=netloc, query=urlencode(query_params)))
-        logger.info("Resolved DB host %s -> %s (IPv4, sslmode=require)", parsed.hostname, ipv4_addr)
+        resolved = urlunparse(
+            parsed._replace(netloc=netloc, query=urlencode(query_params))
+        )
+        logger.info(
+            "Resolved DB host %s -> %s (IPv4, sslmode=require)",
+            parsed.hostname,
+            ipv4_addr,
+        )
         return resolved
     except Exception as exc:
         logger.warning("IPv4 DNS resolution failed, using original DSN: %s", exc)

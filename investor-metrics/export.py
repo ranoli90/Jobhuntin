@@ -19,7 +19,9 @@ from pathlib import Path
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export Sorce Series A metrics")
-    parser.add_argument("--api-url", default=os.getenv("API_URL", "http://localhost:8000"))
+    parser.add_argument(
+        "--api-url", default=os.getenv("API_URL", "http://localhost:8000")
+    )
     parser.add_argument("--token", default=os.getenv("ADMIN_TOKEN", ""))
     parser.add_argument("--output", default="./investor-metrics/exports")
     args = parser.parse_args()

@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.audit")
@@ -27,14 +28,21 @@ async def record_audit_event(
 ) -> None:
     """Record an audit log entry."""
     import json
+
     await conn.execute(
         """
         INSERT INTO public.audit_log
             (tenant_id, user_id, action, resource, resource_id, details, ip_address, user_agent)
         VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)
         """,
-        tenant_id, user_id, action, resource, resource_id,
-        json.dumps(details or {}), ip_address, user_agent,
+        tenant_id,
+        user_id,
+        action,
+        resource,
+        resource_id,
+        json.dumps(details or {}),
+        ip_address,
+        user_agent,
     )
 
 
@@ -57,7 +65,10 @@ async def get_audit_log(
             ORDER BY created_at DESC
             LIMIT $2 OFFSET $3
             """,
-            tenant_id, limit, offset, f"%{action_filter}%",
+            tenant_id,
+            limit,
+            offset,
+            f"%{action_filter}%",
         )
     else:
         rows = await conn.fetch(
@@ -69,7 +80,9 @@ async def get_audit_log(
             ORDER BY created_at DESC
             LIMIT $2 OFFSET $3
             """,
-            tenant_id, limit, offset,
+            tenant_id,
+            limit,
+            offset,
         )
     return [dict(r) for r in rows]
 
@@ -79,10 +92,13 @@ async def get_audit_log_count(
     tenant_id: str,
 ) -> int:
     """Count total audit log entries for a tenant."""
-    return await conn.fetchval(
-        "SELECT COUNT(*)::int FROM public.audit_log WHERE tenant_id = $1",
-        tenant_id,
-    ) or 0
+    return (
+        await conn.fetchval(
+            "SELECT COUNT(*)::int FROM public.audit_log WHERE tenant_id = $1",
+            tenant_id,
+        )
+        or 0
+    )
 
 
 async def export_audit_log_csv(
@@ -98,17 +114,35 @@ async def export_audit_log_csv(
         WHERE tenant_id = $1 AND created_at >= now() - ($2 || ' days')::interval
         ORDER BY created_at DESC
         """,
-        tenant_id, str(days),
+        tenant_id,
+        str(days),
     )
     import csv
     import io
+
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["timestamp", "user_id", "action", "resource", "resource_id", "details", "ip_address"])
+    writer.writerow(
+        [
+            "timestamp",
+            "user_id",
+            "action",
+            "resource",
+            "resource_id",
+            "details",
+            "ip_address",
+        ]
+    )
     for r in rows:
-        writer.writerow([
-            r["created_at"].isoformat(), str(r["user_id"] or ""),
-            r["action"], r["resource"], r["resource_id"] or "",
-            str(r["details"]), r["ip_address"] or "",
-        ])
+        writer.writerow(
+            [
+                r["created_at"].isoformat(),
+                str(r["user_id"] or ""),
+                r["action"],
+                r["resource"],
+                r["resource_id"] or "",
+                str(r["details"]),
+                r["ip_address"] or "",
+            ]
+        )
     return output.getvalue()

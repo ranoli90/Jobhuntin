@@ -172,9 +172,9 @@ def build_job_signals_prompt(job_title: str, company: str, job_description: str)
     return JOB_SIGNALS_PROMPT.format(
         job_title=job_title,
         company=company,
-        job_description=job_description[:6000]
-        if len(job_description) > 6000
-        else job_description,
+        job_description=(
+            job_description[:6000] if len(job_description) > 6000 else job_description
+        ),
     )
 
 

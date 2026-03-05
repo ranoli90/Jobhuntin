@@ -6,10 +6,11 @@ Handles the lifecycle of team invites and per-seat Stripe quantity updates.
 from __future__ import annotations
 
 import secrets
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -20,6 +21,7 @@ logger = get_logger("sorce.teams")
 # Invite token generation
 # ---------------------------------------------------------------------------
 
+
 def generate_invite_token() -> str:
     """Generate a URL-safe invite token."""
     return secrets.token_urlsafe(32)
@@ -28,6 +30,7 @@ def generate_invite_token() -> str:
 # ---------------------------------------------------------------------------
 # Invite management
 # ---------------------------------------------------------------------------
+
 
 async def create_invite(
     conn: asyncpg.Connection,
@@ -66,7 +69,8 @@ async def create_invite(
     existing = await conn.fetchval(
         """SELECT id FROM public.team_invites
            WHERE tenant_id = $1 AND email = $2 AND status = 'pending'""",
-        tenant_id, email,
+        tenant_id,
+        email,
     )
     if existing:
         raise ValueError(f"Pending invite already exists for {email}")
@@ -78,7 +82,11 @@ async def create_invite(
         VALUES ($1, $2, $3, $4, $5)
         RETURNING id, tenant_id, email, role, token, status, created_at, expires_at
         """,
-        tenant_id, invited_by, email, role, token,
+        tenant_id,
+        invited_by,
+        email,
+        role,
+        token,
     )
     return dict(row)
 
@@ -113,7 +121,8 @@ async def accept_invite(
     # Check not already a member
     already = await conn.fetchval(
         "SELECT COUNT(*) FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
-        tenant_id, user_id,
+        tenant_id,
+        user_id,
     )
     if already and already > 0:
         # Just mark invite accepted
@@ -130,7 +139,9 @@ async def accept_invite(
         VALUES ($1, $2, $3)
         ON CONFLICT (tenant_id, user_id) DO UPDATE SET role = $3
         """,
-        tenant_id, user_id, role,
+        tenant_id,
+        user_id,
+        role,
     )
 
     # Update seat count
@@ -160,7 +171,8 @@ async def revoke_invite(
         UPDATE public.team_invites SET status = 'revoked'
         WHERE id = $1 AND tenant_id = $2 AND status = 'pending'
         """,
-        invite_id, tenant_id,
+        invite_id,
+        tenant_id,
     )
     return "UPDATE 1" in result
 
@@ -185,6 +197,7 @@ async def list_invites(
 # ---------------------------------------------------------------------------
 # Member management
 # ---------------------------------------------------------------------------
+
 
 async def list_members(
     conn: asyncpg.Connection,
@@ -223,7 +236,8 @@ async def remove_member(
     """Remove a member from a tenant (cannot remove OWNER)."""
     role = await conn.fetchval(
         "SELECT role FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
-        tenant_id, user_id,
+        tenant_id,
+        user_id,
     )
     if not role:
         return False
@@ -232,7 +246,8 @@ async def remove_member(
 
     await conn.execute(
         "DELETE FROM public.tenant_members WHERE tenant_id = $1 AND user_id = $2",
-        tenant_id, user_id,
+        tenant_id,
+        user_id,
     )
     await conn.execute(
         "UPDATE public.tenants SET seat_count = GREATEST(seat_count - 1, 1) WHERE id = $1",
@@ -252,7 +267,9 @@ async def update_member_role(
         raise ValueError("Invalid role; must be MEMBER or ADMIN")
     result = await conn.execute(
         "UPDATE public.tenant_members SET role = $3 WHERE tenant_id = $1 AND user_id = $2",
-        tenant_id, user_id, new_role,
+        tenant_id,
+        user_id,
+        new_role,
     )
     return "UPDATE 1" in result
 
@@ -260,6 +277,7 @@ async def update_member_role(
 # ---------------------------------------------------------------------------
 # Seat management (Stripe integration)
 # ---------------------------------------------------------------------------
+
 
 async def update_stripe_seat_quantity(
     conn: asyncpg.Connection,
@@ -280,6 +298,7 @@ async def update_stripe_seat_quantity(
         return
 
     import stripe
+
     stripe.api_key = s.stripe_secret_key
 
     # Calculate additional seats beyond included
@@ -293,10 +312,15 @@ async def update_stripe_seat_quantity(
 
     await conn.execute(
         "UPDATE public.tenants SET max_seats = $2 WHERE id = $1",
-        tenant_id, new_seat_count,
+        tenant_id,
+        new_seat_count,
     )
-    logger.info("Updated seats for tenant %s: %d (additional billable: %d)",
-                tenant_id, new_seat_count, additional)
+    logger.info(
+        "Updated seats for tenant %s: %d (additional billable: %d)",
+        tenant_id,
+        new_seat_count,
+        additional,
+    )
 
 
 async def get_team_overview(

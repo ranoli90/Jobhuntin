@@ -15,15 +15,15 @@ class TestStripeWebhooks:
     def test_webhook_signature_validation(self):
         """Webhook signatures should be validated correctly."""
         secret = "whsec_test_secret"
-        payload = json.dumps({"id": "evt_test", "object": "event", "type": "checkout.session.completed"})
+        payload = json.dumps(
+            {"id": "evt_test", "object": "event", "type": "checkout.session.completed"}
+        )
         timestamp = int(datetime.now().timestamp())
 
         # Create signature
         signed_payload = f"{timestamp}.{payload}"
         signature = hmac.new(
-            secret.encode(),
-            signed_payload.encode(),
-            hashlib.sha256
+            secret.encode(), signed_payload.encode(), hashlib.sha256
         ).hexdigest()
 
         # Verify signature format
@@ -42,7 +42,7 @@ class TestStripeWebhooks:
                     "customer": "cus_test123",
                     "subscription": "sub_test123",
                 }
-            }
+            },
         }
 
         assert payload["type"] == "checkout.session.completed"
@@ -112,13 +112,15 @@ class TestBillingQueries:
         from backend.domain.repositories import SubscriptionRepo
 
         mock_conn = MagicMock()
-        mock_conn.fetchrow = AsyncMock(return_value={
-            "id": "sub_123",
-            "user_id": "user_123",
-            "stripe_subscription_id": "stripe_sub_123",
-            "tier": "pro",
-            "status": "active",
-        })
+        mock_conn.fetchrow = AsyncMock(
+            return_value={
+                "id": "sub_123",
+                "user_id": "user_123",
+                "stripe_subscription_id": "stripe_sub_123",
+                "tier": "pro",
+                "status": "active",
+            }
+        )
 
         repo = SubscriptionRepo()
         result = await repo.get_by_user_id(mock_conn, "user_123")
@@ -170,11 +172,13 @@ class TestUsageTracking:
         from backend.domain.repositories import UsageRepo
 
         mock_conn = MagicMock()
-        mock_conn.fetchrow = AsyncMock(return_value={
-            "total_tokens": 50000,
-            "api_calls": 150,
-            "jobs_matched": 500,
-        })
+        mock_conn.fetchrow = AsyncMock(
+            return_value={
+                "total_tokens": 50000,
+                "api_calls": 150,
+                "jobs_matched": 500,
+            }
+        )
 
         repo = UsageRepo()
         result = await repo.get_monthly_usage(mock_conn, "tenant_123")

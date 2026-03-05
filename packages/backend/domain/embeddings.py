@@ -16,10 +16,10 @@ import time
 from typing import Any
 
 import httpx
-from shared.config import Settings
-from shared.logging_config import get_logger
 
 from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
+from shared.config import Settings
+from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.embeddings")

@@ -93,7 +93,6 @@ class KeyboardShortcutsService:
                 default_binding="g p",
                 category="navigation",
             ),
-
             # Job actions
             KeyboardShortcut(
                 id="jobs.search",
@@ -143,7 +142,6 @@ class KeyboardShortcutsService:
                 scope=ShortcutScope.JOBS,
                 category="jobs",
             ),
-
             # Editor actions
             KeyboardShortcut(
                 id="editor.save",
@@ -177,7 +175,6 @@ class KeyboardShortcutsService:
                 scope=ShortcutScope.EDITOR,
                 category="editor",
             ),
-
             # General
             KeyboardShortcut(
                 id="general.help",
@@ -248,7 +245,9 @@ class KeyboardShortcutsService:
         if new_binding in self._bindings:
             existing_id = self._bindings[new_binding]
             if existing_id != shortcut_id:
-                logger.warning(f"Binding conflict: {new_binding} already used by {existing_id}")
+                logger.warning(
+                    f"Binding conflict: {new_binding} already used by {existing_id}"
+                )
                 return False
 
         shortcut = self._shortcuts[shortcut_id]
@@ -291,7 +290,8 @@ class KeyboardShortcutsService:
     def get_active_shortcuts(self) -> list[KeyboardShortcut]:
         """Get shortcuts active in current scope."""
         return [
-            s for s in self._shortcuts.values()
+            s
+            for s in self._shortcuts.values()
             if s.scope == ShortcutScope.GLOBAL or s.scope == self._active_scope
         ]
 
@@ -336,13 +336,15 @@ class KeyboardShortcutsService:
             if shortcut.category not in categories:
                 categories[shortcut.category] = []
 
-            categories[shortcut.category].append({
-                "id": shortcut.id,
-                "name": shortcut.name,
-                "description": shortcut.description,
-                "binding": shortcut.current_binding or shortcut.default_binding,
-                "scope": shortcut.scope.value,
-            })
+            categories[shortcut.category].append(
+                {
+                    "id": shortcut.id,
+                    "name": shortcut.name,
+                    "description": shortcut.description,
+                    "binding": shortcut.current_binding or shortcut.default_binding,
+                    "scope": shortcut.scope.value,
+                }
+            )
 
         return categories
 

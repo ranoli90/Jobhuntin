@@ -6,7 +6,7 @@ Queries materialized views from migration 020.
 
 from __future__ import annotations
 
-from datetime import timezone, UTC
+from datetime import timezone
 from typing import Any
 
 import asyncpg
@@ -14,11 +14,15 @@ import asyncpg
 
 async def get_arr_by_vertical(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Get ARR breakdown by vertical."""
-    rows = await conn.fetch("SELECT * FROM public.mv_arr_by_vertical ORDER BY total_mrr DESC")
+    rows = await conn.fetch(
+        "SELECT * FROM public.mv_arr_by_vertical ORDER BY total_mrr DESC"
+    )
     return [dict(r) for r in rows]
 
 
-async def get_api_v2_usage(conn: asyncpg.Connection, days: int = 30) -> list[dict[str, Any]]:
+async def get_api_v2_usage(
+    conn: asyncpg.Connection, days: int = 30
+) -> list[dict[str, Any]]:
     """Get API usage metrics for the last N days."""
     rows = await conn.fetch(
         "SELECT * FROM public.mv_api_v2_usage WHERE day >= CURRENT_DATE - $1 ORDER BY day DESC, calls DESC",
@@ -29,19 +33,25 @@ async def get_api_v2_usage(conn: asyncpg.Connection, days: int = 30) -> list[dic
 
 async def get_blueprint_heatmap(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Get blueprint installation heatmap data."""
-    rows = await conn.fetch("SELECT * FROM public.mv_blueprint_heatmap ORDER BY week DESC, installs DESC LIMIT 200")
+    rows = await conn.fetch(
+        "SELECT * FROM public.mv_blueprint_heatmap ORDER BY week DESC, installs DESC LIMIT 200"
+    )
     return [dict(r) for r in rows]
 
 
 async def get_revenue_per_blueprint(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Get revenue generated per blueprint."""
-    rows = await conn.fetch("SELECT * FROM public.mv_revenue_per_blueprint ORDER BY gross_revenue_cents DESC")
+    rows = await conn.fetch(
+        "SELECT * FROM public.mv_revenue_per_blueprint ORDER BY gross_revenue_cents DESC"
+    )
     return [dict(r) for r in rows]
 
 
 async def get_staffing_performance(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Get staffing agency performance metrics."""
-    rows = await conn.fetch("SELECT * FROM public.mv_staffing_performance ORDER BY week DESC LIMIT 52")
+    rows = await conn.fetch(
+        "SELECT * FROM public.mv_staffing_performance ORDER BY week DESC LIMIT 52"
+    )
     return [dict(r) for r in rows]
 
 
@@ -53,25 +63,30 @@ async def get_university_roi(conn: asyncpg.Connection) -> list[dict[str, Any]]:
 
 async def get_integrator_stats(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Get statistics for API integrators."""
-    rows = await conn.fetch("SELECT * FROM public.mv_integrator_stats ORDER BY total_calls DESC")
+    rows = await conn.fetch(
+        "SELECT * FROM public.mv_integrator_stats ORDER BY total_calls DESC"
+    )
     return [dict(r) for r in rows]
 
 
 async def get_contract_renewals(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Get upcoming contract renewals."""
-    rows = await conn.fetch("""
+    rows = await conn.fetch(
+        """
         SELECT cr.*, t.name AS tenant_name, t.plan::text AS plan
         FROM public.contract_renewals cr
         JOIN public.tenants t ON t.id = cr.tenant_id
         WHERE cr.status NOT IN ('renewed', 'churned')
         ORDER BY cr.renewal_date ASC
-    """)
+    """
+    )
     return [dict(r) for r in rows]
 
 
 async def get_platform_summary(conn: asyncpg.Connection) -> dict[str, Any]:
     """High-level platform summary for M6 dashboard header."""
-    row = await conn.fetchrow("""
+    row = await conn.fetchrow(
+        """
         SELECT
             (SELECT COUNT(*)::int FROM public.tenants WHERE plan != 'FREE') AS paying_tenants,
             (SELECT COUNT(*)::int FROM public.api_keys WHERE is_active = true) AS active_api_keys,
@@ -88,7 +103,8 @@ async def get_platform_summary(conn: asyncpg.Connection) -> dict[str, Any]:
              WHERE created_at >= now() - interval '30 days') AS staffing_batches_30d,
             (SELECT COUNT(*)::int FROM public.webhook_endpoints
              WHERE is_active = true) AS active_webhooks
-    """)
+    """
+    )
     return dict(row) if row else {}
 
 
@@ -111,7 +127,9 @@ async def get_m6_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     total_arr = sum(v.get("total_arr", 0) for v in arr_vertical)
     enterprise_count = sum(v.get("enterprise_count", 0) for v in arr_vertical)
     integrator_count = len([i for i in integrators if i.get("total_calls", 0) > 0])
-    staffing_mrr = sum(s.get("revenue_cents", 0) for s in staffing[:4]) // 100  # last month
+    staffing_mrr = (
+        sum(s.get("revenue_cents", 0) for s in staffing[:4]) // 100
+    )  # last month
 
     m6_targets = {
         "enterprise_contract_target": 50000,
@@ -187,10 +205,14 @@ async def get_full_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
     staffing_revenue = sum(s.get("revenue_cents", 0) for s in staffing) // 100
     base["staffing_vertical"] = {
         "total_batches": sum(s.get("total_batches", 0) for s in staffing),
-        "total_candidates_submitted": sum(s.get("total_candidates", 0) for s in staffing),
+        "total_candidates_submitted": sum(
+            s.get("total_candidates", 0) for s in staffing
+        ),
         "success_rate_pct": staffing[0].get("success_rate", 0) if staffing else 0,
         "revenue": staffing_revenue,
-        "unique_agencies": max((s.get("unique_agencies", 0) for s in staffing), default=0),
+        "unique_agencies": max(
+            (s.get("unique_agencies", 0) for s in staffing), default=0
+        ),
     }
 
     # University partnerships
@@ -198,20 +220,32 @@ async def get_full_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
         "partner_count": summary.get("university_partners", 0),
         "total_students": summary.get("total_students", 0),
         "partners": [
-            {"name": u.get("name", ""), "students": u.get("total_students", 0), "pro_upgrades": u.get("pro_upgrades", 0)}
+            {
+                "name": u.get("name", ""),
+                "students": u.get("total_students", 0),
+                "pro_upgrades": u.get("pro_upgrades", 0),
+            }
             for u in uni_roi
         ],
     }
 
     # Marketplace economics
-    total_platform_rev = sum(b.get("platform_revenue_cents", 0) for b in bp_revenue) // 100
+    total_platform_rev = (
+        sum(b.get("platform_revenue_cents", 0) for b in bp_revenue) // 100
+    )
     base["marketplace_economics"] = {
         "total_paid_blueprints": len(bp_revenue),
-        "gross_revenue": sum(b.get("gross_revenue_cents", 0) for b in bp_revenue) // 100,
+        "gross_revenue": sum(b.get("gross_revenue_cents", 0) for b in bp_revenue)
+        // 100,
         "platform_revenue": total_platform_rev,
-        "author_revenue": sum(b.get("author_revenue_cents", 0) for b in bp_revenue) // 100,
+        "author_revenue": sum(b.get("author_revenue_cents", 0) for b in bp_revenue)
+        // 100,
         "top_blueprints": [
-            {"name": b.get("name", ""), "installs": b.get("install_count", 0), "revenue": b.get("gross_revenue_cents", 0) // 100}
+            {
+                "name": b.get("name", ""),
+                "installs": b.get("install_count", 0),
+                "revenue": b.get("gross_revenue_cents", 0) // 100,
+            }
             for b in bp_revenue[:5]
         ],
     }
@@ -222,5 +256,6 @@ async def get_full_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
 async def refresh_m6_views(conn: asyncpg.Connection) -> None:
     """Refresh all M1–M6 materialized views."""
     from backend.domain.m5_metrics import refresh_m5_views
+
     await refresh_m5_views(conn)
     await conn.execute("SELECT public.refresh_m6_views()")

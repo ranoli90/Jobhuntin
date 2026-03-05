@@ -6,6 +6,7 @@ Validates error handling, rate limiting, and metrics.
 from __future__ import annotations
 
 import pytest
+
 from backend.domain.production import (
     AIEndpointError,
     EmbeddingError,

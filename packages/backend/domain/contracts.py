@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -16,6 +17,7 @@ logger = get_logger("sorce.contracts")
 # ---------------------------------------------------------------------------
 # Self-serve enterprise onboarding
 # ---------------------------------------------------------------------------
+
 
 async def start_enterprise_onboarding(
     conn: asyncpg.Connection,
@@ -30,7 +32,8 @@ async def start_enterprise_onboarding(
         ON CONFLICT (tenant_id) DO UPDATE SET custom_domain = COALESCE($2, enterprise_onboarding.custom_domain), updated_at = now()
         RETURNING *
         """,
-        tenant_id, custom_domain,
+        tenant_id,
+        custom_domain,
     )
     return dict(row)
 
@@ -44,7 +47,8 @@ async def advance_onboarding(
     """Advance onboarding to next step."""
     steps = ["domain", "sso", "contract", "billing", "complete"]
     row = await conn.fetchrow(
-        "SELECT * FROM public.enterprise_onboarding WHERE tenant_id = $1", tenant_id,
+        "SELECT * FROM public.enterprise_onboarding WHERE tenant_id = $1",
+        tenant_id,
     )
     if not row:
         raise ValueError("Onboarding not started")
@@ -70,7 +74,8 @@ async def advance_onboarding(
         WHERE tenant_id = $1
         RETURNING *
         """,
-        tenant_id, next_step,
+        tenant_id,
+        next_step,
         update_fields.get("contract_signed"),
         update_fields.get("custom_domain"),
     )
@@ -78,10 +83,12 @@ async def advance_onboarding(
 
 
 async def get_onboarding_status(
-    conn: asyncpg.Connection, tenant_id: str,
+    conn: asyncpg.Connection,
+    tenant_id: str,
 ) -> dict[str, Any] | None:
     row = await conn.fetchrow(
-        "SELECT * FROM public.enterprise_onboarding WHERE tenant_id = $1", tenant_id,
+        "SELECT * FROM public.enterprise_onboarding WHERE tenant_id = $1",
+        tenant_id,
     )
     return dict(row) if row else None
 
@@ -101,7 +108,8 @@ async def update_churn_risk_scores(conn: asyncpg.Connection) -> int:
     - Contract expiry proximity (0-20 pts)
     - Support ticket sentiment (0-10 pts, placeholder)
     """
-    result = await conn.execute("""
+    result = await conn.execute(
+        """
         WITH scored AS (
             SELECT
                 t.id,
@@ -128,7 +136,8 @@ async def update_churn_risk_scores(conn: asyncpg.Connection) -> int:
         SET churn_risk_score = LEAST(100, scored.recency_score + scored.contract_score)
         FROM scored
         WHERE tenants.id = scored.id
-    """)
+    """
+    )
     count = int(result.split()[-1]) if result else 0
     logger.info("Updated churn risk for %d tenants", count)
     return count
@@ -137,6 +146,7 @@ async def update_churn_risk_scores(conn: asyncpg.Connection) -> int:
 # ---------------------------------------------------------------------------
 # Annual billing helpers
 # ---------------------------------------------------------------------------
+
 
 def get_annual_price_id(plan: str) -> str | None:
     """Return the Stripe annual price ID for a plan."""

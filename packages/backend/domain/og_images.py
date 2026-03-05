@@ -13,7 +13,6 @@ import io
 from typing import Any
 
 from shared.logging_config import get_logger
-
 from shared.metrics import incr
 
 logger = get_logger("sorce.og_images")

@@ -86,9 +86,7 @@ class TokenTracker:
         month_start = datetime(now.year, now.month, 1)
 
         return sum(
-            u.total_tokens
-            for u in self._usage[tenant_id]
-            if u.timestamp >= month_start
+            u.total_tokens for u in self._usage[tenant_id] if u.timestamp >= month_start
         )
 
     def get_usage_by_model(self, tenant_id: str) -> dict[str, int]:
@@ -145,8 +143,7 @@ class TokenTracker:
         for tenant_id in list(self._usage.keys()):
             before = len(self._usage[tenant_id])
             self._usage[tenant_id] = [
-                u for u in self._usage[tenant_id]
-                if u.timestamp >= cutoff
+                u for u in self._usage[tenant_id] if u.timestamp >= cutoff
             ]
             removed += before - len(self._usage[tenant_id])
 

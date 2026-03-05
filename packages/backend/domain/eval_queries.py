@@ -136,6 +136,7 @@ async def get_failure_reasons(
 # Combined performance summary
 # ---------------------------------------------------------------------------
 
+
 async def get_agent_performance_summary(
     conn: asyncpg.Connection,
     tenant_id: str | None = None,
@@ -145,13 +146,25 @@ async def get_agent_performance_summary(
 ) -> dict[str, Any]:
     """Return a combined performance summary dict."""
     success_rates = await get_success_rate_breakdown(
-        conn, tenant_id, blueprint_key, date_from, date_to,
+        conn,
+        tenant_id,
+        blueprint_key,
+        date_from,
+        date_to,
     )
     hold_questions = await get_avg_hold_questions(
-        conn, tenant_id, blueprint_key, date_from, date_to,
+        conn,
+        tenant_id,
+        blueprint_key,
+        date_from,
+        date_to,
     )
     failure_reasons = await get_failure_reasons(
-        conn, tenant_id, blueprint_key, date_from, date_to,
+        conn,
+        tenant_id,
+        blueprint_key,
+        date_from,
+        date_to,
     )
     return {
         "success_rate_breakdown": success_rates,

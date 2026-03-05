@@ -18,6 +18,7 @@ from backend.domain.vector_db import (
 )
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.vector_db")

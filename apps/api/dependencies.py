@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+from typing import Any
+
 import asyncpg
-from fastapi import (
-    Cookie,
-    Header,
-    HTTPException,
-)
+from fastapi import Cookie, Header, HTTPException
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.dependencies")
+
 
 class DatabasePoolManager:
     """Manages database pool lifecycle without global state."""
@@ -142,10 +142,11 @@ class DatabasePoolManager:
             logger.warning("Auto-migration check failed: %s", exc)
 
     @staticmethod
-    def _get_ssl_config(settings: any) -> any:
+    def _get_ssl_config(settings: Any) -> Any:
         """Get SSL config for database connection."""
         if getattr(settings, "db_ssl_ca_cert_path", None):
             import ssl
+
             ctx = ssl.create_default_context(cafile=settings.db_ssl_ca_cert_path)
             return ctx
         # Explicitly disable SSL if no cert path is configured.
@@ -214,4 +215,3 @@ async def get_current_user_id(
     except Exception as exc:
         logger.warning("Token processing error: %s", exc)
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-

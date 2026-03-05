@@ -232,7 +232,7 @@ class Settings(BaseSettings):
 
     # ── CAPTCHA (Bot Protection) ───────────────────────────────────
     recaptcha_secret_key: str = ""  # reCAPTCHA v3 secret key
-    hcaptcha_secret_key: str = ""   # hCaptcha secret key
+    hcaptcha_secret_key: str = ""  # hCaptcha secret key
     turnstile_secret_key: str = ""  # Cloudflare Turnstile secret key
     captcha_provider: str = "recaptcha"  # recaptcha, hcaptcha, turnstile
     captcha_min_score: float = 0.5  # Minimum score for reCAPTCHA v3
@@ -348,9 +348,13 @@ class Settings(BaseSettings):
                 )
             if self.stripe_webhook_secret in ("", "dev-placeholder-webhook-secret"):
                 if self.stripe_secret_key:
-                    missing.append("STRIPE_WEBHOOK_SECRET (placeholder value not allowed in production)")
+                    missing.append(
+                        "STRIPE_WEBHOOK_SECRET (placeholder value not allowed in production)"
+                    )
             if self.webhook_signing_secret in ("", "dev-placeholder-webhook-signing"):
-                missing.append("WEBHOOK_SIGNING_SECRET (placeholder value not allowed in production)")
+                missing.append(
+                    "WEBHOOK_SIGNING_SECRET (placeholder value not allowed in production)"
+                )
             # Warn (non-fatal) if using a free-tier LLM model in production
             # Auto-upgrade to production model if enabled (recommendation #126)
             if ":free" in self.llm_model:

@@ -1,15 +1,19 @@
-
 DATA_INVENTORY = {
     "users": ["email", "full_name", "headline", "bio", "resume_url"],
     "applications": ["status", "created_at", "submitted_at"],
 }
 
+
 class CCPAComplianceManager:
     @staticmethod
-    def handle_data_access_request(user_id: str, user_data: dict, application_data: list[dict]):
+    def handle_data_access_request(
+        user_id: str, user_data: dict, application_data: list[dict]
+    ):
         """Handles a data access request by returning all data associated with the user."""
         return {
-            "user": {k: v for k, v in user_data.items() if k in DATA_INVENTORY["users"]},
+            "user": {
+                k: v for k, v in user_data.items() if k in DATA_INVENTORY["users"]
+            },
             "applications": [
                 {k: v for k, v in app.items() if k in DATA_INVENTORY["applications"]}
                 for app in application_data

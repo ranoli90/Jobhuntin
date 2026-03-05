@@ -13,6 +13,7 @@ from typing import Any
 
 import asyncpg
 from pydantic import BaseModel, Field
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.match_feedback")
@@ -164,12 +165,12 @@ class MatchFeedbackRepo:
             thumbs_up=row["thumbs_up"],
             thumbs_down=row["thumbs_down"],
             avg_match_score=float(row["avg_match_score"] or 0),
-            avg_score_positive=float(row["avg_score_positive"])
-            if row["avg_score_positive"]
-            else None,
-            avg_score_negative=float(row["avg_score_negative"])
-            if row["avg_score_negative"]
-            else None,
+            avg_score_positive=(
+                float(row["avg_score_positive"]) if row["avg_score_positive"] else None
+            ),
+            avg_score_negative=(
+                float(row["avg_score_negative"]) if row["avg_score_negative"] else None
+            ),
             common_tags=list(row["common_tags"] or []),
         )
 
@@ -243,12 +244,12 @@ class MatchFeedbackRepo:
             "total_thumbs_down": row["total_thumbs_down"] or 0,
             "unique_users": row["unique_users"] or 0,
             "unique_jobs": row["unique_jobs"] or 0,
-            "avg_match_score": float(row["avg_match_score"])
-            if row["avg_match_score"]
-            else None,
-            "satisfaction_rate": round(satisfaction_rate, 1)
-            if satisfaction_rate is not None
-            else None,
+            "avg_match_score": (
+                float(row["avg_match_score"]) if row["avg_match_score"] else None
+            ),
+            "satisfaction_rate": (
+                round(satisfaction_rate, 1) if satisfaction_rate is not None else None
+            ),
         }
 
 

@@ -126,9 +126,7 @@ class RedisEmbeddingCache(EmbeddingCache):
             logger.warning("Redis unavailable, using in-memory cache")
             return None
 
-    async def get_async(
-        self, text: str, model: str = "default"
-    ) -> list[float] | None:
+    async def get_async(self, text: str, model: str = "default") -> list[float] | None:
         """Get cached embedding (async with Redis support)."""
         import json
 

@@ -18,9 +18,9 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import asyncpg
+
 from shared.config import Settings
 from shared.logging_config import get_logger
-
 from shared.metrics import incr
 
 logger = get_logger("sorce.vectordb")
@@ -150,7 +150,8 @@ class PgVectorBackend(VectorDBBackend):
 
         if self._pgvector_available:
             # Use native vector column
-            await self._conn.execute(f"""
+            await self._conn.execute(
+                f"""
                 CREATE TABLE IF NOT EXISTS {table_name} (
                     id TEXT PRIMARY KEY,
                     namespace TEXT NOT NULL DEFAULT 'default',
@@ -159,22 +160,28 @@ class PgVectorBackend(VectorDBBackend):
                     created_at TIMESTAMPTZ DEFAULT now(),
                     updated_at TIMESTAMPTZ DEFAULT now()
                 )
-            """)
+            """
+            )
             # Create vector index for similarity search
-            await self._conn.execute(f"""
+            await self._conn.execute(
+                f"""
                 CREATE INDEX IF NOT EXISTS {table_name}_embedding_idx
                 ON {table_name}
                 USING ivfflat (embedding vector_cosine_ops)
                 WITH (lists = 100)
-            """)
+            """
+            )
             # Create namespace index
-            await self._conn.execute(f"""
+            await self._conn.execute(
+                f"""
                 CREATE INDEX IF NOT EXISTS {table_name}_namespace_idx
                 ON {table_name} (namespace)
-            """)
+            """
+            )
         else:
             # Fallback to JSON storage
-            await self._conn.execute(f"""
+            await self._conn.execute(
+                f"""
                 CREATE TABLE IF NOT EXISTS {table_name} (
                     id TEXT PRIMARY KEY,
                     namespace TEXT NOT NULL DEFAULT 'default',
@@ -183,11 +190,14 @@ class PgVectorBackend(VectorDBBackend):
                     created_at TIMESTAMPTZ DEFAULT now(),
                     updated_at TIMESTAMPTZ DEFAULT now()
                 )
-            """)
-            await self._conn.execute(f"""
+            """
+            )
+            await self._conn.execute(
+                f"""
                 CREATE INDEX IF NOT EXISTS {table_name}_namespace_idx
                 ON {table_name} (namespace)
-            """)
+            """
+            )
 
         logger.info(
             f"Initialized pgvector backend (pgvector={self._pgvector_available})"
@@ -282,7 +292,7 @@ class PgVectorBackend(VectorDBBackend):
                     1 - (embedding <=> $1::vector) as score,
                     metadata
                 FROM {table_name}
-                WHERE {' AND '.join(where_clauses)}
+                WHERE {" AND ".join(where_clauses)}
                 ORDER BY embedding <=> $1::vector
                 LIMIT ${param_idx}
             """
@@ -311,7 +321,7 @@ class PgVectorBackend(VectorDBBackend):
             query = f"""
                 SELECT id, embedding, metadata
                 FROM {table_name}
-                WHERE {' AND '.join(where_clauses)}
+                WHERE {" AND ".join(where_clauses)}
             """
 
             rows = await self._conn.fetch(query, *params)
@@ -321,11 +331,15 @@ class PgVectorBackend(VectorDBBackend):
             for row in rows:
                 stored_embedding = json.loads(row["embedding"])
                 score = self._cosine_similarity(query_embedding, stored_embedding)
-                results.append({
-                    "id": row["id"],
-                    "score": score,
-                    "metadata": json.loads(row["metadata"]) if row["metadata"] else {},
-                })
+                results.append(
+                    {
+                        "id": row["id"],
+                        "score": score,
+                        "metadata": (
+                            json.loads(row["metadata"]) if row["metadata"] else {}
+                        ),
+                    }
+                )
 
             # Sort by score descending and return top_k
             results.sort(key=lambda x: x["score"], reverse=True)
@@ -360,8 +374,7 @@ class PgVectorBackend(VectorDBBackend):
             params.append(str(value))
 
         result = await self._conn.execute(
-            f"DELETE FROM {table_name} WHERE {' AND '.join(where_clauses)}",
-            *params
+            f"DELETE FROM {table_name} WHERE {' AND '.join(where_clauses)}", *params
         )
         # Parse "DELETE N" result
         return int(result.split()[-1]) if result else 0
@@ -382,7 +395,11 @@ class PgVectorBackend(VectorDBBackend):
             return None
         return {
             "id": row["id"],
-            "embedding": json.loads(row["embedding"]) if isinstance(row["embedding"], str) else row["embedding"],
+            "embedding": (
+                json.loads(row["embedding"])
+                if isinstance(row["embedding"], str)
+                else row["embedding"]
+            ),
             "metadata": json.loads(row["metadata"]) if row["metadata"] else {},
         }
 
@@ -447,7 +464,9 @@ class PineconeBackend(VectorDBBackend):
             self._index = pinecone.Index(self._index_name)
             logger.info(f"Initialized Pinecone backend (index={self._index_name})")
         except ImportError:
-            raise VectorDBError("pinecone-client not installed. Run: pip install pinecone-client")
+            raise VectorDBError(
+                "pinecone-client not installed. Run: pip install pinecone-client"
+            )
 
     async def upsert(
         self,
@@ -469,12 +488,11 @@ class PineconeBackend(VectorDBBackend):
     ) -> None:
         """Insert or update multiple vectors."""
         vectors = [
-            (item["id"], item["embedding"], item.get("metadata", {}))
-            for item in items
+            (item["id"], item["embedding"], item.get("metadata", {})) for item in items
         ]
         # Pinecone recommends batches of 100
         for i in range(0, len(vectors), 100):
-            batch = vectors[i:i + 100]
+            batch = vectors[i : i + 100]
             self._index.upsert(vectors=batch, namespace=namespace)
 
     async def search(
@@ -603,19 +621,18 @@ class InMemoryBackend(VectorDBBackend):
         for item in self._data[namespace].values():
             # Apply filters
             if filters:
-                match = all(
-                    item["metadata"].get(k) == v
-                    for k, v in filters.items()
-                )
+                match = all(item["metadata"].get(k) == v for k, v in filters.items())
                 if not match:
                     continue
 
             score = self._cosine_similarity(query_embedding, item["embedding"])
-            results.append({
-                "id": item["id"],
-                "score": score,
-                "metadata": item["metadata"],
-            })
+            results.append(
+                {
+                    "id": item["id"],
+                    "score": score,
+                    "metadata": item["metadata"],
+                }
+            )
 
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
@@ -741,7 +758,9 @@ class VectorDB:
         namespace: str = "default",
     ) -> None:
         """Insert or update multiple vectors."""
-        incr("vectordb.upsert_batch", {"namespace": namespace, "count": str(len(items))})
+        incr(
+            "vectordb.upsert_batch", {"namespace": namespace, "count": str(len(items))}
+        )
         await self._backend.upsert_batch(items, namespace)
 
     async def search(
@@ -799,6 +818,7 @@ async def get_vectordb(
     global _vectordb
     if _vectordb is None:
         from shared.config import get_settings
+
         settings = settings or get_settings()
         _vectordb = await VectorDB.create(settings, conn)
     return _vectordb

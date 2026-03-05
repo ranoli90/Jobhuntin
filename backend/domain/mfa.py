@@ -9,8 +9,7 @@ class MFAManager:
     @staticmethod
     def get_provisioning_uri(secret, username, issuer_name):
         return pyotp.totp.TOTP(secret).provisioning_uri(
-            name=username,
-            issuer_name=issuer_name
+            name=username, issuer_name=issuer_name
         )
 
     @staticmethod

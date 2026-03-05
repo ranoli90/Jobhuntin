@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timezone, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import asyncpg
@@ -16,6 +16,7 @@ from backend.domain.calendar import (
 )
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.calendar")

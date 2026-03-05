@@ -15,7 +15,6 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from shared.logging_config import get_logger
 
 from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
@@ -31,9 +30,8 @@ from backend.llm.contracts import (
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
 )
-from shared.ai_validation import (
-    validate_and_sanitize_ai_input,
-)
+from shared.ai_validation import validate_and_sanitize_ai_input
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.ai")
 
@@ -54,6 +52,7 @@ def _get_llm_client() -> LLMClient:
 async def get_db_connection() -> asyncpg.Connection:
     """Get database connection."""
     from shared.db import get_db_pool
+
     pool = get_db_pool()
     return await pool.acquire()
 
@@ -62,13 +61,16 @@ async def get_db_connection() -> asyncpg.Connection:
 # Request/Response Models
 # ---------------------------------------------------------------------------
 
+
 class RoleSuggestionRequest(BaseModel):
     """Request for AI-powered role suggestions."""
 
     resume_text: str = Field(..., min_length=50, max_length=10000)
     skills: list[str] = Field(default_factory=list, max_length=50)
     experience_years: int = Field(default=0, ge=0, le=50)
-    education_level: str = Field(default="bachelor", pattern="^(high_school|bachelor|master|phd|other)$")
+    education_level: str = Field(
+        default="bachelor", pattern="^(high_school|bachelor|master|phd|other)$"
+    )
 
 
 class SalarySuggestionRequest(BaseModel):
@@ -78,7 +80,9 @@ class SalarySuggestionRequest(BaseModel):
     location: str = Field(..., min_length=2, max_length=100)
     skills: list[str] = Field(default_factory=list, max_length=50)
     experience_years: int = Field(default=0, ge=0, le=50)
-    education_level: str = Field(default="bachelor", pattern="^(high_school|bachelor|master|phd|other)$")
+    education_level: str = Field(
+        default="bachelor", pattern="^(high_school|bachelor|master|phd|other)$"
+    )
 
 
 class LocationSuggestionRequest(BaseModel):
@@ -102,7 +106,9 @@ class OnboardingQuestionsRequest(BaseModel):
     """Request for AI-powered onboarding questions."""
 
     resume_text: str = Field(..., min_length=50, max_length=10000)
-    current_step: str = Field(default="initial", pattern="^(initial|skills|experience|preferences)$")
+    current_step: str = Field(
+        default="initial", pattern="^(initial|skills|experience|preferences)$"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -112,7 +118,11 @@ class OnboardingQuestionsRequest(BaseModel):
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 
-@router.post("/roles/suggest", response_model=RoleSuggestionResponse_V1, responses={500: {"description": "Failed to generate role suggestions"}})
+@router.post(
+    "/roles/suggest",
+    response_model=RoleSuggestionResponse_V1,
+    responses={500: {"description": "Failed to generate role suggestions"}},
+)
 async def suggest_roles(
     request: RoleSuggestionRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -153,10 +163,16 @@ async def suggest_roles(
 
     except Exception as e:
         logger.error(f"Error in role suggestion: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate role suggestions")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate role suggestions"
+        )
 
 
-@router.post("/salary/suggest", response_model=SalarySuggestionResponse_V1, responses={500: {"description": "Failed to generate salary suggestions"}})
+@router.post(
+    "/salary/suggest",
+    response_model=SalarySuggestionResponse_V1,
+    responses={500: {"description": "Failed to generate salary suggestions"}},
+)
 async def suggest_salary(
     request: SalarySuggestionRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -199,10 +215,16 @@ async def suggest_salary(
 
     except Exception as e:
         logger.error(f"Error in salary suggestion: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate salary suggestions")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate salary suggestions"
+        )
 
 
-@router.post("/locations/suggest", response_model=LocationSuggestionResponse_V1, responses={500: {"description": "Failed to generate location suggestions"}})
+@router.post(
+    "/locations/suggest",
+    response_model=LocationSuggestionResponse_V1,
+    responses={500: {"description": "Failed to generate location suggestions"}},
+)
 async def suggest_locations(
     request: LocationSuggestionRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -210,7 +232,9 @@ async def suggest_locations(
     """Get AI-powered location suggestions."""
     try:
         # Validate and sanitize input
-        sanitized_skills = [validate_and_sanitize_ai_input(skill) for skill in request.skills]
+        sanitized_skills = [
+            validate_and_sanitize_ai_input(skill) for skill in request.skills
+        ]
         sanitized_role = validate_and_sanitize_ai_input(request.role)
 
         # Get LLM client
@@ -244,10 +268,19 @@ async def suggest_locations(
 
     except Exception as e:
         logger.error(f"Error in location suggestion: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate location suggestions")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate location suggestions"
+        )
 
 
-@router.post("/jobs/match", response_model=JobMatchScore_V1, responses={404: {"description": "Profile not found"}, 500: {"description": "Failed to generate job matches"}})
+@router.post(
+    "/jobs/match",
+    response_model=JobMatchScore_V1,
+    responses={
+        404: {"description": "Profile not found"},
+        500: {"description": "Failed to generate job matches"},
+    },
+)
 async def match_jobs(
     request: JobMatchRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -272,7 +305,7 @@ async def match_jobs(
 
         # Build prompt for each job
         matches = []
-        for job_id in request.job_ids[:request.limit]:
+        for job_id in request.job_ids[: request.limit]:
             try:
                 # Get job details (implement this based on your job repository)
                 job_details = await _get_job_details(db, job_id)
@@ -311,10 +344,16 @@ async def match_jobs(
 
     except Exception as e:
         logger.error(f"Error in job matching: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate job matches") from e
+        raise HTTPException(
+            status_code=500, detail="Failed to generate job matches"
+        ) from e
 
 
-@router.post("/onboarding/questions", response_model=OnboardingQuestionsResponse_V1, responses={500: {"description": "Failed to generate onboarding questions"}})
+@router.post(
+    "/onboarding/questions",
+    response_model=OnboardingQuestionsResponse_V1,
+    responses={500: {"description": "Failed to generate onboarding questions"}},
+)
 async def generate_onboarding_questions(
     request: OnboardingQuestionsRequest,
     db: asyncpg.Connection = Depends(get_db_connection),
@@ -352,12 +391,15 @@ async def generate_onboarding_questions(
 
     except Exception as e:
         logger.error(f"Error in onboarding questions: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate onboarding questions") from e
+        raise HTTPException(
+            status_code=500, detail="Failed to generate onboarding questions"
+        ) from e
 
 
 # ---------------------------------------------------------------------------
 # Helper Functions
 # ---------------------------------------------------------------------------
+
 
 def _generate_cache_key(profile_id: str, job_ids: list[str]) -> str:
     """Generate a cache key for job matching results."""
@@ -380,13 +422,11 @@ async def _get_job_details(db: asyncpg.Connection, job_id: str) -> dict[str, Any
     }
 
 
-
-
-
 async def emit_analytics_event(event_name: str, data: dict[str, Any]) -> None:
     """Emit analytics event."""
     try:
         from backend.domain.analytics_events import emit_analytics_event
+
         await emit_analytics_event(event_name, data)
     except Exception as e:
         logger.warning(f"Failed to emit analytics event {event_name}: {e}")

@@ -34,6 +34,7 @@ target_metadata = None
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+
 def get_url():
     try:
         settings = get_settings()
@@ -43,14 +44,15 @@ def get_url():
         elif url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+asyncpg://")
         elif not url.startswith("postgresql+asyncpg://"):
-             # If it's just a DSN like 'user:pass@host/db', assume postgres
-             if "://" not in url:
-                 url = f"postgresql+asyncpg://{url}"
+            # If it's just a DSN like 'user:pass@host/db', assume postgres
+            if "://" not in url:
+                url = f"postgresql+asyncpg://{url}"
         return url
     except Exception as e:
         print(f"Error loading settings: {e}")
         # Fallback or re-raise
         raise
+
 
 # Set the URL in the config so that async_engine_from_config can find it
 config.set_main_option("sqlalchemy.url", get_url())

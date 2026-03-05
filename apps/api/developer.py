@@ -11,19 +11,23 @@ import asyncpg
 from api_v2.auth import generate_api_key
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
-from shared.logging_config import get_logger
 
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.developer")
 
 router = APIRouter(prefix="/developer", tags=["developer"])
 
+
 def _get_pool() -> asyncpg.Pool:
     return (_ for _ in ()).throw(NotImplementedError)
+
+
 def _get_tenant_ctx() -> TenantContext:
     return (_ for _ in ()).throw(NotImplementedError)
+
 
 TIER_LIMITS = {
     "free": {"rate_limit_rpm": 60, "monthly_quota": 100},
@@ -41,7 +45,11 @@ class CreateWebhookRequest(BaseModel):
     """Payload for creating a webhook."""
 
     url: str
-    events: list[str] = ["application.completed", "application.failed", "application.hold"]
+    events: list[str] = [
+        "application.completed",
+        "application.failed",
+        "application.hold",
+    ]
 
     @field_validator("url")
     @classmethod
@@ -50,6 +58,7 @@ class CreateWebhookRequest(BaseModel):
         import ipaddress
         import socket
         from urllib.parse import urlparse
+
         parsed = urlparse(v)
         if parsed.scheme != "https":
             raise ValueError("Webhook URL must use HTTPS")
@@ -68,6 +77,7 @@ class CreateWebhookRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # API Keys
 # ---------------------------------------------------------------------------
+
 
 @router.get("/api-keys")
 async def list_api_keys(
@@ -101,24 +111,35 @@ async def create_api_key(
 
     async with db.acquire() as conn:
         count = await conn.fetchval(
-            "SELECT COUNT(*)::int FROM public.api_keys WHERE tenant_id = $1", ctx.tenant_id,
+            "SELECT COUNT(*)::int FROM public.api_keys WHERE tenant_id = $1",
+            ctx.tenant_id,
         )
         if count >= 20:
-            raise HTTPException(status_code=400, detail="Maximum 20 API keys per tenant")
+            raise HTTPException(
+                status_code=400, detail="Maximum 20 API keys per tenant"
+            )
 
         row = await conn.fetchrow(
             """INSERT INTO public.api_keys
                    (tenant_id, name, key_hash, key_prefix, tier, rate_limit_rpm, monthly_quota)
                VALUES ($1, $2, $3, $4, $5, $6, $7)
                RETURNING id, name, key_prefix, tier, rate_limit_rpm, monthly_quota, created_at""",
-            ctx.tenant_id, body.name, key_hash, key_prefix,
-            tier, limits["rate_limit_rpm"], limits["monthly_quota"],
+            ctx.tenant_id,
+            body.name,
+            key_hash,
+            key_prefix,
+            tier,
+            limits["rate_limit_rpm"],
+            limits["monthly_quota"],
         )
 
         await record_audit_event(
-            conn, ctx.tenant_id, ctx.user_id,
+            conn,
+            ctx.tenant_id,
+            ctx.user_id,
             action="developer.api_key_created",
-            resource="api_key", resource_id=str(row["id"]),
+            resource="api_key",
+            resource_id=str(row["id"]),
             details={"name": body.name, "tier": tier},
         )
 
@@ -133,6 +154,7 @@ async def revoke_api_key(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     from shared.validators import validate_uuid
+
     validate_uuid(key_id, "key_id")
     try:
         require_role(ctx, "OWNER", "ADMIN")
@@ -142,7 +164,8 @@ async def revoke_api_key(
     async with db.acquire() as conn:
         await conn.execute(
             "UPDATE public.api_keys SET is_active = false WHERE id = $1 AND tenant_id = $2",
-            key_id, ctx.tenant_id,
+            key_id,
+            ctx.tenant_id,
         )
     return {"status": "revoked"}
 
@@ -150,6 +173,7 @@ async def revoke_api_key(
 # ---------------------------------------------------------------------------
 # Webhooks (via JWT auth, not API key)
 # ---------------------------------------------------------------------------
+
 
 @router.get("/webhooks")
 async def list_webhooks(
@@ -172,11 +196,13 @@ async def create_webhook(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     import secrets
+
     secret = "whsec_" + secrets.token_hex(24)
 
     async with db.acquire() as conn:
         count = await conn.fetchval(
-            "SELECT COUNT(*)::int FROM public.webhook_endpoints WHERE tenant_id = $1", ctx.tenant_id,
+            "SELECT COUNT(*)::int FROM public.webhook_endpoints WHERE tenant_id = $1",
+            ctx.tenant_id,
         )
         if count >= 10:
             raise HTTPException(status_code=400, detail="Maximum 10 webhooks")
@@ -185,7 +211,10 @@ async def create_webhook(
         row = await conn.fetchrow(
             """INSERT INTO public.webhook_endpoints (tenant_id, url, secret, events)
                VALUES ($1, $2, $3, $4) RETURNING id, url, events, is_active""",
-            ctx.tenant_id, body.url, secret, body.events,
+            ctx.tenant_id,
+            body.url,
+            secret,
+            body.events,
         )
 
     # SECURITY: secret is shown once to the user. Ensure response logging does not capture this.
@@ -199,11 +228,13 @@ async def delete_webhook(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     from shared.validators import validate_uuid
+
     validate_uuid(webhook_id, "webhook_id")
     async with db.acquire() as conn:
         await conn.execute(
             "DELETE FROM public.webhook_endpoints WHERE id = $1 AND tenant_id = $2",
-            webhook_id, ctx.tenant_id,
+            webhook_id,
+            ctx.tenant_id,
         )
     return {"status": "deleted"}
 
@@ -211,6 +242,7 @@ async def delete_webhook(
 # ---------------------------------------------------------------------------
 # Usage dashboard
 # ---------------------------------------------------------------------------
+
 
 @router.get("/usage")
 async def get_usage_dashboard(

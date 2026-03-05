@@ -74,15 +74,20 @@ async def record_system_evaluation(
         user_id,
         label,
         reason,
-        json.dumps(metadata or {
-            "status": status,
-            "attempt_count": attempt_count,
-            "had_hold": had_hold,
-        }),
+        json.dumps(
+            metadata
+            or {
+                "status": status,
+                "attempt_count": attempt_count,
+                "had_hold": had_hold,
+            }
+        ),
     )
     logger.info(
         "System evaluation for %s: label=%s reason=%s",
-        application_id, label, reason,
+        application_id,
+        label,
+        reason,
     )
 
 
@@ -114,6 +119,8 @@ async def record_user_feedback(
     eval_id = str(row["id"])
     logger.info(
         "User feedback for %s: label=%s comment=%s",
-        application_id, label, comment,
+        application_id,
+        label,
+        comment,
     )
     return eval_id

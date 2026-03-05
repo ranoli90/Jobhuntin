@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from fastapi import HTTPException, Path
 
@@ -22,7 +23,7 @@ def validate_uuid(value: str, param_name: str = "id") -> str:
     return value
 
 
-def uuid_path(param_name: str = "id", **kwargs) -> Path:
+def uuid_path(param_name: str = "id", **kwargs) -> Any:
     """FastAPI Path() with UUID format description for OpenAPI docs."""
     return Path(
         ...,

@@ -1,11 +1,13 @@
 from unittest.mock import MagicMock
 
 import pytest
+
 from shared.middleware import get_client_ip
 
 # ---------------------------------------------------------------------------
 # Task 4: Rate Limiter Proxy Fix Verification
 # ---------------------------------------------------------------------------
+
 
 class TestGetClientIp:
     def test_direct_connection(self):
@@ -18,37 +20,45 @@ class TestGetClientIp:
     def test_x_forwarded_for_single(self):
         """Standard proxy usage."""
         req = MagicMock()
+
         def get_header(key):
             if key == "x-forwarded-for":
                 return "10.0.0.1"
             return None
+
         req.headers.get.side_effect = get_header
-        req.client.host = "192.168.1.1" # LB IP
+        req.client.host = "192.168.1.1"  # LB IP
         assert get_client_ip(req) == "10.0.0.1"
 
     def test_x_forwarded_for_chain(self):
         """Rightmost IP is the most trustworthy (added by our reverse proxy)."""
         req = MagicMock()
+
         def get_header(key):
             if key == "x-forwarded-for":
                 return "203.0.113.195, 70.41.3.18, 150.172.238.178"
             return None
+
         req.headers.get.side_effect = get_header
         assert get_client_ip(req) == "150.172.238.178"
 
     def test_x_real_ip_fallback(self):
         """Fallback to X-Real-IP if no XFF."""
         req = MagicMock()
+
         def get_header(key):
             if key == "x-real-ip":
                 return "10.0.0.2"
             return None
+
         req.headers.get.side_effect = get_header
         assert get_client_ip(req) == "10.0.0.2"
+
 
 # ---------------------------------------------------------------------------
 # Task 1: Retry Logic Verification (Formula)
 # ---------------------------------------------------------------------------
+
 
 def test_retry_backoff_formula():
     """Verify the exponential backoff seconds calculation."""
@@ -62,9 +72,11 @@ def test_retry_backoff_formula():
     assert calculate(3) == 120
     assert calculate(4) == 240
 
+
 # ---------------------------------------------------------------------------
 # Task 2: AI Caching Verification (Integration)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_job_match_cache_repo(db_pool):

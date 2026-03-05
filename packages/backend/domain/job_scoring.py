@@ -16,8 +16,8 @@ from typing import Any
 from .deep_profile import DealbreakerConfig, DeepProfile, RichSkill
 from .work_style import CareerTrajectory, WorkStyleProfile
 
-
 # ── Dealbreaker hard-filter ──────────────────────────────────
+
 
 def apply_dealbreaker_filters(
     jobs: list[dict[str, Any]],
@@ -69,6 +69,7 @@ def apply_dealbreaker_filters(
 
 
 # ── Scoring functions ────────────────────────────────────────
+
 
 def score_job_match(job: dict[str, Any], profile: DeepProfile) -> dict[str, Any]:
     """Score a single job against a DeepProfile. Returns the job dict with `match_score` added."""
@@ -161,9 +162,7 @@ def _compute_skill_overlap(
     if not req_skills:
         # Fallback: check description for skill mentions
         desc_lower = description.lower()
-        matches = sum(
-            1 for skill in user_skills if skill in desc_lower
-        )
+        matches = sum(1 for skill in user_skills if skill in desc_lower)
         if len(user_skills) == 0:
             return 0.0
         return min(matches / max(len(user_skills) * 0.3, 1), 1.0)
@@ -246,10 +245,21 @@ def _compute_salary_match(
 
 _CULTURE_KEYWORDS: dict[str, list[str]] = {
     "async": ["async", "remote-first", "flexible hours", "distributed", "no meetings"],
-    "sync": ["in-person", "collaborative", "team meetings", "stand-ups", "pair programming"],
+    "sync": [
+        "in-person",
+        "collaborative",
+        "team meetings",
+        "stand-ups",
+        "pair programming",
+    ],
     "fast": ["fast-paced", "move fast", "ship quickly", "rapid", "agile", "startup"],
     "steady": ["structured", "process-driven", "predictable", "sprint planning"],
-    "methodical": ["quality-focused", "thorough", "engineering excellence", "best practices"],
+    "methodical": [
+        "quality-focused",
+        "thorough",
+        "engineering excellence",
+        "best practices",
+    ],
     "early_startup": ["early-stage", "founding team", "startup", "seed", "pre-series"],
     "growth": ["series a", "series b", "scaling", "growth stage", "hypergrowth"],
     "enterprise": ["enterprise", "fortune 500", "large scale", "established"],
@@ -299,10 +309,27 @@ def _compute_culture_match(
 
 
 _TRAJECTORY_KEYWORDS: dict[str, list[str]] = {
-    "ic": ["individual contributor", "staff engineer", "principal", "senior engineer", "architect"],
+    "ic": [
+        "individual contributor",
+        "staff engineer",
+        "principal",
+        "senior engineer",
+        "architect",
+    ],
     "tech_lead": ["tech lead", "team lead", "lead engineer", "lead developer"],
-    "manager": ["engineering manager", "em role", "people manager", "director of engineering"],
-    "founder": ["cto", "co-founder", "founding engineer", "head of engineering", "vp engineering"],
+    "manager": [
+        "engineering manager",
+        "em role",
+        "people manager",
+        "director of engineering",
+    ],
+    "founder": [
+        "cto",
+        "co-founder",
+        "founding engineer",
+        "head of engineering",
+        "vp engineering",
+    ],
 }
 
 

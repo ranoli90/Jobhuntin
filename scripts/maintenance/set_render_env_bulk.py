@@ -1,4 +1,5 @@
 """Set missing environment variables on Render for sorce-api using bulk PATCH API."""
+
 import os
 
 import httpx
@@ -8,6 +9,7 @@ load_dotenv()
 
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 SERVICE_ID = "srv-d63l79hr0fns73boblag"
+
 
 def set_env_vars_bulk():
     """Set all missing environment variables at once using bulk PATCH API."""
@@ -28,7 +30,10 @@ def set_env_vars_bulk():
     plain_vars = [
         ("APP_BASE_URL", "https://sorce-web.onrender.com"),
         ("ENV", "prod"),
-        ("SUPABASE_URL", os.environ.get("SUPABASE_URL", "https://zglovpfwyobbbaaocawz.supabase.co")),
+        (
+            "SUPABASE_URL",
+            os.environ.get("SUPABASE_URL", "https://zglovpfwyobbbaaocawz.supabase.co"),
+        ),
         ("SUPABASE_STORAGE_BUCKET", "resumes"),
         ("LLM_API_BASE", "https://api.openai.com/v1"),
         ("LLM_MODEL", "gpt-4o-mini"),
@@ -71,7 +76,7 @@ def set_env_vars_bulk():
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
             headers=headers,
             json=env_vars,
-            timeout=30
+            timeout=30,
         )
 
         print(f"Response status: {resp.status_code}")
@@ -87,6 +92,7 @@ def set_env_vars_bulk():
     except Exception as e:
         print(f"\n[✗] Error: {e}")
         return False
+
 
 if __name__ == "__main__":
     print("Setting environment variables for sorce-api...")

@@ -24,9 +24,9 @@ from datetime import datetime
 from typing import Any
 
 import asyncpg
-from shared.config import get_settings
 
 from backend.domain.masking import redact_event_payload
+from shared.config import get_settings
 
 
 def _json_serializer(obj: Any) -> Any:
@@ -52,7 +52,9 @@ async def fetch_debug_bundle(application_id: str) -> dict[str, Any]:
 
         app_dict = dict(app_row)
         user_id = str(app_dict.get("user_id", ""))
-        tenant_id = str(app_dict.get("tenant_id", "")) if app_dict.get("tenant_id") else None
+        tenant_id = (
+            str(app_dict.get("tenant_id", "")) if app_dict.get("tenant_id") else None
+        )
 
         # Events
         events = await conn.fetch(

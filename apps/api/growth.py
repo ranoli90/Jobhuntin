@@ -10,19 +10,13 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from backend.domain.email_digest import run_weekly_digest
-from backend.domain.notifications import (
-    deactivate_push_token,
-    register_push_token,
-)
-from backend.domain.referrals import (
-    get_referral_stats,
-    redeem_referral_code,
-)
+from backend.domain.notifications import deactivate_push_token, register_push_token
+from backend.domain.referrals import get_referral_stats, redeem_referral_code
 from backend.domain.repositories import db_transaction
+from shared.config import get_settings
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.growth")
@@ -33,25 +27,29 @@ router = APIRouter(tags=["growth"])
 # Dependency stubs — injected by api/main.py at mount time
 # ---------------------------------------------------------------------------
 
+
 def _get_pool() -> asyncpg.Pool:
     return (_ for _ in ()).throw(  # type: ignore[return-value]
-    NotImplementedError("Pool dependency not injected")
-)
+        NotImplementedError("Pool dependency not injected")
+    )
+
 
 def _get_user_id() -> str:
     return (_ for _ in ()).throw(  # type: ignore[return-value]
-    NotImplementedError("User ID dependency not injected")
-)
+        NotImplementedError("User ID dependency not injected")
+    )
+
 
 def _get_admin_user_id() -> str:
     return (_ for _ in ()).throw(  # type: ignore[return-value]
-    NotImplementedError("Admin user ID dependency not injected")
-)
+        NotImplementedError("Admin user ID dependency not injected")
+    )
 
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
+
 
 class PushTokenRequest(BaseModel):
     token: str
@@ -93,6 +91,7 @@ class DigestTriggerResponse(BaseModel):
 # Push token endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.post("/push/register", response_model=PushTokenResponse)
 async def register_token(
     body: PushTokenRequest,
@@ -121,6 +120,7 @@ async def unregister_token(
 # ---------------------------------------------------------------------------
 # Referral endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.get("/referral", response_model=ReferralStatsResponse)
 async def referral_stats(
@@ -151,15 +151,20 @@ async def redeem_referral(
         result = await redeem_referral_code(conn, user_id, body.referral_code)
 
     if not result:
-        return RedeemResponse(success=False, message="Invalid or already used referral code.")
+        return RedeemResponse(
+            success=False, message="Invalid or already used referral code."
+        )
 
     # Notify referrer about the reward
     try:
         async with db.acquire() as conn:
             from backend.domain.notifications import notify_referral_reward
-            await notify_referral_reward(conn, result["referrer_id"], result["reward_amount"])
-    except Exception:
-        pass  # Non-critical
+
+            await notify_referral_reward(
+                conn, result["referrer_id"], result["reward_amount"]
+            )
+    except Exception as e:
+        logger.debug(f"Failed to notify referral reward: {e}")  # Non-critical
 
     incr("growth.referral.redeemed")
     return RedeemResponse(
@@ -173,6 +178,7 @@ async def redeem_referral(
 # Onboarding
 # ---------------------------------------------------------------------------
 
+
 @router.post("/onboarding/complete")
 async def onboarding_complete(
     body: OnboardingCompleteRequest,
@@ -180,45 +186,59 @@ async def onboarding_complete(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Mark onboarding as complete. Optionally redeem a referral code."""
-    logger.info("[ONBOARDING] Completion requested", extra={
-        "user_id": user_id,
-        "has_referral_code": bool(body.referral_code)
-    })
+    logger.info(
+        "[ONBOARDING] Completion requested",
+        extra={"user_id": user_id, "has_referral_code": bool(body.referral_code)},
+    )
 
     async with db.acquire() as conn:
         # Store onboarding completion in profile_data JSON
-        await conn.execute("""
+        await conn.execute(
+            """
             INSERT INTO public.profiles (user_id, profile_data, resume_url)
             VALUES ($1, '{"has_completed_onboarding": true}', '')
             ON CONFLICT (user_id) DO UPDATE SET
                 profile_data = COALESCE(profile_data, '{}') || '{"has_completed_onboarding": true}'::jsonb
-        """, user_id)
-        logger.info("[ONBOARDING] Profile updated with completion flag", extra={"user_id": user_id})
+        """,
+            user_id,
+        )
+        logger.info(
+            "[ONBOARDING] Profile updated with completion flag",
+            extra={"user_id": user_id},
+        )
 
     referral_result = None
     if body.referral_code:
-        logger.info("[ONBOARDING] Processing referral code", extra={
-            "user_id": user_id,
-            "referral_code": body.referral_code[:8] + "..."
-        })
+        logger.info(
+            "[ONBOARDING] Processing referral code",
+            extra={"user_id": user_id, "referral_code": body.referral_code[:8] + "..."},
+        )
         async with db_transaction(db) as conn:
-            referral_result = await redeem_referral_code(conn, user_id, body.referral_code)
+            referral_result = await redeem_referral_code(
+                conn, user_id, body.referral_code
+            )
             if referral_result:
-                logger.info("[ONBOARDING] Referral redeemed successfully", extra={
-                    "user_id": user_id,
-                    "reward_amount": referral_result.get("reward_amount")
-                })
+                logger.info(
+                    "[ONBOARDING] Referral redeemed successfully",
+                    extra={
+                        "user_id": user_id,
+                        "reward_amount": referral_result.get("reward_amount"),
+                    },
+                )
             else:
-                logger.warning("[ONBOARDING] Referral redemption failed", extra={
-                    "user_id": user_id,
-                    "referral_code": body.referral_code[:8] + "..."
-                })
+                logger.warning(
+                    "[ONBOARDING] Referral redemption failed",
+                    extra={
+                        "user_id": user_id,
+                        "referral_code": body.referral_code[:8] + "...",
+                    },
+                )
 
     incr("growth.onboarding.completed")
-    logger.info("[ONBOARDING] Completion successful", extra={
-        "user_id": user_id,
-        "referral_redeemed": referral_result is not None
-    })
+    logger.info(
+        "[ONBOARDING] Completion successful",
+        extra={"user_id": user_id, "referral_redeemed": referral_result is not None},
+    )
 
     return {
         "status": "completed",
@@ -230,6 +250,7 @@ async def onboarding_complete(
 # ---------------------------------------------------------------------------
 # Email digest (admin-triggered or cron)
 # ---------------------------------------------------------------------------
+
 
 @router.post("/admin/trigger-digest", response_model=DigestTriggerResponse)
 async def trigger_digest(

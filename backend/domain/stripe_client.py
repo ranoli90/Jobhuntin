@@ -9,10 +9,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TypeVar
 
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.config import get_settings
 from shared.logging_config import get_logger
-
-from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 
 logger = get_logger("sorce.stripe")
 
@@ -27,6 +26,7 @@ def get_stripe():
     global _stripe_module
     if _stripe_module is None:
         import stripe
+
         s = get_settings()
         stripe.api_key = s.stripe_secret_key
         _stripe_module = stripe
@@ -96,11 +96,12 @@ class StripeCircuitBreaker:
                 import time
 
                 from shared.circuit_breaker import CircuitState
+
                 self._cb.state = CircuitState.OPEN
                 self._cb._opened_at = time.monotonic()
                 logger.error(
                     "Stripe circuit breaker opened after %d failures",
-                    self._cb.stats.failures
+                    self._cb.stats.failures,
                 )
 
             logger.warning("Stripe API call failed: %s", str(e)[:100])

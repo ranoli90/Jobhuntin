@@ -7,22 +7,29 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
+
 from shared.config import Settings
 from shared.logging_config import get_logger
-
 from shared.metrics import RateLimiter
 
 logger = get_logger("sorce.job_boards")
+
 
 class AdzunaClient:
     def __init__(self, settings: Settings):
         self.app_id = settings.adzuna_app_id
         self.api_key = settings.adzuna_api_key
         self.default_country = settings.adzuna_default_country or "us"
-        self.additional_countries = [c.strip() for c in (settings.adzuna_additional_countries or "").split(",") if c.strip()]
+        self.additional_countries = [
+            c.strip()
+            for c in (settings.adzuna_additional_countries or "").split(",")
+            if c.strip()
+        ]
         self.results_per_page = settings.adzuna_results_per_page
         self.max_pages = settings.adzuna_max_pages
-        self.rate_limiter = RateLimiter(max_calls=settings.adzuna_rate_limit_per_minute, window_seconds=60)
+        self.rate_limiter = RateLimiter(
+            max_calls=settings.adzuna_rate_limit_per_minute, window_seconds=60
+        )
 
     def _build_base_url(self, country: str) -> str:
         return f"https://api.adzuna.com/v1/api/jobs/{country}/search"
@@ -34,7 +41,9 @@ class AdzunaClient:
     ) -> list[dict[str, Any]]:
         """Fetch jobs from Adzuna based on keywords and location."""
         if not self.app_id or not self.api_key:
-            logger.warning("Adzuna credentials not configured; returning empty results.")
+            logger.warning(
+                "Adzuna credentials not configured; returning empty results."
+            )
             return []
 
         results: list[dict[str, Any]] = []
@@ -70,7 +79,12 @@ class AdzunaClient:
                             break
                         results.extend(batch)
                     except Exception as e:
-                        logger.error("Failed to fetch jobs from Adzuna (%s page %s): %s", country, page, e)
+                        logger.error(
+                            "Failed to fetch jobs from Adzuna (%s page %s): %s",
+                            country,
+                            page,
+                            e,
+                        )
                         break
 
         return results
@@ -91,7 +105,9 @@ class AdzunaClient:
         return {
             "external_id": f"adzuna:{adzuna_job.get('id')}",
             "title": adzuna_job.get("title", "Untitled Job"),
-            "company": (adzuna_job.get("company") or {}).get("display_name", "Unknown Company"),
+            "company": (adzuna_job.get("company") or {}).get(
+                "display_name", "Unknown Company"
+            ),
             "description": description,
             "location": location,
             "salary_min": salary_min,

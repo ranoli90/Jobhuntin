@@ -15,7 +15,6 @@ from enum import StrEnum
 from typing import Any
 
 from shared.logging_config import get_logger
-
 from shared.metrics import incr
 
 logger = get_logger("sorce.career_path")
@@ -476,12 +475,12 @@ class CareerPathAnalyzer:
             path_type="direct" if transition else "inferred",
             steps=steps,
             skill_gaps=skill_gaps,
-            estimated_timeline_months=transition.typical_timeline_months
-            if transition
-            else 24,
-            potential_salary_increase_pct=transition.salary_change_pct
-            if transition
-            else 0.20,
+            estimated_timeline_months=(
+                transition.typical_timeline_months if transition else 24
+            ),
+            potential_salary_increase_pct=(
+                transition.salary_change_pct if transition else 0.20
+            ),
             confidence=0.8 if transition else 0.5,
         )
 
@@ -538,9 +537,11 @@ class CareerPathAnalyzer:
                 gaps.append(
                     SkillGap(
                         skill=skill,
-                        importance="high"
-                        if skill in target_role_data.typical_skills[:3]
-                        else "medium",
+                        importance=(
+                            "high"
+                            if skill in target_role_data.typical_skills[:3]
+                            else "medium"
+                        ),
                         acquisition_method=self._suggest_acquisition_method(skill),
                         estimated_time_weeks=self._estimate_skill_time(skill),
                         resources=self._get_skill_resources(skill),

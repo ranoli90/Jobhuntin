@@ -8,6 +8,7 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 def read_file_content(path):
     try:
         with open(path, encoding="utf-8") as f:
@@ -19,6 +20,7 @@ def read_file_content(path):
     except Exception as e:
         print(f"Error reading {path}: {e}")
         return None
+
 
 async def apply():
     if not DATABASE_URL:
@@ -54,7 +56,8 @@ async def apply():
 
     await conn.close()
 
+
 if __name__ == "__main__":
-    if os.name == 'nt':
+    if os.name == "nt":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(apply())

@@ -83,8 +83,18 @@ def normalize_company(company: str) -> str:
 
     # Remove common suffixes
     suffixes = [
-        "inc", "inc.", "llc", "ltd", "ltd.", "corp", "corp.",
-        "corporation", "company", "co", "co.", "limited",
+        "inc",
+        "inc.",
+        "llc",
+        "ltd",
+        "ltd.",
+        "corp",
+        "corp.",
+        "corporation",
+        "company",
+        "co",
+        "co.",
+        "limited",
     ]
 
     for suffix in suffixes:
@@ -144,7 +154,9 @@ def similarity_score(a: str, b: str) -> float:
     return SequenceMatcher(None, a, b).ratio()
 
 
-def jobs_are_similar(job1: JobListing, job2: JobListing, threshold: float = 0.85) -> bool:
+def jobs_are_similar(
+    job1: JobListing, job2: JobListing, threshold: float = 0.85
+) -> bool:
     """Check if two jobs are similar enough to be considered duplicates."""
     # Exact fingerprint match
     if job1.fingerprint == job2.fingerprint:
@@ -156,7 +168,7 @@ def jobs_are_similar(job1: JobListing, job2: JobListing, threshold: float = 0.85
     location_sim = similarity_score(job1.normalized_location, job2.normalized_location)
 
     # Weighted combination
-    combined = (title_sim * 0.5 + company_sim * 0.35 + location_sim * 0.15)
+    combined = title_sim * 0.5 + company_sim * 0.35 + location_sim * 0.15
 
     return combined >= threshold
 
@@ -245,6 +257,10 @@ def merge_job_sources(
     for jobs, source in sources:
         unique, duplicates = deduplicate_jobs(jobs, source, all_unique)
         all_unique.extend(unique)
-        stats[source] = {"total": len(jobs), "unique": len(unique), "duplicates": len(duplicates)}
+        stats[source] = {
+            "total": len(jobs),
+            "unique": len(unique),
+            "duplicates": len(duplicates),
+        }
 
     return all_unique, stats

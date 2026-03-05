@@ -94,6 +94,7 @@ def cached(
         async def get_user_profile(user_id: str) -> dict:
             ...
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
@@ -114,7 +115,9 @@ def cached(
                 logger.debug(f"Cache set: {cache_key}")
 
             return result
+
         return wrapper
+
     return decorator
 
 

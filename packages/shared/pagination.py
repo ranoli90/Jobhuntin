@@ -11,13 +11,22 @@ from typing import Any, TypeVar
 T = TypeVar("T")
 
 # Valid SQL identifier pattern (alphanumeric and underscore only)
-VALID_IDENTIFIER_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+VALID_IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 # Whitelist of allowed cursor fields - extend as needed
 ALLOWED_CURSOR_FIELDS = {
-    "id", "created_at", "updated_at", "priority_score",
-    "title", "company", "salary_min", "salary_max",
-    "name", "email", "status", "last_used_at"
+    "id",
+    "created_at",
+    "updated_at",
+    "priority_score",
+    "title",
+    "company",
+    "salary_min",
+    "salary_max",
+    "name",
+    "email",
+    "status",
+    "last_used_at",
 }
 
 
@@ -84,7 +93,7 @@ class PaginationParams:
 
     first: int | None = None  # Number of items from start
     after: str | None = None  # Cursor to start after
-    last: int | None = None   # Number of items from end
+    last: int | None = None  # Number of items from end
     before: str | None = None  # Cursor to start before
 
     DEFAULT_PAGE_SIZE = 20
@@ -121,10 +130,12 @@ def create_cursor_from_row(row: dict[str, Any], sort_field: str = "id") -> str:
     """Create a cursor from a database row."""
     # Validate sort_field
     validate_cursor_field(sort_field)
-    return encode_cursor({
-        "sort_value": str(row.get(sort_field, "")),
-        "id": str(row.get("id", "")),
-    })
+    return encode_cursor(
+        {
+            "sort_value": str(row.get(sort_field, "")),
+            "id": str(row.get("id", "")),
+        }
+    )
 
 
 async def paginate_query(

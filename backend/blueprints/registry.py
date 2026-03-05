@@ -36,9 +36,7 @@ def get_blueprint(key: str) -> AgentBlueprint:
     """
     if key not in BLUEPRINTS:
         available = ", ".join(BLUEPRINTS.keys()) or "(none)"
-        raise KeyError(
-            f"Blueprint '{key}' not registered. Available: {available}"
-        )
+        raise KeyError(f"Blueprint '{key}' not registered. Available: {available}")
     return BLUEPRINTS[key]
 
 
@@ -47,12 +45,16 @@ def load_default_blueprints(enabled_slugs: list[str] | None = None) -> None:
     from backend.blueprints.grant import GrantApplicationBlueprint
     from backend.blueprints.job_app import JobApplicationBlueprint
 
-    registry: dict[str, callable] = {
+    registry: dict[str, type] = {
         "job-app": JobApplicationBlueprint,
         "grant": GrantApplicationBlueprint,
     }
 
-    targets = list(registry.keys()) if enabled_slugs is None else [s for s in enabled_slugs if s in registry]
+    targets = (
+        list(registry.keys())
+        if enabled_slugs is None
+        else [s for s in enabled_slugs if s in registry]
+    )
 
     for slug in targets:
         try:

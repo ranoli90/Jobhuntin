@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 # Generic Task Status (state machine)
 # ---------------------------------------------------------------------------
 
+
 class TaskStatus(enum.StrEnum):
     """Generic status enum for all agent tasks.
 
@@ -48,8 +49,8 @@ class TaskStatus(enum.StrEnum):
 
 # Mapping from blueprint-specific terminal statuses to the generic COMPLETED
 COMPLETION_STATUS_ALIASES: dict[str, TaskStatus] = {
-    "APPLIED": TaskStatus.COMPLETED,     # Sorce (job applications)
-    "SUBMITTED": TaskStatus.COMPLETED,   # Grants, vendor onboarding
+    "APPLIED": TaskStatus.COMPLETED,  # Sorce (job applications)
+    "SUBMITTED": TaskStatus.COMPLETED,  # Grants, vendor onboarding
     "COMPLETED": TaskStatus.COMPLETED,
 }
 
@@ -73,6 +74,7 @@ def to_generic_status(status: str) -> TaskStatus:
 # Generic Task Event Types
 # ---------------------------------------------------------------------------
 
+
 class TaskEventType(enum.StrEnum):
     CREATED = "CREATED"
     CLAIMED = "CLAIMED"
@@ -88,6 +90,7 @@ class TaskEventType(enum.StrEnum):
 # ---------------------------------------------------------------------------
 # ActorProfile — domain-neutral profile base
 # ---------------------------------------------------------------------------
+
 
 class ActorIdentity(BaseModel):
     """Core identity fields common to all verticals."""
@@ -105,11 +108,11 @@ class ActorQualification(BaseModel):
     """A single qualification entry (education, certification, etc.)."""
 
     institution: str = ""
-    title: str = ""        # degree, cert name, etc.
-    field: str = ""        # field of study, specialization
+    title: str = ""  # degree, cert name, etc.
+    field: str = ""  # field of study, specialization
     start_date: str = ""
     end_date: str = ""
-    details: str = ""      # GPA, honors, etc.
+    details: str = ""  # GPA, honors, etc.
 
 
 class ActorHistoryEntry(BaseModel):
@@ -148,6 +151,7 @@ class ActorProfile(BaseModel):
 # ---------------------------------------------------------------------------
 # Generic DB row models
 # ---------------------------------------------------------------------------
+
 
 class TargetForm(BaseModel):
     """A form that the agent will fill out. Sorce: a job listing."""
@@ -225,6 +229,7 @@ class TaskEvent(BaseModel):
 # ---------------------------------------------------------------------------
 # Form / LLM data structures (already generic, re-exported here)
 # ---------------------------------------------------------------------------
+
 
 class FormFieldOption(BaseModel):
     value: str

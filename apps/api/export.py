@@ -16,10 +16,10 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from shared.logging_config import get_logger
 
 from backend.domain.repositories import ApplicationRepo, ProfileRepo
 from backend.domain.tenant import TenantContext
+from shared.logging_config import get_logger
 from shared.metrics import RateLimiter, incr
 
 logger = get_logger("sorce.export")
@@ -36,6 +36,7 @@ _export_limiters: dict[str, RateLimiter] = defaultdict(
 # Dependencies (injected at mount time)
 # ---------------------------------------------------------------------------
 
+
 def _get_pool():
     raise NotImplementedError("Pool dependency not injected")
 
@@ -47,6 +48,7 @@ def _get_tenant_ctx():
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _serialize(obj: Any) -> Any:
     """Recursively serialize UUIDs and datetimes."""
@@ -74,14 +76,19 @@ async def _stream_export(
         # 1. Profile
         profile_data = await ProfileRepo.get_profile_data(conn, ctx.user_id)
         if profile_data:
-            yield json.dumps({"type": "profile", "data": _serialize(profile_data)}) + "\n"
+            yield (
+                json.dumps({"type": "profile", "data": _serialize(profile_data)}) + "\n"
+            )
 
         # 2. Applications (paginated)
         offset = 0
         batch_size = 100
         while True:
             rows = await ApplicationRepo.list_for_tenant(
-                conn, ctx.tenant_id, limit=batch_size, offset=offset,
+                conn,
+                ctx.tenant_id,
+                limit=batch_size,
+                offset=offset,
             )
             if not rows:
                 break
@@ -115,6 +122,7 @@ async def _stream_export(
 # Route
 # ---------------------------------------------------------------------------
 
+
 @router.get("/me/export")
 async def export_my_data(
     ctx: TenantContext = Depends(_get_tenant_ctx),
@@ -134,7 +142,9 @@ async def export_my_data(
         )
 
     incr("export.requests", tags={"tenant_id": ctx.tenant_id})
-    logger.info("Data export requested by user %s (tenant %s)", ctx.user_id, ctx.tenant_id)
+    logger.info(
+        "Data export requested by user %s (tenant %s)", ctx.user_id, ctx.tenant_id
+    )
 
     return StreamingResponse(
         _stream_export(db, ctx),

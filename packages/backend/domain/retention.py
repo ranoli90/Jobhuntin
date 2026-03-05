@@ -12,13 +12,13 @@ Retention defaults:
 
 from __future__ import annotations
 
-from datetime import timezone, UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
 from backend.domain.masking import redact_event_payload
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.retention")
@@ -34,6 +34,7 @@ EVENT_PII_RETENTION_DAYS = 180
 # ---------------------------------------------------------------------------
 # Resume cleanup
 # ---------------------------------------------------------------------------
+
 
 async def find_stale_resumes(
     conn: asyncpg.Connection,
@@ -90,10 +91,14 @@ async def cleanup_old_resumes(
                     bucket_and_path = parts[1]
                     slash_idx = bucket_and_path.index("/")
                     bucket = bucket_and_path[:slash_idx]
-                    path = bucket_and_path[slash_idx + 1:]
+                    path = bucket_and_path[slash_idx + 1 :]
                     await delete_from_storage_fn(bucket, path)
             except Exception as exc:
-                logger.warning("Failed to delete resume from storage for profile %s: %s", profile_id, exc)
+                logger.warning(
+                    "Failed to delete resume from storage for profile %s: %s",
+                    profile_id,
+                    exc,
+                )
                 continue
 
         # Clear resume_url on the profile row
@@ -109,7 +114,9 @@ async def cleanup_old_resumes(
         count += 1
 
     if count > 0:
-        logger.info("Cleaned up %d stale resumes (retention=%d days)", count, retention_days)
+        logger.info(
+            "Cleaned up %d stale resumes (retention=%d days)", count, retention_days
+        )
         incr("retention.resumes_cleaned", value=count)
 
     return count
@@ -118,6 +125,7 @@ async def cleanup_old_resumes(
 # ---------------------------------------------------------------------------
 # Event payload anonymization
 # ---------------------------------------------------------------------------
+
 
 async def find_old_events(
     conn: asyncpg.Connection,
@@ -179,7 +187,11 @@ async def anonymize_old_events(
         count += 1
 
     if count > 0:
-        logger.info("Anonymized %d old event payloads (retention=%d days)", count, retention_days)
+        logger.info(
+            "Anonymized %d old event payloads (retention=%d days)",
+            count,
+            retention_days,
+        )
         incr("retention.events_anonymized", value=count)
 
     return count

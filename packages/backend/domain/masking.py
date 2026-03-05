@@ -25,9 +25,13 @@ def mask_phone(phone: str) -> str:
     digits = re.sub(r"[^\d]", "", phone)
     if len(digits) <= 4:
         return phone
-    return phone[:len(phone) - 4].replace(
-        digits[:-4], "*" * len(digits[:-4])
-    )[-len(phone):] if len(digits) > 4 else "****" + digits[-4:]
+    return (
+        phone[: len(phone) - 4].replace(digits[:-4], "*" * len(digits[:-4]))[
+            -len(phone) :
+        ]
+        if len(digits) > 4
+        else "****" + digits[-4:]
+    )
 
 
 def mask_name(name: str) -> str:
@@ -35,10 +39,7 @@ def mask_name(name: str) -> str:
     if not name:
         return name
     parts = name.split()
-    return " ".join(
-        f"{p[0]}{'*' * (len(p) - 1)}" if len(p) > 1 else p
-        for p in parts
-    )
+    return " ".join(f"{p[0]}{'*' * (len(p) - 1)}" if len(p) > 1 else p for p in parts)
 
 
 def redact_profile_for_support(profile_data: dict[str, Any]) -> dict[str, Any]:
@@ -77,8 +78,16 @@ def redact_profile_for_logging(profile_data: dict[str, Any]) -> dict[str, Any]:
 
     contact = result.get("contact", {})
     if isinstance(contact, dict):
-        for key in ("full_name", "first_name", "last_name", "email", "phone",
-                     "location", "linkedin_url", "portfolio_url"):
+        for key in (
+            "full_name",
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
+            "location",
+            "linkedin_url",
+            "portfolio_url",
+        ):
             if key in contact:
                 contact[key] = "[REDACTED]"
 
@@ -87,8 +96,17 @@ def redact_profile_for_logging(profile_data: dict[str, Any]) -> dict[str, Any]:
 
 def redact_event_payload(payload: dict[str, Any]) -> dict[str, Any]:
     """Remove PII-bearing keys from event payloads for anonymization."""
-    sensitive_keys = {"email", "phone", "full_name", "first_name", "last_name",
-                      "location", "linkedin_url", "portfolio_url", "answer"}
+    sensitive_keys = {
+        "email",
+        "phone",
+        "full_name",
+        "first_name",
+        "last_name",
+        "location",
+        "linkedin_url",
+        "portfolio_url",
+        "answer",
+    }
     result = {}
     for k, v in payload.items():
         if k in sensitive_keys:
@@ -111,8 +129,16 @@ def strip_pii_for_llm(profile_data: dict[str, Any]) -> dict[str, Any]:
 
     contact = result.get("contact", {})
     if isinstance(contact, dict):
-        for key in ("email", "phone", "linkedin_url", "portfolio_url",
-                     "address", "street", "zip_code", "postal_code"):
+        for key in (
+            "email",
+            "phone",
+            "linkedin_url",
+            "portfolio_url",
+            "address",
+            "street",
+            "zip_code",
+            "postal_code",
+        ):
             contact.pop(key, None)
 
     return result

@@ -17,23 +17,12 @@ import time
 from typing import Any, TypedDict
 
 import asyncpg
-from playwright.async_api import (
-    BrowserContext,
-    Page,
-    async_playwright,
-)
-from shared.config import get_settings
-from shared.logging_config import LogContext, get_logger, setup_logging
-from shared.storage import get_storage_service
-from shared.telemetry import setup_telemetry
+from playwright.async_api import BrowserContext, Page, async_playwright
 
 from backend.blueprints.registry import get_blueprint, load_default_blueprints
 from backend.domain.evaluations import record_system_evaluation
 from backend.domain.experiments import get_variant_for_tenant
-from backend.domain.models import (
-    CanonicalProfile,
-    normalize_profile,
-)
+from backend.domain.models import CanonicalProfile, normalize_profile
 from backend.domain.notifications import (
     notify_application_submitted,
     notify_hold_questions,
@@ -46,13 +35,14 @@ from backend.domain.repositories import (
     ProfileRepo,
     db_transaction,
 )
+from backend.domain.resume import download_from_supabase_storage
 from backend.llm.client import LLMClient
-from backend.llm.contracts import (
-    DomMappingResponse_V1,
-    build_dom_mapping_prompt,
-)
+from backend.llm.contracts import DomMappingResponse_V1, build_dom_mapping_prompt
 from backend.llm.prompt_registry import get_prompt
+from shared.config import get_settings
+from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import RateLimiter, incr, observe
+from shared.telemetry import setup_telemetry
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -720,8 +710,7 @@ class FormAgent:
         resume_url = raw_profile.get("resume_url")
         if resume_url:
             try:
-                storage = get_storage_service()
-                resume_path = await download_resume_from_storage(resume_url, storage)
+                resume_path = await download_from_supabase_storage(resume_url)
                 logger.info("Resume downloaded for user %s: %s", user_id, resume_path)
             except Exception as exc:
                 logger.warning(
@@ -1085,7 +1074,7 @@ async def worker_loop() -> None:
         browser = await pw.chromium.launch(headless=s.playwright_headless)
 
         async def context_factory() -> BrowserContext:
-            import random
+            import random  # nosec B311 - random.choice used for browser fingerprinting, not security purposes
 
             _ua_pool = [
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -1101,11 +1090,14 @@ async def worker_loop() -> None:
                 {"width": 1536, "height": 864},
                 {"width": 1920, "height": 1080},
             ]
-            return await browser.new_context(
-                viewport=random.choice(_vp_pool),
-                user_agent=random.choice(_ua_pool),
+            return await browser.new_context(  # nosec B311
+                viewport=random.choice(_vp_pool),  # nosec B311 - browser fingerprinting
+                user_agent=random.choice(
+                    _ua_pool
+                ),  # nosec B311 - browser fingerprinting
+                # nosec B311 - browser fingerprinting
                 locale=random.choice(["en-US", "en-GB", "en-CA"]),
-                timezone_id=random.choice(
+                timezone_id=random.choice(  # nosec B311 - browser fingerprinting
                     [
                         "America/New_York",
                         "America/Chicago",

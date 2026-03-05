@@ -43,4 +43,3 @@ __all__ = [
     "build_location_suggestion_prompt",
     "build_job_match_prompt",
 ]
-

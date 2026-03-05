@@ -1,4 +1,5 @@
 """Advanced Render API debugging and DATABASE_URL fix."""
+
 import json
 import os
 
@@ -10,6 +11,7 @@ load_dotenv()
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 SERVICE_ID = "srv-d63l79hr0fns73boblag"
 
+
 def test_api_access():
     """Test basic API access and list services."""
     headers = {
@@ -19,7 +21,9 @@ def test_api_access():
 
     try:
         print("Testing API access...")
-        resp = httpx.get("https://api.render.com/v1/services", headers=headers, timeout=10)
+        resp = httpx.get(
+            "https://api.render.com/v1/services", headers=headers, timeout=10
+        )
         print(f"Services list status: {resp.status_code}")
 
         if resp.status_code == 200:
@@ -28,8 +32,10 @@ def test_api_access():
 
             # Find our service
             for service in data:
-                if service.get('service', {}).get('id') == SERVICE_ID:
-                    print(f"✅ Found sorce-api: {service.get('service', {}).get('name')}")
+                if service.get("service", {}).get("id") == SERVICE_ID:
+                    print(
+                        f"✅ Found sorce-api: {service.get('service', {}).get('name')}"
+                    )
                     return True
 
             print("❌ sorce-api not found in services list")
@@ -41,6 +47,7 @@ def test_api_access():
         print(f"❌ Error: {e}")
         return False
 
+
 def get_service_details():
     """Get detailed service info."""
     headers = {
@@ -50,12 +57,16 @@ def get_service_details():
 
     try:
         print(f"\nGetting service details for {SERVICE_ID}...")
-        resp = httpx.get(f"https://api.render.com/v1/services/{SERVICE_ID}", headers=headers, timeout=10)
+        resp = httpx.get(
+            f"https://api.render.com/v1/services/{SERVICE_ID}",
+            headers=headers,
+            timeout=10,
+        )
         print(f"Service details status: {resp.status_code}")
 
         if resp.status_code == 200:
             data = resp.json()
-            service = data.get('service', {})
+            service = data.get("service", {})
             print(f"✅ Service: {service.get('name')}")
             print(f"   Status: {service.get('status')}")
             print(f"   Type: {service.get('serviceType')}")
@@ -67,6 +78,7 @@ def get_service_details():
         print(f"❌ Error: {e}")
         return None
 
+
 def list_env_vars():
     """List current environment variables."""
     headers = {
@@ -76,7 +88,11 @@ def list_env_vars():
 
     try:
         print("\nListing environment variables...")
-        resp = httpx.get(f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars", headers=headers, timeout=10)
+        resp = httpx.get(
+            f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
+            headers=headers,
+            timeout=10,
+        )
         print(f"Env vars status: {resp.status_code}")
 
         if resp.status_code == 200:
@@ -84,10 +100,10 @@ def list_env_vars():
             print(f"✅ Found {len(data)} environment variables")
 
             for item in data:
-                ev = item.get('envVar', {})
-                key = ev.get('key', '')
-                value = ev.get('value', '')
-                if 'DATABASE' in key or 'DB' in key:
+                ev = item.get("envVar", {})
+                key = ev.get("key", "")
+                value = ev.get("value", "")
+                if "DATABASE" in key or "DB" in key:
                     print(f"   {key}: {value[:50] if value else 'NOT SET'}...")
 
             return data
@@ -97,6 +113,7 @@ def list_env_vars():
     except Exception as e:
         print(f"❌ Error: {e}")
         return None
+
 
 def update_env_var_patch():
     """Try PATCH method to update env var."""
@@ -112,14 +129,7 @@ def update_env_var_patch():
         return False
 
     # Try PATCH to update existing or create new
-    payload = {
-        "envVars": [
-            {
-                "key": "DATABASE_URL",
-                "value": db_url
-            }
-        ]
-    }
+    payload = {"envVars": [{"key": "DATABASE_URL", "value": db_url}]}
 
     try:
         print("\nTrying PATCH method...")
@@ -127,7 +137,7 @@ def update_env_var_patch():
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
             headers=headers,
             json=payload,
-            timeout=10
+            timeout=10,
         )
         print(f"PATCH status: {resp.status_code}")
         print(f"Response: {resp.text[:500]}")
@@ -141,6 +151,7 @@ def update_env_var_patch():
     except Exception as e:
         print(f"❌ PATCH error: {e}")
         return False
+
 
 def update_env_var_put():
     """Try PUT method for specific env var."""
@@ -156,10 +167,7 @@ def update_env_var_put():
         return False
 
     # Try PUT with specific env var ID
-    payload = {
-        "key": "DATABASE_URL",
-        "value": db_url
-    }
+    payload = {"key": "DATABASE_URL", "value": db_url}
 
     try:
         print("\nTrying PUT method...")
@@ -185,6 +193,7 @@ def update_env_var_put():
         print(f"❌ PUT error: {e}")
         return False
 
+
 def create_env_var_post():
     """Try POST with different payload structure."""
     headers = {
@@ -209,12 +218,12 @@ def create_env_var_post():
         print("\nTrying POST with different payloads...")
 
         for i, payload in enumerate(payloads):
-            print(f"\nPayload {i+1}: {json.dumps(payload, indent=2)}")
+            print(f"\nPayload {i + 1}: {json.dumps(payload, indent=2)}")
             resp = httpx.post(
                 f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
                 headers=headers,
                 json=payload,
-                timeout=10
+                timeout=10,
             )
             print(f"POST status: {resp.status_code}")
 
@@ -231,6 +240,7 @@ def create_env_var_post():
         print(f"❌ POST error: {e}")
         return False
 
+
 def trigger_deploy():
     """Trigger a new deploy after setting env vars."""
     headers = {
@@ -245,13 +255,13 @@ def trigger_deploy():
             f"https://api.render.com/v1/services/{SERVICE_ID}/deploys",
             headers=headers,
             json={},
-            timeout=10
+            timeout=10,
         )
         print(f"Deploy status: {resp.status_code}")
 
         if resp.status_code in (200, 201):
             data = resp.json()
-            deploy = data.get('deploy', {})
+            deploy = data.get("deploy", {})
             print(f"✅ Deploy triggered! ID: {deploy.get('id')}")
             return True
         else:
@@ -260,6 +270,7 @@ def trigger_deploy():
     except Exception as e:
         print(f"❌ Deploy error: {e}")
         return False
+
 
 def main():
     print("=" * 70)
@@ -308,6 +319,7 @@ def main():
         print("1. https://dashboard.render.com/web/sorce-api/env-vars")
         print("2. Add DATABASE_URL: <YOUR_DATABASE_URL>")
         print("3. Save and deploy")
+
 
 if __name__ == "__main__":
     main()

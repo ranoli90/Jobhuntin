@@ -14,11 +14,12 @@ conducted twenty-four hours before the interview."
 
 from __future__ import annotations
 
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.interview_simulator")

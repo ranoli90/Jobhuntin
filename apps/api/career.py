@@ -7,6 +7,7 @@ from typing import Any
 from backend.domain.career_path import CareerPathAnalyzer, SkillGap
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.career")

@@ -79,8 +79,7 @@ class BatchProcessor:
         # Refill tokens based on elapsed time
         tokens_to_add = elapsed * (self.config.rate_limit_per_minute / 60.0)
         self._rate_limit_tokens = min(
-            self.config.rate_limit_per_minute,
-            self._rate_limit_tokens + tokens_to_add
+            self.config.rate_limit_per_minute, self._rate_limit_tokens + tokens_to_add
         )
         self._last_refill = now
 
@@ -108,14 +107,11 @@ class BatchProcessor:
             for attempt in range(self.config.max_retries + 1):
                 try:
                     result = await asyncio.wait_for(
-                        processor(item),
-                        timeout=self.config.timeout_seconds
+                        processor(item), timeout=self.config.timeout_seconds
                     )
                     latency_ms = (time.time() - start_time) * 1000
                     return BatchResult(
-                        success=True,
-                        result=result,
-                        latency_ms=latency_ms
+                        success=True, result=result, latency_ms=latency_ms
                     )
                 except asyncio.TimeoutError:
                     latency_ms = (time.time() - start_time) * 1000
@@ -123,25 +119,25 @@ class BatchProcessor:
                         return BatchResult(
                             success=False,
                             error=f"Timeout after {self.config.timeout_seconds}s",
-                            latency_ms=latency_ms
+                            latency_ms=latency_ms,
                         )
-                    await asyncio.sleep(min(
-                        self.config.base_delay * (2 ** attempt),
-                        self.config.max_delay
-                    ))
+                    await asyncio.sleep(
+                        min(
+                            self.config.base_delay * (2**attempt), self.config.max_delay
+                        )
+                    )
                 except Exception as e:
                     latency_ms = (time.time() - start_time) * 1000
                     if attempt == self.config.max_retries:
                         return BatchResult(
-                            success=False,
-                            error=str(e),
-                            latency_ms=latency_ms
+                            success=False, error=str(e), latency_ms=latency_ms
                         )
                     logger.warning(f"Attempt {attempt + 1} failed for item: {e}")
-                    await asyncio.sleep(min(
-                        self.config.base_delay * (2 ** attempt),
-                        self.config.max_delay
-                    ))
+                    await asyncio.sleep(
+                        min(
+                            self.config.base_delay * (2**attempt), self.config.max_delay
+                        )
+                    )
 
         # Should never reach here
         return BatchResult(success=False, error="Unknown error")
@@ -155,10 +151,7 @@ class BatchProcessor:
         summary = BatchSummary(total_items=len(items))
 
         # Create tasks for all items
-        tasks = [
-            self.process_item(item, processor)
-            for item in items
-        ]
+        tasks = [self.process_item(item, processor) for item in items]
 
         # Process all tasks and collect results
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -166,10 +159,7 @@ class BatchProcessor:
         for result in results:
             if isinstance(result, Exception):
                 summary.failed += 1
-                summary.results.append(BatchResult(
-                    success=False,
-                    error=str(result)
-                ))
+                summary.results.append(BatchResult(success=False, error=str(result)))
             else:
                 summary.results.append(result)
                 if result.success:

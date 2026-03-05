@@ -1,4 +1,5 @@
 """Try different Ionos API approaches."""
+
 import base64
 
 import httpx
@@ -9,6 +10,7 @@ load_dotenv()
 # Ionos credentials
 IONOS_PUBLIC_PREFIX = "48e1b13910ac4a6aa4e18a32460a1812"
 IONOS_SECRET = "Opgjoy-2ReOiIwd42BcbD1iLFGx1oMOXC9TLx_so1TPkuipLG-X8NvQQz-GSHlpm7RXTxqZ2HhPSTZZMhCRuaw"
+
 
 def test_ionos_endpoints():
     """Test various Ionos API endpoints."""
@@ -26,38 +28,38 @@ def test_ionos_endpoints():
         {
             "name": "Ionos Cloud Auth",
             "url": "https://api.ionos.com/auth/tokens",
-            "method": "POST"
+            "method": "POST",
         },
         {
             "name": "Ionos Hosting Auth",
             "url": "https://api.hosting.ionos.com/auth/tokens",
-            "method": "POST"
+            "method": "POST",
         },
         {
             "name": "Ionos CDN Auth",
             "url": "https://cdns.api.ionos.com/auth/tokens",
-            "method": "POST"
+            "method": "POST",
         },
         {
             "name": "Ionos Cloud API Root",
             "url": "https://api.ionos.com/",
-            "method": "GET"
+            "method": "GET",
         },
         {
             "name": "Ionos Hosting API Root",
             "url": "https://api.hosting.ionos.com/",
-            "method": "GET"
+            "method": "GET",
         },
         {
             "name": "Ionos DNS API",
             "url": "https://api.ionos.com/dns/v1/zones",
-            "method": "GET"
+            "method": "GET",
         },
         {
             "name": "Ionos Hosting DNS",
             "url": "https://api.hosting.ionos.com/dns/v1/zones",
-            "method": "GET"
-        }
+            "method": "GET",
+        },
     ]
 
     print("=" * 70)
@@ -71,10 +73,10 @@ def test_ionos_endpoints():
             print(f"\nTesting: {endpoint['name']}")
             print(f"URL: {endpoint['url']}")
 
-            if endpoint['method'] == 'POST':
-                resp = httpx.post(endpoint['url'], headers=headers, json={}, timeout=10)
+            if endpoint["method"] == "POST":
+                resp = httpx.post(endpoint["url"], headers=headers, json={}, timeout=10)
             else:
-                resp = httpx.get(endpoint['url'], headers=headers, timeout=10)
+                resp = httpx.get(endpoint["url"], headers=headers, timeout=10)
 
             print(f"Status: {resp.status_code}")
 
@@ -113,6 +115,7 @@ def test_ionos_endpoints():
 
     return working_endpoints
 
+
 def generate_manual_instructions():
     """Generate clear manual instructions."""
     print("\n" + "=" * 70)
@@ -133,24 +136,16 @@ def generate_manual_instructions():
         {
             "type": "TXT",
             "name": "resend._domainkey",
-            "value": "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTNt9gMWn7w5Rqg8AjipC4rSEzRKCB8TZBurKjmKBEsGUR8mXTDi5611NgVspfrdIQB6lPDjnnHBIiVZW+O+n/2FNIyrXxTRHlQXmCjpdr/tZ5NXnfEg65Xqwc5eGI9useCBgeZowiUACLY3nE/xXkBTvyUWvBQs7vbkXhlMSErwIDAQAB"
+            "value": "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTNt9gMWn7w5Rqg8AjipC4rSEzRKCB8TZBurKjmKBEsGUR8mXTDi5611NgVspfrdIQB6lPDjnnHBIiVZW+O+n/2FNIyrXxTRHlQXmCjpdr/tZ5NXnfEg65Xqwc5eGI9useCBgeZowiUACLY3nE/xXkBTvyUWvBQs7vbkXhlMSErwIDAQAB",
         },
         {
             "type": "MX",
             "name": "send",
             "value": "feedback-smtp.us-east-1.amazonses.com",
-            "priority": 10
+            "priority": 10,
         },
-        {
-            "type": "TXT",
-            "name": "send",
-            "value": "v=spf1 include:amazonses.com ~all"
-        },
-        {
-            "type": "TXT",
-            "name": "_dmarc",
-            "value": "v=DMARC1; p=none;"
-        }
+        {"type": "TXT", "name": "send", "value": "v=spf1 include:amazonses.com ~all"},
+        {"type": "TXT", "name": "_dmarc", "value": "v=DMARC1; p=none;"},
     ]
 
     for i, record in enumerate(records, 1):
@@ -158,7 +153,7 @@ def generate_manual_instructions():
         print(f"   Type: {record['type']}")
         print(f"   Name: {record['name']}")
         print(f"   Value: {record['value']}")
-        if 'priority' in record:
+        if "priority" in record:
             print(f"   Priority: {record['priority']}")
 
     print("\n4. Save and wait")
@@ -170,6 +165,7 @@ def generate_manual_instructions():
     print("   - Once verified, update EMAIL_FROM=hello@jobhuntin.com")
     print("   - Deploy changes to Render")
 
+
 def main():
     # Test API endpoints
     working = test_ionos_endpoints()
@@ -177,6 +173,7 @@ def main():
     if not working:
         # Provide manual instructions
         generate_manual_instructions()
+
 
 if __name__ == "__main__":
     main()

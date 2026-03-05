@@ -190,7 +190,9 @@ class PoolMonitor:
         - If queries are waiting, increase pool size
         - If avg query time is high, pool may be too small or too large
         """
-        stats = stats or (self._stats_history[-1] if self._stats_history else PoolStats())
+        stats = stats or (
+            self._stats_history[-1] if self._stats_history else PoolStats()
+        )
 
         current_min = stats.min_size
         current_max = stats.max_size

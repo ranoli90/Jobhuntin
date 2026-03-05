@@ -1,4 +1,5 @@
 """Setup Resend domain and configure DNS with Ionos."""
+
 import httpx
 from dotenv import load_dotenv
 
@@ -10,25 +11,23 @@ DOMAIN = "jobhuntin.com"
 IONOS_PUBLIC_PREFIX = os.environ.get("IONOS_PUBLIC_PREFIX")
 IONOS_SECRET = os.environ.get("IONOS_SECRET")
 
+
 def add_domain_to_resend():
     """Add domain to Resend via API."""
     headers = {
         "Authorization": f"Bearer {RESEND_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
     payload = {
         "name": DOMAIN,
-        "region": "us-east-1"  # or eu-west-1 for EU
+        "region": "us-east-1",  # or eu-west-1 for EU
     }
 
     try:
         print(f"Adding domain {DOMAIN} to Resend...")
         resp = httpx.post(
-            "https://api.resend.com/domains",
-            headers=headers,
-            json=payload,
-            timeout=30
+            "https://api.resend.com/domains", headers=headers, json=payload, timeout=30
         )
 
         print(f"Response status: {resp.status_code}")
@@ -41,7 +40,7 @@ def add_domain_to_resend():
             print(f"Status: {data.get('status')}")
 
             # Get DNS records
-            get_dns_records(data.get('id'))
+            get_dns_records(data.get("id"))
             return data
         else:
             print(f"\n❌ Failed to add domain: {resp.status_code}")
@@ -51,33 +50,32 @@ def add_domain_to_resend():
         print(f"\n❌ Error: {e}")
         return None
 
+
 def get_dns_records(domain_id):
     """Get DNS records needed for domain verification."""
     headers = {
         "Authorization": f"Bearer {RESEND_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
     try:
         print("\nGetting DNS records for domain...")
         resp = httpx.get(
-            f"https://api.resend.com/domains/{domain_id}",
-            headers=headers,
-            timeout=30
+            f"https://api.resend.com/domains/{domain_id}", headers=headers, timeout=30
         )
 
         if resp.status_code == 200:
             data = resp.json()
-            records = data.get('records', [])
+            records = data.get("records", [])
 
             print("\n📋 DNS Records to configure in Ionos:")
             print("=" * 60)
 
             for record in records:
-                record_type = record.get('type')
-                name = record.get('name', '')
-                value = record.get('value', '')
-                priority = record.get('priority', '')
+                record_type = record.get("type")
+                name = record.get("name", "")
+                value = record.get("value", "")
+                priority = record.get("priority", "")
 
                 print(f"\nType: {record_type}")
                 print(f"Name: {name}")
@@ -95,35 +93,34 @@ def get_dns_records(domain_id):
         print(f"Error getting DNS records: {e}")
         return None
 
+
 def list_existing_domains():
     """List existing domains in Resend."""
     headers = {
         "Authorization": f"Bearer {RESEND_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
     try:
         print("Listing existing domains...")
-        resp = httpx.get(
-            "https://api.resend.com/domains",
-            headers=headers,
-            timeout=30
-        )
+        resp = httpx.get("https://api.resend.com/domains", headers=headers, timeout=30)
 
         if resp.status_code == 200:
             data = resp.json()
-            domains = data.get('data', [])
+            domains = data.get("data", [])
 
             print("\n📧 Existing domains:")
             for domain in domains:
-                print(f"  - {domain.get('name')} (ID: {domain.get('id')}, Status: {domain.get('status')})")
+                print(
+                    f"  - {domain.get('name')} (ID: {domain.get('id')}, Status: {domain.get('status')})"
+                )
 
             # Check if jobhuntin.com already exists
             for domain in domains:
-                if domain.get('name') == DOMAIN:
+                if domain.get("name") == DOMAIN:
                     print(f"\n⚠️  Domain {DOMAIN} already exists!")
                     print("Getting DNS records for existing domain...")
-                    get_dns_records(domain.get('id'))
+                    get_dns_records(domain.get("id"))
                     return domain
 
             return None
@@ -134,6 +131,7 @@ def list_existing_domains():
     except Exception as e:
         print(f"Error listing domains: {e}")
         return None
+
 
 def main():
     print("=" * 60)
@@ -157,6 +155,7 @@ def main():
     print("5. Wait 5-10 minutes for DNS propagation")
     print("6. Domain will be automatically verified by Resend")
     print("\nYou can then send emails from: hello@jobhuntin.com")
+
 
 if __name__ == "__main__":
     main()

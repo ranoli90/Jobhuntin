@@ -136,7 +136,7 @@ def validate_upload(
     if extension not in limits.allowed_extensions:
         return (
             False,
-            f"File type .{extension} not allowed. Allowed: {', '.join(limits.allowed_extensions)}"
+            f"File type .{extension} not allowed. Allowed: {', '.join(limits.allowed_extensions)}",
         )
 
     # Check file size
@@ -148,14 +148,14 @@ def validate_upload(
     if file_size_mb > limits.max_file_size_mb:
         return (
             False,
-            f"File size {file_size_mb:.1f}MB exceeds limit of {limits.max_file_size_mb}MB"
+            f"File size {file_size_mb:.1f}MB exceeds limit of {limits.max_file_size_mb}MB",
         )
 
     # Check daily upload limit
     if limits.max_files_per_day > 0 and uploads_today >= limits.max_files_per_day:
         return (
             False,
-            f"Daily upload limit of {limits.max_files_per_day} files reached"
+            f"Daily upload limit of {limits.max_files_per_day} files reached",
         )
 
     # Check total storage
@@ -164,7 +164,7 @@ def validate_upload(
         remaining = limits.max_total_storage_mb - current_storage_mb
         return (
             False,
-            f"Storage limit exceeded. Remaining: {remaining:.1f}MB, File: {file_size_mb:.1f}MB"
+            f"Storage limit exceeded. Remaining: {remaining:.1f}MB, File: {file_size_mb:.1f}MB",
         )
 
     return True, ""
@@ -210,10 +210,10 @@ async def scan_file_for_malware(file: BinaryIO) -> tuple[bool, str]:
 
     # Check for executable signatures
     suspicious_signatures = [
-        b"MZ",           # Windows executable
-        b"\x7fELF",      # Linux executable
+        b"MZ",  # Windows executable
+        b"\x7fELF",  # Linux executable
         b"\xca\xfe\xba\xbe",  # Java class
-        b"PK\x03\x04",   # ZIP (could be malicious)
+        b"PK\x03\x04",  # ZIP (could be malicious)
     ]
 
     for sig in suspicious_signatures:

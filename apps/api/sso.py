@@ -10,10 +10,10 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
-from shared.logging_config import get_logger
 
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from shared.logging_config import get_logger
 
 try:
     from backend.sso.saml import (
@@ -23,11 +23,15 @@ try:
         parse_saml_response,
         upsert_sso_config,
     )
+
     SSO_AVAILABLE = True
 except ImportError as e:
     SSO_AVAILABLE = False
     logger = get_logger("sorce.api.sso")
-    logger.warning("SSO module unavailable (signxml/pyOpenSSL issue): %s — SSO endpoints disabled", e)
+    logger.warning(
+        "SSO module unavailable (signxml/pyOpenSSL issue): %s — SSO endpoints disabled",
+        e,
+    )
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.sso")
@@ -38,20 +42,19 @@ router = APIRouter(prefix="/sso", tags=["sso"])
 # Dependency stubs (injected by api/main.py)
 # ---------------------------------------------------------------------------
 
+
 def _get_pool() -> asyncpg.Pool:
-    return (_ for _ in ()).throw(
-        NotImplementedError("Pool not injected")
-    )
+    return (_ for _ in ()).throw(NotImplementedError("Pool not injected"))
 
 
 def _get_tenant_ctx() -> TenantContext:
-    return (_ for _ in ()).throw(
-        NotImplementedError("Tenant ctx not injected")
-    )
+    return (_ for _ in ()).throw(NotImplementedError("Tenant ctx not injected"))
+
 
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
+
 
 class SSOConfigRequest(BaseModel):
     """Payload for configuring SSO."""
@@ -79,11 +82,14 @@ class SSOConfigResponse(BaseModel):
 # SAML endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("/saml/metadata", response_class=Response)
 async def saml_metadata():  # type: ignore[return]
     """Return SAML Service Provider metadata XML."""
     if not SSO_AVAILABLE:
-        raise HTTPException(status_code=503, detail="SSO service unavailable - missing dependencies")
+        raise HTTPException(
+            status_code=503, detail="SSO service unavailable - missing dependencies"
+        )
     xml = generate_sp_metadata()
     return Response(content=xml, media_type="application/xml")
 
@@ -102,7 +108,9 @@ async def saml_acs(
     4. Return SSO session token for client redirect
     """
     if not SSO_AVAILABLE:
-        raise HTTPException(status_code=503, detail="SSO service unavailable - missing dependencies")
+        raise HTTPException(
+            status_code=503, detail="SSO service unavailable - missing dependencies"
+        )
 
     form = await request.form()
     saml_response = form.get("SAMLResponse", "")
@@ -127,12 +135,16 @@ async def saml_acs(
             )
 
         if not tenant_id:
-            raise HTTPException(status_code=400, detail="Cannot determine tenant for SSO login")
+            raise HTTPException(
+                status_code=400, detail="Cannot determine tenant for SSO login"
+            )
 
         # Get SSO config for tenant
         sso_cfg = await get_sso_config(conn, tenant_id)
         if not sso_cfg:
-            raise HTTPException(status_code=404, detail="SSO not configured for this tenant")
+            raise HTTPException(
+                status_code=404, detail="SSO not configured for this tenant"
+            )
 
         # Parse with actual IdP certificate (enforce verification when provided)
         claims = parse_saml_response(str(saml_response), sso_cfg.get("certificate", ""))
@@ -145,7 +157,8 @@ async def saml_acs(
         # Find or create user in Supabase auth
         # Find or create user in public.users
         user_row = await conn.fetchrow(
-            "SELECT id FROM public.users WHERE email = $1", email,
+            "SELECT id FROM public.users WHERE email = $1",
+            email,
         )
 
         if user_row:
@@ -153,15 +166,18 @@ async def saml_acs(
         else:
             # Create user directly in public.users
             import uuid
+
             user_id = str(uuid.uuid4())
             await conn.execute(
                 "INSERT INTO public.users (id, email, full_name, created_at, updated_at) "
                 "VALUES ($1, $2, '', now(), now())",
-                user_id, email
+                user_id,
+                email,
             )
             await conn.execute(
                 "INSERT INTO public.profiles (user_id, resume_url, profile_data, tenant_id) VALUES ($1, '', '{}', $2)",
-                user_id, tenant_id
+                user_id,
+                tenant_id,
             )
             logger.info("SSO: Created local user %s for tenant %s", email, tenant_id)
 
@@ -172,12 +188,15 @@ async def saml_acs(
             VALUES ($1, $2, 'MEMBER')
             ON CONFLICT (tenant_id, user_id) DO NOTHING
             """,
-            tenant_id, user_id,
+            tenant_id,
+            user_id,
         )
 
         # Audit log
         await record_audit_event(
-            conn, tenant_id, user_id,
+            conn,
+            tenant_id,
+            user_id,
             action="sso.login",
             resource="user",
             resource_id=user_id,
@@ -202,6 +221,7 @@ async def saml_acs(
 # OIDC discovery (for OIDC-based SSO)
 # ---------------------------------------------------------------------------
 
+
 @router.get("/.well-known/openid-configuration")
 async def oidc_discovery() -> dict[str, Any]:
     """OpenID Connect discovery document.
@@ -221,6 +241,7 @@ async def oidc_discovery() -> dict[str, Any]:
 # SSO config management (enterprise admins only)
 # ---------------------------------------------------------------------------
 
+
 @router.get("/config", response_model=SSOConfigResponse)
 async def get_config(
     ctx: TenantContext = Depends(_get_tenant_ctx),
@@ -228,7 +249,9 @@ async def get_config(
 ) -> SSOConfigResponse:
     """Get SSO configuration for current tenant."""
     if not SSO_AVAILABLE:
-        raise HTTPException(status_code=503, detail="SSO service unavailable - missing dependencies")
+        raise HTTPException(
+            status_code=503, detail="SSO service unavailable - missing dependencies"
+        )
     if ctx.plan != "ENTERPRISE":
         raise HTTPException(status_code=403, detail="SSO requires ENTERPRISE plan")
 
@@ -237,8 +260,11 @@ async def get_config(
 
     if not cfg:
         return SSOConfigResponse(
-            tenant_id=ctx.tenant_id, provider="none",
-            is_active=False, entity_id="", sso_url="",
+            tenant_id=ctx.tenant_id,
+            provider="none",
+            is_active=False,
+            entity_id="",
+            sso_url="",
         )
 
     return SSOConfigResponse(
@@ -259,7 +285,9 @@ async def update_config(
 ) -> SSOConfigResponse:
     """Configure SSO for current tenant (ENTERPRISE only)."""
     if not SSO_AVAILABLE:
-        raise HTTPException(status_code=503, detail="SSO service unavailable - missing dependencies")
+        raise HTTPException(
+            status_code=503, detail="SSO service unavailable - missing dependencies"
+        )
     if ctx.plan != "ENTERPRISE":
         raise HTTPException(status_code=403, detail="SSO requires ENTERPRISE plan")
     try:
@@ -269,15 +297,20 @@ async def update_config(
 
     async with db.acquire() as conn:
         cfg = await upsert_sso_config(
-            conn, ctx.tenant_id, body.provider,
-            entity_id=body.entity_id, sso_url=body.sso_url,
+            conn,
+            ctx.tenant_id,
+            body.provider,
+            entity_id=body.entity_id,
+            sso_url=body.sso_url,
             certificate=body.certificate,
             oidc_client_id=body.oidc_client_id,
             oidc_client_secret=body.oidc_client_secret,
             oidc_issuer=body.oidc_issuer,
         )
         await record_audit_event(
-            conn, ctx.tenant_id, ctx.user_id,
+            conn,
+            ctx.tenant_id,
+            ctx.user_id,
             action="sso.configured",
             resource="sso",
             details={"provider": body.provider},

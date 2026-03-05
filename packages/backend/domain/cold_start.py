@@ -137,37 +137,45 @@ class ColdStartHandler:
 
             # Match by job titles
             if onboarding.job_titles:
-                conditions.append(f"""
+                conditions.append(
+                    f"""
                     j.title ILIKE ANY(${param_idx})
-                """)
+                """
+                )
                 params.append([f"%{title}%" for title in onboarding.job_titles])
                 param_idx += 1
 
             # Match by skills
             if onboarding.skills:
-                conditions.append(f"""  # nosec
+                conditions.append(
+                    f"""  # nosec
                     j.description ILIKE ANY(${param_idx})
                     OR EXISTS (
                         SELECT 1 FROM unnest(j.required_skills) skill
                         WHERE skill ILIKE ANY(${param_idx})
                     )
-                """)
+                """
+                )
                 params.append([f"%{skill}%" for skill in onboarding.skills])
                 param_idx += 1
 
             # Match by locations
             if onboarding.locations:
-                conditions.append(f"""
+                conditions.append(
+                    f"""
                     j.location ILIKE ANY(${param_idx})
-                """)
+                """
+                )
                 params.append([f"%{loc}%" for loc in onboarding.locations])
                 param_idx += 1
 
             # Match by job types
             if onboarding.job_types:
-                conditions.append(f"""
+                conditions.append(
+                    f"""
                     j.job_type = ANY(${param_idx})
-                """)
+                """
+                )
                 params.append(onboarding.job_types)
                 param_idx += 1
 

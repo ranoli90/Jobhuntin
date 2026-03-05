@@ -13,13 +13,13 @@ from __future__ import annotations
 import asyncio
 import json
 from dataclasses import dataclass, field
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.company_data")
@@ -322,9 +322,9 @@ class CompanyDataManager:
             "employee_count": profile.employee_count,
             "founded_year": profile.founded_year,
             "headquarters": profile.headquarters,
-            "funding_stage": profile.funding_stage.value
-            if profile.funding_stage
-            else None,
+            "funding_stage": (
+                profile.funding_stage.value if profile.funding_stage else None
+            ),
             "total_funding_usd": profile.total_funding_usd,
             "logo_url": profile.logo_url,
             "glassdoor_rating": profile.glassdoor_rating,
@@ -493,9 +493,9 @@ class CompanyDataManager:
             "employee_count": profile.employee_count,
             "founded_year": profile.founded_year,
             "headquarters": profile.headquarters,
-            "funding_stage": profile.funding_stage.value
-            if profile.funding_stage
-            else None,
+            "funding_stage": (
+                profile.funding_stage.value if profile.funding_stage else None
+            ),
             "total_funding_usd": profile.total_funding_usd,
             "logo_url": profile.logo_url,
             "website_url": profile.website_url,

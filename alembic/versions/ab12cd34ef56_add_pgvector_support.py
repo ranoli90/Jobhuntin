@@ -7,16 +7,18 @@ Create Date: 2026-02-13
 This addresses recommendation #15: Use pgvector for efficient
 vector similarity search instead of JSON storage.
 """
+
 from alembic import op
 
-revision = 'ab12cd34ef56'
-down_revision = '16a542a11f84'
+revision = "ab12cd34ef56"
+down_revision = "16a542a11f84"
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS vec_embeddings (
             id TEXT PRIMARY KEY,
             namespace TEXT NOT NULL DEFAULT 'default',
@@ -25,14 +27,18 @@ def upgrade() -> None:
             created_at TIMESTAMPTZ DEFAULT now(),
             updated_at TIMESTAMPTZ DEFAULT now()
         )
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE INDEX IF NOT EXISTS vec_embeddings_namespace_idx
         ON vec_embeddings (namespace)
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS job_embeddings_v2 (
             job_id TEXT PRIMARY KEY,
             embedding JSONB NOT NULL,
@@ -41,9 +47,11 @@ def upgrade() -> None:
             created_at TIMESTAMPTZ DEFAULT now(),
             updated_at TIMESTAMPTZ DEFAULT now()
         )
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS profile_embeddings_v2 (
             user_id TEXT PRIMARY KEY,
             embedding JSONB NOT NULL,
@@ -52,9 +60,11 @@ def upgrade() -> None:
             created_at TIMESTAMPTZ DEFAULT now(),
             updated_at TIMESTAMPTZ DEFAULT now()
         )
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE OR REPLACE FUNCTION cosine_similarity_json(a jsonb, b jsonb)
         RETURNS float AS $$
         DECLARE
@@ -80,11 +90,12 @@ def upgrade() -> None:
             RETURN dot_product / (sqrt(norm_a) * sqrt(norm_b));
         END;
         $$ LANGUAGE plpgsql IMMUTABLE;
-    """)
+    """
+    )
 
 
 def downgrade() -> None:
-    op.execute('DROP TABLE IF EXISTS profile_embeddings_v2')
-    op.execute('DROP TABLE IF EXISTS job_embeddings_v2')
-    op.execute('DROP TABLE IF EXISTS vec_embeddings')
-    op.execute('DROP FUNCTION IF EXISTS cosine_similarity_json(jsonb, jsonb)')
+    op.execute("DROP TABLE IF EXISTS profile_embeddings_v2")
+    op.execute("DROP TABLE IF EXISTS job_embeddings_v2")
+    op.execute("DROP TABLE IF EXISTS vec_embeddings")
+    op.execute("DROP FUNCTION IF EXISTS cosine_similarity_json(jsonb, jsonb)")

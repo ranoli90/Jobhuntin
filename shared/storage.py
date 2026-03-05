@@ -2,10 +2,8 @@
 Supports: Local filesystem, S3-compatible (AWS S3, Cloudflare R2, Render Disks).
 """
 
-import base64
 import hashlib
 import hmac
-import time
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote, urlparse
@@ -183,6 +181,7 @@ class S3CompatibleStorageService(StorageService):
 
         # Use AWS Signature Version 4 (more secure than V2)
         from datetime import datetime
+
         now = datetime.utcnow()
         amz_date = now.strftime("%Y%m%dT%H%M%SZ")
         date_stamp = now.strftime("%Y%m%d")
@@ -204,7 +203,9 @@ class S3CompatibleStorageService(StorageService):
         canonical_headers = f"host:{host}\n"
         canonical_request = (
             f"GET\n/{bucket}/{path}\n"
-            + "&".join(f"{k}={quote(v, safe='')}" for k, v in sorted(query_params.items()))
+            + "&".join(
+                f"{k}={quote(v, safe='')}" for k, v in sorted(query_params.items())
+            )
             + f"\n{canonical_headers}\nhost\nUNSIGNED-PAYLOAD"
         )
 
@@ -222,11 +223,15 @@ class S3CompatibleStorageService(StorageService):
         k_region = sign(k_date, self.region)
         k_service = sign(k_region, "s3")
         k_signing = sign(k_service, "aws4_request")
-        signature = hmac.new(k_signing, string_to_sign.encode(), hashlib.sha256).hexdigest()
+        signature = hmac.new(
+            k_signing, string_to_sign.encode(), hashlib.sha256
+        ).hexdigest()
 
         # Build final URL
         query_params["X-Amz-Signature"] = signature
-        query_string = "&".join(f"{k}={quote(v, safe='')}" for k, v in sorted(query_params.items()))
+        query_string = "&".join(
+            f"{k}={quote(v, safe='')}" for k, v in sorted(query_params.items())
+        )
         url = f"{self.public_url_base}/{bucket}/{path}?{query_string}"
 
         return url

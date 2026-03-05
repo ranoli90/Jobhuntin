@@ -14,14 +14,14 @@ from __future__ import annotations
 import json
 import uuid
 from collections.abc import Callable, Coroutine
-from datetime import timezone, UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 from typing import Any
 
 import asyncpg
 from pydantic import BaseModel, Field
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.job_queue")
@@ -397,7 +397,8 @@ class BackgroundJobQueue:
 
 
 async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
-    await conn.execute("""
+    await conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS public.background_jobs (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             queue TEXT NOT NULL DEFAULT 'default',
@@ -467,5 +468,6 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
 
         DROP TYPE IF EXISTS public.alert_frequency CASCADE;
         CREATE TYPE public.alert_frequency AS ENUM ('daily', 'weekly', 'immediate');
-    """)
+    """
+    )
     logger.info("Job queue tables created/verified")

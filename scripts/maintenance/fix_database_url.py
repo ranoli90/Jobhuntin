@@ -1,4 +1,5 @@
 """Fix DATABASE_URL for sorce-api service."""
+
 import os
 
 import httpx
@@ -9,6 +10,7 @@ load_dotenv()
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 SERVICE_ID = "srv-d63l79hr0fns73boblag"
 
+
 def get_database_info():
     """Get database connection info from Render."""
     headers = {
@@ -18,18 +20,23 @@ def get_database_info():
 
     try:
         # List databases
-        resp = httpx.get("https://api.render.com/v1/databases", headers=headers, timeout=10)
+        resp = httpx.get(
+            "https://api.render.com/v1/databases", headers=headers, timeout=10
+        )
         if resp.status_code == 200:
             data = resp.json()
             print("Available databases:")
             for db in data:
-                db_data = db.get('database', {})
+                db_data = db.get("database", {})
                 print(f"  - {db_data.get('name')} (ID: {db_data.get('id')})")
-                print(f"    Connection: {db_data.get('connectionString', 'N/A')[:50]}...")
+                print(
+                    f"    Connection: {db_data.get('connectionString', 'N/A')[:50]}..."
+                )
             return data
     except Exception as e:
         print(f"Error: {e}")
     return None
+
 
 def check_current_env():
     """Check current env vars on sorce-api."""
@@ -42,22 +49,23 @@ def check_current_env():
         resp = httpx.get(
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
             headers=headers,
-            timeout=10
+            timeout=10,
         )
 
         if resp.status_code == 200:
             data = resp.json()
             print("Current environment variables:")
             for item in data:
-                ev = item.get('envVar', {})
-                key = ev.get('key', '')
-                value = ev.get('value', '')
-                if 'DATABASE' in key or 'DB' in key:
+                ev = item.get("envVar", {})
+                key = ev.get("key", "")
+                value = ev.get("value", "")
+                if "DATABASE" in key or "DB" in key:
                     print(f"  {key}: {value[:50] if value else 'NOT SET'}...")
             return data
     except Exception as e:
         print(f"Error checking env: {e}")
     return None
+
 
 def set_database_url():
     """Set DATABASE_URL directly."""
@@ -76,10 +84,7 @@ def set_database_url():
         print("Please set DATABASE_URL in your .env file.")
         return False
 
-    payload = {
-        "key": "DATABASE_URL",
-        "value": db_url
-    }
+    payload = {"key": "DATABASE_URL", "value": db_url}
 
     try:
         print("\nSetting DATABASE_URL...")
@@ -87,7 +92,7 @@ def set_database_url():
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
             headers=headers,
             json=payload,
-            timeout=10
+            timeout=10,
         )
 
         print(f"Status: {resp.status_code}")
@@ -100,6 +105,7 @@ def set_database_url():
     except Exception as e:
         print(f"Error: {e}")
         return False
+
 
 def main():
     print("=" * 60)
@@ -132,12 +138,19 @@ def main():
         print("1. Go to https://dashboard.render.com/web/sorce-api/env-vars")
         print("2. Add/Update DATABASE_URL with:")
         print("\nManual fix (Option A - Direct Connection):")
-        print("   postgresql://postgres:SorceDB2026Secure@db.zglovpfwyobbbaaocawz.supabase.co:5432/postgres")
+        print(
+            "   postgresql://postgres:SorceDB2026Secure@db.zglovpfwyobbbaaocawz.supabase.co:5432/postgres"
+        )
         print("\nManual fix (Option B - Supabase Pooler):")
-        print("   postgresql://postgres.zglovpfwyobbbaaocawz:SorceDB2026Secure@aws-1-us-east-1.pooler.supabase.com:6543/postgres")
+        print(
+            "   postgresql://postgres.zglovpfwyobbbaaocawz:SorceDB2026Secure@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+        )
         print("   (Note: Pooler requires username format 'user.project_ref')")
-        print("   (Note: Correct pooler host for this project is 'aws-1-us-east-1.pooler.supabase.com')")
+        print(
+            "   (Note: Correct pooler host for this project is 'aws-1-us-east-1.pooler.supabase.com')"
+        )
         print("3. Deploy the service")
+
 
 if __name__ == "__main__":
     main()

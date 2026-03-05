@@ -7,10 +7,10 @@ has exhausted their plan allowance.
 from __future__ import annotations
 
 import asyncpg
-from shared.logging_config import get_logger
 
 from backend.domain.plans import plan_config_for
 from backend.domain.repositories import TenantRepo
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.quotas")
 
@@ -41,7 +41,9 @@ async def check_can_create_application(
     if current >= config["max_monthly_applications"]:
         logger.warning(
             "Tenant %s quota exceeded: %d/%d monthly applications",
-            tenant_id, current, config["max_monthly_applications"],
+            tenant_id,
+            current,
+            config["max_monthly_applications"],
         )
         raise QuotaExceededError(
             code="QUOTA_EXCEEDED",
@@ -69,7 +71,9 @@ async def check_concurrent_limit(
     if processing >= config["max_concurrent_applications"]:
         logger.info(
             "Tenant %s at concurrent limit: %d/%d PROCESSING",
-            tenant_id, processing, config["max_concurrent_applications"],
+            tenant_id,
+            processing,
+            config["max_concurrent_applications"],
         )
         return False
     return True

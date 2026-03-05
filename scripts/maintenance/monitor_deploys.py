@@ -13,10 +13,8 @@ if not RENDER_API_KEY:
     print("Error: RENDER_API_KEY not found in .env")
     sys.exit(1)
 
-headers = {
-    "Authorization": f"Bearer {RENDER_API_KEY}",
-    "Accept": "application/json"
-}
+headers = {"Authorization": f"Bearer {RENDER_API_KEY}", "Accept": "application/json"}
+
 
 def get_services():
     url = "https://api.render.com/v1/services"
@@ -25,6 +23,7 @@ def get_services():
         return response.json()
     return []
 
+
 def get_latest_deploy(service_id):
     url = f"https://api.render.com/v1/services/{service_id}/deploys"
     response = requests.get(url, headers=headers, timeout=10)
@@ -32,8 +31,9 @@ def get_latest_deploy(service_id):
         deploys = response.json()
         if deploys:
             # Render returns a list of items, each containing a 'deploy' object
-            return deploys[0]['deploy']
+            return deploys[0]["deploy"]
     return None
+
 
 def monitor_deploys():
     print("Monitoring Render deployments...")
@@ -41,14 +41,14 @@ def monitor_deploys():
 
     target_services = {}
     for item in services_data:
-        svc = item['service']
-        if svc['name'] == "sorce-api":
-            target_services[svc['name']] = svc['id']
+        svc = item["service"]
+        if svc["name"] == "sorce-api":
+            target_services[svc["name"]] = svc["id"]
             print(f"Found {svc['name']}: {svc['id']}")
-        elif svc['name'] == "sorce-web":
+        elif svc["name"] == "sorce-web":
             # Check if it's the new one
-            if svc['id'] == "srv-d63spbogjchc739akan0":
-                target_services[svc['name']] = svc['id']
+            if svc["id"] == "srv-d63spbogjchc739akan0":
+                target_services[svc["name"]] = svc["id"]
                 print(f"Found {svc['name']} (NEW): {svc['id']}")
 
     if not target_services:
@@ -67,7 +67,7 @@ def monitor_deploys():
                 print(f"No deploys found for {name}")
                 continue
 
-            status = deploy['status']
+            status = deploy["status"]
             print(f"Service {name} (Deploy {deploy['id']}) status: {status}")
 
             if status == "live":
@@ -84,6 +84,7 @@ def monitor_deploys():
         if not all(completed.values()):
             print("Waiting 30 seconds...")
             time.sleep(30)
+
 
 if __name__ == "__main__":
     monitor_deploys()

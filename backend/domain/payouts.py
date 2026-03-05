@@ -9,14 +9,14 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from backend.domain.stripe_client import (
     get_protected_stripe,
     get_stripe,
     protected_stripe_call,
 )
+from shared.config import get_settings
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.payouts")
 
@@ -28,7 +28,8 @@ async def get_or_create_connect_account(
 ) -> str:
     """Get existing Stripe Connect account or create a new one."""
     row = await conn.fetchrow(
-        "SELECT stripe_connect_id FROM public.tenants WHERE id = $1", tenant_id,
+        "SELECT stripe_connect_id FROM public.tenants WHERE id = $1",
+        tenant_id,
     )
     if row and row["stripe_connect_id"]:
         return row["stripe_connect_id"]
@@ -53,10 +54,13 @@ async def get_or_create_connect_account(
 
     await conn.execute(
         "UPDATE public.tenants SET stripe_connect_id = $2 WHERE id = $1",
-        tenant_id, account.id,
+        tenant_id,
+        account.id,
     )
 
-    logger.info("Created Stripe Connect account %s for tenant %s", account.id, tenant_id)
+    logger.info(
+        "Created Stripe Connect account %s for tenant %s", account.id, tenant_id
+    )
     return account.id
 
 
@@ -99,7 +103,8 @@ async def process_marketplace_payouts(
     s = get_settings()
 
     # Find paid blueprints with active installations
-    rows = await conn.fetch("""
+    rows = await conn.fetch(
+        """
         SELECT
             mb.id AS blueprint_id,
             mb.author_tenant_id,
@@ -114,12 +119,14 @@ async def process_marketplace_payouts(
           AND mb.approval_status = 'approved'
           AND t.stripe_connect_id IS NOT NULL
         GROUP BY mb.id, mb.author_tenant_id, mb.price_cents, mb.revenue_share_pct, t.stripe_connect_id
-    """)
+    """
+    )
 
     if not rows:
         return []
 
     import stripe
+
     stripe.api_key = s.stripe_secret_key
 
     results = []
@@ -161,26 +168,32 @@ async def process_marketplace_payouts(
                      stripe_transfer_id, status, period_start, period_end)
                 VALUES ($1, $2, $3, $4, $5, 'paid', $6::timestamptz, $7::timestamptz)
                 """,
-                row["author_tenant_id"], row["blueprint_id"],
-                author_amount, platform_amount,
+                row["author_tenant_id"],
+                row["blueprint_id"],
+                author_amount,
+                platform_amount,
                 transfer.id,
                 period_start or "now()",
                 period_end or "now()",
             )
 
-            results.append({
-                "blueprint_id": str(row["blueprint_id"]),
-                "author_tenant_id": str(row["author_tenant_id"]),
-                "installs": row["active_installs"],
-                "author_amount_cents": author_amount,
-                "platform_fee_cents": platform_amount,
-                "transfer_id": transfer.id,
-                "status": "paid",
-            })
+            results.append(
+                {
+                    "blueprint_id": str(row["blueprint_id"]),
+                    "author_tenant_id": str(row["author_tenant_id"]),
+                    "installs": row["active_installs"],
+                    "author_amount_cents": author_amount,
+                    "platform_fee_cents": platform_amount,
+                    "transfer_id": transfer.id,
+                    "status": "paid",
+                }
+            )
 
             logger.info(
                 "Payout: blueprint=%s author=%s amount=$%.2f",
-                row["blueprint_id"], row["author_tenant_id"], author_amount / 100,
+                row["blueprint_id"],
+                row["author_tenant_id"],
+                author_amount / 100,
             )
 
         except Exception as exc:
@@ -192,15 +205,19 @@ async def process_marketplace_payouts(
                      status, period_start, period_end)
                 VALUES ($1, $2, $3, $4, 'failed', $5::timestamptz, $6::timestamptz)
                 """,
-                row["author_tenant_id"], row["blueprint_id"],
-                author_amount, platform_amount,
+                row["author_tenant_id"],
+                row["blueprint_id"],
+                author_amount,
+                platform_amount,
                 period_start or "now()",
                 period_end or "now()",
             )
-            results.append({
-                "blueprint_id": str(row["blueprint_id"]),
-                "status": "failed",
-                "error": str(exc),
-            })
+            results.append(
+                {
+                    "blueprint_id": str(row["blueprint_id"]),
+                    "status": "failed",
+                    "error": str(exc),
+                }
+            )
 
     return results

@@ -13,6 +13,7 @@ import uuid
 from dataclasses import dataclass
 
 import asyncpg
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.tenant")
@@ -21,6 +22,7 @@ logger = get_logger("sorce.tenant")
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class TenantContext:
@@ -53,6 +55,7 @@ class TenantScopeError(Exception):
 # ---------------------------------------------------------------------------
 # Resolution: user_id → TenantContext (with auto-provisioning)
 # ---------------------------------------------------------------------------
+
 
 async def resolve_tenant_context(
     conn: asyncpg.Connection,
@@ -130,6 +133,7 @@ async def resolve_tenant_context(
 # Guards
 # ---------------------------------------------------------------------------
 
+
 def assert_tenant_owns(
     resource: dict,
     tenant_id: str,
@@ -140,9 +144,7 @@ def assert_tenant_owns(
     """
     res_tenant = str(resource.get("tenant_id", ""))
     if res_tenant != tenant_id:
-        raise TenantScopeError(
-            f"{resource_name} does not belong to tenant {tenant_id}"
-        )
+        raise TenantScopeError(f"{resource_name} does not belong to tenant {tenant_id}")
 
 
 def require_role(ctx: TenantContext, *allowed_roles: str) -> None:

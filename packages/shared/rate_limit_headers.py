@@ -60,8 +60,7 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
         with self._lock:
             cutoff = now - self.ENTRY_MAX_AGE_SECONDS
             old_keys = [
-                key for key, info in self._limits.items()
-                if info.last_accessed < cutoff
+                key for key, info in self._limits.items() if info.last_accessed < cutoff
             ]
             for key in old_keys:
                 del self._limits[key]

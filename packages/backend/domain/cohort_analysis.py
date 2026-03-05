@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any
 
 import asyncpg
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.cohort_analysis")
@@ -155,16 +156,20 @@ async def get_retention_metrics(
 
     return {
         "d7_retention": round(
-            (d7["retained_count"] / d7["cohort_size"] * 100)
-            if d7 and d7["cohort_size"]
-            else 0,
+            (
+                (d7["retained_count"] / d7["cohort_size"] * 100)
+                if d7 and d7["cohort_size"]
+                else 0
+            ),
             1,
         ),
         "d7_cohort_size": d7["cohort_size"] if d7 else 0,
         "d30_retention": round(
-            (d30["retained_count"] / d30["cohort_size"] * 100)
-            if d30 and d30["cohort_size"]
-            else 0,
+            (
+                (d30["retained_count"] / d30["cohort_size"] * 100)
+                if d30 and d30["cohort_size"]
+                else 0
+            ),
             1,
         ),
         "d30_cohort_size": d30["cohort_size"] if d30 else 0,

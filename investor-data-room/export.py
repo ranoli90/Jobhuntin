@@ -18,7 +18,9 @@ from pathlib import Path
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export Sorce Series A data room")
-    parser.add_argument("--api-url", default=os.getenv("API_URL", "http://localhost:8000"))
+    parser.add_argument(
+        "--api-url", default=os.getenv("API_URL", "http://localhost:8000")
+    )
     parser.add_argument("--token", default=os.getenv("ADMIN_TOKEN", ""))
     parser.add_argument("--output", default="./investor-data-room/exports")
     args = parser.parse_args()
@@ -50,15 +52,21 @@ def main() -> None:
     metrics = resp.json()
 
     # 3. CSV
-    csv_resp = httpx.get(f"{base}/investors/full-metrics.csv", headers=headers, timeout=30)
+    csv_resp = httpx.get(
+        f"{base}/investors/full-metrics.csv", headers=headers, timeout=30
+    )
 
     # 4. Save
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
 
-    (out / f"data_room_{ts}.json").write_text(json.dumps(metrics, indent=2, default=str))
-    (out / f"data_room_{ts}.csv").write_text(csv_resp.text if csv_resp.status_code == 200 else "")
+    (out / f"data_room_{ts}.json").write_text(
+        json.dumps(metrics, indent=2, default=str)
+    )
+    (out / f"data_room_{ts}.csv").write_text(
+        csv_resp.text if csv_resp.status_code == 200 else ""
+    )
     (out / "latest.json").write_text(json.dumps(metrics, indent=2, default=str))
 
     # 5. Summary
@@ -82,7 +90,9 @@ def main() -> None:
     print(f"  Marketplace BPs:  {plat.get('marketplace_blueprints', 0):>10}")
     print("=" * 56)
     for v in metrics.get("verticals", []):
-        print(f"  {v.get('vertical', ''):20s}  MRR=${v.get('mrr', 0):>8,}  tenants={v.get('tenant_count', 0)}")
+        print(
+            f"  {v.get('vertical', ''):20s}  MRR=${v.get('mrr', 0):>8,}  tenants={v.get('tenant_count', 0)}"
+        )
     print("=" * 56)
 
 

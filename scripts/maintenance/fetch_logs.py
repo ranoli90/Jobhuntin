@@ -12,10 +12,8 @@ if not RENDER_API_KEY:
     print("Error: RENDER_API_KEY not found in .env")
     sys.exit(1)
 
-headers = {
-    "Authorization": f"Bearer {RENDER_API_KEY}",
-    "Accept": "application/json"
-}
+headers = {"Authorization": f"Bearer {RENDER_API_KEY}", "Accept": "application/json"}
+
 
 def get_latest_deploy_logs(service_id, deploy_id):
     # Note: Render API doesn't have a direct "get logs for deploy X" endpoint that returns a string easily
@@ -27,10 +25,13 @@ def get_latest_deploy_logs(service_id, deploy_id):
         events = response.json()
         print(f"--- Recent Events for {service_id} ---")
         for item in events[:10]:
-            event = item['event']
-            print(f"[{event['timestamp']}] {event['type']}: {event.get('data', {}).get('reason', 'No reason provided')}")
+            event = item["event"]
+            print(
+                f"[{event['timestamp']}] {event['type']}: {event.get('data', {}).get('reason', 'No reason provided')}"
+            )
     else:
         print(f"Failed to fetch events: {response.status_code}")
+
 
 if __name__ == "__main__":
     WEB_SERVICE_ID = "srv-d63sipvgi27c739ni59g"

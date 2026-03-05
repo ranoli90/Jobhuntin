@@ -21,7 +21,9 @@ _PROMPTS: dict[tuple[str, str], str] = {}
 _DEFAULTS: dict[str, str] = {}
 
 
-def register_prompt(prompt_key: str, version: str, template: str, *, default: bool = False) -> None:
+def register_prompt(
+    prompt_key: str, version: str, template: str, *, default: bool = False
+) -> None:
     """Register a prompt template under a key + version."""
     _PROMPTS[(prompt_key, version)] = template
     if default or prompt_key not in _DEFAULTS:
@@ -53,7 +55,7 @@ def get_default_version(prompt_key: str) -> str | None:
 def list_prompts() -> dict[str, list[str]]:
     """Return a dict of prompt_key → list of registered versions."""
     result: dict[str, list[str]] = {}
-    for (pk, ver) in _PROMPTS:
+    for pk, ver in _PROMPTS:
         result.setdefault(pk, []).append(ver)
     return result
 
@@ -61,6 +63,7 @@ def list_prompts() -> dict[str, list[str]]:
 # ---------------------------------------------------------------------------
 # Auto-register existing prompts from contracts.py
 # ---------------------------------------------------------------------------
+
 
 def _register_builtin_prompts() -> None:
     """Register the built-in prompt templates from contracts.py."""

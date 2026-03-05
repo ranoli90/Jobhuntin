@@ -12,6 +12,7 @@ from typing import Any
 
 import asyncpg
 from api_v2.auth import sign_webhook_payload
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.webhooks")
@@ -101,7 +102,11 @@ async def _deliver_webhook(
         import httpx
     except ImportError:
         logger.warning("httpx not installed — webhook delivery disabled")
-        return {"endpoint_id": str(endpoint["id"]), "status": "skipped", "reason": "httpx not installed"}
+        return {
+            "endpoint_id": str(endpoint["id"]),
+            "status": "skipped",
+            "reason": "httpx not installed",
+        }
 
     headers = {
         "Content-Type": "application/json",
@@ -129,8 +134,12 @@ async def _deliver_webhook(
                 """INSERT INTO public.webhook_deliveries
                        (endpoint_id, event_type, payload, response_status, response_body, attempt)
                    VALUES ($1, $2, $3::jsonb, $4, $5, $6)""",
-                endpoint["id"], "application.status_changed",
-                payload.decode(), status_code, response_body, attempt,
+                endpoint["id"],
+                "application.status_changed",
+                payload.decode(),
+                status_code,
+                response_body,
+                attempt,
             )
 
             if success:
@@ -147,9 +156,18 @@ async def _deliver_webhook(
                 # Retry asynchronously
                 if attempt < MAX_RETRIES:
                     delay = RETRY_DELAYS[attempt - 1]
-                    logger.info("Webhook retry %d for %s scheduled in %ds", attempt + 1, endpoint["url"], delay)
+                    logger.info(
+                        "Webhook retry %d for %s scheduled in %ds",
+                        attempt + 1,
+                        endpoint["url"],
+                        delay,
+                    )
                     # Schedule retry asynchronously to avoid blocking
-                    asyncio.create_task(_schedule_retry(pool, endpoint, payload, signature, attempt + 1, delay))
+                    asyncio.create_task(
+                        _schedule_retry(
+                            pool, endpoint, payload, signature, attempt + 1, delay
+                        )
+                    )
                     return {
                         "endpoint_id": str(endpoint["id"]),
                         "url": endpoint["url"],
@@ -174,8 +192,11 @@ async def _deliver_webhook(
                 """INSERT INTO public.webhook_deliveries
                        (endpoint_id, event_type, payload, response_status, response_body, attempt)
                    VALUES ($1, $2, $3::jsonb, 0, $4, $5)""",
-                endpoint["id"], "application.status_changed",
-                payload.decode(), str(exc)[:500], attempt,
+                endpoint["id"],
+                "application.status_changed",
+                payload.decode(),
+                str(exc)[:500],
+                attempt,
             )
             await conn.execute(
                 "UPDATE public.webhook_endpoints SET last_failure_at = now(), failure_count = failure_count + 1 WHERE id = $1",
@@ -184,9 +205,16 @@ async def _deliver_webhook(
 
         if attempt < MAX_RETRIES:
             delay = RETRY_DELAYS[attempt - 1]
-            logger.info("Webhook retry %d for %s scheduled in %ds", attempt + 1, endpoint["url"], delay)
+            logger.info(
+                "Webhook retry %d for %s scheduled in %ds",
+                attempt + 1,
+                endpoint["url"],
+                delay,
+            )
             # Schedule retry asynchronously to avoid blocking
-            asyncio.create_task(_schedule_retry(pool, endpoint, payload, signature, attempt + 1, delay))
+            asyncio.create_task(
+                _schedule_retry(pool, endpoint, payload, signature, attempt + 1, delay)
+            )
             return {
                 "endpoint_id": str(endpoint["id"]),
                 "url": endpoint["url"],

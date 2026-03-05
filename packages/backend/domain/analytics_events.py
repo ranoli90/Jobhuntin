@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 
 import asyncpg
+
 from shared.logging_config import get_logger
 
 # ---------------------------------------------------------------------------
@@ -65,31 +66,33 @@ REVIEW_PROMPT_SHOWN = "review_prompt_shown"
 # ---------------------------------------------------------------------------
 # Full catalog (for validation)
 # ---------------------------------------------------------------------------
-ALL_EVENT_TYPES: frozenset[str] = frozenset({
-    JOB_SWIPE_RIGHT,
-    JOB_SWIPE_LEFT,
-    APPLICATION_CREATED,
-    APPLICATION_STATUS_CHANGED,
-    HOLD_QUESTIONS_SHOWN,
-    HOLD_QUESTIONS_ANSWERED,
-    RESUME_UPLOADED,
-    RESUME_PARSED_SUCCESS,
-    RESUME_PARSED_FAILED,
-    APP_OPENED,
-    SESSION_STARTED,
-    SESSION_ENDED,
-    AGENT_FEEDBACK_SUBMITTED,
-    ONBOARDING_STARTED,
-    ONBOARDING_RESUME_UPLOADED,
-    ONBOARDING_COMPLETED,
-    REFERRAL_SHARED,
-    REFERRAL_REDEEMED,
-    UPGRADE_PROMPT_SHOWN,
-    UPGRADE_STARTED,
-    UPGRADE_COMPLETED,
-    PUSH_TOKEN_REGISTERED,
-    REVIEW_PROMPT_SHOWN,
-})
+ALL_EVENT_TYPES: frozenset[str] = frozenset(
+    {
+        JOB_SWIPE_RIGHT,
+        JOB_SWIPE_LEFT,
+        APPLICATION_CREATED,
+        APPLICATION_STATUS_CHANGED,
+        HOLD_QUESTIONS_SHOWN,
+        HOLD_QUESTIONS_ANSWERED,
+        RESUME_UPLOADED,
+        RESUME_PARSED_SUCCESS,
+        RESUME_PARSED_FAILED,
+        APP_OPENED,
+        SESSION_STARTED,
+        SESSION_ENDED,
+        AGENT_FEEDBACK_SUBMITTED,
+        ONBOARDING_STARTED,
+        ONBOARDING_RESUME_UPLOADED,
+        ONBOARDING_COMPLETED,
+        REFERRAL_SHARED,
+        REFERRAL_REDEEMED,
+        UPGRADE_PROMPT_SHOWN,
+        UPGRADE_STARTED,
+        UPGRADE_COMPLETED,
+        PUSH_TOKEN_REGISTERED,
+        REVIEW_PROMPT_SHOWN,
+    }
+)
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +100,7 @@ ALL_EVENT_TYPES: frozenset[str] = frozenset({
 # ---------------------------------------------------------------------------
 
 logger = get_logger("sorce.analytics")
+
 
 async def emit_analytics_event(
     pool: asyncpg.Pool,

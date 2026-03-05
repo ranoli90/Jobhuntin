@@ -7,7 +7,9 @@ URL = f"https://{PROJECT_REF}.supabase.co/rest/v1/"
 
 try:
     print(f"Checking {URL}...")
-    req = urllib.request.Request(URL, headers={"apikey": "sb_publishable_Mr5fIMoahb4_Jrkdp3D33Q_oA-5MXV2"})
+    req = urllib.request.Request(
+        URL, headers={"apikey": "sb_publishable_Mr5fIMoahb4_Jrkdp3D33Q_oA-5MXV2"}
+    )
     with urllib.request.urlopen(req) as resp:
         print(f"Status: {resp.getcode()}")
         print("Project exists and is reachable via REST API.")

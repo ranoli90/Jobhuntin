@@ -9,15 +9,16 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from shared.logging_config import get_logger
 
 from backend.domain.mfa import MFAManager
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.mfa")
 
 _totp_attempt_limiters: dict[str, tuple[int, float]] = {}
 _TOTP_MAX_ATTEMPTS = 5
 _TOTP_WINDOW_SECONDS = 300  # 5 minutes
+
 
 def _check_totp_rate_limit(user_id: str) -> bool:
     """Returns True if allowed, False if rate limited."""
@@ -33,10 +34,15 @@ def _check_totp_rate_limit(user_id: str) -> bool:
         # Window expired, reset
     _totp_attempt_limiters[user_id] = (1, now)
     # Evict old entries
-    expired = [k for k, (_, ts) in _totp_attempt_limiters.items() if now - ts > _TOTP_WINDOW_SECONDS]
+    expired = [
+        k
+        for k, (_, ts) in _totp_attempt_limiters.items()
+        if now - ts > _TOTP_WINDOW_SECONDS
+    ]
     for k in expired:
         _totp_attempt_limiters.pop(k, None)
     return True
+
 
 router = APIRouter(prefix="/auth/mfa", tags=["mfa"])
 
@@ -136,7 +142,9 @@ async def verify_totp_enrollment(
 ) -> TOTPVerifyResponse:
     manager = MFAManager(db)
 
-    result = await manager.verify_totp_enrollment(body.enrollment_id, body.code, user_id=user_id)
+    result = await manager.verify_totp_enrollment(
+        body.enrollment_id, body.code, user_id=user_id
+    )
 
     if isinstance(result, tuple):
         success, recovery_codes = result

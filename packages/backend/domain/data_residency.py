@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.data_residency")
@@ -220,9 +220,9 @@ class DataResidencyManager:
             return TenantDataResidency(
                 tenant_id=str(row["tenant_id"]),
                 primary_region=DataRegion(row["primary_region"]),
-                backup_region=DataRegion(row["backup_region"])
-                if row["backup_region"]
-                else None,
+                backup_region=(
+                    DataRegion(row["backup_region"]) if row["backup_region"] else None
+                ),
                 enforced_at=row["enforced_at"],
                 data_types=list(row["data_types"]) if row["data_types"] else [],
                 cross_region_transfer_allowed=row["cross_region_transfer_allowed"],
@@ -339,19 +339,19 @@ class DataResidencyManager:
             "primary_region": {
                 "region": residency.primary_region.value,
                 "display_name": region_config.display_name if region_config else None,
-                "compliance_frameworks": region_config.compliance_frameworks
-                if region_config
-                else [],
+                "compliance_frameworks": (
+                    region_config.compliance_frameworks if region_config else []
+                ),
             },
-            "backup_region": residency.backup_region.value
-            if residency.backup_region
-            else None,
+            "backup_region": (
+                residency.backup_region.value if residency.backup_region else None
+            ),
             "data_types_covered": residency.data_types,
             "cross_region_transfer_allowed": residency.cross_region_transfer_allowed,
             "enforced_at": residency.enforced_at.isoformat(),
-            "last_audit_at": residency.last_audit_at.isoformat()
-            if residency.last_audit_at
-            else None,
+            "last_audit_at": (
+                residency.last_audit_at.isoformat() if residency.last_audit_at else None
+            ),
         }
 
     async def _record_audit(

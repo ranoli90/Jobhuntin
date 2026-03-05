@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 async def check_db():
     # Try multiple common env var names
-    db_url = os.environ.get('DATABASE_URL') or os.environ.get('SUPABASE_DB_URL')
+    db_url = os.environ.get("DATABASE_URL") or os.environ.get("SUPABASE_DB_URL")
 
     if not db_url:
         print("Error: No database URL found in environment variables.")
@@ -22,26 +23,30 @@ async def check_db():
         conn = await asyncio.wait_for(asyncpg.connect(db_url), timeout=10.0)
 
         # Check columns in applications table
-        columns = await conn.fetch("""
+        columns = await conn.fetch(
+            """
             SELECT column_name, data_type
             FROM information_schema.columns
             WHERE table_schema = 'public' AND table_name = 'applications'
             ORDER BY column_name
-        """)
+        """
+        )
 
-        print('--- Columns in applications ---')
+        print("--- Columns in applications ---")
         for col in columns:
             print(f"{col['column_name']}: {col['data_type']}")
 
         # Check function definition
-        func = await conn.fetchval("""
+        func = await conn.fetchval(
+            """
             SELECT pg_get_functiondef(p.oid)
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             WHERE n.nspname = 'public' AND p.proname = 'claim_next_prioritized'
-        """)
+        """
+        )
 
-        print('\n--- Function claim_next_prioritized ---')
+        print("\n--- Function claim_next_prioritized ---")
         if func:
             print(func)
         else:
@@ -54,13 +59,15 @@ async def check_db():
         print(f"Error connecting to DB: {e}")
         # If DNS fails, try to print the hostname we tried to reach
         import socket
+
         try:
-            hostname = db_url.split('@')[-1].split(':')[0].split('/')[0]
+            hostname = db_url.split("@")[-1].split(":")[0].split("/")[0]
             print(f"Attempting to resolve hostname: {hostname}")
             ip = socket.gethostbyname(hostname)
             print(f"Resolved to IP: {ip}")
         except Exception as dns_err:
             print(f"DNS resolution failed: {dns_err}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(check_db())

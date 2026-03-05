@@ -6,8 +6,6 @@ import uuid
 import fitz  # PyMuPDF
 import httpx
 from fastapi import HTTPException
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from backend.domain.analytics_events import (
     RESUME_PARSED_FAILED,
@@ -18,6 +16,8 @@ from backend.domain.models import CanonicalProfile, normalize_profile
 from backend.domain.repositories import ProfileRepo
 from backend.llm.client import LLMClient, LLMError
 from backend.llm.contracts import ResumeParseResponse_V2, build_resume_parse_prompt_v2
+from shared.config import get_settings
+from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.resume")

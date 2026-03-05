@@ -1,26 +1,30 @@
 """Billing domain functions (no FastAPI dependencies to avoid circular imports)."""
+
 import asyncpg
 
 
-async def ensure_stripe_customer(conn: asyncpg.Connection, tenant_id: str, user_email: str | None) -> str:
+async def ensure_stripe_customer(
+    conn: asyncpg.Connection, tenant_id: str, user_email: str | None
+) -> str:
     """Ensure a Stripe customer exists for the tenant."""
     from backend.domain.stripe_client import get_stripe
+
     stripe = get_stripe()
-    
+
     row = await conn.fetchrow(
         "SELECT provider_customer_id FROM public.billing_customers WHERE tenant_id = $1",
         tenant_id,
     )
-    
+
     if row and row["provider_customer_id"]:
         return row["provider_customer_id"]
-    
+
     # Create new customer
     customer = stripe.Customer.create(
         email=user_email,
         metadata={"tenant_id": tenant_id},
     )
-    
+
     await conn.execute(
         """INSERT INTO public.billing_customers (tenant_id, provider, provider_customer_id)
             VALUES ($1, 'STRIPE', $2)
@@ -30,15 +34,15 @@ async def ensure_stripe_customer(conn: asyncpg.Connection, tenant_id: str, user_
         tenant_id,
         customer.id,
     )
-    
+
     return customer.id
 
 
 async def update_subscription_state(
-    conn: asyncpg.Connection, 
-    customer_id: str, 
+    conn: asyncpg.Connection,
+    customer_id: str,
     status: str,
-    subscription_id: str | None = None
+    subscription_id: str | None = None,
 ):
     """Update subscription state in database."""
     await conn.execute(

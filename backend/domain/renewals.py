@@ -7,10 +7,11 @@ Designed to run daily via cron: `python -m backend.domain.renewals`
 from __future__ import annotations
 
 import json
-from datetime import timezone, UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -24,7 +25,8 @@ async def scan_upcoming_renewals(conn: asyncpg.Connection) -> list[dict[str, Any
 
     # Find tenants with contract_end within 90 days that don't have a renewal record
     # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1
-    rows = await conn.fetch("""
+    rows = await conn.fetch(
+        """
         SELECT t.id AS tenant_id, t.name, t.plan::text, t.contract_end,
                t.contract_value_cents, t.billing_interval
         FROM public.tenants t
@@ -36,7 +38,9 @@ async def scan_upcoming_renewals(conn: asyncpg.Connection) -> list[dict[str, Any
               SELECT 1 FROM public.contract_renewals cr
               WHERE cr.tenant_id = t.id AND cr.renewal_date = t.contract_end
           )
-    """, d90)
+    """,
+        d90,
+    )
 
     created = []
     for row in rows:
@@ -44,10 +48,16 @@ async def scan_upcoming_renewals(conn: asyncpg.Connection) -> list[dict[str, Any
             """INSERT INTO public.contract_renewals
                    (tenant_id, renewal_date, contract_value, status)
                VALUES ($1, $2, $3, 'upcoming')""",
-            row["tenant_id"], row["contract_end"], row["contract_value_cents"] or 0,
+            row["tenant_id"],
+            row["contract_end"],
+            row["contract_value_cents"] or 0,
         )
         created.append(dict(row))
-        logger.info("Created renewal tracking: tenant=%s date=%s", row["name"], row["contract_end"])
+        logger.info(
+            "Created renewal tracking: tenant=%s date=%s",
+            row["name"],
+            row["contract_end"],
+        )
 
     return created
 
@@ -59,19 +69,23 @@ async def run_notification_sequence(conn: asyncpg.Connection) -> list[dict[str, 
     now = datetime.now(timezone.utc)
     notifications: list[dict[str, Any]] = []
 
-    renewals = await conn.fetch("""
+    renewals = await conn.fetch(
+        """
         SELECT cr.*, t.name AS tenant_name, t.plan::text AS plan
         FROM public.contract_renewals cr
         JOIN public.tenants t ON t.id = cr.tenant_id
         WHERE cr.status NOT IN ('renewed', 'churned')
         ORDER BY cr.renewal_date ASC
-    """)
+    """
+    )
 
     for renewal in renewals:
         status_update = _determine_renewal_status(renewal, now)
         if status_update:
             days_until, new_status = status_update
-            notif = await _send_renewal_notification(conn, renewal, days_until, new_status, now)
+            notif = await _send_renewal_notification(
+                conn, renewal, days_until, new_status, now
+            )
             notifications.append(notif)
 
     return notifications
@@ -111,28 +125,42 @@ async def _send_renewal_notification(
 
     # Send Slack notification
     from backend.domain.alerting_v2 import send_slack_message
+
     await send_slack_message(
         text=msg,
         channel=get_settings().slack_enterprise_channel,
     )
 
     # Update log
-    log = json.loads(renewal["notification_log"]) if isinstance(renewal["notification_log"], str) else list(renewal["notification_log"] or [])
-    log.append({
-        "status": new_status,
-        "days_until_renewal": days_until,
-        "notified_at": now.isoformat(),
-        "channel": "slack",
-    })
+    log = (
+        json.loads(renewal["notification_log"])
+        if isinstance(renewal["notification_log"], str)
+        else list(renewal["notification_log"] or [])
+    )
+    log.append(
+        {
+            "status": new_status,
+            "days_until_renewal": days_until,
+            "notified_at": now.isoformat(),
+            "channel": "slack",
+        }
+    )
 
     await conn.execute(
         """UPDATE public.contract_renewals
            SET status = $2, notification_log = $3::jsonb
            WHERE id = $1""",
-        renewal["id"], new_status, json.dumps(log),
+        renewal["id"],
+        new_status,
+        json.dumps(log),
     )
 
-    logger.info("Renewal notification: %s — %d days — %s", renewal["tenant_name"], days_until, new_status)
+    logger.info(
+        "Renewal notification: %s — %d days — %s",
+        renewal["tenant_name"],
+        days_until,
+        new_status,
+    )
 
     return {
         "tenant": renewal["tenant_name"],

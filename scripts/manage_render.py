@@ -8,15 +8,18 @@ load_dotenv()
 # Use env var (never commit keys)
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 if not RENDER_API_KEY:
-    raise SystemExit("RENDER_API_KEY not set. Export it: export RENDER_API_KEY=your-key")
+    raise SystemExit(
+        "RENDER_API_KEY not set. Export it: export RENDER_API_KEY=your-key"
+    )
 
 # Render API base URL
 RENDER_API_BASE = "https://api.render.com/v1"
 
 headers = {
     "Authorization": f"Bearer {RENDER_API_KEY}",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
 }
+
 
 def get_services():
     """Fetch all Render services."""
@@ -32,41 +35,52 @@ def get_services():
         print(f"Error fetching services: {str(e)}")
         return []
 
+
 def get_service_env(service_id):
     """Get environment variables for a service."""
     try:
-        response = httpx.get(f"{RENDER_API_BASE}/services/{service_id}/env-vars",
-                           headers=headers, timeout=10)
+        response = httpx.get(
+            f"{RENDER_API_BASE}/services/{service_id}/env-vars",
+            headers=headers,
+            timeout=10,
+        )
         response.raise_for_status()
         return response.json()
     except Exception as e:
         print(f"Error getting env for service {service_id}: {str(e)}")
         return []
 
+
 def get_databases():
     """Fetch all databases - Render doesn't have a direct endpoint."""
     # Render doesn't have a /databases endpoint
     # Instead, we'll find databases by checking service configurations
-    print("Render API doesn't have a direct databases endpoint. Checking service configurations...")
+    print(
+        "Render API doesn't have a direct databases endpoint. Checking service configurations..."
+    )
 
     services = get_services()
     databases = []
 
     for service in services:
-        svc = service.get('service', {})
-        if 'database' in svc.get('type', '').lower():
+        svc = service.get("service", {})
+        if "database" in svc.get("type", "").lower():
             databases.append(svc)
 
     return databases
 
+
 def delete_database(service_id):
     """Delete a database service."""
     try:
-        response = httpx.delete(f"{RENDER_API_BASE}/services/{service_id}", headers=headers)
+        response = httpx.delete(
+            f"{RENDER_API_BASE}/services/{service_id}", headers=headers
+        )
         return response.status_code == 204
     except Exception as e:
         print(f"Error deleting database service {service_id}: {str(e)}")
         return False
+
 
 def main():
     try:
@@ -79,9 +93,9 @@ def main():
 
         # 2. Verify sorce-api and sorce-web environment variables
         for service in services:
-            svc = service.get('service', {})
-            name = svc.get('name', '')
-            service_id = svc.get('id', '')
+            svc = service.get("service", {})
+            name = svc.get("name", "")
+            service_id = svc.get("id", "")
 
             if not service_id:
                 continue
@@ -90,8 +104,8 @@ def main():
                 env_vars = get_service_env(service_id)
                 print(f"\n--- Environment for {name} ({service_id}) ---")
                 for var in env_vars:
-                    env_var = var.get('envVar', {})
-                    key = env_var.get('key', 'Unknown')
+                    env_var = var.get("envVar", {})
+                    key = env_var.get("key", "Unknown")
                     print(f"- {key}")
 
         # 3. Check and delete sorce-db if not needed
@@ -99,21 +113,21 @@ def main():
         sorce_db = None
 
         for db in databases:
-            db_name = db.get('name', '')
+            db_name = db.get("name", "")
             if "sorce-db" in db_name.lower():
                 sorce_db = db
                 break
 
         if sorce_db:
-            db_id = sorce_db['id']
-            db_name = sorce_db['name']
+            db_id = sorce_db["id"]
+            db_name = sorce_db["name"]
             print(f"\nFound database service: {db_name} (ID: {db_id})")
 
             # Check if any services reference this database
             db_in_use = False
             for service in services:
-                svc = service.get('service', {})
-                if svc.get('databaseId') == db_id:
+                svc = service.get("service", {})
+                if svc.get("databaseId") == db_id:
                     db_in_use = True
                     print(f"Database is used by service: {svc.get('name')}")
                     break
@@ -131,6 +145,7 @@ def main():
 
     except Exception as e:
         print(f"Critical error: {e}")
+
 
 if __name__ == "__main__":
     main()

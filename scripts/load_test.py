@@ -53,11 +53,11 @@ class APIUser(HttpUser):
                 "profile": {
                     "skills": ["Python", "FastAPI", "PostgreSQL"],
                     "experience_years": 5,
-                    "location": "Remote"
-                }
+                    "location": "Remote",
+                },
             },
             headers=headers,
-            name="/ai/match-job"
+            name="/ai/match-job",
         )
 
 
@@ -74,9 +74,9 @@ class JobSearchUser(HttpUser):
             params={
                 "q": random.choice(["python", "react", "golang", "rust"]),
                 "location": random.choice(["Remote", "New York", "San Francisco"]),
-                "page": 1
+                "page": 1,
             },
-            name="/jobs"
+            name="/jobs",
         )
 
     @task(2)
@@ -136,10 +136,14 @@ if __name__ == "__main__":
         except Exception as e:
             return {"error": str(e)}
 
-    print(f"Running {args.requests} requests with {args.concurrency} concurrent users...")
+    print(
+        f"Running {args.requests} requests with {args.concurrency} concurrent users..."
+    )
 
     start_time = time.time()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.concurrency) as executor:
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=args.concurrency
+    ) as executor:
         results = list(executor.map(make_request, range(args.requests)))
 
     total_time = time.time() - start_time
@@ -151,8 +155,10 @@ if __name__ == "__main__":
     print("\nResults:")
     print(f"  Total time: {total_time:.2f}s")
     print(f"  Requests: {args.requests}")
-    print(f"  Success: {len(successes)} ({len(successes)/args.requests*100:.1f}%)")
-    print(f"  Failures: {len(failures)} ({len(failures)/args.requests*100:.1f}%)")
+    print(f"  Success: {len(successes)} ({len(successes) / args.requests * 100:.1f}%)")
+    print(f"  Failures: {len(failures)} ({len(failures) / args.requests * 100:.1f}%)")
     if durations:
-        print(f"  Avg latency: {sum(durations)/len(durations)*1000:.1f}ms")
-        print(f"  P99 latency: {sorted(durations)[int(len(durations)*0.99)]*1000:.1f}ms")
+        print(f"  Avg latency: {sum(durations) / len(durations) * 1000:.1f}ms")
+        print(
+            f"  P99 latency: {sorted(durations)[int(len(durations) * 0.99)] * 1000:.1f}ms"
+        )

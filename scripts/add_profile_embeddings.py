@@ -20,14 +20,16 @@ async def run_migration():
         print("Adding profile_embeddings table...")
 
         try:
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS profile_embeddings (
                     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
                     embedding JSONB,
                     text_hash VARCHAR(64),
                     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 )
-            """)
+            """
+            )
             print("  profile_embeddings: OK")
         except Exception as e:
             if "already exists" in str(e).lower():
@@ -36,12 +38,14 @@ async def run_migration():
                 print(f"  profile_embeddings: ERROR - {e}")
 
         # Verify
-        tables = await conn.fetch("""
+        tables = await conn.fetch(
+            """
             SELECT table_name FROM information_schema.tables
             WHERE table_schema = 'public'
             AND table_name IN ('job_embeddings', 'profile_embeddings')
             ORDER BY table_name
-        """)
+        """
+        )
 
         print("\nEmbedding tables:")
         for t in tables:

@@ -9,14 +9,14 @@ Provides:
 
 from __future__ import annotations
 
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
 import httpx
 from pydantic import BaseModel
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.calendar")
@@ -157,9 +157,9 @@ class GoogleCalendarClient:
                         "Authorization": f"Bearer {self.access_token}",
                         "Content-Type": "application/json",
                     },
-                    params={"conferenceDataVersion": "1"}
-                    if event.conference_url
-                    else {},
+                    params=(
+                        {"conferenceDataVersion": "1"} if event.conference_url else {}
+                    ),
                     json=event_body,
                 )
 

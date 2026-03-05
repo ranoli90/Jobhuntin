@@ -3,10 +3,10 @@ import io
 import httpx
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from PIL import Image, ImageDraw, ImageFont
-from shared.middleware import get_client_ip
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import get_rate_limiter
+from shared.middleware import get_client_ip
 
 logger = get_logger("sorce.api.og")
 
@@ -21,11 +21,18 @@ TEXT_COLOR = "#2D2D2D"  # Charcoal gray
 ACCENT_COLOR = "#FFFFFF"
 
 # Font URLs (Google Fonts - using raw.githubusercontent.com for stability)
-FONT_URL_BOLD = "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf"
-FONT_URL_REGULAR = "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter-Regular.ttf"
+FONT_URL_BOLD = (
+    "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf"
+)
+FONT_URL_REGULAR = (
+    "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter-Regular.ttf"
+)
+
+from typing import Any
 
 # In-memory cache for fonts
-_font_cache = {}
+_font_cache: dict[str, Any] = {}
+
 
 def get_font(url: str, size: int):
     key = f"{url}-{size}"
@@ -45,15 +52,16 @@ def get_font(url: str, size: int):
         logger.warning("Failed to load font %s: %s", url, e)
         return ImageFont.load_default()
 
+
 def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
     """Wrap text to fit within max_width."""
-    lines = []
+    lines: list[str] = []
     if not text:
         return lines
 
     # Simple word wrap
     words = text.split()
-    current_line = []
+    current_line: list[str] = []
 
     for word in words:
         test_line = " ".join(current_line + [word])
@@ -76,6 +84,7 @@ def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[s
         lines.append(" ".join(current_line))
 
     return lines
+
 
 @router.get("/api/og")
 async def generate_og_image(
@@ -100,29 +109,33 @@ async def generate_og_image(
     # We'll simulate a gradient by drawing multiple lines or circles
     # Background swipe trail
     for i in range(200):
-        color = (255, 107, 53) # RGB for #FF6B35
+        color = (255, 107, 53)  # RGB for #FF6B35
         # Interpolate towards blue
         if i > 100:
-             # Simple interpolation
-             ratio = (i - 100) / 100
-             r = int(255 * (1 - ratio) + 74 * ratio)
-             g = int(107 * (1 - ratio) + 144 * ratio)
-             b = int(53 * (1 - ratio) + 226 * ratio)
-             color = (r, g, b)
+            # Simple interpolation
+            ratio = (i - 100) / 100
+            r = int(255 * (1 - ratio) + 74 * ratio)
+            g = int(107 * (1 - ratio) + 144 * ratio)
+            b = int(53 * (1 - ratio) + 226 * ratio)
+            color = (r, g, b)
 
         x_offset = i * 2
-        draw.ellipse([800 + x_offset, -100 + x_offset, 1400 + x_offset, 500 + x_offset], outline=None, fill=color)
+        draw.ellipse(
+            [800 + x_offset, -100 + x_offset, 1400 + x_offset, 500 + x_offset],
+            outline=None,
+            fill=color,
+        )
 
     # Main "Card" Area (White Box)
     margin = 60
     card_width = WIDTH - (margin * 2)
-    _card_height = HEIGHT - (margin * 2)  # noqa: F841 — kept for future use
+    # _card_height reserved for future use
     draw.rounded_rectangle(
         [margin, margin, WIDTH - margin, HEIGHT - margin],
         radius=40,
         fill="white",
         outline="#E5E7EB",
-        width=2
+        width=2,
     )
 
     # 3. Text
@@ -143,7 +156,9 @@ async def generate_og_image(
         current_y += 90
 
     # Company
-    draw.text((100, current_y + 10), f"at {company}", font=company_font, fill=SECONDARY_COLOR)
+    draw.text(
+        (100, current_y + 10), f"at {company}", font=company_font, fill=SECONDARY_COLOR
+    )
 
     # Badges Row (Score + Location)
     badge_y = current_y + 100
@@ -155,27 +170,32 @@ async def generate_og_image(
     w = bbox[2] - bbox[0]
     padding = 20
     draw.rounded_rectangle(
-        [100, badge_y, 100 + w + (padding*2), badge_y + 60],
+        [100, badge_y, 100 + w + (padding * 2), badge_y + 60],
         radius=15,
-        fill="#ECFDF5", # Green-ish background
+        fill="#ECFDF5",  # Green-ish background
         outline="#10B981",
-        width=2
+        width=2,
     )
     draw.text((100 + padding, badge_y + 10), score_text, font=meta_font, fill="#047857")
 
     # Location Badge
-    loc_x = 100 + w + (padding*2) + 30
+    loc_x = 100 + w + (padding * 2) + 30
     draw.text((loc_x, badge_y + 10), f"📍 {location}", font=meta_font, fill="#6B7280")
 
     # 4. Footer
     # "JobHuntin.com"
     draw.line([100, HEIGHT - 120, WIDTH - 100, HEIGHT - 120], fill="#F3F4F6", width=2)
     draw.text((100, HEIGHT - 90), "jobhuntin.com", font=footer_font, fill=PRIMARY_COLOR)
-    draw.text((WIDTH - 400, HEIGHT - 90), "AI Applies For You • Beat Sorce.jobs", font=footer_font, fill="#9CA3AF")
+    draw.text(
+        (WIDTH - 400, HEIGHT - 90),
+        "AI Applies For You • Beat Sorce.jobs",
+        font=footer_font,
+        fill="#9CA3AF",
+    )
 
     # 5. Output
     img_byte_arr = io.BytesIO()
-    im.save(img_byte_arr, format='PNG')
+    im.save(img_byte_arr, format="PNG")
     img_byte_arr.seek(0)
 
     return Response(content=img_byte_arr.getvalue(), media_type="image/png")

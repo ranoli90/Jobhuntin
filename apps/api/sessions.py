@@ -13,9 +13,9 @@ import asyncpg
 from backend.domain.session_manager import SessionManager
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from shared.logging_config import get_logger
 
 from backend.domain.tenant import TenantContext
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.sessions")

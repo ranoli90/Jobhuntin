@@ -1,4 +1,5 @@
 """Set missing environment variables on Render for sorce-api service."""
+
 import os
 
 import httpx
@@ -9,6 +10,7 @@ load_dotenv()
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 SERVICE_ID = "srv-d63l79hr0fns73boblag"
 
+
 def set_env_var(key: str, value: str, is_secret: bool = False):
     """Set or update an environment variable on Render."""
     if not RENDER_API_KEY:
@@ -18,21 +20,18 @@ def set_env_var(key: str, value: str, is_secret: bool = False):
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
     try:
-        payload = {
-            "key": key,
-            "value": value
-        }
+        payload = {"key": key, "value": value}
 
         # For web services, use the env-vars endpoint with POST to add/update
         resp = httpx.post(
             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
             headers=headers,
             json=payload,
-            timeout=10
+            timeout=10,
         )
 
         if resp.status_code in (200, 201, 204):
@@ -43,20 +42,20 @@ def set_env_var(key: str, value: str, is_secret: bool = False):
             list_resp = httpx.get(
                 f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
                 headers=headers,
-                timeout=10
+                timeout=10,
             )
             if list_resp.status_code == 200:
                 env_vars = list_resp.json()
                 for item in env_vars:
-                    ev = item.get('envVar', {})
-                    if ev.get('key') == key:
-                        ev_id = ev.get('id')
+                    ev = item.get("envVar", {})
+                    if ev.get("key") == key:
+                        ev_id = ev.get("id")
                         # Update using PUT
                         update_resp = httpx.put(
                             f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars/{ev_id}",
                             headers=headers,
                             json={"value": value},
-                            timeout=10
+                            timeout=10,
                         )
                         if update_resp.status_code in (200, 201, 204):
                             print(f"  [UPDATED] {key}")
@@ -71,6 +70,7 @@ def set_env_var(key: str, value: str, is_secret: bool = False):
     except Exception as e:
         print(f"  [ERROR] {key}: {e}")
         return False
+
 
 def main():
     print("Setting environment variables for sorce-api...")
@@ -97,7 +97,6 @@ def main():
         ("LOG_JSON", "true", False),
         ("LOG_LEVEL", "INFO", False),
         ("APP_BASE_URL", "https://sorce-web.onrender.com", False),
-
         # Secrets (values from .env)
         ("SUPABASE_SERVICE_KEY", os.environ.get("SUPABASE_SERVICE_KEY", ""), True),
         ("SUPABASE_JWT_SECRET", os.environ.get("SUPABASE_JWT_SECRET", ""), True),
@@ -130,6 +129,7 @@ def main():
     print(f"\nDone! Created/Updated: {created}, Failed: {failed}")
     print("\nIMPORTANT: You need to manually set RESEND_API_KEY if you have one.")
     print("Get one at https://resend.com and add it as a secret env var.")
+
 
 if __name__ == "__main__":
     main()

@@ -9,12 +9,12 @@ Implements:
 from __future__ import annotations
 
 import json
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.gdpr")
@@ -137,9 +137,11 @@ async def delete_user_data(
         deleted["job_alerts"] = _count_from_result(deleted["job_alerts"])
 
         deleted["analytics_events"] = await conn.execute(
-            "DELETE FROM public.analytics_events WHERE user_id = $1"
-            if not retain_analytics
-            else "UPDATE public.analytics_events SET user_id = NULL, properties = properties - 'email' WHERE user_id = $1",
+            (
+                "DELETE FROM public.analytics_events WHERE user_id = $1"
+                if not retain_analytics
+                else "UPDATE public.analytics_events SET user_id = NULL, properties = properties - 'email' WHERE user_id = $1"
+            ),
             user_id,
         )
         deleted["analytics_events"] = _count_from_result(deleted["analytics_events"])

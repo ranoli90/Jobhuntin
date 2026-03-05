@@ -14,11 +14,12 @@ users do not know why the bot applied to a specific job."
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.explainable_scoring")

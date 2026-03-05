@@ -20,15 +20,10 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
-from playwright.async_api import (
-    BrowserContext,
-    Page,
-)
-from playwright.async_api import (
-    TimeoutError as PlaywrightTimeoutError,
-)
-from shared.logging_config import get_logger
+from playwright.async_api import BrowserContext, Page
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.execution_engine")

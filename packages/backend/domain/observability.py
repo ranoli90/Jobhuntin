@@ -12,6 +12,7 @@ import asyncio
 from typing import Any
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -44,8 +45,11 @@ def init_sentry() -> None:
             send_default_pii=False,
         )
         _sentry_initialized = True
-        logger.info("Sentry initialized (env=%s, sample_rate=%.2f)",
-                     s.sentry_environment, s.sentry_traces_sample_rate)
+        logger.info(
+            "Sentry initialized (env=%s, sample_rate=%.2f)",
+            s.sentry_environment,
+            s.sentry_traces_sample_rate,
+        )
     except ImportError:
         logger.warning("sentry_sdk not installed — Sentry disabled")
     except Exception as exc:
@@ -64,6 +68,7 @@ def capture_error(
     """
     try:
         import sentry_sdk
+
         with sentry_sdk.push_scope() as scope:
             if tenant_id:
                 scope.set_tag("tenant_id", tenant_id)
@@ -85,6 +90,7 @@ def capture_error(
 # ---------------------------------------------------------------------------
 # Alert definitions
 # ---------------------------------------------------------------------------
+
 
 class AlertResult:
     """Result of an alert check."""
@@ -130,7 +136,9 @@ async def get_success_metrics(
     }
 
 
-async def check_agent_success_rate(conn: asyncpg.Connection, threshold: float = 85.0) -> AlertResult | None:
+async def check_agent_success_rate(
+    conn: asyncpg.Connection, threshold: float = 85.0
+) -> AlertResult | None:
     """Alert if agent success rate drops below threshold (last 24h)."""
     metrics = await get_success_metrics(conn, "24 hours")
     if not metrics:
@@ -149,11 +157,16 @@ async def check_agent_success_rate(conn: asyncpg.Connection, threshold: float = 
 
 async def check_stripe_failures(conn: asyncpg.Connection) -> AlertResult | None:
     """Alert if there are recent Stripe payment failures."""
-    count = await conn.fetchval("""
+    count = (
+        await conn.fetchval(
+            """
         SELECT COUNT(*)::int FROM public.audit_log
         WHERE action LIKE 'billing.payment_failed%'
           AND created_at >= now() - interval '1 hour'
-    """) or 0
+    """
+        )
+        or 0
+    )
     if count >= 3:
         return AlertResult(
             "stripe_failures",
@@ -166,12 +179,17 @@ async def check_stripe_failures(conn: asyncpg.Connection) -> AlertResult | None:
 
 async def check_quota_exhaustion(conn: asyncpg.Connection) -> AlertResult | None:
     """Alert if many tenants are hitting quota limits."""
-    count = await conn.fetchval("""
+    count = (
+        await conn.fetchval(
+            """
         SELECT COUNT(DISTINCT tenant_id)::int
         FROM public.analytics_events
         WHERE event_type = 'quota_exceeded'
           AND created_at >= now() - interval '1 hour'
-    """) or 0
+    """
+        )
+        or 0
+    )
     if count >= 5:
         return AlertResult(
             "quota_exhaustion_spike",
@@ -184,9 +202,12 @@ async def check_quota_exhaustion(conn: asyncpg.Connection) -> AlertResult | None
 
 async def check_queue_depth(conn: asyncpg.Connection) -> AlertResult | None:
     """Alert if task queue is growing too large."""
-    count = await conn.fetchval(
-        "SELECT COUNT(*)::int FROM public.applications WHERE status = 'QUEUED'"
-    ) or 0
+    count = (
+        await conn.fetchval(
+            "SELECT COUNT(*)::int FROM public.applications WHERE status = 'QUEUED'"
+        )
+        or 0
+    )
     if count >= 100:
         return AlertResult(
             "queue_depth",
@@ -199,7 +220,8 @@ async def check_queue_depth(conn: asyncpg.Connection) -> AlertResult | None:
 
 async def check_enterprise_sla(conn: asyncpg.Connection) -> AlertResult | None:
     """Alert if enterprise tasks are waiting too long."""
-    row = await conn.fetchrow("""
+    row = await conn.fetchrow(
+        """
         SELECT
             COUNT(*)::int AS waiting,
             MAX(EXTRACT(EPOCH FROM now() - a.created_at))::int AS max_wait_secs
@@ -207,7 +229,8 @@ async def check_enterprise_sla(conn: asyncpg.Connection) -> AlertResult | None:
         JOIN public.tenant_members tm ON tm.user_id = a.user_id
         JOIN public.tenants t ON t.id = tm.tenant_id
         WHERE a.status = 'QUEUED' AND t.plan = 'ENTERPRISE'
-    """)
+    """
+    )
     if row and (row["waiting"] or 0) > 0 and (row["max_wait_secs"] or 0) > 300:
         return AlertResult(
             "enterprise_sla",

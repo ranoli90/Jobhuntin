@@ -1,4 +1,3 @@
-
 import asyncio
 import os
 import sys
@@ -7,15 +6,16 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages")))
 
 from pydantic import BaseModel
-from shared.config import get_settings
 
 from backend.llm.client import LLMClient
+from shared.config import get_settings
 
 
 class TestResponse(BaseModel):
     message: str
     score: int
     tags: list[str]
+
 
 async def main():
     settings = get_settings()
@@ -33,14 +33,12 @@ async def main():
 
     try:
         print("Sending request...")
-        response = await client.call(
-            prompt=prompt,
-            response_format=TestResponse
-        )
+        response = await client.call(prompt=prompt, response_format=TestResponse)
         print("\n✅ Success! Parsed JSON:")
         print(response.model_dump_json(indent=2))
     except Exception as e:
         print(f"\n❌ Failed: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

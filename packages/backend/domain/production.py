@@ -18,10 +18,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from fastapi import HTTPException, Request, Response
-from shared.logging_config import get_logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.production")

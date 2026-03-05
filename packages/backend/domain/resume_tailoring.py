@@ -18,10 +18,10 @@ from __future__ import annotations
 from typing import Any
 
 from pydantic import BaseModel, Field
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from backend.llm.client import LLMClient, LLMError
+from shared.config import get_settings
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.resume_tailoring")
 
@@ -170,9 +170,11 @@ Return ONLY the summary text, no additional formatting or labels."""
                 return result.strip()
             return result.get(
                 "summary",
-                profile_context.split("\n")[1]
-                if len(profile_context.split("\n")) > 1
-                else "",
+                (
+                    profile_context.split("\n")[1]
+                    if len(profile_context.split("\n")) > 1
+                    else ""
+                ),
             )
         except LLMError as e:
             logger.warning("LLM summary tailoring failed: %s", e)

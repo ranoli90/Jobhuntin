@@ -13,7 +13,6 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
-from shared.logging_config import get_logger
 
 from backend.domain.analytics_events import ALL_EVENT_TYPES
 from backend.domain.eval_queries import get_agent_performance_summary
@@ -23,6 +22,7 @@ from backend.domain.m1_metrics import get_m1_dashboard, refresh_dashboard_views
 from backend.domain.m2_metrics import get_m2_dashboard, refresh_m2_views
 from backend.domain.m3_metrics import get_m3_dashboard, refresh_m3_views
 from backend.domain.m4_metrics import get_m4_dashboard, refresh_m4_views
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.analytics")
@@ -33,23 +33,25 @@ router = APIRouter(tags=["analytics"])
 # Dependency stubs — injected by api/main.py at mount time
 # ---------------------------------------------------------------------------
 
+
 def _get_pool() -> asyncpg.Pool:
     return (_ for _ in ()).throw(  # type: ignore[return-value]
-    RuntimeError("analytics._get_pool not wired")
-)
+        RuntimeError("analytics._get_pool not wired")
+    )
+
+
 def _get_tenant_ctx() -> Any:
-    return (_ for _ in ()).throw(
-    RuntimeError("analytics._get_tenant_ctx not wired")
-)
+    return (_ for _ in ()).throw(RuntimeError("analytics._get_tenant_ctx not wired"))
+
+
 def _get_admin_user_id() -> Any:
-    return (_ for _ in ()).throw(
-    RuntimeError("analytics._get_admin_user_id not wired")
-)
+    return (_ for _ in ()).throw(RuntimeError("analytics._get_admin_user_id not wired"))
 
 
 # ===================================================================
 # Part 1: Event Sink — POST /analytics/events
 # ===================================================================
+
 
 class AnalyticsEventIn(BaseModel):
     """Incoming analytics event."""
@@ -118,6 +120,7 @@ async def ingest_events(
 # Part 2: User Feedback — POST /applications/{id}/feedback
 # ===================================================================
 
+
 class FeedbackRequest(BaseModel):
     label: str = Field(..., pattern="^(SUCCESS|PARTIAL|FAILURE)$")
     comment: str | None = None
@@ -139,6 +142,7 @@ async def submit_feedback(
 ) -> FeedbackResponse:
     """Record user feedback on an application's agent performance."""
     from shared.validators import validate_uuid
+
     validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         # Verify the application belongs to this user/tenant
@@ -175,6 +179,7 @@ async def submit_feedback(
 # Part 2: Agent Performance — GET /admin/agent-performance
 # ===================================================================
 
+
 @router.get("/admin/agent-performance")
 async def agent_performance(
     tenant_id: str | None = Query(None),
@@ -199,6 +204,7 @@ async def agent_performance(
 # Part 3: Experiment Readout — GET /admin/experiments/{key}/results
 # ===================================================================
 
+
 @router.get("/admin/experiments/{experiment_key}/results")
 async def experiment_results(
     experiment_key: str = Path(...),
@@ -217,6 +223,7 @@ async def experiment_results(
 # Part 4: Debug Bundle — GET /admin/debug-bundle/{application_id}
 # ===================================================================
 
+
 @router.get("/admin/debug-bundle/{application_id}")
 async def debug_bundle(
     application_id: str = Path(...),
@@ -230,8 +237,10 @@ async def debug_bundle(
     PII is redacted via masking.py.
     """
     from shared.validators import validate_uuid
+
     validate_uuid(application_id, "application_id")
     from backend.domain.debug import build_debug_bundle
+
     async with db.acquire() as conn:
         bundle = await build_debug_bundle(conn, application_id)
         if bundle is None:
@@ -242,6 +251,7 @@ async def debug_bundle(
 # ===================================================================
 # Part 5: M1 Dashboard — GET /admin/m1-dashboard
 # ===================================================================
+
 
 @router.get("/admin/m1-dashboard")
 async def m1_dashboard(
@@ -268,6 +278,7 @@ async def m1_dashboard_refresh(
 # Part 6: M2 Dashboard — GET /admin/m2-dashboard
 # ===================================================================
 
+
 @router.get("/admin/m2-dashboard")
 async def m2_dashboard(
     _admin: str = Depends(_get_admin_user_id),
@@ -292,6 +303,7 @@ async def m2_dashboard_refresh(
 # ===================================================================
 # Part 7: M3 Dashboard — GET /admin/m3-dashboard
 # ===================================================================
+
 
 @router.get("/admin/m3-dashboard")
 async def m3_dashboard(
@@ -318,6 +330,7 @@ async def m3_dashboard_refresh(
 # Part 8: M4 Dashboard — GET /admin/m4-dashboard
 # ===================================================================
 
+
 @router.get("/admin/m4-dashboard")
 async def m4_dashboard(
     _admin: str = Depends(_get_admin_user_id),
@@ -343,6 +356,7 @@ async def m4_dashboard_refresh(
 # Part 9: Automated Alerts — GET /admin/alerts
 # ===================================================================
 
+
 @router.get("/admin/alerts")
 async def get_alerts(
     _admin: str = Depends(_get_admin_user_id),
@@ -350,6 +364,7 @@ async def get_alerts(
 ) -> dict[str, Any]:
     """Run all automated alert checks and return triggered alerts."""
     from backend.domain.observability import run_all_alerts
+
     async with db.acquire() as conn:
         alerts = await run_all_alerts(conn)
     return {"alerts": alerts, "total": len(alerts)}
@@ -359,6 +374,7 @@ async def get_alerts(
 # Part 10: M5 Dashboard + Investor Metrics + Alerting v2
 # ===================================================================
 
+
 @router.get("/admin/m5-dashboard")
 async def m5_dashboard(
     _admin: str = Depends(_get_admin_user_id),
@@ -366,6 +382,7 @@ async def m5_dashboard(
 ) -> dict[str, Any]:
     """Full M5 revenue intelligence dashboard (P&L, LTV:CAC, cohort retention, marketplace)."""
     from backend.domain.m5_metrics import get_m5_dashboard
+
     async with db.acquire() as conn:
         return await get_m5_dashboard(conn)
 
@@ -377,6 +394,7 @@ async def m5_dashboard_refresh(
 ) -> dict[str, str]:
     """Refresh all M1–M5 materialized views."""
     from backend.domain.m5_metrics import refresh_m5_views
+
     async with db.acquire() as conn:
         await refresh_m5_views(conn)
     return {"status": "refreshed"}
@@ -391,6 +409,7 @@ async def investor_metrics(
     from datetime import datetime
 
     from backend.domain.m5_metrics import get_investor_metrics
+
     async with db.acquire() as conn:
         data = await get_investor_metrics(conn)
         # Fill marketplace blueprint count
@@ -409,11 +428,13 @@ async def investor_metrics_csv(
 ) -> Any:
     """Series A metrics as CSV for spreadsheet/pitch deck import."""
     from backend.domain.m5_metrics import get_investor_metrics
+
     async with db.acquire() as conn:
         data = await get_investor_metrics(conn)
 
     import csv
     import io
+
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(["Metric", "Value"])
@@ -431,13 +452,18 @@ async def investor_metrics_csv(
     writer.writerow(["LTV:CAC Ratio", data["unit_economics"]["ltv_cac_ratio"]])
     writer.writerow(["Monthly Churn (%)", data["unit_economics"]["monthly_churn_pct"]])
     writer.writerow(["Payback Months", data["unit_economics"]["payback_months"]])
-    writer.writerow(["Agent Success Rate (%)", data["product"]["agent_success_rate_pct"]])
+    writer.writerow(
+        ["Agent Success Rate (%)", data["product"]["agent_success_rate_pct"]]
+    )
 
     from fastapi.responses import Response as FastAPIResponse
+
     return FastAPIResponse(
         content=buf.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=sorce_series_a_metrics.csv"},
+        headers={
+            "Content-Disposition": "attachment; filename=sorce_series_a_metrics.csv"
+        },
     )
 
 
@@ -448,6 +474,7 @@ async def run_alerting_cycle_endpoint(
 ) -> dict[str, Any]:
     """Run full alerting cycle: alerts + auto-rollback + experiment graduation + PagerDuty/Slack dispatch."""
     from backend.domain.alerting_v2 import run_alerting_cycle
+
     async with db.acquire() as conn:
         return await run_alerting_cycle(conn)
 
@@ -456,6 +483,7 @@ async def run_alerting_cycle_endpoint(
 # Part 11: M6 Platform Dashboard + Investor Data Room + Renewals
 # ===================================================================
 
+
 @router.get("/admin/m6-platform")
 async def m6_platform_dashboard(
     _admin: str = Depends(_get_admin_user_id),
@@ -463,6 +491,7 @@ async def m6_platform_dashboard(
 ) -> dict[str, Any]:
     """Full M6 platform dashboard: ARR by vertical, API usage, integrators, staffing, university, marketplace."""
     from backend.domain.m6_metrics import get_m6_dashboard
+
     async with db.acquire() as conn:
         return await get_m6_dashboard(conn)
 
@@ -474,6 +503,7 @@ async def m6_platform_refresh(
 ) -> dict[str, str]:
     """Refresh all M1–M6 materialized views."""
     from backend.domain.m6_metrics import refresh_m6_views
+
     async with db.acquire() as conn:
         await refresh_m6_views(conn)
     return {"status": "refreshed"}
@@ -486,6 +516,7 @@ async def investor_full_metrics(
 ) -> dict[str, Any]:
     """Complete Series A data room — comprehensive diligence package (JSON)."""
     from backend.domain.m6_metrics import get_full_investor_metrics
+
     async with db.acquire() as conn:
         return await get_full_investor_metrics(conn)
 
@@ -497,11 +528,13 @@ async def investor_full_metrics_csv(
 ) -> Any:
     """Series A data room as CSV for spreadsheet import."""
     from backend.domain.m6_metrics import get_full_investor_metrics
+
     async with db.acquire() as conn:
         data = await get_full_investor_metrics(conn)
 
     import csv
     import io
+
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["Section", "Metric", "Value"])
@@ -521,13 +554,22 @@ async def investor_full_metrics_csv(
     for k, v in plat.items():
         w.writerow(["Platform", k, v])
     for vert in data.get("verticals", []):
-        w.writerow(["Vertical", vert.get("vertical", ""), f"MRR={vert.get('mrr', 0)} ARR={vert.get('arr', 0)} tenants={vert.get('tenant_count', 0)}"])
+        w.writerow(
+            [
+                "Vertical",
+                vert.get("vertical", ""),
+                f"MRR={vert.get('mrr', 0)} ARR={vert.get('arr', 0)} tenants={vert.get('tenant_count', 0)}",
+            ]
+        )
 
     from fastapi.responses import Response as FastAPIResponse
+
     return FastAPIResponse(
         content=buf.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=sorce_series_a_data_room.csv"},
+        headers={
+            "Content-Disposition": "attachment; filename=sorce_series_a_data_room.csv"
+        },
     )
 
 
@@ -538,5 +580,6 @@ async def run_renewal_cycle_endpoint(
 ) -> dict[str, Any]:
     """Run contract renewal cycle: scan upcoming renewals + send 90/60/30-day notifications."""
     from backend.domain.renewals import run_renewal_cycle
+
     async with db.acquire() as conn:
         return await run_renewal_cycle(conn)

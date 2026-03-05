@@ -11,10 +11,10 @@ from dataclasses import dataclass
 from typing import Any
 
 import asyncpg
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from backend.domain.jobspy_client import JobSpyClient, JobSpyError
+from shared.config import get_settings
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.job_sync")

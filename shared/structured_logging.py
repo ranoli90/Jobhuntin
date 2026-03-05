@@ -14,7 +14,7 @@ import threading
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import timezone, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from shared.logging_config import get_logger
@@ -173,9 +173,11 @@ class StructuredMetrics:
             "requests_error": metrics.requests_error,
             "success_rate_pct": round(success_rate, 2),
             "latency_avg_ms": round(avg_latency, 2),
-            "latency_min_ms": round(metrics.latency.min_ms, 2)
-            if metrics.latency.min_ms != float("inf")
-            else 0,
+            "latency_min_ms": (
+                round(metrics.latency.min_ms, 2)
+                if metrics.latency.min_ms != float("inf")
+                else 0
+            ),
             "latency_max_ms": round(metrics.latency.max_ms, 2),
             "latency_p50_ms": round(percentiles["p50"], 2),
             "latency_p95_ms": round(percentiles["p95"], 2),
@@ -243,9 +245,11 @@ class StructuredMetrics:
             "total_requests": total_requests,
             "total_success": total_success,
             "total_errors": total_errors,
-            "overall_success_rate_pct": round(total_success / total_requests * 100, 2)
-            if total_requests > 0
-            else 0.0,
+            "overall_success_rate_pct": (
+                round(total_success / total_requests * 100, 2)
+                if total_requests > 0
+                else 0.0
+            ),
             "overall_latency_p50_ms": round(percentiles["p50"], 2),
             "overall_latency_p95_ms": round(percentiles["p95"], 2),
             "overall_latency_p99_ms": round(percentiles["p99"], 2),
@@ -267,9 +271,7 @@ class StructuredMetrics:
             lines.append("")
 
             for endpoint, metrics in self._endpoints.items():
-                (
-                    endpoint.replace("/", "_").replace("-", "_").strip("_") or "root"
-                )
+                (endpoint.replace("/", "_").replace("-", "_").strip("_") or "root")
 
                 lines.append(f"# Endpoint: {endpoint}")
 

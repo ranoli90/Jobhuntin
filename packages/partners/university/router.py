@@ -13,18 +13,21 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
-from shared.logging_config import get_logger
 
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.partners.university")
 
 router = APIRouter(prefix="/partners/university", tags=["university"])
 
+
 def _get_pool() -> asyncpg.Pool:
     return (_ for _ in ()).throw(NotImplementedError)
+
+
 def _get_tenant_ctx() -> TenantContext:
     return (_ for _ in ()).throw(NotImplementedError)
 
@@ -32,6 +35,7 @@ def _get_tenant_ctx() -> TenantContext:
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
+
 
 class CreatePartnerRequest(BaseModel):
     name: str
@@ -44,6 +48,7 @@ class CreatePartnerRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # Partner CRUD
 # ---------------------------------------------------------------------------
+
 
 @router.post("/partners")
 async def create_partner(
@@ -61,8 +66,12 @@ async def create_partner(
                    (name, domain, admin_tenant_id, bundle_id, branding, revenue_share_pct)
                VALUES ($1, $2, $3, $4, $5::jsonb, $6)
                RETURNING *""",
-            body.name, body.domain, ctx.tenant_id,
-            body.bundle_id, json.dumps(body.branding), body.revenue_share_pct,
+            body.name,
+            body.domain,
+            ctx.tenant_id,
+            body.bundle_id,
+            json.dumps(body.branding),
+            body.revenue_share_pct,
         )
     incr("partners.university.created")
     return dict(row)
@@ -76,7 +85,9 @@ async def list_partners(
     """List university partners."""
     async with db.acquire() as conn:
         if ctx.is_admin:
-            rows = await conn.fetch("SELECT * FROM public.university_partners ORDER BY created_at DESC")
+            rows = await conn.fetch(
+                "SELECT * FROM public.university_partners ORDER BY created_at DESC"
+            )
         else:
             rows = await conn.fetch(
                 "SELECT * FROM public.university_partners WHERE admin_tenant_id = $1 ORDER BY created_at DESC",
@@ -92,7 +103,9 @@ async def get_partner(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     async with db.acquire() as conn:
-        row = await conn.fetchrow("SELECT * FROM public.university_partners WHERE id = $1", partner_id)
+        row = await conn.fetchrow(
+            "SELECT * FROM public.university_partners WHERE id = $1", partner_id
+        )
     if not row:
         raise HTTPException(status_code=404, detail="Partner not found")
     return dict(row)
@@ -101,6 +114,7 @@ async def get_partner(
 # ---------------------------------------------------------------------------
 # Student CSV Import
 # ---------------------------------------------------------------------------
+
 
 @router.post("/import-students")
 async def import_students(
@@ -126,7 +140,8 @@ async def import_students(
     async with db.acquire() as conn:
         # Verify partner
         partner = await conn.fetchrow(
-            "SELECT * FROM public.university_partners WHERE id = $1", partner_id,
+            "SELECT * FROM public.university_partners WHERE id = $1",
+            partner_id,
         )
         if not partner:
             raise HTTPException(status_code=404, detail="Partner not found")
@@ -136,7 +151,10 @@ async def import_students(
             """INSERT INTO public.university_student_imports
                    (partner_id, imported_by, filename, total_rows, status)
                VALUES ($1, $2, $3, $4, 'processing') RETURNING id""",
-            partner_id, ctx.user_id, file.filename or "import.csv", total,
+            partner_id,
+            ctx.user_id,
+            file.filename or "import.csv",
+            total,
         )
 
         for i, row in enumerate(rows_list):
@@ -152,7 +170,8 @@ async def import_students(
             try:
                 # Check if user already exists
                 existing = await conn.fetchval(
-                    "SELECT id FROM auth.users WHERE email = $1", email,
+                    "SELECT id FROM auth.users WHERE email = $1",
+                    email,
                 )
                 if existing:
                     skipped += 1
@@ -173,12 +192,14 @@ async def import_students(
                        VALUES ('student_imported', $1, 'university',
                                $2::jsonb)""",
                     tenant_id,
-                    json.dumps({
-                        "partner_id": partner_id,
-                        "email": email,
-                        "major": row.get("major", ""),
-                        "graduation_year": row.get("graduation_year", ""),
-                    }),
+                    json.dumps(
+                        {
+                            "partner_id": partner_id,
+                            "email": email,
+                            "major": row.get("major", ""),
+                            "graduation_year": row.get("graduation_year", ""),
+                        }
+                    ),
                 )
 
                 created += 1
@@ -193,21 +214,34 @@ async def import_students(
                SET created_count = $2, skipped_count = $3, error_count = $4,
                    status = $5, errors = $6::jsonb
                WHERE id = $1""",
-            import_id, created, skipped, len(errors_list),
-            status, json.dumps(errors_list),
+            import_id,
+            created,
+            skipped,
+            len(errors_list),
+            status,
+            json.dumps(errors_list),
         )
 
         # Update partner stats
         await conn.execute(
             "UPDATE public.university_partners SET total_students = total_students + $2 WHERE id = $1",
-            partner_id, created,
+            partner_id,
+            created,
         )
 
         await record_audit_event(
-            conn, ctx.tenant_id, ctx.user_id,
+            conn,
+            ctx.tenant_id,
+            ctx.user_id,
             action="university.students_imported",
-            resource="university_partner", resource_id=partner_id,
-            details={"total": total, "created": created, "skipped": skipped, "errors": len(errors_list)},
+            resource="university_partner",
+            resource_id=partner_id,
+            details={
+                "total": total,
+                "created": created,
+                "skipped": skipped,
+                "errors": len(errors_list),
+            },
         )
 
     incr("partners.university.students_imported", tags={"count": str(created)})
@@ -225,6 +259,7 @@ async def import_students(
 # ROI Report
 # ---------------------------------------------------------------------------
 
+
 @router.get("/roi-report")
 async def roi_report(
     partner_id: str,
@@ -236,13 +271,15 @@ async def roi_report(
     """
     async with db.acquire() as conn:
         partner = await conn.fetchrow(
-            "SELECT * FROM public.university_partners WHERE id = $1", partner_id,
+            "SELECT * FROM public.university_partners WHERE id = $1",
+            partner_id,
         )
         if not partner:
             raise HTTPException(status_code=404, detail="Partner not found")
 
         # Student-created applications (via telemetry link)
-        stats = await conn.fetchrow("""
+        stats = await conn.fetchrow(
+            """
             SELECT
                 COUNT(DISTINCT pt.tenant_id)::int AS active_students,
                 (SELECT COUNT(*)::int FROM public.applications a
@@ -271,12 +308,16 @@ async def roi_report(
             FROM public.platform_telemetry pt
             WHERE pt.event_type = 'student_imported'
               AND pt.metadata->>'partner_id' = $1
-        """, partner_id)
+        """,
+            partner_id,
+        )
 
         # Revenue share calculation
         pro_upgrades = stats["pro_upgrades"] or 0 if stats else 0
         monthly_revenue = pro_upgrades * 29  # $29/mo PRO
-        partner_share = int(monthly_revenue * (partner["revenue_share_pct"] or 50) / 100)
+        partner_share = int(
+            monthly_revenue * (partner["revenue_share_pct"] or 50) / 100
+        )
 
     return {
         "partner": {
@@ -288,9 +329,16 @@ async def roi_report(
             "active_students": stats["active_students"] if stats else 0,
             "total_applications": stats["total_applications"] if stats else 0,
             "successful_applications": stats["successful_applications"] if stats else 0,
-            "success_rate_pct": round(
-                (stats["successful_applications"] or 0) / max(stats["total_applications"] or 1, 1) * 100, 1
-            ) if stats else 0,
+            "success_rate_pct": (
+                round(
+                    (stats["successful_applications"] or 0)
+                    / max(stats["total_applications"] or 1, 1)
+                    * 100,
+                    1,
+                )
+                if stats
+                else 0
+            ),
             "pro_upgrades": pro_upgrades,
         },
         "revenue": {

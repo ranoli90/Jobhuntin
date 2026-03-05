@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 
 import asyncpg
 from pydantic import BaseModel, Field
-from shared.logging_config import get_logger
 
 from backend.domain.embeddings import (
     EmbeddingClient,
@@ -31,6 +30,7 @@ from backend.domain.embeddings import (
     job_to_searchable_text,
     profile_to_searchable_text,
 )
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.matching")
 

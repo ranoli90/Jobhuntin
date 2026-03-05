@@ -19,25 +19,34 @@ async def get_pnl(conn: asyncpg.Connection) -> list[dict[str, Any]]:
 
 async def get_marketplace_revenue(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Get revenue from marketplace blueprints."""
-    rows = await conn.fetch("SELECT * FROM public.mv_marketplace_revenue ORDER BY month")
+    rows = await conn.fetch(
+        "SELECT * FROM public.mv_marketplace_revenue ORDER BY month"
+    )
     return [dict(r) for r in rows]
 
 
 async def get_cohort_retention(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Get cohort retention data."""
-    rows = await conn.fetch("SELECT * FROM public.mv_cohort_retention ORDER BY cohort_month, month_number")
+    rows = await conn.fetch(
+        "SELECT * FROM public.mv_cohort_retention ORDER BY cohort_month, month_number"
+    )
     return [dict(r) for r in rows]
 
 
-async def get_agent_performance_weekly(conn: asyncpg.Connection) -> list[dict[str, Any]]:
+async def get_agent_performance_weekly(
+    conn: asyncpg.Connection,
+) -> list[dict[str, Any]]:
     """Get weekly agent performance metrics."""
-    rows = await conn.fetch("SELECT * FROM public.mv_agent_performance_m5 ORDER BY week DESC, blueprint_key LIMIT 100")
+    rows = await conn.fetch(
+        "SELECT * FROM public.mv_agent_performance_m5 ORDER BY week DESC, blueprint_key LIMIT 100"
+    )
     return [dict(r) for r in rows]
 
 
 async def get_subscriber_counts(conn: asyncpg.Connection) -> dict[str, int]:
     """Get count of subscribers by plan."""
-    row = await conn.fetchrow("""
+    row = await conn.fetchrow(
+        """
         SELECT
             COUNT(*) FILTER (WHERE plan != 'FREE')::int AS paying,
             COUNT(*) FILTER (WHERE plan = 'PRO')::int AS pro,
@@ -45,33 +54,50 @@ async def get_subscriber_counts(conn: asyncpg.Connection) -> dict[str, int]:
             COUNT(*) FILTER (WHERE plan = 'ENTERPRISE')::int AS enterprise,
             COUNT(*)::int AS total
         FROM public.tenants
-    """)
+    """
+    )
     return dict(row)
 
 
 async def get_churn_rate(conn: asyncpg.Connection, days: int = 30) -> dict[str, Any]:
     """Monthly churn rate: tenants that downgraded to FREE in last N days / total paying."""
-    churned = await conn.fetchval("""
+    churned = (
+        await conn.fetchval(
+            """
         SELECT COUNT(*)::int FROM public.audit_log
         WHERE action = 'billing.changed' AND details->>'new_plan' = 'FREE'
           AND created_at >= now() - ($1 || ' days')::interval
-    """, str(days)) or 0
+    """,
+            str(days),
+        )
+        or 0
+    )
 
-    paying = await conn.fetchval(
-        "SELECT COUNT(*)::int FROM public.tenants WHERE plan != 'FREE'"
-    ) or 1
+    paying = (
+        await conn.fetchval(
+            "SELECT COUNT(*)::int FROM public.tenants WHERE plan != 'FREE'"
+        )
+        or 1
+    )
 
     rate = round(churned / max(paying, 1) * 100, 2)
-    return {"churned": churned, "paying": paying, "churn_rate_pct": rate, "period_days": days}
+    return {
+        "churned": churned,
+        "paying": paying,
+        "churn_rate_pct": rate,
+        "period_days": days,
+    }
 
 
 async def get_ltv_cac_detailed(conn: asyncpg.Connection) -> dict[str, Any]:
     """Detailed LTV:CAC with per-plan breakdown."""
     from backend.domain.m4_metrics import get_ltv_cac_estimate
+
     base = await get_ltv_cac_estimate(conn)
 
     # Per-plan ARPU
-    plan_arpu = await conn.fetch("""
+    plan_arpu = await conn.fetch(
+        """
         SELECT plan::text,
                COUNT(*)::int AS count,
                AVG(CASE
@@ -82,7 +108,8 @@ async def get_ltv_cac_detailed(conn: asyncpg.Connection) -> dict[str, Any]:
                END)::numeric AS arpu
         FROM public.tenants WHERE plan != 'FREE'
         GROUP BY plan
-    """)
+    """
+    )
 
     base["per_plan"] = [dict(r) for r in plan_arpu]
     return base
@@ -97,7 +124,9 @@ async def get_gross_margin(conn: asyncpg.Connection) -> dict[str, Any]:
     latest = pnl[-1]
     total_mrr = latest.get("total_mrr", 0)
     cogs = latest.get("estimated_cogs", 0)
-    margin = round((total_mrr - cogs) / max(total_mrr, 1) * 100, 1) if total_mrr > 0 else 0
+    margin = (
+        round((total_mrr - cogs) / max(total_mrr, 1) * 100, 1) if total_mrr > 0 else 0
+    )
 
     return {
         "month": str(latest.get("month", "")),
@@ -139,7 +168,9 @@ async def get_m5_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
         "churn_target_pct": 4.0,
         "churn_current_pct": churn.get("churn_rate_pct", 0),
         "agent_success_target": 90,
-        "agent_success_current": agent_perf[0].get("success_rate", 0) if agent_perf else 0,
+        "agent_success_current": (
+            agent_perf[0].get("success_rate", 0) if agent_perf else 0
+        ),
     }
 
     return {
@@ -205,13 +236,19 @@ async def get_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
             "cac": ltv_cac.get("estimated_cac", 0),
             "ltv_cac_ratio": ltv_cac.get("ltv_cac_ratio", 0),
             "monthly_churn_pct": churn.get("churn_rate_pct", 0),
-            "payback_months": round(ltv_cac.get("estimated_cac", 0) / max(ltv_cac.get("arpu", 1), 1), 1),
+            "payback_months": round(
+                ltv_cac.get("estimated_cac", 0) / max(ltv_cac.get("arpu", 1), 1), 1
+            ),
         },
         "product": {
-            "agent_success_rate_pct": agent_perf[0].get("success_rate", 0) if agent_perf else 0,
+            "agent_success_rate_pct": (
+                agent_perf[0].get("success_rate", 0) if agent_perf else 0
+            ),
             "total_applications_processed": sum(r.get("total", 0) for r in agent_perf),
             "marketplace_blueprints": None,  # filled by endpoint
-            "marketplace_platform_revenue": sum(r.get("platform_fee_cents", 0) for r in marketplace_rev),
+            "marketplace_platform_revenue": sum(
+                r.get("platform_fee_cents", 0) for r in marketplace_rev
+            ),
         },
         "mrr_history": [
             {"month": str(p.get("month", "")), "mrr": p.get("total_mrr", 0)}
@@ -223,5 +260,6 @@ async def get_investor_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
 async def refresh_m5_views(conn: asyncpg.Connection) -> None:
     """Refresh all M1–M5 materialized views."""
     from backend.domain.m4_metrics import refresh_m4_views
+
     await refresh_m4_views(conn)
     await conn.execute("SELECT public.refresh_m5_views()")

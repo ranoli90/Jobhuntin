@@ -7,6 +7,7 @@ the tenant's plan. Enterprise tasks are processed first.
 from __future__ import annotations
 
 import asyncpg
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.priority")
@@ -42,7 +43,8 @@ async def set_application_priority(
     score = compute_priority_score(plan, is_bulk)
     await conn.execute(
         "UPDATE public.applications SET priority_score = $2 WHERE id = $1",
-        application_id, score,
+        application_id,
+        score,
     )
     return score
 
@@ -59,8 +61,11 @@ async def bulk_set_priority(
         UPDATE public.applications SET priority_score = $2
         WHERE tenant_id = $1 AND status = 'QUEUED'
         """,
-        tenant_id, score,
+        tenant_id,
+        score,
     )
     count = int(result.split()[-1]) if result else 0
-    logger.info("Set priority %d for %d queued apps (tenant=%s)", score, count, tenant_id)
+    logger.info(
+        "Set priority %d for %d queued apps (tenant=%s)", score, count, tenant_id
+    )
     return count

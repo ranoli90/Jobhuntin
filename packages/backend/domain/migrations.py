@@ -1,14 +1,17 @@
 """Database migration utilities."""
+
 from __future__ import annotations
 
 import pathlib
 import re
 
 import asyncpg
+
 from shared.logging_config import get_logger
 from shared.repo_root import find_repo_root
 
 logger = get_logger("sorce.migrations")
+
 
 async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> None:
     """Run auth shim + schema.sql + all numbered migrations."""
@@ -54,7 +57,8 @@ async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> N
 
     # 1. Auth compatibility shim
     await conn.execute("CREATE SCHEMA IF NOT EXISTS auth")
-    await conn.execute("""
+    await conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS auth.users (
             id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
             email text, encrypted_password text,
@@ -63,7 +67,8 @@ async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> N
             updated_at timestamptz NOT NULL DEFAULT now(),
             raw_user_meta_data jsonb DEFAULT '{}'::jsonb
         )
-    """)
+    """
+    )
     logger.info("  auth shim created")
 
     repo_root = find_repo_root(base_path)

@@ -15,7 +15,6 @@ from typing import Any
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
-
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.jobspy")
@@ -228,8 +227,8 @@ class JobSpyClient:
                         raw_data[k] = cleaned
                     else:
                         raw_data[k] = str(cleaned)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to parse job data field: {e}")
 
         return {
             "external_id": external_id,

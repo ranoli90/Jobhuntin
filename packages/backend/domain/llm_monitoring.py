@@ -13,7 +13,7 @@ from __future__ import annotations
 import threading
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from shared.logging_config import get_logger
@@ -102,12 +102,12 @@ class ModelMetrics:
             "p99_latency_seconds": round(self.percentile_latency(0.99), 3),
             "estimated_cost_usd": round(self.estimated_cost_usd, 4),
             "errors": dict(self.errors),
-            "last_success": self.last_success.isoformat()
-            if self.last_success
-            else None,
-            "last_failure": self.last_failure.isoformat()
-            if self.last_failure
-            else None,
+            "last_success": (
+                self.last_success.isoformat() if self.last_success else None
+            ),
+            "last_failure": (
+                self.last_failure.isoformat() if self.last_failure else None
+            ),
         }
 
 
@@ -263,15 +263,19 @@ class LLMModelMonitor:
             elif metrics.last_failure and (
                 not metrics.last_success or metrics.last_failure > metrics.last_success
             ):
-                age_seconds = (datetime.now(timezone.utc) - metrics.last_failure).total_seconds()
+                age_seconds = (
+                    datetime.now(timezone.utc) - metrics.last_failure
+                ).total_seconds()
                 if age_seconds < 300:  # 5 minutes
                     unhealthy_models.append(
                         {
                             "model": model,
                             "reason": "recent_failure",
-                            "last_error": list(metrics.errors.keys())[-1]
-                            if metrics.errors
-                            else "unknown",
+                            "last_error": (
+                                list(metrics.errors.keys())[-1]
+                                if metrics.errors
+                                else "unknown"
+                            ),
                         }
                     )
 

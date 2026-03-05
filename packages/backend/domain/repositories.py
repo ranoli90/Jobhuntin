@@ -24,6 +24,7 @@ from backend.domain.models import (
 # Transaction helper
 # ---------------------------------------------------------------------------
 
+
 @asynccontextmanager
 async def db_transaction(
     pool: asyncpg.Pool,
@@ -36,6 +37,7 @@ async def db_transaction(
 # ---------------------------------------------------------------------------
 # Event helper (shared by API and worker)
 # ---------------------------------------------------------------------------
+
 
 async def record_event(
     conn: asyncpg.Connection,
@@ -116,9 +118,7 @@ class ApplicationRepo:
     """CRUD and state-machine operations for applications."""
 
     @staticmethod
-    async def claim_next(
-        pool: asyncpg.Pool, max_attempts: int
-    ) -> dict | None:
+    async def claim_next(pool: asyncpg.Pool, max_attempts: int) -> dict | None:
         """Atomically claim the next QUEUED or resumable task (any tenant)."""
         async with db_transaction(pool) as conn:
             row = await conn.fetchrow(CLAIM_QUEUED_SQL, max_attempts)
@@ -128,13 +128,13 @@ class ApplicationRepo:
                 return None
             task = dict(row)
             await record_event(
-                conn, str(task["id"]), "CLAIMED",
+                conn,
+                str(task["id"]),
+                "CLAIMED",
                 {"attempt_count": task["attempt_count"]},
                 tenant_id=str(task["tenant_id"]) if task.get("tenant_id") else None,
             )
             return task
-
-
 
     @staticmethod
     async def update_status(
@@ -156,7 +156,8 @@ class ApplicationRepo:
                 WHERE  id = $1
                 RETURNING *
                 """,
-                application_id, status,
+                application_id,
+                status,
             )
         elif status == "FAILED":
             row = await conn.fetchrow(
@@ -168,7 +169,9 @@ class ApplicationRepo:
                 WHERE  id = $1
                 RETURNING *
                 """,
-                application_id, status, error_message,
+                application_id,
+                status,
+                error_message,
             )
         else:
             row = await conn.fetchrow(
@@ -180,14 +183,13 @@ class ApplicationRepo:
                 WHERE  id = $1
                 RETURNING *
                 """,
-                application_id, status,
+                application_id,
+                status,
             )
         return dict(row) if row else None
 
     @staticmethod
-    async def get_by_id(
-        conn: asyncpg.Connection, application_id: str
-    ) -> dict | None:
+    async def get_by_id(conn: asyncpg.Connection, application_id: str) -> dict | None:
         row = await conn.fetchrow(
             "SELECT * FROM public.applications WHERE id = $1",
             application_id,
@@ -201,25 +203,31 @@ class ApplicationRepo:
         """Fetch application scoped to a tenant."""
         row = await conn.fetchrow(
             "SELECT * FROM public.applications WHERE id = $1 AND tenant_id = $2",
-            application_id, tenant_id,
+            application_id,
+            tenant_id,
         )
         return dict(row) if row else None
 
     @staticmethod
     async def get_by_id_and_user(
-        conn: asyncpg.Connection, application_id: str, user_id: str,
+        conn: asyncpg.Connection,
+        application_id: str,
+        user_id: str,
         tenant_id: str | None = None,
     ) -> dict | None:
         """Fetch application scoped to a user (and optionally tenant)."""
         if tenant_id:
             row = await conn.fetchrow(
                 "SELECT * FROM public.applications WHERE id = $1 AND user_id = $2 AND tenant_id = $3",
-                application_id, user_id, tenant_id,
+                application_id,
+                user_id,
+                tenant_id,
             )
         else:
             row = await conn.fetchrow(
                 "SELECT * FROM public.applications WHERE id = $1 AND user_id = $2",
-                application_id, user_id,
+                application_id,
+                user_id,
             )
         return dict(row) if row else None
 
@@ -241,7 +249,10 @@ class ApplicationRepo:
                 ORDER  BY created_at DESC
                 LIMIT  $3 OFFSET $4
                 """,
-                tenant_id, status, limit, offset,
+                tenant_id,
+                status,
+                limit,
+                offset,
             )
         else:
             rows = await conn.fetch(
@@ -251,20 +262,24 @@ class ApplicationRepo:
                 ORDER  BY created_at DESC
                 LIMIT  $2 OFFSET $3
                 """,
-                tenant_id, limit, offset,
+                tenant_id,
+                limit,
+                offset,
             )
         return [dict(r) for r in rows]
 
     @staticmethod
     async def get_detail(
-        conn: asyncpg.Connection, application_id: str,
+        conn: asyncpg.Connection,
+        application_id: str,
         tenant_id: str | None = None,
     ) -> dict | None:
         """Fetch application + inputs + last 10 events."""
         if tenant_id:
             app_row = await conn.fetchrow(
                 "SELECT * FROM public.applications WHERE id = $1 AND tenant_id = $2",
-                application_id, tenant_id,
+                application_id,
+                tenant_id,
             )
         else:
             app_row = await conn.fetchrow(
@@ -307,13 +322,12 @@ class ApplicationRepo:
 # ProfileRepo
 # ---------------------------------------------------------------------------
 
+
 class ProfileRepo:
     """CRUD for user profiles."""
 
     @staticmethod
-    async def get_profile_data(
-        conn: asyncpg.Connection, user_id: str
-    ) -> dict | None:
+    async def get_profile_data(conn: asyncpg.Connection, user_id: str) -> dict | None:
         """Return raw profile_data dict, or None."""
         row = await conn.fetchrow(
             "SELECT profile_data FROM public.profiles WHERE user_id = $1",
@@ -355,14 +369,13 @@ class ProfileRepo:
 # JobRepo
 # ---------------------------------------------------------------------------
 
+
 class JobRepo:
     """Read operations for jobs."""
 
     @staticmethod
     async def get_by_id(conn: asyncpg.Connection, job_id: str) -> dict | None:
-        row = await conn.fetchrow(
-            "SELECT * FROM public.jobs WHERE id = $1", job_id
-        )
+        row = await conn.fetchrow("SELECT * FROM public.jobs WHERE id = $1", job_id)
         return dict(row) if row else None
 
 
@@ -370,13 +383,12 @@ class JobRepo:
 # InputRepo
 # ---------------------------------------------------------------------------
 
+
 class InputRepo:
     """Operations on application_inputs."""
 
     @staticmethod
-    async def get_answered(
-        conn: asyncpg.Connection, application_id: str
-    ) -> list[dict]:
+    async def get_answered(conn: asyncpg.Connection, application_id: str) -> list[dict]:
         rows = await conn.fetch(
             """
             SELECT selector, question, answer
@@ -427,14 +439,16 @@ class InputRepo:
                     "options": ff.get("options"),
                     "step_index": ff.get("step_index", 0),
                 }
-            rows.append((
-                application_id,
-                sel,
-                u["question"],
-                ff.get("type", "text") if ff else "text",
-                json.dumps(meta),
-                tenant_id,
-            ))
+            rows.append(
+                (
+                    application_id,
+                    sel,
+                    u["question"],
+                    ff.get("type", "text") if ff else "text",
+                    json.dumps(meta),
+                    tenant_id,
+                )
+            )
 
         await conn.executemany(
             """
@@ -468,6 +482,7 @@ class InputRepo:
 # EventRepo
 # ---------------------------------------------------------------------------
 
+
 class EventRepo:
     """Thin wrapper – delegates to record_event for consistency."""
 
@@ -480,12 +495,15 @@ class EventRepo:
         *,
         tenant_id: str | None = None,
     ) -> None:
-        await record_event(conn, application_id, event_type, payload, tenant_id=tenant_id)
+        await record_event(
+            conn, application_id, event_type, payload, tenant_id=tenant_id
+        )
 
 
 # ---------------------------------------------------------------------------
 # TenantRepo
 # ---------------------------------------------------------------------------
+
 
 class TenantRepo:
     """CRUD for tenants and tenant membership."""
@@ -500,9 +518,7 @@ class TenantRepo:
 
     @staticmethod
     async def get_by_slug(conn: asyncpg.Connection, slug: str) -> dict | None:
-        row = await conn.fetchrow(
-            "SELECT * FROM public.tenants WHERE slug = $1", slug
-        )
+        row = await conn.fetchrow("SELECT * FROM public.tenants WHERE slug = $1", slug)
         return dict(row) if row else None
 
     @staticmethod
@@ -521,7 +537,8 @@ class TenantRepo:
             WHERE  id = $1
             RETURNING *
             """,
-            tenant_id, plan,
+            tenant_id,
+            plan,
             json.dumps(plan_metadata) if plan_metadata else None,
         )
         return dict(row) if row else None
@@ -536,7 +553,8 @@ class TenantRepo:
         """Paginated list of all tenants (admin only)."""
         rows = await conn.fetch(
             "SELECT * FROM public.tenants ORDER BY created_at DESC LIMIT $1 OFFSET $2",
-            limit, offset,
+            limit,
+            offset,
         )
         return [dict(r) for r in rows]
 
@@ -577,6 +595,7 @@ class TenantRepo:
 # CoverLetterRepo
 # ---------------------------------------------------------------------------
 
+
 class CoverLetterRepo:
     """CRUD for cover letters."""
 
@@ -600,8 +619,13 @@ class CoverLetterRepo:
             VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
             RETURNING *
             """,
-            user_id, job_id, content, template_id, tone,
-            quality_score, json.dumps(suggestions) if suggestions else None,
+            user_id,
+            job_id,
+            content,
+            template_id,
+            tone,
+            quality_score,
+            json.dumps(suggestions) if suggestions else None,
         )
         return dict(row)
 
@@ -619,7 +643,9 @@ class CoverLetterRepo:
             ORDER  BY created_at DESC
             LIMIT  $2 OFFSET $3
             """,
-            user_id, limit, offset,
+            user_id,
+            limit,
+            offset,
         )
         return [dict(r) for r in rows]
 
@@ -638,6 +664,7 @@ class CoverLetterRepo:
 # ---------------------------------------------------------------------------
 # JobMatchCacheRepo
 # ---------------------------------------------------------------------------
+
 
 class JobMatchCacheRepo:
     """Read/Write access to the AI job match cache."""

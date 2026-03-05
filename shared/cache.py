@@ -7,11 +7,13 @@ from shared.redis_client import get_redis
 
 logger = logging.getLogger(__name__)
 
+
 def redis_cache(ttl_seconds: int = 300, key_prefix: str = "cache"):
     """Async decorator to cache function results in Redis.
     Handles basic types that are JSON serializable.
     Falls back to executing the function if Redis is unavailable.
     """
+
     def decorator(func: Callable):
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -37,7 +39,7 @@ def redis_cache(ttl_seconds: int = 300, key_prefix: str = "cache"):
                     try:
                         return json.loads(cached)
                     except json.JSONDecodeError:
-                        pass # Valid cache, but invalid JSON? Recompute.
+                        pass  # Valid cache, but invalid JSON? Recompute.
 
                 result = await func(*args, **kwargs)
 
@@ -53,5 +55,7 @@ def redis_cache(ttl_seconds: int = 300, key_prefix: str = "cache"):
                 # Fallback: execute function without caching if Redis fails
                 logger.warning(f"Redis cache error for {func.__name__}: {e}")
                 return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator

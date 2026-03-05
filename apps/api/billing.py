@@ -7,20 +7,22 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from shared.config import Settings, settings_dependency
-from shared.logging_config import get_logger
 
 from backend.domain.billing import ensure_stripe_customer, update_subscription_state
 from backend.domain.stripe_client import get_stripe, protected_stripe_call
 from backend.domain.tenant import TenantContext
+from shared.config import Settings, settings_dependency
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.billing")
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
+
 # Dependencies (to be overridden at app startup)
 async def _get_pool():
     raise NotImplementedError("Pool dependency not injected")
+
 
 async def _get_tenant_ctx() -> TenantContext:
     raise NotImplementedError("Tenant context dependency not injected")
@@ -56,7 +58,7 @@ async def billing_status(
             """,
             tenant_ctx.tenant_id,
         )
-        
+
         if not row:
             # No billing record yet - return FREE plan
             return {
@@ -67,14 +69,18 @@ async def billing_status(
                 "subscription_status": "none",
                 "current_period_end": None,
             }
-        
+
         return {
             "tenant_id": tenant_ctx.tenant_id,
             "plan": row["plan"],
             "provider": "STRIPE" if row["provider_customer_id"] else None,
             "provider_customer_id": row["provider_customer_id"],
             "subscription_status": row["current_subscription_status"] or "none",
-            "current_period_end": row["current_period_end"].isoformat() if row["current_period_end"] else None,
+            "current_period_end": (
+                row["current_period_end"].isoformat()
+                if row["current_period_end"]
+                else None
+            ),
         }
 
 
@@ -93,7 +99,7 @@ async def billing_usage(
             tenant_ctx.tenant_id,
         )
         plan = tenant_row["plan"] if tenant_row else "FREE"
-        
+
         # Count applications this month
         usage_row = await conn.fetchrow(
             """
@@ -105,7 +111,7 @@ async def billing_usage(
             tenant_ctx.tenant_id,
         )
         monthly_used = usage_row["count"] if usage_row else 0
-        
+
         # Set limits based on plan
         if plan == "FREE":
             monthly_limit = 20
@@ -115,10 +121,10 @@ async def billing_usage(
             monthly_limit = None  # Unlimited
         else:
             monthly_limit = None
-        
+
         monthly_remaining = monthly_limit - monthly_used if monthly_limit else None
         percentage_used = (monthly_used / monthly_limit * 100) if monthly_limit else 0
-        
+
         return {
             "tenant_id": tenant_ctx.tenant_id,
             "plan": plan,
@@ -141,38 +147,46 @@ async def create_checkout(
 ):
     """Create a Stripe checkout session for PRO subscription."""
     stripe = get_stripe()
-    
+
     async with db.acquire() as conn:
         # Ensure customer exists (user_email not available in TenantContext, will be updated after checkout)
         customer_id = await ensure_stripe_customer(conn, tenant_ctx.tenant_id, None)
-        
+
         # Determine price ID based on billing period
         if body.billing_period == "annual":
             price_id = settings.stripe_pro_annual_price_id
         else:
             price_id = settings.stripe_pro_price_id
-        
+
         if not price_id:
-            raise HTTPException(status_code=500, detail="Stripe price ID not configured")
-        
+            raise HTTPException(
+                status_code=500, detail="Stripe price ID not configured"
+            )
+
         # Create checkout session with $10 first month promotion
         # Apply the FIRST_MONTH_10 coupon automatically for new subscribers
-        coupon_id = getattr(settings, 'first_month_coupon', 'FIRST_MONTH_10')
-        
+        coupon_id = getattr(settings, "first_month_coupon", "FIRST_MONTH_10")
+
         checkout_session = protected_stripe_call(
             lambda: stripe.checkout.Session.create(
                 customer=customer_id,
                 payment_method_types=["card"],
-                line_items=[{
-                    "price": price_id,
-                    "quantity": 1,
-                }],
+                line_items=[
+                    {
+                        "price": price_id,
+                        "quantity": 1,
+                    }
+                ],
                 mode="subscription",
                 success_url=body.success_url,
                 cancel_url=body.cancel_url,
                 discounts=[{"coupon": coupon_id}] if coupon_id else [],
                 subscription_data={
-                    "trial_period_days": settings.stripe_free_trial_days if settings.stripe_free_trial_days > 0 else None,
+                    "trial_period_days": (
+                        settings.stripe_free_trial_days
+                        if settings.stripe_free_trial_days > 0
+                        else None
+                    ),
                     "metadata": {
                         "tenant_id": tenant_ctx.tenant_id,
                         "plan": "PRO",
@@ -185,16 +199,18 @@ async def create_checkout(
                 },
             )
         )
-        
+
         if not checkout_session:
-            raise HTTPException(status_code=503, detail="Payment service temporarily unavailable")
-        
+            raise HTTPException(
+                status_code=503, detail="Payment service temporarily unavailable"
+            )
+
         logger.info(
             "Checkout session created for tenant %s: %s",
             tenant_ctx.tenant_id,
             checkout_session.id,
         )
-        
+
         return {"checkout_url": checkout_session.url}
 
 
@@ -208,20 +224,20 @@ async def create_portal(
 ):
     """Create a Stripe customer portal session."""
     stripe = get_stripe()
-    
+
     async with db.acquire() as conn:
         # Get customer ID
         row = await conn.fetchrow(
             "SELECT provider_customer_id FROM public.billing_customers WHERE tenant_id = $1",
             tenant_ctx.tenant_id,
         )
-        
+
         if not row or not row["provider_customer_id"]:
             # No Stripe customer yet - redirect to checkout instead
             return {"checkout_url": f"{body.return_url}/upgrade"}
-        
+
         customer_id = row["provider_customer_id"]
-        
+
         # Create portal session
         portal_session = protected_stripe_call(
             lambda: stripe.billing_portal.Session.create(
@@ -229,10 +245,12 @@ async def create_portal(
                 return_url=body.return_url,
             )
         )
-        
+
         if not portal_session:
-            raise HTTPException(status_code=503, detail="Payment service temporarily unavailable")
-        
+            raise HTTPException(
+                status_code=503, detail="Payment service temporarily unavailable"
+            )
+
         return {"portal_url": portal_session.url}
 
 
@@ -244,14 +262,14 @@ async def stripe_webhook(
 ):
     """Handle Stripe webhooks for subscription events."""
     stripe = get_stripe()
-    
+
     # Get the webhook payload
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
-    
+
     if not sig_header:
         raise HTTPException(status_code=400, detail="Missing Stripe signature")
-    
+
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.stripe_webhook_secret
@@ -260,7 +278,7 @@ async def stripe_webhook(
         raise HTTPException(status_code=400, detail="Invalid payload")
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
-    
+
     # Handle the event
     async with db.acquire() as conn:
         if event["type"] == "checkout.session.completed":
@@ -278,7 +296,7 @@ async def stripe_webhook(
         elif event["type"] == "customer.subscription.updated":
             subscription = event["data"]["object"]
             await handle_subscription_updated(conn, subscription)
-    
+
     return {"status": "ok"}
 
 
@@ -286,13 +304,11 @@ async def handle_checkout_completed(conn: asyncpg.Connection, session: dict):
     """Handle successful checkout completion."""
     customer_id = session.get("customer")
     subscription_id = session.get("subscription")
-    metadata = session.get("metadata", {})
-    
+    session.get("metadata", {})  # metadata reserved for future use
+
     if subscription_id:
-        await update_subscription_state(
-            conn, customer_id, "active", subscription_id
-        )
-    
+        await update_subscription_state(conn, customer_id, "active", subscription_id)
+
     logger.info("Checkout completed for customer %s", customer_id)
 
 
@@ -300,19 +316,17 @@ async def handle_payment_succeeded(conn: asyncpg.Connection, invoice: dict):
     """Handle successful payment."""
     customer_id = invoice.get("customer")
     subscription_id = invoice.get("subscription")
-    
+
     if subscription_id:
-        await update_subscription_state(
-            conn, customer_id, "active", subscription_id
-        )
-    
+        await update_subscription_state(conn, customer_id, "active", subscription_id)
+
     logger.info("Payment succeeded for customer %s", customer_id)
 
 
 async def handle_payment_failed(conn: asyncpg.Connection, invoice: dict):
     """Handle failed payment."""
     customer_id = invoice.get("customer")
-    
+
     await update_subscription_state(conn, customer_id, "past_due")
     logger.warning("Payment failed for customer %s", customer_id)
 
@@ -320,7 +334,7 @@ async def handle_payment_failed(conn: asyncpg.Connection, invoice: dict):
 async def handle_subscription_cancelled(conn: asyncpg.Connection, subscription: dict):
     """Handle subscription cancellation."""
     customer_id = subscription.get("customer")
-    
+
     await update_subscription_state(conn, customer_id, "canceled")
     logger.info("Subscription cancelled for customer %s", customer_id)
 
@@ -330,6 +344,6 @@ async def handle_subscription_updated(conn: asyncpg.Connection, subscription: di
     customer_id = subscription.get("customer")
     status = subscription.get("status")
     subscription_id = subscription.get("id")
-    
+
     await update_subscription_state(conn, customer_id, status, subscription_id)
     logger.info("Subscription updated for customer %s: %s", customer_id, status)

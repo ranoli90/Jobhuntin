@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Script to migrate data from Supabase to Render PostgreSQL database."""
+
 import os
 import re
 
@@ -9,7 +10,7 @@ from dotenv import load_dotenv
 
 def validate_identifier(identifier: str) -> str:
     """Validate SQL identifier to prevent injection."""
-    if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', identifier):
+    if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", identifier):
         raise ValueError(f"Invalid SQL identifier: {identifier}")
     return identifier
 
@@ -19,10 +20,10 @@ async def migrate_data():
     load_dotenv()
 
     # Source (Supabase)
-    supabase_url = os.getenv('SUPABASE_URL')
+    supabase_url = os.getenv("SUPABASE_URL")
 
     # Destination (Render)
-    render_url = os.getenv('RENDER_DB_URL')
+    render_url = os.getenv("RENDER_DB_URL")
 
     if not supabase_url or not render_url:
         print("Error: Missing database URLs in environment")
@@ -62,26 +63,25 @@ async def migrate_data():
                 # Create table in destination if not exists
                 await dst_conn.execute(
                     f"""CREATE TABLE IF NOT EXISTS {table_name} (
-                       {', '.join(f'{col} TEXT' for col in validated_columns)}
+                       {", ".join(f"{col} TEXT" for col in validated_columns)}
                     )"""
                 )
 
                 # Insert data
-                await dst_conn.copy_records_to_table(
-                    table_name,
-                    records=data
-                )
+                await dst_conn.copy_records_to_table(table_name, records=data)
 
             print("Data migration completed successfully!")
 
     except Exception as e:
         print(f"Migration failed: {e}")
     finally:
-        if 'src_pool' in locals():
+        if "src_pool" in locals():
             await src_pool.close()
-        if 'dst_pool' in locals():
+        if "dst_pool" in locals():
             await dst_pool.close()
+
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(migrate_data())

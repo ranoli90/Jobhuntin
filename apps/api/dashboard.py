@@ -11,17 +11,17 @@ Provides:
 
 from __future__ import annotations
 
-from datetime import timezone, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+
 from shared.alerting import AlertSeverity, AlertStatus, get_alert_manager
+from shared.circuit_breaker import get_all_circuit_breaker_statuses
 from shared.logging_config import get_logger
 from shared.monitoring_config import get_monitoring_config
-
-from shared.circuit_breaker import get_all_circuit_breaker_statuses
 from shared.structured_logging import get_structured_metrics
 
 logger = get_logger("sorce.dashboard")
@@ -121,8 +121,8 @@ async def get_overview(
         async with db.acquire() as conn:
             await conn.fetchval("SELECT 1")
         db_ok = True
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Health check DB connection failed: {e}")
 
     redis_ok = False
     try:
@@ -131,8 +131,8 @@ async def get_overview(
         redis = await get_redis()
         await redis.ping()
         redis_ok = True
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Health check Redis connection failed: {e}")
 
     total_requests = summary.get("total_requests", 0)
     total_errors = summary.get("total_errors", 0)
@@ -225,9 +225,18 @@ async def get_alerts(
         except ValueError:
             pass
 
-    alerts = alert_manager.get_alerts(
-        status=status_filter, severity=severity_filter, limit=limit
-    )
+    # Get alerts based on status filter
+    if status_filter == AlertStatus.FIRING:
+        alerts = alert_manager.get_active_alerts()
+    else:
+        alerts = alert_manager.get_alert_history(limit=limit)
+
+    # Apply severity filter if specified
+    if severity_filter:
+        alerts = [a for a in alerts if a.severity == severity_filter]
+
+    # Apply limit
+    alerts = alerts[:limit]
 
     return [
         AlertResponse(
@@ -239,9 +248,9 @@ async def get_alerts(
             metric_value=alert.metric_value,
             threshold=alert.threshold,
             triggered_at=alert.triggered_at.isoformat(),
-            acknowledged_at=alert.acknowledged_at.isoformat()
-            if alert.acknowledged_at
-            else None,
+            acknowledged_at=(
+                alert.acknowledged_at.isoformat() if alert.acknowledged_at else None
+            ),
             acknowledged_by=alert.acknowledged_by,
         )
         for alert in alerts
@@ -274,7 +283,8 @@ async def resolve_alert(
 ) -> dict[str, Any]:
     """Resolve an alert."""
     alert_manager = get_alert_manager()
-    alert = alert_manager.resolve_alert(alert_id)
+    # Use acknowledge_alert as the resolve method
+    alert = alert_manager.acknowledge_alert(alert_id, user_id)
 
     if alert is None:
         raise HTTPException(
@@ -289,10 +299,6 @@ async def resolve_alert(
 @router.get("/tenants", response_model=list[TenantActivity])
 async def get_tenant_activity(
     limit: int = Query(20, ge=1, le=100),
-    sort_by: str = Query(
-        "requests_last_day",
-        description="Sort by: requests_last_day, error_count, last_activity",
-    ),
     db: asyncpg.Pool = Depends(_get_pool),
     user_id: str = Depends(_get_admin_user_id),
 ) -> list[TenantActivity]:
@@ -335,9 +341,9 @@ async def get_tenant_activity(
             requests_last_hour=r["requests_last_hour"] or 0,
             requests_last_day=r["requests_last_day"] or 0,
             error_count=r["error_count"] or 0,
-            last_activity=r["last_activity"].isoformat()
-            if r["last_activity"]
-            else None,
+            last_activity=(
+                r["last_activity"].isoformat() if r["last_activity"] else None
+            ),
         )
         for r in rows
     ]
@@ -356,15 +362,7 @@ async def get_performance_trends(
         "6h": timedelta(hours=6),
         "24h": timedelta(hours=24),
     }
-    interval_map = {
-        "1m": "1 minute",
-        "5m": "5 minutes",
-        "15m": "15 minutes",
-        "1h": "1 hour",
-    }
-
     duration = time_range_map.get(time_range, timedelta(hours=1))
-    _pg_interval = interval_map.get(interval, "5 minutes")  # noqa: F841 — reserved for future parameterized SQL
 
     interval_hours = duration.total_seconds() / 3600
     async with db.acquire() as conn:
@@ -374,8 +372,10 @@ async def get_performance_trends(
                 date_trunc('minute', created_at) -
                 (EXTRACT(minute FROM created_at)::int % 5) * interval '1 minute' as bucket,
                 COUNT(*) as requests,
-                AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) * 1000) as avg_latency_ms,
-                COUNT(*) FILTER (WHERE status = 'FAILED')::float / NULLIF(COUNT(*), 0) * 100 as error_rate_pct
+                AVG(EXTRACT(EPOCH FROM (updated_at - created_at)) * 1000)
+                    as avg_latency_ms,
+                COUNT(*) FILTER (WHERE status = 'FAILED')::float
+                    / NULLIF(COUNT(*), 0) * 100 as error_rate_pct
             FROM public.applications
             WHERE created_at > now() - interval '1 hour' * $1
             GROUP BY bucket
@@ -387,9 +387,11 @@ async def get_performance_trends(
 
     return [
         PerformanceTrend(
-            timestamp=r["bucket"].isoformat()
-            if r["bucket"]
-            else datetime.now(timezone.utc).isoformat(),
+            timestamp=(
+                r["bucket"].isoformat()
+                if r["bucket"]
+                else datetime.now(timezone.utc).isoformat()
+            ),
             requests_per_minute=r["requests"] / 5.0 if r["requests"] else 0,
             avg_latency_ms=round(r["avg_latency_ms"] or 0, 2),
             error_rate_pct=round(r["error_rate_pct"] or 0, 2),
@@ -438,7 +440,7 @@ async def evaluate_alerts(
     open_count = sum(1 for cb in circuit_breakers if cb["state"] == "open")
     alert_manager.record_metric("circuit_breaker_open", float(open_count))
 
-    new_alerts = alert_manager.evaluate()
+    new_alerts = alert_manager.evaluate_rules()
 
     return {
         "evaluated_at": datetime.now(timezone.utc).isoformat(),

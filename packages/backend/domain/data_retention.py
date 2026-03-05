@@ -13,8 +13,8 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.retention")
@@ -74,15 +74,15 @@ async def get_retention_stats(conn: asyncpg.Connection) -> dict[str, Any]:
 
     return {
         "applications": dict(stats["applications"]) if stats["applications"] else {},
-        "application_events": dict(stats["application_events"])
-        if stats["application_events"]
-        else {},
-        "analytics_events": dict(stats["analytics_events"])
-        if stats["analytics_events"]
-        else {},
-        "background_jobs": dict(stats["background_jobs"])
-        if stats["background_jobs"]
-        else {},
+        "application_events": (
+            dict(stats["application_events"]) if stats["application_events"] else {}
+        ),
+        "analytics_events": (
+            dict(stats["analytics_events"]) if stats["analytics_events"] else {}
+        ),
+        "background_jobs": (
+            dict(stats["background_jobs"]) if stats["background_jobs"] else {}
+        ),
     }
 
 

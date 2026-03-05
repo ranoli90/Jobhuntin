@@ -7,12 +7,15 @@ load_dotenv()
 
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 if not RENDER_API_KEY:
-    raise SystemExit("RENDER_API_KEY not set. Export it: export RENDER_API_KEY=your-key")
+    raise SystemExit(
+        "RENDER_API_KEY not set. Export it: export RENDER_API_KEY=your-key"
+    )
 
 headers = {
     "Authorization": f"Bearer {RENDER_API_KEY}",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
 }
+
 
 def trigger_deploy():
     """Trigger a new deploy for the API service."""
@@ -24,8 +27,8 @@ def trigger_deploy():
 
         api_service = None
         for svc in services:
-            service = svc.get('service', {})
-            if service.get('name') == "sorce-api":
+            service = svc.get("service", {})
+            if service.get("name") == "sorce-api":
                 api_service = service
                 break
 
@@ -45,6 +48,7 @@ def trigger_deploy():
 
     except Exception as e:
         print(f"Error: {e}")
+
 
 if __name__ == "__main__":
     trigger_deploy()

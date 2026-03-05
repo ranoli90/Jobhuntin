@@ -37,6 +37,7 @@ from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.ats_scoring")

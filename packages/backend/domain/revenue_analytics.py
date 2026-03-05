@@ -5,12 +5,12 @@ Provides insights for subscription-based business tracking.
 
 from __future__ import annotations
 
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.revenue_analytics")
@@ -224,9 +224,9 @@ async def get_conversion_funnel(conn: asyncpg.Connection) -> dict[str, Any]:
         "active_paid": active,
         "activation_rate": round(activated / total * 100, 1) if total > 0 else 0,
         "conversion_rate": round(converted / total * 100, 1) if total > 0 else 0,
-        "paid_retention_rate": round(active / converted * 100, 1)
-        if converted > 0
-        else 0,
+        "paid_retention_rate": (
+            round(active / converted * 100, 1) if converted > 0 else 0
+        ),
     }
 
 

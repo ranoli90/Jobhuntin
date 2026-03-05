@@ -39,7 +39,11 @@ async def get_variant(
         return None
 
     experiment_id = exp["id"]
-    variants: list[dict[str, Any]] = json.loads(exp["variants"]) if isinstance(exp["variants"], str) else exp["variants"]
+    variants: list[dict[str, Any]] = (
+        json.loads(exp["variants"])
+        if isinstance(exp["variants"], str)
+        else exp["variants"]
+    )
 
     # Check for existing sticky assignment
     existing = await conn.fetchval(
@@ -82,7 +86,10 @@ async def get_variant(
 
     logger.info(
         "Assigned %s/%s to variant '%s' for experiment '%s'",
-        subject_type, subject_id, assigned_variant, experiment_key,
+        subject_type,
+        subject_id,
+        assigned_variant,
+        experiment_key,
     )
     return assigned_variant
 

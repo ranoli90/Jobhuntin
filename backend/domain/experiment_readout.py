@@ -90,6 +90,7 @@ async def get_experiment_results(
         eb = row_dict.get("eval_breakdown")
         if isinstance(eb, str):
             import json
+
             row_dict["eval_breakdown"] = json.loads(eb)
         results.append(row_dict)
     return results

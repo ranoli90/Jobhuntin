@@ -17,8 +17,6 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
@@ -34,9 +32,9 @@ from backend.llm.contracts import (
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
 )
-from shared.ai_validation import (
-    validate_and_sanitize_ai_input,
-)
+from shared.ai_validation import validate_and_sanitize_ai_input
+from shared.config import get_settings
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.ai")
 
@@ -281,7 +279,10 @@ async def generate_onboarding_questions(
         return result
     except Exception as exc:
         logger.error("Onboarding question generation failed: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 @router.post("/suggest-roles", response_model=RoleSuggestionResponse_V1)
@@ -322,11 +323,18 @@ async def suggest_roles(
     except Exception as exc:
         logger.error("Role suggestion failed: %s", exc)
         return RoleSuggestionResponse_V1(
-            suggested_roles=["Software Engineer", "Full Stack Developer", "Backend Engineer"],
+            suggested_roles=[
+                "Software Engineer",
+                "Full Stack Developer",
+                "Backend Engineer",
+            ],
             primary_role="Software Engineer",
             experience_level="mid",
             confidence=0.5,
-            reasoning="AI suggestions temporarily unavailable. Default roles provided based on common tech profiles.",
+            reasoning=(
+                "AI suggestions temporarily unavailable. "
+                "Default roles provided based on common tech profiles."
+            ),
         )
 
 
@@ -376,7 +384,10 @@ async def suggest_salary(
             currency="USD",
             confidence=0.5,
             factors=["Experience level", "Location market rates", "Skill demand"],
-            reasoning="AI suggestions temporarily unavailable. Default salary range provided based on industry averages.",
+            reasoning=(
+                "AI suggestions temporarily unavailable. "
+                "Default salary range provided based on industry averages."
+            ),
         )
 
 
@@ -413,7 +424,13 @@ async def suggest_locations(
     except Exception as exc:
         logger.error("Location suggestion failed: %s", exc)
         return LocationSuggestionResponse_V1(
-            suggested_locations=["Remote", "San Francisco, CA", "New York, NY", "Austin, TX", "Seattle, WA"],
+            suggested_locations=[
+                "Remote",
+                "San Francisco, CA",
+                "New York, NY",
+                "Austin, TX",
+                "Seattle, WA",
+            ],
             remote_friendly_score=0.8,
             top_markets=["San Francisco", "New York", "Seattle"],
             reasoning="AI suggestions temporarily unavailable. Default tech hubs provided.",
@@ -473,7 +490,10 @@ async def match_job(
         return result
     except Exception as exc:
         logger.error("Job match scoring failed: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 @router.post("/match-jobs-batch", response_model=BatchJobMatchResponse)
@@ -615,10 +635,7 @@ async def semantic_match_job(
     matching and matches the capabilities of ApplyPass/JobRight.
     """
     from backend.domain.masking import strip_pii_for_llm
-    from backend.domain.semantic_matching import (
-        Dealbreakers,
-        get_matching_service,
-    )
+    from backend.domain.semantic_matching import Dealbreakers, get_matching_service
 
     # Strip PII from profile before processing
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
@@ -711,10 +728,7 @@ async def semantic_match_batch(
     Returns match scores with explanations for each job.
     """
     from backend.domain.masking import strip_pii_for_llm
-    from backend.domain.semantic_matching import (
-        Dealbreakers,
-        get_matching_service,
-    )
+    from backend.domain.semantic_matching import Dealbreakers, get_matching_service
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
 
@@ -818,7 +832,7 @@ async def list_cover_letter_templates(
 
 Dear [Hiring Manager's Name],
 
-I am writing to express my interest in the [Job Title] position at [Company Name], as advertised. With my background in [Your Field/Industry] and experience in [Key Skills/Experience], I am excited about the opportunity to contribute to your team.
+I am writing to express my interest in the [Job Title] position at [Company Name], as advertised. With my background in [Your Field/Industry] and experience in [Key Skills/Experience], I am excited about the opportunity to contribute to your team.  # noqa: E501
 
 [Body paragraph 1 - Highlight relevant experience and achievements]
 
@@ -827,8 +841,8 @@ I am writing to express my interest in the [Job Title] position at [Company Name
 [Body paragraph 3 - Call to action and closing]
 
 Sincerely,
-[Your Name]"""""
-,
+[Your Name]"""
+            "",
             variables=[
                 "hiring_manager_name",
                 "company_name",
@@ -854,9 +868,9 @@ Sincerely,
 
 Dear [Hiring Manager's Name],
 
-What if I told you that [hook - interesting fact about your experience]?
+What if I told you that [hook - interesting fact about your experience]?  # noqa: E501
 
-That's the kind of innovative thinking I bring to [Company Name] as a candidate for the [Job Title] role. With [X years] of experience in [Your Field], I've developed a unique perspective on [relevant topic].
+That's the kind of innovative thinking I bring to [Company Name] as a candidate for the [Job Title] role. With [X years] of experience in [Your Field], I've developed a unique perspective on [relevant topic].  # noqa: E501
 
 [Body - Tell your story and connect it to the role]
 
@@ -865,8 +879,8 @@ I'm particularly drawn to [Company Name] because [why this company/role excites 
 Let's connect and explore how my [key strength] can drive [company goal/outcome].
 
 Best regards,
-[Your Name]"""""
-,
+[Your Name]"""
+            "",
             variables=[
                 "hook",
                 "job_title",
@@ -902,9 +916,11 @@ async def list_generated_cover_letters(
             word_count=len(r["content"].split()),
             quality_score=r["quality_score"] or 0.0,
             suggestions=json.loads(r["suggestions"]) if r["suggestions"] else [],
-            generated_at=r["created_at"].isoformat()
-            if r["created_at"]
-            else datetime.now().isoformat(),
+            generated_at=(
+                r["created_at"].isoformat()
+                if r["created_at"]
+                else datetime.now().isoformat()
+            ),
             is_bookmarked=r.get("is_bookmarked", False),
         )
         for r in rows
@@ -976,15 +992,20 @@ async def generate_cover_letter_enhanced(
 
 Dear Hiring Manager,
 
-I am excited to apply for the [Job Title] position at [Company Name]. With my background in software development and experience building scalable applications, I am confident I can contribute to your team's success.
+I am excited to apply for the [Job Title] position at [Company Name]. With my background in software development and experience building scalable applications, I am confident I can contribute to your team's success.  # noqa: E501
 
 [Personalized content based on job and profile]
 
-I would welcome the opportunity to discuss how my skills and experience align with [Company Name]'s needs.
+I would welcome the opportunity to discuss how my skills and experience align with [Company Name]'s needs.  # noqa: E501
 
 Sincerely,
 [Your Name]"""
 
+        focus_areas_str = (
+            ", ".join(request.focus_areas)
+            if request.focus_areas
+            else "technical skills, experience, fit"
+        )
         prompt = f"""Generate a personalized cover letter using this template:
 
 {template_content}
@@ -994,7 +1015,7 @@ User profile: {profile_summary}
 Tone: {request.tone}
 Length: {request.length}
 
-Focus areas: {", ".join(request.focus_areas) if request.focus_areas else "technical skills, experience, fit"}
+Focus areas: {focus_areas_str}
 
 Make it specific to the job and company. Keep it professional and concise."""
 
@@ -1028,15 +1049,18 @@ Make it specific to the job and company. Keep it professional and concise."""
             tone=saved["tone"],
             word_count=len(saved["content"].split()),
             quality_score=saved["quality_score"],
-            suggestions=json.loads(saved["suggestions"])
-            if saved["suggestions"]
-            else [],
+            suggestions=(
+                json.loads(saved["suggestions"]) if saved["suggestions"] else []
+            ),
             generated_at=saved["created_at"].isoformat(),
             is_bookmarked=saved["is_bookmarked"],
         )
     except Exception as exc:
         logger.error("Enhanced cover letter generation failed: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1054,10 +1078,7 @@ class CoverLetterRequest(BaseModel):
     )
 
 
-from backend.llm.contracts import (
-    CoverLetterResponse_V1,
-    build_cover_letter_prompt,
-)
+from backend.llm.contracts import CoverLetterResponse_V1, build_cover_letter_prompt
 
 
 @router.post("/generate-cover-letter", response_model=CoverLetterResponse_V1)
@@ -1085,7 +1106,10 @@ async def generate_cover_letter(
         return result
     except Exception as exc:
         logger.error("Cover letter generation failed: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 class TailorResumeRequest(BaseModel):
@@ -1148,7 +1172,10 @@ async def tailor_resume(
         )
     except Exception as exc:
         logger.error("Resume tailoring failed: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 class ATSScoreRequest(BaseModel):
@@ -1201,7 +1228,10 @@ async def compute_ats_score(
         )
     except Exception as exc:
         logger.error("ATS scoring failed: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1415,7 +1445,10 @@ async def submit_match_feedback(
         )
     except Exception as exc:
         logger.error("Failed to submit match feedback: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 @router.get("/match-feedback/summary", response_model=MatchFeedbackSummaryResponse)
@@ -1441,7 +1474,10 @@ async def get_match_feedback_summary(
         return MatchFeedbackSummaryResponse(**summary)
     except Exception as exc:
         logger.error("Failed to get feedback summary: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 @router.get("/match-feedback/job/{job_id}/stats")
@@ -1465,7 +1501,10 @@ async def get_job_feedback_stats(
         return stats.model_dump()
     except Exception as exc:
         logger.error("Failed to get job feedback stats: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1489,7 +1528,10 @@ async def get_llm_metrics(
         return monitor.get_all_metrics()
     except Exception as exc:
         logger.error("Failed to get LLM metrics: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 @router.get("/llm/metrics/{model}")
@@ -1505,7 +1547,10 @@ async def get_llm_model_metrics(
         return monitor.get_model_metrics(model)
     except Exception as exc:
         logger.error("Failed to get model metrics: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 @router.get("/llm/health")
@@ -1523,7 +1568,10 @@ async def get_llm_health(
         return monitor.get_health_status()
     except Exception as exc:
         logger.error("Failed to get LLM health: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
 
 @router.get("/llm/semantic-cache/stats")
@@ -1541,4 +1589,7 @@ async def get_semantic_cache_stats(
         return cache.stats()
     except Exception as exc:
         logger.error("Failed to get semantic cache stats: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="AI service temporarily unavailable. Please try again.")
+        raise HTTPException(
+            status_code=500,
+            detail="AI service temporarily unavailable. Please try again.",
+        )

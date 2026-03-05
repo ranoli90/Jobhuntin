@@ -55,16 +55,62 @@ class GrantApplicantProfile(ActorProfile):
 
     # Canonical field map for DOM autofill
     FIELD_MAP: dict[str, list[str]] = {
-        "organization_name": ["org name", "organization", "applicant name", "legal name", "entity name"],
-        "organization_ein": ["ein", "tax id", "tax identification", "fein", "employer id"],
-        "organization_type": ["org type", "organization type", "entity type", "applicant type"],
+        "organization_name": [
+            "org name",
+            "organization",
+            "applicant name",
+            "legal name",
+            "entity name",
+        ],
+        "organization_ein": [
+            "ein",
+            "tax id",
+            "tax identification",
+            "fein",
+            "employer id",
+        ],
+        "organization_type": [
+            "org type",
+            "organization type",
+            "entity type",
+            "applicant type",
+        ],
         "organization_duns": ["duns", "uei", "unique entity", "sam.gov"],
-        "organization_address": ["org address", "organization address", "mailing address"],
-        "project_title": ["project title", "proposal title", "grant title", "project name"],
-        "project_description": ["project description", "abstract", "summary", "narrative", "proposal summary"],
-        "requested_amount": ["amount requested", "funding request", "grant amount", "budget request"],
-        "budget_narrative": ["budget narrative", "budget justification", "budget description"],
-        "contact_name": ["contact name", "pi name", "principal investigator", "authorized representative"],
+        "organization_address": [
+            "org address",
+            "organization address",
+            "mailing address",
+        ],
+        "project_title": [
+            "project title",
+            "proposal title",
+            "grant title",
+            "project name",
+        ],
+        "project_description": [
+            "project description",
+            "abstract",
+            "summary",
+            "narrative",
+            "proposal summary",
+        ],
+        "requested_amount": [
+            "amount requested",
+            "funding request",
+            "grant amount",
+            "budget request",
+        ],
+        "budget_narrative": [
+            "budget narrative",
+            "budget justification",
+            "budget description",
+        ],
+        "contact_name": [
+            "contact name",
+            "pi name",
+            "principal investigator",
+            "authorized representative",
+        ],
         "contact_email": ["contact email", "pi email", "email address"],
         "contact_phone": ["contact phone", "phone number", "telephone"],
     }

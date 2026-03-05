@@ -168,7 +168,6 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-
     # Authorization errors
     "AUTHZ_001": ContextualError(
         code="AUTHZ_001",
@@ -206,7 +205,6 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-
     # Validation errors
     "VAL_001": ContextualError(
         code="VAL_001",
@@ -264,7 +262,6 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-
     # Network errors
     "NET_001": ContextualError(
         code="NET_001",
@@ -302,7 +299,6 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
         ],
         retry_possible=True,
     ),
-
     # Rate limit errors
     "RATE_001": ContextualError(
         code="RATE_001",
@@ -338,7 +334,6 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-
     # Payment errors
     "PAY_001": ContextualError(
         code="PAY_001",
@@ -377,7 +372,6 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
             ),
         ],
     ),
-
     # AI Service errors
     "AI_001": ContextualError(
         code="AI_001",
@@ -415,7 +409,6 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
         ],
         retry_possible=True,
     ),
-
     # Database errors
     "DB_001": ContextualError(
         code="DB_001",
@@ -437,7 +430,6 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
         ],
         retry_possible=True,
     ),
-
     # Generic errors
     "GEN_001": ContextualError(
         code="GEN_001",

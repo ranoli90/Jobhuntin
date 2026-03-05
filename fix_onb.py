@@ -7,17 +7,17 @@ with open(file_path, "r", encoding="utf-8") as f:
 # Fix 1: setStepLoadingStates unused assignment
 content = content.replace(
     "const [stepLoadingStates] = React.useState<Record<string, boolean>>({});",
-    "const stepLoadingStates: Record<string, boolean> = {};"
+    "const stepLoadingStates: Record<string, boolean> = {};",
 )
 
 # Fix 2: window -> globalThis
-content = re.sub(r'\bwindow\.', 'globalThis.', content)
+content = re.sub(r"\bwindow\.", "globalThis.", content)
 
 # Fix 3: parseInt -> Number.parseInt
-content = re.sub(r'(?<!\.)\bparseInt\(', 'Number.parseInt(', content)
+content = re.sub(r"(?<!\.)\bparseInt\(", "Number.parseInt(", content)
 
 # Fix 4: isNaN -> Number.isNaN
-content = re.sub(r'(?<!\.)\bisNaN\(', 'Number.isNaN(', content)
+content = re.sub(r"(?<!\.)\bisNaN\(", "Number.isNaN(", content)
 
 # Fix 5: Nested ternaries for network errors
 network_err_pattern = r"""\s*const message = isNetworkError\s*\n\s*\?\s*"Network error\. Please check your connection and try again\."\s*\n\s*:\s*\(typeof \(err as Error\)\.message === 'string' && !err\.message\.includes\('\[object'\)\)\s*\?\s*err\.message\s*:\s*([^;]+);"""
@@ -55,7 +55,7 @@ content = re.sub(err_message_pattern, replacement3, content)
 # Fix progress tags
 content = content.replace(
     'role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}',
-    '/* using native progress */'
+    "/* using native progress */",
 )
 
 with open(file_path, "w", encoding="utf-8") as f:

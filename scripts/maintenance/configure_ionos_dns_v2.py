@@ -1,4 +1,5 @@
 """Configure Ionos DNS with correct API endpoints."""
+
 import httpx
 from dotenv import load_dotenv
 
@@ -15,27 +16,23 @@ DNS_RECORDS = [
         "type": "TXT",
         "name": "resend._domainkey",
         "value": "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTNt9gMWn7w5Rqg8AjipC4rSEzRKCB8TZBurKjmKBEsGUR8mXTDi5611NgVspfrdIQB6lPDjnnHBIiVZW+O+n/2FNIyrXxTRHlQXmCjpdr/tZ5NXnfEg65Xqwc5eGI9useCBgeZowiUACLY3nE/xXkBTvyUWvBQs7vbkXhlMSErwIDAQAB",
-        "priority": None
+        "priority": None,
     },
     {
         "type": "MX",
         "name": "send",
         "value": "feedback-smtp.us-east-1.amazonses.com",
-        "priority": 10
+        "priority": 10,
     },
     {
         "type": "TXT",
         "name": "send",
         "value": "v=spf1 include:amazonses.com ~all",
-        "priority": None
+        "priority": None,
     },
-    {
-        "type": "TXT",
-        "name": "_dmarc",
-        "value": "v=DMARC1; p=none;",
-        "priority": None
-    }
+    {"type": "TXT", "name": "_dmarc", "value": "v=DMARC1; p=none;", "priority": None},
 ]
+
 
 def get_ionos_token():
     """Get Ionos API token - try different endpoints."""
@@ -43,10 +40,7 @@ def get_ionos_token():
         "Content-Type": "application/json",
     }
 
-    payload = {
-        "publicPrefix": IONOS_PUBLIC_PREFIX,
-        "secret": IONOS_SECRET
-    }
+    payload = {"publicPrefix": IONOS_PUBLIC_PREFIX, "secret": IONOS_SECRET}
 
     # Try different Ionos API endpoints
     endpoints = [
@@ -60,17 +54,14 @@ def get_ionos_token():
         try:
             print(f"Trying endpoint: {endpoint}")
             resp = httpx.post(
-                f"{endpoint}/tokens",
-                headers=headers,
-                json=payload,
-                timeout=10
+                f"{endpoint}/tokens", headers=headers, json=payload, timeout=10
             )
 
             print(f"Status: {resp.status_code}")
 
             if resp.status_code == 200:
                 data = resp.json()
-                token = data.get('token')
+                token = data.get("token")
                 print(f"✅ Got Ionos token from {endpoint}")
                 return token, endpoint
             else:
@@ -79,6 +70,7 @@ def get_ionos_token():
             print(f"Error with {endpoint}: {e}")
 
     return None, None
+
 
 def test_api_access(token, base_url):
     """Test API access with token."""
@@ -103,6 +95,7 @@ def test_api_access(token, base_url):
         print(f"❌ API test error: {e}")
         return False
 
+
 def find_domain(token, base_url):
     """Find the domain zone."""
     headers = {
@@ -118,7 +111,7 @@ def find_domain(token, base_url):
             data = resp.json()
 
             for zone in data:
-                if zone.get('name') == DOMAIN:
+                if zone.get("name") == DOMAIN:
                     print(f"✅ Found {DOMAIN} (ID: {zone.get('id')})")
                     return zone
 
@@ -130,6 +123,7 @@ def find_domain(token, base_url):
     except Exception as e:
         print(f"❌ Error finding domain: {e}")
         return None
+
 
 def create_dns_record_manual():
     """Generate manual DNS configuration instructions."""
@@ -147,7 +141,7 @@ def create_dns_record_manual():
         print(f"\n{i}. {record['type']} Record")
         print(f"   Host/Name: {record['name']}")
         print(f"   Value: {record['value']}")
-        if record['priority']:
+        if record["priority"]:
             print(f"   Priority: {record['priority']}")
         print("-" * 40)
 
@@ -156,6 +150,7 @@ def create_dns_record_manual():
     print("2. Wait 5-10 minutes for DNS propagation")
     print("3. Check Resend dashboard for verification")
     print("4. Once verified, you can send from hello@jobhuntin.com")
+
 
 def main():
     print("=" * 70)
@@ -177,7 +172,7 @@ def main():
         return
 
     # Test API access
-    base_url = endpoint.replace('/auth', '/dns/v1')
+    base_url = endpoint.replace("/auth", "/dns/v1")
     if not test_api_access(token, base_url):
         create_dns_record_manual()
         return
@@ -193,6 +188,7 @@ def main():
     print("Manual configuration recommended for reliability.")
 
     create_dns_record_manual()
+
 
 if __name__ == "__main__":
     main()

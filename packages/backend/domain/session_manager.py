@@ -10,12 +10,12 @@ import hashlib
 import json
 import secrets
 from dataclasses import dataclass, field
-from datetime import timezone, UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.sessions")

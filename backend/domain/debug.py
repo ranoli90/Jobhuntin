@@ -1,4 +1,5 @@
 """Debug bundle generation logic."""
+
 from __future__ import annotations
 
 import contextlib
@@ -10,7 +11,9 @@ import asyncpg
 from backend.domain.masking import redact_event_payload
 
 
-async def build_debug_bundle(conn: asyncpg.Connection, application_id: str) -> dict[str, Any] | None:
+async def build_debug_bundle(
+    conn: asyncpg.Connection, application_id: str
+) -> dict[str, Any] | None:
     """Build a comprehensive debug bundle for a single application.
     Returns None if application not found.
     """
@@ -24,7 +27,9 @@ async def build_debug_bundle(conn: asyncpg.Connection, application_id: str) -> d
 
     app_dict = dict(app_row)
     user_id = str(app_dict.get("user_id", ""))
-    tenant_id = str(app_dict.get("tenant_id", "")) if app_dict.get("tenant_id") else None
+    tenant_id = (
+        str(app_dict.get("tenant_id", "")) if app_dict.get("tenant_id") else None
+    )
 
     # Events
     events = await conn.fetch(
@@ -81,14 +86,16 @@ async def build_debug_bundle(conn: asyncpg.Connection, application_id: str) -> d
             ed["payload"] = redact_event_payload(payload)
         redacted_events.append(ed)
 
-    return _serialize({
-        "application": app_dict,
-        "events": redacted_events,
-        "inputs": [dict(i) for i in inputs],
-        "evaluations": [dict(ev) for ev in evaluations],
-        "analytics_events": [dict(a) for a in analytics],
-        "experiment_assignments": assignments,
-    })
+    return _serialize(
+        {
+            "application": app_dict,
+            "events": redacted_events,
+            "inputs": [dict(i) for i in inputs],
+            "evaluations": [dict(ev) for ev in evaluations],
+            "analytics_events": [dict(a) for a in analytics],
+            "experiment_assignments": assignments,
+        }
+    )
 
 
 def _serialize(obj: Any) -> Any:
@@ -99,6 +106,7 @@ def _serialize(obj: Any) -> Any:
     if hasattr(obj, "isoformat"):
         return obj.isoformat()
     import uuid as _uuid
+
     if isinstance(obj, _uuid.UUID):
         return str(obj)
     return obj

@@ -84,6 +84,7 @@ def handle_errors(
         default_return: Value to return if not reraising
         log_level: Log level for errors
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -131,6 +132,7 @@ def handle_errors(
 
         # Return appropriate wrapper based on whether func is async
         import asyncio
+
         if asyncio.iscoroutinefunction(func):
             return async_wrapper  # type: ignore
         return sync_wrapper  # type: ignore

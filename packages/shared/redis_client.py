@@ -19,7 +19,7 @@ class RedisManager:
                 encoding="utf-8",
                 decode_responses=True,
                 socket_timeout=5.0,
-                health_check_interval=30
+                health_check_interval=30,
             )
         return self._client
 
@@ -29,12 +29,15 @@ class RedisManager:
             await self._client.close()
             self._client = None
 
+
 # Global instance
 _redis_manager = RedisManager()
+
 
 async def get_redis() -> redis.Redis:
     """Get the global Redis client instance."""
     return await _redis_manager.get_client()
+
 
 async def close_redis() -> None:
     """Close the global Redis client."""

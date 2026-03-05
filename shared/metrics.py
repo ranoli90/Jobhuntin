@@ -71,6 +71,17 @@ def observe(metric_name: str, value: float, tags: dict[str, str] | None = None) 
         otel_hist.record(value, attributes=tags or {})
 
 
+# Store for gauge values (current value metrics)
+_gauges: dict[str, float] = defaultdict(float)
+
+
+def gauge(metric_name: str, value: float, tags: dict[str, str] | None = None) -> None:
+    """Record a gauge metric (current value, like pool size)."""
+    key = _metric_key(metric_name, tags)
+    with _lock:
+        _gauges[key] = value
+
+
 def dump() -> dict[str, Any]:
     """Return a snapshot of all counters and recent observation stats."""
     with _lock:

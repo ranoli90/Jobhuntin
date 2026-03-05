@@ -6,7 +6,7 @@ without touching the core engine. All methods are functional stubs.
 
 from __future__ import annotations
 
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 
 import asyncpg
 
@@ -64,8 +64,12 @@ class GrantApplicationBlueprint:
     ) -> str:
         """Construct prompt to map profile data to grant application form fields."""
         profile_dict = profile.model_dump()
-        fields_dicts = [f.model_dump() if hasattr(f, "model_dump") else f for f in form_fields]
-        return build_grant_dom_mapping_prompt(profile_dict, fields_dicts, answered_inputs)
+        fields_dicts = [
+            f.model_dump() if hasattr(f, "model_dump") else f for f in form_fields
+        ]
+        return build_grant_dom_mapping_prompt(
+            profile_dict, fields_dicts, answered_inputs
+        )
 
     def parse_dom_mapping_response(self, raw_json: dict) -> DomMappingResult:
         """Parse LLM JSON response into DomMappingResult."""
@@ -94,7 +98,13 @@ class GrantApplicationBlueprint:
         """Mark the grant application as SUBMITTED."""
         app_id = str(task["id"])
         await ApplicationRepo.update_status(conn, app_id, "SUBMITTED")
-        await EventRepo.emit(conn, app_id, "SUBMITTED", {
-            "submitted_at": datetime.now(timezone.utc).isoformat(),
-        }, tenant_id=tenant_id)
+        await EventRepo.emit(
+            conn,
+            app_id,
+            "SUBMITTED",
+            {
+                "submitted_at": datetime.now(timezone.utc).isoformat(),
+            },
+            tenant_id=tenant_id,
+        )
         return "SUBMITTED"

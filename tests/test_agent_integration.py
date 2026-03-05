@@ -85,7 +85,9 @@ class _TestFormServer:
     async def start(self) -> int:
         """Start the server and return the assigned port."""
         self._server = await asyncio.start_server(
-            self._handle_connection, self._host, self._port,
+            self._handle_connection,
+            self._host,
+            self._port,
         )
         addr = self._server.sockets[0].getsockname()
         self._port = addr[1]
@@ -111,7 +113,11 @@ class _TestFormServer:
                     headers[k.strip().lower()] = v.strip()
 
             method = request_line.decode().split(" ")[0]
-            path = request_line.decode().split(" ")[1] if len(request_line.decode().split(" ")) > 1 else "/"
+            path = (
+                request_line.decode().split(" ")[1]
+                if len(request_line.decode().split(" ")) > 1
+                else "/"
+            )
 
             body = b""
             content_length = int(headers.get("content-length", "0"))
@@ -146,6 +152,7 @@ class _TestFormServer:
 # Mock LLM response for field mapping
 # ---------------------------------------------------------------------------
 
+
 def _make_mock_llm_mapping(fields: list[dict], profile: dict) -> dict:
     """Create a mock LLM response that maps profile data to form fields."""
     mapping: list[dict[str, Any]] = []
@@ -171,6 +178,7 @@ def _make_mock_llm_mapping(fields: list[dict], profile: dict) -> dict:
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest_asyncio.fixture
 async def form_server():
@@ -219,14 +227,22 @@ async def _insert_test_job(conn, tenant_id: str) -> str:
         VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT DO NOTHING
         """,
-        job_id, f"test-{job_id[:8]}", "Test Engineer", "TestCorp",
-        "http://127.0.0.1:9999/apply", "test",
+        job_id,
+        f"test-{job_id[:8]}",
+        "Test Engineer",
+        "TestCorp",
+        "http://127.0.0.1:9999/apply",
+        "test",
     )
     return job_id
 
 
 async def _insert_test_application(
-    conn, user_id: str, job_id: str, tenant_id: str, application_url: str,
+    conn,
+    user_id: str,
+    job_id: str,
+    tenant_id: str,
+    application_url: str,
 ) -> str:
     """Insert a QUEUED application and return its ID."""
     app_id = str(uuid.uuid4())
@@ -236,12 +252,16 @@ async def _insert_test_application(
         VALUES ($1, $2, $3, $4, 'QUEUED', 0)
         ON CONFLICT DO NOTHING
         """,
-        app_id, user_id, job_id, tenant_id,
+        app_id,
+        user_id,
+        job_id,
+        tenant_id,
     )
     # Update the job's application_url to point to our test server
     await conn.execute(
         "UPDATE public.jobs SET application_url = $2 WHERE id = $1",
-        job_id, application_url,
+        job_id,
+        application_url,
     )
     return app_id
 
@@ -249,6 +269,7 @@ async def _insert_test_application(
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
@@ -268,15 +289,20 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
         # Ensure user and tenant exist
         await conn.execute(
             "INSERT INTO public.users (id, full_name, email) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-            test_user_id, "Test User", "test@example.com",
+            test_user_id,
+            "Test User",
+            "test@example.com",
         )
         await conn.execute(
             "INSERT INTO public.tenants (id, name, slug, plan) VALUES ($1, $2, $3, 'FREE') ON CONFLICT DO NOTHING",
-            test_tenant_id, "Test Tenant", f"test-{test_tenant_id[:8]}",
+            test_tenant_id,
+            "Test Tenant",
+            f"test-{test_tenant_id[:8]}",
         )
         await conn.execute(
             "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT DO NOTHING",
-            test_tenant_id, test_user_id,
+            test_tenant_id,
+            test_user_id,
         )
 
         # Insert profile
@@ -293,18 +319,25 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
             VALUES ($1, $2::jsonb, $3)
             ON CONFLICT (user_id) DO UPDATE SET profile_data = $2::jsonb
             """,
-            test_user_id, json.dumps(profile_data), test_tenant_id,
+            test_user_id,
+            json.dumps(profile_data),
+            test_tenant_id,
         )
 
         job_id = await _insert_test_job(conn, test_tenant_id)
         app_id = await _insert_test_application(
-            conn, test_user_id, job_id, test_tenant_id, form_url,
+            conn,
+            test_user_id,
+            job_id,
+            test_tenant_id,
+            form_url,
         )
 
     # Verify application is QUEUED
     async with db_pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT status FROM public.applications WHERE id = $1", app_id,
+            "SELECT status FROM public.applications WHERE id = $1",
+            app_id,
         )
         assert row is not None
         assert str(row["status"]) == "QUEUED"
@@ -319,6 +352,7 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
 
     # For now, verify the form server responds correctly
     import httpx
+
     async with httpx.AsyncClient() as client:
         resp = await client.get(form_url)
         assert resp.status_code == 200
@@ -340,8 +374,12 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
     async with db_pool.acquire() as conn:
         await conn.execute("DELETE FROM public.applications WHERE id = $1", app_id)
         await conn.execute("DELETE FROM public.jobs WHERE id = $1", job_id)
-        await conn.execute("DELETE FROM public.profiles WHERE user_id = $1", test_user_id)
-        await conn.execute("DELETE FROM public.tenant_members WHERE tenant_id = $1", test_tenant_id)
+        await conn.execute(
+            "DELETE FROM public.profiles WHERE user_id = $1", test_user_id
+        )
+        await conn.execute(
+            "DELETE FROM public.tenant_members WHERE tenant_id = $1", test_tenant_id
+        )
         await conn.execute("DELETE FROM public.tenants WHERE id = $1", test_tenant_id)
         await conn.execute("DELETE FROM public.users WHERE id = $1", test_user_id)
 
@@ -355,6 +393,7 @@ async def test_agent_hold_form_has_unmappable_field(hold_form_server):
     form_url, server = hold_form_server
 
     import httpx
+
     async with httpx.AsyncClient() as client:
         resp = await client.get(form_url)
         assert resp.status_code == 200

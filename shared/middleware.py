@@ -109,6 +109,7 @@ def setup_csrf_middleware(app, secret: str) -> None:
         exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
         s = get_settings()
         from urllib.parse import urlparse
+
         api_host = urlparse(s.api_public_url).hostname if s.api_public_url else ""
         app_host = urlparse(s.app_base_url).hostname if s.app_base_url else ""
         is_cross_origin = api_host != app_host and api_host and app_host
@@ -116,7 +117,12 @@ def setup_csrf_middleware(app, secret: str) -> None:
         class CSRFForCORSMiddleware(StarletteCSRF):
             def _get_error_response(self, request: Request) -> Response:
                 response = JSONResponse(
-                    {"error": {"code": "CSRF_FAILED", "message": "CSRF validation failed"}},
+                    {
+                        "error": {
+                            "code": "CSRF_FAILED",
+                            "message": "CSRF validation failed",
+                        }
+                    },
                     status_code=403,
                 )
                 origin = request.headers.get("origin", "")
@@ -128,7 +134,9 @@ def setup_csrf_middleware(app, secret: str) -> None:
 
         is_prod = s.env.value in ("prod", "staging")
         # Secure=True is ONLY allowed over HTTPS. In local dev, it must be False.
-        cookie_secure = is_prod or (s.app_base_url and s.app_base_url.startswith("https"))
+        cookie_secure = is_prod or (
+            s.app_base_url and s.app_base_url.startswith("https")
+        )
 
         app.add_middleware(
             CSRFForCORSMiddleware,
@@ -191,8 +199,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         # S3 (Audit): Enhanced CSP with nonce support for dynamic scripts
         # Uses nonce-based approach instead of 'unsafe-inline' for better security
-        csp_script_src = "'self' https://www.googletagmanager.com https://www.google-analytics.com"
-        if hasattr(request.state, 'csp_nonce'):
+        csp_script_src = (
+            "'self' https://www.googletagmanager.com https://www.google-analytics.com"
+        )
+        if hasattr(request.state, "csp_nonce"):
             csp_script_src += f" 'nonce-{request.state.csp_nonce}'"
         else:
             # Fallback to 'unsafe-eval' only when nonce not available (rare)

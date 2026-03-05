@@ -13,6 +13,7 @@ from backend.domain.data_residency import (
 from backend.domain.ip_allowlist import IPAllowlistManager
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.admin_security")
@@ -316,9 +317,9 @@ async def get_data_residency(
 
     return DataLocationResponse(
         primary_region=residency.primary_region.value,
-        backup_region=residency.backup_region.value
-        if residency.backup_region
-        else None,
+        backup_region=(
+            residency.backup_region.value if residency.backup_region else None
+        ),
         data_types=residency.data_types,
         enforced_at=residency.enforced_at.isoformat(),
     )

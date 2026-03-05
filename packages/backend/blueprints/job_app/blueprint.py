@@ -9,7 +9,7 @@ This is the first (and reference) blueprint. It wraps all Sorce-specific logic:
 
 from __future__ import annotations
 
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 
 import asyncpg
 
@@ -18,9 +18,7 @@ from backend.blueprints.job_app.models import (
     from_canonical_profile,
     to_canonical_dict,
 )
-from backend.blueprints.job_app.prompts import (
-    JOB_APP_SUBMIT_SELECTORS,
-)
+from backend.blueprints.job_app.prompts import JOB_APP_SUBMIT_SELECTORS
 from backend.blueprints.job_app.prompts import (
     build_dom_mapping_prompt as _build_dom_mapping_prompt,
 )
@@ -80,7 +78,9 @@ class JobApplicationBlueprint:
         else:
             profile_dict = profile.model_dump()
 
-        fields_dicts = [f.model_dump() if hasattr(f, "model_dump") else f for f in form_fields]
+        fields_dicts = [
+            f.model_dump() if hasattr(f, "model_dump") else f for f in form_fields
+        ]
         return _build_dom_mapping_prompt(profile_dict, fields_dicts, answered_inputs)
 
     def parse_dom_mapping_response(self, raw_json: dict) -> DomMappingResult:
@@ -110,7 +110,13 @@ class JobApplicationBlueprint:
         """Mark the application as APPLIED and emit SUBMITTED event."""
         app_id = str(task["id"])
         await ApplicationRepo.update_status(conn, app_id, "APPLIED")
-        await EventRepo.emit(conn, app_id, "SUBMITTED", {
-            "submitted_at": datetime.now(timezone.utc).isoformat(),
-        }, tenant_id=tenant_id)
+        await EventRepo.emit(
+            conn,
+            app_id,
+            "SUBMITTED",
+            {
+                "submitted_at": datetime.now(timezone.utc).isoformat(),
+            },
+            tenant_id=tenant_id,
+        )
         return "APPLIED"

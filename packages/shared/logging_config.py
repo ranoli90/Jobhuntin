@@ -13,7 +13,7 @@ import contextvars
 import json
 import logging
 import sys
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 # ---------------------------------------------------------------------------
@@ -32,9 +32,7 @@ _ctx_user_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
 _ctx_tenant_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "tenant_id", default=None
 )
-_ctx_env: contextvars.ContextVar[str] = contextvars.ContextVar(
-    "env", default="local"
-)
+_ctx_env: contextvars.ContextVar[str] = contextvars.ContextVar("env", default="local")
 
 
 class LogContext:
@@ -89,6 +87,7 @@ class LogContext:
 # JSON formatter
 # ---------------------------------------------------------------------------
 
+
 class JSONFormatter(logging.Formatter):
     """Emit one JSON object per log line with correlation context.
 
@@ -123,17 +122,38 @@ class JSONFormatter(logging.Formatter):
 
 
 # Built-in LogRecord attributes that should not appear in ``extra``
-_LOG_RECORD_BUILTIN_ATTRS = frozenset({
-    "name", "msg", "args", "created", "relativeCreated", "exc_info",
-    "exc_text", "stack_info", "lineno", "funcName", "pathname", "filename",
-    "module", "levelno", "levelname", "thread", "threadName", "process",
-    "processName", "msecs", "message", "taskName",
-})
+_LOG_RECORD_BUILTIN_ATTRS = frozenset(
+    {
+        "name",
+        "msg",
+        "args",
+        "created",
+        "relativeCreated",
+        "exc_info",
+        "exc_text",
+        "stack_info",
+        "lineno",
+        "funcName",
+        "pathname",
+        "filename",
+        "module",
+        "levelno",
+        "levelname",
+        "thread",
+        "threadName",
+        "process",
+        "processName",
+        "msecs",
+        "message",
+        "taskName",
+    }
+)
 
 
 # ---------------------------------------------------------------------------
 # Human-readable formatter (local dev)
 # ---------------------------------------------------------------------------
+
 
 class HumanFormatter(logging.Formatter):
     """Readable format with context prefix for local development."""
@@ -149,6 +169,7 @@ class HumanFormatter(logging.Formatter):
 # ---------------------------------------------------------------------------
 # Setup
 # ---------------------------------------------------------------------------
+
 
 def setup_logging(
     env: str = "local",
@@ -194,11 +215,20 @@ def get_logger(name: str) -> logging.Logger:
 # PII sanitization for log payloads
 # ---------------------------------------------------------------------------
 
-_PII_KEYS = frozenset({
-    "full_name", "first_name", "last_name", "email", "phone",
-    "location", "linkedin_url", "portfolio_url", "address",
-    "answer",  # hold-question answers may contain PII
-})
+_PII_KEYS = frozenset(
+    {
+        "full_name",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "location",
+        "linkedin_url",
+        "portfolio_url",
+        "address",
+        "answer",  # hold-question answers may contain PII
+    }
+)
 
 
 def _sanitize_nested(data: Any) -> Any:

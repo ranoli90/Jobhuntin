@@ -16,6 +16,7 @@ from enum import StrEnum
 from urllib.parse import urlencode, urlparse
 
 import httpx
+
 from shared.config import Settings, get_settings
 from shared.logging_config import get_logger
 
@@ -90,11 +91,13 @@ class DeepLinkService:
         query_params = {}
         query_params.update(params)
         if utm_params:
-            query_params.update({
-                "utm_source": utm_params.get("source", ""),
-                "utm_medium": utm_params.get("medium", ""),
-                "utm_campaign": utm_params.get("campaign", ""),
-            })
+            query_params.update(
+                {
+                    "utm_source": utm_params.get("source", ""),
+                    "utm_medium": utm_params.get("medium", ""),
+                    "utm_campaign": utm_params.get("campaign", ""),
+                }
+            )
 
         # Remove empty params
         query_params = {k: v for k, v in query_params.items() if v}

@@ -14,9 +14,9 @@ import sys
 from typing import Any
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
-
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.worker.scaling")
@@ -26,14 +26,15 @@ def _get_ssl_config() -> Any:
     """Get SSL configuration for database connections."""
     # Render databases use SSL by default; our DSN resolver enforces sslmode=require
     # No special SSL context needed; asyncpg handles it when sslmode is in DSN
-    return None
+    return None  # pylint: disable=useless-return
 
 
 async def get_db_pool() -> asyncpg.Pool:
     """Get database connection pool with robust retries and Render-compatible settings."""
     s = get_settings()
     from shared.db import resolve_dsn_ipv4
-    ssl = _get_ssl_config()
+
+    ssl = _get_ssl_config()  # pylint: disable=assignment-from-none
     kwargs: dict[str, Any] = {
         "min_size": s.db_pool_min,
         "max_size": s.db_pool_max,
@@ -53,13 +54,18 @@ async def get_db_pool() -> asyncpg.Pool:
                 logger.warning(
                     "Primary DB pool attempt %d/3 failed: %s. "
                     "Check your DATABASE_URL credentials.",
-                    attempt, exc
+                    attempt,
+                    exc,
                 )
-            elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
+            elif (
+                "connection refused" in error_msg.lower()
+                or "could not connect" in error_msg.lower()
+            ):
                 logger.warning(
                     "Primary DB pool attempt %d/3 failed: %s. "
                     "Check that the database host is accessible.",
-                    attempt, exc
+                    attempt,
+                    exc,
                 )
             else:
                 logger.warning("Primary DB pool attempt %d/3 failed: %s", attempt, exc)
@@ -79,7 +85,8 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
         logger.info("No read replica configured; using primary for reads")
         return None
     from shared.db import resolve_dsn_ipv4
-    ssl = _get_ssl_config()
+
+    ssl = _get_ssl_config()  # pylint: disable=assignment-from-none
     kwargs: dict[str, Any] = {
         "min_size": 2,
         "max_size": s.db_pool_max,
@@ -91,31 +98,45 @@ async def create_read_replica_pool() -> asyncpg.Pool | None:
 
     for attempt in range(1, 4):
         try:
-            return await asyncpg.create_pool(resolve_dsn_ipv4(s.read_replica_url), **kwargs)
+            return await asyncpg.create_pool(
+                resolve_dsn_ipv4(s.read_replica_url), **kwargs
+            )
         except asyncpg.PostgresError as exc:
             error_msg = str(exc)
-            if "Tenant or user not found" in error_msg or "password authentication failed" in error_msg:
+            if (
+                "Tenant or user not found" in error_msg
+                or "password authentication failed" in error_msg
+            ):
                 logger.warning(
                     "Read replica DB pool attempt %d/3 failed: %s. "
                     "This usually means READ_REPLICA_URL credentials are incorrect. "
                     "Check that the read replica credentials match your Render PostgreSQL database.",
-                    attempt, exc
+                    attempt,
+                    exc,
                 )
-            elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
+            elif (
+                "connection refused" in error_msg.lower()
+                or "could not connect" in error_msg.lower()
+            ):
                 logger.warning(
                     "Read replica DB pool attempt %d/3 failed: %s. "
                     "Check that the read replica host is accessible and the port is correct.",
-                    attempt, exc
+                    attempt,
+                    exc,
                 )
             else:
-                logger.warning("Read replica DB pool attempt %d/3 failed: %s", attempt, exc)
+                logger.warning(
+                    "Read replica DB pool attempt %d/3 failed: %s", attempt, exc
+                )
             if attempt < 3:
                 await asyncio.sleep(3 * attempt)
         except Exception as exc:
             logger.error("Unexpected error creating read replica DB pool: %s", exc)
             raise
 
-    logger.warning("Could not create read replica DB pool after 3 attempts; using primary for reads")
+    logger.warning(
+        "Could not create read replica DB pool after 3 attempts; using primary for reads"
+    )
     return None
 
 
@@ -125,7 +146,8 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
     if not s.enterprise_db_pool_min:
         return None
     from shared.db import resolve_dsn_ipv4
-    ssl = _get_ssl_config()
+
+    ssl = _get_ssl_config()  # pylint: disable=assignment-from-none
     kwargs: dict[str, Any] = {
         "min_size": s.enterprise_db_pool_min,
         "max_size": s.enterprise_db_pool_max,
@@ -140,34 +162,47 @@ async def create_enterprise_pool() -> asyncpg.Pool | None:
             return await asyncpg.create_pool(resolve_dsn_ipv4(s.database_url), **kwargs)
         except asyncpg.PostgresError as exc:
             error_msg = str(exc)
-            if "Tenant or user not found" in error_msg or "password authentication failed" in error_msg:
+            if (
+                "Tenant or user not found" in error_msg
+                or "password authentication failed" in error_msg
+            ):
                 logger.warning(
                     "Enterprise DB pool attempt %d/3 failed: %s. "
                     "This usually means DATABASE_URL credentials are incorrect. "
                     "Check that DB_USER, DB_PASSWORD, and DB_NAME match your Render PostgreSQL database.",
-                    attempt, exc
+                    attempt,
+                    exc,
                 )
-            elif "connection refused" in error_msg.lower() or "could not connect" in error_msg.lower():
+            elif (
+                "connection refused" in error_msg.lower()
+                or "could not connect" in error_msg.lower()
+            ):
                 logger.warning(
                     "Enterprise DB pool attempt %d/3 failed: %s. "
                     "Check that the database host is accessible and the port is correct.",
-                    attempt, exc
+                    attempt,
+                    exc,
                 )
             else:
-                logger.warning("Enterprise DB pool attempt %d/3 failed: %s", attempt, exc)
+                logger.warning(
+                    "Enterprise DB pool attempt %d/3 failed: %s", attempt, exc
+                )
             if attempt < 3:
                 await asyncio.sleep(3 * attempt)
         except Exception as exc:
             logger.error("Unexpected error creating enterprise DB pool: %s", exc)
             raise
 
-    logger.warning("Could not create enterprise DB pool after 3 attempts; using primary pool")
+    logger.warning(
+        "Could not create enterprise DB pool after 3 attempts; using primary pool"
+    )
     return None
 
 
 # ---------------------------------------------------------------------------
 # BrowserPoolManager — supports local Chromium and remote Browserless.io
 # ---------------------------------------------------------------------------
+
 
 class BrowserPoolManager:
     """Manages Playwright browser lifecycle with support for:
@@ -189,6 +224,7 @@ class BrowserPoolManager:
     async def start(self) -> None:
         """Initialize Playwright and connect/launch browser."""
         from playwright.async_api import async_playwright
+
         s = get_settings()
 
         self._playwright = await async_playwright().start()
@@ -201,10 +237,15 @@ class BrowserPoolManager:
                 url = f"{url}{separator}token={s.browserless_token}"
             self._browser = await self._playwright.chromium.connect_over_cdp(url)
             self._is_remote = True
-            logger.info("Connected to remote browser via CDP: %s", s.browserless_url.split("?")[0])
+            logger.info(
+                "Connected to remote browser via CDP: %s",
+                s.browserless_url.split("?")[0],
+            )
         else:
             # Local Chromium
-            self._browser = await self._playwright.chromium.launch(headless=s.playwright_headless)
+            self._browser = await self._playwright.chromium.launch(
+                headless=s.playwright_headless
+            )
             self._is_remote = False
             logger.info("Launched local Chromium (headless=%s)", s.playwright_headless)
 
@@ -230,22 +271,27 @@ class BrowserPoolManager:
 
     async def create_context(self) -> Any:
         """Create a new browser context with randomized viewport and user-agent."""
-        import random
+        import random  # nosec B311 - random.choice used for browser fingerprinting, not security purposes
 
         if not self._browser:
             raise RuntimeError("BrowserPoolManager not started")
 
-        viewport = random.choice(self._VIEWPORTS)
-        ua = random.choice(self._USER_AGENTS)
+        viewport = random.choice(self._VIEWPORTS)  # nosec B311 - browser fingerprinting
+        ua = random.choice(self._USER_AGENTS)  # nosec B311 - browser fingerprinting
 
-        ctx = await self._browser.new_context(
+        ctx = await self._browser.new_context(  # nosec B311
             viewport=viewport,
             user_agent=ua,
+            # nosec B311 - browser fingerprinting
             locale=random.choice(["en-US", "en-GB", "en-CA"]),
-            timezone_id=random.choice([
-                "America/New_York", "America/Chicago",
-                "America/Los_Angeles", "America/Denver",
-            ]),
+            timezone_id=random.choice(  # nosec B311 - browser fingerprinting
+                [
+                    "America/New_York",
+                    "America/Chicago",
+                    "America/Los_Angeles",
+                    "America/Denver",
+                ]
+            ),
         )
         async with self._lock:
             self._active_contexts += 1
@@ -262,7 +308,9 @@ class BrowserPoolManager:
         s = get_settings()
         async with self._lock:
             ctx_id = id(ctx)
-            self._context_use_counts[ctx_id] = self._context_use_counts.get(ctx_id, 0) + 1
+            self._context_use_counts[ctx_id] = (
+                self._context_use_counts.get(ctx_id, 0) + 1
+            )
             uses = self._context_use_counts[ctx_id]
         return uses >= s.browser_context_max_uses
 
@@ -350,7 +398,9 @@ class WorkerScaler:
             "remote" if self.browser_pool._is_remote else "local",
         )
 
-    async def _worker_loop(self, instance_id: int, agent_cls: Any, context_factory: Any) -> None:
+    async def _worker_loop(
+        self, instance_id: int, agent_cls: Any, context_factory: Any
+    ) -> None:
         """Single worker loop — claims and processes tasks."""
         s = get_settings()
 
@@ -378,8 +428,8 @@ class WorkerScaler:
     async def shutdown(self) -> None:
         """Gracefully shutdown all workers, browser, and pools."""
         if self._shutdown.is_set() and not self._tasks:
-             # Already shut down
-             return
+            # Already shut down
+            return
 
         logger.info("Shutting down %d workers...", self.instance_count)
         self._shutdown.set()

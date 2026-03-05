@@ -64,18 +64,22 @@ class InterviewEvent:
             lines.append(f"URL:{self.conference_url}")
 
         for reminder in self.reminder_minutes:
-            lines.extend([
-                "BEGIN:VALARM",
-                "ACTION:DISPLAY",
-                f"DESCRIPTION:Reminder: {self.title}",
-                f"TRIGGER:-PT{reminder}M",
-                "END:VALARM",
-            ])
+            lines.extend(
+                [
+                    "BEGIN:VALARM",
+                    "ACTION:DISPLAY",
+                    f"DESCRIPTION:Reminder: {self.title}",
+                    f"TRIGGER:-PT{reminder}M",
+                    "END:VALARM",
+                ]
+            )
 
-        lines.extend([
-            "END:VEVENT",
-            "END:VCALENDAR",
-        ])
+        lines.extend(
+            [
+                "END:VEVENT",
+                "END:VCALENDAR",
+            ]
+        )
 
         return "\r\n".join(lines)
 
@@ -119,7 +123,9 @@ class CalendarService:
             Event ID or iCal content
 
         """
-        provider = provider or (self.auth.provider if self.auth else CalendarProvider.ICAL)
+        provider = provider or (
+            self.auth.provider if self.auth else CalendarProvider.ICAL
+        )
 
         if provider == CalendarProvider.GOOGLE:
             return await self._create_google_event(event)
@@ -181,7 +187,9 @@ class CalendarService:
                 return data.get("id", "")
             else:
                 logger.error(f"Google Calendar API error: {response.text}")
-                raise Exception(f"Failed to create Google Calendar event: {response.status_code}")
+                raise Exception(
+                    f"Failed to create Google Calendar event: {response.status_code}"
+                )
 
     async def _create_outlook_event(self, event: InterviewEvent) -> str:
         """Create event in Microsoft Outlook."""
@@ -234,7 +242,9 @@ class CalendarService:
                 return data.get("id", "")
             else:
                 logger.error(f"Microsoft Graph API error: {response.text}")
-                raise Exception(f"Failed to create Outlook event: {response.status_code}")
+                raise Exception(
+                    f"Failed to create Outlook event: {response.status_code}"
+                )
 
     async def get_free_busy(
         self,
@@ -287,10 +297,16 @@ class CalendarService:
                 busy = []
                 for calendar in data.get("calendars", {}).values():
                     for period in calendar.get("busy", []):
-                        busy.append({
-                            "start": datetime.fromisoformat(period["start"].replace("Z", "+00:00")),
-                            "end": datetime.fromisoformat(period["end"].replace("Z", "+00:00")),
-                        })
+                        busy.append(
+                            {
+                                "start": datetime.fromisoformat(
+                                    period["start"].replace("Z", "+00:00")
+                                ),
+                                "end": datetime.fromisoformat(
+                                    period["end"].replace("Z", "+00:00")
+                                ),
+                            }
+                        )
                 return busy
 
         return []
@@ -333,10 +349,16 @@ class CalendarService:
                 busy = []
                 for schedule in data.get("value", []):
                     for item in schedule.get("scheduleItems", []):
-                        busy.append({
-                            "start": datetime.fromisoformat(item["start"]["dateTime"].replace("Z", "+00:00")),
-                            "end": datetime.fromisoformat(item["end"]["dateTime"].replace("Z", "+00:00")),
-                        })
+                        busy.append(
+                            {
+                                "start": datetime.fromisoformat(
+                                    item["start"]["dateTime"].replace("Z", "+00:00")
+                                ),
+                                "end": datetime.fromisoformat(
+                                    item["end"]["dateTime"].replace("Z", "+00:00")
+                                ),
+                            }
+                        )
                 return busy
 
         return []
@@ -447,7 +469,9 @@ def get_microsoft_oauth_url(
         params["state"] = state
 
     query = "&".join(f"{k}={v}" for k, v in params.items())
-    return f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?{query}"
+    return (
+        f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?{query}"
+    )
 
 
 async def refresh_google_token(
@@ -542,7 +566,9 @@ async def refresh_microsoft_token(
             }
         else:
             logger.error(f"Microsoft token refresh failed: {response.text}")
-            raise Exception(f"Failed to refresh Microsoft token: {response.status_code}")
+            raise Exception(
+                f"Failed to refresh Microsoft token: {response.status_code}"
+            )
 
 
 async def ensure_valid_token(

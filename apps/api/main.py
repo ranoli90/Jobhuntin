@@ -32,29 +32,19 @@ from fastapi import (
     FastAPI,
     File,
     HTTPException,
-    Path as FastAPIPath,
     Request,
     UploadFile,
 )
+from fastapi import Path as FastAPIPath
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from shared.config import Environment, get_settings
-from shared.logging_config import LogContext, get_logger, setup_logging
-from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
-from shared.redis_client import close_redis, get_redis
-from shared.storage import get_storage_service
-from shared.telemetry import setup_telemetry
 
 from backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
 )
-from backend.domain.models import (
-    CanonicalProfile,
-    ErrorDetail,
-    ErrorResponse,
-)
+from backend.domain.models import CanonicalProfile, ErrorDetail, ErrorResponse
 from backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -63,11 +53,14 @@ from backend.domain.repositories import (
     db_transaction,
 )
 from backend.domain.resume import process_resume_upload
-from backend.domain.tenant import (
-    TenantContext,
-    resolve_tenant_context,
-)
+from backend.domain.tenant import TenantContext, resolve_tenant_context
+from shared.config import Environment, get_settings
+from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import incr
+from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
+from shared.redis_client import close_redis, get_redis
+from shared.storage import get_storage_service
+from shared.telemetry import setup_telemetry
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -99,11 +92,7 @@ if _settings.sentry_dsn:
 
 from contextlib import asynccontextmanager
 
-from api.dependencies import (
-    _pool_manager,
-    get_current_user_id,
-    get_pool,
-)
+from api.dependencies import _pool_manager, get_current_user_id, get_pool
 
 
 @asynccontextmanager
@@ -215,6 +204,7 @@ async def ensure_cors_on_all_responses(request: Request, call_next):
 
     return response
 
+
 # ---------------------------------------------------------------------------
 # IMPORTANT: Middleware executes in REVERSE order of registration.
 # CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
@@ -223,9 +213,8 @@ async def ensure_cors_on_all_responses(request: Request, call_next):
 # Add Request ID middleware for distributed tracing
 setup_request_id_middleware(app)
 
-from shared.middleware import get_client_ip, setup_security_headers
-
 from shared.metrics import get_rate_limiter
+from shared.middleware import get_client_ip, setup_security_headers
 
 # ---------------------------------------------------------------------------
 # CSRF Protection Middleware
@@ -284,12 +273,16 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
                 )
                 if row:
                     tenant_id = row["tenant_id"]
-                    tier = TenantTier(row["plan"].upper()) if row["plan"] else TenantTier.FREE
+                    tier = (
+                        TenantTier(row["plan"].upper())
+                        if row["plan"]
+                        else TenantTier.FREE
+                    )
                     return tenant_id, tier
-        except Exception:
-            pass
-    except Exception:
-        pass
+        except Exception as e:
+            logger.debug(f"Failed to fetch tenant info from DB: {e}")
+    except Exception as e:
+        logger.debug(f"Failed to decode JWT for tenant info: {e}")
 
     return None, TenantTier.FREE
 
@@ -396,7 +389,10 @@ def _mount_sub_routers() -> None:
         app.dependency_overrides[sso_mod._get_tenant_ctx] = get_tenant_context
         app.include_router(sso_mod.router)
     except ImportError as exc:
-        logger.warning("SSO module unavailable (signxml/pyOpenSSL issue): %s — SSO endpoints disabled", exc)
+        logger.warning(
+            "SSO module unavailable (signxml/pyOpenSSL issue): %s — SSO endpoints disabled",
+            exc,
+        )
 
     import api.bulk as bulk_mod
 
@@ -436,6 +432,7 @@ def _mount_sub_routers() -> None:
 
     # Billing routes
     import api.billing as billing_mod
+
     app.dependency_overrides[billing_mod._get_pool] = get_pool
     app.dependency_overrides[billing_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(billing_mod.router)
@@ -478,6 +475,7 @@ def _mount_sub_routers() -> None:
     app.include_router(mfa_mod.router)
 
     import api.ccpa as ccpa_mod
+
     app.include_router(ccpa_mod.router)
 
     import api.interviews as interviews_mod
@@ -526,7 +524,6 @@ def _mount_sub_routers() -> None:
 # ---------------------------------------------------------------------------
 # Database pool lifecycle
 # ---------------------------------------------------------------------------
-
 
 
 # ---------------------------------------------------------------------------
@@ -578,9 +575,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 # ---------------------------------------------------------------------------
 # Auth dependency – extract user_id from Supabase JWT
 # ---------------------------------------------------------------------------
-
-
-
 
 
 # ---------------------------------------------------------------------------
@@ -871,6 +865,7 @@ async def save_work_style(
         )
         if existing:
             import json as _json
+
             pd = existing["profile_data"]
             profile_data = _json.loads(pd) if isinstance(pd, str) else (pd or {})
             profile_data["work_style"] = body.model_dump()
@@ -1075,9 +1070,11 @@ async def resume_task(
                 field_type=r["field_type"],
                 answer=r["answer"],
                 resolved=r["resolved"],
-                meta=json.loads(r["meta"])
-                if isinstance(r["meta"], str)
-                else r.get("meta"),
+                meta=(
+                    json.loads(r["meta"])
+                    if isinstance(r["meta"], str)
+                    else r.get("meta")
+                ),
             )
             for r in remaining
         ],
@@ -1112,7 +1109,11 @@ async def get_application_detail(
         serialized = detail.to_serializable()
         app_dict = serialized["application"]
 
-        job = await JobRepo.get_by_id(conn, app_dict["job_id"]) if app_dict.get("job_id") else None
+        job = (
+            await JobRepo.get_by_id(conn, app_dict["job_id"])
+            if app_dict.get("job_id")
+            else None
+        )
         if job:
             app_dict["company"] = job.get("company") or ""
             app_dict["job_title"] = job.get("title") or ""
@@ -1158,8 +1159,8 @@ async def healthz(
         async with db.acquire() as conn:
             await conn.fetchval("SELECT 1")
         db_ok = True
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Health check DB connection failed: {e}")
 
     status = "ok" if db_ok else "degraded"
     return {
@@ -1184,13 +1185,17 @@ async def serve_storage_file(
     import re
 
     # Validate bucket name (alphanumeric, hyphens, underscores only)
-    if not re.match(r'^[a-zA-Z0-9_-]+$', bucket):
+    if not re.match(r"^[a-zA-Z0-9_-]+$", bucket):
         raise HTTPException(status_code=400, detail="Invalid bucket name")
 
     # Validate path components
     # Normalize path and check for traversal attempts
     normalized_path = os.path.normpath(path)
-    if ".." in normalized_path or normalized_path.startswith("/") or normalized_path.startswith("\\"):
+    if (
+        ".." in normalized_path
+        or normalized_path.startswith("/")
+        or normalized_path.startswith("\\")
+    ):
         raise HTTPException(status_code=400, detail="Invalid path")
 
     # Additional checks for encoded traversal attempts

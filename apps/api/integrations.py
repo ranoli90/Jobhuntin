@@ -17,6 +17,7 @@ from backend.domain.slack_integration import SlackIntegrationManager, SlackMessa
 from backend.domain.zapier_integration import ZapierIntegrationManager
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.integrations")
@@ -25,6 +26,7 @@ logger = get_logger("sorce.api.integrations")
 def _get_encryption_key() -> bytes:
     """Derive encryption key from JWT_SECRET for token encryption at rest."""
     from shared.config import get_settings
+
     secret = get_settings().jwt_secret or "dev-fallback-key"
     key = hashlib.sha256(secret.encode()).digest()
     return base64.urlsafe_b64encode(key)
@@ -35,6 +37,7 @@ def _encrypt_token(token: str) -> str:
     if not token:
         return token
     from cryptography.fernet import Fernet
+
     f = Fernet(_get_encryption_key())
     return f.encrypt(token.encode()).decode()
 
@@ -45,10 +48,12 @@ def _decrypt_token(encrypted: str) -> str:
         return encrypted
     try:
         from cryptography.fernet import Fernet
+
         f = Fernet(_get_encryption_key())
         return f.decrypt(encrypted.encode()).decode()
     except Exception:
         return encrypted  # Return as-is if decryption fails (legacy unencrypted token)
+
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
@@ -323,7 +328,9 @@ async def connect_google_drive(
         tenant_id=tenant_id,
         user_id=user_id,
         access_token=_encrypt_token(body.access_token),
-        refresh_token=_encrypt_token(body.refresh_token) if body.refresh_token else None,
+        refresh_token=(
+            _encrypt_token(body.refresh_token) if body.refresh_token else None
+        ),
     )
 
     return {"status": "connected"}
@@ -457,9 +464,9 @@ async def list_zapier_hooks(
             "event_types": h.event_types,
             "is_active": h.is_active,
             "created_at": h.created_at.isoformat() if h.created_at else None,
-            "last_triggered_at": h.last_triggered_at.isoformat()
-            if h.last_triggered_at
-            else None,
+            "last_triggered_at": (
+                h.last_triggered_at.isoformat() if h.last_triggered_at else None
+            ),
         }
         for h in hooks
     ]
@@ -469,7 +476,9 @@ async def list_zapier_hooks(
 async def delete_zapier_hook(
     hook_id: str,
     db: asyncpg.Pool = Depends(_get_pool),
-    tenant_id: str = Depends(_get_tenant_id),  # SECURITY: Require authentication and validate ownership
+    tenant_id: str = Depends(
+        _get_tenant_id
+    ),  # SECURITY: Require authentication and validate ownership
 ) -> dict[str, str]:
     manager = ZapierIntegrationManager(db)
 

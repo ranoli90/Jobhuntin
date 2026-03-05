@@ -18,21 +18,9 @@ from pathlib import Path
 from typing import Any, Literal
 
 import asyncpg
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Depends,
-    File,
-    HTTPException,
-    UploadFile,
-)
-from fastapi import (
-    Path as FastAPIPath,
-)
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import Path as FastAPIPath
 from pydantic import BaseModel, Field, field_validator
-from shared.config import get_settings
-from shared.logging_config import get_logger
-from shared.storage import get_storage_service
 
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
 from backend.domain.repositories import (
@@ -45,7 +33,10 @@ from backend.domain.repositories import (
 )
 from backend.domain.resume import process_resume_upload
 from backend.domain.tenant import TenantContext
+from shared.config import get_settings
+from shared.logging_config import get_logger
 from shared.metrics import RateLimiter
+from shared.storage import get_storage_service
 
 logger = get_logger("sorce.user")
 
@@ -69,9 +60,7 @@ def _get_profile_limiter(user_id: str) -> RateLimiter:
     expired = [k for k, (_, ts) in _profile_limiters.items() if now - ts > _LIMITER_TTL]
     for k in expired:
         _profile_limiters.pop(k, None)
-    limiter = RateLimiter(
-        max_calls=30, window_seconds=300.0, name=f"profile:{user_id}"
-    )
+    limiter = RateLimiter(max_calls=30, window_seconds=300.0, name=f"profile:{user_id}")
     _profile_limiters[user_id] = (limiter, now)
     return limiter
 
@@ -88,9 +77,7 @@ def _get_upload_limiter(user_id: str) -> RateLimiter:
     expired = [k for k, (_, ts) in _upload_limiters.items() if now - ts > _LIMITER_TTL]
     for k in expired:
         _upload_limiters.pop(k, None)
-    limiter = RateLimiter(
-        max_calls=10, window_seconds=600.0, name=f"upload:{user_id}"
-    )
+    limiter = RateLimiter(max_calls=10, window_seconds=600.0, name=f"upload:{user_id}")
     _upload_limiters[user_id] = (limiter, now)
     return limiter
 
@@ -154,12 +141,12 @@ async def list_applications(
                 "job_title": r["job_title"],
                 "company": r["company"],
                 "status": _status_to_web(r["status"]),
-                "last_activity": r["updated_at"].isoformat()
-                if r["updated_at"]
-                else None,
-                "hold_question": r["hold_question"]
-                if r["status"] == "REQUIRES_INPUT"
-                else None,
+                "last_activity": (
+                    r["updated_at"].isoformat() if r["updated_at"] else None
+                ),
+                "hold_question": (
+                    r["hold_question"] if r["status"] == "REQUIRES_INPUT" else None
+                ),
             }
         )
     return out
@@ -266,7 +253,9 @@ async def create_application(
 
 @router.post("/applications/{job_id}/undo")
 async def undo_application(
-    job_id: str = FastAPIPath(..., description="The job ID (not application ID) whose swipe to undo"),
+    job_id: str = FastAPIPath(
+        ..., description="The job ID (not application ID) whose swipe to undo"
+    ),
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
@@ -300,7 +289,9 @@ async def undo_application(
         from datetime import datetime, timedelta
 
         created_at = app["created_at"]
-        if created_at and datetime.now(timezone.utc) - created_at > timedelta(seconds=10):
+        if created_at and datetime.now(timezone.utc) - created_at > timedelta(
+            seconds=10
+        ):
             raise HTTPException(status_code=400, detail="Undo window has expired")
 
         # Delete the application record
@@ -482,6 +473,7 @@ async def get_job_sources(
 ) -> list[dict[str, Any]]:
     """Get list of available job sources with stats."""
     from backend.domain.job_search import get_job_sources
+
     return await get_job_sources(db)
 
 
@@ -700,9 +692,9 @@ async def update_profile(
             conn,
             ctx.user_id,
             profile_data,
-            resume_url=body.resume_url
-            if body.resume_url is not None
-            else current_resume,
+            resume_url=(
+                body.resume_url if body.resume_url is not None else current_resume
+            ),
             tenant_id=ctx.tenant_id,
         )
 
@@ -808,6 +800,7 @@ async def _hydrate_job_matches(
                 )
             if row and row["profile_data"]:
                 import json as _json
+
                 pd = row["profile_data"]
                 data = _json.loads(pd) if isinstance(pd, str) else pd
                 data["user_id"] = user_id
@@ -887,8 +880,7 @@ async def upload_resume(
     except Exception as exc:
         logger.error("Resume upload failed: %s", exc, exc_info=True)
         raise HTTPException(
-            status_code=500,
-            detail="Resume processing failed. Please try again."
+            status_code=500, detail="Resume processing failed. Please try again."
         )
 
     from shared.metrics import incr
@@ -987,9 +979,11 @@ async def get_job_sync_status(
     """Get current job sync status (admin only)."""
     if not ctx.is_admin:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=403, detail="Admin access required")
 
     from backend.domain.job_search import get_sync_status
+
     return await get_sync_status(db)
 
 
@@ -1002,6 +996,7 @@ async def trigger_job_sync(
     """Manually trigger a job sync (admin only)."""
     if not ctx.is_admin:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=403, detail="Admin access required")
 
     from backend.domain.job_sync_service import JobSyncService

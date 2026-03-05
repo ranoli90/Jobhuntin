@@ -28,6 +28,7 @@ from backend.llm.contracts import (
 # normalize_profile tests
 # ===================================================================
 
+
 class TestNormalizeProfile:
     """Test the canonical profile normalizer."""
 
@@ -106,7 +107,11 @@ class TestNormalizeProfile:
             },
             "education": [],
             "experience": [],
-            "skills": {"technical": [], "soft": [], "languages": ["Python"]},  # extra key
+            "skills": {
+                "technical": [],
+                "soft": [],
+                "languages": ["Python"],
+            },  # extra key
             "certifications": [],
             "languages": [],
             "summary": "",
@@ -144,8 +149,8 @@ class TestNormalizeProfile:
 # LLMMapping model tests
 # ===================================================================
 
-class TestLLMMapping:
 
+class TestLLMMapping:
     def test_from_dict_full(self):
         raw = {
             "field_values": {"#name": "Alice", "#email": "a@b.com"},
@@ -168,12 +173,10 @@ class TestLLMMapping:
 # Error envelope tests
 # ===================================================================
 
-class TestErrorResponse:
 
+class TestErrorResponse:
     def test_serialization(self):
-        err = ErrorResponse(
-            error=ErrorDetail(code="HTTP_404", message="Not found")
-        )
+        err = ErrorResponse(error=ErrorDetail(code="HTTP_404", message="Not found"))
         d = err.model_dump()
         assert d["error"]["code"] == "HTTP_404"
         assert d["error"]["message"] == "Not found"
@@ -184,8 +187,8 @@ class TestErrorResponse:
 # LLM contract tests
 # ===================================================================
 
-class TestResumeParseContract:
 
+class TestResumeParseContract:
     def test_response_model_accepts_valid(self):
         raw = {
             "contact": {"full_name": "Alice", "email": "a@b.com"},
@@ -213,7 +216,6 @@ class TestResumeParseContract:
 
 
 class TestDomMappingContract:
-
     def test_response_model_accepts_valid(self):
         raw = {
             "field_values": {"#name": "Alice"},
@@ -242,14 +244,13 @@ class TestDomMappingContract:
 # LLM Client tests (mocked HTTP)
 # ===================================================================
 
-class TestLLMClient:
 
+class TestLLMClient:
     @pytest.mark.asyncio
     async def test_successful_call_with_response_format(self):
         """LLMClient should parse response into Pydantic model."""
-        from shared.config import Settings
-
         from backend.llm.client import LLMClient
+        from shared.config import Settings
 
         settings = Settings(
             llm_api_base="https://api.openai.com/v1",
@@ -277,9 +278,8 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_raw_dict_return_without_response_format(self):
         """Without response_format, should return raw dict."""
-        from shared.config import Settings
-
         from backend.llm.client import LLMClient
+        from shared.config import Settings
 
         settings = Settings(
             llm_api_base="https://api.openai.com/v1",
@@ -296,9 +296,9 @@ class TestLLMClient:
     async def test_retry_on_transient_error(self):
         """Should retry on server errors then succeed."""
         import httpx
-        from shared.config import Settings
 
         from backend.llm.client import LLMClient
+        from shared.config import Settings
 
         settings = Settings(
             llm_api_base="https://api.openai.com/v1",
@@ -315,14 +315,10 @@ class TestLLMClient:
             if call_count < 3:
                 mock_resp = MagicMock()
                 mock_resp.status_code = 503
-                raise httpx.HTTPStatusError("503", request=MagicMock(), response=mock_resp)
-            return {
-                "choices": [{
-                    "message": {
-                        "content": '{"result": "ok"}'
-                    }
-                }]
-            }
+                raise httpx.HTTPStatusError(
+                    "503", request=MagicMock(), response=mock_resp
+                )
+            return {"choices": [{"message": {"content": '{"result": "ok"}'}}]}
 
         client._make_http_request = flaky_request
 
@@ -333,9 +329,8 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_validation_error_not_retried(self):
         """Schema validation failures should not be retried."""
-        from shared.config import Settings
-
         from backend.llm.client import LLMClient, LLMValidationError
+        from shared.config import Settings
 
         settings = Settings(
             llm_api_base="https://api.openai.com/v1",
@@ -353,11 +348,7 @@ class TestLLMClient:
             required_field: str  # no default → required
 
         mock_openai_resp = {
-            "choices": [{
-                "message": {
-                    "content": '{"wrong_field": "value"}'
-                }
-            }]
+            "choices": [{"message": {"content": '{"wrong_field": "value"}'}}]
         }
         client._make_http_request = AsyncMock(return_value=mock_openai_resp)
 
@@ -369,8 +360,8 @@ class TestLLMClient:
 # ApplicationStatus enum tests
 # ===================================================================
 
-class TestApplicationStatus:
 
+class TestApplicationStatus:
     def test_values(self):
         assert ApplicationStatus.QUEUED.value == "QUEUED"
         assert ApplicationStatus.PROCESSING.value == "PROCESSING"

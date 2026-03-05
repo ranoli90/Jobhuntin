@@ -7,14 +7,14 @@ Uses Resend API for email delivery.
 from __future__ import annotations
 
 import json
-from datetime import timezone, UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import asyncpg
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
+from shared.config import get_settings
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.email_digest")
 
@@ -22,6 +22,7 @@ logger = get_logger("sorce.email_digest")
 # ---------------------------------------------------------------------------
 # Digest data assembly
 # ---------------------------------------------------------------------------
+
 
 async def build_digest_for_user(
     conn: asyncpg.Connection,
@@ -47,7 +48,8 @@ async def build_digest_for_user(
         WHERE user_id = $1
           AND created_at >= $2
         """,
-        user_id, period_start,
+        user_id,
+        period_start,
     )
 
     total = stats["total_apps"] if stats else 0
@@ -65,7 +67,8 @@ async def build_digest_for_user(
         ORDER BY count DESC
         LIMIT 5
         """,
-        user_id, period_start,
+        user_id,
+        period_start,
     )
 
     return {
@@ -76,13 +79,16 @@ async def build_digest_for_user(
         "failed": stats["failed"],
         "on_hold": stats["on_hold"],
         "in_progress": stats["in_progress"],
-        "top_companies": [{"company": r["company"], "count": r["count"]} for r in companies],
+        "top_companies": [
+            {"company": r["company"], "count": r["count"]} for r in companies
+        ],
     }
 
 
 # ---------------------------------------------------------------------------
 # Email rendering
 # ---------------------------------------------------------------------------
+
 
 def render_digest_html(user_name: str | None, stats: dict[str, Any]) -> str:
     """Render the weekly digest as HTML email."""
@@ -105,19 +111,19 @@ def render_digest_html(user_name: str | None, stats: dict[str, Any]) -> str:
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <td style="text-align: center; padding: 8px;">
-                        <div style="font-size: 28px; font-weight: 700; color: #3B82F6;">{stats['total_applications']}</div>
+                        <div style="font-size: 28px; font-weight: 700; color: #3B82F6;">{stats["total_applications"]}</div>
                         <div style="font-size: 12px; color: #64748B;">Applied</div>
                     </td>
                     <td style="text-align: center; padding: 8px;">
-                        <div style="font-size: 28px; font-weight: 700; color: #10B981;">{stats['succeeded']}</div>
+                        <div style="font-size: 28px; font-weight: 700; color: #10B981;">{stats["succeeded"]}</div>
                         <div style="font-size: 12px; color: #64748B;">Submitted</div>
                     </td>
                     <td style="text-align: center; padding: 8px;">
-                        <div style="font-size: 28px; font-weight: 700; color: #F59E0B;">{stats['on_hold']}</div>
+                        <div style="font-size: 28px; font-weight: 700; color: #F59E0B;">{stats["on_hold"]}</div>
                         <div style="font-size: 12px; color: #64748B;">Need Input</div>
                     </td>
                     <td style="text-align: center; padding: 8px;">
-                        <div style="font-size: 28px; font-weight: 700; color: #64748B;">{stats['in_progress']}</div>
+                        <div style="font-size: 28px; font-weight: 700; color: #64748B;">{stats["in_progress"]}</div>
                         <div style="font-size: 12px; color: #64748B;">In Progress</div>
                     </td>
                 </tr>
@@ -126,7 +132,7 @@ def render_digest_html(user_name: str | None, stats: dict[str, Any]) -> str:
 
         {"<div style='margin: 20px 0;'><strong>Top companies this week:</strong><ul>" + companies_html + "</ul></div>" if companies_html else ""}
 
-        {_hold_cta(stats['on_hold']) if stats['on_hold'] > 0 else ""}
+        {_hold_cta(stats["on_hold"]) if stats["on_hold"] > 0 else ""}
 
         <div style="text-align: center; margin: 30px 0;">
             <a href="sorce://feed" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Open Sorce</a>
@@ -151,6 +157,7 @@ def _hold_cta(count: int) -> str:
 # ---------------------------------------------------------------------------
 # Send via Resend
 # ---------------------------------------------------------------------------
+
 
 async def send_digest_email(
     to_email: str,
@@ -198,6 +205,7 @@ async def send_digest_email(
 # ---------------------------------------------------------------------------
 # Batch digest runner (called by cron)
 # ---------------------------------------------------------------------------
+
 
 async def run_weekly_digest(pool: asyncpg.Pool) -> dict[str, int]:
     """Generate and send weekly digests for all active users.
@@ -264,5 +272,7 @@ async def run_weekly_digest(pool: asyncpg.Pool) -> dict[str, int]:
             else:
                 failed += 1
 
-    logger.info("Weekly digest complete: sent=%d, skipped=%d, failed=%d", sent, skipped, failed)
+    logger.info(
+        "Weekly digest complete: sent=%d, skipped=%d, failed=%d", sent, skipped, failed
+    )
     return {"sent": sent, "skipped": skipped, "failed": failed}

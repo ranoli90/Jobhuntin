@@ -17,8 +17,8 @@ from backend.domain.interview_simulator import (
 )
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.interviews")
@@ -300,16 +300,18 @@ async def create_interview_session(
         interview_type=session.interview_type.value,
         difficulty=session.difficulty.value,
         total_questions=len(session.questions),
-        first_question={
-            "id": first_question.id,
-            "question": first_question.question,
-            "question_type": first_question.question_type.value,
-            "difficulty": first_question.difficulty.value,
-            "phase": first_question.phase.value,
-            "time_limit_seconds": first_question.time_limit_seconds,
-        }
-        if first_question
-        else None,
+        first_question=(
+            {
+                "id": first_question.id,
+                "question": first_question.question,
+                "question_type": first_question.question_type.value,
+                "difficulty": first_question.difficulty.value,
+                "phase": first_question.phase.value,
+                "time_limit_seconds": first_question.time_limit_seconds,
+            }
+            if first_question
+            else None
+        ),
     )
 
 
@@ -397,9 +399,9 @@ async def get_session_detail(
             "current_question_index": session.current_question_index,
             "total_score": session.total_score,
             "started_at": session.started_at.isoformat(),
-            "completed_at": session.completed_at.isoformat()
-            if session.completed_at
-            else None,
+            "completed_at": (
+                session.completed_at.isoformat() if session.completed_at else None
+            ),
             "status": session.status,
         },
         questions=[
@@ -500,9 +502,9 @@ async def list_user_sessions(
                 "questions_answered": r["questions_answered"],
                 "status": r["status"],
                 "started_at": r["started_at"].isoformat(),
-                "completed_at": r["completed_at"].isoformat()
-                if r["completed_at"]
-                else None,
+                "completed_at": (
+                    r["completed_at"].isoformat() if r["completed_at"] else None
+                ),
             }
             for r in rows
         ]

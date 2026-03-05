@@ -17,8 +17,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import httpx
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.vector_db")

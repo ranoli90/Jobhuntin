@@ -65,12 +65,17 @@ def create_blueprint(name: str, slug: str, description: str = "") -> None:
     """Create a new blueprint from the template."""
     # Validate slug
     if not re.match(r"^[a-z][a-z0-9-]*$", slug):
-        print(f"ERROR: slug must be lowercase alphanumeric with hyphens: '{slug}'", file=sys.stderr)
+        print(
+            f"ERROR: slug must be lowercase alphanumeric with hyphens: '{slug}'",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     target_dir = BLUEPRINTS_DIR / slug.replace("-", "_")
     if target_dir.exists():
-        print(f"ERROR: Blueprint directory already exists: {target_dir}", file=sys.stderr)
+        print(
+            f"ERROR: Blueprint directory already exists: {target_dir}", file=sys.stderr
+        )
         sys.exit(1)
 
     class_name = slug_to_class_name(slug)
@@ -123,9 +128,15 @@ def create_blueprint(name: str, slug: str, description: str = "") -> None:
     # Print next steps
     print(f"\n✓ Blueprint '{name}' created successfully!")
     print("\nNext steps:")
-    print(f"  1. Edit backend/blueprints/{slug.replace('-', '_')}/models.py — add vertical-specific fields")
-    print(f"  2. Edit backend/blueprints/{slug.replace('-', '_')}/prompts.py — customize LLM prompts")
-    print(f"  3. Edit backend/blueprints/{slug.replace('-', '_')}/blueprint.py — implement all methods")
+    print(
+        f"  1. Edit backend/blueprints/{slug.replace('-', '_')}/models.py — add vertical-specific fields"
+    )
+    print(
+        f"  2. Edit backend/blueprints/{slug.replace('-', '_')}/prompts.py — customize LLM prompts"
+    )
+    print(
+        f"  3. Edit backend/blueprints/{slug.replace('-', '_')}/blueprint.py — implement all methods"
+    )
     print("  4. Register in backend/blueprints/registry.py → load_default_blueprints()")
     print(f"  5. Add '{slug}' to ENABLED_BLUEPRINTS in your .env or config")
     print("  6. Run the schema migration if you added custom tables/columns")

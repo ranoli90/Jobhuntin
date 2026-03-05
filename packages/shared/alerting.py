@@ -18,7 +18,7 @@ import threading
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import timezone, datetime
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -116,17 +116,21 @@ class Alert:
             "threshold": self.threshold,
             "message": self.message,
             "labels": self.labels,
-            "fired_at": datetime.fromtimestamp(self.fired_at, UTC).isoformat()
-            if self.fired_at
-            else None,
-            "resolved_at": datetime.fromtimestamp(self.resolved_at, UTC).isoformat()
-            if self.resolved_at
-            else None,
-            "acknowledged_at": datetime.fromtimestamp(
-                self.acknowledged_at, UTC
-            ).isoformat()
-            if self.acknowledged_at
-            else None,
+            "fired_at": (
+                datetime.fromtimestamp(self.fired_at, UTC).isoformat()
+                if self.fired_at
+                else None
+            ),
+            "resolved_at": (
+                datetime.fromtimestamp(self.resolved_at, UTC).isoformat()
+                if self.resolved_at
+                else None
+            ),
+            "acknowledged_at": (
+                datetime.fromtimestamp(self.acknowledged_at, UTC).isoformat()
+                if self.acknowledged_at
+                else None
+            ),
             "acknowledged_by": self.acknowledged_by,
             "notification_sent": self.notification_sent,
         }

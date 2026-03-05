@@ -3,6 +3,7 @@
 Usage: python scripts/sonarcloud-fetch-issues.py [--output issues.json]
 Requires: SONAR_TOKEN in .env or environment.
 """
+
 import json
 import os
 import sys
@@ -30,6 +31,7 @@ def fetch_issues(types="BUG,VULNERABILITY,CODE_SMELL", ps=500):
     url = f"{BASE}/issues/search?componentKeys={PROJECT}&types={types}&resolved=false&ps={ps}"
     req = urllib.request.Request(url)
     import base64
+
     auth = base64.b64encode(f"{TOKEN}:".encode()).decode()
     req.add_header("Authorization", f"Basic {auth}")
     try:

@@ -25,8 +25,15 @@ import asyncpg
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apps"))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "packages"))
+sys.path.insert(
+    0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apps")
+)
+sys.path.insert(
+    0,
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "packages"
+    ),
+)
 from shared.config import get_settings
 
 # ---------------------------------------------------------------------------
@@ -184,10 +191,12 @@ async def seed_experiment(conn: asyncpg.Connection) -> None:
         )
         ON CONFLICT DO NOTHING
         """,
-        json.dumps([
-            {"name": "v1", "traffic_pct": 90},
-            {"name": "v2", "traffic_pct": 10},
-        ]),
+        json.dumps(
+            [
+                {"name": "v1", "traffic_pct": 90},
+                {"name": "v2", "traffic_pct": 10},
+            ]
+        ),
     )
 
 
@@ -228,6 +237,8 @@ async def main(jobs_count: int = 50) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Seed M1 beta data")
-    parser.add_argument("--jobs-count", type=int, default=50, help="Number of sample jobs to insert")
+    parser.add_argument(
+        "--jobs-count", type=int, default=50, help="Number of sample jobs to insert"
+    )
     args = parser.parse_args()
     asyncio.run(main(jobs_count=args.jobs_count))

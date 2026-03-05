@@ -25,7 +25,7 @@ async def apply_sql():
     # So we can use str(settings.database_url)
 
     dsn = str(settings.database_url)
-    print(f"Target DB: {dsn.split('@')[-1]}") # hide credentials
+    print(f"Target DB: {dsn.split('@')[-1]}")  # hide credentials
 
     try:
         conn = await asyncpg.connect(dsn)
@@ -56,6 +56,7 @@ async def apply_sql():
         print(f"Migration failed: {e}")
     finally:
         await conn.close()
+
 
 if __name__ == "__main__":
     asyncio.run(apply_sql())

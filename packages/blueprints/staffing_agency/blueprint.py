@@ -32,6 +32,7 @@ Text:
     def parse_profile_response(self, llm_output: str) -> dict[str, Any]:
         """Parse LLM JSON response into candidate profile dict."""
         import json
+
         try:
             return json.loads(llm_output)
         except json.JSONDecodeError:
@@ -40,9 +41,12 @@ Text:
     def normalize_profile(self, profile: dict[str, Any]) -> dict[str, Any]:
         return profile
 
-    def build_dom_mapping_prompt(self, profile: dict[str, Any], fields: list[dict]) -> str:
+    def build_dom_mapping_prompt(
+        self, profile: dict[str, Any], fields: list[dict]
+    ) -> str:
         """Construct prompt to map candidate profile to ATS form fields."""
         import json
+
         return f"""Map the candidate profile data to the ATS application form fields.
 
 Candidate Profile:
@@ -65,6 +69,7 @@ Leave fields empty if no matching data."""
 
     def parse_dom_mapping_response(self, llm_output: str) -> list[dict[str, Any]]:
         import json
+
         try:
             return json.loads(llm_output)
         except json.JSONDecodeError:

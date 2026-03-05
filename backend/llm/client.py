@@ -20,10 +20,10 @@ from typing import TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
-from shared.config import Settings
-from shared.logging_config import get_logger
 
 from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from shared.config import Settings
+from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.llm")
@@ -89,7 +89,9 @@ class LLMClient:
 
         last_error: Exception | None = None
 
-        for attempt in range(1, self.retry_count + 2):  # retry_count retries + 1 initial
+        for attempt in range(
+            1, self.retry_count + 2
+        ):  # retry_count retries + 1 initial
             t0 = time.monotonic()
             try:
                 raw_json = await self._request(payload)
@@ -101,19 +103,28 @@ class LLMClient:
                     return self._validate(raw_json, response_format)
                 return raw_json
 
-            except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException) as exc:
+            except (
+                httpx.HTTPStatusError,
+                httpx.ConnectError,
+                httpx.TimeoutException,
+            ) as exc:
                 duration = time.monotonic() - t0
                 observe("llm.latency_seconds", duration, {"model": model})
                 incr("llm.calls.error", {"model": model, "attempt": str(attempt)})
                 last_error = exc
 
-                if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code < 500:
+                if (
+                    isinstance(exc, httpx.HTTPStatusError)
+                    and exc.response.status_code < 500
+                ):
                     # Client errors (4xx) are not retryable
                     break
 
                 logger.warning(
                     "LLM call attempt %d/%d failed: %s",
-                    attempt, self.retry_count + 1, exc,
+                    attempt,
+                    self.retry_count + 1,
+                    exc,
                 )
 
             except LLMValidationError:
@@ -125,10 +136,14 @@ class LLMClient:
                 last_error = exc
                 logger.warning(
                     "LLM call attempt %d/%d unexpected error: %s",
-                    attempt, self.retry_count + 1, exc,
+                    attempt,
+                    self.retry_count + 1,
+                    exc,
                 )
 
-        raise LLMError(f"LLM call failed after {self.retry_count + 1} attempts: {last_error}") from last_error
+        raise LLMError(
+            f"LLM call failed after {self.retry_count + 1} attempts: {last_error}"
+        ) from last_error
 
     async def _request(self, payload: dict) -> dict:
         """Make the HTTP request with circuit breaker protection."""
@@ -143,6 +158,7 @@ class LLMClient:
             raise LLMError(
                 f"LLM service unavailable (circuit breaker open). Retry in {exc.retry_after:.0f}s"
             ) from exc
+        return {}  # Fallback for type checker
 
     async def _make_http_request(self, payload: dict) -> dict:
         """Execute the raw HTTP POST."""
@@ -184,7 +200,9 @@ class LLMClient:
         try:
             return json.loads(content)
         except json.JSONDecodeError as exc:
-            raise LLMError(f"LLM returned invalid JSON: {exc}\nContent: {content[:500]}") from exc
+            raise LLMError(
+                f"LLM returned invalid JSON: {exc}\nContent: {content[:500]}"
+            ) from exc
 
     @staticmethod
     def _validate(raw: dict, model_cls: type[T]) -> T:

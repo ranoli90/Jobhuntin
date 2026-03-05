@@ -20,8 +20,11 @@ async def get_team_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
     row = await conn.fetchrow("SELECT * FROM public.mv_team_metrics")
     if not row:
         return {
-            "total_teams": 0, "total_team_seats": 0,
-            "teams_with_3_plus": 0, "avg_seats_per_team": 0, "team_mrr": 0,
+            "total_teams": 0,
+            "total_team_seats": 0,
+            "teams_with_3_plus": 0,
+            "avg_seats_per_team": 0,
+            "team_mrr": 0,
         }
     return dict(row)
 
@@ -42,11 +45,11 @@ async def get_mrr_by_plan(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     return [dict(r) for r in rows]
 
 
-async def get_churn_risk(conn: asyncpg.Connection, limit: int = 20) -> list[dict[str, Any]]:
+async def get_churn_risk(
+    conn: asyncpg.Connection, limit: int = 20
+) -> list[dict[str, Any]]:
     """Return paying tenants at churn risk (inactive >7 days)."""
-    rows = await conn.fetch(
-        "SELECT * FROM public.mv_churn_risk LIMIT $1", limit
-    )
+    rows = await conn.fetch("SELECT * FROM public.mv_churn_risk LIMIT $1", limit)
     return [dict(r) for r in rows]
 
 
@@ -58,7 +61,8 @@ async def get_team_vs_individual(conn: asyncpg.Connection) -> list[dict[str, Any
 
 async def get_plan_distribution(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Return plan distribution with user counts."""
-    rows = await conn.fetch("""
+    rows = await conn.fetch(
+        """
         SELECT
             t.plan::text AS plan,
             COUNT(DISTINCT t.id)::int AS tenant_count,
@@ -67,7 +71,8 @@ async def get_plan_distribution(conn: asyncpg.Connection) -> list[dict[str, Any]
         LEFT JOIN public.tenant_members tm ON tm.tenant_id = t.id
         GROUP BY t.plan
         ORDER BY tenant_count DESC
-    """)
+    """
+    )
     return [dict(r) for r in rows]
 
 
@@ -84,18 +89,18 @@ async def get_m3_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     funnel = await get_conversion_funnel(conn)
 
     # Live active user counts
-    active = await conn.fetchrow("""
+    active = await conn.fetchrow(
+        """
         SELECT
             COUNT(DISTINCT user_id) FILTER (WHERE created_at >= now() - interval '30 days')::int AS mau,
             COUNT(DISTINCT user_id) FILTER (WHERE created_at >= now() - interval '7 days')::int AS wau,
             COUNT(DISTINCT user_id) FILTER (WHERE created_at >= now() - interval '1 day')::int AS dau
         FROM public.analytics_events
-    """)
+    """
+    )
 
     # Total applications all time
-    total_apps = await conn.fetchval(
-        "SELECT COUNT(*)::int FROM public.applications"
-    )
+    total_apps = await conn.fetchval("SELECT COUNT(*)::int FROM public.applications")
 
     # Total MRR
     total_mrr = sum(r.get("plan_mrr", 0) or 0 for r in mrr_plans)

@@ -35,6 +35,7 @@ Text:
 
     def parse_profile_response(self, llm_output: str) -> dict[str, Any]:
         import json
+
         try:
             return json.loads(llm_output)
         except json.JSONDecodeError:
@@ -44,8 +45,11 @@ Text:
         """Normalize profile dictionary (pass-through)."""
         return profile
 
-    def build_dom_mapping_prompt(self, profile: dict[str, Any], fields: list[dict]) -> str:
+    def build_dom_mapping_prompt(
+        self, profile: dict[str, Any], fields: list[dict]
+    ) -> str:
         import json
+
         return f"""Map the scholarship applicant profile to form fields.
 
 Applicant Profile:
@@ -62,6 +66,7 @@ Leave fields empty if no matching data."""
 
     def parse_dom_mapping_response(self, llm_output: str) -> list[dict[str, Any]]:
         import json
+
         try:
             return json.loads(llm_output)
         except json.JSONDecodeError:

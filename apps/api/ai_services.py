@@ -10,8 +10,6 @@ import asyncio
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
-from shared.redis_client import get_redis
 
 from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
@@ -23,6 +21,8 @@ from backend.llm.contracts import (
     SalarySuggestionResponse_V1,
 )
 from shared.ai_validation import validate_and_sanitize_ai_input
+from shared.logging_config import get_logger
+from shared.redis_client import get_redis
 
 logger = get_logger("sorce.api.ai_services")
 
@@ -47,7 +47,9 @@ class AIService:
         """Get AI-powered role suggestions with caching."""
         try:
             # Generate cache key
-            cache_key = self._generate_role_cache_key(resume_text, skills, experience_years, education_level)
+            cache_key = self._generate_role_cache_key(
+                resume_text, skills, experience_years, education_level
+            )
 
             # Check cache first
             cached_result = await self._get_cached_result(cache_key)
@@ -56,7 +58,9 @@ class AIService:
 
             # Validate and sanitize input
             sanitized_text = validate_and_sanitize_ai_input(resume_text)
-            sanitized_skills = [validate_and_sanitize_ai_input(skill) for skill in skills]
+            sanitized_skills = [
+                validate_and_sanitize_ai_input(skill) for skill in skills
+            ]
 
             # Get AI response
             prompt = self._build_role_suggestion_prompt(
@@ -66,7 +70,9 @@ class AIService:
                 education_level=education_level,
             )
 
-            result = await self.llm_client.call(prompt=prompt, response_format=RoleSuggestionResponse_V1)
+            result = await self.llm_client.call(
+                prompt=prompt, response_format=RoleSuggestionResponse_V1
+            )
 
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=3600)
@@ -88,7 +94,9 @@ class AIService:
         """Get AI-powered salary suggestions with market data."""
         try:
             # Generate cache key
-            cache_key = self._generate_salary_cache_key(role, location, skills, experience_years, education_level)
+            cache_key = self._generate_salary_cache_key(
+                role, location, skills, experience_years, education_level
+            )
 
             # Check cache first
             cached_result = await self._get_cached_result(cache_key)
@@ -98,7 +106,9 @@ class AIService:
             # Validate and sanitize input
             sanitized_role = validate_and_sanitize_ai_input(role)
             sanitized_location = validate_and_sanitize_ai_input(location)
-            sanitized_skills = [validate_and_sanitize_ai_input(skill) for skill in skills]
+            sanitized_skills = [
+                validate_and_sanitize_ai_input(skill) for skill in skills
+            ]
 
             # Get AI response
             prompt = self._build_salary_suggestion_prompt(
@@ -109,10 +119,14 @@ class AIService:
                 education_level=education_level,
             )
 
-            result = await self.llm_client.call(prompt=prompt, response_format=SalarySuggestionResponse_V1)
+            result = await self.llm_client.call(
+                prompt=prompt, response_format=SalarySuggestionResponse_V1
+            )
 
             # Cache result
-            await self._cache_result(cache_key, result.json(), ttl=7200)  # 2 hours cache
+            await self._cache_result(
+                cache_key, result.json(), ttl=7200
+            )  # 2 hours cache
 
             return result
 
@@ -130,7 +144,9 @@ class AIService:
         """Get AI-powered location suggestions."""
         try:
             # Generate cache key
-            cache_key = self._generate_location_cache_key(skills, role, experience_years, remote_preference)
+            cache_key = self._generate_location_cache_key(
+                skills, role, experience_years, remote_preference
+            )
 
             # Check cache first
             cached_result = await self._get_cached_result(cache_key)
@@ -138,7 +154,9 @@ class AIService:
                 return LocationSuggestionResponse_V1.parse_raw(cached_result)
 
             # Validate and sanitize input
-            sanitized_skills = [validate_and_sanitize_ai_input(skill) for skill in skills]
+            sanitized_skills = [
+                validate_and_sanitize_ai_input(skill) for skill in skills
+            ]
             sanitized_role = validate_and_sanitize_ai_input(role)
 
             # Get AI response
@@ -149,7 +167,9 @@ class AIService:
                 remote_preference=remote_preference,
             )
 
-            result = await self.llm_client.call(prompt=prompt, response_format=LocationSuggestionResponse_V1)
+            result = await self.llm_client.call(
+                prompt=prompt, response_format=LocationSuggestionResponse_V1
+            )
 
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=3600)
@@ -184,7 +204,7 @@ class AIService:
             batch_size = 5  # Process 5 jobs at a time
 
             for i in range(0, min(len(job_ids), limit), batch_size):
-                batch_job_ids = job_ids[i:i + batch_size]
+                batch_job_ids = job_ids[i : i + batch_size]
                 batch_matches = await self._process_job_batch(profile, batch_job_ids)
                 matches.extend(batch_matches)
 
@@ -195,7 +215,9 @@ class AIService:
             result = JobMatchScore_V1(matches=matches)
 
             # Cache result
-            await self._cache_result(cache_key, result.json(), ttl=1800)  # 30 minutes cache
+            await self._cache_result(
+                cache_key, result.json(), ttl=1800
+            )  # 30 minutes cache
 
             return result
 
@@ -228,7 +250,9 @@ class AIService:
                 current_step=sanitized_step,
             )
 
-            result = await self.llm_client.call(prompt=prompt, response_format=OnboardingQuestionsResponse_V1)
+            result = await self.llm_client.call(
+                prompt=prompt, response_format=OnboardingQuestionsResponse_V1
+            )
 
             # Cache result
             await self._cache_result(cache_key, result.json(), ttl=1800)
@@ -262,7 +286,9 @@ class AIService:
                 prompt = self._build_job_match_prompt(profile, job_details)
 
                 # Get AI response
-                match_score = await self.llm_client.call(prompt=prompt, response_format=JobMatchScore_V1)
+                match_score = await self.llm_client.call(
+                    prompt=prompt, response_format=JobMatchScore_V1
+                )
                 matches.append(match_score)
 
             except Exception as e:
@@ -290,6 +316,7 @@ class AIService:
     def _generate_cache_key(self, *args) -> str:
         """Generate a cache key from arguments."""
         import hashlib
+
         content = ":".join(str(arg) for arg in args)
         return hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
 
@@ -351,7 +378,9 @@ class AIService:
             ",".join(sorted(job_ids)),
         )
 
-    def _generate_onboarding_cache_key(self, resume_text: str, current_step: str) -> str:
+    def _generate_onboarding_cache_key(
+        self, resume_text: str, current_step: str
+    ) -> str:
         """Generate cache key for onboarding questions."""
         return self._generate_cache_key(
             "onboarding_questions",
@@ -393,7 +422,7 @@ Based on the following resume information, suggest 5-7 suitable job roles:
 Resume Text:
 {resume_text}
 
-Key Skills: {', '.join(skills)}
+Key Skills: {", ".join(skills)}
 
 Experience: {experience_years} years
 Education: {education_level}
@@ -422,7 +451,7 @@ Provide salary range estimates for the following position:
 
 Role: {role}
 Location: {location}
-Key Skills: {', '.join(skills)}
+Key Skills: {", ".join(skills)}
 Experience: {experience_years} years
 Education: {education_level}
 
@@ -454,7 +483,7 @@ Format as JSON according to the SalarySuggestionResponse schema.
         return f"""
 Suggest 5-7 optimal locations for job seekers with:
 
-Skills: {', '.join(skills)}
+Skills: {", ".join(skills)}
 Target Role: {role}
 Experience: {experience_years} years
 Remote Preference: {remote_preference}
@@ -487,18 +516,18 @@ Format as JSON according to the LocationSuggestionResponse schema.
 Calculate match score between candidate profile and job:
 
 Candidate Profile:
-- Skills: {profile.get('skills', [])}
-- Experience: {profile.get('experience_years', 0)} years
-- Education: {profile.get('education_level', '')}
-- Location Preference: {profile.get('location_preference', '')}
-- Salary Expectation: {profile.get('salary_expectation', '')}
+- Skills: {profile.get("skills", [])}
+- Experience: {profile.get("experience_years", 0)} years
+- Education: {profile.get("education_level", "")}
+- Location Preference: {profile.get("location_preference", "")}
+- Salary Expectation: {profile.get("salary_expectation", "")}
 
 Job Details:
-- Title: {job.get('title', '')}
-- Description: {job.get('description', '')}
-- Requirements: {job.get('requirements', [])}
-- Location: {job.get('location', '')}
-- Salary Range: {job.get('salary_range', '')}
+- Title: {job.get("title", "")}
+- Description: {job.get("description", "")}
+- Requirements: {job.get("requirements", [])}
+- Location: {job.get("location", "")}
+- Salary Range: {job.get("salary_range", "")}
 
 Calculate match score (0-100) based on:
 - Skills alignment

@@ -9,15 +9,15 @@ Implements:
 from __future__ import annotations
 
 import json
-from datetime import timezone, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from shared.logging_config import get_logger
 
 from backend.domain.repositories import db_transaction
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.gdpr")
@@ -262,7 +262,9 @@ async def delete_user_data(
         raise
     except Exception as e:
         logger.error("GDPR deletion failed: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Data deletion failed. Please contact support.")
+        raise HTTPException(
+            status_code=500, detail="Data deletion failed. Please contact support."
+        )
 
     logger.info(
         "GDPR data deletion completed",

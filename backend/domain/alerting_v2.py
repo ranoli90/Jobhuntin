@@ -9,10 +9,10 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from backend.domain.observability import run_all_alerts
+from shared.config import get_settings
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.alerting_v2")
 
@@ -20,6 +20,7 @@ logger = get_logger("sorce.alerting_v2")
 # ---------------------------------------------------------------------------
 # PagerDuty
 # ---------------------------------------------------------------------------
+
 
 async def send_pagerduty_event(
     summary: str,
@@ -35,6 +36,7 @@ async def send_pagerduty_event(
 
     try:
         import httpx
+
         payload = {
             "routing_key": s.pagerduty_api_key,
             "event_action": "trigger",
@@ -71,6 +73,7 @@ async def send_pagerduty_event(
 # Slack
 # ---------------------------------------------------------------------------
 
+
 async def send_slack_message(
     text: str,
     channel: str | None = None,
@@ -85,6 +88,7 @@ async def send_slack_message(
 
     try:
         import httpx
+
         payload: dict[str, Any] = {"text": text}
         if channel:
             payload["channel"] = channel
@@ -117,20 +121,23 @@ def slack_channel_for_tier(plan: str) -> str:
 # Auto-rollback
 # ---------------------------------------------------------------------------
 
+
 async def check_and_auto_rollback(conn: asyncpg.Connection) -> dict[str, Any] | None:
     """Check if agent success rate has dropped critically and auto-rollback
     the prompt version to the previous known-good version.
 
     Triggers if success rate < 60% in the last hour with > 20 samples.
     """
-    row = await conn.fetchrow("""
+    row = await conn.fetchrow(
+        """
         SELECT
             COUNT(*)::int AS total,
             COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED'))::int AS succeeded
         FROM public.applications
         WHERE created_at >= now() - interval '1 hour'
           AND status NOT IN ('QUEUED', 'PROCESSING')
-    """)
+    """
+    )
 
     if not row or (row["total"] or 0) < 20:
         return None
@@ -140,6 +147,7 @@ async def check_and_auto_rollback(conn: asyncpg.Connection) -> dict[str, Any] | 
     if rate < 60:
         # Auto-rollback: set prompt_version_override to V1 (safe default)
         from shared.config import get_settings
+
         s = get_settings()
         if not s.prompt_version_override:
             logger.critical(
@@ -161,6 +169,7 @@ async def check_and_auto_rollback(conn: asyncpg.Connection) -> dict[str, Any] | 
 # A/B Test graduation — auto-promote winning experiments
 # ---------------------------------------------------------------------------
 
+
 async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str, Any]]:
     """Check running experiments and auto-graduate winners.
 
@@ -169,7 +178,8 @@ async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str
     - One variant has ≥ 5% higher success rate
     - Experiment has been running ≥ 7 days
     """
-    experiments = await conn.fetch("""
+    experiments = await conn.fetch(
+        """
         SELECT e.key, e.variants, e.created_at,
                COUNT(DISTINCT ea.id)::int AS total_assignments
         FROM public.experiments e
@@ -178,13 +188,15 @@ async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str
           AND e.created_at <= now() - interval '7 days'
         GROUP BY e.key, e.variants, e.created_at
         HAVING COUNT(DISTINCT ea.id) >= 200
-    """)
+    """
+    )
 
     graduated = []
     for exp in experiments:
         key = exp["key"]
         # Get per-variant stats
-        variants = await conn.fetch("""
+        variants = await conn.fetch(
+            """
             SELECT ea.variant,
                    COUNT(*)::int AS samples,
                    COUNT(*) FILTER (
@@ -195,7 +207,9 @@ async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str
             WHERE ea.experiment_key = $1
             GROUP BY ea.variant
             HAVING COUNT(*) >= 100
-        """, key)
+        """,
+            key,
+        )
 
         if len(variants) < 2:
             continue
@@ -205,14 +219,19 @@ async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str
         best_rate = (best["succeeded"] or 0) / max(best["samples"], 1) * 100
 
         runner_up = sorted(
-            variants, key=lambda v: (v["succeeded"] or 0) / max(v["samples"], 1), reverse=True,
+            variants,
+            key=lambda v: (v["succeeded"] or 0) / max(v["samples"], 1),
+            reverse=True,
         )[1]
-        runner_up_rate = (runner_up["succeeded"] or 0) / max(runner_up["samples"], 1) * 100
+        runner_up_rate = (
+            (runner_up["succeeded"] or 0) / max(runner_up["samples"], 1) * 100
+        )
 
         if best_rate - runner_up_rate >= 5:
             # Graduate: deactivate experiment, log result
             await conn.execute(
-                "UPDATE public.experiments SET is_active = false WHERE key = $1", key,
+                "UPDATE public.experiments SET is_active = false WHERE key = $1",
+                key,
             )
             result = {
                 "experiment": key,
@@ -223,8 +242,12 @@ async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str
                 "delta": round(best_rate - runner_up_rate, 1),
             }
             graduated.append(result)
-            logger.info("Experiment graduated: %s → winner=%s (+%.1f%%)",
-                        key, best["variant"], best_rate - runner_up_rate)
+            logger.info(
+                "Experiment graduated: %s → winner=%s (+%.1f%%)",
+                key,
+                best["variant"],
+                best_rate - runner_up_rate,
+            )
 
     return graduated
 
@@ -232,6 +255,7 @@ async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str
 # ---------------------------------------------------------------------------
 # Orchestrator — run all checks and dispatch alerts
 # ---------------------------------------------------------------------------
+
 
 async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
     """Full alerting cycle:
@@ -288,5 +312,7 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
         "alerts": alerts,
         "rollback": rollback,
         "graduated_experiments": graduated,
-        "dispatched": len([a for a in alerts if a.get("level") in ("critical", "warning")]),
+        "dispatched": len(
+            [a for a in alerts if a.get("level") in ("critical", "warning")]
+        ),
     }

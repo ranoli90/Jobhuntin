@@ -235,6 +235,7 @@ async def get_tracker() -> EventTracker:
     global _tracker
     if _tracker is None:
         from shared.config import get_settings
+
         settings = get_settings()
         _tracker = EventTracker(
             write_key=getattr(settings, "segment_write_key", None),

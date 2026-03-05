@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Any
 
 import httpx
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.webhook")
@@ -50,16 +51,16 @@ class WebhookDelivery:
 
     def _calculate_delay(self, attempt: int) -> float:
         """Calculate exponential backoff delay."""
-        delay = self.config.initial_delay_seconds * (self.config.backoff_multiplier ** attempt)
+        delay = self.config.initial_delay_seconds * (
+            self.config.backoff_multiplier**attempt
+        )
         return min(delay, self.config.max_delay_seconds)
 
     def _sign_payload(self, payload: str, secret: str, timestamp: int) -> str:
         """Create HMAC signature for webhook payload."""
         signed_payload = f"{timestamp}.{payload}"
         signature = hmac.new(
-            secret.encode(),
-            signed_payload.encode(),
-            hashlib.sha256
+            secret.encode(), signed_payload.encode(), hashlib.sha256
         ).hexdigest()
         return f"t={timestamp},v1={signature}"
 
@@ -95,7 +96,9 @@ class WebhookDelivery:
                 await asyncio.sleep(delay)
 
             try:
-                async with httpx.AsyncClient(timeout=self.config.timeout_seconds) as client:
+                async with httpx.AsyncClient(
+                    timeout=self.config.timeout_seconds
+                ) as client:
                     response = await client.post(
                         url,
                         content=payload_str,
@@ -112,7 +115,11 @@ class WebhookDelivery:
                     timestamp=datetime.now(),
                     success=response.status_code < 400,
                     status_code=response.status_code,
-                    error=None if response.status_code < 400 else f"HTTP {response.status_code}",
+                    error=(
+                        None
+                        if response.status_code < 400
+                        else f"HTTP {response.status_code}"
+                    ),
                     next_retry=None,
                 )
                 self._pending[webhook_id].append(attempt_record)

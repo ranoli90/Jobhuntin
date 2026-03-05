@@ -20,18 +20,26 @@ async def get_m1_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     au = dict(active_users) if active_users else {"mau": 0, "wau": 0, "dau": 0}
 
     # 2. Agent success rates (7d / 30d)
-    success = await conn.fetchrow(
-        "SELECT * FROM public.mv_agent_success_rates"
+    success = await conn.fetchrow("SELECT * FROM public.mv_agent_success_rates")
+    sr = (
+        dict(success)
+        if success
+        else {
+            "total_7d": 0,
+            "success_7d": 0,
+            "partial_7d": 0,
+            "failure_7d": 0,
+            "success_rate_7d": 0,
+            "total_30d": 0,
+            "success_30d": 0,
+            "partial_30d": 0,
+            "failure_30d": 0,
+            "success_rate_30d": 0,
+        }
     )
-    sr = dict(success) if success else {
-        "total_7d": 0, "success_7d": 0, "partial_7d": 0, "failure_7d": 0, "success_rate_7d": 0,
-        "total_30d": 0, "success_30d": 0, "partial_30d": 0, "failure_30d": 0, "success_rate_30d": 0,
-    }
 
     # 3. Total applications processed (all-time)
-    total_apps = await conn.fetchval(
-        "SELECT COUNT(*)::int FROM public.applications"
-    )
+    total_apps = await conn.fetchval("SELECT COUNT(*)::int FROM public.applications")
 
     # 4. Daily stats (last 14 days)
     daily_rows = await conn.fetch(
@@ -46,12 +54,14 @@ async def get_m1_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     plan_dist = [dict(r) for r in plan_rows]
 
     # 6. Live counts (not from materialized views)
-    live = await conn.fetchrow("""
+    live = await conn.fetchrow(
+        """
         SELECT
             COUNT(*)::int AS total_users,
             COUNT(*) FILTER (WHERE created_at >= now() - interval '24 hours')::int AS signups_today
         FROM public.users
-    """)
+    """
+    )
     live_counts = dict(live) if live else {"total_users": 0, "signups_today": 0}
 
     # 7. Paying subscriber count
@@ -63,7 +73,8 @@ async def get_m1_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     mrr = (pro_count or 0) * 29
 
     # 9. Top failure reasons (last 7 days)
-    failure_rows = await conn.fetch("""
+    failure_rows = await conn.fetch(
+        """
         SELECT reason, COUNT(*)::int AS count
         FROM public.agent_evaluations
         WHERE source = 'SYSTEM' AND label = 'FAILURE'
@@ -71,7 +82,8 @@ async def get_m1_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
         GROUP BY reason
         ORDER BY count DESC
         LIMIT 5
-    """)
+    """
+    )
     top_failures = [dict(r) for r in failure_rows]
 
     # 10. M1 target progress

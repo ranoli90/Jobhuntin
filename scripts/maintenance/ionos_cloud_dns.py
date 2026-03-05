@@ -1,4 +1,5 @@
 """Ionos Cloud API DNS Configuration - Correct approach."""
+
 import base64
 
 import httpx
@@ -17,27 +18,23 @@ DNS_RECORDS = [
         "type": "TXT",
         "name": "resend._domainkey",
         "value": "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTNt9gMWn7w5Rqg8AjipC4rSEzRKCB8TZBurKjmKBEsGUR8mXTDi5611NgVspfrdIQB6lPDjnnHBIiVZW+O+n/2FNIyrXxTRHlQXmCjpdr/tZ5NXnfEg65Xqwc5eGI9useCBgeZowiUACLY3nE/xXkBTvyUWvBQs7vbkXhlMSErwIDAQAB",
-        "priority": None
+        "priority": None,
     },
     {
         "type": "MX",
         "name": "send",
         "value": "feedback-smtp.us-east-1.amazonses.com",
-        "priority": 10
+        "priority": 10,
     },
     {
         "type": "TXT",
         "name": "send",
         "value": "v=spf1 include:amazonses.com ~all",
-        "priority": None
+        "priority": None,
     },
-    {
-        "type": "TXT",
-        "name": "_dmarc",
-        "value": "v=DMARC1; p=none;",
-        "priority": None
-    }
+    {"type": "TXT", "name": "_dmarc", "value": "v=DMARC1; p=none;", "priority": None},
 ]
+
 
 def get_ionos_token():
     """Get Ionos Cloud API token."""
@@ -53,17 +50,14 @@ def get_ionos_token():
     try:
         print("Getting Ionos Cloud token...")
         resp = httpx.post(
-            "https://api.ionos.com/auth/tokens",
-            headers=headers,
-            json={},
-            timeout=10
+            "https://api.ionos.com/auth/tokens", headers=headers, json={}, timeout=10
         )
 
         print(f"Token response status: {resp.status_code}")
 
         if resp.status_code == 200:
             data = resp.json()
-            token = data.get('token')
+            token = data.get("token")
             print("✅ Got Ionos Cloud token")
             return token
         else:
@@ -73,6 +67,7 @@ def get_ionos_token():
     except Exception as e:
         print(f"❌ Error getting token: {e}")
         return None
+
 
 def list_zones(token):
     """List DNS zones."""
@@ -84,9 +79,7 @@ def list_zones(token):
     try:
         print("Listing DNS zones...")
         resp = httpx.get(
-            "https://api.ionos.com/dns/v1/zones",
-            headers=headers,
-            timeout=10
+            "https://api.ionos.com/dns/v1/zones", headers=headers, timeout=10
         )
 
         print(f"Zones list status: {resp.status_code}")
@@ -97,7 +90,7 @@ def list_zones(token):
 
             for zone in data:
                 print(f"  - {zone.get('name')} (ID: {zone.get('id')})")
-                if zone.get('name') == DOMAIN:
+                if zone.get("name") == DOMAIN:
                     print("✅ Found target domain")
                     return zone
 
@@ -111,6 +104,7 @@ def list_zones(token):
         print(f"❌ Error listing zones: {e}")
         return None
 
+
 def get_zone_records(token, zone_id):
     """Get existing records in zone."""
     headers = {
@@ -123,7 +117,7 @@ def get_zone_records(token, zone_id):
         resp = httpx.get(
             f"https://api.ionos.com/dns/v1/zones/{zone_id}/records",
             headers=headers,
-            timeout=10
+            timeout=10,
         )
 
         if resp.status_code == 200:
@@ -137,6 +131,7 @@ def get_zone_records(token, zone_id):
         print(f"❌ Error getting records: {e}")
         return None
 
+
 def create_record(token, zone_id, record):
     """Create DNS record."""
     headers = {
@@ -147,17 +142,17 @@ def create_record(token, zone_id, record):
 
     # Ionos Cloud DNS API format
     payload = {
-        "name": record['name'],
-        "type": record['type'],
-        "content": record['value'],
+        "name": record["name"],
+        "type": record["type"],
+        "content": record["value"],
         "ttl": 3600,
         "disabled": False,
-        "pinned": False
+        "pinned": False,
     }
 
     # Add priority for MX records
-    if record['type'] == 'MX' and record['priority']:
-        payload['priority'] = record['priority']
+    if record["type"] == "MX" and record["priority"]:
+        payload["priority"] = record["priority"]
 
     try:
         print(f"\nCreating {record['type']} record: {record['name']}")
@@ -167,7 +162,7 @@ def create_record(token, zone_id, record):
             f"https://api.ionos.com/dns/v1/zones/{zone_id}/records",
             headers=headers,
             json=payload,
-            timeout=10
+            timeout=10,
         )
 
         print(f"Create status: {resp.status_code}")
@@ -183,6 +178,7 @@ def create_record(token, zone_id, record):
         print(f"❌ Error creating record: {e}")
         return False
 
+
 def update_record(token, zone_id, record_id, record):
     """Update existing DNS record."""
     headers = {
@@ -192,16 +188,16 @@ def update_record(token, zone_id, record_id, record):
     }
 
     payload = {
-        "name": record['name'],
-        "type": record['type'],
-        "content": record['value'],
+        "name": record["name"],
+        "type": record["type"],
+        "content": record["value"],
         "ttl": 3600,
         "disabled": False,
-        "pinned": False
+        "pinned": False,
     }
 
-    if record['type'] == 'MX' and record['priority']:
-        payload['priority'] = record['priority']
+    if record["type"] == "MX" and record["priority"]:
+        payload["priority"] = record["priority"]
 
     try:
         print(f"Updating {record['type']} record: {record['name']}")
@@ -209,7 +205,7 @@ def update_record(token, zone_id, record_id, record):
             f"https://api.ionos.com/dns/v1/zones/{zone_id}/records/{record_id}",
             headers=headers,
             json=payload,
-            timeout=10
+            timeout=10,
         )
 
         if resp.status_code in (200, 204):
@@ -221,6 +217,7 @@ def update_record(token, zone_id, record_id, record):
     except Exception as e:
         print(f"❌ Error updating record: {e}")
         return False
+
 
 def main():
     print("=" * 70)
@@ -244,7 +241,7 @@ def main():
         print("Make sure the domain is added to your Ionos Cloud account first.")
         return
 
-    zone_id = zone.get('id')
+    zone_id = zone.get("id")
 
     # Get existing records
     existing = get_zone_records(token, zone_id) or []
@@ -259,14 +256,16 @@ def main():
         # Check if record already exists
         existing_record = None
         for existing_rec in existing:
-            if (existing_rec.get('name') == record['name'] and
-                existing_rec.get('type') == record['type']):
+            if (
+                existing_rec.get("name") == record["name"]
+                and existing_rec.get("type") == record["type"]
+            ):
                 existing_record = existing_rec
                 break
 
         if existing_record:
             # Update existing record
-            if update_record(token, zone_id, existing_record.get('id'), record):
+            if update_record(token, zone_id, existing_record.get("id"), record):
                 success_count += 1
         else:
             # Create new record
@@ -288,6 +287,7 @@ def main():
         print("⚠️  Some records failed. Manual configuration may be needed.")
         print("\nManual backup:")
         print("Go to https://my.ionos.com and add the DNS records manually")
+
 
 if __name__ == "__main__":
     main()

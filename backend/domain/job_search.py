@@ -2,10 +2,12 @@
 Jobs are synced from JobSpy via background worker.
 This module queries the local database.
 """
+
 import json
 from typing import Any
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -32,7 +34,15 @@ async def search_and_list_jobs(
 
     async with db_pool.acquire() as conn:
         query, params = _build_job_search_query(
-            s, location, min_salary, keywords, source, is_remote, job_type, limit, offset
+            s,
+            location,
+            min_salary,
+            keywords,
+            source,
+            is_remote,
+            job_type,
+            limit,
+            offset,
         )
         rows = await conn.fetch(query, *params)
 
@@ -77,7 +87,9 @@ def _build_job_search_query(
 
     if keywords:
         n += 1
-        query += f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
+        query += (
+            f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
+        )
         params.append(f"%{keywords}%")
 
     if source:
@@ -99,10 +111,15 @@ def _build_job_search_query(
     ttl_days = getattr(settings, "jobspy_job_ttl_days", 7)
     if ttl_days > 0:
         n += 1
-        query += f" AND (last_synced_at IS NULL OR last_synced_at >= now() - ${n}::interval)"
+        query += (
+            f" AND (last_synced_at IS NULL OR last_synced_at >= now() - ${n}::interval)"
+        )
         params.append(f"{ttl_days} days")
 
-    query += " ORDER BY date_posted DESC NULLS LAST, created_at DESC LIMIT $%d OFFSET $%d" % (n + 1, n + 2)
+    query += (
+        " ORDER BY date_posted DESC NULLS LAST, created_at DESC LIMIT $%d OFFSET $%d"
+        % (n + 1, n + 2)
+    )
     params.extend([limit, offset])
 
     return query, params
@@ -139,7 +156,9 @@ def _map_job_row(r: Any) -> dict[str, Any]:
     }
 
 
-async def _track_search(db_pool: asyncpg.Pool, keywords: str | None, location: str | None):
+async def _track_search(
+    db_pool: asyncpg.Pool, keywords: str | None, location: str | None
+):
     """Track search for proactive syncing."""
     if not keywords:
         return
@@ -185,7 +204,9 @@ async def get_sync_status(db_pool: asyncpg.Pool) -> dict[str, Any]:
     """Get current sync status for monitoring."""
     # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - static queries only
     async with db_pool.acquire() as conn:
-        config = await conn.fetch("SELECT * FROM public.job_sync_config ORDER BY source")
+        config = await conn.fetch(
+            "SELECT * FROM public.job_sync_config ORDER BY source"
+        )
         recent = await conn.fetch(
             """
             SELECT source, status, jobs_new, jobs_updated, duration_ms, started_at, completed_at
@@ -195,7 +216,9 @@ async def get_sync_status(db_pool: asyncpg.Pool) -> dict[str, Any]:
             LIMIT 20
             """
         )
-        total_jobs = await conn.fetchval("SELECT COUNT(*) FROM public.jobs WHERE last_synced_at > now() - interval '7 days'")
+        total_jobs = await conn.fetchval(
+            "SELECT COUNT(*) FROM public.jobs WHERE last_synced_at > now() - interval '7 days'"
+        )
 
     return {
         "sources": [dict(c) for c in config],

@@ -13,13 +13,13 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
-from datetime import timezone, UTC
+from datetime import timezone
 from enum import StrEnum
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.password_policy")
@@ -337,7 +337,9 @@ class PasswordValidator:
         password: str,
         http_client: Any = None,
     ) -> tuple[bool, int]:
-        sha1_hash = hashlib.sha1(password.encode(), usedforsecurity=False).hexdigest().upper()
+        sha1_hash = (
+            hashlib.sha1(password.encode(), usedforsecurity=False).hexdigest().upper()
+        )
         prefix = sha1_hash[:5]
         suffix = sha1_hash[5:]
 

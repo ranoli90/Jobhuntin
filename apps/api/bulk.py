@@ -11,11 +11,11 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from shared.logging_config import get_logger
 
 from backend.domain.audit import record_audit_event
 from backend.domain.repositories import db_transaction
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.bulk")
@@ -26,18 +26,19 @@ router = APIRouter(prefix="/bulk", tags=["bulk"])
 # Dependency stubs (injected by api/main.py)
 # ---------------------------------------------------------------------------
 
+
 def _get_pool() -> asyncpg.Pool:
-    return (_ for _ in ()).throw(
-    NotImplementedError("Pool not injected")
-)
+    return (_ for _ in ()).throw(NotImplementedError("Pool not injected"))
+
+
 def _get_tenant_ctx() -> TenantContext:
-    return (_ for _ in ()).throw(
-    NotImplementedError("Tenant ctx not injected")
-)
+    return (_ for _ in ()).throw(NotImplementedError("Tenant ctx not injected"))
+
 
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
+
 
 class CreateCampaignRequest(BaseModel):
     name: str
@@ -52,6 +53,7 @@ class StartCampaignRequest(BaseModel):
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("/campaigns")
 async def list_campaigns(
     ctx: TenantContext = Depends(_get_tenant_ctx),
@@ -59,7 +61,9 @@ async def list_campaigns(
 ) -> list[dict[str, Any]]:
     """List bulk campaigns for the current tenant."""
     if ctx.plan not in ("TEAM", "ENTERPRISE"):
-        raise HTTPException(status_code=403, detail="Bulk operations require TEAM or ENTERPRISE plan")
+        raise HTTPException(
+            status_code=403, detail="Bulk operations require TEAM or ENTERPRISE plan"
+        )
 
     async with db.acquire() as conn:
         rows = await conn.fetch(
@@ -84,7 +88,9 @@ async def create_campaign(
 ) -> dict[str, Any]:
     """Create a new bulk campaign (draft)."""
     if ctx.plan not in ("TEAM", "ENTERPRISE"):
-        raise HTTPException(status_code=403, detail="Bulk operations require TEAM or ENTERPRISE plan")
+        raise HTTPException(
+            status_code=403, detail="Bulk operations require TEAM or ENTERPRISE plan"
+        )
     try:
         require_role(ctx, "OWNER", "ADMIN")
     except TenantScopeError:
@@ -97,11 +103,16 @@ async def create_campaign(
             VALUES ($1, $2, $3, $4::jsonb)
             RETURNING id, name, status, filters, total_jobs, applied, failed, created_at
             """,
-            ctx.tenant_id, ctx.user_id, body.name, json.dumps(body.filters),
+            ctx.tenant_id,
+            ctx.user_id,
+            body.name,
+            json.dumps(body.filters),
         )
 
         await record_audit_event(
-            conn, ctx.tenant_id, ctx.user_id,
+            conn,
+            ctx.tenant_id,
+            ctx.user_id,
             action="bulk.campaign_created",
             resource="bulk_campaign",
             resource_id=str(row["id"]),
@@ -120,9 +131,12 @@ async def start_campaign(
 ) -> dict[str, Any]:
     """Start a draft bulk campaign — queues applications for matching jobs."""
     from shared.validators import validate_uuid
+
     validate_uuid(campaign_id, "campaign_id")
     if ctx.plan not in ("TEAM", "ENTERPRISE"):
-        raise HTTPException(status_code=403, detail="Bulk operations require TEAM or ENTERPRISE plan")
+        raise HTTPException(
+            status_code=403, detail="Bulk operations require TEAM or ENTERPRISE plan"
+        )
     try:
         require_role(ctx, "OWNER", "ADMIN")
     except TenantScopeError:
@@ -132,12 +146,15 @@ async def start_campaign(
         # Verify campaign ownership and status
         campaign = await conn.fetchrow(
             "SELECT * FROM public.bulk_campaigns WHERE id = $1 AND tenant_id = $2",
-            campaign_id, ctx.tenant_id,
+            campaign_id,
+            ctx.tenant_id,
         )
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         if campaign["status"] != "draft":
-            raise HTTPException(status_code=409, detail=f"Campaign is already {campaign['status']}")
+            raise HTTPException(
+                status_code=409, detail=f"Campaign is already {campaign['status']}"
+            )
 
         filters = campaign["filters"] or {}
         title_filter = filters.get("title", "")
@@ -165,6 +182,7 @@ async def start_campaign(
 
         # Compute priority score for bulk
         from backend.domain.priority import compute_priority_score
+
         priority = compute_priority_score(ctx.plan, is_bulk=True)
 
         # Create applications for each job in a transaction (Bulk Insert Optimization)
@@ -186,13 +204,13 @@ async def start_campaign(
                 LIMIT 500
                 ON CONFLICT DO NOTHING
                 """,
-                ctx.user_id,             # $1
-                None,                    # Placeholder (not used in SELECT)
-                ctx.tenant_id,           # $3
-                blueprint_key,           # $4
-                priority,                # $5
-                title_filter or None,    # $6
-                location_filter or None  # $7
+                ctx.user_id,  # $1
+                None,  # Placeholder (not used in SELECT)
+                ctx.tenant_id,  # $3
+                blueprint_key,  # $4
+                priority,  # $5
+                title_filter or None,  # $6
+                location_filter or None,  # $7
             )
 
             # Update campaign
@@ -202,11 +220,14 @@ async def start_campaign(
                 SET status = 'running', total_jobs = $2, started_at = now()
                 WHERE id = $1
                 """,
-                campaign_id, total,
+                campaign_id,
+                total,
             )
 
             await record_audit_event(
-                txn_conn, ctx.tenant_id, ctx.user_id,
+                txn_conn,
+                ctx.tenant_id,
+                ctx.user_id,
                 action="bulk.campaign_started",
                 resource="bulk_campaign",
                 resource_id=campaign_id,
@@ -225,6 +246,7 @@ async def get_campaign(
 ) -> dict[str, Any]:
     """Get details of a specific bulk campaign."""
     from shared.validators import validate_uuid
+
     validate_uuid(campaign_id, "campaign_id")
     async with db.acquire() as conn:
         row = await conn.fetchrow(
@@ -234,7 +256,8 @@ async def get_campaign(
             FROM public.bulk_campaigns
             WHERE id = $1 AND tenant_id = $2
             """,
-            campaign_id, ctx.tenant_id,
+            campaign_id,
+            ctx.tenant_id,
         )
     if not row:
         raise HTTPException(status_code=404, detail="Campaign not found")

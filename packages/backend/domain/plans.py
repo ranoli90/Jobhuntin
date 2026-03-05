@@ -101,7 +101,9 @@ PLAN_CONFIGS: dict[str, PlanConfig] = {
 }
 
 
-def plan_config_for(plan: str, plan_metadata: dict[str, Any] | None = None) -> PlanConfig:
+def plan_config_for(
+    plan: str, plan_metadata: dict[str, Any] | None = None
+) -> PlanConfig:
     """Return the PlanConfig for a given plan tier.
 
     If plan_metadata contains overrides (e.g., custom limits negotiated for
@@ -109,8 +111,13 @@ def plan_config_for(plan: str, plan_metadata: dict[str, Any] | None = None) -> P
     """
     base = PLAN_CONFIGS.get(plan, PLAN_CONFIGS["FREE"]).copy()
     if plan_metadata:
-        for key in ("max_monthly_tasks", "max_concurrent_tasks",
-                    "max_monthly_applications", "max_concurrent_applications", "priority"):
+        for key in (
+            "max_monthly_tasks",
+            "max_concurrent_tasks",
+            "max_monthly_applications",
+            "max_concurrent_applications",
+            "priority",
+        ):
             if key in plan_metadata:
                 base[key] = plan_metadata[key]  # type: ignore[literal-required]
         if "features" in plan_metadata and isinstance(plan_metadata["features"], dict):

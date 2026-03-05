@@ -8,6 +8,7 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 async def apply():
     if not DATABASE_URL:
         print("DATABASE_URL not set")
@@ -38,7 +39,8 @@ async def apply():
     finally:
         await conn.close()
 
+
 if __name__ == "__main__":
-    if os.name == 'nt':
+    if os.name == "nt":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(apply())

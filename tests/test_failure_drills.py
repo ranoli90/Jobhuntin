@@ -27,11 +27,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "packages"))
 
-from worker.agent import (
-    ApplicationAgent,
-)
-
 from backend.domain.repositories import record_event
+from worker.agent import ApplicationAgent
 
 # ---------------------------------------------------------------------------
 # Shared test fixtures (reuse from test_integration.py)
@@ -56,6 +53,7 @@ async def browser(playwright_instance):
 # ---------------------------------------------------------------------------
 # Test data helpers
 # ---------------------------------------------------------------------------
+
 
 async def create_test_user(conn: asyncpg.Connection) -> str:
     user_id = str(uuid.uuid4())
@@ -138,14 +136,11 @@ async def create_test_application(
 # Assertion helpers
 # ---------------------------------------------------------------------------
 
+
 async def assert_status(conn, app_id: str, expected: str) -> dict:
-    row = await conn.fetchrow(
-        "SELECT * FROM public.applications WHERE id = $1", app_id
-    )
+    row = await conn.fetchrow("SELECT * FROM public.applications WHERE id = $1", app_id)
     assert row is not None, f"Application {app_id} not found"
-    assert row["status"] == expected, (
-        f"Expected '{expected}', got '{row['status']}'"
-    )
+    assert row["status"] == expected, f"Expected '{expected}', got '{row['status']}'"
     return dict(row)
 
 
@@ -184,7 +179,10 @@ SUCCESS_HTML = "<!DOCTYPE html><html><body><h1>Done</h1></body></html>"
 # Drill 1: LLM Outage
 # ===================================================================
 
-@pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
+
+@pytest.mark.skip(
+    reason="Requires registered blueprints - skip until agent is fully implemented"
+)
 @pytest.mark.asyncio
 async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
     """When map_fields_via_llm raises consistently, the agent should:
@@ -204,13 +202,19 @@ async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
 
     async def context_factory():
         ctx = await browser.new_context(viewport={"width": 1280, "height": 900})
+
         async def handle_route(route: Route) -> None:
             if "/apply" in route.request.url:
-                await route.fulfill(status=200, content_type="text/html", body=SIMPLE_FORM_HTML)
+                await route.fulfill(
+                    status=200, content_type="text/html", body=SIMPLE_FORM_HTML
+                )
             elif "/submit" in route.request.url:
-                await route.fulfill(status=200, content_type="text/html", body=SUCCESS_HTML)
+                await route.fulfill(
+                    status=200, content_type="text/html", body=SUCCESS_HTML
+                )
             else:
                 await route.continue_()
+
         await ctx.route("**/*", handle_route)
         return ctx
 
@@ -218,6 +222,7 @@ async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
 
     # Patch map_fields_via_llm at the module level
     import worker.agent as agent_module
+
     original_map = agent_module.map_fields_via_llm
     agent_module.map_fields_via_llm = failing_map_fields
 
@@ -240,7 +245,9 @@ async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
         agent_module.map_fields_via_llm = original_map
 
 
-@pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
+@pytest.mark.skip(
+    reason="Requires registered blueprints - skip until agent is fully implemented"
+)
 @pytest.mark.asyncio
 async def test_llm_outage_preserves_events(db_pool, browser, clean_db):
     """Even on LLM failure, CLAIMED and STARTED_PROCESSING events should exist."""
@@ -255,13 +262,18 @@ async def test_llm_outage_preserves_events(db_pool, browser, clean_db):
 
     async def context_factory():
         ctx = await browser.new_context(viewport={"width": 1280, "height": 900})
+
         async def handle_route(route: Route) -> None:
-            await route.fulfill(status=200, content_type="text/html", body=SIMPLE_FORM_HTML)
+            await route.fulfill(
+                status=200, content_type="text/html", body=SIMPLE_FORM_HTML
+            )
+
         await ctx.route("**/*", handle_route)
         return ctx
 
     agent = ApplicationAgent(db_pool, context_factory)
     import worker.agent as agent_module
+
     original = agent_module.map_fields_via_llm
     agent_module.map_fields_via_llm = failing_map_fields
 
@@ -280,7 +292,10 @@ async def test_llm_outage_preserves_events(db_pool, browser, clean_db):
 # Drill 2: DOM Structure Change
 # ===================================================================
 
-@pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
+
+@pytest.mark.skip(
+    reason="Requires registered blueprints - skip until agent is fully implemented"
+)
 @pytest.mark.asyncio
 async def test_dom_no_form_fields(db_pool, browser, clean_db):
     """Page has no form fields (e.g., redesigned page).
@@ -296,8 +311,10 @@ async def test_dom_no_form_fields(db_pool, browser, clean_db):
 
     async def context_factory():
         ctx = await browser.new_context(viewport={"width": 1280, "height": 900})
+
         async def handle_route(route: Route) -> None:
             await route.fulfill(status=200, content_type="text/html", body=empty_html)
+
         await ctx.route("**/*", handle_route)
         return ctx
 
@@ -316,7 +333,9 @@ async def test_dom_no_form_fields(db_pool, browser, clean_db):
         assert "No form fields" in payload.get("error_message", "")
 
 
-@pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
+@pytest.mark.skip(
+    reason="Requires registered blueprints - skip until agent is fully implemented"
+)
 @pytest.mark.asyncio
 async def test_dom_missing_submit_button(db_pool, browser, clean_db):
     """Page has form fields but no submit button.
@@ -346,13 +365,18 @@ async def test_dom_missing_submit_button(db_pool, browser, clean_db):
 
     async def context_factory():
         ctx = await browser.new_context(viewport={"width": 1280, "height": 900})
+
         async def handle_route(route: Route) -> None:
-            await route.fulfill(status=200, content_type="text/html", body=no_submit_html)
+            await route.fulfill(
+                status=200, content_type="text/html", body=no_submit_html
+            )
+
         await ctx.route("**/*", handle_route)
         return ctx
 
     agent = ApplicationAgent(db_pool, context_factory)
     import worker.agent as agent_module
+
     original = agent_module.map_fields_via_llm
     agent_module.map_fields_via_llm = mock_map_fields
 
@@ -373,7 +397,10 @@ async def test_dom_missing_submit_button(db_pool, browser, clean_db):
 # Drill 3: DB Transient Failure (connection error during processing)
 # ===================================================================
 
-@pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
+
+@pytest.mark.skip(
+    reason="Requires registered blueprints - skip until agent is fully implemented"
+)
 @pytest.mark.asyncio
 async def test_db_transient_failure_during_event_write(db_pool, browser, clean_db):
     """Simulate a transient DB failure during record_event.
@@ -390,21 +417,29 @@ async def test_db_transient_failure_during_event_write(db_pool, browser, clean_d
 
     call_count = 0
 
-# Make record_event fail on the 2nd call (STARTED_PROCESSING),
+    # Make record_event fail on the 2nd call (STARTED_PROCESSING),
     # but succeed on subsequent calls (FAILED event write)
     original_record_event = record_event
 
-    async def flaky_record_event(conn, application_id, event_type, payload=None, **kwargs):
+    async def flaky_record_event(
+        conn, application_id, event_type, payload=None, **kwargs
+    ):
         nonlocal call_count
         call_count += 1
         if call_count == 2:  # Fail on STARTED_PROCESSING (2nd call, after CLAIMED)
             raise asyncpg.InterfaceError("connection lost during write")
-        return await original_record_event(conn, application_id, event_type, payload, **kwargs)
+        return await original_record_event(
+            conn, application_id, event_type, payload, **kwargs
+        )
 
     async def context_factory():
         ctx = await browser.new_context(viewport={"width": 1280, "height": 900})
+
         async def handle_route(route: Route) -> None:
-            await route.fulfill(status=200, content_type="text/html", body=SIMPLE_FORM_HTML)
+            await route.fulfill(
+                status=200, content_type="text/html", body=SIMPLE_FORM_HTML
+            )
+
         await ctx.route("**/*", handle_route)
         return ctx
 
@@ -412,6 +447,7 @@ async def test_db_transient_failure_during_event_write(db_pool, browser, clean_d
 
     # Patch record_event at the repositories module level (EventRepo.emit delegates here)
     import backend.domain.repositories as repo_module
+
     original_re = repo_module.record_event
     repo_module.record_event = flaky_record_event
 
@@ -429,9 +465,10 @@ async def test_db_transient_failure_during_event_write(db_pool, browser, clean_d
             )
             assert row is not None
             # Either FAILED (if _handle_failure succeeded) or PROCESSING (if it also failed)
-            assert row["status"] in ("FAILED", "PROCESSING"), (
-                f"Expected FAILED or PROCESSING, got {row['status']}"
-            )
+            assert row["status"] in (
+                "FAILED",
+                "PROCESSING",
+            ), f"Expected FAILED or PROCESSING, got {row['status']}"
             if row["status"] == "FAILED":
                 assert "connection lost" in (row["last_error"] or "").lower()
     finally:
@@ -441,6 +478,7 @@ async def test_db_transient_failure_during_event_write(db_pool, browser, clean_d
 # ---------------------------------------------------------------------------
 # Backwards compatibility: JSON parsing tolerance
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_profile_with_extra_fields():
@@ -461,7 +499,11 @@ async def test_profile_with_extra_fields():
         },
         "education": [],
         "experience": [],
-        "skills": {"technical": [], "soft": [], "languages": ["Python"]},  # extra key in skills
+        "skills": {
+            "technical": [],
+            "soft": [],
+            "languages": ["Python"],
+        },  # extra key in skills
         "certifications": [],
         "languages": [],
         "summary": "",
@@ -470,7 +512,6 @@ async def test_profile_with_extra_fields():
 
     profile = normalize_profile(raw)
     assert profile.contact.full_name == "Jane Doe"
-
 
 
 @pytest.mark.asyncio
@@ -491,14 +532,16 @@ async def test_application_input_meta_with_unknown_keys(db_pool, clean_db):
             VALUES ($1, '#foo', 'What?', 'text', $2::jsonb)
             """,
             app_id,
-            json.dumps({
-                "field_type": "text",
-                "label": "Foo",
-                "options": None,
-                "step_index": 0,
-                "new_meta_key": "should not break anything",
-                "nested": {"deep": True},
-            }),
+            json.dumps(
+                {
+                    "field_type": "text",
+                    "label": "Foo",
+                    "options": None,
+                    "step_index": 0,
+                    "new_meta_key": "should not break anything",
+                    "nested": {"deep": True},
+                }
+            ),
         )
 
         row = await conn.fetchrow(

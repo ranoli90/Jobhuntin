@@ -8,13 +8,12 @@ This script helps configure:
 """
 
 
-
 def setup_sentry(sentry_dsn: str, environment: str = "production"):
     """Initialize Sentry SDK for error tracking.
 
     Add this to your app startup (main.py):
     """
-    code = f'''
+    code = f"""
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.asyncpg import AsyncPGIntegration
@@ -28,7 +27,7 @@ sentry_sdk.init(
         AsyncPGIntegration(),
     ],
 )
-'''
+"""
     return code
 
 

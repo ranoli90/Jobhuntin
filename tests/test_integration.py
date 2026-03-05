@@ -32,11 +32,8 @@ sys.path.insert(0, repo_root)
 sys.path.insert(0, os.path.join(repo_root, "apps"))
 sys.path.insert(0, os.path.join(repo_root, "packages"))
 
-from worker.agent import (
-    ApplicationAgent,
-)
-
 from backend.domain.repositories import record_event
+from worker.agent import ApplicationAgent
 
 # ---------------------------------------------------------------------------
 # Fake application HTML – two-step form
@@ -112,6 +109,7 @@ FAKE_APP_URL = "https://fake-careers.example.com/apply/senior-engineer"
 # LLM mock – deterministic mapping for the fake form
 # ---------------------------------------------------------------------------
 
+
 async def mock_map_fields_via_llm(profile, form_fields, answered_inputs=None):
     """Deterministic mock for map_fields_via_llm that inspects form_fields
     to decide which fields can be filled from the profile and which are unresolved.
@@ -138,10 +136,12 @@ async def mock_map_fields_via_llm(profile, form_fields, answered_inputs=None):
 
     if has_clearance_field and not has_clearance_answer:
         # First run: clearance is unresolvable
-        unresolved.append({
-            "selector": "#clearance",
-            "question": "What is your security clearance level?",
-        })
+        unresolved.append(
+            {
+                "selector": "#clearance",
+                "question": "What is your security clearance level?",
+            }
+        )
     elif has_clearance_field and has_clearance_answer:
         # Resume run: user already answered
         field_values["#clearance"] = "secret"
@@ -175,6 +175,7 @@ async def browser(playwright_instance):
 # ---------------------------------------------------------------------------
 # Test data helpers
 # ---------------------------------------------------------------------------
+
 
 async def create_test_user(conn: asyncpg.Connection) -> str:
     """Insert a test user into public.users. Returns user_id (uuid string)."""
@@ -287,14 +288,13 @@ async def create_test_application(
 # Assertion helpers
 # ---------------------------------------------------------------------------
 
+
 async def assert_application_status(
     conn: asyncpg.Connection,
     app_id: str,
     expected_status: str,
 ) -> dict:
-    row = await conn.fetchrow(
-        "SELECT * FROM public.applications WHERE id = $1", app_id
-    )
+    row = await conn.fetchrow("SELECT * FROM public.applications WHERE id = $1", app_id)
     assert row is not None, f"Application {app_id} not found"
     actual = row["status"]
     assert actual == expected_status, (
@@ -317,9 +317,7 @@ async def assert_event_exists(
         app_id,
         event_type,
     )
-    assert row is not None, (
-        f"Event '{event_type}' not found for application {app_id}"
-    )
+    assert row is not None, f"Event '{event_type}' not found for application {app_id}"
     return dict(row)
 
 
@@ -337,6 +335,7 @@ async def get_application_inputs(
 # ---------------------------------------------------------------------------
 # Route interceptor – serves the fake application page
 # ---------------------------------------------------------------------------
+
 
 async def setup_route_interception(page):
     """Use Playwright's page.route() to intercept requests to the fake URL
@@ -368,9 +367,11 @@ async def setup_route_interception(page):
 # Monkey-patch map_fields_via_llm in the agent module for tests
 # ---------------------------------------------------------------------------
 
+
 def patch_map_fields():
     """Replace the agent's map_fields_via_llm with our deterministic mock."""
     import worker.agent as agent_module
+
     agent_module.map_fields_via_llm = mock_map_fields_via_llm
 
 
@@ -378,7 +379,10 @@ def patch_map_fields():
 # Integration test: full hold → answer → resume → submit lifecycle
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
+
+@pytest.mark.skip(
+    reason="Requires registered blueprints - skip until agent is fully implemented"
+)
 @pytest.mark.asyncio
 async def test_full_application_lifecycle(db_pool, browser, clean_db):
     """End-to-end test:
@@ -410,15 +414,23 @@ async def test_full_application_lifecycle(db_pool, browser, clean_db):
     # Override context_factory to add interception on every new page.
     async def context_factory_with_routes():
         ctx = await browser.new_context(viewport={"width": 1280, "height": 900})
+
         # Intercept at context level
         async def handle_route(route: Route) -> None:
             url = route.request.url
             if "/apply/" in url and route.request.method == "GET":
-                await route.fulfill(status=200, content_type="text/html", body=FAKE_APPLICATION_HTML_STEP1)
+                await route.fulfill(
+                    status=200,
+                    content_type="text/html",
+                    body=FAKE_APPLICATION_HTML_STEP1,
+                )
             elif "/submit" in url and route.request.method == "POST":
-                await route.fulfill(status=200, content_type="text/html", body=FAKE_SUCCESS_HTML)
+                await route.fulfill(
+                    status=200, content_type="text/html", body=FAKE_SUCCESS_HTML
+                )
             else:
                 await route.continue_()
+
         await ctx.route("**/*", handle_route)
         return ctx
 
@@ -457,10 +469,15 @@ async def test_full_application_lifecycle(db_pool, browser, clean_db):
             """,
             clearance_input["id"],
         )
-        await record_event(conn, app_id, "USER_ANSWERED", {
-            "input_id": str(clearance_input["id"]),
-            "answer": "Secret",
-        })
+        await record_event(
+            conn,
+            app_id,
+            "USER_ANSWERED",
+            {
+                "input_id": str(clearance_input["id"]),
+                "answer": "Secret",
+            },
+        )
         # Re-queue the application (simulates POST /agent/resume_task)
         await conn.execute(
             """
@@ -497,7 +514,9 @@ async def test_full_application_lifecycle(db_pool, browser, clean_db):
     assert not worked, "No more tasks should be available"
 
 
-@pytest.mark.skip(reason="Requires registered blueprints - skip until agent is fully implemented")
+@pytest.mark.skip(
+    reason="Requires registered blueprints - skip until agent is fully implemented"
+)
 @pytest.mark.asyncio
 async def test_agent_failure_on_no_form_fields(db_pool, browser, clean_db):
     """When the page has no form fields, the agent should mark FAILED."""
@@ -521,8 +540,10 @@ async def test_agent_failure_on_no_form_fields(db_pool, browser, clean_db):
 
     async def context_factory_empty():
         ctx = await browser.new_context(viewport={"width": 1280, "height": 900})
+
         async def handle_route(route: Route) -> None:
             await route.fulfill(status=200, content_type="text/html", body=empty_html)
+
         await ctx.route("**/*", handle_route)
         return ctx
 

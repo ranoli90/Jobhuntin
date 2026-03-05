@@ -1,6 +1,7 @@
 """Background worker for scheduled job synchronization.
 Runs every 4 hours to fetch fresh jobs from all sources.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -15,17 +16,17 @@ sys.path.insert(0, _root)
 sys.path.insert(0, os.path.join(_root, "packages"))
 
 import asyncpg  # noqa: E402
-from shared.config import get_settings  # noqa: E402
-from shared.logging_config import get_logger  # noqa: E402
 
 from backend.domain.job_sync_service import JobSyncService  # noqa: E402
+from shared.config import get_settings  # noqa: E402
+from shared.logging_config import get_logger  # noqa: E402
 
 logger = get_logger("sorce.job_sync_worker")
 
 _shutdown = False
 
 
-def handle_shutdown(signum, frame):
+def handle_shutdown(signum, frame):  # noqa: Vulture - frame required by signal API
     global _shutdown
     logger.info(f"Received signal {signum}, shutting down...")
     _shutdown = True
@@ -53,7 +54,9 @@ async def run_sync_loop():
 
     logger.info("Job sync worker started")
     logger.info(f"Sources: {sync_service.jobspy.sources}")
-    logger.info(f"Sync interval: {getattr(settings, 'jobspy_sync_interval_hours', 4)} hours")
+    logger.info(
+        f"Sync interval: {getattr(settings, 'jobspy_sync_interval_hours', 4)} hours"
+    )
 
     # Run initial sync on startup
     try:
@@ -65,7 +68,7 @@ async def run_sync_loop():
     while not _shutdown:
         try:
             # Calculate sleep time (4 hours default)
-            interval_hours = getattr(settings, 'jobspy_sync_interval_hours', 4)
+            interval_hours = getattr(settings, "jobspy_sync_interval_hours", 4)
             sleep_seconds = interval_hours * 60 * 60
 
             logger.info(f"Sleeping for {interval_hours} hours until next sync...")
@@ -85,7 +88,9 @@ async def run_sync_loop():
             results = await sync_service.sync_all_sources(max_concurrent=2)
 
             duration = time.time() - start_time
-            logger.info(f"Sync completed in {duration:.1f}s with {len(results)} results")
+            logger.info(
+                f"Sync completed in {duration:.1f}s with {len(results)} results"
+            )
 
         except Exception as e:
             logger.error(f"Sync loop error: {e}")

@@ -11,6 +11,7 @@ import hashlib
 from typing import Any
 
 import asyncpg
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -41,7 +42,8 @@ async def get_or_create_referral_code(
     # Store on user row
     await conn.execute(
         "UPDATE public.users SET referral_code = $2 WHERE id = $1",
-        user_id, code,
+        user_id,
+        code,
     )
 
     # Create pending referral row (no referee yet)
@@ -51,7 +53,8 @@ async def get_or_create_referral_code(
         VALUES ($1, $2, 'pending')
         ON CONFLICT (referral_code) DO NOTHING
         """,
-        user_id, code,
+        user_id,
+        code,
     )
 
     return code
@@ -93,7 +96,8 @@ async def redeem_referral_code(
         SET referee_id = $2, status = 'rewarded', redeemed_at = now()
         WHERE id = $1
         """,
-        row["id"], referee_id,
+        row["id"],
+        referee_id,
     )
 
     # Grant bonus credits to referrer's tenant
@@ -106,7 +110,8 @@ async def redeem_referral_code(
             WHERE user_id = $1 AND role = 'OWNER' LIMIT 1
         )
         """,
-        referrer_id, reward,
+        referrer_id,
+        reward,
     )
 
     # Grant bonus credits to referee's tenant
@@ -119,7 +124,8 @@ async def redeem_referral_code(
             WHERE user_id = $1 AND role = 'OWNER' LIMIT 1
         )
         """,
-        referee_id, reward,
+        referee_id,
+        reward,
     )
 
     # Create a new pending referral for future use by the referrer
@@ -130,12 +136,16 @@ async def redeem_referral_code(
         VALUES ($1, $2, 'pending')
         ON CONFLICT (referral_code) DO NOTHING
         """,
-        referrer_id, new_code,
+        referrer_id,
+        new_code,
     )
 
     logger.info(
         "Referral redeemed: referrer=%s, referee=%s, code=%s, reward=%d",
-        referrer_id, referee_id, referral_code, reward,
+        referrer_id,
+        referee_id,
+        referral_code,
+        reward,
     )
 
     return {

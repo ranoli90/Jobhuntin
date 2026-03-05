@@ -17,10 +17,10 @@ from typing import Any
 
 import asyncpg
 from pydantic import BaseModel, Field
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from shared.config import get_settings
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.job_alerts")
@@ -180,12 +180,12 @@ class JobAlertRepo:
             locations=json.loads(row["locations"]) if row["locations"] else [],
             salary_min=row["salary_min"],
             salary_max=row["salary_max"],
-            companies_include=json.loads(row["companies_include"])
-            if row["companies_include"]
-            else [],
-            companies_exclude=json.loads(row["companies_exclude"])
-            if row["companies_exclude"]
-            else [],
+            companies_include=(
+                json.loads(row["companies_include"]) if row["companies_include"] else []
+            ),
+            companies_exclude=(
+                json.loads(row["companies_exclude"]) if row["companies_exclude"] else []
+            ),
             job_types=json.loads(row["job_types"]) if row["job_types"] else [],
             remote_only=row["remote_only"],
             frequency=AlertFrequency(row["frequency"]),

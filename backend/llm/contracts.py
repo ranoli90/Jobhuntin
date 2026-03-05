@@ -409,7 +409,9 @@ Confidence: 0.0-1.0 based on how clear the career path is
 """
 
 
-def build_role_suggestion_prompt(resume_text: str, skills: list[str], experience_years: int, education_level: str) -> str:
+def build_role_suggestion_prompt(
+    resume_text: str, skills: list[str], experience_years: int, education_level: str
+) -> str:
     """Build prompt for AI role suggestions."""
     profile_dict = {
         "resume_text": resume_text,
@@ -475,7 +477,13 @@ Use USD as default currency. Be conservative with confidence for unusual combina
 """
 
 
-def build_salary_suggestion_prompt(skills: list[str], experience_years: int, education_level: str, target_role: str, location: str) -> str:
+def build_salary_suggestion_prompt(
+    skills: list[str],
+    experience_years: int,
+    education_level: str,
+    target_role: str,
+    location: str,
+) -> str:
     """Build prompt for AI salary suggestions."""
     profile_dict = {
         "skills": skills,
@@ -539,7 +547,9 @@ remote_friendly_score: 0.0 = requires on-site, 1.0 = fully remote viable
 """
 
 
-def build_location_suggestion_prompt(skills: list[str], role: str, experience_years: int, remote_preference: bool) -> str:
+def build_location_suggestion_prompt(
+    skills: list[str], role: str, experience_years: int, remote_preference: bool
+) -> str:
     """Build prompt for AI location suggestions."""
     profile_dict = {
         "skills": skills,

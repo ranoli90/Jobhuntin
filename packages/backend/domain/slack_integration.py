@@ -13,13 +13,13 @@ from __future__ import annotations
 import hashlib
 import hmac
 from dataclasses import dataclass, field
-from datetime import timezone, UTC, datetime
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
 import asyncpg
-from shared.logging_config import get_logger
 
+from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.slack")
@@ -541,7 +541,9 @@ class SlackIntegrationManager:
             if "fields" in block_copy:
                 for block_field in block_copy["fields"]:
                     if "text" in block_field:
-                        block_field["text"] = self._interpolate(block_field["text"], template_vars)
+                        block_field["text"] = self._interpolate(
+                            block_field["text"], template_vars
+                        )
 
             if "elements" in block_copy:
                 for element in block_copy["elements"]:

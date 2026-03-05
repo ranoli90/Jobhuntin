@@ -11,13 +11,22 @@ from typing import Any, TypeVar
 T = TypeVar("T")
 
 # Valid SQL identifier pattern (alphanumeric and underscore only)
-VALID_IDENTIFIER_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+VALID_IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 # Whitelist of allowed cursor fields - extend as needed
 ALLOWED_CURSOR_FIELDS = {
-    "id", "created_at", "updated_at", "priority_score",
-    "title", "company", "salary_min", "salary_max",
-    "name", "email", "status", "last_used_at"
+    "id",
+    "created_at",
+    "updated_at",
+    "priority_score",
+    "title",
+    "company",
+    "salary_min",
+    "salary_max",
+    "name",
+    "email",
+    "status",
+    "last_used_at",
 }
 
 
@@ -84,7 +93,7 @@ class PaginationParams:
 
     first: int | None = None  # Number of items from start
     after: str | None = None  # Cursor to start after
-    last: int | None = None   # Number of items from end
+    last: int | None = None  # Number of items from end
     before: str | None = None  # Cursor to start before
 
     DEFAULT_PAGE_SIZE = 20
@@ -121,10 +130,82 @@ def create_cursor_from_row(row: dict[str, Any], sort_field: str = "id") -> str:
     """Create a cursor from a database row."""
     # Validate sort_field
     validate_cursor_field(sort_field)
-    return encode_cursor({
-        "sort_value": str(row.get(sort_field, "")),
-        "id": str(row.get("id", "")),
-    })
+    return encode_cursor(
+        {
+            "sort_value": str(row.get(sort_field, "")),
+            "id": str(row.get("id", "")),
+        }
+    )
+
+
+def _validate_cursor_field(
+    cursor_field: str, allowed_cursor_fields: set[str] | None
+) -> None:
+    """Validate cursor field against whitelist."""
+    valid_fields = ALLOWED_CURSOR_FIELDS | (allowed_cursor_fields or set())
+    if cursor_field not in valid_fields:
+        raise ValueError(
+            f"Invalid cursor field: {cursor_field}. "
+            f"Must be one of: {', '.join(sorted(valid_fields))}"
+        )
+
+
+def _get_cursor_info(
+    params: PaginationParams, args: list[Any]
+) -> tuple[str | None, str]:
+    """Extract cursor value and build cursor condition."""
+    if params.after:
+        cursor_data = decode_cursor(params.after)
+        if cursor_data:
+            cursor_value = cursor_data.get("id")
+            return cursor_value, f"AND {{cursor_field}} > ${len(args) + 1}"
+
+    if params.before:
+        cursor_data = decode_cursor(params.before)
+        if cursor_data:
+            cursor_value = cursor_data.get("id")
+            return cursor_value, f"AND {{cursor_field}} < ${len(args) + 1}"
+
+    return None, ""
+
+
+def _build_query_args(
+    args: list[Any], cursor_value: Any | None, page_size: int
+) -> list[Any]:
+    """Build the final query arguments list."""
+    query_args = args.copy()
+    if cursor_value:
+        query_args.append(cursor_value)
+    query_args.append(page_size + 1)
+    return query_args
+
+
+def _build_full_query(
+    query: str,
+    extra_conditions: str,
+    cursor_condition: str,
+    cursor_field: str,
+    direction: str,
+    limit_param: int,
+) -> str:
+    """Build the complete paginated query."""
+    return f"""
+        {query}
+        {extra_conditions}
+        {cursor_condition}
+        ORDER BY {cursor_field} {direction}
+        LIMIT ${limit_param}
+    """
+
+
+async def _get_total_count(conn, query: str, args: list[Any]) -> int | None:
+    """Get total count for pagination."""
+    count_query = f"SELECT COUNT(*) FROM ({query}) AS subq"
+    try:
+        total_result = await conn.fetchrow(count_query, *args)
+        return total_result["count"] if total_result else None
+    except Exception:
+        return None
 
 
 async def paginate_query(
@@ -153,75 +234,36 @@ async def paginate_query(
     Raises:
         ValueError: If cursor_field is not in whitelist
     """
-    # Validate cursor_field against whitelist
-    valid_fields = ALLOWED_CURSOR_FIELDS | (allowed_cursor_fields or set())
-    if cursor_field not in valid_fields:
-        raise ValueError(
-            f"Invalid cursor field: {cursor_field}. "
-            f"Must be one of: {', '.join(sorted(valid_fields))}"
-        )
+    _validate_cursor_field(cursor_field, allowed_cursor_fields)
 
     args = args or []
     page_size = params.first or params.last or PaginationParams.DEFAULT_PAGE_SIZE
 
-    # Build cursor condition using parameterized queries only
-    cursor_condition = ""
-    cursor_value = None
+    cursor_value, cursor_template = _get_cursor_info(params, args)
+    cursor_condition = (
+        cursor_template.format(cursor_field=cursor_field) if cursor_value else ""
+    )
 
-    if params.after:
-        cursor_data = decode_cursor(params.after)
-        if cursor_data:
-            cursor_value = cursor_data.get("id")
-            cursor_condition = f"AND {cursor_field} > ${len(args) + 1}"
-
-    if params.before:
-        cursor_data = decode_cursor(params.before)
-        if cursor_data:
-            cursor_value = cursor_data.get("id")
-            cursor_condition = f"AND {cursor_field} < ${len(args) + 1}"
-
-    # Build full query
     direction = "DESC" if params.last else "ASC"
-
-    # Use parameterized query for LIMIT
     limit_param = len(args) + (2 if cursor_value else 1)
 
-    full_query = f"""
-        {query}
-        {extra_conditions}
-        {cursor_condition}
-        ORDER BY {cursor_field} {direction}
-        LIMIT ${limit_param}
-    """
+    full_query = _build_full_query(
+        query, extra_conditions, cursor_condition, cursor_field, direction, limit_param
+    )
 
-    # Build args list
-    query_args = args.copy()
-    if cursor_value:
-        query_args.append(cursor_value)
-    query_args.append(page_size + 1)
-
+    query_args = _build_query_args(args, cursor_value, page_size)
     rows = await conn.fetch(full_query, *query_args)
 
-    # Determine if there's a next page
     has_next = len(rows) > page_size
     items = rows[:page_size] if has_next else rows
 
-    # Reverse if paginating backwards
     if params.last or params.before:
         items = list(reversed(items))
 
-    # Build page info
     start_cursor = create_cursor_from_row(items[0], cursor_field) if items else None
     end_cursor = create_cursor_from_row(items[-1], cursor_field) if items else None
 
-    # Get total count (optional)
-    # Use only the base args, not cursor or limit
-    count_query = f"SELECT COUNT(*) FROM ({query}) AS subq"
-    try:
-        total_result = await conn.fetchrow(count_query, *args)
-        total_count = total_result["count"] if total_result else None
-    except Exception:
-        total_count = None
+    total_count = await _get_total_count(conn, query, args)
 
     return PaginatedResult(
         items=[dict(row) for row in items],
