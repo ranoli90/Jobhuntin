@@ -75,21 +75,6 @@ class DeepProfile(BaseModel):
         description="Job preferences (location, salary, remote, etc.)",
     )
 
-    # Career goals from onboarding
-    career_goals: dict[str, Any] = Field(
-        default_factory=dict,
-        description="Career goals (experience_level, urgency, primary_goal, why_leaving)",
-    )
-    industry_preferences: list[str] = Field(
-        default_factory=list, description="Preferred industries"
-    )
-    company_size_preference: str = Field(
-        default="any", description="Preferred company size"
-    )
-    notice_period: str | None = Field(
-        default=None, description="Notice period before starting"
-    )
-
     # Metadata
     completeness_score: float = Field(
         default=0.0, ge=0.0, le=100.0, description="Profile completeness percentage"
@@ -193,10 +178,6 @@ def profile_to_dict(profile: DeepProfile) -> dict[str, Any]:
         "trajectory": profile.trajectory.value,
         "dealbreakers": profile.dealbreakers.model_dump(),
         "preferences": profile.preferences,
-        "career_goals": profile.career_goals,
-        "industry_preferences": profile.industry_preferences,
-        "company_size_preference": profile.company_size_preference,
-        "notice_period": profile.notice_period,
         "completeness_score": profile.completeness_score,
         "computed_at": profile.computed_at.isoformat(),
         "resume_url": profile.resume_url,
@@ -230,10 +211,6 @@ def dict_to_profile(data: dict[str, Any]) -> DeepProfile:
         trajectory=trajectory,
         dealbreakers=dealbreakers,
         preferences=data.get("preferences", {}),
-        career_goals=data.get("career_goals", {}),
-        industry_preferences=data.get("industry_preferences", []),
-        company_size_preference=data.get("company_size_preference", "any"),
-        notice_period=data.get("notice_period"),
         completeness_score=data.get("completeness_score", 0),
         computed_at=computed_at,
         resume_url=data.get("resume_url"),

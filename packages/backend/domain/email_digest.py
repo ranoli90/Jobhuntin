@@ -14,7 +14,7 @@ import asyncpg
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
-from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 
 logger = get_logger("sorce.email_digest")
 
@@ -187,7 +187,7 @@ async def send_digest_email(
                     return True
                 logger.error("Resend error: %d %s", resp.status_code, resp.text[:200])
                 return False
-    except CircuitBreakerOpen as exc:
+    except CircuitBreakerOpenError as exc:
         logger.warning("Resend circuit breaker open: %s", exc)
         return False
     except Exception as exc:
@@ -210,8 +210,8 @@ async def run_weekly_digest(pool: asyncpg.Pool) -> dict[str, int]:
         # Get all users with activity in last 7 days
         users = await conn.fetch(
             """
-            SELECT DISTINCT u.id, u.email, u.raw_user_meta_data->>'full_name' AS name
-            FROM auth.users u
+            SELECT DISTINCT u.id, u.email, u.full_name AS name
+            FROM public.users u
             JOIN public.applications a ON a.user_id = u.id
             WHERE a.created_at >= now() - interval '7 days'
             """

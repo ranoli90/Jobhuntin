@@ -47,7 +47,7 @@ async def get_audit_log(
 ) -> list[dict[str, Any]]:
     """Retrieve audit log entries for a tenant."""
     if action_filter:
-        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1,$2,$3,$4
         rows = await conn.fetch(
             """
             SELECT id, user_id, action, resource, resource_id, details,

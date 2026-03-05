@@ -230,6 +230,16 @@ class Settings(BaseSettings):
     resend_api_key: str = ""
     email_from: str = "JobHuntin <noreply@jobhuntin.com>"
 
+    # ── CAPTCHA (Bot Protection) ───────────────────────────────────
+    recaptcha_secret_key: str = ""  # reCAPTCHA v3 secret key
+    hcaptcha_secret_key: str = ""   # hCaptcha secret key
+    turnstile_secret_key: str = ""  # Cloudflare Turnstile secret key
+    captcha_provider: str = "recaptcha"  # recaptcha, hcaptcha, turnstile
+    captcha_min_score: float = 0.5  # Minimum score for reCAPTCHA v3
+
+    # ── Promotions ───────────────────────────────────────────────────
+    first_month_coupon: str = "FIRST_MONTH_10"  # Stripe coupon ID for $10 first month
+
     # ── Referral Program ──────────────────────────────────────────
     referral_reward_apps: int = 5  # bonus apps for both referrer and referee
 

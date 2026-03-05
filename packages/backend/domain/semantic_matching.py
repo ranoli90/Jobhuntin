@@ -17,6 +17,9 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
+if TYPE_CHECKING:
+    from backend.domain.vectordb import VectorDB
+
 import asyncpg
 from pydantic import BaseModel, Field
 from shared.logging_config import get_logger
@@ -28,9 +31,6 @@ from backend.domain.embeddings import (
     job_to_searchable_text,
     profile_to_searchable_text,
 )
-
-if TYPE_CHECKING:
-    from backend.domain.vectordb import VectorDB
 
 logger = get_logger("sorce.matching")
 
