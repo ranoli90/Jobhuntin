@@ -183,6 +183,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         response = await call_next(request)
+        s = get_settings()
 
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
@@ -219,7 +220,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # HSTS (Strict-Transport-Security)
         # Must be set by server, not meta tag. Enforce in production.
-        s = get_settings()
         if s.env.value == "prod":
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains; preload"
