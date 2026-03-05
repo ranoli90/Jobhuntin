@@ -55,6 +55,8 @@ interface TestimonialsSectionProps {
 export function TestimonialsSection({ className }: TestimonialsSectionProps) {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
+  const [isPaused, setIsPaused] = React.useState(false);
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -81,13 +83,14 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
     });
   };
 
-  // Auto-advance
+  // Auto-advance - respects reduced motion and pause state
   React.useEffect(() => {
+    if (prefersReducedMotion || isPaused) return;
     const timer = setInterval(() => {
       paginate(1);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [prefersReducedMotion, isPaused]);
 
   const current = testimonials[currentIndex];
 
@@ -113,14 +116,14 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
           <div className="absolute top-6 right-6 flex gap-2">
             <button
               onClick={() => paginate(-1)}
-              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-colors"
               aria-label="Previous testimonial"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => paginate(1)}
-              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-colors"
               aria-label="Next testimonial"
             >
               <ChevronRight className="w-5 h-5" />
@@ -128,7 +131,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
           </div>
 
           {/* Testimonial content */}
-          <div className="pt-8 min-h-[280px] flex flex-col">
+          <div className="pt-8 min-h-[280px] flex flex-col" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={current.id}
@@ -188,7 +191,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
                   setCurrentIndex(index);
                 }}
                 className={cn(
-                  "w-2 h-2 rounded-full transition-all",
+                  "w-2 h-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2",
                   index === currentIndex
                     ? "w-6 bg-primary-600"
                     : "bg-slate-300 hover:bg-slate-400"

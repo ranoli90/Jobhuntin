@@ -54,7 +54,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
           <p className="text-sm font-bold text-gray-900">Check your inbox</p>
           <p className="text-xs truncate text-gray-500 mt-0.5">{sentEmail}</p>
         </div>
-        <button onClick={() => setSentEmail(null)} className="text-xs shrink-0 font-medium hover:underline text-primary-600">Change</button>
+        <button onClick={() => setSentEmail(null)} className="text-xs shrink-0 font-medium hover:underline text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">Change</button>
       </div>
     );
   }
@@ -62,11 +62,11 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
     <div>
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
         <input type="email" placeholder="you@example.com" aria-label="Email address"
-          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all outline-none", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-gray-500 focus:border-primary-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-primary-400 shadow-sm", emailError && "border-red-400")}
+          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-gray-500 focus:border-primary-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-primary-400 hover:border-gray-300 shadow-sm", emailError && "border-red-400 focus:border-red-400")}
           value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />
         <button type="submit" disabled={isSubmitting}
-          className="h-12 px-6 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 active:translate-y-0"
+          className="h-12 px-6 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 active:translate-y-0 focus:ring-4 focus:ring-primary-300 focus:outline-none"
         >
           {isSubmitting ? "Sending…" : "Start free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
         </button>
@@ -80,15 +80,22 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
 function FadeIn({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setVisible(true);
+      return;
+    }
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.08 });
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  }, [prefersReducedMotion]);
+  
   return (
-    <div ref={ref} className={cn("transition-all duration-700 ease-out", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10", className)} style={{ transitionDelay: `${delay}ms` }}>
+    <div ref={ref} className={cn(prefersReducedMotion ? "" : "transition-all duration-700 ease-out", visible ? "opacity-100 translate-y-0" : (prefersReducedMotion ? "" : "opacity-0 translate-y-10"), className)} style={{ transitionDelay: prefersReducedMotion ? '0ms' : `${delay}ms` }}>
       {children}
     </div>
   );
@@ -108,7 +115,10 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
     { role: "Full Stack Developer", company: "Vercel", time: "3m ago", type: "applied" },
   ];
   const [currentIdx, setCurrentIdx] = useState(0);
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
   useEffect(() => {
+    if (prefersReducedMotion) return;
     let interval: ReturnType<typeof setInterval> | null = null;
     const start = () => {
       interval = setInterval(() => {
@@ -125,7 +135,7 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
     start();
     document.addEventListener('visibilitychange', onVisibility);
     return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
-  }, []);
+  }, [prefersReducedMotion]);
   const count = compact ? 3 : 4;
   const visibleItems = [];
   for (let i = 0; i < count; i++) visibleItems.push(activities[(currentIdx + i) % activities.length]);
@@ -134,7 +144,7 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
       <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
       <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mb-1">Demo activity</p>
       {visibleItems.map((item, idx) => (
-        <div key={`${item.role}-${idx}-${currentIdx}`} className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-500" style={{ opacity: 1 - idx * 0.15 }}>
+        <div key={`${item.role}-${idx}-${currentIdx}`} className={cn("flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm", prefersReducedMotion ? "" : "transition-all duration-500")} style={{ opacity: prefersReducedMotion ? 1 : 1 - idx * 0.15 }}>
           <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-500" : "bg-primary-500")} />
           <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{item.role}</p><p className="text-xs text-gray-500">{item.company}</p></div>
           <span className="text-[11px] text-gray-500 shrink-0">{item.time}</span>
@@ -171,6 +181,11 @@ export default function Homepage() {
 
   return (
     <>
+      {/* Skip to main content for accessibility */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:font-medium">
+        Skip to main content
+      </a>
+      
       <SEO
         title="JobHuntin — The Application Engine That Runs While You Sleep"
         description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily. More interviews, zero effort."
@@ -182,7 +197,7 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §1  HERO — centered, big headline, CTA, then visual showcase below
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden">
+      <section id="main-content" className="relative overflow-hidden">
         {/* Soft gradient bg */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary-50/60 via-white to-white" />
 
@@ -201,16 +216,20 @@ export default function Homepage() {
             </FadeIn>
             <FadeIn delay={160}>
               <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
-                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   Get 20 Free Applications <ArrowRight className="w-5 h-5" />
                 </Link>
-                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 focus:ring-4 focus:ring-slate-200 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   See How It Works
                 </a>
               </div>
               <div className="mt-6 flex items-center justify-center gap-2">
                 <div className="flex -space-x-2 mr-2">
-                  {[1, 2, 3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-200" />)}
+                  {['SK', 'MT', 'JL'].map((initials, i) => (
+                    <div key={i} className="w-7 h-7 rounded-full border-2 border-white bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                      {initials}
+                    </div>
+                  ))}
                 </div>
                 <p className="text-xs sm:text-sm font-medium text-slate-500">
                   <span className="text-slate-900 font-bold">10,000+</span> seekers already hired
@@ -225,7 +244,7 @@ export default function Homepage() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pb-20 mt-12 sm:mt-20 overflow-hidden">
             <div className="relative h-[360px] sm:h-[520px] lg:h-[580px] min-h-[360px]">
               {/* Card 1 — Purple — Dashboard (center-left, tilted) */}
-              <div className="absolute left-[0%] sm:left-[5%] top-[5%] sm:top-[8%] w-[58%] sm:w-[45%] transform -rotate-2 sm:-rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
+              <div className="absolute left-[0%] sm:left-[5%] top-[5%] sm:top-[8%] w-[58%] sm:w-[45%] transform rotate-0 sm:-rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
                 <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-primary-500/30">
                   <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-3">
@@ -249,7 +268,7 @@ export default function Homepage() {
               </div>
 
               {/* Card 2 — Coral/Orange — Resume (center-right, tilted other way) */}
-              <div className="absolute right-[0%] sm:right-[5%] top-[0%] sm:top-[2%] w-[52%] sm:w-[40%] transform rotate-2 sm:rotate-3 z-30 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
+              <div className="absolute right-[0%] sm:right-[5%] top-[0%] sm:top-[2%] w-[52%] sm:w-[40%] transform rotate-0 sm:rotate-3 z-30 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
                 <div className="bg-gradient-to-br from-orange-400 to-rose-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-orange-500/30">
                   <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -289,9 +308,9 @@ export default function Homepage() {
               </div>
 
               {/* Small accent shapes */}
-              <div className="absolute top-0 right-[35%] w-20 h-20 bg-gradient-to-br from-teal-300 to-emerald-400 rounded-2xl rotate-12 opacity-60 z-0" />
-              <div className="absolute bottom-[15%] left-0 w-16 h-16 bg-gradient-to-br from-amber-300 to-orange-400 rounded-xl -rotate-12 opacity-50 z-0" />
-              <div className="absolute top-[30%] right-0 w-14 h-14 bg-gradient-to-br from-primary-300 to-violet-400 rounded-lg rotate-6 opacity-40 z-0" />
+              <div className="hidden sm:block absolute top-0 right-[35%] w-20 h-20 bg-gradient-to-br from-teal-300 to-emerald-400 rounded-2xl rotate-12 opacity-60 z-0" />
+              <div className="hidden sm:block absolute bottom-[15%] left-0 w-16 h-16 bg-gradient-to-br from-amber-300 to-orange-400 rounded-xl -rotate-12 opacity-50 z-0" />
+              <div className="hidden sm:block absolute top-[30%] right-0 w-14 h-14 bg-gradient-to-br from-primary-300 to-violet-400 rounded-lg rotate-6 opacity-40 z-0" />
             </div>
           </div>
         </FadeIn>
@@ -301,15 +320,27 @@ export default function Homepage() {
       < section className="bg-white border-y border-gray-100 py-10" >
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-center mb-6">Trusted by job seekers landing roles at</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
-            {["Google", "Amazon", "Meta", "Stripe", "Shopify", "Netflix"].map((name) => (
-              <span
-                key={name}
-                className="text-xl font-bold text-gray-500 tracking-tight select-none px-4 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-500 transition-all cursor-default"
-                aria-label={`Trusted employer: ${name}`}
+          <div className="grid grid-cols-3 md:grid-cols-6 items-center gap-6">
+            {[
+              { name: "Google", color: "text-gray-600" },
+              { name: "Amazon", color: "text-gray-600" },
+              { name: "Meta", color: "text-gray-600" },
+              { name: "Stripe", color: "text-gray-600" },
+              { name: "Shopify", color: "text-gray-600" },
+              { name: "Netflix", color: "text-gray-600" }
+            ].map((company) => (
+              <div
+                key={company.name}
+                className="flex items-center justify-center px-4 py-3 rounded-xl bg-gray-50/50 hover:bg-gray-100 transition-colors cursor-default"
+                aria-label={`Trusted employer: ${company.name}`}
               >
-                {name}
-              </span>
+                <div className="flex items-center gap-2">
+                  <div className={`w-6 h-6 rounded-md bg-${company.name.toLowerCase()}-100 flex items-center justify-center`}>
+                    <span className={`text-[10px] font-black ${company.color}`}>{company.name.charAt(0)}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-500 tracking-tight">{company.name}</span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -332,14 +363,14 @@ export default function Homepage() {
           <div className="grid md:grid-cols-3 gap-7">
             {/* ── Card 1: Precision Matching (Purple) ── */}
             <FadeIn delay={0}>
-              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer">
                 <div className="flex-1">
                   <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
                     <Target className="w-7 h-7 text-primary-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Perfect Matches Only</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Perfect Matches, Every Time</h3>
                   <p className="text-slate-600 leading-relaxed text-[15px] mb-2">Our engine analyzes thousands of listings daily and only applies to the ones that fit your skills, goals, and salary requirements.</p>
-                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l">
+                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
                     How it works <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
@@ -359,12 +390,12 @@ export default function Homepage() {
                         <p className="text-[11px] font-bold text-gray-900 truncate">{j.role}</p>
                         <p className="text-[9px] text-gray-500">{j.co} · {j.salary}</p>
                         <div className="mt-1.5 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-green-400/60 rounded-full" style={{ width: `${j.match}%` }} />
+                          <div className="h-full bg-green-500 rounded-full" style={{ width: `${j.match}%` }} />
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-[13px] font-extrabold text-green-300">{j.match}%</div>
-                        <div className="text-[7px] text-gray-500 uppercase">match</div>
+                        <div className="text-[13px] font-extrabold text-green-600">{j.match}%</div>
+                        <div className="text-[7px] text-gray-500 uppercase">Match</div>
                       </div>
                     </div>
                   ))}
@@ -374,14 +405,14 @@ export default function Homepage() {
 
             {/* ── Card 2: Curated Quality (Orange) ── */}
             <FadeIn delay={120}>
-              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer">
                 <div className="flex-1">
                   <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
                     <PenTool className="w-7 h-7 text-primary-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-slate-900 mb-3">Your Best Resume</h3>
                   <p className="text-slate-600 leading-relaxed text-[15px] mb-2">We rewrite your resume for every single job, making sure you highlight exactly what the hiring managers are looking for.</p>
-                  <a href="#features" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l">
+                  <a href="#features" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
                     View features <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
@@ -393,7 +424,7 @@ export default function Homepage() {
                         <div className="h-3 w-24 bg-gray-300 rounded-full mb-1" />
                         <div className="h-2 w-16 bg-gray-200 rounded-full" />
                       </div>
-                      <div className="px-2.5 py-1 rounded-lg bg-green-400/20 text-[9px] font-bold text-green-200 flex items-center gap-1">
+                      <div className="px-2.5 py-1 rounded-lg bg-green-100 text-[9px] font-bold text-green-700 flex items-center gap-1">
                         <TrendingUp className="w-3 h-3" /> ATS 94%
                       </div>
                     </div>
@@ -418,9 +449,9 @@ export default function Homepage() {
                   {/* Quality metrics */}
                   <div className="mt-2.5 grid grid-cols-3 gap-1.5">
                     {[
-                      { label: "Tone", icon: "✓", color: "bg-green-400/15 text-green-200" },
-                      { label: "Keywords", icon: "✓", color: "bg-green-400/15 text-green-200" },
-                      { label: "Format", icon: "✓", color: "bg-green-400/15 text-green-200" },
+                      { label: "Tone", icon: "✓", color: "bg-green-100 text-green-700" },
+                      { label: "Keywords", icon: "✓", color: "bg-green-100 text-green-700" },
+                      { label: "Format", icon: "✓", color: "bg-green-100 text-green-700" },
                     ].map((m) => (
                       <div key={m.label} className={cn("rounded-lg px-2 py-1.5 text-center text-[8px] font-bold", m.color)}>
                         {m.icon} {m.label}
@@ -433,14 +464,14 @@ export default function Homepage() {
 
             {/* ── Card 3: Live Tracking (Blue) ── */}
             <FadeIn delay={240}>
-              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer">
                 <div className="flex-1">
                   <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
                     <Activity className="w-7 h-7 text-primary-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Live Tracking</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Real-time Tracking</h3>
                   <p className="text-gray-600 leading-relaxed text-[15px] mb-2">Watch applications go out in real-time. See matches, responses, and interview invites instantly.</p>
-                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-semibold text-sm mt-2 group/l">
+                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-semibold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
                     Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
@@ -456,15 +487,15 @@ export default function Homepage() {
                       <div className="text-[7px] text-gray-500 uppercase tracking-wide">This week</div>
                     </div>
                     <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
-                      <div className="text-[15px] font-extrabold text-green-300">4</div>
+                      <div className="text-[15px] font-extrabold text-green-600">4</div>
                       <div className="text-[7px] text-gray-500 uppercase tracking-wide">Interviews</div>
                     </div>
                   </div>
                   {/* Activity bar chart */}
-                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span className="text-[8px] text-gray-500 uppercase tracking-wider font-bold">Activity This Week</span></div>
+                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /><span className="text-[8px] text-gray-500 uppercase tracking-wider font-bold">Activity This Week</span></div>
                   <div className="flex items-end gap-1 h-10 mb-1">
                     {[40, 65, 55, 80, 70, 90, 45].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t bg-white/15 hover:bg-primary-200 transition-colors" style={{ height: `${h}%` }} />
+                      <div key={i} className="flex-1 rounded-t bg-primary-300 hover:bg-primary-400 transition-colors cursor-pointer" style={{ height: `${h}%` }} title={`${h}% activity`} />
                     ))}
                   </div>
                   <div className="flex justify-between text-[7px] text-gray-500 font-medium">
@@ -551,7 +582,7 @@ export default function Homepage() {
                     <li key={f} className="flex items-center gap-4"><div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-primary-600" /></div><span className="text-gray-700 font-medium text-[15px]">{f}</span></li>
                   ))}
                 </ul>
-                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-14 px-10 rounded-full text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 transition-all">
+                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-14 px-10 rounded-full text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all">
                   Try it free <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
@@ -665,8 +696,8 @@ export default function Homepage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Step 1 — Upload Resume */}
             <FadeIn delay={0}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
-                <div className="absolute top-3 right-3 w-24 h-24 bg-slate-50 border border-slate-100 rounded-2xl rotate-12" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer focus-within:ring-2 focus-within:ring-primary-300">
+                <div className="hidden sm:block absolute top-3 right-3 w-24 h-24 bg-slate-50 border border-slate-100 rounded-2xl rotate-12" />
                 <div className="relative">
                   <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5">
                     <Upload className="w-6 h-6 text-primary-600" />
@@ -692,8 +723,8 @@ export default function Homepage() {
 
             {/* Step 2 — Set Filters */}
             <FadeIn delay={100}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
-                <div className="absolute top-4 right-4 w-20 h-20 bg-slate-50 border border-slate-100 rounded-full" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer focus-within:ring-2 focus-within:ring-primary-300">
+                <div className="hidden sm:block absolute top-4 right-4 w-20 h-20 bg-slate-50 border border-slate-100 rounded-full" />
                 <div className="relative">
                   <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5">
                     <SlidersHorizontal className="w-6 h-6 text-primary-600" />
@@ -719,8 +750,8 @@ export default function Homepage() {
 
             {/* Step 3 — AI Applies */}
             <FadeIn delay={200}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
-                <div className="absolute top-3 right-3 w-28 h-16 bg-slate-50 rounded-xl rotate-6" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer focus-within:ring-2 focus-within:ring-primary-300">
+                <div className="hidden sm:block absolute top-3 right-3 w-28 h-16 bg-slate-50 rounded-xl rotate-6" />
                 <div className="relative">
                   <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5">
                     <Send className="w-6 h-6 text-primary-600" />
@@ -747,8 +778,8 @@ export default function Homepage() {
 
             {/* Step 4 — Get Interviews */}
             <FadeIn delay={300}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
-                <div className="absolute top-3 right-3 w-20 h-20 bg-slate-50 border border-slate-100 rounded-2xl rotate-12" />
+              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer focus-within:ring-2 focus-within:ring-primary-300">
+                <div className="hidden sm:block absolute top-3 right-3 w-20 h-20 bg-slate-50 border border-slate-100 rounded-2xl rotate-12" />
                 <div className="relative">
                   <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5">
                     <Trophy className="w-6 h-6 text-primary-600" />
@@ -777,7 +808,7 @@ export default function Homepage() {
 
           <FadeIn delay={400}>
             <div className="text-center mt-16">
-              <Link to="/login" className="inline-flex items-center gap-2 h-14 px-10 rounded-full text-base font-semibold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 transition-all">
+              <Link to="/login" className="inline-flex items-center gap-2 h-14 px-10 rounded-full text-base font-semibold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all">
                 Start Free <ArrowRight className="w-4 h-4" />
               </Link>
               <p className="mt-4 text-sm text-gray-500">20 applications per week. No credit card required.</p>
@@ -828,28 +859,16 @@ export default function Homepage() {
               <div className="absolute inset-0 bg-slate-800/50 rounded-[2.5rem] border border-white/5 backdrop-blur-sm overflow-hidden p-6 sm:p-8">
                 <div className="space-y-4 animate-scroll-v">
                   {[
-                    ...[
-                      { n: "Sarah K.", c: "Stripe", r: "Software Engineer", t: "2m ago" },
-                      { n: "Marcus T.", c: "Google", r: "Product Manager", t: "5m ago" },
-                      { n: "James L.", c: "Airbnb", r: "UX Designer", t: "12m ago" },
-                      { n: "Priya R.", c: "Meta", r: "Data Scientist", t: "15m ago" },
-                      { n: "Elena M.", c: "Figma", r: "Product Lead", t: "22m ago" },
-                      { n: "David C.", c: "Shopify", r: "Backend Dev", t: "28m ago" },
-                      { n: "Chris B.", c: "Netflix", r: "SRE", t: "35m ago" },
-                      { n: "Alex J.", c: "Vercel", r: "Front End", t: "42m ago" },
-                    ],
-                    ...[
-                      { n: "Sarah K.", c: "Stripe", r: "Software Engineer", t: "2m ago" },
-                      { n: "Marcus T.", c: "Google", r: "Product Manager", t: "5m ago" },
-                      { n: "James L.", c: "Airbnb", r: "UX Designer", t: "12m ago" },
-                      { n: "Priya R.", c: "Meta", r: "Data Scientist", t: "15m ago" },
-                      { n: "Elena M.", c: "Figma", r: "Product Lead", t: "22m ago" },
-                      { n: "David C.", c: "Shopify", r: "Backend Dev", t: "28m ago" },
-                      { n: "Chris B.", c: "Netflix", r: "SRE", t: "35m ago" },
-                      { n: "Alex J.", c: "Vercel", r: "Front End", t: "42m ago" },
-                    ]
+                    { n: "Sarah K.", c: "Stripe", r: "Software Engineer", t: "2m ago" },
+                    { n: "Marcus T.", c: "Google", r: "Product Manager", t: "5m ago" },
+                    { n: "James L.", c: "Airbnb", r: "UX Designer", t: "12m ago" },
+                    { n: "Priya R.", c: "Meta", r: "Data Scientist", t: "15m ago" },
+                    { n: "Elena M.", c: "Figma", r: "Product Lead", t: "22m ago" },
+                    { n: "David C.", c: "Shopify", r: "Backend Dev", t: "28m ago" },
+                    { n: "Chris B.", c: "Netflix", r: "SRE", t: "35m ago" },
+                    { n: "Alex J.", c: "Vercel", r: "Front End", t: "42m ago" },
                   ].map((win, i) => (
-                    <div key={`win-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                    <div key={`win-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
                         {win.n.split(' ').map(x => x[0]).join('')}
                       </div>
@@ -857,7 +876,7 @@ export default function Homepage() {
                         <p className="text-sm font-bold text-white truncate">{win.n} <span className="text-slate-500 font-normal">landed at</span> {win.c}</p>
                         <p className="text-[11px] text-slate-400 font-medium">{win.r}</p>
                       </div>
-                      <div className="px-2 py-1 rounded-lg bg-green-400/10 text-[10px] font-black text-green-400 shrink-0">
+                      <div className="px-2 py-1 rounded-lg bg-green-500/20 text-[10px] font-black text-green-400 shrink-0">
                         SUCCESS ✓
                       </div>
                     </div>
@@ -868,8 +887,8 @@ export default function Homepage() {
                 <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
               </div>
 
-              {/* Floating badges */}
-              <div className="absolute -top-6 -right-6 w-32 h-32 bg-primary-600 rounded-3xl rotate-12 flex flex-col items-center justify-center p-4 shadow-2xl shadow-primary-600/40 z-20">
+              {/* Floating badges - hidden on mobile */}
+              <div className="hidden sm:flex absolute -top-6 -right-6 w-32 h-32 bg-primary-600 rounded-3xl rotate-12 flex flex-col items-center justify-center p-4 shadow-2xl shadow-primary-600/40 z-20">
                 <Trophy className="w-8 h-8 text-white mb-2" />
                 <div className="text-[10px] font-black text-primary-100 uppercase tracking-widest text-center leading-tight">Match Rate 98.4%</div>
               </div>
@@ -900,9 +919,9 @@ export default function Homepage() {
           <FadeIn delay={200}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {["Smart resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep insights", "Personalized applications", "Salary filtering", "Company size filters", "Location preferences", "Role matching engine", "Auto-apply engine", "Application dashboard", "Response tracking", "Resume versioning", "Email notifications", "Mobile dashboard", "Data encryption", "Bulk applications", "Smart scheduling", "Company research", "Skills gap analysis", "Application analytics", "Priority support"].map((feature) => (
-                <div key={feature} className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white border border-slate-100 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-600/5 transition-all group">
+                <div key={feature} className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white border border-slate-100 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-600/5 transition-all group cursor-pointer focus-within:ring-2 focus-within:ring-primary-200">
                   <div className="w-6 h-6 rounded-full bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-600 transition-colors"><Check className="w-3.5 h-3.5 text-primary-600 group-hover:text-white transition-colors" /></div>
-                  <span className="text-sm font-bold text-slate-700">{feature}</span>
+                  <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{feature}</span>
                 </div>
               ))}
             </div>
@@ -954,8 +973,8 @@ export default function Homepage() {
       {/* ── Sticky mobile CTA ── */}
       {
         stickyVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 shadow-2xl">
-            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-14 rounded-full text-base font-bold bg-primary-600 text-white hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/30">
+          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl">
+            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-14 rounded-full text-base font-bold bg-primary-600 text-white hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all shadow-lg shadow-primary-600/30">
               Start Applying Free <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
