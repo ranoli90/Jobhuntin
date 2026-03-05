@@ -1,0 +1,65 @@
+<testsuites id="" name="" tests="3" failures="1" skipped="2" errors="0" time="113.245511">
+<testsuite name="complete-auth-flow.spec.ts" timestamp="2026-03-05T22:04:07.405Z" hostname="chromium" tests="3" failures="1" skipped="2" time="66.711" errors="0">
+<testcase name="Complete Magic Link Authentication Flow › complete new user journey: email → magic link → onboarding → dashboard" classname="complete-auth-flow.spec.ts" time="66.711">
+<failure message="complete-auth-flow.spec.ts:17:3 complete new user journey: email → magic link → onboarding → dashboard" type="FAILURE">
+<![CDATA[  [chromium] › complete-auth-flow.spec.ts:17:3 › Complete Magic Link Authentication Flow › complete new user journey: email → magic link → onboarding → dashboard 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('input[type="email"], input[placeholder*="email"], input[name="email"]').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[type="email"], input[placeholder*="email"], input[name="email"]').first()
+
+
+      24 |     // Step 2: Enter email and request magic link
+      25 |     const emailInput = page.locator('input[type="email"], input[placeholder*="email"], input[name="email"]').first();
+    > 26 |     await expect(emailInput).toBeVisible({ timeout: 5000 });
+         |                              ^
+      27 |     await emailInput.fill(TEST_EMAIL);
+      28 |     
+      29 |     const submitBtn = page.locator('button[type="submit"], button:has-text("Continue")').first();
+        at C:\Users\Administrator\Desktop\main jobhuntin\jobhuntin-e2e-tests\src\tests\complete-auth-flow.spec.ts:26:30
+
+    Error: apiRequestContext._wrapApiCall: Test ended.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\..\test-results\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\..\test-results\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[🚀 Starting complete user journey test...
+
+[[ATTACHMENT|..\test-results\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\error-context.md]]
+
+[[ATTACHMENT|..\test-results\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete Magic Link Authentication Flow › error handling: invalid email and network issues" classname="complete-auth-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Complete Magic Link Authentication Flow › rate limiting behavior" classname="complete-auth-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

@@ -691,7 +691,7 @@ export default function Homepage() {
             </div>
           </FadeIn>
         </div>
-      </section >
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════════
           §5  HOW IT WORKS — colorful step cards

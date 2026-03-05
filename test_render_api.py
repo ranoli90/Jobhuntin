@@ -56,7 +56,7 @@ class RenderAPITester:
                 try:
                     response_text = await response.text()
                     response_data = json.loads(response_text) if response_text else {}
-                except:
+                except Exception:
                     response_data = {"raw_response": response_text[:500]}
 
                 result = {
@@ -248,7 +248,7 @@ async def main():
     tester = RenderAPITester()
 
     try:
-        report = await tester.run_all_tests()
+        await tester.run_all_tests()
 
         # Exit with error code if any tests failed
         failed_tests = sum(1 for r in tester.test_results if not r["success"])

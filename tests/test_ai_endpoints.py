@@ -3,13 +3,13 @@
 Tests the fixed function signatures and prompt building logic.
 """
 
-from __future__ import annotations
-
+import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
-# Import the modules we fixed
+# Import the actual classes from the API
+from apps.api.ai_endpoints import RoleSuggestionRequest
 from backend.llm.contracts import (
     JobMatchScore_V1,
     LocationSuggestionResponse_V1,

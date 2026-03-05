@@ -474,7 +474,7 @@ export default function Login() {
                 </motion.div>
               ))}
             </motion.div>
-          </div>
+          </motion.div>
 
           <motion.div
             id="login-form"
