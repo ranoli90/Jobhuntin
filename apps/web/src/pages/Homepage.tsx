@@ -197,42 +197,42 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §1  HERO — centered, big headline, CTA, then visual showcase below
           ═══════════════════════════════════════════════════════════════ */}
-      <section id="main-content" className="relative overflow-hidden">
-        {/* Soft gradient bg */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-50/60 via-white to-white" />
+      <section id="main-content" className="relative overflow-hidden bg-white">
+        {/* Clean white background - no gradient */}
+        <div className="absolute inset-0 bg-white" />
 
         <div className="relative max-w-7xl mx-auto px-6 pt-28 sm:pt-36 pb-12">
           <div className="max-w-3xl mx-auto text-center">
             <FadeIn>
-              <h1 className="text-[clamp(2.5rem,8vw,5.5rem)] font-black leading-[1.1] sm:leading-[1.0] tracking-[-0.05em] text-slate-900 px-2 sm:px-0 text-balance">
+              <h1 className="text-[clamp(2.5rem,8vw,5rem)] font-black leading-[1.1] sm:leading-[1.0] tracking-tight text-slate-900 px-2 sm:px-0">
                 Land your next job<br className="hidden sm:block" />
-                <span className="text-primary-600"> without the search</span>
+                <span className="text-slate-900"> without the search</span>
               </h1>
             </FadeIn>
             <FadeIn delay={80}>
-              <p className="mt-6 sm:mt-8 text-base sm:text-lg lg:text-[1.35rem] text-slate-600 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
+              <p className="mt-6 sm:mt-8 text-base sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
                 Stop spending 20 hours a week applying. We find the matching jobs, tailor your resume, and apply for you — all while you sleep.
               </p>
             </FadeIn>
             <FadeIn delay={160}>
               <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
-                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-semibold bg-slate-900 text-white hover:bg-slate-800 focus:ring-2 focus:ring-slate-400 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   Get 20 Free Applications <ArrowRight className="w-5 h-5" />
                 </Link>
-                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-bold border-2 border-slate-200 text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 focus:ring-4 focus:ring-slate-200 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-medium border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   See How It Works
                 </a>
               </div>
-              <div className="mt-6 flex items-center justify-center gap-2">
-                <div className="flex -space-x-2 mr-2">
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <div className="flex -space-x-3">
                   {['SK', 'MT', 'JL'].map((initials, i) => (
-                    <div key={i} className="w-7 h-7 rounded-full border-2 border-white bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                    <div key={i} className="w-10 h-10 rounded-full border-3 border-white bg-slate-900 flex items-center justify-center text-[11px] font-bold text-white shadow-md">
                       {initials}
                     </div>
                   ))}
                 </div>
-                <p className="text-xs sm:text-sm font-medium text-slate-500">
-                  <span className="text-slate-900 font-bold">10,000+</span> seekers already hired
+                <p className="text-sm text-slate-500">
+                  <span className="text-slate-900 font-semibold">10,000+</span> seekers already hired
                 </p>
               </div>
             </FadeIn>
@@ -243,74 +243,88 @@ export default function Homepage() {
         <FadeIn delay={300}>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pb-20 mt-12 sm:mt-20 overflow-hidden">
             <div className="relative h-[360px] sm:h-[520px] lg:h-[580px] min-h-[360px]">
-              {/* Card 1 — Purple — Dashboard (center-left, tilted) */}
-              <div className="absolute left-[0%] sm:left-[5%] top-[5%] sm:top-[8%] w-[58%] sm:w-[45%] transform rotate-0 sm:-rotate-3 z-20 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
-                <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-primary-500/30">
-                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /><div className="w-2.5 h-2.5 rounded-full bg-amber-400" /><div className="w-2.5 h-2.5 rounded-full bg-green-400" /></div>
-                      <div className="flex-1 h-4 bg-gray-100 rounded-full mx-4" />
+              {/* Card 1 — Dashboard (center-left, tilted) - Clean dark card */}
+              <div className="absolute left-[0%] sm:left-[5%] top-[5%] sm:top-[8%] w-[58%] sm:w-[45%] transform rotate-0 sm:-rotate-2 z-20 transition-transform duration-300 hover:rotate-0 hover:scale-[1.02] will-change-transform">
+                <div className="bg-slate-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl">
+                  {/* Window chrome */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                      <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                      <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
                     </div>
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      <div className="bg-primary-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-primary-600">127</div><div className="text-[8px] sm:text-[9px] text-gray-500">Applied</div></div>
-                      <div className="bg-green-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-green-600">23</div><div className="text-[8px] sm:text-[9px] text-gray-500">Responses</div></div>
-                      <div className="bg-amber-50 rounded-lg p-2 text-center"><div className="text-lg sm:text-xl font-bold text-amber-600">7</div><div className="text-[8px] sm:text-[9px] text-gray-500">Interviews</div></div>
+                    <div className="flex-1 h-5 bg-slate-800 rounded-lg mx-2" />
+                  </div>
+                  {/* Dashboard stats */}
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                      <div className="text-lg sm:text-xl font-bold text-white">127</div>
+                      <div className="text-[8px] sm:text-[9px] text-slate-400">Applied</div>
                     </div>
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex items-center gap-2 py-1.5 border-t border-gray-50">
-                        <div className="w-6 h-6 rounded bg-gray-100 shrink-0" />
-                        <div className="flex-1"><div className="h-2 bg-gray-100 rounded-full w-3/4" /><div className="h-1.5 bg-gray-50 rounded-full w-1/2 mt-1" /></div>
-                        <div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-bold", i === 1 ? "bg-green-100 text-green-700" : i === 2 ? "bg-primary-100 text-primary-700" : "bg-amber-100 text-amber-700")}>{i === 1 ? "Interview" : i === 2 ? "Applied" : "Viewed"}</div>
+                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                      <div className="text-lg sm:text-xl font-bold text-emerald-400">23</div>
+                      <div className="text-[8px] sm:text-[9px] text-slate-400">Responses</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                      <div className="text-lg sm:text-xl font-bold text-amber-400">7</div>
+                      <div className="text-[8px] sm:text-[9px] text-slate-400">Interviews</div>
+                    </div>
+                  </div>
+                  {/* Application rows */}
+                  {[
+                    { name: "Stripe", status: "Interview", color: "bg-emerald-500" },
+                    { name: "Airbnb", status: "Applied", color: "bg-blue-500" },
+                    { name: "Figma", status: "Viewed", color: "bg-amber-500" },
+                  ].map((app, i) => (
+                    <div key={i} className="flex items-center gap-2 py-2 border-t border-slate-800">
+                      <div className="w-7 h-7 rounded-lg bg-slate-700 shrink-0" />
+                      <div className="flex-1">
+                        <div className="h-2 bg-slate-700 rounded-full w-3/4" />
+                        <div className="h-1.5 bg-slate-800 rounded-full w-1/2 mt-1" />
                       </div>
-                    ))}
+                      <div className={cn("px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-semibold", app.status === "Interview" ? "bg-emerald-500/20 text-emerald-400" : app.status === "Applied" ? "bg-blue-500/20 text-blue-400" : "bg-amber-500/20 text-amber-400")}>
+                        {app.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Card 2 — Resume (center-right, tilted other way) - Clean white card */}
+              <div className="absolute right-[0%] sm:right-[5%] top-[0%] sm:top-[2%] w-[52%] sm:w-[40%] transform rotate-0 sm:rotate-2 z-30 transition-transform duration-300 hover:rotate-0 hover:scale-[1.02] will-change-transform">
+                <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl border border-slate-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-xs font-bold text-slate-900">Resume Preview</div>
+                    <div className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[8px] font-bold">ATS: 94%</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-5 bg-slate-900 rounded-lg w-2/3" />
+                    <div className="h-2.5 bg-slate-200 rounded-full w-full" />
+                    <div className="h-2.5 bg-slate-200 rounded-full w-5/6" />
+                    <div className="h-2.5 bg-slate-200 rounded-full w-4/5" />
+                    <div className="h-px bg-slate-200 my-3" />
+                    <div className="h-4 bg-slate-800 rounded-lg w-2/5" />
+                    <div className="h-2 bg-slate-100 rounded-full w-full" />
+                    <div className="h-2 bg-slate-100 rounded-full w-full" />
+                  </div>
+                  <div className="mt-3 flex gap-1.5 flex-wrap">
+                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">React</div>
+                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">TypeScript</div>
+                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">Node.js</div>
                   </div>
                 </div>
               </div>
 
-              {/* Card 2 — Coral/Orange — Resume (center-right, tilted other way) */}
-              <div className="absolute right-[0%] sm:right-[5%] top-[0%] sm:top-[2%] w-[52%] sm:w-[40%] transform rotate-0 sm:rotate-3 z-30 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
-                <div className="bg-gradient-to-br from-orange-400 to-rose-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-orange-500/30">
-                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="text-xs font-bold text-gray-900">Resume Preview</div>
-                      <div className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[8px] font-bold">ATS: 94%</div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-900 rounded-full w-2/3" />
-                      <div className="h-2.5 bg-gray-200 rounded-full w-full" />
-                      <div className="h-2.5 bg-gray-200 rounded-full w-5/6" />
-                      <div className="h-2.5 bg-gray-200 rounded-full w-4/5" />
-                      <div className="h-px bg-gray-100 my-2" />
-                      <div className="h-3 bg-gray-800 rounded-full w-2/5" />
-                      <div className="h-2 bg-gray-100 rounded-full w-full" />
-                      <div className="h-2 bg-gray-100 rounded-full w-3/4" />
-                    </div>
-                    <div className="mt-3 flex gap-1.5 flex-wrap">
-                      <div className="px-2 py-1 rounded bg-primary-50 text-primary-700 text-[7px] sm:text-[8px] font-bold">React</div>
-                      <div className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[7px] sm:text-[8px] font-bold">TypeScript</div>
-                      <div className="px-2 py-1 rounded bg-green-50 text-green-700 text-[7px] sm:text-[8px] font-bold">Node.js</div>
-                    </div>
+              {/* Card 3 — Live Feed (bottom center) - Subtle dark card */}
+              <div className="absolute left-[10%] sm:left-[22%] bottom-[2%] sm:bottom-[0%] w-[60%] sm:w-[42%] transform rotate-0 z-10 transition-transform duration-300 hover:scale-[1.02] will-change-transform">
+                <div className="bg-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-semibold text-slate-300">Live Activity</span>
                   </div>
+                  <LiveActivityFeed compact />
                 </div>
               </div>
-
-              {/* Card 3 — Blue — Live Feed (bottom center) */}
-              <div className="absolute left-[10%] sm:left-[22%] bottom-[2%] sm:bottom-[0%] w-[60%] sm:w-[42%] transform rotate-1 z-10 transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] will-change-transform">
-                <div className="bg-gradient-to-br from-sky-400 to-blue-600 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-blue-500/30">
-                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                      <span className="text-[10px] font-semibold text-gray-700">Live Activity</span>
-                    </div>
-                    <LiveActivityFeed compact />
-                  </div>
-                </div>
-              </div>
-
-              {/* Small accent shapes */}
-              <div className="hidden sm:block absolute top-0 right-[35%] w-20 h-20 bg-gradient-to-br from-teal-300 to-emerald-400 rounded-2xl rotate-12 opacity-60 z-0" />
-              <div className="hidden sm:block absolute bottom-[15%] left-0 w-16 h-16 bg-gradient-to-br from-amber-300 to-orange-400 rounded-xl -rotate-12 opacity-50 z-0" />
-              <div className="hidden sm:block absolute top-[30%] right-0 w-14 h-14 bg-gradient-to-br from-primary-300 to-violet-400 rounded-lg rotate-6 opacity-40 z-0" />
             </div>
           </div>
         </FadeIn>
@@ -844,12 +858,26 @@ export default function Homepage() {
                 </p>
                 <div className="grid grid-cols-2 gap-8">
                   <div>
-                    <div className="text-4xl sm:text-5xl font-black text-white mb-2">1.2M+</div>
+                    <div className="text-4xl sm:text-5xl font-black text-white mb-2 flex items-baseline gap-1">
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-purple-400">500K+</span>
+                      <span className="text-lg text-slate-500 font-medium">+</span>
+                    </div>
                     <div className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest">Applications Sent</div>
                   </div>
                   <div>
-                    <div className="text-4xl sm:text-5xl font-black text-primary-400 mb-2">84%</div>
-                    <div className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest">Callback Increase</div>
+                    <div className="text-4xl sm:text-5xl font-black text-primary-400 mb-2">3.2x</div>
+                    <div className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest">More Interviews</div>
+                  </div>
+                </div>
+                <div className="mt-8 pt-8 border-t border-white/10">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-400">Trusted by job seekers at</span>
+                    <div className="flex gap-4 text-slate-500 font-medium">
+                      <span>Google</span>
+                      <span>Meta</span>
+                      <span>Stripe</span>
+                      <span>+50 more</span>
+                    </div>
                   </div>
                 </div>
               </FadeIn>
@@ -918,11 +946,40 @@ export default function Homepage() {
           </FadeIn>
           <FadeIn delay={200}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {["Smart resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep insights", "Personalized applications", "Salary filtering", "Company size filters", "Location preferences", "Role matching engine", "Auto-apply engine", "Application dashboard", "Response tracking", "Resume versioning", "Email notifications", "Mobile dashboard", "Data encryption", "Bulk applications", "Smart scheduling", "Company research", "Skills gap analysis", "Application analytics", "Priority support"].map((feature) => (
-                <div key={feature} className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white border border-slate-100 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-600/5 transition-all group cursor-pointer focus-within:ring-2 focus-within:ring-primary-200">
+              {[
+                { name: "Smart resume analysis", link: "#features" },
+                { name: "Custom cover letters", link: "#features" },
+                { name: "ATS optimization", link: "#features" },
+                { name: "Thousands of positions", link: "#how-it-works" },
+                { name: "Real-time tracking", link: "#dashboard" },
+                { name: "Interview prep insights", link: "#features" },
+                { name: "Personalized applications", link: "#features" },
+                { name: "Salary filtering", link: "#how-it-works" },
+                { name: "Company size filters", link: "#how-it-works" },
+                { name: "Location preferences", link: "#how-it-works" },
+                { name: "Role matching engine", link: "#features" },
+                { name: "Auto-apply engine", link: "#how-it-works" },
+                { name: "Application dashboard", link: "#dashboard" },
+                { name: "Response tracking", link: "#dashboard" },
+                { name: "Resume versioning", link: "#features" },
+                { name: "Email notifications", link: "#features" },
+                { name: "Mobile dashboard", link: "#features" },
+                { name: "Data encryption", link: "/privacy" },
+                { name: "Bulk applications", link: "#how-it-works" },
+                { name: "Smart scheduling", link: "#features" },
+                { name: "Company research", link: "#features" },
+                { name: "Skills gap analysis", link: "#features" },
+                { name: "Application analytics", link: "#dashboard" },
+                { name: "Priority support", link: "#cta" },
+              ].map((feature) => (
+                <a 
+                  key={feature.name} 
+                  href={feature.link}
+                  className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white border border-slate-100 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-600/5 transition-all group cursor-pointer focus-within:ring-2 focus-within:ring-primary-200"
+                >
                   <div className="w-6 h-6 rounded-full bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-600 transition-colors"><Check className="w-3.5 h-3.5 text-primary-600 group-hover:text-white transition-colors" /></div>
-                  <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{feature}</span>
-                </div>
+                  <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{feature.name}</span>
+                </a>
               ))}
             </div>
           </FadeIn>

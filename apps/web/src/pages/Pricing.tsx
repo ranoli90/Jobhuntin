@@ -278,18 +278,18 @@ export default function Pricing() {
       <main className="max-w-7xl mx-auto px-6 py-28 sm:py-36">
         <div className="text-center mb-24 relative">
           <FadeIn>
-            <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-bold mb-6">
+            <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Sparkles className="w-4 h-4" />
               Launch Special: 80% Off First Month
             </div>
-            <h1 className="text-[clamp(3rem,7vw,6.5rem)] font-black text-slate-900 dark:text-slate-100 mb-8 tracking-[-0.05em] leading-[0.95]">
+            <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-slate-900 dark:text-slate-100 mb-6 tracking-tight leading-[1.1]">
               Start free.<br />
-              <span className="text-primary-600">Upgrade when you're ready.</span>
+              <span className="text-slate-900">Upgrade when you're ready.</span>
             </h1>
           </FadeIn>
 
           <FadeIn delay={100}>
-            <p className="text-xl text-gray-500 dark:text-slate-400 max-w-2xl mx-auto mb-12 font-medium">
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 font-medium">
               20 free applications every week. No credit card required. Upgrade to unlimited when you're ready to accelerate your job search.
             </p>
           </FadeIn>
@@ -298,19 +298,19 @@ export default function Pricing() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
           {/* Free Tier */}
           <motion.div
-            whileHover={{ y: -8 }}
-            className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col h-full"
+            whileHover={{ y: -4 }}
+            className="bg-white rounded-2xl p-8 lg:p-10 border border-slate-200 shadow-sm flex flex-col h-full"
           >
-            <div className="mb-10">
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 mb-4">Free</h3>
+            <div className="mb-8">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">Free</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-black text-slate-950">$0</span>
-                <span className="text-sm font-bold text-gray-500">forever</span>
+                <span className="text-5xl font-bold text-slate-900">$0</span>
+                <span className="text-sm font-medium text-slate-500">forever</span>
               </div>
-              <p className="text-sm text-gray-500 mt-2">20 applications per week</p>
+              <p className="text-sm text-slate-500 mt-2">20 applications per week</p>
             </div>
 
-            <div className="space-y-5 mb-12 flex-1">
+            <div className="space-y-4 mb-10 flex-1">
               {[
                 "20 AI-Powered Applications/week",
                 "Smart Job Matching",
@@ -319,51 +319,46 @@ export default function Pricing() {
                 "Weekly Reset (Every Monday)"
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <CheckCircle className="w-4 h-4 text-primary-500" />
-                  <span className="text-sm font-bold text-gray-600">{feature}</span>
+                  <CheckCircle className="w-5 h-5 text-slate-900" />
+                  <span className="text-sm font-medium text-slate-700">{feature}</span>
                 </div>
               ))}
             </div>
 
             <button
               onClick={handleFreeCta}
-              className="w-full py-4 rounded-2xl border-2 border-slate-200 text-slate-950 font-bold hover:bg-slate-50 transition-all active:scale-95"
+              className="w-full py-3.5 rounded-xl border-2 border-slate-200 text-slate-900 font-semibold hover:bg-slate-50 transition-colors"
             >
               {isLoggedIn ? "Go to Dashboard" : "Start Free"}
             </button>
           </motion.div>
 
-          {/* Pro Tier — Vibrant Indigo */}
+          {/* Pro Tier — Clean dark card */}
           <motion.div
-            initial={{ scale: 0.95 }}
+            initial={{ scale: 0.98 }}
             animate={{ scale: 1 }}
-            whileHover={{ y: -12, scale: 1.02 }}
-            className="bg-primary-600 rounded-[2.5rem] p-10 shadow-3xl shadow-primary-600/30 flex flex-col h-full relative overflow-hidden"
+            whileHover={{ y: -4 }}
+            className="bg-slate-900 rounded-2xl p-8 lg:p-10 shadow-lg flex flex-col h-full relative"
           >
-            {/* Launch Special Badge */}
-            <div className="absolute top-6 right-6 bg-white text-primary-600 text-xs font-black px-3 py-1.5 rounded-full shadow-lg">
-              80% OFF
-            </div>
+            {/* Subtle accent */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
 
-            {/* Glossy overlay effect */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl -mr-16 -mt-16" />
-
-            <div className="mb-10 relative z-10">
-              <div className="flex justify-between items-center mb-4 text-white">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] opacity-80">Pro</h3>
-                <Zap className="w-4 h-4" />
+            <div className="mb-8 relative z-10">
+              <div className="flex justify-between items-center mb-3 text-white">
+                <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400">Pro</h3>
+                <Zap className="w-4 h-4 text-white" />
               </div>
               <div className="flex items-baseline gap-1 text-white">
-                <span className="text-6xl font-black">$10</span>
-                <span className="text-sm font-bold opacity-60">first month</span>
+                <span className="text-6xl font-bold">$10</span>
+                <span className="text-sm font-medium text-slate-400">first month</span>
               </div>
-              <p className="text-[10px] text-white/40 uppercase font-black tracking-widest mt-2">
+              <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-widest mt-2">
                 Then $29/month • Cancel anytime
               </p>
             </div>
 
-            <div className="space-y-5 mb-12 flex-1 relative z-10">
-              <p className="text-white/80 text-sm font-medium mb-4">Everything in Free, plus:</p>
+            <div className="space-y-4 mb-10 flex-1 relative z-10">
+              <p className="text-slate-400 text-sm font-medium mb-4">Everything in Free, plus:</p>
               {[
                 "Unlimited AI Applications",
                 "Resume Tailored for Every Job",
@@ -374,15 +369,15 @@ export default function Pricing() {
                 "Interview Coaching"
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <CheckCircle className="w-4 h-4 text-primary-200" />
-                  <span className="text-sm font-bold text-white leading-tight">{feature}</span>
+                  <CheckCircle className="w-5 h-5 text-white" />
+                  <span className="text-sm font-medium text-white">{feature}</span>
                 </div>
               ))}
             </div>
 
             <button
               onClick={handleProCta}
-              className="w-full py-5 rounded-2xl bg-white text-primary-600 font-bold hover:bg-slate-50 transform transition-all shadow-xl active:scale-95"
+              className="w-full py-3.5 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition-colors"
             >
               {getProCtaLabel()}
             </button>
@@ -391,17 +386,17 @@ export default function Pricing() {
 
         {/* Trust indicators */}
         <div className="mt-16 text-center">
-          <p className="text-sm text-gray-500 mb-4">Trusted by job seekers at</p>
-          <div className="flex justify-center gap-8 opacity-50">
+          <p className="text-sm text-slate-500 mb-4">Trusted by job seekers at</p>
+          <div className="flex justify-center gap-8 opacity-40">
             {['Google', 'Amazon', 'Meta', 'Stripe', 'Netflix'].map((company) => (
-              <span key={company} className="text-lg font-bold text-gray-400">{company}</span>
+              <span key={company} className="text-lg font-bold text-slate-600">{company}</span>
             ))}
           </div>
         </div>
 
         {/* FAQ Section */}
-        <div className="mt-32 border-t border-gray-200 dark:border-slate-700 pt-20">
-          <h2 className="text-3xl font-black text-center mb-16 tracking-tight text-slate-900 dark:text-slate-100">Frequently Asked Questions</h2>
+        <div className="mt-24 border-t border-slate-200 dark:border-slate-700 pt-16">
+          <h2 className="text-3xl font-bold text-center mb-12 tracking-tight text-slate-900 dark:text-slate-100">Frequently Asked Questions</h2>
           <div className="grid md:grid-cols-2 gap-12 max-w-4xl mx-auto">
             {[
               { q: "What happens after my 20 free applications?", a: "Your free applications reset every Monday at midnight UTC. If you need more before the reset, you can upgrade to Pro for unlimited applications." },

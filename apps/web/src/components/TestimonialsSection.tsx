@@ -11,6 +11,7 @@ interface Testimonial {
   company: string;
   avatar?: string;
   rating: number;
+  avatarGradient: string;
 }
 
 const testimonials: Testimonial[] = [
@@ -20,7 +21,8 @@ const testimonials: Testimonial[] = [
     author: "Sarah Chen",
     role: "Senior Product Manager",
     company: "Previously at Startup",
-    rating: 5
+    rating: 5,
+    avatarGradient: "from-rose-400 to-orange-500"
   },
   {
     id: "2",
@@ -28,7 +30,8 @@ const testimonials: Testimonial[] = [
     author: "Marcus Johnson",
     role: "Full Stack Developer",
     company: "Now at Stripe",
-    rating: 5
+    rating: 5,
+    avatarGradient: "from-blue-400 to-indigo-600"
   },
   {
     id: "3",
@@ -36,7 +39,8 @@ const testimonials: Testimonial[] = [
     author: "Emily Rodriguez",
     role: "UX Designer",
     company: "Now at Figma",
-    rating: 5
+    rating: 5,
+    avatarGradient: "from-purple-400 to-pink-500"
   },
   {
     id: "4",
@@ -44,7 +48,8 @@ const testimonials: Testimonial[] = [
     author: "David Park",
     role: "Data Scientist",
     company: "Now at Netflix",
-    rating: 5
+    rating: 5,
+    avatarGradient: "from-emerald-400 to-teal-600"
   }
 ];
 
@@ -165,7 +170,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 
                 {/* Author */}
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-xl font-bold">
+                  <div className={cn("w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xl font-bold shadow-lg", current.avatarGradient)}>
                     {current.author.split(" ").map(n => n[0]).join("")}
                   </div>
                   <div>

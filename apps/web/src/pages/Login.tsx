@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { useAuth } from '../hooks/useAuth';
 import { pushToast } from '../lib/toast';
 import {
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '../components/brand/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { LanguageSelector } from '../components/LanguageSelector';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { magicLinkService } from '../services/magicLinkService';
@@ -153,6 +155,32 @@ export default function Login() {
       </div>
     );
   }
+
+  // Confetti celebration on success
+  const triggerConfetti = useCallback(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+    
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+    const interval: any = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) return clearInterval(interval);
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+    }, 250);
+  }, []);
+
+  useEffect(() => {
+    if (successState) {
+      triggerConfetti();
+    }
+  }, [successState, triggerConfetti]);
 
   if (successState) {
     return (
@@ -318,7 +346,8 @@ export default function Login() {
 
       {/* Right Side - Form */}
       <div className="w-full lg:w-[55%] xl:w-1/2 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-16 relative">
-        <div className="absolute top-6 right-6">
+        <div className="absolute top-6 right-6 flex items-center gap-2">
+          <LanguageSelector />
           <ThemeToggle />
         </div>
         

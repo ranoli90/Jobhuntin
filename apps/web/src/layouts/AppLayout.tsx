@@ -23,6 +23,7 @@ import {
   Globe,
 } from "lucide-react";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { LanguageSelector } from "../components/LanguageSelector";
 
 const NAV_ITEMS = [
   { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
@@ -178,6 +179,7 @@ export default function AppLayout() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
+            <LanguageSelector />
             <ThemeToggle className="text-slate-500 hover:text-slate-900 transition-colors" />
             <div className="hidden sm:flex items-center gap-3">
               <div className="text-right">

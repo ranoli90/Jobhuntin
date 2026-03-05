@@ -4,6 +4,7 @@ import { Menu, X, ArrowRight, LayoutDashboard } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Logo } from '../brand/Logo';
 import { ThemeToggle } from '../ThemeToggle';
+import { LanguageSelector } from '../LanguageSelector';
 import { cn } from '../../lib/utils';
 import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from '../navigation/MobileDrawer';
 import { useAuth } from '../../hooks/useAuth';
@@ -77,7 +78,8 @@ export function MarketingNavbar() {
         </div>
 
         {/* CTA Buttons */}
-        <div className="hidden lg:flex items-center gap-5">
+        <div className="hidden lg:flex items-center gap-3">
+          <LanguageSelector />
           <ThemeToggle className="text-slate-500 hover:text-slate-900 transition-colors" />
           {isLoggedIn ? (
             <>
