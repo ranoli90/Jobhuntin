@@ -59,5 +59,5 @@ sentry-sdk[fastapi]>=2.0.0
 python-jobspy>=1.1.82
 pandas>=2.3.0
 # markdownify is a transitive dependency from python-jobspy
-# >=0.14.1 fixes CVE-2025-46656
-markdownify>=0.14.1
+# >=0.13.1,<0.14.0 fixes CVE-2025-46656 while maintaining compatibility
+markdownify>=0.13.1,<0.14.0
