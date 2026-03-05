@@ -168,6 +168,7 @@ export const SEO = ({
     "datePosted": new Date().toISOString().split('T')[0],
     "validThrough": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     "employmentType": "FULL_TIME",
+    "jobLocationType": "FULL_TIME",
     "hiringOrganization": {
       "@type": "Organization",
       "name": "JobHuntin",
@@ -180,6 +181,10 @@ export const SEO = ({
         "@type": "PostalAddress",
         "addressCountry": "US"
       }
+    },
+    "baseSalary": {
+      "@type": "MonetaryAmount",
+      "currency": "USD"
     },
     "qualifications": "Experience in related field preferred",
     "responsibilities": "Apply to jobs and manage applications efficiently",

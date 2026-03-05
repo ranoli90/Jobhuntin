@@ -5,13 +5,14 @@ import { telemetry } from '../lib/telemetry';
 import {
   ArrowRight, MailCheck, Target, Activity,
   Upload, SlidersHorizontal, Send, Trophy,
-  ChevronRight, Check, Star, Briefcase, TrendingUp, PenTool
+  ChevronRight, Check, Star, Briefcase, TrendingUp, PenTool, Sparkles
 } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { cn } from '../lib/utils';
 import { ValidationUtils } from '../lib/validation';
+import { motion } from 'framer-motion';
 
 /* ─── Email capture hook ─── */
 function useEmailCapture() {
@@ -156,29 +157,6 @@ function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
 
 /* ━━━ HOMEPAGE ━━━ */
 export default function Homepage() {
-  const [stickyVisible, setStickyVisible] = useState(false);
-  const [footerInView, setFooterInView] = useState(false);
-  const footerSentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const h = () => setStickyVisible(!footerInView && window.scrollY > 600);
-    h(); // initial
-    window.addEventListener('scroll', h, { passive: true });
-    return () => window.removeEventListener('scroll', h);
-  }, [footerInView]);
-
-  // X19: Hide sticky CTA when footer is in view
-  useEffect(() => {
-    const sentinel = footerSentinelRef.current;
-    if (!sentinel) return;
-    const io = new IntersectionObserver(
-      ([e]) => setFooterInView(e.isIntersecting),
-      { rootMargin: '-100px 0px 0px 0px', threshold: 0 }
-    );
-    io.observe(sentinel);
-    return () => io.disconnect();
-  }, []);
-
   return (
     <>
       {/* Skip to main content for accessibility */}
@@ -197,44 +175,95 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §1  HERO — centered, big headline, CTA, then visual showcase below
           ═══════════════════════════════════════════════════════════════ */}
-      <section id="main-content" className="relative overflow-hidden bg-white">
-        {/* Clean white background - no gradient */}
-        <div className="absolute inset-0 bg-white" />
+      <section id="main-content" className="relative overflow-hidden bg-gradient-to-b from-[#FEF9F3] via-white to-white">
+        {/* Subtle warm gradient background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-[#FCD34D]/10 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-gradient-to-bl from-[#2DD4BF]/8 to-transparent rounded-full blur-3xl" />
+        </div>
+        
+        {/* Purposeful animated elements - subtle job search flow visualization */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <svg className="absolute top-1/4 left-0 w-full h-32 opacity-20" preserveAspectRatio="none">
+            <motion.path
+              d="M -50,60 Q 200,40 400,60 T 800,50 T 1200,60"
+              stroke="#F59E0B"
+              strokeWidth="1"
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: [0, 1, 1, 0], opacity: [0, 0.4, 0.4, 0], x: [0, 100, 200] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </svg>
+        </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 pt-28 sm:pt-36 pb-12">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-12">
           <div className="max-w-3xl mx-auto text-center">
             <FadeIn>
-              <h1 className="text-[clamp(2.5rem,8vw,5rem)] font-black leading-[1.1] sm:leading-[1.0] tracking-tight text-slate-900 px-2 sm:px-0">
-                Land your next job<br className="hidden sm:block" />
-                <span className="text-slate-900"> without the search</span>
-              </h1>
+              <motion.h1
+                className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight px-2 sm:px-0"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
+                <span className="block text-[#2D2A26]">
+                  Land your next job
+                </span>
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#F59E0B] to-[#2DD4BF]">
+                  without the search
+                </span>
+              </motion.h1>
             </FadeIn>
             <FadeIn delay={80}>
-              <p className="mt-6 sm:mt-8 text-base sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
-                Stop spending 20 hours a week applying. We find the matching jobs, tailor your resume, and apply for you — all while you sleep.
-              </p>
+              <motion.p
+                className="mt-5 sm:mt-6 text-lg text-[#6B6560] max-w-xl mx-auto leading-relaxed px-4 sm:px-0"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                Stop spending 20 hours a week applying. We find matching jobs, tailor your resume, and apply for you — all while you sleep.
+              </motion.p>
             </FadeIn>
             <FadeIn delay={160}>
-              <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
-                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-semibold bg-slate-900 text-white hover:bg-slate-800 focus:ring-2 focus:ring-slate-400 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
-                  Get 20 Free Applications <ArrowRight className="w-5 h-5" />
-                </Link>
-                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-medium border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
-                  See How It Works
-                </a>
-              </div>
-              <div className="mt-8 flex items-center justify-center gap-4">
-                <div className="flex -space-x-3">
-                  {['SK', 'MT', 'JL'].map((initials, i) => (
-                    <div key={i} className="w-10 h-10 rounded-full border-3 border-white bg-slate-900 flex items-center justify-center text-[11px] font-bold text-white shadow-md">
+              <motion.div
+                className="mt-6 sm:mt-8 flex flex-row gap-3 justify-center items-center px-4 sm:px-0"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Link to="/login" className="group h-11 sm:h-12 px-6 sm:px-8 rounded-xl text-sm sm:text-base font-semibold bg-[#2D2A26] text-white hover:bg-[#3D3A36] shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Get 20 Free
+                  </Link>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <a href="#how-it-works" className="group h-11 sm:h-12 px-6 sm:px-8 rounded-xl text-sm sm:text-base font-medium border-2 border-[#E7E5E4] text-[#57534E] hover:border-[#D6D3D1] hover:text-[#2D2A26] transition-all flex items-center justify-center gap-2">
+                    <Target className="w-4 h-4" />
+                    How It Works
+                  </a>
+                </motion.div>
+              </motion.div>
+              <motion.div
+                className="mt-6 flex items-center justify-center gap-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <div className="flex -space-x-2">
+                  {['SK', 'MT', 'JL', 'AR'].map((initials, i) => (
+                    <div
+                      key={i}
+                      className="w-8 h-8 rounded-full border-2 border-white bg-gradient-to-br from-[#F59E0B] to-[#F87171] flex items-center justify-center text-[10px] font-semibold text-white"
+                    >
                       {initials}
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-slate-500">
-                  <span className="text-slate-900 font-semibold">10,000+</span> seekers already hired
+                <p className="text-sm text-[#78716C]">
+                  <span className="font-semibold text-[#2D2A26]">10,000+</span> hired already
                 </p>
-              </div>
+              </motion.div>
             </FadeIn>
           </div>
         </div>
@@ -243,149 +272,258 @@ export default function Homepage() {
         <FadeIn delay={300}>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pb-20 mt-12 sm:mt-20 overflow-hidden">
             <div className="relative h-[360px] sm:h-[520px] lg:h-[580px] min-h-[360px]">
-              {/* Card 1 — Dashboard (center-left, tilted) - Clean dark card */}
-              <div className="absolute left-[0%] sm:left-[5%] top-[5%] sm:top-[8%] w-[58%] sm:w-[45%] transform rotate-0 sm:-rotate-2 z-20 transition-transform duration-300 hover:rotate-0 hover:scale-[1.02] will-change-transform">
-                <div className="bg-slate-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl">
+              {/* Card 1 — Dashboard (center-left, tilted) - Glassmorphism dark card */}
+              <motion.div 
+                className="absolute left-[0%] sm:left-[5%] top-[5%] sm:top-[8%] w-[58%] sm:w-[45%] transform rotate-0 sm:-rotate-2 z-20"
+                initial={{ opacity: 0, x: -50, rotate: -10 }}
+                animate={{ opacity: 1, x: 0, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                whileHover={{ rotate: 0, scale: 1.02 }}
+              >
+                <div className="bg-slate-900/80 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-2xl shadow-brand-sunrise/10 border border-brand-sunrise/20">
                   {/* Window chrome */}
                   <div className="flex items-center gap-2 mb-3">
                     <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                      <motion.div 
+                        className="w-3 h-3 rounded-full bg-gradient-to-br from-red-400 to-red-600"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                      <motion.div 
+                        className="w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 to-amber-600"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                      />
+                      <motion.div 
+                        className="w-3 h-3 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                      />
                     </div>
-                    <div className="flex-1 h-5 bg-slate-800 rounded-lg mx-2" />
+                    <div className="flex-1 h-5 bg-slate-700/50 rounded-lg mx-2 backdrop-blur-sm" />
                   </div>
                   {/* Dashboard stats */}
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                    <motion.div 
+                      className="bg-gradient-to-br from-brand-sunrise/20 to-brand-sunrise/10 rounded-lg p-2 text-center border border-brand-sunrise/30"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.6 }}
+                    >
                       <div className="text-lg sm:text-xl font-bold text-white">127</div>
-                      <div className="text-[8px] sm:text-[9px] text-slate-400">Applied</div>
-                    </div>
-                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
-                      <div className="text-lg sm:text-xl font-bold text-emerald-400">23</div>
-                      <div className="text-[8px] sm:text-[9px] text-slate-400">Responses</div>
-                    </div>
-                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
-                      <div className="text-lg sm:text-xl font-bold text-amber-400">7</div>
-                      <div className="text-[8px] sm:text-[9px] text-slate-400">Interviews</div>
-                    </div>
+                      <div className="text-[8px] sm:text-[9px] text-brand-sunrise/80">Applied</div>
+                    </motion.div>
+                    <motion.div 
+                      className="bg-gradient-to-br from-brand-lagoon/20 to-brand-lagoon/10 rounded-lg p-2 text-center border border-brand-lagoon/30"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.7 }}
+                    >
+                      <div className="text-lg sm:text-xl font-bold text-white">23</div>
+                      <div className="text-[8px] sm:text-[9px] text-brand-lagoon/80">Responses</div>
+                    </motion.div>
+                    <motion.div 
+                      className="bg-gradient-to-br from-brand-plum/20 to-brand-plum/10 rounded-lg p-2 text-center border border-brand-plum/30"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.8 }}
+                    >
+                      <div className="text-lg sm:text-xl font-bold text-white">7</div>
+                      <div className="text-[8px] sm:text-[9px] text-brand-plum/80">Interviews</div>
+                    </motion.div>
                   </div>
                   {/* Application rows */}
                   {[
-                    { name: "Stripe", status: "Interview", color: "bg-emerald-500" },
-                    { name: "Airbnb", status: "Applied", color: "bg-blue-500" },
-                    { name: "Figma", status: "Viewed", color: "bg-amber-500" },
+                    { name: "Stripe", status: "Interview", color: "from-brand-lagoon to-brand-plum" },
+                    { name: "Airbnb", status: "Applied", color: "from-brand-sunrise to-brand-mango" },
+                    { name: "Figma", status: "Viewed", color: "from-brand-plum to-brand-lagoon" },
                   ].map((app, i) => (
-                    <div key={i} className="flex items-center gap-2 py-2 border-t border-slate-800">
-                      <div className="w-7 h-7 rounded-lg bg-slate-700 shrink-0" />
+                    <motion.div 
+                      key={i} 
+                      className="flex items-center gap-2 py-2 border-t border-slate-700/50"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.9 + i * 0.1 }}
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 shrink-0" />
                       <div className="flex-1">
-                        <div className="h-2 bg-slate-700 rounded-full w-3/4" />
-                        <div className="h-1.5 bg-slate-800 rounded-full w-1/2 mt-1" />
+                        <div className="h-2 bg-slate-600 rounded-full w-3/4" />
+                        <div className="h-1.5 bg-slate-700 rounded-full w-1/2 mt-1" />
                       </div>
-                      <div className={cn("px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-semibold", app.status === "Interview" ? "bg-emerald-500/20 text-emerald-400" : app.status === "Applied" ? "bg-blue-500/20 text-blue-400" : "bg-amber-500/20 text-amber-400")}>
+                      <div className={cn("px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-semibold bg-gradient-to-r", app.color, "text-white")}>
                         {app.status}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
 
-              {/* Card 2 — Resume (center-right, tilted other way) - Clean white card */}
-              <div className="absolute right-[0%] sm:right-[5%] top-[0%] sm:top-[2%] w-[52%] sm:w-[40%] transform rotate-0 sm:rotate-2 z-30 transition-transform duration-300 hover:rotate-0 hover:scale-[1.02] will-change-transform">
-                <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl border border-slate-200">
+              {/* Card 2 — Resume (center-right, tilted other way) - Glassmorphism white card */}
+              <motion.div 
+                className="absolute right-[0%] sm:right-[5%] top-[0%] sm:top-[2%] w-[52%] sm:w-[40%] transform rotate-0 sm:rotate-2 z-30"
+                initial={{ opacity: 0, x: 50, rotate: 10 }}
+                animate={{ opacity: 1, x: 0, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                whileHover={{ rotate: 0, scale: 1.02 }}
+              >
+                <div className="bg-white/80 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-2xl shadow-brand-lagoon/10 border border-brand-lagoon/20">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-bold text-slate-900">Resume Preview</div>
-                    <div className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[8px] font-bold">ATS: 94%</div>
+                    <motion.div 
+                      className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-plum to-brand-lagoon"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.6 }}
+                    >
+                      Resume Preview
+                    </motion.div>
+                    <motion.div 
+                      className="px-2 py-0.5 rounded-md bg-gradient-to-r from-brand-lagoon to-brand-plum text-white text-[8px] font-bold shadow-lg shadow-brand-lagoon/25"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.7 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <TrendingUp className="w-3 h-3 inline mr-1" /> ATS 94%
+                    </motion.div>
                   </div>
                   <div className="space-y-2">
-                    <div className="h-5 bg-slate-900 rounded-lg w-2/3" />
-                    <div className="h-2.5 bg-slate-200 rounded-full w-full" />
-                    <div className="h-2.5 bg-slate-200 rounded-full w-5/6" />
-                    <div className="h-2.5 bg-slate-200 rounded-full w-4/5" />
-                    <div className="h-px bg-slate-200 my-3" />
-                    <div className="h-4 bg-slate-800 rounded-lg w-2/5" />
-                    <div className="h-2 bg-slate-100 rounded-full w-full" />
-                    <div className="h-2 bg-slate-100 rounded-full w-full" />
+                    <motion.div 
+                      className="h-5 bg-gradient-to-r from-brand-plum via-brand-sunrise to-brand-lagoon rounded-lg w-2/3"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: '66.67%' }}
+                      transition={{ duration: 0.8, delay: 0.8 }}
+                    />
+                    <motion.div 
+                      className="h-2.5 bg-gradient-to-r from-brand-sunrise/20 to-brand-mango/20 rounded-full"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: '100%' }}
+                      transition={{ duration: 0.8, delay: 0.9 }}
+                    />
+                    <motion.div 
+                      className="h-2.5 bg-gradient-to-r from-brand-lagoon/20 to-brand-plum/20 rounded-full w-5/6"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: '83.33%' }}
+                      transition={{ duration: 0.8, delay: 1.0 }}
+                    />
+                    <motion.div 
+                      className="h-2.5 bg-gradient-to-r from-brand-plum/20 to-brand-sunrise/20 rounded-full w-4/5"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: '80%' }}
+                      transition={{ duration: 0.8, delay: 1.1 }}
+                    />
+                    <div className="h-px bg-gradient-to-r from-transparent via-brand-lagoon/30 to-transparent my-3" />
+                    <motion.div 
+                      className="h-4 bg-gradient-to-r from-brand-mango to-brand-sunrise rounded-lg w-2/5"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: '40%' }}
+                      transition={{ duration: 0.8, delay: 1.2 }}
+                    />
+                    <motion.div 
+                      className="h-2 bg-gradient-to-r from-brand-lagoon/10 to-brand-plum/10 rounded-full"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: '100%' }}
+                      transition={{ duration: 0.8, delay: 1.3 }}
+                    />
+                    <motion.div 
+                      className="h-2 bg-gradient-to-r from-brand-sunrise/10 to-brand-mango/10 rounded-full"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: '100%' }}
+                      transition={{ duration: 0.8, delay: 1.4 }}
+                    />
                   </div>
-                  <div className="mt-3 flex gap-1.5 flex-wrap">
-                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">React</div>
-                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">TypeScript</div>
-                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">Node.js</div>
-                  </div>
+                  <motion.div 
+                    className="mt-3 flex gap-1.5 flex-wrap"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 1.5 }}
+                  >
+                    {["React", "TypeScript", "Node.js"].map((skill, i) => (
+                      <motion.div 
+                        key={skill}
+                        className="px-2 py-1 rounded-lg bg-gradient-to-r from-brand-sunrise/10 to-brand-lagoon/10 text-[7px] sm:text-[8px] font-bold text-brand-plum border border-brand-plum/20"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: 1.6 + i * 0.1 }}
+                        whileHover={{ scale: 1.1, y: -2 }}
+                      >
+                        {skill}
+                      </motion.div>
+                    ))}
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
 
-              {/* Card 3 — Live Feed (bottom center) - Subtle dark card */}
-              <div className="absolute left-[10%] sm:left-[22%] bottom-[2%] sm:bottom-[0%] w-[60%] sm:w-[42%] transform rotate-0 z-10 transition-transform duration-300 hover:scale-[1.02] will-change-transform">
-                <div className="bg-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg">
+              {/* Card 3 — Live Feed (bottom center) - Glassmorphism dark card */}
+              <motion.div 
+                className="absolute left-[10%] sm:left-[22%] bottom-[2%] sm:bottom-[0%] w-[60%] sm:w-[42%] transform rotate-0 z-10"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="bg-slate-900/80 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-2xl shadow-brand-mango/10 border border-brand-mango/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] font-semibold text-slate-300">Live Activity</span>
+                    <motion.div 
+                      className="w-2 h-2 rounded-full bg-gradient-to-r from-brand-mango to-brand-sunrise"
+                      animate={{ scale: [1, 1.5, 1], opacity: [1, 0.7, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                    <motion.span 
+                      className="text-[10px] font-semibold text-transparent bg-clip-text bg-gradient-to-r from-brand-mango to-brand-sunrise"
+                      animate={{ opacity: [0.7, 1, 0.7] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      Live Activity
+                    </motion.span>
                   </div>
                   <LiveActivityFeed compact />
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </FadeIn>
-      </section >
+      </section>
 
       {/* ═══ TRUST BAR ═══ */}
-      < section className="bg-white border-y border-gray-100 py-10" >
-        <div className="max-w-7xl mx-auto px-6">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-center mb-6">Trusted by job seekers landing roles at</p>
-          <div className="grid grid-cols-3 md:grid-cols-6 items-center gap-6">
-            {[
-              { name: "Google", color: "text-gray-600" },
-              { name: "Amazon", color: "text-gray-600" },
-              { name: "Meta", color: "text-gray-600" },
-              { name: "Stripe", color: "text-gray-600" },
-              { name: "Shopify", color: "text-gray-600" },
-              { name: "Netflix", color: "text-gray-600" }
-            ].map((company) => (
-              <div
-                key={company.name}
-                className="flex items-center justify-center px-4 py-3 rounded-xl bg-gray-50/50 hover:bg-gray-100 transition-colors cursor-default"
-                aria-label={`Trusted employer: ${company.name}`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-md bg-${company.name.toLowerCase()}-100 flex items-center justify-center`}>
-                    <span className={`text-[10px] font-black ${company.color}`}>{company.name.charAt(0)}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-500 tracking-tight">{company.name}</span>
-                </div>
-              </div>
+      <section className="bg-white border-y border-[#E7E5E4] py-10 sm:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-sm font-medium text-[#78716C] text-center mb-6">Trusted by job seekers landing roles at</p>
+          <div className="flex flex-wrap justify-center gap-x-6 sm:gap-x-10 gap-y-3">
+            {['Google', 'Stripe', 'Airbnb', 'Netflix', 'Shopify', 'Figma'].map((company) => (
+              <span key={company} className="text-base sm:text-lg font-semibold text-[#A8A29E]">
+                {company}
+              </span>
             ))}
           </div>
         </div>
-      </section >
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          §2  THREE COLORFUL PRODUCT CARDS
+          §2  THREE PRODUCT CARDS
           ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-20 sm:py-32 lg:py-40">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="bg-white py-16 sm:py-24 lg:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn>
-            <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-24">
-              <p className="text-primary-600 font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-4">Your secret weapon</p>
-              <h2 className="text-[clamp(2.25rem,5vw,4rem)] font-black tracking-tight text-slate-900 leading-[1.1] text-balance">
-                Everything you need to<br className="hidden sm:block" /> land your dream role
+            <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+              <p className="text-[#F59E0B] font-semibold text-sm uppercase tracking-wide mb-3">Your secret weapon</p>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2D2A26] leading-tight">
+                Everything you need to land your dream role
               </h2>
             </div>
           </FadeIn>
 
-          <div className="grid md:grid-cols-3 gap-7">
-            {/* ── Card 1: Precision Matching (Purple) ── */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* ── Card 1: Precision Matching ── */}
             <FadeIn delay={0}>
-              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer">
+              <div className="group rounded-2xl overflow-hidden bg-white shadow-lg shadow-[#2D2A26]/5 border border-[#E7E5E4] p-6 sm:p-8 pb-0 min-h-[480px] flex flex-col hover:-translate-y-1 transition-all duration-300 hover:shadow-xl cursor-pointer">
                 <div className="flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <Target className="w-7 h-7 text-primary-600" />
+                  <div className="w-12 h-12 rounded-xl bg-[#FEF3C7] flex items-center justify-center mb-5">
+                    <Target className="w-6 h-6 text-[#F59E0B]" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Perfect Matches, Every Time</h3>
-                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">Our engine analyzes thousands of listings daily and only applies to the ones that fit your skills, goals, and salary requirements.</p>
-                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
-                    How it works <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  <h3 className="text-xl font-semibold text-[#2D2A26] mb-2">Perfect Matches, Every Time</h3>
+                  <p className="text-[#6B6560] leading-relaxed text-[15px] mb-3">Our engine analyzes thousands of listings daily and only applies to the ones that fit your skills, goals, and salary requirements.</p>
+                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-[#F59E0B] hover:text-[#D97706] font-semibold text-sm group/l">
+                    How it works <ChevronRight className="w-4 h-4 group-hover/l:translate-x-0.5 transition-transform" />
                   </a>
                 </div>
                 <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
@@ -417,17 +555,17 @@ export default function Homepage() {
               </div>
             </FadeIn>
 
-            {/* ── Card 2: Curated Quality (Orange) ── */}
+            {/* ── Card 2: Curated Quality ── */}
             <FadeIn delay={120}>
-              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer">
+              <div className="group rounded-2xl overflow-hidden bg-white shadow-lg shadow-[#2D2A26]/5 border border-[#E7E5E4] p-6 sm:p-8 pb-0 min-h-[480px] flex flex-col hover:-translate-y-1 transition-all duration-300 hover:shadow-xl cursor-pointer">
                 <div className="flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <PenTool className="w-7 h-7 text-primary-600" />
+                  <div className="w-12 h-12 rounded-xl bg-[#F0FDF4] flex items-center justify-center mb-5">
+                    <PenTool className="w-6 h-6 text-[#16A34A]" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Your Best Resume</h3>
-                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">We rewrite your resume for every single job, making sure you highlight exactly what the hiring managers are looking for.</p>
-                  <a href="#features" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
-                    View features <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  <h3 className="text-xl font-semibold text-[#2D2A26] mb-2">Your Best Resume</h3>
+                  <p className="text-[#6B6560] leading-relaxed text-[15px] mb-3">We rewrite your resume for every single job, making sure you highlight exactly what the hiring managers are looking for.</p>
+                  <a href="#features" className="inline-flex items-center gap-1.5 text-[#16A34A] hover:text-[#15803D] font-semibold text-sm group/l">
+                    View features <ChevronRight className="w-4 h-4 group-hover/l:translate-x-0.5 transition-transform" />
                   </a>
                 </div>
                 <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
@@ -1024,19 +1162,6 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* Sentinel for X19: hide sticky CTA when footer approaches */}
-      <div ref={footerSentinelRef} className="h-px w-full" aria-hidden />
-
-      {/* ── Sticky mobile CTA ── */}
-      {
-        stickyVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl">
-            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-14 rounded-full text-base font-bold bg-primary-600 text-white hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all shadow-lg shadow-primary-600/30">
-              Start Applying Free <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        )
-      }
     </>
   );
 }

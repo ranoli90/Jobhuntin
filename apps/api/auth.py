@@ -7,7 +7,7 @@ import math
 import time
 from datetime import timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 from urllib.parse import quote
 
 import httpx
@@ -714,9 +714,10 @@ async def verify_magic_link(
     User clicks link in email -> hits this endpoint -> [create user if new] -> set cookie -> redirect.
     """
     if not token or not settings.jwt_secret:
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
+        # SECURITY: Use generic error to prevent configuration enumeration
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
         if return_to:
-            redirect_url += f"?returnTo={quote(return_to, safe='')}"
+            redirect_url += f"&returnTo={quote(return_to, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     try:
@@ -733,7 +734,8 @@ async def verify_magic_link(
             raise ValueError("Missing sub, email, or jti")
     except pyjwt.PyJWTError as exc:
         logger.warning("Verify-magic JWT invalid: %s", exc)
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=invalid_token"
+        # SECURITY: Use generic error to prevent token enumeration attacks
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     # Verify IP binding if present
@@ -747,12 +749,14 @@ async def verify_magic_link(
                 jti,
                 extra={"expected_ip_hash": ip_hash, "actual_ip_hash": current_ip_hash},
             )
-            redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=ip_mismatch"
+            # SECURITY: Use generic error to prevent IP binding enumeration
+            redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
             return RedirectResponse(url=redirect_url, status_code=302)
 
     if not await _mark_token_consumed(jti, settings):
         logger.warning("Verify-magic replay attempt for jti: %s", jti)
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=token_used"
+        # SECURITY: Use generic error to prevent replay enumeration
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     # Handle user creation for new users (user_identifier is email for new users)
@@ -783,7 +787,8 @@ async def verify_magic_link(
                     "[MAGIC_LINK] User from token no longer exists: %s",
                     user_identifier,
                 )
-                redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=user_not_found"
+                # SECURITY: Use generic error to prevent user existence enumeration
+                redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
                 return RedirectResponse(url=redirect_url, status_code=302)
             user_id = user_identifier
 
@@ -828,18 +833,20 @@ async def verify_magic_link(
 
     is_prod = settings.env.value in ("prod", "staging")
     response = RedirectResponse(url=redirect_url, status_code=302)
-    response.set_cookie(
+    cookie_kwargs = dict(
         key=AUTH_COOKIE_NAME,
         value=session_token,
         max_age=SESSION_TTL_SECONDS,
         httponly=True,
         secure=is_prod,
-        # IMPORTANT: Must be "none" for cross-origin Render deployments.
-        # onrender.com subdomains are different sites per Public Suffix List.
-        # SameSite=Lax would block the cookie on cross-origin fetch/XHR.
         samesite="none" if is_prod else "lax",
         path="/",
     )
+    # Add partitioned attribute for CHIPS (Cookies Having Independent Partitioned State)
+    # This provides security benefits of SameSite=None while limiting cross-site tracking
+    if is_prod:
+        cookie_kwargs["partitioned"] = True  # type: ignore[arg-type]
+    response.set_cookie(**cookie_kwargs)
     return response
 
 
@@ -851,12 +858,16 @@ async def logout(
     is_prod = settings.env.value in ("prod", "staging")
     redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
     response = RedirectResponse(url=redirect_url, status_code=302)
-    response.delete_cookie(
+    # SECURITY: Use same partitioned attribute as set_cookie for proper deletion
+    cookie_kwargs: Dict[str, Any] = dict(
         key=AUTH_COOKIE_NAME,
         path="/",
         samesite="none" if is_prod else "lax",
         secure=is_prod,
     )
+    if is_prod:
+        cookie_kwargs["partitioned"] = True
+    response.delete_cookie(**cookie_kwargs)
     return response
 
 

@@ -6,6 +6,7 @@ interface SocialLoginButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
+  showComingSoon?: boolean;
 }
 
 const GoogleIcon = () => (
@@ -40,41 +41,51 @@ export function SocialLoginButton({
   onClick,
   disabled,
   className,
+  showComingSoon = false,
 }: SocialLoginButtonProps) {
   const isGoogle = provider === "google";
   const isLinkedIn = provider === "linkedin";
+  const isDisabled = disabled || showComingSoon;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        "w-full h-14 sm:h-12 px-4 rounded-xl border font-semibold text-sm",
-        "flex items-center justify-center gap-3",
-        "transition-all duration-200",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none",
-        isGoogle && [
-          "bg-white border-slate-200 text-slate-700",
-          "hover:bg-slate-50 hover:border-slate-300",
-          "focus-visible:ring-slate-500",
-          "shadow-sm hover:shadow-md",
-        ],
-        isLinkedIn && [
-          "bg-[#0A66C2] border-[#0A66C2] text-white",
-          "hover:bg-[#0958a8] hover:border-[#0958a8]",
-          "focus-visible:ring-[#0A66C2]",
-          "shadow-sm hover:shadow-md",
-        ],
-        className
+    <div className="relative">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={isDisabled}
+        className={cn(
+          "w-full h-14 sm:h-12 px-4 rounded-xl border font-semibold text-sm",
+          "flex items-center justify-center gap-3",
+          "transition-all duration-200",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+          "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none",
+          isGoogle && [
+            "bg-white border-slate-200 text-slate-700",
+            "hover:bg-slate-50 hover:border-slate-300",
+            "focus-visible:ring-slate-500",
+            "shadow-sm hover:shadow-md",
+          ],
+          isLinkedIn && [
+            "bg-[#0A66C2] border-[#0A66C2] text-white",
+            "hover:bg-[#0958a8] hover:border-[#0958a8]",
+            "focus-visible:ring-[#0A66C2]",
+            "shadow-sm hover:shadow-md",
+          ],
+          className
+        )}
+        aria-label={`Continue with ${isGoogle ? "Google" : "LinkedIn"}`}
+        aria-disabled={isDisabled}
+      >
+        {isGoogle && <GoogleIcon />}
+        {isLinkedIn && <LinkedInIcon />}
+        <span>Continue with {isGoogle ? "Google" : "LinkedIn"}</span>
+      </button>
+      {showComingSoon && (
+        <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full border border-amber-200 shadow-sm">
+          Soon
+        </div>
       )}
-      aria-label={`Continue with ${isGoogle ? "Google" : "LinkedIn"}`}
-    >
-      {isGoogle && <GoogleIcon />}
-      {isLinkedIn && <LinkedInIcon />}
-      <span>Continue with {isGoogle ? "Google" : "LinkedIn"}</span>
-    </button>
+    </div>
   );
 }
 
@@ -99,6 +110,7 @@ interface SocialLoginGroupProps {
   onLinkedInClick?: () => void;
   disabled?: boolean;
   className?: string;
+  showComingSoon?: boolean;
 }
 
 export function SocialLoginGroup({
@@ -106,18 +118,21 @@ export function SocialLoginGroup({
   onLinkedInClick,
   disabled,
   className,
+  showComingSoon = false,
 }: SocialLoginGroupProps) {
   return (
     <div className={cn("space-y-3", className)}>
       <SocialLoginButton
         provider="google"
         onClick={onGoogleClick}
-        disabled={disabled}
+        disabled={disabled || showComingSoon}
+        showComingSoon={showComingSoon}
       />
       <SocialLoginButton
         provider="linkedin"
         onClick={onLinkedInClick}
-        disabled={disabled}
+        disabled={disabled || showComingSoon}
+        showComingSoon={showComingSoon}
       />
     </div>
   );

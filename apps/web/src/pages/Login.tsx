@@ -57,6 +57,8 @@ export default function Login() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string>("");
   const [showCaptcha, setShowCaptcha] = useState(false);
+  // UX FIX: Track mouse position to prevent race condition with email suggestions dropdown
+  const [isMouseOverSuggestions, setIsMouseOverSuggestions] = useState(false);
 
   // Email domain suggestions
   const emailDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'me.com', 'aol.com', 'protonmail.com', 'zoho.com', 'mail.com'];
@@ -288,12 +290,24 @@ export default function Login() {
         Skip to login form
       </a>
       
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-[#FEF9F3] via-white to-[#F0FDF4] flex">
       {/* Left Side - Brand/Info Panel */}
-      <div className="hidden lg:flex lg:w-[45%] xl:w-1/2 bg-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-primary-600/20 to-slate-900/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-slate-700/20 to-slate-800/10 rounded-full blur-3xl" />
+      <div className="hidden lg:flex lg:w-[45%] xl:w-1/2 bg-[#2D2A26] relative overflow-hidden">
+        {/* Subtle warm gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/10 via-transparent to-[#2DD4BF]/10" />
+        
+        {/* Calmer animated elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            className="absolute top-20 left-10 w-48 h-48 bg-[#F59E0B]/10 rounded-full blur-3xl"
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute bottom-20 right-10 w-64 h-64 bg-[#2DD4BF]/10 rounded-full blur-3xl"
+            animate={{ opacity: [0.2, 0.4, 0.2] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          />
         </div>
 
         <div className="relative z-10 flex flex-col justify-between p-16 w-full">
@@ -302,17 +316,26 @@ export default function Login() {
           </div>
 
           <div className="space-y-10 max-w-xl">
-            <div>
-              <h2 className="font-sans text-3xl xl:text-4xl font-bold text-white leading-tight mb-4 tracking-tight">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="font-sans text-3xl xl:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-brand-sunrise to-brand-lagoon leading-tight mb-4 tracking-tight">
                 {t("login.sidebarTitleLine1", getLocale())}{" "}
-                <span className="text-primary-400">
+                <span className="text-brand-mango">
                   {t("login.sidebarTitleLine2", getLocale())}
                 </span>
               </h2>
-              <p className="text-slate-400 text-base leading-relaxed">
+              <motion.p 
+                className="text-slate-300 text-base leading-relaxed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
                 {t("login.sidebarSubtitle", getLocale())}
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
 
             <div className="space-y-4">
               {[
@@ -326,54 +349,131 @@ export default function Login() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + i * 0.1 }}
                   className="flex items-center gap-4"
+                  whileHover={{ scale: 1.05 }}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                    <item.icon className="w-5 h-5 text-primary-400" />
-                  </div>
-                  <span className="text-slate-300 text-sm">{item.text}</span>
+                  <motion.div 
+                    className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <motion.div
+                      className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-sunrise to-brand-mango flex items-center justify-center"
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    >
+                      <item.icon className="w-3 h-3 text-white" />
+                    </motion.div>
+                  </motion.div>
+                  <motion.span 
+                    className="text-slate-300 text-sm font-medium"
+                    whileHover={{ color: "#FFC857" }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {item.text}
+                  </motion.span>
                 </motion.div>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center gap-6 text-sm text-slate-500">
-            <Link to="/terms" className="hover:text-white focus:outline-none focus:text-primary-400 transition-colors">Terms</Link>
-            <Link to="/privacy" className="hover:text-white focus:outline-none focus:text-primary-400 transition-colors">Privacy</Link>
-            <a href="mailto:support@jobhuntin.com" className="hover:text-white focus:outline-none focus:text-primary-400 transition-colors">Support</a>
+          <div className="flex items-center gap-6 text-sm text-slate-400">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to="/terms" className="hover:text-brand-mango focus:outline-none focus:text-brand-sunrise transition-colors font-medium">Terms</Link>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to="/privacy" className="hover:text-brand-mango focus:outline-none focus:text-brand-sunrise transition-colors font-medium">Privacy</Link>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <a href="mailto:support@jobhuntin.com" className="hover:text-brand-mango focus:outline-none focus:text-brand-sunrise transition-colors font-medium">Support</a>
+            </motion.div>
           </div>
         </div>
       </div>
 
       {/* Right Side - Form */}
       <div className="w-full lg:w-[55%] xl:w-1/2 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-16 relative">
-        <div className="absolute top-6 right-6 flex items-center gap-2">
+        {/* Floating background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-gradient-to-br from-brand-sunrise/20 to-brand-mango/10 rounded-full blur-xl animate-pulse" />
+          <div className="absolute bottom-10 right-10 w-16 h-16 bg-gradient-to-tr from-brand-lagoon/20 to-brand-plum/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+        
+        <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
           <LanguageSelector />
           <ThemeToggle />
         </div>
         
         <div className="w-full max-w-sm lg:max-w-md">
           {/* Mobile Logo and Value Prop */}
-          <div className="lg:hidden text-center mb-8">
+          <motion.div 
+            className="lg:hidden text-center mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
             <Logo className="mx-auto mb-4 h-10 w-auto" />
-            <h1 className="font-sans text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <motion.h1 
+              className="font-sans text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-plum via-brand-sunrise to-brand-lagoon tracking-tight"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
               Welcome to JobHuntin
-            </h1>
-            <p className="text-sm text-slate-500 mt-2 mb-6">Sign in to continue</p>
+            </motion.h1>
+            <motion.p 
+              className="text-sm text-gray-600 mt-2 mb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              Sign in to continue
+            </motion.p>
             {/* Mobile value prop */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-left space-y-3">
+            <motion.div 
+              className="bg-white/80 backdrop-blur-xl dark:bg-slate-800/50 rounded-2xl p-4 text-left space-y-3 border border-brand-lagoon/20"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
               {[
                 { icon: Zap, text: "Apply to 100+ jobs while you sleep" },
                 { icon: Briefcase, text: "AI-tailored resumes for every role" },
                 { icon: Send, text: "Track all applications in one place" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
-                    <item.icon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
-                  </div>
-                  <span className="text-xs text-slate-600 dark:text-slate-300">{item.text}</span>
-                </div>
+                <motion.div 
+                  key={i} 
+                  className="flex items-center gap-3"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.8 + i * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <motion.div 
+                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-sunrise/10 to-brand-mango/10 dark:from-brand-sunrise/20 dark:to-brand-mango/20 flex items-center justify-center shrink-0 border border-brand-sunrise/30"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <item.icon className="w-5 h-5 text-brand-sunrise dark:text-brand-mango" />
+                  </motion.div>
+                  <motion.span 
+                    className="text-xs text-gray-700 dark:text-gray-300 font-medium"
+                    whileHover={{ color: "#FF9C6B" }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {item.text}
+                  </motion.span>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
 
           <motion.div
@@ -392,25 +492,18 @@ export default function Login() {
             </div>
 
             {/* Social Login - Prominent on both mobile and desktop */}
+            {/* UX FIX: Disabled with visual indicator instead of deceptive "coming soon" toasts */}
             <div className="space-y-3">
               <SocialLoginGroup
                 onGoogleClick={() => {
-                  pushToast({
-                    title: "Google sign-in coming soon",
-                    description: "Please use email magic link for now",
-                    tone: "info"
-                  });
-                  telemetry.track("social_login_clicked", { provider: "google" });
+                  // SECURITY: Social login disabled to prevent user confusion/phishing
+                  // Previously showed "coming soon" toast which trains users to ignore warnings
                 }}
                 onLinkedInClick={() => {
-                  pushToast({
-                    title: "LinkedIn sign-in coming soon",
-                    description: "Please use email magic link for now",
-                    tone: "info"
-                  });
-                  telemetry.track("social_login_clicked", { provider: "linkedin" });
+                  // SECURITY: Social login disabled to prevent user confusion/phishing
                 }}
                 disabled={isLoading}
+                showComingSoon={true}
               />
             </div>
 
@@ -457,11 +550,13 @@ export default function Login() {
                       setShowSuggestions(email.includes('@'));
                     }}
                     onBlur={() => {
-                      // Delay hiding to allow click on suggestion
-                      setTimeout(() => {
+                      // UX FIX: Check if mouse is over suggestions before hiding
+                      // This prevents the race condition where clicks on suggestions
+                      // don't fire because the dropdown disappears before click completes
+                      if (!isMouseOverSuggestions) {
                         setFocused(false);
                         setShowSuggestions(false);
-                      }, 200);
+                      }
                     }}
                     className={cn(
                       "w-full pl-12 pr-4 py-3.5 rounded-xl bg-white border transition-all duration-200 relative z-20",
@@ -475,7 +570,11 @@ export default function Login() {
                   />
                   {/* Email Suggestions Dropdown */}
                   {showSuggestions && getEmailSuggestions().length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl shadow-slate-200/50 z-30 overflow-hidden max-h-60 overflow-y-auto">
+                    <div 
+                      className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl shadow-slate-200/50 z-30 overflow-hidden max-h-60 overflow-y-auto"
+                      onMouseEnter={() => setIsMouseOverSuggestions(true)}
+                      onMouseLeave={() => setIsMouseOverSuggestions(false)}
+                    >
                       {getEmailSuggestions().slice(0, 5).map((suggestion, index) => (
                         <button
                           key={index}
@@ -483,6 +582,7 @@ export default function Login() {
                           onClick={() => {
                             setEmail(suggestion);
                             setShowSuggestions(false);
+                            setFocused(false);
                           }}
                           className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors flex items-center gap-3 focus:bg-primary-50 focus:outline-none"
                         >

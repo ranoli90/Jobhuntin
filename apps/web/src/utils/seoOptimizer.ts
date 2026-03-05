@@ -326,38 +326,7 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
       },
       'mainEntityOfPage': jobPostingSchema
     },
-    // FAQPage Schema - Addresses user questions
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      'mainEntity': [
-        {
-          '@type': 'Question',
-          'name': `What is the average ${role} salary in ${location}?`,
-          'acceptedAnswer': {
-            '@type': 'Answer',
-            'text': `The average ${role} salary in ${location} ranges from $${salaryMin.toLocaleString()} to $${salaryMax.toLocaleString()} annually, depending on experience and company.`
-          }
-        },
-        {
-          '@type': 'Question',
-          'name': `Which companies hire ${role} in ${location}?`,
-          'acceptedAnswer': {
-            '@type': 'Answer',
-            'text': `Major employers include Fortune 500 companies, startups, and tech firms across ${location}'s diverse economy.`
-          }
-        },
-        {
-          '@type': 'Question',
-          'name': `What skills are required for ${role} jobs in ${location}?`,
-          'acceptedAnswer': {
-            '@type': 'Answer',
-            'text': `Essential skills include programming languages, problem-solving, communication, and industry-specific technical expertise.`
-          }
-        }
-      ]
-    },
-    // Article Schema - Fresh content signal
+    // FAQ Schema - FAQ rich snippets (single FAQPage to avoid duplicates)
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
