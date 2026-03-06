@@ -422,27 +422,18 @@ async def _generate_magic_link(
         token_id,
     )
 
-    # S1: When api_public_url is set, use verify-magic endpoint (httpOnly cookie flow)
-    api_url = getattr(settings, "api_public_url", "").rstrip("/")
-    if api_url:
-        verify_url = f"{api_url}/auth/verify-magic?token={quote(token, safe='')}"
-        safe_return = _sanitize_return_to(return_to) if return_to else None
-        if safe_return:
-            verify_url += f"&returnTo={quote(safe_return, safe='')}"
-        logger.info(
-            "[MAGIC_LINK] Using httpOnly cookie flow (verify-magic) for %s",
-            "existing user" if existing_user_id else "new user",
-        )
-        return verify_url, user_identifier
-
-    # Legacy: append token to frontend redirect URL
-    separator = "&" if "?" in redirect_to else "?"
-    magic_link = f"{redirect_to}{separator}token={token}"
+    # Use frontend URL for magic link (better UX - users see branded domain)
+    # Frontend will redirect to backend to verify token and set cookie
+    app_url = settings.app_base_url.rstrip("/")
+    verify_url = f"{app_url}/login?token={quote(token, safe='')}"
+    safe_return = _sanitize_return_to(return_to) if return_to else None
+    if safe_return:
+        verify_url += f"&returnTo={quote(safe_return, safe='')}"
     logger.info(
-        "[MAGIC_LINK] Magic link generated successfully for identifier: %s",
-        str(user_identifier),
+        "[MAGIC_LINK] Using frontend verify flow for %s",
+        "existing user" if existing_user_id else "new user",
     )
-    return magic_link, user_identifier
+    return verify_url, user_identifier
 
 
 _DESTINATION_LABELS = {
