@@ -101,6 +101,48 @@ def _status_to_web(status: str) -> str:
     return "FAILED"
 
 
+def _format_application_response(app) -> dict:
+    """Format an application for API response."""
+    # Handle both dict and Pydantic model inputs
+    if hasattr(app, "model_dump"):
+        app_dict = app.model_dump()
+    elif hasattr(app, "dict"):
+        app_dict = app.dict()
+    else:
+        app_dict = app
+
+    return {
+        "id": app_dict.get("id"),
+        "status": _status_to_web(app_dict.get("status", "")),
+        "job_title": app_dict.get("job_title"),
+        "company_name": app_dict.get("company_name"),
+        "location": _format_location(app_dict.get("location")),
+        "salary_min": app_dict.get("salary_min"),
+        "salary_max": app_dict.get("salary_max"),
+        "remote": app_dict.get("remote", False),
+    }
+
+
+def _format_salary_range(salary_min: int | None, salary_max: int | None) -> str:
+    """Format a salary range for display."""
+    if salary_min is None and salary_max is None:
+        return "Salary not specified"
+    if salary_min == salary_max:
+        return f"${salary_min:,}"
+    if salary_max is None:
+        return f"${salary_min:,}+"
+    if salary_min is None:
+        return f"Up to ${salary_max:,}"
+    return f"${salary_min:,} - ${salary_max:,}"
+
+
+def _format_location(location: str | None) -> str:
+    """Format a location for display."""
+    if not location:
+        return "Location not specified"
+    return location
+
+
 # ---------------------------------------------------------------------------
 # GET /applications
 # ---------------------------------------------------------------------------

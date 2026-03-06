@@ -233,7 +233,7 @@ class BotProtection {
 
     return new Promise((resolve, reject) => {
       // Check if already loaded
-      if (window.grecaptcha || window.hcaptcha || window.turnstile) {
+      if (globalThis.window.grecaptcha || globalThis.window.hcaptcha || globalThis.window.turnstile) {
         resolve();
         return;
       }
@@ -263,7 +263,7 @@ class BotProtection {
       script.onerror = () => reject(new Error(`Failed to load ${provider} script`));
 
       // Set global callback
-      (window as any)[globalVar] = () => resolve();
+      (globalThis.window as any)[globalVar] = () => resolve();
 
       document.head.appendChild(script);
     });
@@ -291,11 +291,11 @@ class BotProtection {
     return new Promise((resolve, reject) => {
       switch (provider) {
         case 'hcaptcha':
-          if (!window.hcaptcha) {
+          if (!globalThis.window.hcaptcha) {
             reject(new Error('hCaptcha not loaded'));
             return;
           }
-          (window as any).hcaptcha.render(element, {
+          (globalThis.window as any).hcaptcha.render(element, {
             sitekey: siteKey,
             callback: (token: string) => resolve(token),
             'error-callback': () => reject(new Error('hCaptcha failed')),
@@ -303,11 +303,11 @@ class BotProtection {
           break;
 
         case 'recaptcha':
-          if (!window.grecaptcha) {
+          if (!globalThis.window.grecaptcha) {
             reject(new Error('reCAPTCHA not loaded'));
             return;
           }
-          (window as any).grecaptcha.render(element, {
+          (globalThis.window as any).grecaptcha.render(element, {
             sitekey: siteKey,
             callback: (token: string) => resolve(token),
             'error-callback': () => reject(new Error('reCAPTCHA failed')),
@@ -315,11 +315,11 @@ class BotProtection {
           break;
 
         case 'turnstile':
-          if (!window.turnstile) {
+          if (!globalThis.window.turnstile) {
             reject(new Error('Turnstile not loaded'));
             return;
           }
-          (window as any).turnstile.render(element, {
+          (globalThis.window as any).turnstile.render(element, {
             sitekey: siteKey,
             callback: (token: string) => resolve(token),
             'error-callback': () => reject(new Error('Turnstile failed')),

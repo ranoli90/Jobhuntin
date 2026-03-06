@@ -305,13 +305,19 @@ ROLE_SUGGESTION_PROMPT_V1 = """Suggest roles for candidate. Return JSON only:
 Keys: suggested_roles[](3-5), primary_role, experience_level(entry|mid|senior|staff|principal|executive), confidence(0-1), reasoning."""
 
 
-def build_role_suggestion_prompt(profile_dict: dict) -> str:
-    profile = {
-        k: v
-        for k, v in profile_dict.items()
-        if k in ("experience", "skills", "education") and v
+def build_role_suggestion_prompt(
+    resume_text: str, skills: list[str], experience_years: int, education_level: str
+) -> str:
+    """Build prompt for AI role suggestions."""
+    profile_dict = {
+        "resume_text": resume_text,
+        "skills": skills,
+        "experience_years": experience_years,
+        "education_level": education_level,
     }
-    return ROLE_SUGGESTION_PROMPT_V1.format(profile_json=json.dumps(profile))
+    return ROLE_SUGGESTION_PROMPT_V1.format(
+        profile_json=json.dumps(profile_dict, indent=2)
+    )
 
 
 # ===================================================================
@@ -343,11 +349,20 @@ Keys: min_salary, max_salary, market_median, currency(USD), confidence(0-1), fac
 
 
 def build_salary_suggestion_prompt(
-    profile_dict: dict, target_role: str, location: str = "Remote"
+    skills: list[str],
+    experience_years: int,
+    education_level: str,
+    target_role: str,
+    location: str,
 ) -> str:
-    p = {k: v for k, v in profile_dict.items() if k in ("experience", "skills") and v}
+    """Build prompt for AI salary suggestions."""
+    profile_dict = {
+        "skills": skills,
+        "experience_years": experience_years,
+        "education_level": education_level,
+    }
     return SALARY_SUGGESTION_PROMPT_V1.format(
-        profile_json=json.dumps(p),
+        profile_json=json.dumps(profile_dict, indent=2),
         target_role=target_role,
         location=location,
     )
@@ -385,12 +400,18 @@ Keys: suggested_locations[](3-5), remote_friendly_score(0-1), top_markets[], rea
 
 
 def build_location_suggestion_prompt(
-    profile_dict: dict, current_location: str = ""
+    skills: list[str], role: str, experience_years: int, remote_preference: bool
 ) -> str:
-    p = {k: v for k, v in profile_dict.items() if k in ("experience", "skills") and v}
+    """Build prompt for AI location suggestions."""
+    profile_dict = {
+        "skills": skills,
+        "role": role,
+        "experience_years": experience_years,
+        "remote_preference": remote_preference,
+    }
     return LOCATION_SUGGESTION_PROMPT_V1.format(
-        profile_json=json.dumps(p),
-        current_location=current_location or "Not specified",
+        profile_json=json.dumps(profile_dict, indent=2),
+        current_location="Not specified",
     )
 
 
@@ -420,19 +441,10 @@ Keys: score(0-100), skill_match(0-1), experience_match(0-1), location_match(0-1)
 
 
 def build_job_match_prompt(profile_dict: dict, job_dict: dict) -> str:
-    p = {
-        k: v
-        for k, v in profile_dict.items()
-        if k in ("experience", "skills", "contact") and v
-    }
-    j = {
-        k: v
-        for k, v in job_dict.items()
-        if k in ("title", "description", "location", "requirements") and v
-    }
+    """Build prompt for AI job matching."""
     return JOB_MATCH_PROMPT_V1.format(
-        profile_json=json.dumps(p),
-        job_json=json.dumps(j),
+        profile_json=json.dumps(profile_dict, indent=2),
+        job_json=json.dumps(job_dict, indent=2),
     )
 
 

@@ -515,11 +515,19 @@ async def test_profile_with_extra_fields():
     assert profile.contact.full_name == "Jane Doe"
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_application_input_meta_with_unknown_keys(db_pool, clean_db):
     """Verify that application_inputs rows with extra keys in meta
     are read without errors (forward-compatible).
     """
+    # Skip if tables don't exist
+    async with db_pool.acquire() as conn:
+        try:
+            await conn.execute("SELECT 1 FROM public.users LIMIT 1")
+        except asyncpg.exceptions.UndefinedTableError:
+            pytest.skip("Database tables not set up")
+
     async with db_pool.acquire() as conn:
         user_id = await create_test_user(conn)
         job_id = await create_test_job(conn)

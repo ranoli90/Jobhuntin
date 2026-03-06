@@ -433,7 +433,7 @@ async def test_validate_critical_rejects_missing_secrets():
         sso_session_secret="",  # Missing!
     )
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(RuntimeError):
         settings.validate_critical()
 
 
@@ -453,6 +453,7 @@ async def test_validate_critical_passes_with_all_secrets():
         csrf_secret="a" * 64,
         sso_session_secret="b" * 64,
         jwt_secret="c" * 64,
+        webhook_signing_secret="test-webhook-secret",
     )
 
     # Should not raise

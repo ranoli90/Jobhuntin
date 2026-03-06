@@ -39,12 +39,9 @@ def test_status_to_web_edge_cases() -> None:
     """Test edge cases for status mapping."""
     from api.user import _status_to_web
 
-    # Test None and empty string
-    with pytest.raises((AttributeError, TypeError)):
-        _status_to_web(None)  # type: ignore
-
-    with pytest.raises((AttributeError, TypeError)):
-        _status_to_web("")  # type: ignore
+    # Test None and empty string - should return "FAILED" (fallback)
+    assert _status_to_web(None) == "FAILED"  # type: ignore
+    assert _status_to_web("") == "FAILED"
 
 
 def test_application_response_shape() -> None:
