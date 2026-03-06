@@ -31,9 +31,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ error, errorInfo });
 
-    // Log error to console for debugging
+    // Log error to console for debugging - ALWAYS log, not just in DEV
     console.error('[ErrorBoundary] Caught error:', error);
     console.error('[ErrorBoundary] Error info:', errorInfo);
+    console.error('[ErrorBoundary] Stack:', error.stack);
 
     // Report error if enabled
     if (this.props.reportError && !import.meta.env.DEV) {
