@@ -202,7 +202,7 @@ export default function JobNiche() {
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-10 sm:mb-20">
           {[
             { label: "Est. Salary", value: salaryStats.range, icon: DollarSign, color: "text-emerald-500" },
-            { label: "Openings", value: `${(cityInfo?.population ? Math.max(50, Math.floor(parseInt(String(cityInfo.population).replace(/k/i,'000').replace(/[^0-9]/g,'')) / 5000)) : 100)}+`, icon: Briefcase, color: "text-blue-500" },
+            { label: "Openings", value: `${(cityInfo?.population ? Math.max(50, Math.floor(Number.parseInt(String(cityInfo.population).replace(/k/i,'000').replace(/[^0-9]/g,'')) / 5000)) : 100)}+`, icon: Briefcase, color: "text-blue-500" },
             { label: "Demand", value: cityInfo?.techHub ? "Very High" : (cityInfo?.startupScene ? "High" : "Moderate"), icon: TrendingUp, color: "text-primary-500" },
             { label: "Remote", value: `${cityInfo?.remotePercentage ?? 35}%`, icon: Globe, color: "text-purple-500" },
           ].map((stat, i) => (

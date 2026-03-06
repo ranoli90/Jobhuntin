@@ -133,7 +133,7 @@ export function PreferencesStep({
     };
 
     const formatSalaryPreview = (value: string): string => {
-        const num = parseFloat(value);
+        const num = Number.parseFloat(value);
         if (isNaN(num) || value === '') return '';
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
     };

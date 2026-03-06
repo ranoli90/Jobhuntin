@@ -29,7 +29,7 @@ export default function GuidePage() {
       const extractedHeadings = Array.from(headingElements).map((heading, index) => ({
         id: `heading-${index}`,
         text: heading.textContent || '',
-        level: parseInt(heading.tagName.charAt(1))
+        level: Number.parseInt(heading.tagName.charAt(1))
       }));
       setHeadings(extractedHeadings);
     }

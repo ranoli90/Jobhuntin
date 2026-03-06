@@ -106,7 +106,7 @@ function AddSkillForm({ onAdd, onCancel, locale }: AddSkillFormProps) {
         // Parse years, ensuring we don't get NaN
         let yearsValue: number | null = null;
         if (years.trim()) {
-            const parsed = parseFloat(years);
+            const parsed = Number.parseFloat(years);
             if (!isNaN(parsed) && parsed >= 0) {
                 yearsValue = parsed;
             }

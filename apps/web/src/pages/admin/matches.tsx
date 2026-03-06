@@ -69,7 +69,7 @@ export default function AdminMatchesPage() {
   const [editingMatch, setEditingMatch] = useState<string | null>(null);
   const [overrideScore, setOverrideScore] = useState<number>(0);
 
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const page = Number.parseInt(searchParams.get("page") || "1", 10);
 
   useEffect(() => {
     async function fetchMatches() {
@@ -265,7 +265,7 @@ export default function AdminMatchesPage() {
                         <input
                           type="number"
                           value={overrideScore}
-                          onChange={(e) => setOverrideScore(parseInt(e.target.value, 10))}
+                          onChange={(e) => setOverrideScore(Number.parseInt(e.target.value, 10))}
                           className="w-16 px-2 py-1 rounded border border-slate-200 text-sm"
                         />
                         <Button size="sm" onClick={() => handleOverride(match.id)}>
