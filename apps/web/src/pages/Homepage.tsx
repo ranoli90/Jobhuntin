@@ -197,16 +197,21 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════════════════════════
           §1  HERO — centered, big headline, CTA, then visual showcase below
           ═══════════════════════════════════════════════════════════════ */}
-      <section id="main-content" className="relative overflow-hidden bg-white">
-        {/* Clean white background - no gradient */}
-        <div className="absolute inset-0 bg-white" />
+      <section id="main-content" className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-[0.4]">
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(148 163 184 / 0.15) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+        </div>
+        {/* Gradient orb */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-primary-100/30 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-purple-100/20 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-6 pt-28 sm:pt-36 pb-12">
           <div className="max-w-3xl mx-auto text-center">
             <FadeIn>
               <h1 className="text-[clamp(2.5rem,8vw,5rem)] font-black leading-[1.1] sm:leading-[1.0] tracking-tight text-slate-900 px-2 sm:px-0">
                 Land your next job<br className="hidden sm:block" />
-                <span className="text-slate-900"> without the search</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-purple-600"> without the search</span>
               </h1>
             </FadeIn>
             <FadeIn delay={80}>
@@ -216,23 +221,23 @@ export default function Homepage() {
             </FadeIn>
             <FadeIn delay={160}>
               <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
-                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-semibold bg-slate-900 text-white hover:bg-slate-800 focus:ring-2 focus:ring-slate-400 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-semibold bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800 shadow-lg shadow-primary-600/25 hover:shadow-xl hover:-translate-y-0.5 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   Get 20 Free Applications <ArrowRight className="w-5 h-5" />
                 </Link>
-                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-medium border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-medium border-2 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                   See How It Works
                 </a>
               </div>
               <div className="mt-8 flex items-center justify-center gap-4">
                 <div className="flex -space-x-3">
                   {['SK', 'MT', 'JL'].map((initials, i) => (
-                    <div key={i} className="w-10 h-10 rounded-full border-3 border-white bg-slate-900 flex items-center justify-center text-[11px] font-bold text-white shadow-md">
+                    <div key={i} className="w-10 h-10 rounded-full border-3 border-white bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-[11px] font-bold text-white shadow-md">
                       {initials}
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-slate-500">
-                  <span className="text-slate-900 font-semibold">10,000+</span> seekers already hired
+                <p className="text-sm text-slate-600">
+                  <span className="text-slate-900 font-bold">10,000+</span> hired this year
                 </p>
               </div>
             </FadeIn>
@@ -331,28 +336,32 @@ export default function Homepage() {
       </section >
 
       {/* ═══ TRUST BAR ═══ */}
-      < section className="bg-white border-y border-gray-100 py-10" >
+      <section className="bg-gradient-to-r from-slate-50 via-white to-slate-50 border-y border-slate-100 py-12" >
         <div className="max-w-7xl mx-auto px-6">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-center mb-6">Trusted by job seekers landing roles at</p>
-          <div className="grid grid-cols-3 md:grid-cols-6 items-center gap-6">
+          <p className="text-center mb-8">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-primary-500 to-purple-500 text-white text-xs font-bold tracking-wide shadow-lg shadow-primary-500/25">
+              <Trophy className="w-3.5 h-3.5" /> Top hires at leading companies
+            </span>
+          </p>
+          <div className="grid grid-cols-3 md:grid-cols-6 items-center gap-4">
             {[
-              { name: "Google", color: "text-gray-600" },
-              { name: "Amazon", color: "text-gray-600" },
-              { name: "Meta", color: "text-gray-600" },
-              { name: "Stripe", color: "text-gray-600" },
-              { name: "Shopify", color: "text-gray-600" },
-              { name: "Netflix", color: "text-gray-600" }
+              { name: "Google", gradient: "from-blue-500 to-blue-600" },
+              { name: "Amazon", gradient: "from-amber-500 to-orange-600" },
+              { name: "Meta", gradient: "from-blue-600 to-indigo-600" },
+              { name: "Stripe", from: "from-purple-500", to: "to-indigo-600" },
+              { name: "Shopify", gradient: "from-green-500 to-emerald-600" },
+              { name: "Netflix", gradient: "from-red-500 to-rose-600" }
             ].map((company) => (
               <div
                 key={company.name}
-                className="flex items-center justify-center px-4 py-3 rounded-xl bg-gray-50/50 hover:bg-gray-100 transition-colors cursor-default"
+                className="flex items-center justify-center px-4 py-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 hover:-translate-y-0.5 transition-all cursor-default"
                 aria-label={`Trusted employer: ${company.name}`}
               >
                 <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-md bg-${company.name.toLowerCase()}-100 flex items-center justify-center`}>
-                    <span className={`text-[10px] font-black ${company.color}`}>{company.name.charAt(0)}</span>
+                  <div className={cn("w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center shadow-sm", company.gradient)}>
+                    <span className="text-white text-xs font-black">{company.name.charAt(0)}</span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-500 tracking-tight">{company.name}</span>
+                  <span className="text-sm font-bold text-slate-700">{company.name}</span>
                 </div>
               </div>
             ))}
@@ -374,21 +383,23 @@ export default function Homepage() {
             </div>
           </FadeIn>
 
-          <div className="grid md:grid-cols-3 gap-7">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
             {/* ── Card 1: Precision Matching (Purple) ── */}
             <FadeIn delay={0}>
-              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer">
-                <div className="flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <Target className="w-7 h-7 text-primary-600" />
+              <div className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-50 via-white to-purple-50 shadow-2xl shadow-primary-900/10 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[540px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-3xl cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="flex-1 relative">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 shadow-lg shadow-primary-500/30 flex items-center justify-center mb-6">
+                    <Target className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Perfect Matches, Every Time</h3>
-                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">Our engine analyzes thousands of listings daily and only applies to the ones that fit your skills, goals, and salary requirements.</p>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Perfect Matches</h3>
+                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">Our AI scans thousands of jobs daily, matching your skills, salary needs, and goals — no spam, just精准 fits.</p>
                   <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
-                    How it works <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                    See how <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
-                <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
+                <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-primary-100/30 relative">
+                  <div className="absolute top-0 left-4 right-4 h-1 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full" />
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Top Matches</span>
                     <span className="text-[9px] text-gray-500">3 of 47 found</span>
@@ -419,18 +430,20 @@ export default function Homepage() {
 
             {/* ── Card 2: Curated Quality (Orange) ── */}
             <FadeIn delay={120}>
-              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer">
-                <div className="flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <PenTool className="w-7 h-7 text-primary-600" />
+              <div className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-2xl shadow-amber-900/10 border border-amber-100/50 p-7 sm:p-8 pb-0 min-h-[540px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-3xl cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="flex-1 relative">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30 flex items-center justify-center mb-6">
+                    <PenTool className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Your Best Resume</h3>
-                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">We rewrite your resume for every single job, making sure you highlight exactly what the hiring managers are looking for.</p>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Resume That Wins</h3>
+                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">We tailor your resume for every application, highlighting exactly what each hiring manager wants to see.</p>
                   <a href="#features" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
-                    View features <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                    See features <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
-                <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
+                <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-amber-100/30 relative">
+                  <div className="absolute top-0 left-4 right-4 h-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
                   {/* Mini resume document mock */}
                   <div className="bg-white border border-gray-100 rounded-xl p-3.5">
                     <div className="flex items-center justify-between mb-3">
@@ -478,18 +491,20 @@ export default function Homepage() {
 
             {/* ── Card 3: Live Tracking (Blue) ── */}
             <FadeIn delay={240}>
-              <div className="group rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary-900/5 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[520px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer">
-                <div className="flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 backdrop-blur-sm flex items-center justify-center mb-6">
-                    <Activity className="w-7 h-7 text-primary-600" />
+              <div className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 shadow-2xl shadow-blue-900/10 border border-blue-100/50 p-7 sm:p-8 pb-0 min-h-[540px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-3xl cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="flex-1 relative">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/30 flex items-center justify-center mb-6">
+                    <Activity className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Real-time Tracking</h3>
-                  <p className="text-gray-600 leading-relaxed text-[15px] mb-2">Watch applications go out in real-time. See matches, responses, and interview invites instantly.</p>
-                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-semibold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
-                    Learn more <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Watch It Happen</h3>
+                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">Real-time dashboard shows every application, response, and interview invite as it happens.</p>
+                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
+                    Live demo <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
                   </a>
                 </div>
-                <div className="mt-6 bg-gray-50/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-gray-100">
+                <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-blue-100/30 relative">
+                  <div className="absolute top-0 left-4 right-4 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
                   {/* Mini stats row */}
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
