@@ -58,16 +58,16 @@ test.describe('Performance & Accessibility Validation', () => {
       TTFB: 600, // Time to First Byte (good)
       FCP: 1800  // First Contentful Paint (good)
     };
-
-    const results = {
-      LCP: { value: performanceMetrics.LCP, threshold: thresholds.LCP, passed: performanceMetrics.LCP <= thresholds.LCP },
-      FID: { value: performanceMetrics.FID, threshold: thresholds.FID, passed: performanceMetrics.FID <= thresholds.FID },
-      CLS: { value: performanceMetrics.CLS, threshold: thresholds.CLS, passed: performanceMetrics.CLS <= thresholds.CLS },
-      TTFB: { value: performanceMetrics.TTFB, threshold: thresholds.TTFB, passed: performanceMetrics.TTFB <= thresholds.TTFB },
-      FCP: { value: performanceMetrics.FCP, threshold: thresholds.FCP, passed: performanceMetrics.FCP <= thresholds.FCP }
+    
+    const metrics = {
+      LCP: { value: (performanceMetrics as any).LCP, threshold: thresholds.LCP, passed: (performanceMetrics as any).LCP <= thresholds.LCP },
+      FID: { value: (performanceMetrics as any).FID, threshold: thresholds.FID, passed: (performanceMetrics as any).FID <= thresholds.FID },
+      CLS: { value: (performanceMetrics as any).CLS, threshold: thresholds.CLS, passed: (performanceMetrics as any).CLS <= thresholds.CLS },
+      TTFB: { value: (performanceMetrics as any).TTFB, threshold: thresholds.TTFB, passed: (performanceMetrics as any).TTFB <= thresholds.TTFB },
+      FCP: { value: (performanceMetrics as any).FCP, threshold: thresholds.FCP, passed: (performanceMetrics as any).FCP <= thresholds.FCP }
     };
 
-    for (const [metric, result] of Object.entries(results)) {
+    for (const [metric, result] of Object.entries(metrics)) {
       if (result.passed) {
         console.log(`✅ ${metric}: ${result.value}ms (threshold: ${result.threshold}ms)`);
       } else {
@@ -100,7 +100,7 @@ test.describe('Performance & Accessibility Validation', () => {
         
         // Resource analysis
         totalResources: resources.length,
-        totalResourceSize: resources.reduce((sum, resource) => sum + (resource.transferSize || 0), 0),
+        totalResourceSize: resources.reduce((sum, resource) => sum + ((resource as any).transferSize || 0), 0),
         resourceBreakdown: {
           scripts: resources.filter(r => r.name.includes('.js')).length,
           styles: resources.filter(r => r.name.includes('.css')).length,
@@ -189,7 +189,8 @@ test.describe('Performance & Accessibility Validation', () => {
       // Check heading structure
       const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
       let lastLevel = 0;
-      for (const heading of headings) {
+      for (let i = 0; i < headings.length; i++) {
+        const heading = headings[i];
         const level = parseInt(heading.tagName.substring(1));
         if (level > lastLevel + 1) {
           results.headingStructure = false;
@@ -245,7 +246,7 @@ test.describe('Performance & Accessibility Validation', () => {
         textElements: 0,
         lowContrastElements: 0,
         sufficientContrastElements: 0,
-        issues: []
+        issues: [] as Array<{element: string, contrast: string}>
       };
 
       // Get all text elements
@@ -275,9 +276,11 @@ test.describe('Performance & Accessibility Validation', () => {
             
             const contrast = (Math.max(colorLuminance, bgLuminance) + 0.05) / (Math.min(colorLuminance, bgLuminance) + 0.05);
             
+            const issues: Array<{element: string, contrast: string}> = [];
+            
             if (contrast < 4.5) { // WCAG AA standard
               results.lowContrastElements++;
-              results.issues.push({
+              issues.push({
                 element: element.tagName + (element.className ? '.' + element.className : ''),
                 contrast: contrast.toFixed(2)
               });
@@ -298,7 +301,8 @@ test.describe('Performance & Accessibility Validation', () => {
 
     if (contrastResults.lowContrastElements > 0) {
       console.log('❌ Color Contrast Issues:');
-      contrastResults.issues.forEach((issue, index) => {
+      const issues = contrastResults.issues as Array<{element: string, contrast: string}>;
+      issues.forEach((issue, index) => {
         console.log(`   ${index + 1}. ${issue.element} (contrast: ${issue.contrast}:1)`);
       });
     } else {
@@ -417,7 +421,7 @@ test.describe('Performance & Accessibility Validation', () => {
         hasAriaLabels: 0,
         hasRoles: 0,
         hasFormLabels: 0,
-        issues: []
+        issues: [] as string[]
       };
 
       // Check language attribute

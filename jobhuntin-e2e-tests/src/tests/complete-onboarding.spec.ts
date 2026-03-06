@@ -255,12 +255,12 @@ async function testOnboardingSteps(page: Page) {
   }
 
   // Try to interact with common onboarding elements
-  const buttons = page.locator('button').all();
-  console.log(`📊 Found ${await buttons.length} buttons on the page`);
+  const buttons = await page.locator('button').all();
+  console.log(`📊 Found ${buttons.length} buttons on the page`);
 
   // Look for input fields
-  const inputs = page.locator('input, textarea, select').all();
-  console.log(`📊 Found ${await inputs.length} input fields on the page`);
+  const inputs = await page.locator('input, textarea, select').all();
+  console.log(`📊 Found ${inputs.length} input fields on the page`);
 }
 
 async function testDashboardAccess(page: Page) {

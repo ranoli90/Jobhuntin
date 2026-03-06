@@ -119,8 +119,8 @@ test.describe('Core Application Features', () => {
       }
 
       // Test data loading (check for loading states)
-      const loadingIndicators = page.locator('text=/Loading|Loading...|Please wait/i').all();
-      const loadingCount = await loadingIndicators.count();
+      const loadingIndicators = await page.locator('text=/Loading|Loading...|Please wait/i').all();
+      const loadingCount = loadingIndicators.length;
       
       if (loadingCount > 0) {
         console.log('⏳ Dashboard is loading data...');
@@ -222,10 +222,11 @@ async function testJobSearch(page: Page) {
   console.log('🔍 Testing job search functionality...');
 
   // Look for search input
-  const searchInput = page.locator('input[type="search"], input[placeholder*="search"], input[name="search"]').first();
-  const hasSearchInput = await searchInput.isVisible().catch(() => false);
+  const searchInputs = await page.locator('input[placeholder*="search"], input[placeholder*="Search"], .search-input').all();
+  const searchCount = searchInputs.length;
 
-  if (hasSearchInput) {
+  if (searchCount > 0) {
+    const searchInput = searchInputs[0];
     console.log('✅ Found search input');
     
     // Test search functionality
@@ -243,7 +244,7 @@ async function testJobSearch(page: Page) {
     
     // Check for search results
     const searchResults = page.locator('[data-testid*="job"], .job-card, .job-item').all();
-    const resultCount = await searchResults.count();
+    const resultCount = searchResults.length;
     
     console.log(`📊 Found ${resultCount} job search results`);
     
@@ -258,42 +259,46 @@ async function testJobSearch(page: Page) {
     console.log('⚠️ Search input not found');
   }
 
-  // Look for filter controls
-  const filterControls = page.locator('select, input[type="checkbox"], input[type="radio"]').all();
-  const filterCount = await filterControls.count();
+  // Test filter functionality
+  const filterButtons = await page.locator('button:has-text("Filter"), .filter-button, [data-testid="filter"]').all();
+  const filterCount = filterButtons.length;
   
   if (filterCount > 0) {
     console.log(`✅ Found ${filterCount} filter controls`);
   }
+
+  // Test profile access
+  const profileButtons = await page.locator('button:has-text("Profile"), .profile-button, [data-testid="profile"]').all();
+  const profileCount = profileButtons.length;
 }
 
 async function testJobApplication(page: Page) {
   console.log('📝 Testing job application flow...');
 
-  // Look for job cards or listings
-  const jobCards = page.locator('[data-testid*="job"], .job-card, .job-item').all();
-  const cardCount = await jobCards.count();
+  // Check for job listings
+  const jobListings = await page.locator('[data-testid="job-card"], .job-card, .job-listing').all();
+  const jobCount = jobListings.length;
 
-  if (cardCount > 0) {
-    console.log(`✅ Found ${cardCount} job listings`);
+  if (jobCount > 0) {
+    console.log(`✅ Found ${jobCount} job listings`);
     
     // Try to interact with the first job card
-    const firstCard = jobCards.first();
+    const firstCard = jobListings[0];
     await firstCard.click();
     await page.waitForTimeout(2000);
     
-    // Look for apply button
-    const applyButton = page.locator('button:has-text(/Apply|Apply Now|One-Click Apply/i)').first();
-    const hasApplyButton = await applyButton.isVisible().catch(() => false);
+    // Test application functionality
+    const applyButtons = await page.locator('button:has-text("Apply"), .apply-button, [data-testid="apply"]').all();
+    const applyCount = applyButtons.length;
     
-    if (hasApplyButton) {
+    if (applyCount > 0) {
       console.log('✅ Found apply button');
       
       // Test application process (but don't actually apply to avoid spam)
       console.log('🔄 Testing application flow (simulation)...');
       
       // Check for confirmation dialogs or modals
-      await applyButton.click();
+      await applyButtons[0].click();
       await page.waitForTimeout(2000);
       
       // Look for application confirmation
@@ -327,8 +332,8 @@ async function testApplicationTracking(page: Page) {
     console.log('✅ Successfully accessed applications page');
     
     // Look for application listings
-    const applicationItems = page.locator('[data-testid*="application"], .application-card, .application-item').all();
-    const applicationCount = await applicationItems.count();
+    const applicationItems = await page.locator('[data-testid*="application"], .application-card, .application-item').all();
+    const applicationCount = applicationItems.length;
     
     console.log(`📊 Found ${applicationCount} applications`);
     
@@ -336,8 +341,8 @@ async function testApplicationTracking(page: Page) {
       console.log('✅ Application tracking is working');
       
       // Look for application status indicators
-      const statusIndicators = page.locator('text=/Applied|Pending|In Progress|Rejected|Accepted/i').all();
-      const statusCount = await statusIndicators.count();
+      const statusIndicators = await page.locator('text=/Applied|Pending|In Progress|Rejected|Accepted/i').all();
+      const statusCount = statusIndicators.length;
       
       if (statusCount > 0) {
         console.log(`✅ Found ${statusCount} status indicators`);

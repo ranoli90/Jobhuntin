@@ -14,8 +14,7 @@ export default defineConfig({
     timeout: 15_000, // Increased timeout for assertions
     toHaveScreenshot: {
       maxDiffPixels: 2000, // More lenient for production testing
-      fullPage: true,
-      animation: 'disabled', // Disable animations for consistent screenshots
+      animations: 'disabled', // Disable animations for consistent screenshots
     },
   },
   fullyParallel: true,
@@ -37,8 +36,6 @@ export default defineConfig({
     actionTimeout: 20_000, // Longer timeout for production
     navigationTimeout: 30_000, // Longer navigation timeout
     viewport: { width: 1280, height: 720 },
-    // Add custom test data
-    testEmail: TEST_EMAIL,
     // Slow down for production stability
     launchOptions: {
       slowMo: process.env.CI ? 0 : 100, // Slow down in local testing
@@ -77,7 +74,7 @@ export default defineConfig({
     // Tablet testing
     {
       name: 'tablet',
-      use: { viewport: { width: 1024, height: 1366 }, ...devices['iPad (gen 7)'] },
+      use: { ...devices['iPad (gen 7)'], viewport: { width: 1024, height: 1366 } },
       testMatch: '**/cross-browser-mobile.spec.ts',
     },
     

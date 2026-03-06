@@ -140,17 +140,18 @@ test.describe('Error Handling & Edge Cases', () => {
     await page.waitForTimeout(2000);
 
     // Look for file upload inputs
-    const fileInputs = page.locator('input[type="file"]').all();
-    const fileInputCount = await fileInputs.count();
+    const fileInputs = await page.locator('input[type="file"]').all();
+    const fileInputCount = fileInputs.length;
 
     if (fileInputCount > 0) {
       console.log(`📁 Found ${fileInputCount} file upload inputs`);
       
-      // Test with a large file (simulated)
+      // Test with the first file input
+      const firstFileInput = fileInputs[0];
       const largeFile = Buffer.alloc(10 * 1024 * 1024, 'A'); // 10MB file
       
       for (let i = 0; i < fileInputCount; i++) {
-        const input = fileInputs.nth(i);
+        const input = fileInputs[i];
         
         try {
           await input.setInputFiles({

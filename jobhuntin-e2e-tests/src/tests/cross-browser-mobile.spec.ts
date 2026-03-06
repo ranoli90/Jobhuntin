@@ -162,14 +162,14 @@ test.describe('Mobile Tests', () => {
 
     // Test touch targets
     const touchTargets = page.locator('button, a, input').all();
-    const targetCount = await touchTargets.count();
+    const targetCount = touchTargets.length;
     
     console.log(`👆 Found ${targetCount} touch targets`);
     
     // Check minimum touch target size (44px recommended)
     let adequateTouchTargets = 0;
     for (let i = 0; i < Math.min(targetCount, 10); i++) {
-      const target = touchTargets.nth(i);
+      const target = touchTargets[i];
       const boundingBox = await target.boundingBox();
       
       if (boundingBox) {

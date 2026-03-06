@@ -14,21 +14,19 @@
       "target": "https://jobhuntin.com",
       "env": "production",
       "testEmail": "test-e2e-production@jobhuntin.com",
-      "testType": "production-readiness-validation",
-      "actualWorkers": 1
+      "testType": "production-readiness-validation"
     },
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "C:/Users/Administrator/Desktop/main jobhuntin/jobhuntin-e2e-tests/test-results",
         "repeatEach": 1,
-        "retries": 2,
+        "retries": 0,
         "metadata": {
           "target": "https://jobhuntin.com",
           "env": "production",
           "testEmail": "test-e2e-production@jobhuntin.com",
-          "testType": "production-readiness-validation",
-          "actualWorkers": 1
+          "testType": "production-readiness-validation"
         },
         "id": "chromium",
         "name": "chromium",
@@ -37,18 +35,17 @@
         "testMatch": [
           "**/complete-auth-flow.spec.ts"
         ],
-        "timeout": 60000
+        "timeout": 120000
       },
       {
         "outputDir": "C:/Users/Administrator/Desktop/main jobhuntin/jobhuntin-e2e-tests/test-results",
         "repeatEach": 1,
-        "retries": 2,
+        "retries": 0,
         "metadata": {
           "target": "https://jobhuntin.com",
           "env": "production",
           "testEmail": "test-e2e-production@jobhuntin.com",
-          "testType": "production-readiness-validation",
-          "actualWorkers": 1
+          "testType": "production-readiness-validation"
         },
         "id": "firefox",
         "name": "firefox",
@@ -57,18 +54,17 @@
         "testMatch": [
           "**/complete-onboarding.spec.ts"
         ],
-        "timeout": 60000
+        "timeout": 120000
       },
       {
         "outputDir": "C:/Users/Administrator/Desktop/main jobhuntin/jobhuntin-e2e-tests/test-results",
         "repeatEach": 1,
-        "retries": 2,
+        "retries": 0,
         "metadata": {
           "target": "https://jobhuntin.com",
           "env": "production",
           "testEmail": "test-e2e-production@jobhuntin.com",
-          "testType": "production-readiness-validation",
-          "actualWorkers": 1
+          "testType": "production-readiness-validation"
         },
         "id": "webkit",
         "name": "webkit",
@@ -77,18 +73,17 @@
         "testMatch": [
           "**/core-features.spec.ts"
         ],
-        "timeout": 60000
+        "timeout": 120000
       },
       {
         "outputDir": "C:/Users/Administrator/Desktop/main jobhuntin/jobhuntin-e2e-tests/test-results",
         "repeatEach": 1,
-        "retries": 2,
+        "retries": 0,
         "metadata": {
           "target": "https://jobhuntin.com",
           "env": "production",
           "testEmail": "test-e2e-production@jobhuntin.com",
-          "testType": "production-readiness-validation",
-          "actualWorkers": 1
+          "testType": "production-readiness-validation"
         },
         "id": "mobile-chrome",
         "name": "mobile-chrome",
@@ -97,18 +92,17 @@
         "testMatch": [
           "**/cross-browser-mobile.spec.ts"
         ],
-        "timeout": 60000
+        "timeout": 120000
       },
       {
         "outputDir": "C:/Users/Administrator/Desktop/main jobhuntin/jobhuntin-e2e-tests/test-results",
         "repeatEach": 1,
-        "retries": 2,
+        "retries": 0,
         "metadata": {
           "target": "https://jobhuntin.com",
           "env": "production",
           "testEmail": "test-e2e-production@jobhuntin.com",
-          "testType": "production-readiness-validation",
-          "actualWorkers": 1
+          "testType": "production-readiness-validation"
         },
         "id": "mobile-safari",
         "name": "mobile-safari",
@@ -117,18 +111,17 @@
         "testMatch": [
           "**/cross-browser-mobile.spec.ts"
         ],
-        "timeout": 60000
+        "timeout": 120000
       },
       {
         "outputDir": "C:/Users/Administrator/Desktop/main jobhuntin/jobhuntin-e2e-tests/test-results",
         "repeatEach": 1,
-        "retries": 2,
+        "retries": 0,
         "metadata": {
           "target": "https://jobhuntin.com",
           "env": "production",
           "testEmail": "test-e2e-production@jobhuntin.com",
-          "testType": "production-readiness-validation",
-          "actualWorkers": 1
+          "testType": "production-readiness-validation"
         },
         "id": "tablet",
         "name": "tablet",
@@ -137,18 +130,17 @@
         "testMatch": [
           "**/cross-browser-mobile.spec.ts"
         ],
-        "timeout": 60000
+        "timeout": 120000
       },
       {
         "outputDir": "C:/Users/Administrator/Desktop/main jobhuntin/jobhuntin-e2e-tests/test-results",
         "repeatEach": 1,
-        "retries": 2,
+        "retries": 0,
         "metadata": {
           "target": "https://jobhuntin.com",
           "env": "production",
           "testEmail": "test-e2e-production@jobhuntin.com",
-          "testType": "production-readiness-validation",
-          "actualWorkers": 1
+          "testType": "production-readiness-validation"
         },
         "id": "error-handling",
         "name": "error-handling",
@@ -157,18 +149,17 @@
         "testMatch": [
           "**/error-handling.spec.ts"
         ],
-        "timeout": 60000
+        "timeout": 120000
       },
       {
         "outputDir": "C:/Users/Administrator/Desktop/main jobhuntin/jobhuntin-e2e-tests/test-results",
         "repeatEach": 1,
-        "retries": 2,
+        "retries": 0,
         "metadata": {
           "target": "https://jobhuntin.com",
           "env": "production",
           "testEmail": "test-e2e-production@jobhuntin.com",
-          "testType": "production-readiness-validation",
-          "actualWorkers": 1
+          "testType": "production-readiness-validation"
         },
         "id": "performance-accessibility",
         "name": "performance-accessibility",
@@ -177,7 +168,7 @@
         "testMatch": [
           "**/performance-accessibility.spec.ts"
         ],
-        "timeout": 60000
+        "timeout": 120000
       }
     ],
     "quiet": false,
@@ -223,153 +214,14 @@
     "workers": 1,
     "webServer": null
   },
-  "suites": [
-    {
-      "title": "complete-auth-flow.spec.ts",
-      "file": "complete-auth-flow.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Complete Magic Link Authentication Flow",
-          "file": "complete-auth-flow.spec.ts",
-          "line": 6,
-          "column": 6,
-          "specs": [
-            {
-              "title": "complete new user journey: email → magic link → onboarding → dashboard",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 66711,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[type=\"email\"], input[placeholder*=\"email\"], input[name=\"email\"]').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[placeholder*=\"email\"], input[name=\"email\"]').first()\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[type=\"email\"], input[placeholder*=\"email\"], input[name=\"email\"]').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[placeholder*=\"email\"], input[name=\"email\"]').first()\u001b[22m\n\n    at C:\\Users\\Administrator\\Desktop\\main jobhuntin\\jobhuntin-e2e-tests\\src\\tests\\complete-auth-flow.spec.ts:26:30",
-                        "location": {
-                          "file": "C:\\Users\\Administrator\\Desktop\\main jobhuntin\\jobhuntin-e2e-tests\\src\\tests\\complete-auth-flow.spec.ts",
-                          "column": 30,
-                          "line": 26
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 24 |\u001b[39m     \u001b[90m// Step 2: Enter email and request magic link\u001b[39m\n \u001b[90m 25 |\u001b[39m     \u001b[36mconst\u001b[39m emailInput \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'input[type=\"email\"], input[placeholder*=\"email\"], input[name=\"email\"]'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 26 |\u001b[39m     \u001b[36mawait\u001b[39m expect(emailInput)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 27 |\u001b[39m     \u001b[36mawait\u001b[39m emailInput\u001b[33m.\u001b[39mfill(\u001b[33mTEST_EMAIL\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 28 |\u001b[39m     \n \u001b[90m 29 |\u001b[39m     \u001b[36mconst\u001b[39m submitBtn \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'button[type=\"submit\"], button:has-text(\"Continue\")'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\Administrator\\Desktop\\main jobhuntin\\jobhuntin-e2e-tests\\src\\tests\\complete-auth-flow.spec.ts",
-                            "column": 30,
-                            "line": 26
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[type=\"email\"], input[placeholder*=\"email\"], input[name=\"email\"]').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[placeholder*=\"email\"], input[name=\"email\"]').first()\u001b[22m\n\n\n\u001b[0m \u001b[90m 24 |\u001b[39m     \u001b[90m// Step 2: Enter email and request magic link\u001b[39m\n \u001b[90m 25 |\u001b[39m     \u001b[36mconst\u001b[39m emailInput \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'input[type=\"email\"], input[placeholder*=\"email\"], input[name=\"email\"]'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 26 |\u001b[39m     \u001b[36mawait\u001b[39m expect(emailInput)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 27 |\u001b[39m     \u001b[36mawait\u001b[39m emailInput\u001b[33m.\u001b[39mfill(\u001b[33mTEST_EMAIL\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 28 |\u001b[39m     \n \u001b[90m 29 |\u001b[39m     \u001b[36mconst\u001b[39m submitBtn \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'button[type=\"submit\"], button:has-text(\"Continue\")'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\Administrator\\Desktop\\main jobhuntin\\jobhuntin-e2e-tests\\src\\tests\\complete-auth-flow.spec.ts:26:30\u001b[22m"
-                        },
-                        {
-                          "message": "Error: apiRequestContext._wrapApiCall: Test ended."
-                        }
-                      ],
-                      "stdout": [
-                        {
-                          "text": "🚀 Starting complete user journey test...\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-03-05T22:04:13.355Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\Administrator\\Desktop\\main jobhuntin\\jobhuntin-e2e-tests\\test-results\\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\Administrator\\Desktop\\main jobhuntin\\jobhuntin-e2e-tests\\test-results\\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\\error-context.md"
-                        },
-                        {
-                          "name": "trace",
-                          "contentType": "application/zip",
-                          "path": "C:\\Users\\Administrator\\Desktop\\main jobhuntin\\jobhuntin-e2e-tests\\test-results\\complete-auth-flow-Complet-e0c26-nk-→-onboarding-→-dashboard-chromium\\trace.zip"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\Administrator\\Desktop\\main jobhuntin\\jobhuntin-e2e-tests\\src\\tests\\complete-auth-flow.spec.ts",
-                        "column": 30,
-                        "line": 26
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "0336caa6b572505b3185-29441c215bea9f7a1032",
-              "file": "complete-auth-flow.spec.ts",
-              "line": 17,
-              "column": 3
-            },
-            {
-              "title": "error handling: invalid email and network issues",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [],
-                  "status": "skipped"
-                }
-              ],
-              "id": "0336caa6b572505b3185-dbb8b88d5f4ac19adc32",
-              "file": "complete-auth-flow.spec.ts",
-              "line": 110,
-              "column": 3
-            },
-            {
-              "title": "rate limiting behavior",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [],
-                  "status": "skipped"
-                }
-              ],
-              "id": "0336caa6b572505b3185-730d7f31a9cac7027066",
-              "file": "complete-auth-flow.spec.ts",
-              "line": 136,
-              "column": 3
-            }
-          ]
-        }
-      ]
-    }
-  ],
+  "suites": [],
   "errors": [],
   "stats": {
-    "startTime": "2026-03-05T22:03:53.533Z",
-    "duration": 113245.511,
+    "startTime": "2026-03-06T00:55:02.127Z",
+    "duration": 65124.617999999995,
     "expected": 0,
-    "skipped": 2,
-    "unexpected": 1,
+    "skipped": 0,
+    "unexpected": 0,
     "flaky": 0
   }
 }
