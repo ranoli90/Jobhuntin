@@ -11,6 +11,8 @@ import path from 'path';
 const SAFE_PATH_PATTERN = /^[a-zA-Z0-9\-_\./]+$/;
 const SAFE_IDENTIFIER_PATTERN = /^[a-zA-Z0-9\-_]+$/;
 const SAFE_CITY_ROLE_PATTERN = /^[a-zA-Z0-9\-_\s,']+$/;
+// Keywords can have spaces (e.g., "simplify jobs", "remote work")
+const SAFE_KEYWORD_PATTERN = /^[a-zA-Z0-9\-_\s]+$/;
 
 /**
  * Validates that a string is safe to pass as a command argument.
@@ -73,7 +75,8 @@ export function validateKeywords(keywords: string[]): string[] {
   if (!Array.isArray(keywords)) {
     throw new Error('Keywords must be an array');
   }
-  return keywords.map(k => validateSafeString(k, SAFE_IDENTIFIER_PATTERN, 50));
+  // Keywords can contain spaces (e.g., "simplify jobs", "remote work")
+  return keywords.map(k => validateSafeString(k, SAFE_KEYWORD_PATTERN, 100));
 }
 
 /**
