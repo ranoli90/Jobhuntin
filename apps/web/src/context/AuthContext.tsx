@@ -162,40 +162,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Initialize auth
     useEffect(() => {
         const initAuth = async () => {
-            if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Initializing auth...');
+            try {
+                if (import.meta.env.DEV) console.log('[AUTH] Initializing auth...');
 
-            // 1. Check for token in URL (legacy magic link flow — used when API_PUBLIC_URL is not set)
-            //    When API_PUBLIC_URL IS set, the backend redirects the user BEFORE they hit the
-            //    frontend, so the token will NOT appear in the URL. The cookie is set by the
-            //    backend's /auth/verify-magic redirect response.
-            const params = new URLSearchParams(window.location.search);
-            const tokenFromUrl = params.get("token");
+                // 1. Check for token in URL (legacy magic link flow — used when API_PUBLIC_URL is not set)
+                //    When API_PUBLIC_URL IS set, the backend redirects the user BEFORE they hit the
+                //    frontend, so the token will NOT appear in the URL. The cookie is set by the
+                //    backend's /auth/verify-magic redirect response.
+                const params = new URLSearchParams(window.location.search);
+                const tokenFromUrl = params.get("token");
 
-            if (tokenFromUrl) {
-                if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Token found in URL (legacy flow), redirecting to backend verify...');
+                if (tokenFromUrl) {
+                    if (import.meta.env.DEV) console.log('[AUTH] Token found in URL (legacy flow), redirecting to backend verify...');
 
-                // IMPORTANT: We must NOT use fetch() here. fetch() follows redirects internally
-                // and httpOnly cookies set on the API domain during a redirect are blocked by
-                // the browser's cross-origin cookie restrictions.
-                //
-                // Instead, do a real browser navigation to the backend verify endpoint.
-                // The backend will set the cookie and redirect back to the app.
-                const base = getApiBase();
-                const returnTo = params.get("returnTo") || sessionStorage.getItem('returnTo') || "/app/dashboard";
-                if (base) {
-                    const verifyUrl = `${base.replace(/\/$/, "")}/auth/verify-magic?token=${encodeURIComponent(tokenFromUrl)}&returnTo=${encodeURIComponent(returnTo)}`;
-                    if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Navigating to verify-magic:', verifyUrl);
-                    window.location.href = verifyUrl;
-                    return; // Stop execution — browser will navigate away
+                    // IMPORTANT: We must NOT use fetch() here. fetch() follows redirects internally
+                    // and httpOnly cookies set on the API domain during a redirect are blocked by
+                    // the browser's cross-origin cookie restrictions.
+                    //
+                    // Instead, do a real browser navigation to the backend verify endpoint.
+                    // The backend will set the cookie and redirect back to the app.
+                    const base = getApiBase();
+                    const returnTo = params.get("returnTo") || sessionStorage.getItem('returnTo') || "/app/dashboard";
+                    if (base) {
+                        const verifyUrl = `${base.replace(/\/$/, "")}/auth/verify-magic?token=${encodeURIComponent(tokenFromUrl)}&returnTo=${encodeURIComponent(returnTo)}`;
+                        if (import.meta.env.DEV) console.log('[AUTH] Navigating to verify-magic:', verifyUrl);
+                        window.location.href = verifyUrl;
+                        return; // Stop execution — browser will navigate away
+                    }
                 }
-            }
 
-            // 2. Check for existing session via httpOnly cookie
-            if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Checking for existing session...');
-            await ensureCsrfCookie();
-            await fetchUser(true);
-            setLoading(false);
-            if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Auth initialization complete');
+                // 2. Check for existing session via httpOnly cookie
+                if (import.meta.env.DEV) console.log('[AUTH] Checking for existing session...');
+                await ensureCsrfCookie();
+                await fetchUser(true);
+                setLoading(false);
+                if (import.meta.env.DEV) console.log('[AUTH] Auth initialization complete');
+            } catch (error) {
+                // Catch any errors during auth initialization to prevent React from crashing
+                console.error('[AUTH] Auth initialization failed:', error);
+                setLoading(false);
+                setUser(null);
+            }
         };
 
         const handleUnauthorized = (event: Event) => {

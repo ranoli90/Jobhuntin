@@ -69,5 +69,10 @@ export function validateConfig(): string[] {
     errors.push("VITE_APP_BASE_URL must use HTTPS in production");
   }
 
+  // Log errors in production for debugging
+  if (errors.length > 0) {
+    console.error("[Config] Validation errors:", errors);
+  }
+
   return errors;
 }
