@@ -1043,7 +1043,24 @@ async def resend_webhook(
         if not signature:
             logger.warning("Resend webhook missing signature")
             raise HTTPException(status_code=401, detail="Missing signature")
-        # TODO: Implement signature verification when Resend adds it
+        
+        # Verify the signature using HMAC-SHA256
+        # Resend signs the request body with the webhook secret
+        import hmac
+        import hashlib
+        
+        # Get the raw request body for verification
+        body = await request.body()
+        expected_signature = hmac.new(
+            webhook_secret.encode(),
+            body,
+            hashlib.sha256
+        ).hexdigest()
+        
+        # Use constant-time comparison to prevent timing attacks
+        if not hmac.compare_digest(signature, expected_signature):
+            logger.warning("Resend webhook signature verification failed")
+            raise HTTPException(status_code=401, detail="Invalid signature")
 
     event_type = payload.type
     data = payload.data
