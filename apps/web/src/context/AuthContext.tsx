@@ -56,20 +56,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 // On initial load, use a direct fetch that does NOT dispatch auth:unauthorized
                 // on 401. apiGet() dispatches the event BEFORE the error reaches this catch block,
                 // causing an unwanted redirect + "session expired" toast on first visit.
-                const base = getApiBase();
-                const resp = await fetch(`${base.replace(/\/$/, "")}/profile`, {
-                    method: "GET",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                });
-                if (!resp.ok) {
-                    // Silently handle 401 on initial load — user simply isn't logged in yet
-                    console.log('[AUTH] Initial profile check returned', resp.status);
+                try {
+                    const base = getApiBase();
+                    console.log('[AUTH] Fetching profile from:', base);
+                    const resp = await fetch(`${base.replace(/\/$/, "")}/profile`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers: { "Content-Type": "application/json" },
+                    });
+                    console.log('[AUTH] Profile response status:', resp.status);
+                    if (!resp.ok) {
+                        // Silently handle 401 on initial load — user simply isn't logged in yet
+                        console.log('[AUTH] Profile check returned', resp.status);
+                        setUser(null);
+                        sessionExpiryRef.current = null;
+                        return;
+                    }
+                    profile = await resp.json();
+                } catch (err) {
+                    console.error('[AUTH] Profile fetch failed:', err);
                     setUser(null);
-                    sessionExpiryRef.current = null;
                     return;
                 }
-                profile = await resp.json();
             } else {
                 // Subsequent calls (e.g. refreshUser) — use apiGet which has retry + error handling
                 profile = await apiGet<User>("profile");
