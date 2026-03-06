@@ -34,7 +34,7 @@ COPY pyproject.toml render.yaml ./
 
 # Copy application code in dependency order
 # Shared packages first (most stable)
-COPY packages/shared/ ./shared/
+COPY shared/ ./shared/
 COPY packages/backend/ ./backend/
 COPY packages/blueprints/ ./blueprints/
 COPY packages/partners/ ./partners/
