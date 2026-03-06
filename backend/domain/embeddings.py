@@ -80,7 +80,6 @@ class EmbeddingClient:
                 f"Embedding service unavailable (circuit breaker open). "
                 f"Retry in {exc.retry_after:.0f}s"
             ) from exc
-        return [0.0] * EMBEDDING_DIMENSION  # Fallback for type checker
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
         """Generate embeddings for multiple texts in a single API call.

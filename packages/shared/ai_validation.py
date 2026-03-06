@@ -157,8 +157,6 @@ def sanitize_dict_for_ai(
     warnings: list[str] = []
 
     def sanitize_value(value: Any, path: str = "") -> Any:
-        nonlocal warnings
-
         if isinstance(value, str):
             result = sanitize_for_ai(value, AIValidationConfig.MAX_TEXT_FIELD_SIZE)
             if result.warnings:

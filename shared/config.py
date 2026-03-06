@@ -108,7 +108,9 @@ class Settings(BaseSettings):
     enabled_blueprints: str = "job-app,grant,staffing-agency"  # comma-separated list
 
     # ── Security ─────────────────────────────────────────────────
-    csrf_secret: str = "dev-csrf-secret-change-in-production"  # Required in prod - generate with: secrets.token_hex(32)
+    csrf_secret: str = (
+        "dev-csrf-secret-change-in-production"  # Required in prod - generate with: secrets.token_hex(32)
+    )
     jwt_secret: str = (
         "dev-secret-key-change-in-production"  # Default for local dev only - change in production
     )

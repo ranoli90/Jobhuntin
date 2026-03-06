@@ -127,6 +127,36 @@ function JobCard({
         if (info.offset.x > 100) onSwipe('ACCEPT');
         else if (info.offset.x < -100) onSwipe('REJECT');
       }}
+      onTouchStart={(e) => {
+        // Handle mobile touch events
+        const touch = e.touches[0];
+        if (touch) {
+          const startX = touch.clientX;
+          const handleTouchMove = (moveEvent: TouchEvent) => {
+            const currentTouch = moveEvent.touches[0];
+            if (currentTouch) {
+              const deltaX = currentTouch.clientX - startX;
+              if (deltaX > 100) {
+                onSwipe('ACCEPT');
+                document.removeEventListener('touchmove', handleTouchMove);
+                document.removeEventListener('touchend', handleTouchEnd);
+              } else if (deltaX < -100) {
+                onSwipe('REJECT');
+                document.removeEventListener('touchmove', handleTouchMove);
+                document.removeEventListener('touchend', handleTouchEnd);
+              }
+            }
+          };
+          
+          const handleTouchEnd = () => {
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+          };
+          
+          document.addEventListener('touchmove', handleTouchMove, { passive: false });
+          document.addEventListener('touchend', handleTouchEnd);
+        }
+      }}
     >
       {/* L-3: Accept overlay (green) */}
       <motion.div
@@ -193,8 +223,17 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { status } = useBilling();
   const { applications, holdApplications, byStatus, stats, isLoading, error, refetch } = useApplications();
+  const { profile, refreshProfile } = useProfile();
 
   const shouldReduceMotion = useReducedMotion();
+
+  // Check for onboarding completion and refresh data
+  useEffect(() => {
+    if (profile?.has_completed_onboarding && !isLoading) {
+      // Refresh applications data when onboarding completes
+      refetch();
+    }
+  }, [profile?.has_completed_onboarding, refetch, isLoading]);
 
   // N-2: Reactive locale
   const locale = useMemo(() => getLocale(), []);

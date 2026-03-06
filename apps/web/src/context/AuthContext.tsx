@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Helper to fetch user profile
     const fetchUser = useCallback(async (isInitialLoad = false) => {
-        if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Fetching user profile...');
+        if (import.meta.env.DEV) console.log('[AUTH] Fetching user profile...');
         try {
             let profile: User;
 
@@ -84,13 +84,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             setUser(profile);
-            if (import.meta.env.DEV) {
-                if (import.meta.env.DEV) console.log('[AUTH] User profile loaded:', {
-                    id: profile.id,
-                    email: profile.email,
-                    has_completed_onboarding: profile.has_completed_onboarding
-                });
-            }
+            if (import.meta.env.DEV) console.log('[AUTH] User profile loaded:', {
+                id: profile.id,
+                email: profile.email,
+                has_completed_onboarding: profile.has_completed_onboarding
+            });
 
             // Sync extension session state
             localStorage.setItem('jobhuntin-session', JSON.stringify({
@@ -102,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             sessionExpiryRef.current = Date.now() + SESSION_TTL_MS;
             warningShownRef.current = false;
         } catch (error) {
-            if (import.meta.env.DEV) console.error("[AUTH] Failed to fetch user profile:", error);
+            console.error("[AUTH] Failed to fetch user profile:", error);
             setUser(null);
             sessionExpiryRef.current = null;
 
@@ -126,7 +124,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (!base) return;
             await fetch(`${base.replace(/\/$/, "")}/csrf/prepare`, { credentials: "include" });
         } catch (err) {
-            if (import.meta.env.DEV) console.warn("CSRF cookie preflight failed", err);
+            console.warn("CSRF cookie preflight failed", err);
         }
     }, []);
 
@@ -203,18 +201,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (import.meta.env.DEV) console.log('[AUTH] Checking for existing session...');
                 await ensureCsrfCookie();
                 await fetchUser(true);
-                setLoading(false);
                 if (import.meta.env.DEV) console.log('[AUTH] Auth initialization complete');
             } catch (error) {
-                // Catch any errors during auth initialization to prevent React from crashing
                 console.error('[AUTH] Auth initialization failed:', error);
-                setLoading(false);
                 setUser(null);
+            } finally {
+                setLoading(false);
             }
         };
 
         const handleUnauthorized = (event: Event) => {
-            if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Unauthorized event received, clearing session');
+            if (import.meta.env.DEV) console.log('[AUTH] Unauthorized event received, clearing session');
             const detail = (event as CustomEvent<{ returnTo?: string }>).detail;
             setUser(null);
             sessionExpiryRef.current = null;

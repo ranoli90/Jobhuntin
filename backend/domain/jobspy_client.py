@@ -227,8 +227,8 @@ class JobSpyClient:
                         raw_data[k] = cleaned
                     else:
                         raw_data[k] = str(cleaned)
-        except Exception as e:
-            logger.debug(f"Failed to parse job data field: {e}")
+        except Exception:
+            pass
 
         return {
             "external_id": external_id,

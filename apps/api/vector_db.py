@@ -10,15 +10,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
 from backend.domain.vector_db import (
     JOBS_NAMESPACE,
     PROFILES_NAMESPACE,
     VectorDBClient,
     get_vector_db_client,
 )
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.vector_db")

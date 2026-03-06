@@ -8,10 +8,10 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from api_v2.auth import generate_api_key
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 
+from api_v2.auth import generate_api_key
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.logging_config import get_logger

@@ -6,6 +6,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
 from backend.domain.calendar import (
     CalendarProvider,
     GoogleCalendarClient,
@@ -14,9 +17,6 @@ from backend.domain.calendar import (
     detect_conflicts,
     schedule_interview,
 )
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.calendar")

@@ -107,7 +107,7 @@ def redact_event_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "portfolio_url",
         "answer",
     }
-    result: dict[str, Any] = {}
+    result = {}
     for k, v in payload.items():
         if k in sensitive_keys:
             result[k] = "[REDACTED]"

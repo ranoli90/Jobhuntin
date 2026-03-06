@@ -1,6 +1,6 @@
 """Job search domain logic.
 Jobs are synced from JobSpy via background worker.
-This module queries the local database.
+This module queries the local database with deduplication.
 """
 
 import json
@@ -8,6 +8,7 @@ from typing import Any
 
 import asyncpg
 
+from backend.domain.job_dedup import deduplicate_jobs, normalize_job
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -50,7 +51,28 @@ async def search_and_list_jobs(
     if keywords or location:
         await _track_search(db_pool, keywords, location)
 
-    return [_map_job_row(r) for r in rows]
+    # Convert to dict format and normalize for deduplication
+    raw_jobs = [_map_job_row(r) for r in rows]
+    normalized_jobs = [normalize_job(job, "database") for job in raw_jobs]
+
+    # Apply deduplication
+    unique_jobs, duplicate_jobs = deduplicate_jobs(normalized_jobs, "database")
+
+    # Log deduplication metrics
+    if duplicate_jobs:
+        logger.info(
+            f"[DEDUP] Removed {len(duplicate_jobs)} duplicate jobs from search results",
+            extra={
+                "total_jobs": len(raw_jobs),
+                "unique_jobs": len(unique_jobs),
+                "duplicate_jobs": len(duplicate_jobs),
+                "deduplication_rate": (
+                    len(duplicate_jobs) / len(raw_jobs) if raw_jobs else 0
+                ),
+            },
+        )
+
+    return unique_jobs
 
 
 def _build_job_search_query(
@@ -137,7 +159,7 @@ def _map_job_row(r: Any) -> dict[str, Any]:
     if not logo_url and isinstance(raw, dict):
         logo_url = raw.get("logo_url") or raw.get("logo")
 
-    return {
+    job_data = {
         "id": str(r["id"]),
         "title": r["title"],
         "company": r["company"],
@@ -153,6 +175,108 @@ def _map_job_row(r: Any) -> dict[str, Any]:
         "job_level": r.get("job_level"),
         "company_industry": r.get("company_industry"),
         "logo_url": logo_url,
+    }
+
+    # Apply source verification and scam detection
+    job_data.update(_verify_job_legitimacy(job_data))
+
+    return job_data
+
+
+def _verify_job_legitimacy(job: dict[str, Any]) -> dict[str, Any]:
+    """Verify job legitimacy and detect potential scams."""
+    verification_score = 100
+    verification_flags = []
+
+    title = job.get("title", "").lower()
+    company = job.get("company", "").lower()
+    description = job.get("description", "").lower()
+    source = job.get("source", "").lower()
+    salary_min = job.get("salary_min")
+    salary_max = job.get("salary_max")
+
+    # Scam detection patterns
+    scam_indicators = [
+        "wire transfer",
+        "western union",
+        "money order",
+        "bitcoin",
+        "cryptocurrency",
+        "investment",
+        "training fee",
+        "equipment purchase",
+        "background check fee",
+        "work from home",
+        "no experience needed",
+        "immediate start",
+        "unlimited earning",
+        "easy money",
+        "quick cash",
+        "get rich quick",
+    ]
+
+    # Check for scam indicators in title/description
+    for indicator in scam_indicators:
+        if indicator in title or indicator in description:
+            verification_score -= 15
+            verification_flags.append(f"scam_indicator_{indicator.replace(' ', '_')}")
+
+    # Check for unrealistic salary ranges
+    if salary_min and salary_max:
+        if salary_max > salary_min * 10:  # More than 10x range
+            verification_score -= 10
+            verification_flags.append("unrealistic_salary_range")
+
+    # Check for missing key information
+    if not company or len(company) < 2:
+        verification_score -= 20
+        verification_flags.append("missing_company")
+
+    if not description or len(description) < 50:
+        verification_score -= 15
+        verification_flags.append("vague_description")
+
+    # Check for suspicious company names
+    suspicious_companies = [
+        "hiring team",
+        "recruitment agency",
+        "hr department",
+        "talent acquisition",
+        "confidential company",
+        "anonymous employer",
+        "private client",
+    ]
+
+    for suspicious in suspicious_companies:
+        if suspicious in company:
+            verification_score -= 10
+            verification_flags.append("suspicious_company_name")
+
+    # Check for legitimate sources
+    trusted_sources = ["linkedin", "indeed", "glassdoor", "monster", "careerbuilder"]
+    source_trust = 0
+    for trusted in trusted_sources:
+        if trusted in source:
+            source_trust += 25
+            break
+
+    verification_score += source_trust
+
+    # Determine legitimacy level
+    if verification_score >= 80:
+        legitimacy_level = "high"
+    elif verification_score >= 60:
+        legitimacy_level = "medium"
+    elif verification_score >= 40:
+        legitimacy_level = "low"
+    else:
+        legitimacy_level = "suspicious"
+
+    return {
+        "verification_score": max(0, verification_score),
+        "legitimacy_level": legitimacy_level,
+        "verification_flags": verification_flags,
+        "is_trusted_source": source_trust > 0,
     }
 
 

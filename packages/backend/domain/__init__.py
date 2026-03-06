@@ -11,18 +11,19 @@ from backend.domain.core_models import (
     ActorProfile,
     ActorQualification,
     DomMappingResult,
+)
+from backend.domain.core_models import FormField as CoreFormField
+from backend.domain.core_models import FormFieldOption as CoreFormFieldOption
+from backend.domain.core_models import (
     TargetForm,
     Task,
     TaskEvent,
     TaskEventType,
     TaskInput,
     TaskStatus,
-    is_terminal,
-    to_generic_status,
 )
-from backend.domain.core_models import FormField as CoreFormField
-from backend.domain.core_models import FormFieldOption as CoreFormFieldOption
 from backend.domain.core_models import UnresolvedField as CoreUnresolvedField
+from backend.domain.core_models import is_terminal, to_generic_status
 from backend.domain.models import (
     Application,
     ApplicationEvent,
@@ -128,4 +129,9 @@ __all__ = [
     "require_role",
     "require_system_admin",
     "require_tenant_admin_or_system",
+    # Session management
+    "SessionManager",
 ]
+
+# Session management
+from backend.domain.session_manager import SessionManager

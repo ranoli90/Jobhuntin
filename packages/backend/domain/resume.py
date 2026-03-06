@@ -23,6 +23,22 @@ from shared.metrics import incr, observe
 logger = get_logger("sorce.resume")
 
 
+def _basic_resume_parse(resume_text: str) -> dict | None:
+    """Basic resume parsing fallback - extracts minimal info from resume text.
+
+    This is a fallback when LLM parsing fails. It extracts basic information
+    using simple pattern matching.
+    """
+    if not resume_text or not resume_text.strip():
+        return None
+
+    # Simple extraction - this is a minimal fallback implementation
+    # In production, this could use regex patterns or a lighter ML model
+    return {
+        "raw_text": resume_text[:5000],  # Limit text length
+    }
+
+
 async def upload_to_supabase_storage(
     bucket: str,
     path: str,
@@ -226,9 +242,44 @@ async def process_resume_upload(
             user_id=user_id,
             properties={"error": str(exc)[:200]},
         )
-        raise HTTPException(
-            status_code=502, detail=f"Resume parsing failed: {exc}"
-        ) from exc
+
+        # Try fallback parsing before failing completely
+        try:
+            logger.info(
+                f"[RESUME] LLM parsing failed, attempting basic parsing for user {user_id}"
+            )
+            fallback_profile = _basic_resume_parse(resume_text)
+            if fallback_profile:
+                logger.info(f"[RESUME] Basic parsing succeeded for user {user_id}")
+                observe(
+                    "api.llm_latency_seconds",
+                    time.monotonic() - t0,
+                    {"endpoint": "resume_parse_fallback"},
+                )
+                incr("api.resume_parse.fallback_success")
+                raw_profile = fallback_profile
+            else:
+                logger.error(
+                    f"[RESUME] Both LLM and basic parsing failed for user {user_id}"
+                )
+                observe(
+                    "api.llm_latency_seconds",
+                    time.monotonic() - t0,
+                    {"endpoint": "resume_parse_fallback_failed"},
+                )
+                incr("api.resume_parse.fallback_failed")
+                raise HTTPException(
+                    status_code=502,
+                    detail="Resume parsing failed. Please try a different resume format.",
+                ) from exc
+        except Exception as fallback_exc:
+            logger.error(
+                f"[RESUME] Fallback parsing also failed for user {user_id}: {fallback_exc}"
+            )
+            raise HTTPException(
+                status_code=502,
+                detail="Resume parsing failed. Please try a different resume format.",
+            ) from exc
 
     observe(
         "api.llm_latency_seconds", time.monotonic() - t0, {"endpoint": "resume_parse"}

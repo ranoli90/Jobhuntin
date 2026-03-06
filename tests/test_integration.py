@@ -32,9 +32,8 @@ sys.path.insert(0, repo_root)
 sys.path.insert(0, os.path.join(repo_root, "apps"))
 sys.path.insert(0, os.path.join(repo_root, "packages"))
 
-from worker.agent import ApplicationAgent
-
 from backend.domain.repositories import record_event
+from worker.agent import ApplicationAgent
 
 # ---------------------------------------------------------------------------
 # Fake application HTML – two-step form
@@ -298,9 +297,9 @@ async def assert_application_status(
     row = await conn.fetchrow("SELECT * FROM public.applications WHERE id = $1", app_id)
     assert row is not None, f"Application {app_id} not found"
     actual = row["status"]
-    assert actual == expected_status, (
-        f"Expected status '{expected_status}', got '{actual}' for application {app_id}"
-    )
+    assert (
+        actual == expected_status
+    ), f"Expected status '{expected_status}', got '{actual}' for application {app_id}"
     return dict(row)
 
 
@@ -504,9 +503,9 @@ async def test_full_application_lifecycle(db_pool, browser, clean_db):
         app_row = await conn.fetchrow(
             "SELECT attempt_count FROM public.applications WHERE id = $1", app_id
         )
-        assert app_row["attempt_count"] == 2, (
-            f"Expected attempt_count=2, got {app_row['attempt_count']}"
-        )
+        assert (
+            app_row["attempt_count"] == 2
+        ), f"Expected attempt_count=2, got {app_row['attempt_count']}"
 
     # ---------------------------------------------------------------
     # Verify no extra work
@@ -559,9 +558,9 @@ async def test_agent_failure_on_no_form_fields(db_pool, browser, clean_db):
         app_row = await conn.fetchrow(
             "SELECT last_error FROM public.applications WHERE id = $1", app_id
         )
-        assert "No form fields" in (app_row["last_error"] or ""), (
-            f"Expected 'No form fields' in last_error, got: {app_row['last_error']}"
-        )
+        assert "No form fields" in (
+            app_row["last_error"] or ""
+        ), f"Expected 'No form fields' in last_error, got: {app_row['last_error']}"
 
 
 # ---------------------------------------------------------------------------

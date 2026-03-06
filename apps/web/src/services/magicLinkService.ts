@@ -22,6 +22,17 @@ export interface MagicLinkError {
 class MagicLinkService {
   private rateLimitResets: Map<string, number> = new Map();
   private captchaRequired: boolean = false;
+  private circuitBreakerState: Map<string, {
+    failures: number;
+    lastFailure: number;
+    state: 'closed' | 'open' | 'half-open';
+    successCount: number;  // Track successes in half-open state
+    testRequests: number;  // Track test requests allowed in half-open
+  }> = new Map();
+  private readonly CIRCUIT_BREAKER_THRESHOLD = 5;
+  private readonly CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute
+  private readonly CIRCUIT_BREAKER_HALF_OPEN_TIMEOUT = 30000; // 30 seconds
+  private readonly CIRCUIT_BREAKER_HALF_OPEN_MAX_TESTS = 3; // Allow 3 test requests in half-open
 
   /**
    * Send a magic link to user's email with bot protection
@@ -142,6 +153,36 @@ class MagicLinkService {
         }
       }
 
+      // Check circuit breaker before making request
+      const circuitKey = `magiclink_${normalizedEmail}`;
+      const circuitState = this.circuitBreakerState.get(circuitKey) || { failures: 0, lastFailure: 0, state: 'open' };
+
+      // Check if circuit is open
+      if (circuitState.state === 'closed') {
+        const timeUntilOpen = circuitState.lastFailure + this.CIRCUIT_BREAKER_TIMEOUT - Date.now();
+        if (timeUntilOpen > 0) {
+          return {
+            success: false,
+            email: normalizedEmail,
+            error: `Service temporarily unavailable. Please try again in ${Math.ceil(timeUntilOpen / 1000)} seconds.`,
+            retryAfter: Math.ceil(timeUntilOpen / 1000)
+          };
+        }
+      } else if (circuitState.state === 'half-open') {
+        // In half-open state, allow limited test requests
+        if (circuitState.testRequests >= this.CIRCUIT_BREAKER_HALF_OPEN_MAX_TESTS) {
+          return {
+            success: false,
+            email: normalizedEmail,
+            error: `Service temporarily unavailable. Please try again in ${Math.ceil(this.CIRCUIT_BREAKER_HALF_OPEN_TIMEOUT / 1000)} seconds.`,
+            retryAfter: Math.ceil(this.CIRCUIT_BREAKER_HALF_OPEN_TIMEOUT / 1000)
+          };
+        }
+        // Allow this test request
+        circuitState.testRequests += 1;
+        this.circuitBreakerState.set(circuitKey, circuitState);
+      }
+
       // Use the backend API to send the magic link with enhanced security
       const { apiPost } = await import('../lib/api');
 
@@ -159,6 +200,15 @@ class MagicLinkService {
 
       await apiPost('/auth/magic-link', payload);
 
+      // Reset circuit breaker on success
+      this.circuitBreakerState.set(circuitKey, {
+        failures: 0,
+        lastFailure: 0,
+        state: 'open',
+        successCount: 0,
+        testRequests: 0
+      });
+
       if (import.meta.env.DEV) {
         console.log('[MagicLink] API request successful');
       }
@@ -169,6 +219,44 @@ class MagicLinkService {
       };
     } catch (error: any) {
       console.error('[MagicLink] Error:', error);
+
+      // Update circuit breaker state on failure
+      const circuitKey = `magiclink_${normalizedEmail}`;
+      const circuitState = this.circuitBreakerState.get(circuitKey) || {
+        failures: 0,
+        lastFailure: 0,
+        state: 'open',
+        successCount: 0,
+        testRequests: 0
+      };
+      const newFailures = circuitState.failures + 1;
+      const now = Date.now();
+      let newState: 'open' | 'half-open' | 'closed' = 'open';
+
+      if (newFailures >= this.CIRCUIT_BREAKER_THRESHOLD) {
+        newState = 'closed';
+      } else if (newFailures >= Math.ceil(this.CIRCUIT_BREAKER_THRESHOLD / 2)) {
+        newState = 'half-open';
+      }
+
+      // Handle half-open state transitions
+      if (circuitState.state === 'half-open') {
+        // If we're in half-open and this request failed, go back to closed
+        if (newFailures >= this.CIRCUIT_BREAKER_THRESHOLD) {
+          newState = 'closed';
+        }
+        // Reset test request count on failure in half-open
+        circuitState.testRequests = 0;
+        circuitState.successCount = 0;
+      }
+
+      this.circuitBreakerState.set(circuitKey, {
+        failures: newFailures,
+        lastFailure: now,
+        state: newState,
+        successCount: newState === 'half-open' ? circuitState.successCount : 0,
+        testRequests: newState === 'half-open' ? circuitState.testRequests : 0
+      });
 
       // Handle 429 specifically
       if (error?.status === 429 || error?.message?.includes('Too many requests')) {

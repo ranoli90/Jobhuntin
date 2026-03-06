@@ -60,7 +60,6 @@ REFERRAL_REDEEMED = "referral_redeemed"
 UPGRADE_PROMPT_SHOWN = "upgrade_prompt_shown"
 UPGRADE_STARTED = "upgrade_started"
 UPGRADE_COMPLETED = "upgrade_completed"
-# nosec B105 - This is an event type name, not a password
 PUSH_TOKEN_REGISTERED = "push_token_registered"
 REVIEW_PROMPT_SHOWN = "review_prompt_shown"
 

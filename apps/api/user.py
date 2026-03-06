@@ -12,14 +12,16 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from datetime import timezone
 from pathlib import Path
 from typing import Any, Literal
 
 import asyncpg
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException
 from fastapi import Path as FastAPIPath
+from fastapi import UploadFile
 from pydantic import BaseModel, Field, field_validator
 
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
@@ -896,13 +898,93 @@ async def upload_resume(
     if file.size == 0:
         raise HTTPException(status_code=400, detail="File is empty or corrupted")
 
-    settings = get_settings()
-    if file.size and file.size > settings.max_upload_size_bytes:
-        raise HTTPException(
-            status_code=413,
-            detail=f"File too large. Maximum size is {settings.max_upload_size_bytes // 1_048_576} MB",
-        )
+    # Enhanced file validation - check for malicious content patterns
+    filename = file.filename.lower()
+
+    # Check for suspicious file extensions disguised as PDF
+    suspicious_extensions = [
+        ".exe",
+        ".bat",
+        ".cmd",
+        ".scr",
+        ".vbs",
+        ".js",
+        ".jar",
+        ".php",
+        ".asp",
+    ]
+    for ext in suspicious_extensions:
+        if filename.endswith(ext):
+            logger.warning(f"[UPLOAD] Suspicious file extension detected: {filename}")
+            raise HTTPException(status_code=400, detail="Invalid file type")
+
+    # Check for suspicious filenames
+    suspicious_names = ["resume", "cv", "document", "upload", "test", "admin", "config"]
+    base_name = os.path.splitext(filename)[0].lower()
+    for name in suspicious_names:
+        if base_name == name:
+            logger.warning(f"[UPLOAD] Suspicious filename detected: {filename}")
+            raise HTTPException(status_code=400, detail="Invalid filename")
+
+    # Read file content for validation
     pdf_bytes = await file.read()
+    await file.seek(0)  # Reset file pointer for later use
+
+    # Validate PDF magic number and header
+    if len(pdf_bytes) < 8:
+        raise HTTPException(status_code=400, detail="File too small to be a valid PDF")
+
+    # PDF files start with %PDF-
+    if not pdf_bytes.startswith(b"%PDF-"):
+        raise HTTPException(
+            status_code=400, detail="Invalid PDF format - does not contain PDF header"
+        )
+
+    # Check for PDF version (should be 1.x)
+    try:
+        version_part = pdf_bytes[5:8].decode("ascii")
+        major_version = int(version_part[0])
+        minor_version = int(version_part[2]) if len(version_part) > 2 else 0
+        if major_version < 1 or major_version > 2:
+            logger.warning(
+                f"[UPLOAD] Unusual PDF version: {major_version}.{minor_version}"
+            )
+    except (ValueError, IndexError):
+        raise HTTPException(status_code=400, detail="Invalid PDF version format")
+
+    # Check for embedded malicious content patterns
+    pdf_content = pdf_bytes.decode("latin-1", errors="ignore").lower()
+    malicious_patterns = [
+        "javascript:",
+        "vbscript:",
+        "data:",
+        "<script",
+        "</script>",
+        "eval(",
+        "exec(",
+        "system(",
+        "shell_exec(",
+        "passthru(",
+        "iframe",
+        "object",
+        "embed",
+        "form action=",
+        "onclick=",
+        "onload=",
+        "onerror=",
+        "onmouseover=",
+    ]
+
+    settings = get_settings()
+
+    for pattern in malicious_patterns:
+        if pattern in pdf_content:
+            logger.warning(f"[UPLOAD] Malicious content pattern detected: {pattern}")
+            raise HTTPException(
+                status_code=400, detail="PDF contains potentially malicious content"
+            )
+
+    # Check file size again after reading
     if len(pdf_bytes) > settings.max_upload_size_bytes:
         raise HTTPException(
             status_code=413,

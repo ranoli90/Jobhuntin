@@ -1,5 +1,7 @@
 """Configure Ionos DNS with correct API endpoints."""
 
+import os
+
 import httpx
 from dotenv import load_dotenv
 

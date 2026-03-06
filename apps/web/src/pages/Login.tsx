@@ -134,29 +134,34 @@ export default function Login() {
 
     try {
       const normalized = await requestMagicLink(email, safeReturnTo, captchaToken || undefined);
-      setSuccessState({ email: normalized });
       setShowCaptcha(false);
       setCaptchaToken("");
       telemetry.track("login_magic_link_requested", { usedCaptcha: !!captchaToken });
       pushToast({ title: "Check your inbox", tone: "success" });
     } catch (error) {
       const err = error as Error;
-      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
+      let msg = "Something went wrong. Please try again.";
+      
+      // Specific error handling for better user experience
+      if (err.message) {
+        if (err.message.includes('rate limit') || err.message.includes('too many requests')) {
+          msg = "Too many requests. Please wait a few minutes before trying again.";
+        } else if (err.message.includes('captcha')) {
+          msg = "Please complete the captcha verification and try again.";
+        } else if (err.message.includes('invalid email')) {
+          msg = "Please enter a valid email address.";
+        } else if (err.message.includes('network') || err.message.includes('connection')) {
+          msg = "Network error. Please check your connection and try again.";
+        } else if (typeof err.message === 'string' && !err.message.includes('[object')) {
+          msg = err.message;
+        }
+      }
+      
       setFormError(msg);
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center" role="status" aria-label="Checking sign-in">
-        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} aria-hidden>
-          <Loader2 className="w-8 h-8 text-gray-500" />
-        </motion.div>
-      </div>
-    );
-  }
 
   // Confetti celebration on success
   const triggerConfetti = useCallback(() => {

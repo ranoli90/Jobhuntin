@@ -18,7 +18,7 @@ import threading
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -117,17 +117,17 @@ class Alert:
             "message": self.message,
             "labels": self.labels,
             "fired_at": (
-                datetime.fromtimestamp(self.fired_at, UTC).isoformat()
+                datetime.fromtimestamp(self.fired_at, timezone.utc).isoformat()
                 if self.fired_at
                 else None
             ),
             "resolved_at": (
-                datetime.fromtimestamp(self.resolved_at, UTC).isoformat()
+                datetime.fromtimestamp(self.resolved_at, timezone.utc).isoformat()
                 if self.resolved_at
                 else None
             ),
             "acknowledged_at": (
-                datetime.fromtimestamp(self.acknowledged_at, UTC).isoformat()
+                datetime.fromtimestamp(self.acknowledged_at, timezone.utc).isoformat()
                 if self.acknowledged_at
                 else None
             ),
@@ -192,7 +192,7 @@ class SlackWebhookChannel(NotificationChannel):
                         {
                             "title": "Time",
                             "value": datetime.fromtimestamp(
-                                alert.fired_at, UTC
+                                alert.fired_at, timezone.utc
                             ).isoformat(),
                             "short": False,
                         },
@@ -247,7 +247,7 @@ Status: {alert.status.value}
 Details:
 - Current Value: {alert.value:.2f}
 - Threshold: {alert.threshold:.2f}
-- Time: {datetime.fromtimestamp(alert.fired_at, UTC).isoformat()}
+- Time: {datetime.fromtimestamp(alert.fired_at, timezone.utc).isoformat()}
 
 Labels: {json.dumps(alert.labels, indent=2)}
 """

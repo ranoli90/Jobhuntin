@@ -200,7 +200,6 @@ async def send_digest_email(
     except Exception as exc:
         logger.error("Email send failed: %s", exc)
         return False
-    return False  # Fallback for type checker
 
 
 # ---------------------------------------------------------------------------

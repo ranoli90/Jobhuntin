@@ -147,34 +147,75 @@ class SemanticMatchingService:
     def weights(self, value: MatchWeights) -> None:
         self._weights = value.normalize()
 
-    def _extract_profile_skills(
-        self, profile: dict[str, Any]
-    ) -> tuple[set[str], list[dict]]:
-        """Extract skills from profile, handling both old and new formats."""
+    async def compute_match_score(
+        self,
+        profile: dict[str, Any],
+        job: dict[str, Any],
+        dealbreakers: Dealbreakers | None = None,
+        weights: MatchWeights | None = None,
+        job_signals: dict[str, Any] | None = None,
+    ) -> SemanticMatchResult:
+        """Compute semantic match score between profile and job.
+
+        This is the core matching function that:
+        1. Generates embeddings for profile and job
+        2. Computes cosine similarity
+        3. Applies skill matching with confidence weighting
+        4. Computes work style fit (if signals available)
+        5. Computes trajectory alignment (if signals available)
+        6. Checks dealbreaker constraints
+        7. Generates explainable reasoning
+
+        Args:
+            profile: CanonicalProfile or DeepProfile as dict
+            job: Job dict with title, description, etc.
+            dealbreakers: Optional user preferences
+            weights: Optional custom weights (overrides instance weights)
+            job_signals: Optional job signals from extraction
+
+        Returns:
+            SemanticMatchResult with score and explanation
+
+        """
+        dealbreakers = dealbreakers or Dealbreakers()
+        effective_weights = (weights or self._weights).normalize()
+
+        # Generate embeddings
+        profile_text = profile_to_searchable_text(profile)
+        job_text = job_to_searchable_text(job)
+
+        profile_embedding = await self.embeddings.embed_text(profile_text)
+        job_embedding = await self.embeddings.embed_text(job_text)
+
+        # Compute semantic similarity
+        semantic_sim = cosine_similarity(profile_embedding, job_embedding)
+
+        # Extract skills from profile (handle both old and new format)
         profile_skills: set[str] = set()
         rich_skills: list[dict] = []
         skills_data = profile.get("skills", {})
 
+        # Check if rich skills format (list of dicts)
         tech_skills = skills_data.get("technical", [])
         if tech_skills and isinstance(tech_skills[0], dict):
+            # Rich skills format
             rich_skills = tech_skills + skills_data.get("soft", [])
             profile_skills = {
                 s.get("skill", "").lower() for s in rich_skills if s.get("skill")
             }
         else:
+            # Old format (list of strings)
             profile_skills.update(
                 tech_skills if isinstance(tech_skills[0], str) else []
             )
             profile_skills.update(skills_data.get("soft", []))
+        profile_skills = {s.lower() for s in profile_skills if s}
 
-        return {s.lower() for s in profile_skills if s}, rich_skills
-
-    def _match_skills_against_job(
-        self, profile_skills: set[str], job_text_lower: str
-    ) -> tuple[list[str], list[str]]:
-        """Match profile skills against common skills found in job text."""
-        matched: list[str] = []
-        missing: list[str] = []
+        # Extract skills from job description
+        job_text_lower = job_text.lower()
+        matched_skills: list[str] = []
+        missing_skills: list[str] = []
+        skill_confidence_summary: dict[str, int] = {"high": 0, "medium": 0, "low": 0}
 
         common_skills = [
             "python",
@@ -216,55 +257,48 @@ class SemanticMatchingService:
         for skill in common_skills:
             if skill in job_text_lower:
                 if skill in profile_skills:
-                    matched.append(skill)
+                    matched_skills.append(skill)
                 else:
-                    missing.append(skill)
+                    missing_skills.append(skill)
 
-        return matched, missing
+        # Compute skill match ratio with confidence weighting
+        skill_match_ratio = 0.5
+        if matched_skills or missing_skills:
+            # If we have rich skills, weight by confidence
+            if rich_skills:
+                skill_confidence_map = {
+                    s.get("skill", "").lower(): s.get("confidence", 0.5)
+                    for s in rich_skills
+                }
+                weighted_match = sum(
+                    skill_confidence_map.get(s, 0.5) for s in matched_skills
+                )
+                total_possible = len(matched_skills) + len(missing_skills)
+                skill_match_ratio = (
+                    weighted_match / total_possible if total_possible > 0 else 0.5
+                )
 
-    def _compute_skill_match_ratio(
-        self,
-        matched_skills: list[str],
-        missing_skills: list[str],
-        rich_skills: list[dict],
-    ) -> tuple[float, dict[str, int]]:
-        """Compute skill match ratio with confidence weighting."""
-        skill_confidence_summary: dict[str, int] = {"high": 0, "medium": 0, "low": 0}
-
-        if not matched_skills and not missing_skills:
-            return 0.5, skill_confidence_summary
-
-        if not rich_skills:
-            total = len(matched_skills) + len(missing_skills)
-            return (
-                len(matched_skills) / total if total > 0 else 0.5
-            ), skill_confidence_summary
-
-        skill_confidence_map = {
-            s.get("skill", "").lower(): s.get("confidence", 0.5) for s in rich_skills
-        }
-        weighted_match = sum(skill_confidence_map.get(s, 0.5) for s in matched_skills)
-        total_possible = len(matched_skills) + len(missing_skills)
-        ratio = weighted_match / total_possible if total_possible > 0 else 0.5
-
-        for s in rich_skills:
-            conf = s.get("confidence", 0.5)
-            if conf >= 0.8:
-                skill_confidence_summary["high"] += 1
-            elif conf >= 0.5:
-                skill_confidence_summary["medium"] += 1
+                # Count skills by confidence level
+                for s in rich_skills:
+                    conf = s.get("confidence", 0.5)
+                    if conf >= 0.8:
+                        skill_confidence_summary["high"] += 1
+                    elif conf >= 0.5:
+                        skill_confidence_summary["medium"] += 1
+                    else:
+                        skill_confidence_summary["low"] += 1
             else:
-                skill_confidence_summary["low"] += 1
+                skill_match_ratio = len(matched_skills) / len(
+                    matched_skills + missing_skills
+                )
 
-        return ratio, skill_confidence_summary
+        # Experience alignment (based on years)
+        years_exp = profile.get("years_experience", 0) or 0
+        exp_alignment = self._compute_experience_alignment(years_exp, job_text)
 
-    def _compute_job_signal_scores(
-        self, profile: dict[str, Any], job_signals: dict[str, Any] | None
-    ) -> tuple[float, str, float, str]:
-        """Compute work style fit and trajectory alignment from job signals."""
-        work_style_fit, work_style_reasoning = 0.7, ""
-        trajectory_alignment, trajectory_reasoning = 0.7, ""
-
+        # Work style fit (if job signals available)
+        work_style_fit = 0.7
+        work_style_reasoning = ""
         if job_signals:
             work_style = profile.get("work_style")
             if work_style:
@@ -272,37 +306,39 @@ class SemanticMatchingService:
                     work_style, job_signals
                 )
 
+        # Trajectory alignment (if job signals available)
+        trajectory_alignment = 0.7
+        trajectory_reasoning = ""
+        if job_signals:
             trajectory = profile.get("trajectory", "open")
             trajectory_alignment, trajectory_reasoning = (
                 self._compute_trajectory_alignment(trajectory, job_signals)
             )
 
-        return (
-            work_style_fit,
-            work_style_reasoning,
-            trajectory_alignment,
-            trajectory_reasoning,
+        # Compute final score using configurable weights
+        score = (
+            semantic_sim * effective_weights.semantic_similarity
+            + skill_match_ratio * effective_weights.skill_match
+            + exp_alignment * effective_weights.experience_alignment
+            + work_style_fit * effective_weights.work_style_fit
+            + trajectory_alignment * effective_weights.trajectory_alignment
         )
 
-    def _build_match_result(
-        self,
-        job: dict[str, Any],
-        score: float,
-        semantic_sim: float,
-        skill_match_ratio: float,
-        exp_alignment: float,
-        work_style_fit: float,
-        trajectory_alignment: float,
-        matched_skills: list[str],
-        missing_skills: list[str],
-        skill_confidence_summary: dict[str, int],
-        work_style_reasoning: str,
-        trajectory_reasoning: str,
-        reasoning: str,
-        passed: bool,
-        reasons: list[str],
-    ) -> SemanticMatchResult:
-        """Build the final semantic match result."""
+        # Check dealbreakers
+        passed, reasons = self._check_dealbreakers(job, dealbreakers)
+
+        # Generate reasoning
+        reasoning = self._generate_reasoning(
+            score=score,
+            semantic_sim=semantic_sim,
+            skill_match_ratio=skill_match_ratio,
+            matched_skills=matched_skills,
+            missing_skills=missing_skills,
+            work_style_reasoning=work_style_reasoning,
+            trajectory_reasoning=trajectory_reasoning,
+        )
+
+        # Determine confidence
         confidence = "high" if score > 0.8 else "medium" if score > 0.6 else "low"
 
         return SemanticMatchResult(
@@ -329,84 +365,6 @@ class SemanticMatchingService:
             ),
             passed_dealbreakers=passed,
             dealbreaker_reasons=reasons,
-        )
-
-    async def compute_match_score(
-        self,
-        profile: dict[str, Any],
-        job: dict[str, Any],
-        dealbreakers: Dealbreakers | None = None,
-        weights: MatchWeights | None = None,
-        job_signals: dict[str, Any] | None = None,
-    ) -> SemanticMatchResult:
-        """Compute semantic match score between profile and job."""
-        dealbreakers = dealbreakers or Dealbreakers()
-        effective_weights = (weights or self._weights).normalize()
-
-        profile_text = profile_to_searchable_text(profile)
-        job_text = job_to_searchable_text(job)
-
-        profile_embedding = await self.embeddings.embed_text(profile_text)
-        job_embedding = await self.embeddings.embed_text(job_text)
-
-        semantic_sim = cosine_similarity(profile_embedding, job_embedding)
-
-        profile_skills, rich_skills = self._extract_profile_skills(profile)
-        job_text_lower = job_text.lower()
-        matched_skills, missing_skills = self._match_skills_against_job(
-            profile_skills, job_text_lower
-        )
-
-        skill_match_ratio, skill_confidence_summary = self._compute_skill_match_ratio(
-            matched_skills, missing_skills, rich_skills
-        )
-
-        years_exp = profile.get("years_experience", 0) or 0
-        exp_alignment = self._compute_experience_alignment(years_exp, job_text)
-
-        (
-            work_style_fit,
-            work_style_reasoning,
-            trajectory_alignment,
-            trajectory_reasoning,
-        ) = self._compute_job_signal_scores(profile, job_signals)
-
-        score = (
-            semantic_sim * effective_weights.semantic_similarity
-            + skill_match_ratio * effective_weights.skill_match
-            + exp_alignment * effective_weights.experience_alignment
-            + work_style_fit * effective_weights.work_style_fit
-            + trajectory_alignment * effective_weights.trajectory_alignment
-        )
-
-        passed, reasons = self._check_dealbreakers(job, dealbreakers)
-
-        reasoning = self._generate_reasoning(
-            score=score,
-            semantic_sim=semantic_sim,
-            skill_match_ratio=skill_match_ratio,
-            matched_skills=matched_skills,
-            missing_skills=missing_skills,
-            work_style_reasoning=work_style_reasoning,
-            trajectory_reasoning=trajectory_reasoning,
-        )
-
-        return self._build_match_result(
-            job=job,
-            score=score,
-            semantic_sim=semantic_sim,
-            skill_match_ratio=skill_match_ratio,
-            exp_alignment=exp_alignment,
-            work_style_fit=work_style_fit,
-            trajectory_alignment=trajectory_alignment,
-            matched_skills=matched_skills,
-            missing_skills=missing_skills,
-            skill_confidence_summary=skill_confidence_summary,
-            work_style_reasoning=work_style_reasoning,
-            trajectory_reasoning=trajectory_reasoning,
-            reasoning=reasoning,
-            passed=passed,
-            reasons=reasons,
         )
 
     def _compute_experience_alignment(self, years: int, job_text: str) -> float:
@@ -529,65 +487,6 @@ class SemanticMatchingService:
 
         return 0.5, "Trajectory alignment unclear"
 
-    def _check_salary_dealbreaker(
-        self, job: dict[str, Any], min_salary: int | None
-    ) -> str | None:
-        """Check if job salary meets minimum requirement."""
-        if not min_salary:
-            return None
-        job_max = job.get("salary_max") or job.get("salary_min", 0)
-        if job_max and job_max < min_salary:
-            return f"Salary below minimum: {job_max} < {min_salary}"
-        return None
-
-    def _check_location_dealbreaker(
-        self, job: dict[str, Any], dealbreakers: Dealbreakers
-    ) -> str | None:
-        """Check if job location matches preferences."""
-        if not dealbreakers.locations:
-            return None
-        job_location = (job.get("location") or "").lower()
-        if any(loc.lower() in job_location for loc in dealbreakers.locations):
-            return None
-        if "remote" in job_location and dealbreakers.remote_only is False:
-            return None
-        return f"Location not in preferred: {job_location}"
-
-    def _check_remote_onsite_dealbreaker(
-        self, job: dict[str, Any], dealbreakers: Dealbreakers
-    ) -> str | None:
-        """Check remote/onsite preferences."""
-        job_location = (job.get("location") or "").lower()
-        if dealbreakers.remote_only and "remote" not in job_location:
-            return "Job is not remote"
-        if dealbreakers.onsite_only and "remote" in job_location:
-            return "Job is remote-only"
-        return None
-
-    def _check_excluded_companies(
-        self, job: dict[str, Any], excluded_companies: list[str]
-    ) -> str | None:
-        """Check if company is in excluded list."""
-        if not excluded_companies:
-            return None
-        company = (job.get("company") or "").lower()
-        for excluded in excluded_companies:
-            if excluded.lower() in company:
-                return f"Company excluded: {company}"
-        return None
-
-    def _check_excluded_keywords(
-        self, job: dict[str, Any], excluded_keywords: list[str]
-    ) -> str | None:
-        """Check if job contains excluded keywords."""
-        if not excluded_keywords:
-            return None
-        job_text = f"{job.get('title', '')} {job.get('description', '')}".lower()
-        for keyword in excluded_keywords:
-            if keyword.lower() in job_text:
-                return f"Contains excluded keyword: {keyword}"
-        return None
-
     def _check_dealbreakers(
         self,
         job: dict[str, Any],
@@ -596,17 +495,43 @@ class SemanticMatchingService:
         """Check if job passes all dealbreaker constraints."""
         reasons: list[str] = []
 
-        checks = [
-            self._check_salary_dealbreaker(job, dealbreakers.min_salary),
-            self._check_location_dealbreaker(job, dealbreakers),
-            self._check_remote_onsite_dealbreaker(job, dealbreakers),
-            self._check_excluded_companies(job, dealbreakers.excluded_companies),
-            self._check_excluded_keywords(job, dealbreakers.excluded_keywords),
-        ]
+        # Salary check
+        if dealbreakers.min_salary:
+            job_max = job.get("salary_max") or job.get("salary_min", 0)
+            if job_max and job_max < dealbreakers.min_salary:
+                reasons.append(
+                    f"Salary below minimum: {job_max} < {dealbreakers.min_salary}"
+                )
 
-        for reason in checks:
-            if reason:
-                reasons.append(reason)
+        # Location check
+        if dealbreakers.locations:
+            job_location = (job.get("location") or "").lower()
+            if not any(loc.lower() in job_location for loc in dealbreakers.locations):
+                if not ("remote" in job_location and dealbreakers.remote_only is False):
+                    reasons.append(f"Location not in preferred: {job_location}")
+
+        # Remote/onsite check
+        job_location = (job.get("location") or "").lower()
+        if dealbreakers.remote_only and "remote" not in job_location:
+            reasons.append("Job is not remote")
+        if dealbreakers.onsite_only and "remote" in job_location:
+            reasons.append("Job is remote-only")
+
+        # Excluded companies
+        if dealbreakers.excluded_companies:
+            company = (job.get("company") or "").lower()
+            for excluded in dealbreakers.excluded_companies:
+                if excluded.lower() in company:
+                    reasons.append(f"Company excluded: {company}")
+                    break
+
+        # Excluded keywords
+        if dealbreakers.excluded_keywords:
+            job_text = f"{job.get('title', '')} {job.get('description', '')}".lower()
+            for keyword in dealbreakers.excluded_keywords:
+                if keyword.lower() in job_text:
+                    reasons.append(f"Contains excluded keyword: {keyword}")
+                    break
 
         return len(reasons) == 0, reasons
 

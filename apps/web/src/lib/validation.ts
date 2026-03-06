@@ -113,8 +113,8 @@ export class Validator {
       return { isValid: false, errors, warnings };
     }
     
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // RFC 5322 compliant email validation
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     if (!emailRegex.test(email)) {
       errors.push('Invalid email format');
     }
@@ -124,15 +124,42 @@ export class Validator {
       errors.push('Email address is too long');
     }
     
+    // Local part validation (before @)
+    const [localPart, domain] = email.split('@');
+    if (localPart.length > 64) {
+      errors.push('Local part is too long');
+    }
+    
+    // Domain validation
+    if (domain) {
+      if (domain.length > 253) {
+        errors.push('Domain name is too long');
+      }
+      
+      // Check for consecutive dots
+      if (domain.includes('..')) {
+        errors.push('Domain cannot contain consecutive dots');
+      }
+      
+      // Check domain starts/ends with hyphen
+      if (domain.startsWith('-') || domain.endsWith('-')) {
+        errors.push('Domain cannot start or end with hyphen');
+      }
+    }
+    
     // Check for suspicious patterns
     if (email.includes('+') && email.split('+').length > 2) {
       warnings.push('Multiple plus signs detected');
     }
     
-    // Domain validation
-    const domain = email.split('@')[1];
-    if (domain && domain.length > 63) {
-      errors.push('Domain name is too long');
+    // Check for common disposable email patterns
+    const disposablePatterns = ['temp', 'throwaway', '10minutemail', 'guerrillamail', 'yopmail'];
+    const lowerEmail = email.toLowerCase();
+    for (const pattern of disposablePatterns) {
+      if (lowerEmail.includes(pattern)) {
+        warnings.push('Possible disposable email address');
+        break;
+      }
     }
     
     return {
@@ -196,11 +223,53 @@ export class Validator {
       warnings.push('Password is too common');
     }
     
+    // Dictionary check for common passwords
+    const commonPasswords = [
+      'password', '123456', 'password123', 'admin', 'qwerty',
+      'letmein', 'welcome', 'monkey', 'dragon', 'master',
+      'sunshine', 'iloveyou', 'football', 'baseball', 'shadow',
+      'superman', 'michael', 'ninja', 'mustang', 'password1'
+    ];
+    
+    if (commonPasswords.includes(password.toLowerCase())) {
+      errors.push('Password is too common');
+    }
+    
+    // Check for keyboard patterns
+    if (this._hasKeyboardPattern(password)) {
+      warnings.push('Password contains keyboard pattern');
+    }
+    
+    // Check for repeated characters
+    if (this._hasExcessiveRepetition(password)) {
+      warnings.push('Password contains excessive repetition');
+    }
+    
     return {
       isValid: errors.length === 0,
       errors,
       warnings
     };
+  }
+
+  private static _hasKeyboardPattern(password: string): boolean {
+    const keyboardPatterns = [
+      'qwerty', 'asdf', 'zxcv', '1234', 'qweasd', 
+      'qwertyuiop', 'asdfghjkl', 'zxcvbnm'
+    ];
+    const lowerPassword = password.toLowerCase();
+    return keyboardPatterns.some(pattern => lowerPassword.includes(pattern));
+  }
+
+  private static _hasExcessiveRepetition(password: string): boolean {
+    // Check if more than 50% of password is the same character
+    const charCount: Record<string, number> = {};
+    for (const char of password) {
+      charCount[char] = (charCount[char] || 0) + 1;
+    }
+    
+    const maxCount = Math.max(...Object.values(charCount));
+    return maxCount > password.length * 0.5;
   }
 
   static name(name: string, fieldName: string = 'Name'): ValidationResult {

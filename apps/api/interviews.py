@@ -6,6 +6,9 @@ import json
 from typing import Any
 
 import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
 from backend.domain.interview_simulator import (
     InterviewPhase,
     InterviewQuestion,
@@ -15,9 +18,6 @@ from backend.domain.interview_simulator import (
     UserResponse,
     get_interview_simulator,
 )
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-
 from shared.logging_config import get_logger
 from shared.metrics import incr
 

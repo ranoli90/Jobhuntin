@@ -22,9 +22,9 @@ import time
 from typing import TypeVar
 
 import httpx
-from backend.domain.llm_monitoring import get_llm_monitor
 from pydantic import BaseModel, ValidationError
 
+from backend.domain.llm_monitoring import get_llm_monitor
 from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.config import Settings
 from shared.logging_config import get_logger
@@ -117,7 +117,7 @@ class LLMClient:
 
                 return result
 
-            except (LLMError, LLMValidationError) as exc:
+            except LLMError as exc:
                 all_errors.append((current_model, exc))
                 logger.warning(
                     "LLM model %s failed: %s, trying next model",
@@ -125,10 +125,16 @@ class LLMClient:
                     exc,
                 )
                 incr("llm.fallback.failure", {"model": current_model})
+                # Continue to next model
+                continue
 
-                # Don't try fallbacks for validation errors (they'd likely fail the same way)
-                if isinstance(exc, LLMValidationError):
-                    raise
+            except LLMValidationError as exc:
+                # Validation errors (e.g., input too large) won't be fixed by switching models
+                # Don't try fallbacks - raise immediately to avoid unnecessary latency
+                logger.warning(
+                    f"[LLM] Validation error on {current_model}, not trying fallbacks: {exc}"
+                )
+                raise
 
         # All models failed
         error_summary = "; ".join(f"{m}: {e}" for m, e in all_errors)

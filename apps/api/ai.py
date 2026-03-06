@@ -1146,9 +1146,8 @@ async def tailor_resume(
     3. Generates a tailored summary
     4. Computes ATS optimization score
     """
-    from backend.domain.resume_tailoring import get_tailoring_service
-
     from backend.domain.masking import strip_pii_for_llm
+    from backend.domain.resume_tailoring import get_tailoring_service
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
     sanitized_job = sanitize_dict_input(request.job)

@@ -1,6 +1,7 @@
 """Ionos Cloud API DNS Configuration - Correct approach."""
 
 import base64
+import os
 
 import httpx
 from dotenv import load_dotenv

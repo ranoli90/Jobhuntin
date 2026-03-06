@@ -1,5 +1,7 @@
 """Configure Ionos DNS for Resend domain verification."""
 
+import os
+
 import httpx
 from dotenv import load_dotenv
 

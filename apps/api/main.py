@@ -26,16 +26,9 @@ import json
 from typing import Any
 
 import asyncpg
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    File,
-    HTTPException,
-    Request,
-    UploadFile,
-)
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException
 from fastapi import Path as FastAPIPath
+from fastapi import Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel

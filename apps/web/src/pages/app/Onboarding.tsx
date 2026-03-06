@@ -278,48 +278,44 @@ export default function Onboarding() {
 
   // Restore data from formData on mount and step changes (for back navigation persistence)
   React.useEffect(() => {
+    // Atomic state update to prevent race conditions
+    const updates: any = {};
+    
     // Restore linkedinUrl
     if (formData.linkedinUrl && linkedinUrl !== formData.linkedinUrl) {
-      setLinkedinUrl(formData.linkedinUrl);
+      updates.linkedinUrl = formData.linkedinUrl;
     }
     // Restore workStyleAnswers
     if (formData.workStyleAnswers && JSON.stringify(workStyleAnswers) !== JSON.stringify(formData.workStyleAnswers)) {
-      setWorkStyleAnswers(formData.workStyleAnswers);
+      updates.workStyleAnswers = formData.workStyleAnswers;
     }
     // Restore parsed resume data
     if (formData.parsedResume && (!parsedResume || JSON.stringify(parsedResume) !== JSON.stringify(formData.parsedResume))) {
-      setParsedResume(formData.parsedResume);
+      updates.parsedResume = formData.parsedResume;
     }
     // Restore parsed profile
     if (formData.parsedProfile && (!parsedProfile || JSON.stringify(parsedProfile) !== JSON.stringify(formData.parsedProfile))) {
-      setParsedProfile(formData.parsedProfile);
+      updates.parsedProfile = formData.parsedProfile;
     }
     // Restore rich skills
     if (formData.richSkills && (!richSkills.length || JSON.stringify(richSkills) !== JSON.stringify(formData.richSkills))) {
-      setRichSkills(formData.richSkills);
+      updates.richSkills = formData.richSkills;
     }
     // Restore parsing preview state
     if (formData.showParsingPreview !== undefined && showParsingPreview !== formData.showParsingPreview) {
-      setShowParsingPreview(formData.showParsingPreview);
+      updates.showParsingPreview = formData.showParsingPreview;
     }
-  }, [currentStep, formData]);
-
-  // Sync workStyleAnswers to formData for persistence
-  React.useEffect(() => {
-    if (Object.keys(workStyleAnswers).length > 0) {
-      updateFormData({ workStyleAnswers });
+    
+    // Sync contactInfo, preferences, linkedinUrl to formData for persistence
+    updates.contactInfo = contactInfo;
+    updates.preferences = preferences;
+    updates.linkedinUrl = linkedinUrl;
+    
+    // Single atomic update to prevent race conditions
+    if (Object.keys(updates).length > 0) {
+      updateFormData(updates);
     }
-  }, [workStyleAnswers, updateFormData]);
-
-  // Sync resume-related states to formData for persistence
-  React.useEffect(() => {
-    updateFormData({
-      parsedResume,
-      parsedProfile,
-      richSkills,
-      showParsingPreview,
-    });
-  }, [parsedResume, parsedProfile, richSkills, showParsingPreview, updateFormData]);
+  }, [currentStep, formData, contactInfo, preferences, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview]);
 
   const triggerHaptic = (type: 'success' | 'warning' | 'light' = 'light') => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {

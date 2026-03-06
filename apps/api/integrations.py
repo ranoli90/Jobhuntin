@@ -7,6 +7,9 @@ import hashlib
 from typing import Any
 
 import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
 from backend.domain.google_drive_integration import GoogleDriveIntegrationManager
 from backend.domain.notion_integration import (
     APPLICATION_DATABASE_SCHEMA,
@@ -15,9 +18,6 @@ from backend.domain.notion_integration import (
 )
 from backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
 from backend.domain.zapier_integration import ZapierIntegrationManager
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.integrations")

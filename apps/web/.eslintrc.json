@@ -1,0 +1,151 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "@typescript-eslint/recommended",
+    "@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript",
+    "plugin:prettier/recommended",
+    "plugin:sonarjs/recommended",
+    "plugin:security/recommended",
+    "plugin:unicorn/recommended",
+    "plugin:compat/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module",
+    "project": "./tsconfig.json",
+    "tsconfigRootDir": "."
+  },
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "react-hooks",
+    "jsx-a11y",
+    "import",
+    "prettier",
+    "sonarjs",
+    "security",
+    "unicorn",
+    "compat",
+    "no-unsanitized",
+    "xss",
+    "security-node",
+    "node-security",
+    "no-loops",
+    "optimize-regex",
+    "promise",
+    "require-path-exists",
+    "array-func"
+  ],
+  "rules": {
+    // TypeScript strict rules
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/no-unnecessary-type-assertion": "error",
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/prefer-optional-chain": "error",
+
+    // React specific rules
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+
+    // Security rules
+    "security/detect-object-injection": "error",
+    "security/detect-non-literal-require": "error",
+    "security/detect-possible-timing-attacks": "error",
+    "no-unsanitized/method": "error",
+    "no-unsanitized/property": "error",
+    "xss/no-mixed-html": "error",
+
+    // Performance rules
+    "sonarjs/no-identical-functions": "error",
+    "sonarjs/cognitive-complexity": ["error", 15],
+    "sonarjs/no-duplicate-string": "error",
+    "sonarjs/no-redundant-jump": "error",
+
+    // Code quality rules
+    "unicorn/no-abusive-eslint-disable": "error",
+    "unicorn/no-process-exit": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/prefer-module": "error",
+    "unicorn/no-new-buffer": "error",
+
+    // Import rules
+    "import/no-unresolved": "error",
+    "import/named": "error",
+    "import/default": "error",
+    "import/namespace": "error",
+
+    // General rules
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-alert": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+
+    // Performance rules
+    "no-loops/no-loops": "warn",
+    "optimize-regex/optimize-regex": "warn",
+
+    // Promise rules
+    "promise/always-return": "error",
+    "promise/no-return-wrap": "error",
+    "promise/param-names": "error",
+    "promise/catch-or-return": "error",
+
+    // Array function rules
+    "array-func/prefer-array-from": "error",
+    "array-func/prefer-flat-map": "error",
+    "array-func/prefer-flat": "error"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    },
+    "import/resolver": {
+      "typescript": {}
+    },
+    "polyfills": [
+      "Promise",
+      "Object.assign",
+      "Object.values",
+      "Array.prototype.includes",
+      "String.prototype.includes"
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    },
+    {
+      "files": ["*.test.ts", "*.test.tsx", "*.spec.ts", "*.spec.tsx"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "sonarjs/no-duplicate-string": "off"
+      }
+    }
+  ]
+}

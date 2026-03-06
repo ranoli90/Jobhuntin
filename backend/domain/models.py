@@ -116,23 +116,17 @@ class CanonicalProfile(BaseModel):
     years_experience: int | None = None
 
 
-def _extract_name_parts(full_name: str) -> tuple[str, str]:
-    """Extract first and last name from full name."""
-    parts = full_name.split(maxsplit=1) if full_name else []
-    first = parts[0] if parts else ""
-    last = parts[1] if len(parts) > 1 else ""
-    return first, last
-
-
-def _parse_contact(contact_raw: dict) -> CanonicalContact:
-    """Parse contact information from raw data."""
+def normalize_profile(raw: dict) -> CanonicalProfile:
+    """Transform a raw profile_data blob into the canonical shape."""
+    contact_raw = raw.get("contact", {})
     full_name = contact_raw.get("full_name", "")
-    first, last = _extract_name_parts(full_name)
+    parts = full_name.split(maxsplit=1) if full_name else []
 
-    return CanonicalContact(
+    contact = CanonicalContact(
         full_name=full_name,
-        first_name=contact_raw.get("first_name", "") or first,
-        last_name=contact_raw.get("last_name", "") or last,
+        first_name=contact_raw.get("first_name", "") or (parts[0] if parts else ""),
+        last_name=contact_raw.get("last_name", "")
+        or (parts[1] if len(parts) > 1 else ""),
         email=contact_raw.get("email", ""),
         phone=contact_raw.get("phone", ""),
         location=contact_raw.get("location", ""),
@@ -140,20 +134,12 @@ def _parse_contact(contact_raw: dict) -> CanonicalContact:
         portfolio_url=contact_raw.get("portfolio_url", ""),
     )
 
-
-def _parse_education(education_raw: list) -> list[CanonicalEducation]:
-    """Parse education entries from raw data."""
-    return [
-        CanonicalEducation(
-            **{k: e.get(k, "") for k in CanonicalEducation.model_fields}
-        )  # pylint: disable=not-an-iterable
-        for e in education_raw
+    education = [
+        CanonicalEducation(**{k: e.get(k, "") for k in CanonicalEducation.model_fields})
+        for e in raw.get("education", [])
     ]
 
-
-def _parse_experience(experience_raw: list) -> list[CanonicalExperience]:
-    """Parse experience entries from raw data."""
-    return [
+    experience = [
         CanonicalExperience(
             company=x.get("company", ""),
             title=x.get("title", ""),
@@ -162,42 +148,37 @@ def _parse_experience(experience_raw: list) -> list[CanonicalExperience]:
             location=x.get("location", ""),
             responsibilities=x.get("responsibilities", []),
         )
-        for x in experience_raw
+        for x in raw.get("experience", [])
     ]
 
+    skills_raw = raw.get("skills", {})
 
-def _extract_skill_names(skills_list: list) -> list[str]:
-    """Extract skill names from V2 (dict) or V1 (string) format."""
-    names = []
-    for item in skills_list:
-        if isinstance(item, dict):
-            names.append(item.get("skill", ""))
-        elif isinstance(item, str):
-            names.append(item)
-    return [s for s in names if s]
+    # Handle V2 rich skills format (objects with confidence) or V1 format (strings)
+    technical_raw = skills_raw.get("technical", [])
+    soft_raw = skills_raw.get("soft", [])
 
+    # Extract skill names from rich format if needed
+    technical = []
+    for s in technical_raw:
+        if isinstance(s, dict):
+            technical.append(s.get("skill", ""))
+        elif isinstance(s, str):
+            technical.append(s)
 
-def _parse_skills(skills_raw: dict) -> CanonicalSkills:
-    """Parse skills from raw data, handling both V1 and V2 formats."""
-    technical = _extract_skill_names(skills_raw.get("technical", []))
-    soft = _extract_skill_names(skills_raw.get("soft", []))
-    return CanonicalSkills(technical=technical, soft=soft)
+    soft = []
+    for s in soft_raw:
+        if isinstance(s, dict):
+            soft.append(s.get("skill", ""))
+        elif isinstance(s, str):
+            soft.append(s)
 
+    skills = CanonicalSkills(
+        technical=[s for s in technical if s],
+        soft=[s for s in soft if s],
+    )
 
-def _get_current_info(experience: list[CanonicalExperience]) -> tuple[str, str]:
-    """Get current title and company from most recent experience."""
-    if experience:
-        return experience[0].title, experience[0].company
-    return "", ""
-
-
-def normalize_profile(raw: dict) -> CanonicalProfile:
-    """Transform a raw profile_data blob into the canonical shape."""
-    contact = _parse_contact(raw.get("contact", {}))
-    education = _parse_education(raw.get("education", []))
-    experience = _parse_experience(raw.get("experience", []))
-    skills = _parse_skills(raw.get("skills", {}))
-    current_title, current_company = _get_current_info(experience)
+    current_title = experience[0].title if experience else ""
+    current_company = experience[0].company if experience else ""
 
     return CanonicalProfile(
         contact=contact,
