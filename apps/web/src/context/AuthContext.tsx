@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const initAuth = async () => {
             try {
-                if (import.meta.env.DEV) console.log('[AUTH] Initializing auth...');
+                console.log('[AUTH] Starting initAuth...');
 
                 // 1. Check for token in URL (legacy magic link flow — used when API_PUBLIC_URL is not set)
                 //    When API_PUBLIC_URL IS set, the backend redirects the user BEFORE they hit the
