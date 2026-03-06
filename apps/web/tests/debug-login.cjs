@@ -12,7 +12,9 @@ async function testDirectLogin() {
   // Capture all console messages
   const consoleMessages = [];
   page.on('console', msg => {
-    consoleMessages.push({ type: msg.type(), text: msg.text() });
+    const text = msg.text();
+    consoleMessages.push({ type: msg.type(), text });
+    console.log(`[${msg.type()}]`, text);
   });
 
   // Capture page errors
