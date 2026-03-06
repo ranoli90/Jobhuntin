@@ -45,8 +45,8 @@ services:
         value: https://openrouter.ai/api/v1
       - key: LLM_MODEL
         value: google/gemini-2.0-flash
-      - key: ENV
-        value: production
+      - key: env
+        value: prod
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
