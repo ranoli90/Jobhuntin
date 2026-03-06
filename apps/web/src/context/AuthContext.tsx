@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 });
                 if (!resp.ok) {
                     // Silently handle 401 on initial load — user simply isn't logged in yet
-                    if (import.meta.env.DEV) if (import.meta.env.DEV) console.log('[AUTH] Initial profile check returned', resp.status);
+                    console.log('[AUTH] Initial profile check returned', resp.status);
                     setUser(null);
                     sessionExpiryRef.current = null;
                     return;

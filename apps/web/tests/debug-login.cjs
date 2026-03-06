@@ -9,6 +9,21 @@ async function testDirectLogin() {
   const context = await browser.newContext();
   const page = await context.newPage();
 
+  // Intercept requests to see what's happening
+  page.on('request', request => {
+    if (request.url().includes('api.onrender')) {
+      console.log('REQUEST:', request.method(), request.url());
+    }
+  });
+  
+  page.on('response', response => {
+    if (response.url().includes('api.onrender')) {
+      console.log('RESPONSE:', response.status(), response.url());
+      const headers = response.headers();
+      console.log('  CORS:', headers['access-control-allow-origin']);
+    }
+  });
+  
   // Capture all console messages
   const consoleMessages = [];
   page.on('console', msg => {
