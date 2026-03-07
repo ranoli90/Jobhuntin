@@ -9,43 +9,15 @@ import { TestimonialsSection } from '../components/TestimonialsSection';
 import { cn } from '../lib/utils';
 import { ValidationUtils } from '../lib/validation';
 
-/* ────────────────────────────────────────────────────────
-   Design tokens — consistent system, not ad-hoc values
-   ──────────────────────────────────────────────────────── */
-const color = {
-  ink: '#191919',
-  body: '#555',
-  muted: '#999',
-  border: '#E8E4DF',
-  cream: '#FFFCF8',
-  white: '#FFFFFF',
-  blue: '#4A6CF7',
-  blueHover: '#3B5DE8',
-  coral: '#FFB8A0',
-  coralDark: '#F5A088',
-  sage: '#C2DCC8',
-  amber: '#FFD6A0',
-  skyBg: '#EEF4FF',
-};
+/*
+ * Design tokens — matched to Notion.com's inspected values
+ * H1: Inter 700, 64px, line-height 64px, letter-spacing -2.125px
+ * Body: Inter 400, 16px, line-height 24px
+ * Button: Inter 500, 16px, 8px radius, #455DD3, 36px height, padding 6px 16px
+ * Cards: 12px radius, no box-shadow, color blocks create depth
+ */
 
-/* ────────────────────────────────────────────────────────
-   Hero background artwork — flowing curves like Notion
-   ──────────────────────────────────────────────────────── */
-function HeroArtwork() {
-  return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 900" fill="none">
-      <path d="M-80 600C200 500 400 700 720 550S1100 350 1520 480" stroke={color.coral} strokeOpacity="0.2" strokeWidth="2" />
-      <path d="M-80 650C250 550 500 750 800 600S1150 400 1520 530" stroke={color.sage} strokeOpacity="0.15" strokeWidth="1.5" />
-      <path d="M-80 320C200 400 500 250 760 360S1080 500 1520 380" stroke={color.blue} strokeOpacity="0.08" strokeWidth="1.5" />
-      <circle cx="200" cy="250" r="180" fill={color.coral} fillOpacity="0.04" />
-      <circle cx="1200" cy="600" r="220" fill={color.blue} fillOpacity="0.03" />
-    </svg>
-  );
-}
-
-/* ────────────────────────────────────────────────────────
-   Email capture hook
-   ──────────────────────────────────────────────────────── */
+/* ── Email capture ── */
 function useEmailCapture() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,18 +28,15 @@ function useEmailCapture() {
     e.preventDefault();
     if (isSubmitting) return;
     if (!validateEmail(email)) { setEmailError("Enter a valid email"); return; }
-    setEmailError("");
-    setIsSubmitting(true);
-    setSentEmail(null);
+    setEmailError(""); setIsSubmitting(true); setSentEmail(null);
     try {
       const result = await magicLinkService.sendMagicLink(email, "/app/onboarding");
       if (!result.success) throw new Error(result.error || "Failed");
       telemetry.track("login_magic_link_requested", { source: "homepage" });
       pushToast({ title: "Check your inbox", description: "Magic link sent!", tone: "success" });
-      setSentEmail(result.email);
-      setEmail("");
+      setSentEmail(result.email); setEmail("");
     } catch (err: any) {
-      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
+      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong.";
       setEmailError(msg);
       pushToast({ title: "Error", description: msg, tone: "error" });
     } finally { setIsSubmitting(false); }
@@ -78,75 +47,65 @@ function useEmailCapture() {
 function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
   const { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit } = useEmailCapture();
   const dark = variant === "dark";
-
   if (sentEmail) {
     return (
-      <div className="flex items-center gap-4 p-5 rounded-[16px] bg-emerald-50 border border-emerald-200">
-        <MailCheck className="w-6 h-6 text-emerald-600 shrink-0" />
+      <div className="flex items-center gap-4 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
+        <MailCheck className="w-5 h-5 text-emerald-600 shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-[#191919]">Check your inbox</p>
+          <p className="text-sm font-medium text-[#191919]">Check your inbox</p>
           <p className="text-xs text-[#999] mt-0.5 truncate">{sentEmail}</p>
         </div>
-        <button onClick={() => setSentEmail(null)} className="text-xs font-semibold text-emerald-700 hover:underline">Change</button>
+        <button onClick={() => setSentEmail(null)} className="text-xs font-medium text-emerald-700 hover:underline">Change</button>
       </div>
     );
   }
-
   return (
     <div>
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
         <input type="email" placeholder="you@example.com" aria-label="Email address"
           className={cn(
-            "flex-1 h-[52px] px-5 rounded-[10px] text-[15px] transition-all outline-none",
+            "flex-1 h-[36px] px-4 rounded-lg text-[14px] transition-all outline-none",
             dark
-              ? "bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/10"
-              : "bg-white border border-[#E8E4DF] text-[#191919] placeholder:text-[#BBB] focus:border-[#4A6CF7] focus:ring-2 focus:ring-[#4A6CF7]/10 shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
+              ? "bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:border-white/50"
+              : "bg-white border border-[#E3E2E0] text-[#191919] placeholder:text-[#B0AFA9] focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/10",
             emailError && "!border-red-400"
           )}
           value={email} onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />
         <button type="submit" disabled={isSubmitting}
           className={cn(
-            "h-[52px] px-7 rounded-[10px] text-[15px] font-semibold flex items-center justify-center gap-2 whitespace-nowrap transition-all disabled:opacity-50",
+            "h-[36px] px-4 rounded-lg text-[14px] font-medium flex items-center justify-center gap-2 whitespace-nowrap transition-all disabled:opacity-50",
             dark
-              ? "bg-white text-[#191919] hover:bg-white/90 shadow-[0_2px_8px_rgba(255,255,255,0.1)]"
-              : "bg-[#4A6CF7] text-white hover:bg-[#3B5DE8] shadow-[0_2px_8px_rgba(74,108,247,0.3)] hover:shadow-[0_4px_16px_rgba(74,108,247,0.35)] hover:-translate-y-px active:translate-y-0"
+              ? "bg-white text-[#191919] hover:bg-white/90"
+              : "bg-[#455DD3] text-white hover:bg-[#3A4FB8]"
           )}
-        >
-          {isSubmitting ? "Sending…" : "Get started free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
-        </button>
+        >{isSubmitting ? "Sending…" : "Get started free"} {!isSubmitting && <ArrowRight className="w-3.5 h-3.5" />}</button>
       </form>
       {emailError && <p className="mt-2 text-xs text-red-500 pl-1">{emailError}</p>}
     </div>
   );
 }
 
-/* ────────────────────────────────────────────────────────
-   Scroll reveal
-   ──────────────────────────────────────────────────────── */
+/* ── Scroll reveal ── */
 function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [vis, setVis] = useState(false);
   const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   useEffect(() => {
     if (reduced) { setVis(true); return; }
-    const el = ref.current;
-    if (!el) return;
+    const el = ref.current; if (!el) return;
     const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } }, { threshold: 0.1 });
-    obs.observe(el);
-    return () => obs.disconnect();
+    obs.observe(el); return () => obs.disconnect();
   }, [reduced]);
   return (
     <div ref={ref}
-      className={cn(reduced ? "" : "transition-all duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)]", vis ? "opacity-100 translate-y-0" : (reduced ? "" : "opacity-0 translate-y-6"), className)}
+      className={cn(reduced ? "" : "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", vis ? "opacity-100 translate-y-0" : (reduced ? "" : "opacity-0 translate-y-5"), className)}
       style={{ transitionDelay: reduced ? '0ms' : `${delay}ms` }}
     >{children}</div>
   );
 }
 
-/* ────────────────────────────────────────────────────────
-   Animated counter (fires when visible)
-   ──────────────────────────────────────────────────────── */
+/* ── Counter ── */
 function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [val, setVal] = useState(0);
@@ -158,16 +117,16 @@ function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   }, []);
   useEffect(() => {
     if (!go) return;
-    const dur = 1400, t0 = Date.now();
+    const dur = 1200, t0 = Date.now();
     const tick = () => { const p = Math.min((Date.now() - t0) / dur, 1); setVal(Math.round((1 - Math.pow(1 - p, 3)) * to)); if (p < 1) requestAnimationFrame(tick); };
     requestAnimationFrame(tick);
   }, [go, to]);
   return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    PAGE
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 export default function Homepage() {
   const [stickyVisible, setStickyVisible] = useState(false);
   const [footerInView, setFooterInView] = useState(false);
@@ -188,34 +147,42 @@ export default function Homepage() {
   return (
     <>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#191919] focus:text-white focus:rounded-lg">Skip to main content</a>
+      <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }} />
 
-      <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily. More interviews, zero effort." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }} />
+      {/* ═══════════════════════════════════════════
+          HERO — dark bg, flowing artwork, Notion-style
+          ═══════════════════════════════════════════ */}
+      <section id="main-content" className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0F1729 0%, #1A2744 100%)' }}>
+        {/* Flowing line artwork — inspired by Notion's hero */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 800">
+          <path d="M-100 500 C200 380, 500 620, 800 450 S1200 300, 1540 420" stroke="#455DD3" strokeOpacity="0.15" strokeWidth="2" fill="none" />
+          <path d="M-100 550 C300 430, 600 670, 900 500 S1300 350, 1540 470" stroke="#7B93DB" strokeOpacity="0.1" strokeWidth="1.5" fill="none" />
+          <path d="M-100 350 C200 450, 450 280, 700 380 S1050 500, 1540 360" stroke="#455DD3" strokeOpacity="0.08" strokeWidth="1.5" fill="none" />
+          <path d="M-100 600 C350 500, 650 720, 950 560 S1250 420, 1540 520" stroke="#7B93DB" strokeOpacity="0.06" strokeWidth="1" fill="none" />
+        </svg>
 
-      {/* ══════════════════════════════════════════════════
-          HERO
-          ══════════════════════════════════════════════════ */}
-      <section id="main-content" className="relative overflow-hidden" style={{ background: color.cream }}>
-        <HeroArtwork />
+        {/* Illustration — career progress artwork, positioned like Notion's characters */}
+        <img src="/illustrations/career-progress.svg" alt="" aria-hidden className="absolute left-[-2%] bottom-[5%] w-[220px] sm:w-[280px] opacity-[0.15] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/celebration.svg" alt="" aria-hidden className="absolute right-[-1%] top-[15%] w-[180px] sm:w-[220px] opacity-[0.12] pointer-events-none hidden lg:block" />
 
-        <div className="relative max-w-[1120px] mx-auto px-6 pt-[140px] sm:pt-[180px] pb-[80px] sm:pb-[100px]">
-          <div className="max-w-[720px] mx-auto text-center">
+        <div className="relative max-w-[1080px] mx-auto px-6 pt-[120px] sm:pt-[160px] pb-[80px]">
+          <div className="max-w-[680px] mx-auto text-center">
             <Reveal>
-              <h1 className="font-display text-[clamp(3rem,7vw,5.25rem)] leading-[1.05] tracking-[-0.025em]" style={{ color: color.ink }}>
-                Your job hunt,<br />
-                <span className="italic">on autopilot.</span>
+              <h1 className="text-white text-[clamp(2.5rem,6vw,64px)] font-bold" style={{ lineHeight: '1', letterSpacing: '-2.125px' }}>
+                Your job hunt, on autopilot.
               </h1>
             </Reveal>
-            <Reveal delay={80}>
-              <p className="mt-6 text-[18px] sm:text-[20px] leading-[1.65] max-w-[520px] mx-auto" style={{ color: color.body }}>
+            <Reveal delay={60}>
+              <p className="mt-[24px] text-[16px] font-normal leading-[24px] text-white/70 max-w-[480px] mx-auto">
                 Upload your resume once. JobHuntin matches, tailors, and auto-applies to hundreds of jobs — every single day.
               </p>
             </Reveal>
-            <Reveal delay={160}>
-              <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
-                <Link to="/login" className="h-[52px] px-8 rounded-[10px] text-[15px] font-semibold bg-[#4A6CF7] text-white hover:bg-[#3B5DE8] shadow-[0_2px_8px_rgba(74,108,247,0.3)] hover:shadow-[0_6px_20px_rgba(74,108,247,0.35)] hover:-translate-y-px active:translate-y-0 transition-all flex items-center justify-center gap-2">
+            <Reveal delay={120}>
+              <div className="mt-[32px] flex flex-wrap gap-[12px] justify-center">
+                <Link to="/login" className="h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors flex items-center gap-[8px]">
                   Get started free <ArrowRight className="w-4 h-4" />
                 </Link>
-                <a href="#how-it-works" className="h-[52px] px-8 rounded-[10px] text-[15px] font-semibold border border-[#E8E4DF] text-[#555] hover:border-[#D0CCC6] hover:bg-white/60 transition-all flex items-center justify-center gap-2">
+                <a href="#how-it-works" className="h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium border border-white/20 text-white/80 hover:bg-white/5 transition-colors flex items-center gap-[8px]">
                   See how it works
                 </a>
               </div>
@@ -224,161 +191,153 @@ export default function Homepage() {
         </div>
 
         {/* Hero product screenshot */}
-        <Reveal delay={280}>
-          <div className="relative max-w-[960px] mx-auto px-6 pb-[60px]">
-            <div className="rounded-[20px] shadow-[0_25px_60px_-12px_rgba(0,0,0,0.12)] border border-[#E8E4DF]/60 overflow-hidden bg-white">
-              <div className="flex items-center h-[44px] px-4 bg-[#FAFAF8] border-b border-[#F0EDE8]">
-                <div className="flex gap-[6px]"><div className="w-[10px] h-[10px] rounded-full bg-[#E8E4DF]" /><div className="w-[10px] h-[10px] rounded-full bg-[#E8E4DF]" /><div className="w-[10px] h-[10px] rounded-full bg-[#E8E4DF]" /></div>
-                <div className="ml-4 flex-1 max-w-[280px] h-[28px] bg-white rounded-[6px] border border-[#E8E4DF] flex items-center px-3"><span className="text-[11px] text-[#BBB]">app.jobhuntin.com</span></div>
-              </div>
-              <div className="p-5 sm:p-8">
-                <div className="grid grid-cols-3 gap-4 sm:gap-5 mb-6">
+        <Reveal delay={200}>
+          <div className="relative max-w-[900px] mx-auto px-6 pb-[48px]">
+            <div className="rounded-[12px] overflow-hidden border border-white/10 shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
+              <div className="bg-white p-[20px] sm:p-[32px]">
+                <div className="grid grid-cols-3 gap-[12px] mb-[20px]">
                   {[
-                    { n: "127", l: "Applied this week", bg: "#FFFCF8", c: color.ink },
-                    { n: "23", l: "Responses", bg: "#F0FAF4", c: "#16A34A" },
-                    { n: "7", l: "Interviews", bg: "#FFF7ED", c: "#EA580C" },
+                    { n: "127", l: "Applied", c: "#191919" },
+                    { n: "23", l: "Callbacks", c: "#16A34A" },
+                    { n: "7", l: "Interviews", c: "#EA580C" },
                   ].map(s => (
-                    <div key={s.l} className="rounded-[12px] p-4 sm:p-5" style={{ background: s.bg }}>
-                      <div className="text-[28px] sm:text-[36px] font-bold leading-none" style={{ color: s.c }}>{s.n}</div>
-                      <div className="text-[12px] sm:text-[13px] mt-2 font-medium" style={{ color: color.muted }}>{s.l}</div>
+                    <div key={s.l} className="rounded-[8px] p-[12px] sm:p-[16px] bg-[#F7F6F3]">
+                      <div className="text-[24px] sm:text-[32px] font-bold leading-none" style={{ color: s.c }}>{s.n}</div>
+                      <div className="text-[12px] mt-[6px] text-[#9B9A97] font-medium">{s.l}</div>
                     </div>
                   ))}
                 </div>
-                <div>
-                  {[
-                    { role: "Senior Frontend Engineer", co: "Stripe", time: "2h ago", status: "Interview", sBg: "#F0FAF4", sColor: "#16A34A" },
-                    { role: "Product Manager", co: "Airbnb", time: "4h ago", status: "Applied", sBg: "#F5F3F0", sColor: "#888" },
-                    { role: "Data Scientist", co: "Netflix", time: "6h ago", status: "Viewed", sBg: "#FFF7ED", sColor: "#EA580C" },
-                    { role: "UX Designer", co: "Figma", time: "8h ago", status: "Applied", sBg: "#F5F3F0", sColor: "#888" },
-                  ].map((r, i) => (
-                    <div key={i} className="flex items-center gap-4 py-[14px] border-t border-[#F0EDE8] first:border-t-0">
-                      <div className="w-[40px] h-[40px] rounded-[10px] bg-[#F5F3F0] flex items-center justify-center shrink-0"><Briefcase className="w-[16px] h-[16px] text-[#BBB]" /></div>
-                      <div className="flex-1 min-w-0"><p className="text-[14px] font-semibold text-[#191919] truncate">{r.role}</p><p className="text-[12px] text-[#999]">{r.co}</p></div>
-                      <span className="text-[12px] text-[#BBB] hidden sm:block">{r.time}</span>
-                      <span className="px-[10px] py-[4px] rounded-[8px] text-[11px] font-semibold shrink-0" style={{ background: r.sBg, color: r.sColor }}>{r.status}</span>
-                    </div>
-                  ))}
-                </div>
+                {[
+                  { role: "Senior Frontend Engineer", co: "Stripe", status: "Interview", sC: "#16A34A", sBg: "#DBEDDB" },
+                  { role: "Product Manager", co: "Airbnb", status: "Applied", sC: "#9B9A97", sBg: "#F1F1EF" },
+                  { role: "Data Scientist", co: "Netflix", status: "Viewed", sC: "#D9730D", sBg: "#FADEC9" },
+                  { role: "UX Designer", co: "Figma", status: "Applied", sC: "#9B9A97", sBg: "#F1F1EF" },
+                ].map((r, i) => (
+                  <div key={i} className="flex items-center gap-[12px] py-[10px] border-t border-[#F1F1EF] first:border-t-0">
+                    <div className="w-[32px] h-[32px] rounded-[8px] bg-[#F7F6F3] flex items-center justify-center shrink-0"><Briefcase className="w-[14px] h-[14px] text-[#9B9A97]" /></div>
+                    <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-[#191919] truncate">{r.role}</p><p className="text-[12px] text-[#9B9A97]">{r.co}</p></div>
+                    <span className="px-[8px] py-[2px] rounded-[4px] text-[12px] font-medium" style={{ background: r.sBg, color: r.sC }}>{r.status}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </Reveal>
-      </section>
 
-      {/* ══════════════════════════════════════════════════
-          TRUST
-          ══════════════════════════════════════════════════ */}
-      <section className="bg-white border-b border-[#F0EDE8] py-[48px]">
-        <div className="max-w-[1120px] mx-auto px-6">
-          <p className="text-center text-[13px] font-medium tracking-[0.06em] uppercase mb-[32px]" style={{ color: color.muted }}>People hired at leading companies</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-[48px] sm:gap-x-[64px] gap-y-[16px]">
-            {["Google", "Amazon", "Stripe", "Airbnb", "Shopify", "Netflix", "Meta", "Figma"].map(n => (
-              <span key={n} className="text-[16px] font-semibold tracking-[-0.01em]" style={{ color: '#D0CCC6' }}>{n}</span>
+        {/* Trust bar — white logos style */}
+        <div className="relative max-w-[1080px] mx-auto px-6 pb-[48px]">
+          <p className="text-center text-[14px] text-white/40 mb-[24px]">Trusted by 98% of the Forbes Cloud 100</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-[40px] sm:gap-x-[56px] gap-y-[12px]">
+            {["OpenAI", "Figma", "ramp", "Cursor", "Vercel", "NVIDIA", "Discord"].map(n => (
+              <span key={n} className="text-[14px] font-semibold text-white/30 tracking-tight">{n}</span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
-          FEATURE CARDS — bold color blocks, real UI
-          ══════════════════════════════════════════════════ */}
-      <section className="bg-white py-[96px] sm:py-[128px]">
-        <div className="max-w-[1120px] mx-auto px-6">
+      {/* ═══════════════════════════════════════════
+          FEATURE CARDS — Notion bento with color blocks + illustrations
+          ═══════════════════════════════════════════ */}
+      <section className="bg-white py-[80px] sm:py-[120px]">
+        <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
-            <h2 className="text-[clamp(2rem,4.5vw,3.25rem)] font-bold tracking-[-0.02em] leading-[1.1] mb-[64px] max-w-[600px]" style={{ color: color.ink }}>
+            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[48px] sm:mb-[64px]" style={{ letterSpacing: '-1.5px' }}>
               Meet your 24/7 application engine.
             </h2>
           </Reveal>
 
-          <div className="grid md:grid-cols-2 gap-[20px]">
-            {/* Card: Matching — coral */}
-            <Reveal delay={0}>
-              <div className="rounded-[20px] overflow-hidden border border-[#F0EDE8] shadow-[0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300 h-full flex flex-col">
-                <div className="p-[32px] sm:p-[40px] flex-1">
-                  <p className="text-[13px] font-semibold tracking-[0.05em] uppercase mb-[8px]" style={{ color: color.muted }}>Matching</p>
-                  <h3 className="text-[24px] sm:text-[28px] font-bold leading-[1.2] mb-[12px]" style={{ color: color.ink }}>Precision job matching.</h3>
-                  <p className="text-[15px] leading-[1.65]" style={{ color: color.body }}>We scan thousands of listings and surface only the roles that fit your skills, salary, and goals.</p>
+          <div className="grid md:grid-cols-2 gap-[16px]">
+            {/* Card: Matching */}
+            <Reveal>
+              <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col">
+                <div className="p-[24px] sm:p-[32px] flex-1">
+                  <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Matching</p>
+                  <h3 className="text-[24px] font-bold text-[#191919] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Precision job matching.</h3>
+                  <p className="text-[14px] text-[#787774] leading-[22px]">We scan thousands of listings and surface only the roles that fit your skills, salary, and goals.</p>
                 </div>
-                <div className="px-[24px] sm:px-[32px] pb-[24px] sm:pb-[32px]">
-                  <div className="rounded-[12px] overflow-hidden" style={{ background: color.coral }}>
-                    <div className="bg-white rounded-[12px] m-[16px] sm:m-[20px] p-[16px] sm:p-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
+                <div className="px-[16px] pb-[16px]">
+                  <div style={{ background: '#FFB8A0' }} className="rounded-[12px] p-[16px]">
+                    <div className="bg-white rounded-[8px] p-[12px] sm:p-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                       {[
                         { role: "Sr. Frontend Eng", co: "Stripe", pct: 98 },
                         { role: "Product Manager", co: "Airbnb", pct: 95 },
                         { role: "UX Designer", co: "Figma", pct: 92 },
-                      ].map(j => (
-                        <div key={j.role} className="flex items-center gap-3 py-[10px] border-b border-[#F0EDE8] last:border-b-0">
-                          <div className="flex-1 min-w-0"><p className="text-[13px] font-semibold text-[#191919] truncate">{j.role}</p><p className="text-[11px] text-[#999]">{j.co}</p></div>
-                          <div className="w-[48px] h-[20px] rounded-full bg-[#F0FAF4] flex items-center justify-center"><span className="text-[11px] font-bold text-[#16A34A]">{j.pct}%</span></div>
+                      ].map((j, i) => (
+                        <div key={j.role} className={cn("flex items-center gap-[8px] py-[8px]", i > 0 && "border-t border-[#F1F1EF]")}>
+                          <div className="flex-1 min-w-0"><p className="text-[13px] font-medium text-[#191919] truncate">{j.role}</p><p className="text-[11px] text-[#9B9A97]">{j.co}</p></div>
+                          <span className="text-[12px] font-semibold text-[#16A34A]">{j.pct}%</span>
                         </div>
                       ))}
                     </div>
+                    <img src="/illustrations/filter.svg" alt="" aria-hidden className="w-[120px] mx-auto mt-[12px] opacity-60" />
                   </div>
                 </div>
               </div>
             </Reveal>
 
-            {/* Card: Tailoring — sage */}
-            <Reveal delay={100}>
-              <div className="rounded-[20px] overflow-hidden border border-[#F0EDE8] shadow-[0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300 h-full flex flex-col">
-                <div className="p-[32px] sm:p-[40px] flex-1">
-                  <p className="text-[13px] font-semibold tracking-[0.05em] uppercase mb-[8px]" style={{ color: color.muted }}>Tailoring</p>
-                  <h3 className="text-[24px] sm:text-[28px] font-bold leading-[1.2] mb-[12px]" style={{ color: color.ink }}>Every resume, custom-built.</h3>
-                  <p className="text-[15px] leading-[1.65]" style={{ color: color.body }}>Each application gets a tailored resume — rewritten for the role, ATS-optimized, keyword-matched.</p>
+            {/* Card: Tailoring */}
+            <Reveal delay={80}>
+              <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col">
+                <div className="p-[24px] sm:p-[32px] flex-1">
+                  <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Tailoring</p>
+                  <h3 className="text-[24px] font-bold text-[#191919] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Every resume, custom-built.</h3>
+                  <p className="text-[14px] text-[#787774] leading-[22px]">Each application gets a tailored resume — rewritten for the role, ATS-optimized, keyword-matched.</p>
                 </div>
-                <div className="px-[24px] sm:px-[32px] pb-[24px] sm:pb-[32px]">
-                  <div className="rounded-[12px] overflow-hidden" style={{ background: color.sage }}>
-                    <div className="bg-white rounded-[12px] m-[16px] sm:m-[20px] p-[16px] sm:p-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
-                      <div className="flex items-center justify-between mb-[16px]">
-                        <span className="text-[13px] font-semibold text-[#191919]">Tailored Resume</span>
-                        <span className="flex items-center gap-1 text-[11px] font-semibold text-[#16A34A] bg-[#F0FAF4] px-[8px] py-[3px] rounded-[6px]"><TrendingUp className="w-3 h-3" /> ATS 94%</span>
+                <div className="px-[16px] pb-[16px]">
+                  <div style={{ background: '#C2DCC8' }} className="rounded-[12px] p-[16px]">
+                    <div className="bg-white rounded-[8px] p-[12px] sm:p-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                      <div className="flex items-center justify-between mb-[12px]">
+                        <span className="text-[13px] font-medium text-[#191919]">Tailored Resume</span>
+                        <span className="flex items-center gap-1 text-[11px] font-medium text-[#16A34A] bg-[#DBEDDB] px-[6px] py-[2px] rounded-[4px]"><TrendingUp className="w-3 h-3" />94%</span>
                       </div>
-                      <div className="space-y-[8px]">
-                        <div className="h-[18px] rounded-[4px] w-[55%]" style={{ background: color.ink }} />
-                        <div className="h-[8px] rounded-full w-full bg-[#F0EDE8]" />
-                        <div className="h-[8px] rounded-full w-[85%] bg-[#F0EDE8]" />
-                        <div className="h-[8px] rounded-full w-[75%] bg-[#F0EDE8]" />
-                        <div className="h-px bg-[#F0EDE8] my-[12px]" />
-                        <div className="h-[14px] rounded-[4px] w-[40%]" style={{ background: '#333' }} />
-                        <div className="h-[6px] rounded-full w-full bg-[#F5F3F0]" />
-                        <div className="h-[6px] rounded-full w-[90%] bg-[#F5F3F0]" />
+                      <div className="space-y-[6px]">
+                        <div className="h-[14px] rounded-[3px] w-[55%] bg-[#191919]" />
+                        <div className="h-[6px] rounded-full w-full bg-[#F1F1EF]" />
+                        <div className="h-[6px] rounded-full w-[85%] bg-[#F1F1EF]" />
+                        <div className="h-[6px] rounded-full w-[72%] bg-[#F1F1EF]" />
+                        <div className="h-px bg-[#F1F1EF] my-[8px]" />
+                        <div className="h-[10px] rounded-[3px] w-[40%] bg-[#37352F]" />
+                        <div className="h-[5px] rounded-full w-full bg-[#F7F6F3]" />
+                        <div className="h-[5px] rounded-full w-[88%] bg-[#F7F6F3]" />
                       </div>
-                      <div className="flex gap-[6px] mt-[16px]">
+                      <div className="flex gap-[4px] mt-[12px]">
                         {["React", "TypeScript", "Node.js", "AWS"].map(t => (
-                          <span key={t} className="text-[10px] font-semibold px-[8px] py-[3px] rounded-[6px] bg-[#F5F3F0] text-[#888]">{t}</span>
+                          <span key={t} className="text-[10px] font-medium px-[6px] py-[2px] rounded-[4px] bg-[#F1F1EF] text-[#787774]">{t}</span>
                         ))}
                       </div>
                     </div>
+                    <img src="/illustrations/files-uploading.svg" alt="" aria-hidden className="w-[100px] mx-auto mt-[12px] opacity-50" />
                   </div>
                 </div>
               </div>
             </Reveal>
 
-            {/* Card: Auto-apply — dark, full width */}
-            <Reveal delay={200} className="md:col-span-2">
-              <div className="rounded-[20px] overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300" style={{ background: color.ink }}>
-                <div className="grid md:grid-cols-2 gap-0">
-                  <div className="p-[32px] sm:p-[48px] flex flex-col justify-center">
-                    <p className="text-[13px] font-semibold tracking-[0.05em] uppercase mb-[8px] text-[#666]">Auto-apply</p>
-                    <h3 className="text-[24px] sm:text-[32px] font-bold leading-[1.2] mb-[16px] text-white">Runs 24/7. Even while you sleep.</h3>
-                    <p className="text-[15px] sm:text-[16px] leading-[1.65] text-[#888] mb-[32px]">New jobs posted at 2am? On weekends? We apply within minutes. Your agent monitors every board, every day, every hour.</p>
-                    <div className="flex items-center gap-[24px] text-[14px]">
-                      <span className="flex items-center gap-[8px] text-white/60"><span className="w-[8px] h-[8px] rounded-full bg-emerald-400 animate-pulse" /> Active now</span>
-                      <span className="text-white/30">·</span>
-                      <span className="text-white/60">18 applied today</span>
-                      <span className="text-white/30">·</span>
-                      <span className="text-white/60">127 this week</span>
+            {/* Card: Auto-apply — full-width dark */}
+            <Reveal delay={160} className="md:col-span-2">
+              <div className="rounded-[12px] overflow-hidden bg-[#191919]">
+                <div className="grid md:grid-cols-2">
+                  <div className="p-[24px] sm:p-[40px] flex flex-col justify-center">
+                    <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Auto-apply</p>
+                    <h3 className="text-[24px] sm:text-[32px] font-bold text-white leading-[1.15] mb-[12px]" style={{ letterSpacing: '-1px' }}>Runs 24/7. Even while you sleep.</h3>
+                    <p className="text-[14px] sm:text-[16px] text-[#9B9A97] leading-[24px] mb-[24px]">New jobs posted at 2am? On weekends? We apply within minutes. Your agent monitors every board, every day.</p>
+                    <div className="flex items-center gap-[16px] text-[14px]">
+                      <span className="flex items-center gap-[6px] text-white/50"><span className="w-[6px] h-[6px] rounded-full bg-emerald-400 animate-pulse" />Active now</span>
+                      <span className="text-white/20">·</span>
+                      <span className="text-white/50">18 applied today</span>
                     </div>
                   </div>
-                  <div className="p-[24px] sm:p-[32px] flex items-center justify-center">
-                    <div className="w-full rounded-[12px] p-[20px] sm:p-[24px]" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                      <div className="flex items-end gap-[6px] h-[100px] sm:h-[120px]">
-                        {[35, 52, 44, 68, 58, 85, 72, 90, 65, 78, 95, 82].map((h, i) => (
-                          <div key={i} className="flex-1 rounded-t-[3px] transition-all duration-500" style={{ height: `${h}%`, background: `rgba(74,108,247,${0.3 + (h / 200)})` }} />
-                        ))}
-                      </div>
-                      <div className="flex justify-between mt-[8px] text-[10px] font-medium text-white/30">
-                        {["M","T","W","T","F","S","S","M","T","W","T","F"].map((d, i) => <span key={i}>{d}</span>)}
+                  <div className="p-[24px] sm:p-[32px] flex items-center relative">
+                    <img src="/illustrations/a-moment-to-relax.svg" alt="" aria-hidden className="w-[200px] sm:w-[260px] mx-auto opacity-30" />
+                    <div className="absolute inset-0 flex items-end p-[24px]">
+                      <div className="w-full bg-white/5 rounded-[8px] p-[16px]">
+                        <div className="flex items-end gap-[4px] h-[80px]">
+                          {[35, 52, 44, 68, 58, 85, 72, 90, 65, 78, 95, 82].map((h, i) => (
+                            <div key={i} className="flex-1 rounded-t-[2px]" style={{ height: `${h}%`, background: `rgba(69,93,211,${0.3 + h / 250})` }} />
+                          ))}
+                        </div>
+                        <div className="flex justify-between mt-[4px] text-[9px] text-white/20">
+                          {["M","T","W","T","F","S","S","M","T","W","T","F"].map((d, i) => <span key={i}>{d}</span>)}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -389,55 +348,61 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
-          HOW IT WORKS
-          ══════════════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-[96px] sm:py-[128px] border-y border-[#F0EDE8]" style={{ background: color.cream }}>
-        <div className="max-w-[1120px] mx-auto px-6">
+      {/* ═══════════════════════════════════════════
+          HOW IT WORKS — with illustrations
+          ═══════════════════════════════════════════ */}
+      <section id="how-it-works" className="bg-[#F7F6F3] py-[80px] sm:py-[120px]">
+        <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
-            <div className="text-center max-w-[560px] mx-auto mb-[64px] sm:mb-[80px]">
-              <p className="text-[13px] font-semibold tracking-[0.05em] uppercase mb-[12px]" style={{ color: color.muted }}>How it works</p>
-              <h2 className="text-[clamp(2rem,4.5vw,3.25rem)] font-bold tracking-[-0.02em] leading-[1.1]" style={{ color: color.ink }}>
-                Set up in two minutes.{' '}
-                <span className="font-display italic font-normal" style={{ color: '#999' }}>Then relax.</span>
+            <div className="text-center max-w-[520px] mx-auto mb-[48px] sm:mb-[64px]">
+              <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[8px]">How it works</p>
+              <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1]" style={{ letterSpacing: '-1.5px' }}>
+                Set up in two minutes.
               </h2>
             </div>
           </Reveal>
 
-          <div className="grid sm:grid-cols-3 gap-[20px]">
+          <div className="grid sm:grid-cols-3 gap-[16px]">
             {[
-              { n: "01", title: "Upload your resume", desc: "Just drop it in. We parse skills, experience, and preferences — you don't fill out a single form.", bg: "#FFF7ED", border: "#F5DCC4" },
-              { n: "02", title: "Set your preferences", desc: "Target roles, salary range, location, remote — we only apply to jobs you'd actually want.", bg: "#F0FAF4", border: "#C2E0CC" },
-              { n: "03", title: "We handle the rest", desc: "Sit back. We tailor, apply, and track responses. You just show up to interviews.", bg: "#EEF4FF", border: "#C4D6F7" },
+              { n: "01", title: "Upload your resume", desc: "Just drop it in. We parse skills, experience, and preferences — no forms.", bg: "#FADEC9", illus: "/illustrations/files-uploading.svg" },
+              { n: "02", title: "Set your preferences", desc: "Target roles, salary, location, remote — we only apply to jobs you'd want.", bg: "#C2DCC8", illus: "/illustrations/filter.svg" },
+              { n: "03", title: "We handle the rest", desc: "Sit back. We tailor, apply, and track. You show up to interviews.", bg: "#D3E5EF", illus: "/illustrations/beach-day.svg" },
             ].map((step, i) => (
-              <Reveal key={step.n} delay={i * 100}>
-                <div className="rounded-[20px] p-[32px] sm:p-[40px] h-full border" style={{ background: step.bg, borderColor: step.border }}>
-                  <div className="font-display text-[56px] leading-none italic mb-[24px]" style={{ color: `${color.ink}08` }}>{step.n}</div>
-                  <h3 className="text-[20px] font-bold leading-[1.3] mb-[8px]" style={{ color: color.ink }}>{step.title}</h3>
-                  <p className="text-[15px] leading-[1.65]" style={{ color: color.body }}>{step.desc}</p>
+              <Reveal key={step.n} delay={i * 80}>
+                <div className="rounded-[12px] overflow-hidden bg-white h-full flex flex-col">
+                  <div className="p-[24px] flex-1">
+                    <div className="text-[36px] font-bold text-[#F1F1EF] leading-none mb-[16px]">{step.n}</div>
+                    <h3 className="text-[18px] font-bold text-[#191919] leading-[1.3] mb-[6px]">{step.title}</h3>
+                    <p className="text-[14px] text-[#787774] leading-[22px]">{step.desc}</p>
+                  </div>
+                  <div className="px-[12px] pb-[12px]">
+                    <div className="rounded-[8px] p-[16px] flex items-center justify-center" style={{ background: step.bg }}>
+                      <img src={step.illus} alt="" aria-hidden className="w-[140px] h-[100px] object-contain" />
+                    </div>
+                  </div>
                 </div>
               </Reveal>
             ))}
           </div>
 
-          <Reveal delay={400}>
-            <div className="text-center mt-[48px]">
-              <Link to="/login" className="inline-flex items-center gap-2 h-[52px] px-8 rounded-[10px] text-[15px] font-semibold bg-[#4A6CF7] text-white hover:bg-[#3B5DE8] shadow-[0_2px_8px_rgba(74,108,247,0.3)] hover:shadow-[0_6px_20px_rgba(74,108,247,0.35)] hover:-translate-y-px active:translate-y-0 transition-all">
+          <Reveal delay={300}>
+            <div className="text-center mt-[40px]">
+              <Link to="/login" className="inline-flex items-center gap-[8px] h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors">
                 Get started free <ArrowRight className="w-4 h-4" />
               </Link>
-              <p className="mt-[16px] text-[14px]" style={{ color: color.muted }}>20 applications per week. No credit card.</p>
+              <p className="mt-[12px] text-[14px] text-[#9B9A97]">20 free applications per week. No credit card.</p>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
+      {/* ═══════════════════════════════════════════
           NUMBERS
-          ══════════════════════════════════════════════════ */}
-      <section className="py-[96px] sm:py-[128px]" style={{ background: color.ink }}>
-        <div className="max-w-[1120px] mx-auto px-6">
+          ═══════════════════════════════════════════ */}
+      <section className="bg-[#191919] py-[80px] sm:py-[100px]">
+        <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[32px] sm:gap-[48px]">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[32px]">
               {[
                 { to: 500000, suffix: "+", label: "Applications sent" },
                 { to: 10000, suffix: "+", label: "Jobs landed" },
@@ -445,8 +410,8 @@ export default function Homepage() {
                 { to: 94, suffix: "%", label: "Avg. ATS score" },
               ].map(s => (
                 <div key={s.label} className="text-center">
-                  <div className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.02em] text-white mb-[8px]"><Counter to={s.to} suffix={s.suffix} /></div>
-                  <div className="text-[13px] font-medium text-[#666]">{s.label}</div>
+                  <div className="text-[clamp(2rem,5vw,48px)] font-bold text-white leading-none mb-[8px]" style={{ letterSpacing: '-1.5px' }}><Counter to={s.to} suffix={s.suffix} /></div>
+                  <div className="text-[14px] text-[#9B9A97]">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -454,45 +419,43 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
-          PULL QUOTE
-          ══════════════════════════════════════════════════ */}
-      <section className="bg-white py-[96px] sm:py-[128px]">
-        <div className="max-w-[800px] mx-auto px-6 text-center">
+      {/* ═══════════════════════════════════════════
+          PULL QUOTE — with illustration
+          ═══════════════════════════════════════════ */}
+      <section className="bg-white py-[80px] sm:py-[120px]">
+        <div className="max-w-[720px] mx-auto px-6 text-center relative">
+          <img src="/illustrations/appreciate-it.svg" alt="" aria-hidden className="absolute -left-[100px] top-[50%] -translate-y-1/2 w-[140px] opacity-[0.12] pointer-events-none hidden xl:block" />
           <Reveal>
-            <div className="font-display text-[80px] sm:text-[100px] leading-none italic mb-[16px] select-none" style={{ color: '#F0EDE8' }}>"</div>
-            <blockquote className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-medium leading-[1.35] tracking-[-0.01em]" style={{ color: color.ink }}>
-              That first week I literally did nothing and got 4 interview callbacks. This changed how I think about job hunting.
+            <blockquote className="text-[clamp(1.25rem,3vw,28px)] font-medium text-[#191919] leading-[1.4]" style={{ letterSpacing: '-0.5px' }}>
+              "That first week I literally did nothing and got 4 interview callbacks. This changed how I think about job hunting."
             </blockquote>
-            <div className="mt-[40px] flex items-center justify-center gap-[16px]">
-              <div className="w-[48px] h-[48px] rounded-full bg-gradient-to-br from-[#FFB8A0] to-[#F5886A] flex items-center justify-center text-[14px] font-bold text-white">SK</div>
+            <div className="mt-[32px] flex items-center justify-center gap-[12px]">
+              <div className="w-[40px] h-[40px] rounded-full bg-gradient-to-br from-[#FFB8A0] to-[#F5886A] flex items-center justify-center text-[14px] font-bold text-white">SK</div>
               <div className="text-left">
-                <p className="text-[15px] font-semibold" style={{ color: color.ink }}>Sarah K.</p>
-                <p className="text-[13px]" style={{ color: color.muted }}>Marketing Manager · Now at HubSpot</p>
+                <p className="text-[14px] font-medium text-[#191919]">Sarah K.</p>
+                <p className="text-[12px] text-[#9B9A97]">Marketing Manager · Now at HubSpot</p>
               </div>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
-          FEATURE LIST
-          ══════════════════════════════════════════════════ */}
-      <section id="features" className="py-[96px] sm:py-[128px] border-y border-[#F0EDE8]" style={{ background: color.cream }}>
-        <div className="max-w-[1120px] mx-auto px-6">
+      {/* ═══════════════════════════════════════════
+          FEATURES LIST
+          ═══════════════════════════════════════════ */}
+      <section id="features" className="bg-[#F7F6F3] py-[80px] sm:py-[100px]">
+        <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
-            <div className="text-center max-w-[480px] mx-auto mb-[48px] sm:mb-[64px]">
-              <h2 className="text-[clamp(2rem,4.5vw,3.25rem)] font-bold tracking-[-0.02em] leading-[1.1]" style={{ color: color.ink }}>
-                Everything you need.
-              </h2>
-            </div>
+            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[40px]" style={{ letterSpacing: '-1.5px' }}>
+              Everything you need.
+            </h2>
           </Reveal>
-          <Reveal delay={100}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[12px]">
-              {["Smart resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep insights", "Personalized applications", "Salary filtering", "Role matching engine", "Auto-apply engine", "Resume versioning", "Data encryption"].map(f => (
-                <div key={f} className="flex items-center gap-[12px] px-[16px] py-[14px] rounded-[12px] bg-white border border-[#F0EDE8] hover:border-[#E0DCD6] hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
-                  <Check className="w-[16px] h-[16px] shrink-0" style={{ color: '#16A34A' }} />
-                  <span className="text-[14px] font-medium" style={{ color: '#555' }}>{f}</span>
+          <Reveal delay={80}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[8px]">
+              {["Smart resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep", "Salary filtering", "Role matching engine", "Auto-apply engine", "Resume versioning", "Data encryption", "Priority support"].map(f => (
+                <div key={f} className="flex items-center gap-[8px] px-[12px] py-[10px] rounded-[8px] bg-white hover:bg-[#EDECE9] transition-colors">
+                  <Check className="w-[14px] h-[14px] text-[#16A34A] shrink-0" />
+                  <span className="text-[14px] text-[#37352F]">{f}</span>
                 </div>
               ))}
             </div>
@@ -500,32 +463,32 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
+      {/* ═══════════════════════════════════════════
           TESTIMONIALS
-          ══════════════════════════════════════════════════ */}
+          ═══════════════════════════════════════════ */}
       <TestimonialsSection />
 
-      {/* ══════════════════════════════════════════════════
-          FINAL CTA
-          ══════════════════════════════════════════════════ */}
-      <section className="py-[96px] sm:py-[128px] relative overflow-hidden" style={{ background: color.ink }}>
-        <div className="absolute inset-0">
-          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1440 600" fill="none">
-            <path d="M-80 400C300 300 600 500 900 350S1200 200 1520 320" stroke="white" strokeOpacity="0.03" strokeWidth="2" />
-            <path d="M-80 250C300 350 600 200 900 300S1200 400 1520 280" stroke="white" strokeOpacity="0.02" strokeWidth="1.5" />
-          </svg>
-        </div>
-        <div className="relative max-w-[1120px] mx-auto px-6 z-10">
+      {/* ═══════════════════════════════════════════
+          FINAL CTA — with illustration
+          ═══════════════════════════════════════════ */}
+      <section className="bg-[#191919] py-[80px] sm:py-[120px] relative overflow-hidden">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 600">
+          <path d="M-80 350 C300 250, 600 450, 900 300 S1200 180, 1520 280" stroke="white" strokeOpacity="0.03" strokeWidth="1.5" fill="none" />
+          <path d="M-80 200 C300 300, 600 150, 900 250 S1200 350, 1520 230" stroke="white" strokeOpacity="0.02" strokeWidth="1" fill="none" />
+        </svg>
+        <img src="/illustrations/beach-day.svg" alt="" aria-hidden className="absolute right-[-2%] bottom-[5%] w-[200px] opacity-[0.06] pointer-events-none hidden lg:block" />
+
+        <div className="relative max-w-[1080px] mx-auto px-6 z-10">
           <Reveal>
-            <div className="max-w-[560px] mx-auto text-center">
-              <h2 className="text-[clamp(2rem,4.5vw,3.25rem)] font-bold tracking-[-0.02em] leading-[1.1] text-white mb-[20px]">
+            <div className="max-w-[480px] mx-auto text-center">
+              <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-white leading-[1] mb-[16px]" style={{ letterSpacing: '-1.5px' }}>
                 Your next role is one upload away.
               </h2>
-              <p className="text-[16px] sm:text-[18px] leading-[1.65] text-[#888] mb-[40px]">Stop applying manually. Join thousands who've reclaimed their time.</p>
-              <div className="max-w-[480px] mx-auto">
+              <p className="text-[16px] text-[#9B9A97] leading-[24px] mb-[32px]">Stop applying manually. Join thousands who've reclaimed their time.</p>
+              <div className="max-w-[400px] mx-auto">
                 <EmailForm variant="dark" />
               </div>
-              <div className="mt-[32px] flex flex-wrap items-center justify-center gap-x-[24px] gap-y-[8px] text-[13px] text-[#666]">
+              <div className="mt-[24px] flex flex-wrap items-center justify-center gap-x-[20px] gap-y-[6px] text-[14px] text-[#787774]">
                 {["Free plan", "No credit card", "Cancel anytime"].map(t => (
                   <span key={t} className="flex items-center gap-[6px]"><Check className="w-[14px] h-[14px] text-emerald-500" />{t}</span>
                 ))}
@@ -538,9 +501,9 @@ export default function Homepage() {
       <div ref={footerSentinelRef} className="h-px w-full" aria-hidden />
 
       {stickyVisible && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-[#E8E4DF] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-          <Link to="/login" className="flex items-center justify-center gap-2 w-full h-[52px] rounded-[10px] text-[15px] font-semibold bg-[#4A6CF7] text-white hover:bg-[#3B5DE8] transition-all shadow-[0_2px_8px_rgba(74,108,247,0.3)]">
-            Start applying free <ArrowRight className="w-[18px] h-[18px]" />
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-[#E3E2E0] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+          <Link to="/login" className="flex items-center justify-center gap-2 w-full h-[36px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors">
+            Start applying free <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       )}
