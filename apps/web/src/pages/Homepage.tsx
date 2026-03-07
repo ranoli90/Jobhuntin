@@ -153,17 +153,24 @@ export default function Homepage() {
           HERO — dark bg, flowing artwork, Notion-style
           ═══════════════════════════════════════════ */}
       <section id="main-content" className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0F1729 0%, #1A2744 100%)' }}>
-        {/* Flowing line artwork — inspired by Notion's hero */}
+        {/* Flowing line artwork — inspired by Notion's hero curves */}
+        <style>{`
+          @keyframes line-draw { from { stroke-dashoffset: 2000; } to { stroke-dashoffset: 0; } }
+          .hero-line { stroke-dasharray: 2000; animation: line-draw 3s ease-out forwards; }
+          .hero-line-2 { animation-delay: 0.3s; stroke-dashoffset: 2000; }
+          .hero-line-3 { animation-delay: 0.6s; stroke-dashoffset: 2000; }
+          .hero-line-4 { animation-delay: 0.9s; stroke-dashoffset: 2000; }
+        `}</style>
         <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 800">
-          <path d="M-100 500 C200 380, 500 620, 800 450 S1200 300, 1540 420" stroke="#455DD3" strokeOpacity="0.15" strokeWidth="2" fill="none" />
-          <path d="M-100 550 C300 430, 600 670, 900 500 S1300 350, 1540 470" stroke="#7B93DB" strokeOpacity="0.1" strokeWidth="1.5" fill="none" />
-          <path d="M-100 350 C200 450, 450 280, 700 380 S1050 500, 1540 360" stroke="#455DD3" strokeOpacity="0.08" strokeWidth="1.5" fill="none" />
-          <path d="M-100 600 C350 500, 650 720, 950 560 S1250 420, 1540 520" stroke="#7B93DB" strokeOpacity="0.06" strokeWidth="1" fill="none" />
+          <path className="hero-line" d="M-100 500 C200 380, 500 620, 800 450 S1200 300, 1540 420" stroke="#455DD3" strokeOpacity="0.18" strokeWidth="2" fill="none" />
+          <path className="hero-line hero-line-2" d="M-100 550 C300 430, 600 670, 900 500 S1300 350, 1540 470" stroke="#7B93DB" strokeOpacity="0.12" strokeWidth="1.5" fill="none" />
+          <path className="hero-line hero-line-3" d="M-100 350 C200 450, 450 280, 700 380 S1050 500, 1540 360" stroke="#455DD3" strokeOpacity="0.10" strokeWidth="1.5" fill="none" />
+          <path className="hero-line hero-line-4" d="M-100 600 C350 500, 650 720, 950 560 S1250 420, 1540 520" stroke="#7B93DB" strokeOpacity="0.07" strokeWidth="1" fill="none" />
         </svg>
 
         {/* Illustration — career progress artwork, positioned like Notion's characters */}
-        <img src="/illustrations/career-progress.svg" alt="" aria-hidden className="absolute left-[-2%] bottom-[5%] w-[220px] sm:w-[280px] opacity-[0.15] pointer-events-none hidden lg:block" />
-        <img src="/illustrations/celebration.svg" alt="" aria-hidden className="absolute right-[-1%] top-[15%] w-[180px] sm:w-[220px] opacity-[0.12] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/career-progress.svg" alt="" aria-hidden className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/celebration.svg" alt="" aria-hidden className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
 
         <div className="relative max-w-[1080px] mx-auto px-6 pt-[120px] sm:pt-[160px] pb-[80px]">
           <div className="max-w-[680px] mx-auto text-center">
@@ -213,7 +220,7 @@ export default function Homepage() {
                   { role: "Data Scientist", co: "Netflix", status: "Viewed", sC: "#D9730D", sBg: "#FADEC9" },
                   { role: "UX Designer", co: "Figma", status: "Applied", sC: "#9B9A97", sBg: "#F1F1EF" },
                 ].map((r, i) => (
-                  <div key={i} className="flex items-center gap-[12px] py-[10px] border-t border-[#F1F1EF] first:border-t-0">
+                  <div key={i} className={cn("flex items-center gap-[12px] py-[10px] border-t border-[#F1F1EF] first:border-t-0", i >= 3 && "hidden sm:flex")}>
                     <div className="w-[32px] h-[32px] rounded-[8px] bg-[#F7F6F3] flex items-center justify-center shrink-0"><Briefcase className="w-[14px] h-[14px] text-[#9B9A97]" /></div>
                     <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-[#191919] truncate">{r.role}</p><p className="text-[12px] text-[#9B9A97]">{r.co}</p></div>
                     <span className="px-[8px] py-[2px] rounded-[4px] text-[12px] font-medium" style={{ background: r.sBg, color: r.sC }}>{r.status}</span>
@@ -225,11 +232,11 @@ export default function Homepage() {
         </Reveal>
 
         {/* Trust bar — white logos style */}
-        <div className="relative max-w-[1080px] mx-auto px-6 pb-[48px]">
-          <p className="text-center text-[14px] text-white/40 mb-[24px]">Trusted by 98% of the Forbes Cloud 100</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-[40px] sm:gap-x-[56px] gap-y-[12px]">
+        <div className="relative max-w-[1080px] mx-auto px-6 pb-[56px]">
+          <p className="text-center text-[14px] text-white/50 mb-[20px]">Trusted by 98% of the Forbes Cloud 100</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-[32px] sm:gap-x-[48px] gap-y-[12px]">
             {["OpenAI", "Figma", "ramp", "Cursor", "Vercel", "NVIDIA", "Discord"].map(n => (
-              <span key={n} className="text-[14px] font-semibold text-white/30 tracking-tight">{n}</span>
+              <span key={n} className="text-[15px] font-semibold text-white/25 tracking-tight hover:text-white/40 transition-colors cursor-default">{n}</span>
             ))}
           </div>
         </div>
@@ -238,10 +245,10 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════
           FEATURE CARDS — Notion bento with color blocks + illustrations
           ═══════════════════════════════════════════ */}
-      <section className="bg-white py-[80px] sm:py-[120px]">
+      <section className="bg-white py-[64px] sm:py-[96px]">
         <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
-            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[48px] sm:mb-[64px]" style={{ letterSpacing: '-1.5px' }}>
+            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[40px] sm:mb-[56px]" style={{ letterSpacing: '-1.5px' }}>
               Meet your 24/7 application engine.
             </h2>
           </Reveal>
@@ -249,7 +256,7 @@ export default function Homepage() {
           <div className="grid md:grid-cols-2 gap-[16px]">
             {/* Card: Matching */}
             <Reveal>
-              <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col">
+              <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
                 <div className="p-[24px] sm:p-[32px] flex-1">
                   <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Matching</p>
                   <h3 className="text-[24px] font-bold text-[#191919] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Precision job matching.</h3>
@@ -269,7 +276,7 @@ export default function Homepage() {
                         </div>
                       ))}
                     </div>
-                    <img src="/illustrations/filter.svg" alt="" aria-hidden className="w-[120px] mx-auto mt-[12px] opacity-60" />
+                    <img src="/illustrations/filter.svg" alt="" aria-hidden className="w-[180px] h-[90px] object-contain mx-auto mt-[16px] opacity-70" />
                   </div>
                 </div>
               </div>
@@ -277,7 +284,7 @@ export default function Homepage() {
 
             {/* Card: Tailoring */}
             <Reveal delay={80}>
-              <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col">
+              <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
                 <div className="p-[24px] sm:p-[32px] flex-1">
                   <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Tailoring</p>
                   <h3 className="text-[24px] font-bold text-[#191919] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Every resume, custom-built.</h3>
@@ -306,7 +313,7 @@ export default function Homepage() {
                         ))}
                       </div>
                     </div>
-                    <img src="/illustrations/files-uploading.svg" alt="" aria-hidden className="w-[100px] mx-auto mt-[12px] opacity-50" />
+                    <img src="/illustrations/files-uploading.svg" alt="" aria-hidden className="w-[160px] h-[80px] object-contain mx-auto mt-[16px] opacity-65" />
                   </div>
                 </div>
               </div>
@@ -314,7 +321,7 @@ export default function Homepage() {
 
             {/* Card: Auto-apply — full-width dark */}
             <Reveal delay={160} className="md:col-span-2">
-              <div className="rounded-[12px] overflow-hidden bg-[#191919]">
+              <div className="rounded-[12px] overflow-hidden bg-[#191919] hover:-translate-y-[2px] transition-transform duration-300">
                 <div className="grid md:grid-cols-2">
                   <div className="p-[24px] sm:p-[40px] flex flex-col justify-center">
                     <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Auto-apply</p>
@@ -351,7 +358,7 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════
           HOW IT WORKS — with illustrations
           ═══════════════════════════════════════════ */}
-      <section id="how-it-works" className="bg-[#F7F6F3] py-[80px] sm:py-[120px]">
+      <section id="how-it-works" className="bg-[#F7F6F3] py-[64px] sm:py-[96px]">
         <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
             <div className="text-center max-w-[520px] mx-auto mb-[48px] sm:mb-[64px]">
@@ -369,15 +376,15 @@ export default function Homepage() {
               { n: "03", title: "We handle the rest", desc: "Sit back. We tailor, apply, and track. You show up to interviews.", bg: "#D3E5EF", illus: "/illustrations/beach-day.svg" },
             ].map((step, i) => (
               <Reveal key={step.n} delay={i * 80}>
-                <div className="rounded-[12px] overflow-hidden bg-white h-full flex flex-col">
+                <div className="rounded-[12px] overflow-hidden bg-white h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
                   <div className="p-[24px] flex-1">
-                    <div className="text-[36px] font-bold text-[#F1F1EF] leading-none mb-[16px]">{step.n}</div>
+                    <div className="text-[36px] font-bold text-[#E8E7E4] leading-none mb-[16px]">{step.n}</div>
                     <h3 className="text-[18px] font-bold text-[#191919] leading-[1.3] mb-[6px]">{step.title}</h3>
                     <p className="text-[14px] text-[#787774] leading-[22px]">{step.desc}</p>
                   </div>
                   <div className="px-[12px] pb-[12px]">
-                    <div className="rounded-[8px] p-[16px] flex items-center justify-center" style={{ background: step.bg }}>
-                      <img src={step.illus} alt="" aria-hidden className="w-[140px] h-[100px] object-contain" />
+                    <div className="rounded-[8px] p-[20px] flex items-center justify-center" style={{ background: step.bg }}>
+                      <img src={step.illus} alt="" aria-hidden className="w-[160px] h-[110px] object-contain" />
                     </div>
                   </div>
                 </div>
