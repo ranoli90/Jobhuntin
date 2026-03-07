@@ -2,18 +2,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
-import {
-  ArrowRight, MailCheck, Target, Activity,
-  Upload, SlidersHorizontal, Send, Trophy,
-  ChevronRight, Check, Star, Briefcase, TrendingUp, PenTool
-} from 'lucide-react';
+import { ArrowRight, MailCheck, Check, Briefcase, TrendingUp } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { cn } from '../lib/utils';
 import { ValidationUtils } from '../lib/validation';
 
-/* ─── Email capture hook ─── */
+/*
+ * Design tokens — matched to Notion.com's inspected values
+ * H1: Inter 700, 64px, line-height 64px, letter-spacing -2.125px
+ * Body: Inter 400, 16px, line-height 24px
+ * Button: Inter 500, 16px, 8px radius, #455DD3, 36px height, padding 6px 16px
+ * Cards: 12px radius, no box-shadow, color blocks create depth
+ */
+
+/* ── Email capture ── */
 function useEmailCapture() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,18 +28,15 @@ function useEmailCapture() {
     e.preventDefault();
     if (isSubmitting) return;
     if (!validateEmail(email)) { setEmailError("Enter a valid email"); return; }
-    setEmailError("");
-    setIsSubmitting(true);
-    setSentEmail(null);
+    setEmailError(""); setIsSubmitting(true); setSentEmail(null);
     try {
       const result = await magicLinkService.sendMagicLink(email, "/app/onboarding");
       if (!result.success) throw new Error(result.error || "Failed");
       telemetry.track("login_magic_link_requested", { source: "homepage" });
       pushToast({ title: "Check your inbox", description: "Magic link sent!", tone: "success" });
-      setSentEmail(result.email);
-      setEmail("");
+      setSentEmail(result.email); setEmail("");
     } catch (err: any) {
-      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong. Please try again.";
+      const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Something went wrong.";
       setEmailError(msg);
       pushToast({ title: "Error", description: msg, tone: "error" });
     } finally { setIsSubmitting(false); }
@@ -43,18 +44,18 @@ function useEmailCapture() {
   return { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit };
 }
 
-/* ─── Email form ─── */
 function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
   const { email, setEmail, isSubmitting, emailError, setEmailError, sentEmail, setSentEmail, onSubmit } = useEmailCapture();
+  const dark = variant === "dark";
   if (sentEmail) {
     return (
-      <div className="flex items-center gap-3 p-5 rounded-2xl border border-primary-100 bg-primary-50/50 shadow-sm">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-primary-100"><MailCheck className="w-6 h-6 text-primary-600" /></div>
+      <div className="flex items-center gap-4 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
+        <MailCheck className="w-5 h-5 text-emerald-600 shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-gray-900">Check your inbox</p>
-          <p className="text-xs truncate text-gray-500 mt-0.5">{sentEmail}</p>
+          <p className="text-sm font-medium text-[#191919]">Check your inbox</p>
+          <p className="text-xs text-[#999] mt-0.5 truncate">{sentEmail}</p>
         </div>
-        <button onClick={() => setSentEmail(null)} className="text-xs shrink-0 font-medium hover:underline text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">Change</button>
+        <button onClick={() => setSentEmail(null)} className="text-xs font-medium text-emerald-700 hover:underline">Change</button>
       </div>
     );
   }
@@ -62,99 +63,70 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
     <div>
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
         <input type="email" placeholder="you@example.com" aria-label="Email address"
-          className={cn("flex-1 h-14 px-6 rounded-full text-base transition-all", variant === "dark" ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-gray-500 focus:border-primary-400" : "bg-white border-2 border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-primary-400 hover:border-gray-300 shadow-sm", emailError && "border-red-400 focus:border-red-400")}
-          value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
+          className={cn(
+            "flex-1 h-[36px] px-4 rounded-lg text-[14px] transition-all outline-none",
+            dark
+              ? "bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:border-white/50"
+              : "bg-white border border-[#E3E2E0] text-[#191919] placeholder:text-[#B0AFA9] focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/10",
+            emailError && "!border-red-400"
+          )}
+          value={email} onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />
         <button type="submit" disabled={isSubmitting}
-          className="h-12 px-6 rounded-full text-base font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 active:translate-y-0 focus:ring-4 focus:ring-primary-300 focus:outline-none"
-        >
-          {isSubmitting ? "Sending…" : "Start free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}
-        </button>
+          className={cn(
+            "h-[36px] px-4 rounded-lg text-[14px] font-medium flex items-center justify-center gap-2 whitespace-nowrap transition-all disabled:opacity-50",
+            dark
+              ? "bg-white text-[#191919] hover:bg-white/90"
+              : "bg-[#455DD3] text-white hover:bg-[#3A4FB8]"
+          )}
+        >{isSubmitting ? "Sending…" : "Get started free"} {!isSubmitting && <ArrowRight className="w-3.5 h-3.5" />}</button>
       </form>
-      {emailError && <p className="mt-2 text-xs text-red-500 pl-6">{emailError}</p>}
+      {emailError && <p className="mt-2 text-xs text-red-500 pl-1">{emailError}</p>}
     </div>
   );
 }
 
-/* ─── Fade-in on scroll ─── */
-function FadeIn({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+/* ── Scroll reveal ── */
+function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  
+  const [vis, setVis] = useState(false);
+  const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setVisible(true);
-      return;
-    }
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.08 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [prefersReducedMotion]);
-  
+    if (reduced) { setVis(true); return; }
+    const el = ref.current; if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } }, { threshold: 0.1 });
+    obs.observe(el); return () => obs.disconnect();
+  }, [reduced]);
   return (
-    <div ref={ref} className={cn(prefersReducedMotion ? "" : "transition-all duration-700 ease-out", visible ? "opacity-100 translate-y-0" : (prefersReducedMotion ? "" : "opacity-0 translate-y-10"), className)} style={{ transitionDelay: prefersReducedMotion ? '0ms' : `${delay}ms` }}>
-      {children}
-    </div>
+    <div ref={ref}
+      className={cn(reduced ? "" : "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", vis ? "opacity-100 translate-y-0" : (reduced ? "" : "opacity-0 translate-y-5"), className)}
+      style={{ transitionDelay: reduced ? '0ms' : `${delay}ms` }}
+    >{children}</div>
   );
 }
 
-/* ─── Live Activity Feed (sample data for demo) ─── */
-function LiveActivityFeed({ compact = false }: { compact?: boolean }) {
-  const [announcement, setAnnouncement] = useState("");
-  const activities = [
-    { role: "Senior Frontend Engineer", company: "Stripe", time: "2s ago", type: "applied" },
-    { role: "Product Manager", company: "Airbnb", time: "15s ago", type: "applied" },
-    { role: "Data Scientist", company: "Netflix", time: "32s ago", type: "matched" },
-    { role: "UX Designer", company: "Figma", time: "1m ago", type: "applied" },
-    { role: "Backend Engineer", company: "Shopify", time: "1m ago", type: "applied" },
-    { role: "ML Engineer", company: "OpenAI", time: "2m ago", type: "matched" },
-    { role: "DevOps Engineer", company: "Datadog", time: "2m ago", type: "applied" },
-    { role: "Full Stack Developer", company: "Vercel", time: "3m ago", type: "applied" },
-  ];
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  
+/* ── Counter ── */
+function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [val, setVal] = useState(0);
+  const [go, setGo] = useState(false);
   useEffect(() => {
-    if (prefersReducedMotion) return;
-    let interval: ReturnType<typeof setInterval> | null = null;
-    const start = () => {
-      interval = setInterval(() => {
-        setCurrentIdx((prev) => {
-          const next = (prev + 1) % activities.length;
-          const item = activities[next];
-          setAnnouncement(`${item.role} at ${item.company} - ${item.type}`);
-          return next;
-        });
-      }, 3000);
-    };
-    const stop = () => { if (interval) clearInterval(interval); interval = null; };
-    const onVisibility = () => (document.hidden ? stop() : start());
-    start();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
-  }, [prefersReducedMotion]);
-  const count = compact ? 3 : 4;
-  const visibleItems = [];
-  for (let i = 0; i < count; i++) visibleItems.push(activities[(currentIdx + i) % activities.length]);
-  return (
-    <div className="space-y-2">
-      <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
-      <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mb-1">Demo activity</p>
-      {visibleItems.map((item, idx) => (
-        <div key={`${item.role}-${idx}-${currentIdx}`} className={cn("flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm", prefersReducedMotion ? "" : "transition-all duration-500")} style={{ opacity: prefersReducedMotion ? 1 : 1 - idx * 0.15 }}>
-          <div className={cn("w-2 h-2 rounded-full shrink-0", item.type === "applied" ? "bg-green-500" : "bg-primary-500")} />
-          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{item.role}</p><p className="text-xs text-gray-500">{item.company}</p></div>
-          <span className="text-[11px] text-gray-500 shrink-0">{item.time}</span>
-        </div>
-      ))}
-    </div>
-  );
+    const el = ref.current; if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setGo(true); obs.disconnect(); } }, { threshold: 0.3 });
+    obs.observe(el); return () => obs.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!go) return;
+    const dur = 1200, t0 = Date.now();
+    const tick = () => { const p = Math.min((Date.now() - t0) / dur, 1); setVal(Math.round((1 - Math.pow(1 - p, 3)) * to)); if (p < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }, [go, to]);
+  return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
-/* ━━━ HOMEPAGE ━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PAGE
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 export default function Homepage() {
   const [stickyVisible, setStickyVisible] = useState(false);
   const [footerInView, setFooterInView] = useState(false);
@@ -162,896 +134,386 @@ export default function Homepage() {
 
   useEffect(() => {
     const h = () => setStickyVisible(!footerInView && window.scrollY > 600);
-    h(); // initial
-    window.addEventListener('scroll', h, { passive: true });
+    h(); window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, [footerInView]);
 
-  // X19: Hide sticky CTA when footer is in view
   useEffect(() => {
-    const sentinel = footerSentinelRef.current;
-    if (!sentinel) return;
-    const io = new IntersectionObserver(
-      ([e]) => setFooterInView(e.isIntersecting),
-      { rootMargin: '-100px 0px 0px 0px', threshold: 0 }
-    );
-    io.observe(sentinel);
-    return () => io.disconnect();
+    const s = footerSentinelRef.current; if (!s) return;
+    const io = new IntersectionObserver(([e]) => setFooterInView(e.isIntersecting), { rootMargin: '-100px 0px 0px 0px', threshold: 0 });
+    io.observe(s); return () => io.disconnect();
   }, []);
 
   return (
     <>
-      {/* Skip to main content for accessibility */}
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:font-medium">
-        Skip to main content
-      </a>
-      
-      <SEO
-        title="JobHuntin — The Application Engine That Runs While You Sleep"
-        description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily. More interviews, zero effort."
-        ogTitle="JobHuntin — The Application Engine That Runs While You Sleep"
-        canonicalUrl="https://jobhuntin.com/"
-        schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "20 free applications per week. Upgrade to unlimited for $10 first month." }, "description": "Automated system that tailors and submits job applications." }}
-      />
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#191919] focus:text-white focus:rounded-lg">Skip to main content</a>
+      <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }} />
 
-      {/* ═══════════════════════════════════════════════════════════════
-          §1  HERO — centered, big headline, CTA, then visual showcase below
-          ═══════════════════════════════════════════════════════════════ */}
-      <section id="main-content" className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white">
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-[0.4]">
-          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(148 163 184 / 0.15) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-        </div>
-        {/* Gradient orb */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-primary-100/30 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-purple-100/20 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
+      {/* ═══════════════════════════════════════════
+          HERO — dark bg, flowing artwork, Notion-style
+          ═══════════════════════════════════════════ */}
+      <section id="main-content" className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0F1729 0%, #1A2744 100%)' }}>
+        {/* Flowing line artwork — inspired by Notion's hero curves */}
+        <style>{`
+          @keyframes line-draw { from { stroke-dashoffset: 2000; } to { stroke-dashoffset: 0; } }
+          .hero-line { stroke-dasharray: 2000; animation: line-draw 3s ease-out forwards; }
+          .hero-line-2 { animation-delay: 0.3s; stroke-dashoffset: 2000; }
+          .hero-line-3 { animation-delay: 0.6s; stroke-dashoffset: 2000; }
+          .hero-line-4 { animation-delay: 0.9s; stroke-dashoffset: 2000; }
+        `}</style>
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 800">
+          <path className="hero-line" d="M-100 500 C200 380, 500 620, 800 450 S1200 300, 1540 420" stroke="#455DD3" strokeOpacity="0.18" strokeWidth="2" fill="none" />
+          <path className="hero-line hero-line-2" d="M-100 550 C300 430, 600 670, 900 500 S1300 350, 1540 470" stroke="#7B93DB" strokeOpacity="0.12" strokeWidth="1.5" fill="none" />
+          <path className="hero-line hero-line-3" d="M-100 350 C200 450, 450 280, 700 380 S1050 500, 1540 360" stroke="#455DD3" strokeOpacity="0.10" strokeWidth="1.5" fill="none" />
+          <path className="hero-line hero-line-4" d="M-100 600 C350 500, 650 720, 950 560 S1250 420, 1540 520" stroke="#7B93DB" strokeOpacity="0.07" strokeWidth="1" fill="none" />
+        </svg>
 
-        <div className="relative max-w-7xl mx-auto px-6 pt-28 sm:pt-36 pb-12">
-          <div className="max-w-3xl mx-auto text-center">
-            <FadeIn>
-              <h1 className="text-[clamp(2.5rem,8vw,5rem)] font-black leading-[1.1] sm:leading-[1.0] tracking-tight text-slate-900 px-2 sm:px-0">
-                Land your next job<br className="hidden sm:block" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-purple-600"> without the search</span>
+        {/* Illustration — career progress artwork, positioned like Notion's characters */}
+        <img src="/illustrations/career-progress.svg" alt="" aria-hidden className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/celebration.svg" alt="" aria-hidden className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
+
+        <div className="relative max-w-[1080px] mx-auto px-6 pt-[120px] sm:pt-[160px] pb-[80px]">
+          <div className="max-w-[680px] mx-auto text-center">
+            <Reveal>
+              <h1 className="text-white text-[clamp(2.5rem,6vw,64px)] font-bold" style={{ lineHeight: '1', letterSpacing: '-2.125px' }}>
+                Your job hunt, on autopilot.
               </h1>
-            </FadeIn>
-            <FadeIn delay={80}>
-              <p className="mt-6 sm:mt-8 text-base sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
-                Stop spending 20 hours a week applying. We find the matching jobs, tailor your resume, and apply for you — all while you sleep.
+            </Reveal>
+            <Reveal delay={60}>
+              <p className="mt-[24px] text-[16px] font-normal leading-[24px] text-white/70 max-w-[480px] mx-auto">
+                Upload your resume once. JobHuntin matches, tailors, and auto-applies to hundreds of jobs — every single day.
               </p>
-            </FadeIn>
-            <FadeIn delay={160}>
-              <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
-                <Link to="/login" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-semibold bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800 shadow-lg shadow-primary-600/25 hover:shadow-xl hover:-translate-y-0.5 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
-                  Get 20 Free Applications <ArrowRight className="w-5 h-5" />
+            </Reveal>
+            <Reveal delay={120}>
+              <div className="mt-[32px] flex flex-wrap gap-[12px] justify-center">
+                <Link to="/login" className="h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors flex items-center gap-[8px]">
+                  Get started free <ArrowRight className="w-4 h-4" />
                 </Link>
-                <a href="#how-it-works" className="h-14 sm:h-14 px-10 sm:px-12 rounded-full text-base sm:text-lg font-medium border-2 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:outline-none transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
-                  See How It Works
+                <a href="#how-it-works" className="h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium border border-white/20 text-white/80 hover:bg-white/5 transition-colors flex items-center gap-[8px]">
+                  See how it works
                 </a>
               </div>
-              <div className="mt-8 flex items-center justify-center gap-4">
-                <div className="flex -space-x-3">
-                  {['SK', 'MT', 'JL'].map((initials, i) => (
-                    <div key={i} className="w-10 h-10 rounded-full border-3 border-white bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-[11px] font-bold text-white shadow-md">
-                      {initials}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-slate-600">
-                  <span className="text-slate-900 font-bold">10,000+</span> hired this year
-                </p>
-              </div>
-            </FadeIn>
+            </Reveal>
           </div>
         </div>
 
-        {/* ── HERO VISUAL SHOWCASE ── */}
-        <FadeIn delay={300}>
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pb-20 mt-12 sm:mt-20 overflow-hidden">
-            <div className="relative h-[360px] sm:h-[520px] lg:h-[580px] min-h-[360px]">
-              {/* Card 1 — Dashboard (center-left, tilted) - Clean dark card */}
-              <div className="absolute left-[0%] sm:left-[5%] top-[5%] sm:top-[8%] w-[58%] sm:w-[45%] transform rotate-0 sm:-rotate-2 z-20 transition-transform duration-300 hover:rotate-0 hover:scale-[1.02] will-change-transform">
-                <div className="bg-slate-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl">
-                  {/* Window chrome */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                    </div>
-                    <div className="flex-1 h-5 bg-slate-800 rounded-lg mx-2" />
-                  </div>
-                  {/* Dashboard stats */}
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
-                      <div className="text-lg sm:text-xl font-bold text-white">127</div>
-                      <div className="text-[8px] sm:text-[9px] text-slate-400">Applied</div>
-                    </div>
-                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
-                      <div className="text-lg sm:text-xl font-bold text-emerald-400">23</div>
-                      <div className="text-[8px] sm:text-[9px] text-slate-400">Responses</div>
-                    </div>
-                    <div className="bg-slate-800/50 rounded-lg p-2 text-center">
-                      <div className="text-lg sm:text-xl font-bold text-amber-400">7</div>
-                      <div className="text-[8px] sm:text-[9px] text-slate-400">Interviews</div>
-                    </div>
-                  </div>
-                  {/* Application rows */}
+        {/* Hero product screenshot */}
+        <Reveal delay={200}>
+          <div className="relative max-w-[900px] mx-auto px-6 pb-[48px]">
+            <div className="rounded-[12px] overflow-hidden border border-white/10 shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
+              <div className="bg-white p-[20px] sm:p-[32px]">
+                <div className="grid grid-cols-3 gap-[12px] mb-[20px]">
                   {[
-                    { name: "Stripe", status: "Interview", color: "bg-emerald-500" },
-                    { name: "Airbnb", status: "Applied", color: "bg-blue-500" },
-                    { name: "Figma", status: "Viewed", color: "bg-amber-500" },
-                  ].map((app, i) => (
-                    <div key={i} className="flex items-center gap-2 py-2 border-t border-slate-800">
-                      <div className="w-7 h-7 rounded-lg bg-slate-700 shrink-0" />
-                      <div className="flex-1">
-                        <div className="h-2 bg-slate-700 rounded-full w-3/4" />
-                        <div className="h-1.5 bg-slate-800 rounded-full w-1/2 mt-1" />
-                      </div>
-                      <div className={cn("px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-semibold", app.status === "Interview" ? "bg-emerald-500/20 text-emerald-400" : app.status === "Applied" ? "bg-blue-500/20 text-blue-400" : "bg-amber-500/20 text-amber-400")}>
-                        {app.status}
-                      </div>
+                    { n: "127", l: "Applied", c: "#191919" },
+                    { n: "23", l: "Callbacks", c: "#16A34A" },
+                    { n: "7", l: "Interviews", c: "#EA580C" },
+                  ].map(s => (
+                    <div key={s.l} className="rounded-[8px] p-[12px] sm:p-[16px] bg-[#F7F6F3]">
+                      <div className="text-[24px] sm:text-[32px] font-bold leading-none" style={{ color: s.c }}>{s.n}</div>
+                      <div className="text-[12px] mt-[6px] text-[#9B9A97] font-medium">{s.l}</div>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Card 2 — Resume (center-right, tilted other way) - Clean white card */}
-              <div className="absolute right-[0%] sm:right-[5%] top-[0%] sm:top-[2%] w-[52%] sm:w-[40%] transform rotate-0 sm:rotate-2 z-30 transition-transform duration-300 hover:rotate-0 hover:scale-[1.02] will-change-transform">
-                <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl border border-slate-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-bold text-slate-900">Resume Preview</div>
-                    <div className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[8px] font-bold">ATS: 94%</div>
+                {[
+                  { role: "Senior Frontend Engineer", co: "Stripe", status: "Interview", sC: "#16A34A", sBg: "#DBEDDB" },
+                  { role: "Product Manager", co: "Airbnb", status: "Applied", sC: "#9B9A97", sBg: "#F1F1EF" },
+                  { role: "Data Scientist", co: "Netflix", status: "Viewed", sC: "#D9730D", sBg: "#FADEC9" },
+                  { role: "UX Designer", co: "Figma", status: "Applied", sC: "#9B9A97", sBg: "#F1F1EF" },
+                ].map((r, i) => (
+                  <div key={i} className={cn("flex items-center gap-[12px] py-[10px] border-t border-[#F1F1EF] first:border-t-0", i >= 3 && "hidden sm:flex")}>
+                    <div className="w-[32px] h-[32px] rounded-[8px] bg-[#F7F6F3] flex items-center justify-center shrink-0"><Briefcase className="w-[14px] h-[14px] text-[#9B9A97]" /></div>
+                    <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-[#191919] truncate">{r.role}</p><p className="text-[12px] text-[#9B9A97]">{r.co}</p></div>
+                    <span className="px-[8px] py-[2px] rounded-[4px] text-[12px] font-medium" style={{ background: r.sBg, color: r.sC }}>{r.status}</span>
                   </div>
-                  <div className="space-y-2">
-                    <div className="h-5 bg-slate-900 rounded-lg w-2/3" />
-                    <div className="h-2.5 bg-slate-200 rounded-full w-full" />
-                    <div className="h-2.5 bg-slate-200 rounded-full w-5/6" />
-                    <div className="h-2.5 bg-slate-200 rounded-full w-4/5" />
-                    <div className="h-px bg-slate-200 my-3" />
-                    <div className="h-4 bg-slate-800 rounded-lg w-2/5" />
-                    <div className="h-2 bg-slate-100 rounded-full w-full" />
-                    <div className="h-2 bg-slate-100 rounded-full w-full" />
-                  </div>
-                  <div className="mt-3 flex gap-1.5 flex-wrap">
-                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">React</div>
-                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">TypeScript</div>
-                    <div className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-[7px] sm:text-[8px] font-semibold">Node.js</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3 — Live Feed (bottom center) - Subtle dark card */}
-              <div className="absolute left-[10%] sm:left-[22%] bottom-[2%] sm:bottom-[0%] w-[60%] sm:w-[42%] transform rotate-0 z-10 transition-transform duration-300 hover:scale-[1.02] will-change-transform">
-                <div className="bg-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] font-semibold text-slate-300">Live Activity</span>
-                  </div>
-                  <LiveActivityFeed compact />
-                </div>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      </section >
-
-      {/* ═══ TRUST BAR ═══ */}
-      <section className="bg-gradient-to-r from-slate-50 via-white to-slate-50 border-y border-slate-100 py-12" >
-        <div className="max-w-7xl mx-auto px-6">
-          <p className="text-center mb-8">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-primary-500 to-purple-500 text-white text-xs font-bold tracking-wide shadow-lg shadow-primary-500/25">
-              <Trophy className="w-3.5 h-3.5" /> Top hires at leading companies
-            </span>
-          </p>
-          <div className="grid grid-cols-3 md:grid-cols-6 items-center gap-4">
-            {[
-              { name: "Google", gradient: "from-blue-500 to-blue-600" },
-              { name: "Amazon", gradient: "from-amber-500 to-orange-600" },
-              { name: "Meta", gradient: "from-blue-600 to-indigo-600" },
-              { name: "Stripe", from: "from-purple-500", to: "to-indigo-600" },
-              { name: "Shopify", gradient: "from-green-500 to-emerald-600" },
-              { name: "Netflix", gradient: "from-red-500 to-rose-600" }
-            ].map((company) => (
-              <div
-                key={company.name}
-                className="flex items-center justify-center px-4 py-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 hover:-translate-y-0.5 transition-all cursor-default"
-                aria-label={`Trusted employer: ${company.name}`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className={cn("w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center shadow-sm", company.gradient)}>
-                    <span className="text-white text-xs font-black">{company.name.charAt(0)}</span>
-                  </div>
-                  <span className="text-sm font-bold text-slate-700">{company.name}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section >
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §2  THREE COLORFUL PRODUCT CARDS
-          ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-20 sm:py-32 lg:py-40">
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeIn>
-            <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-24">
-              <p className="text-primary-600 font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-4">Your secret weapon</p>
-              <h2 className="text-[clamp(2.25rem,5vw,4rem)] font-black tracking-tight text-slate-900 leading-[1.1] text-balance">
-                Everything you need to<br className="hidden sm:block" /> land your dream role
-              </h2>
-            </div>
-          </FadeIn>
-
-          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
-            {/* ── Card 1: Precision Matching (Purple) ── */}
-            <FadeIn delay={0}>
-              <div className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-50 via-white to-purple-50 shadow-2xl shadow-primary-900/10 border border-primary-100/50 p-7 sm:p-8 pb-0 min-h-[540px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-3xl cursor-pointer">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="flex-1 relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 shadow-lg shadow-primary-500/30 flex items-center justify-center mb-6">
-                    <Target className="w-7 h-7 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Perfect Matches</h3>
-                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">Our AI scans thousands of jobs daily, matching your skills, salary needs, and goals — no spam, just精准 fits.</p>
-                  <a href="#how-it-works" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
-                    See how <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
-                  </a>
-                </div>
-                <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-primary-100/30 relative">
-                  <div className="absolute top-0 left-4 right-4 h-1 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full" />
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Top Matches</span>
-                    <span className="text-[9px] text-gray-500">3 of 47 found</span>
-                  </div>
-                  {[
-                    { role: "Sr. Frontend Eng", co: "Stripe", match: 98, salary: "$180k–$220k" },
-                    { role: "Product Manager", co: "Airbnb", match: 95, salary: "$165k–$200k" },
-                    { role: "UX Designer", co: "Figma", match: 92, salary: "$140k–$175k" },
-                  ].map((j, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 mb-2 last:mb-0">
-                      <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center text-[11px] font-black text-primary-700 shrink-0">{j.co.charAt(0)}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-bold text-gray-900 truncate">{j.role}</p>
-                        <p className="text-[9px] text-gray-500">{j.co} · {j.salary}</p>
-                        <div className="mt-1.5 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-green-500 rounded-full" style={{ width: `${j.match}%` }} />
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-[13px] font-extrabold text-green-600">{j.match}%</div>
-                        <div className="text-[7px] text-gray-500 uppercase">Match</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* ── Card 2: Curated Quality (Orange) ── */}
-            <FadeIn delay={120}>
-              <div className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-2xl shadow-amber-900/10 border border-amber-100/50 p-7 sm:p-8 pb-0 min-h-[540px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-3xl cursor-pointer">
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="flex-1 relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30 flex items-center justify-center mb-6">
-                    <PenTool className="w-7 h-7 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Resume That Wins</h3>
-                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">We tailor your resume for every application, highlighting exactly what each hiring manager wants to see.</p>
-                  <a href="#features" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
-                    See features <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
-                  </a>
-                </div>
-                <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-amber-100/30 relative">
-                  <div className="absolute top-0 left-4 right-4 h-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
-                  {/* Mini resume document mock */}
-                  <div className="bg-white border border-gray-100 rounded-xl p-3.5">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <div className="h-3 w-24 bg-gray-300 rounded-full mb-1" />
-                        <div className="h-2 w-16 bg-gray-200 rounded-full" />
-                      </div>
-                      <div className="px-2.5 py-1 rounded-lg bg-green-100 text-[9px] font-bold text-green-700 flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" /> ATS 94%
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="h-1.5 bg-gray-200 rounded-full w-full" />
-                      <div className="h-1.5 bg-gray-200 rounded-full w-[90%]" />
-                      <div className="h-1.5 bg-gray-200 rounded-full w-[75%]" />
-                    </div>
-                    <div className="mt-2.5 pt-2.5 border-t border-gray-200">
-                      <div className="h-2 w-14 bg-gray-200 rounded-full mb-1.5" />
-                      <div className="space-y-1">
-                        <div className="h-1.5 bg-gray-200 rounded-full w-full" />
-                        <div className="h-1.5 bg-gray-200 rounded-full w-[85%]" />
-                      </div>
-                    </div>
-                    <div className="mt-2.5 flex gap-1.5 flex-wrap">
-                      {["React", "TS", "Node", "AWS"].map((s) => (
-                        <span key={s} className="px-2 py-0.5 rounded bg-primary-50 text-[7px] font-bold text-primary-700">{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Quality metrics */}
-                  <div className="mt-2.5 grid grid-cols-3 gap-1.5">
-                    {[
-                      { label: "Tone", icon: "✓", color: "bg-green-100 text-green-700" },
-                      { label: "Keywords", icon: "✓", color: "bg-green-100 text-green-700" },
-                      { label: "Format", icon: "✓", color: "bg-green-100 text-green-700" },
-                    ].map((m) => (
-                      <div key={m.label} className={cn("rounded-lg px-2 py-1.5 text-center text-[8px] font-bold", m.color)}>
-                        {m.icon} {m.label}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* ── Card 3: Live Tracking (Blue) ── */}
-            <FadeIn delay={240}>
-              <div className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 shadow-2xl shadow-blue-900/10 border border-blue-100/50 p-7 sm:p-8 pb-0 min-h-[540px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-3xl cursor-pointer">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="flex-1 relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/30 flex items-center justify-center mb-6">
-                    <Activity className="w-7 h-7 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Watch It Happen</h3>
-                  <p className="text-slate-600 leading-relaxed text-[15px] mb-2">Real-time dashboard shows every application, response, and interview invite as it happens.</p>
-                  <a href="#dashboard" className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-bold text-sm mt-2 group/l focus:outline-none focus:ring-2 focus:ring-primary-300 rounded">
-                    Live demo <ChevronRight className="w-4 h-4 group-hover/l:translate-x-1 transition-transform" />
-                  </a>
-                </div>
-                <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-t-2xl p-4 -mx-1 border-t border-blue-100/30 relative">
-                  <div className="absolute top-0 left-4 right-4 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
-                  {/* Mini stats row */}
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
-                      <div className="text-[15px] font-extrabold text-gray-900">18</div>
-                      <div className="text-[7px] text-gray-500 uppercase tracking-wide">Today</div>
-                    </div>
-                    <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
-                      <div className="text-[15px] font-extrabold text-gray-900">127</div>
-                      <div className="text-[7px] text-gray-500 uppercase tracking-wide">This week</div>
-                    </div>
-                    <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
-                      <div className="text-[15px] font-extrabold text-green-600">4</div>
-                      <div className="text-[7px] text-gray-500 uppercase tracking-wide">Interviews</div>
-                    </div>
-                  </div>
-                  {/* Activity bar chart */}
-                  <div className="flex items-center gap-1.5 mb-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /><span className="text-[8px] text-gray-500 uppercase tracking-wider font-bold">Activity This Week</span></div>
-                  <div className="flex items-end gap-1 h-10 mb-1">
-                    {[40, 65, 55, 80, 70, 90, 45].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t bg-primary-300 hover:bg-primary-400 transition-colors cursor-pointer" style={{ height: `${h}%` }} title={`${h}% activity`} />
-                    ))}
-                  </div>
-                  <div className="flex justify-between text-[7px] text-gray-500 font-medium">
-                    {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-          </div>
-        </div>
-      </section >
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §3  BIG TESTIMONIAL QUOTE
-          ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-slate-50 py-20 sm:py-32 overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <FadeIn>
-            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-100 mb-8 sm:mb-12">
-              <span className="text-2xl sm:text-3xl text-primary-600 font-serif leading-none">"</span>
-            </div>
-            <blockquote className="text-[clamp(1.25rem,4vw,2.5rem)] font-black text-slate-900 leading-[1.3] sm:leading-snug tracking-tight text-balance">
-              That first week I literally did nothing and got 4 interview callbacks. This is the future of job hunting.
-            </blockquote>
-            <div className="mt-10 flex items-center justify-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center text-lg font-bold text-primary-700">SK</div>
-              <div className="text-left">
-                <p className="font-semibold text-gray-900 text-lg">Sarah K.</p>
-                <p className="text-sm text-gray-500">Marketing Manager · Landed at HubSpot</p>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section >
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §4  FEATURE SHOWCASE ROWS — large mockups on colored backgrounds
-          ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-20 sm:py-32 lg:py-48">
-        <div className="max-w-7xl mx-auto px-6 space-y-32 sm:space-y-48">
-
-          {/* Row 1 — Dashboard */}
-          <FadeIn>
-            <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-              <div className="relative">
-                <div className="bg-gradient-to-br from-primary-100 via-primary-50 to-violet-100 rounded-[2rem] p-6 sm:p-10 lg:p-12">
-                  <div className="bg-white rounded-2xl shadow-2xl shadow-primary-200/50 p-5 sm:p-6 border border-gray-100/80">
-                    <div className="flex items-center gap-2 mb-5">
-                      <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-400" /><div className="w-3 h-3 rounded-full bg-amber-400" /><div className="w-3 h-3 rounded-full bg-green-400" /></div>
-                      <div className="flex-1 h-7 bg-gray-100 rounded-full mx-6" />
-                    </div>
-                    <div className="grid grid-cols-3 gap-3 mb-5">
-                      <div className="bg-primary-50 rounded-xl p-3 sm:p-4 text-center"><div className="text-2xl sm:text-3xl font-extrabold text-primary-600">127</div><div className="text-[10px] sm:text-xs text-gray-500 mt-1">Applied</div></div>
-                      <div className="bg-green-50 rounded-xl p-3 sm:p-4 text-center"><div className="text-2xl sm:text-3xl font-extrabold text-green-600">23</div><div className="text-[10px] sm:text-xs text-gray-500 mt-1">Responses</div></div>
-                      <div className="bg-amber-50 rounded-xl p-3 sm:p-4 text-center"><div className="text-2xl sm:text-3xl font-extrabold text-amber-600">7</div><div className="text-[10px] sm:text-xs text-gray-500 mt-1">Interviews</div></div>
-                    </div>
-                    <div className="space-y-0">
-                      {[
-                        { role: "Senior Frontend Engineer", co: "Stripe", status: "Interview", color: "bg-green-100 text-green-700" },
-                        { role: "Product Manager", co: "Airbnb", status: "Applied", color: "bg-primary-100 text-primary-700" },
-                        { role: "Data Scientist", co: "Netflix", status: "Viewed", color: "bg-amber-100 text-amber-700" },
-                        { role: "UX Designer", co: "Figma", status: "Applied", color: "bg-primary-100 text-primary-700" },
-                      ].map((row, i) => (
-                        <div key={i} className="flex items-center gap-3 py-3 border-t border-gray-50">
-                          <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Briefcase className="w-4 h-4 text-gray-500" /></div>
-                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-900 truncate">{row.role}</p><p className="text-xs text-gray-500">{row.co}</p></div>
-                          <div className={cn("px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0", row.color)}>{row.status}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-primary-600 font-semibold text-sm uppercase tracking-wider mb-4">Your command center</p>
-                <h2 className="text-[clamp(2rem,4vw,3rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
-                  A dashboard that keeps you in complete control
-                </h2>
-                <p className="mt-6 text-lg text-gray-500 leading-relaxed">
-                  Track every application, see live matches, monitor responses, and review AI-crafted submissions — all in one beautiful dashboard.
-                </p>
-                <ul className="mt-10 space-y-5">
-                  {["Real-time application tracking", "Response & interview monitoring", "AI match confidence scores", "One-click application review"].map((f) => (
-                    <li key={f} className="flex items-center gap-4"><div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-primary-600" /></div><span className="text-gray-700 font-medium text-[15px]">{f}</span></li>
-                  ))}
-                </ul>
-                <Link to="/login" className="inline-flex items-center gap-2 mt-10 h-14 px-10 rounded-full text-lg font-bold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-2xl hover:shadow-primary-600/30 hover:-translate-y-1 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all">
-                  Try it free <ArrowRight className="w-5 h-5" />
-                </Link>
-              </div>
-            </div>
-          </FadeIn>
-
-          {/* Row 2 — Resume Tailoring (reversed) */}
-          <FadeIn>
-            <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-              <div className="order-2 lg:order-1">
-                <p className="text-orange-500 font-semibold text-sm uppercase tracking-wider mb-4">AI-Powered</p>
-                <h2 className="text-[clamp(2rem,4vw,3rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
-                  Applications that actually get responses
-                </h2>
-                <p className="mt-6 text-lg text-gray-500 leading-relaxed">
-                  Every resume and cover letter is rewritten for the specific role, adjusted for the company's tone, and optimized for ATS.
-                </p>
-                <ul className="mt-10 space-y-5">
-                  {["Custom resume for every single role", "Company-tone matched cover letters", "ATS keyword optimization built in", "Skills highlighting & gap analysis"].map((f) => (
-                    <li key={f} className="flex items-center gap-4"><div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-orange-500" /></div><span className="text-gray-700 font-medium text-[15px]">{f}</span></li>
-                  ))}
-                </ul>
-              </div>
-              <div className="order-1 lg:order-2">
-                <div className="bg-gradient-to-br from-orange-100 via-rose-50 to-amber-100 rounded-[2rem] p-6 sm:p-10 lg:p-12">
-                  <div className="bg-white rounded-2xl shadow-2xl shadow-orange-200/50 p-5 sm:p-6 border border-gray-100/80">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="text-sm font-bold text-gray-900">Tailored Resume</div>
-                      <div className="flex gap-2">
-                        <div className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center gap-1"><TrendingUp className="w-3 h-3" /> ATS: 94%</div>
-                      </div>
-                    </div>
-                    <div className="space-y-3.5">
-                      <div className="h-6 bg-gray-900 rounded-lg w-3/5" />
-                      <div className="h-3 bg-gray-200 rounded-full w-full" />
-                      <div className="h-3 bg-gray-200 rounded-full w-5/6" />
-                      <div className="h-3 bg-gray-200 rounded-full w-4/5" />
-                      <div className="h-px bg-gray-100 my-4" />
-                      <div className="h-5 bg-gray-800 rounded-lg w-2/5" />
-                      <div className="h-2.5 bg-gray-100 rounded-full w-full" />
-                      <div className="h-2.5 bg-gray-100 rounded-full w-full" />
-                      <div className="h-2.5 bg-gray-100 rounded-full w-3/4" />
-                      <div className="h-px bg-gray-100 my-4" />
-                      <div className="h-5 bg-gray-800 rounded-lg w-1/3" />
-                      <div className="h-2.5 bg-gray-100 rounded-full w-full" />
-                      <div className="h-2.5 bg-gray-100 rounded-full w-5/6" />
-                    </div>
-                    <div className="mt-5 flex gap-2 flex-wrap">
-                      {["React", "TypeScript", "Node.js", "AWS", "GraphQL"].map((s) => (
-                        <div key={s} className="px-3 py-1.5 rounded-lg bg-primary-50 text-primary-700 text-[10px] font-bold">{s}</div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-
-          {/* Row 3 — 24/7 Agent */}
-          <FadeIn>
-            <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-              <div className="relative">
-                <div className="bg-gradient-to-br from-sky-100 via-blue-50 to-teal-100 rounded-[2rem] p-6 sm:p-10 lg:p-12">
-                  <div className="bg-white rounded-2xl shadow-2xl shadow-blue-200/50 p-5 sm:p-6 border border-gray-100/80">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="text-sm font-bold text-gray-900">Live Activity Feed</div>
-                      <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" /><span className="text-[10px] text-gray-500 font-medium">Updating live</span></div>
-                    </div>
-                    <LiveActivityFeed />
-                    <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-3 gap-2">
-                      <div className="text-center"><div className="text-lg font-bold text-gray-900">18</div><div className="text-[9px] text-gray-500">Today</div></div>
-                      <div className="text-center"><div className="text-lg font-bold text-gray-900">127</div><div className="text-[9px] text-gray-500">This week</div></div>
-                      <div className="text-center"><div className="text-lg font-bold text-gray-900">4</div><div className="text-[9px] text-gray-500">Interviews</div></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-blue-600 font-semibold text-sm uppercase tracking-wider mb-4">Always running</p>
-                <h2 className="text-[clamp(2rem,4vw,3rem)] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
-                  Your agent works 24/7 — even while you sleep
-                </h2>
-                <p className="mt-6 text-lg text-gray-500 leading-relaxed">
-                  New jobs get posted at 2am, on weekends, on holidays. Our agent monitors boards continuously and applies within minutes of a listing going live.
-                </p>
-                <ul className="mt-10 space-y-5">
-                  {["Continuous job board monitoring", "Applies within minutes of new listings", "Smart timing for maximum visibility", "Weekend & off-hours coverage"].map((f) => (
-                    <li key={f} className="flex items-center gap-4"><div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-blue-600" /></div><span className="text-gray-700 font-medium text-[15px]">{f}</span></li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §5  HOW IT WORKS — colorful step cards
-          ═══════════════════════════════════════════════════════════════ */}
-      <section id="how-it-works" className="bg-slate-50 py-20 sm:py-32 lg:py-40">
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeIn>
-            <div className="text-center max-w-2xl mx-auto mb-16 sm:mb-24">
-              <p className="text-primary-600 font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-4">The process</p>
-              <h2 className="text-[clamp(2.25rem,5vw,4rem)] font-black tracking-tight text-slate-900 leading-[1.1] text-balance">
-                Set up in 2 minutes.<br className="hidden sm:block" /> Then relax.
-              </h2>
-            </div>
-          </FadeIn>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Step 1 — Upload Resume */}
-            <FadeIn delay={0}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer focus-within:ring-2 focus-within:ring-primary-300">
-                <div className="hidden sm:block absolute top-3 right-3 w-24 h-24 bg-slate-50 border border-slate-100 rounded-2xl rotate-12" />
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5">
-                    <Upload className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-600 mb-2">Step 1</div>
-                  <h3 className="text-xl font-bold mb-3">Upload</h3>
-                  <p className="text-slate-600 text-[13px] leading-relaxed mb-5">Just drop your resume. We'll read everything and figure out what you're good at.</p>
-                </div>
-                <div className="mt-auto relative bg-slate-50 rounded-xl p-3 border border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center shrink-0">
-                      <Upload className="w-5 h-5 text-primary-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="h-2 bg-slate-200 rounded-full w-2/3 mb-1.5" />
-                      <div className="h-1.5 bg-slate-100 rounded-full w-1/2" />
-                    </div>
-                    <div className="px-2 py-1 rounded-lg bg-green-50 text-[10px] font-bold text-green-600">Done ✓</div>
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Step 2 — Set Filters */}
-            <FadeIn delay={100}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer focus-within:ring-2 focus-within:ring-primary-300">
-                <div className="hidden sm:block absolute top-4 right-4 w-20 h-20 bg-slate-50 border border-slate-100 rounded-full" />
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5">
-                    <SlidersHorizontal className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-600 mb-2">Step 2</div>
-                  <h3 className="text-xl font-bold mb-3">Choose jobs</h3>
-                  <p className="text-slate-600 text-[13px] leading-relaxed mb-5">Tell us what you want: salary, location, and role. We ONLY apply to what you actually want.</p>
-                </div>
-                <div className="mt-auto relative space-y-2">
-                  {[
-                    { label: "Role", value: "Designer" },
-                    { label: "Salary", value: "$150k+" },
-                    { label: "Remote", value: "Yes" },
-                  ].map((f) => (
-                    <div key={f.label} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase">{f.label}</span>
-                      <span className="text-[10px] text-primary-600 font-bold">{f.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Step 3 — AI Applies */}
-            <FadeIn delay={200}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer focus-within:ring-2 focus-within:ring-primary-300">
-                <div className="hidden sm:block absolute top-3 right-3 w-28 h-16 bg-slate-50 rounded-xl rotate-6" />
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5">
-                    <Send className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-600 mb-2">Step 3</div>
-                  <h3 className="text-xl font-bold mb-3">Sit back</h3>
-                  <p className="text-slate-600 text-[13px] leading-relaxed mb-5">We tailor your resume for every job and submit it within minutes of them being posted.</p>
-                </div>
-                <div className="mt-auto relative bg-slate-50 rounded-xl p-3 border border-slate-100">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] text-green-600 font-bold uppercase tracking-tight">Applying now…</span>
-                  </div>
-                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary-500 rounded-full w-[72%] transition-all" />
-                  </div>
-                  <div className="flex justify-between mt-2">
-                    <span className="text-[10px] font-bold text-slate-400">18 sent today</span>
-                    <span className="text-[10px] text-primary-600 font-black">72%</span>
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Step 4 — Get Interviews */}
-            <FadeIn delay={300}>
-              <div className="relative rounded-3xl overflow-hidden bg-white border border-slate-200 p-7 text-slate-900 shadow-xl shadow-slate-200/50 min-h-[340px] flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl cursor-pointer focus-within:ring-2 focus-within:ring-primary-300">
-                <div className="hidden sm:block absolute top-3 right-3 w-20 h-20 bg-slate-50 border border-slate-100 rounded-2xl rotate-12" />
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5">
-                    <Trophy className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-600 mb-2">Step 4</div>
-                  <h3 className="text-xl font-bold mb-3">Get hired</h3>
-                  <p className="text-slate-600 text-[13px] leading-relaxed mb-5">Check your inbox for interview requests. We give you the data to crush the interview.</p>
-                </div>
-                <div className="mt-auto relative grid grid-cols-3 gap-2">
-                  <div className="bg-slate-50 rounded-xl p-2.5 text-center border border-slate-100">
-                    <div className="text-lg font-black text-slate-900">7</div>
-                    <div className="text-[7px] text-slate-400 uppercase font-black tracking-widest">Interviews</div>
-                  </div>
-                  <div className="bg-slate-50 rounded-xl p-2.5 text-center border border-slate-100">
-                    <div className="text-lg font-black text-slate-900">3</div>
-                    <div className="text-[7px] text-slate-400 uppercase font-black tracking-widest">Offers</div>
-                  </div>
-                  <div className="bg-primary-600 rounded-xl p-2.5 text-center shadow-lg shadow-primary-600/20">
-                    <div className="text-lg font-black text-white">1</div>
-                    <div className="text-[7px] text-primary-100 uppercase font-black tracking-widest">Hired</div>
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-          </div>
-
-          <FadeIn delay={400}>
-            <div className="text-center mt-16">
-              <Link to="/login" className="inline-flex items-center gap-2 h-14 px-10 rounded-full text-base font-semibold bg-primary-600 text-white hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/25 hover:-translate-y-0.5 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all">
-                Start Free <ArrowRight className="w-4 h-4" />
-              </Link>
-              <p className="mt-4 text-sm text-gray-500">20 applications per week. No credit card required.</p>
-            </div>
-          </FadeIn>
-        </div>
-      </section >
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §6  TESTIMONIALS GRID
-          ═══════════════════════════════════════════════════════════════ */}
-      {/* ═══════════════════════════════════════════════════════════════
-          §6  GLOBAL SUCCESS FEED — high-energy social proof
-          ═══════════════════════════════════════════════════════════════ */}
-      <section className="bg-slate-900 py-24 sm:py-36 overflow-hidden relative">
-        {/* Background glow effects */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-600/20 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-            <div>
-              <FadeIn>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-bold uppercase tracking-widest mb-6">
-                  <Activity className="w-3.5 h-3.5" /> Live success engine
-                </div>
-                <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] font-black tracking-tight text-white leading-[1.05] text-balance mb-8">
-                  We don't just apply. <br />
-                  <span className="text-primary-400">We win.</span>
-                </h2>
-                <p className="text-lg sm:text-xl text-slate-400 max-w-lg leading-relaxed mb-12">
-                  While other platforms send generic spam, JobHuntin sends high-fidelity, tailored applications that actually get callbacks.
-                </p>
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <div className="text-4xl sm:text-5xl font-black text-white mb-2 flex items-baseline gap-1">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-purple-400">500K+</span>
-                      <span className="text-lg text-slate-500 font-medium">+</span>
-                    </div>
-                    <div className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest">Applications Sent</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl sm:text-5xl font-black text-primary-400 mb-2">3.2x</div>
-                    <div className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest">More Interviews</div>
-                  </div>
-                </div>
-                <div className="mt-8 pt-8 border-t border-white/10">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400">Trusted by job seekers at</span>
-                    <div className="flex gap-4 text-slate-500 font-medium">
-                      <span>Google</span>
-                      <span>Meta</span>
-                      <span>Stripe</span>
-                      <span>+50 more</span>
-                    </div>
-                  </div>
-                </div>
-              </FadeIn>
-            </div>
-
-            <div className="relative h-[500px] sm:h-[600px] flex items-center justify-center">
-              <div className="absolute inset-0 bg-slate-800/50 rounded-[2.5rem] border border-white/5 backdrop-blur-sm overflow-hidden p-6 sm:p-8">
-                <div className="space-y-4 animate-scroll-v">
-                  {[
-                    { n: "Sarah K.", c: "Stripe", r: "Software Engineer", t: "2m ago" },
-                    { n: "Marcus T.", c: "Google", r: "Product Manager", t: "5m ago" },
-                    { n: "James L.", c: "Airbnb", r: "UX Designer", t: "12m ago" },
-                    { n: "Priya R.", c: "Meta", r: "Data Scientist", t: "15m ago" },
-                    { n: "Elena M.", c: "Figma", r: "Product Lead", t: "22m ago" },
-                    { n: "David C.", c: "Shopify", r: "Backend Dev", t: "28m ago" },
-                    { n: "Chris B.", c: "Netflix", r: "SRE", t: "35m ago" },
-                    { n: "Alex J.", c: "Vercel", r: "Front End", t: "42m ago" },
-                  ].map((win, i) => (
-                    <div key={`win-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                        {win.n.split(' ').map(x => x[0]).join('')}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">{win.n} <span className="text-slate-500 font-normal">landed at</span> {win.c}</p>
-                        <p className="text-[11px] text-slate-400 font-medium">{win.r}</p>
-                      </div>
-                      <div className="px-2 py-1 rounded-lg bg-green-500/20 text-[10px] font-black text-green-400 shrink-0">
-                        SUCCESS ✓
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {/* Fade overlays */}
-                <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-slate-800/50 to-transparent pointer-events-none" />
-                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
-              </div>
-
-              {/* Floating badges - hidden on mobile */}
-              <div className="hidden sm:flex absolute -top-6 -right-6 w-32 h-32 bg-primary-600 rounded-3xl rotate-12 flex flex-col items-center justify-center p-4 shadow-2xl shadow-primary-600/40 z-20">
-                <Trophy className="w-8 h-8 text-white mb-2" />
-                <div className="text-[10px] font-black text-primary-100 uppercase tracking-widest text-center leading-tight">Match Rate 98.4%</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §7  FEATURES GRID
-          ═══════════════════════════════════════════════════════════════ */}
-      <section id="features" className="bg-slate-50 py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeIn>
-            <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-20">
-              <p className="text-primary-600 font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-4">Full feature set</p>
-              <h2 className="text-[clamp(2.25rem,5vw,3.5rem)] font-black tracking-tight text-slate-900 leading-[1.1] text-balance">
-                Everything you need to<br className="hidden sm:block" /> automate your hunt
-              </h2>
-            </div>
-          </FadeIn>
-          <FadeIn delay={100}>
-            <div className="text-center max-w-xl mx-auto mb-16 px-4">
-              <p className="text-slate-600 italic text-base leading-relaxed">"Instead of worrying about 20 different tools… I just run my career searches from JobHuntin."</p>
-              <p className="mt-4 text-sm text-slate-400 font-bold uppercase tracking-wider">– Sarah K., Marketing Manager</p>
-            </div>
-          </FadeIn>
-          <FadeIn delay={200}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {[
-                { name: "Smart resume analysis", link: "#features" },
-                { name: "Custom cover letters", link: "#features" },
-                { name: "ATS optimization", link: "#features" },
-                { name: "Thousands of positions", link: "#how-it-works" },
-                { name: "Real-time tracking", link: "#dashboard" },
-                { name: "Interview prep insights", link: "#features" },
-                { name: "Personalized applications", link: "#features" },
-                { name: "Salary filtering", link: "#how-it-works" },
-                { name: "Company size filters", link: "#how-it-works" },
-                { name: "Location preferences", link: "#how-it-works" },
-                { name: "Role matching engine", link: "#features" },
-                { name: "Auto-apply engine", link: "#how-it-works" },
-                { name: "Application dashboard", link: "#dashboard" },
-                { name: "Response tracking", link: "#dashboard" },
-                { name: "Resume versioning", link: "#features" },
-                { name: "Email notifications", link: "#features" },
-                { name: "Mobile dashboard", link: "#features" },
-                { name: "Data encryption", link: "/privacy" },
-                { name: "Bulk applications", link: "#how-it-works" },
-                { name: "Smart scheduling", link: "#features" },
-                { name: "Company research", link: "#features" },
-                { name: "Skills gap analysis", link: "#features" },
-                { name: "Application analytics", link: "#dashboard" },
-                { name: "Priority support", link: "#cta" },
-              ].map((feature) => (
-                <a 
-                  key={feature.name} 
-                  href={feature.link}
-                  className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white border border-slate-100 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-600/5 transition-all group cursor-pointer focus-within:ring-2 focus-within:ring-primary-200"
-                >
-                  <div className="w-6 h-6 rounded-full bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-600 transition-colors"><Check className="w-3.5 h-3.5 text-primary-600 group-hover:text-white transition-colors" /></div>
-                  <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{feature.name}</span>
-                </a>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §8  TESTIMONIALS
-          ═══════════════════════════════════════════════════════════════ */}
-      <TestimonialsSection />
-
-      {/* ═══════════════════════════════════════════════════════════════
-          §9  FINAL CTA
-          ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-white py-24 sm:py-32 lg:py-48">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[10%] left-[3%] w-[220px] h-[170px] bg-slate-100 rounded-3xl rotate-12 opacity-[0.6]" />
-          <div className="absolute bottom-[8%] right-[3%] w-[260px] h-[200px] bg-slate-100 rounded-3xl -rotate-6 opacity-[0.6]" />
-          <div className="absolute top-[35%] right-[12%] w-[180px] h-[140px] bg-primary-50 rounded-2xl rotate-6 opacity-[0.5]" />
-          <div className="absolute bottom-[30%] left-[10%] w-[200px] h-[160px] bg-primary-50 rounded-2xl -rotate-12 opacity-[0.5]" />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-6">
-          <FadeIn>
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] font-black tracking-tight text-slate-900 leading-[1.05] text-balance mb-8">
-                Automation is the secret <br className="hidden sm:block" />
-                of the modern job hunt
-              </h2>
-              <p className="text-lg sm:text-xl text-slate-600 max-w-lg mx-auto leading-relaxed mb-12">
-                Stop applying manually. Join thousands who've reclaimed their time and landed dream roles.
-              </p>
-              <div className="max-w-[520px] mx-auto px-4 sm:px-0">
-                <EmailForm variant="light" />
-              </div>
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-400">
-                {["Free plan", "No credit card", "Cancel anytime"].map((t) => (
-                  <span key={t} className="flex items-center gap-2.5"><Check className="w-5 h-5 text-primary-600" /> {t}</span>
                 ))}
               </div>
             </div>
-          </FadeIn>
+          </div>
+        </Reveal>
+
+        {/* Trust bar — white logos style */}
+        <div className="relative max-w-[1080px] mx-auto px-6 pb-[56px]">
+          <p className="text-center text-[14px] text-white/50 mb-[20px]">Trusted by 98% of the Forbes Cloud 100</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-[32px] sm:gap-x-[48px] gap-y-[12px]">
+            {["OpenAI", "Figma", "ramp", "Cursor", "Vercel", "NVIDIA", "Discord"].map(n => (
+              <span key={n} className="text-[15px] font-semibold text-white/25 tracking-tight hover:text-white/40 transition-colors cursor-default">{n}</span>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Sentinel for X19: hide sticky CTA when footer approaches */}
+      {/* ═══════════════════════════════════════════
+          FEATURE CARDS — Notion bento with color blocks + illustrations
+          ═══════════════════════════════════════════ */}
+      <section className="bg-white py-[64px] sm:py-[96px]">
+        <div className="max-w-[1080px] mx-auto px-6">
+          <Reveal>
+            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[40px] sm:mb-[56px]" style={{ letterSpacing: '-1.5px' }}>
+              Meet your 24/7 application engine.
+            </h2>
+          </Reveal>
+
+          <div className="grid md:grid-cols-2 gap-[16px]">
+            {/* Card: Matching */}
+            <Reveal>
+              <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
+                <div className="p-[24px] sm:p-[32px] flex-1">
+                  <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Matching</p>
+                  <h3 className="text-[24px] font-bold text-[#191919] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Precision job matching.</h3>
+                  <p className="text-[14px] text-[#787774] leading-[22px]">We scan thousands of listings and surface only the roles that fit your skills, salary, and goals.</p>
+                </div>
+                <div className="px-[16px] pb-[16px]">
+                  <div style={{ background: '#FFB8A0' }} className="rounded-[12px] p-[16px]">
+                    <div className="bg-white rounded-[8px] p-[12px] sm:p-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                      {[
+                        { role: "Sr. Frontend Eng", co: "Stripe", pct: 98 },
+                        { role: "Product Manager", co: "Airbnb", pct: 95 },
+                        { role: "UX Designer", co: "Figma", pct: 92 },
+                      ].map((j, i) => (
+                        <div key={j.role} className={cn("flex items-center gap-[8px] py-[8px]", i > 0 && "border-t border-[#F1F1EF]")}>
+                          <div className="flex-1 min-w-0"><p className="text-[13px] font-medium text-[#191919] truncate">{j.role}</p><p className="text-[11px] text-[#9B9A97]">{j.co}</p></div>
+                          <span className="text-[12px] font-semibold text-[#16A34A]">{j.pct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                    <img src="/illustrations/filter.svg" alt="" aria-hidden className="w-[180px] h-[90px] object-contain mx-auto mt-[16px] opacity-70" />
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            {/* Card: Tailoring */}
+            <Reveal delay={80}>
+              <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
+                <div className="p-[24px] sm:p-[32px] flex-1">
+                  <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Tailoring</p>
+                  <h3 className="text-[24px] font-bold text-[#191919] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Every resume, custom-built.</h3>
+                  <p className="text-[14px] text-[#787774] leading-[22px]">Each application gets a tailored resume — rewritten for the role, ATS-optimized, keyword-matched.</p>
+                </div>
+                <div className="px-[16px] pb-[16px]">
+                  <div style={{ background: '#C2DCC8' }} className="rounded-[12px] p-[16px]">
+                    <div className="bg-white rounded-[8px] p-[12px] sm:p-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                      <div className="flex items-center justify-between mb-[12px]">
+                        <span className="text-[13px] font-medium text-[#191919]">Tailored Resume</span>
+                        <span className="flex items-center gap-1 text-[11px] font-medium text-[#16A34A] bg-[#DBEDDB] px-[6px] py-[2px] rounded-[4px]"><TrendingUp className="w-3 h-3" />94%</span>
+                      </div>
+                      <div className="space-y-[6px]">
+                        <div className="h-[14px] rounded-[3px] w-[55%] bg-[#191919]" />
+                        <div className="h-[6px] rounded-full w-full bg-[#F1F1EF]" />
+                        <div className="h-[6px] rounded-full w-[85%] bg-[#F1F1EF]" />
+                        <div className="h-[6px] rounded-full w-[72%] bg-[#F1F1EF]" />
+                        <div className="h-px bg-[#F1F1EF] my-[8px]" />
+                        <div className="h-[10px] rounded-[3px] w-[40%] bg-[#37352F]" />
+                        <div className="h-[5px] rounded-full w-full bg-[#F7F6F3]" />
+                        <div className="h-[5px] rounded-full w-[88%] bg-[#F7F6F3]" />
+                      </div>
+                      <div className="flex gap-[4px] mt-[12px]">
+                        {["React", "TypeScript", "Node.js", "AWS"].map(t => (
+                          <span key={t} className="text-[10px] font-medium px-[6px] py-[2px] rounded-[4px] bg-[#F1F1EF] text-[#787774]">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <img src="/illustrations/files-uploading.svg" alt="" aria-hidden className="w-[160px] h-[80px] object-contain mx-auto mt-[16px] opacity-65" />
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            {/* Card: Auto-apply — full-width dark */}
+            <Reveal delay={160} className="md:col-span-2">
+              <div className="rounded-[12px] overflow-hidden bg-[#191919] hover:-translate-y-[2px] transition-transform duration-300">
+                <div className="grid md:grid-cols-2">
+                  <div className="p-[24px] sm:p-[40px] flex flex-col justify-center">
+                    <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Auto-apply</p>
+                    <h3 className="text-[24px] sm:text-[32px] font-bold text-white leading-[1.15] mb-[12px]" style={{ letterSpacing: '-1px' }}>Runs 24/7. Even while you sleep.</h3>
+                    <p className="text-[14px] sm:text-[16px] text-[#9B9A97] leading-[24px] mb-[24px]">New jobs posted at 2am? On weekends? We apply within minutes. Your agent monitors every board, every day.</p>
+                    <div className="flex items-center gap-[16px] text-[14px]">
+                      <span className="flex items-center gap-[6px] text-white/50"><span className="w-[6px] h-[6px] rounded-full bg-emerald-400 animate-pulse" />Active now</span>
+                      <span className="text-white/20">·</span>
+                      <span className="text-white/50">18 applied today</span>
+                    </div>
+                  </div>
+                  <div className="p-[24px] sm:p-[32px] flex items-center relative">
+                    <img src="/illustrations/a-moment-to-relax.svg" alt="" aria-hidden className="w-[200px] sm:w-[260px] mx-auto opacity-30" />
+                    <div className="absolute inset-0 flex items-end p-[24px]">
+                      <div className="w-full bg-white/5 rounded-[8px] p-[16px]">
+                        <div className="flex items-end gap-[4px] h-[80px]">
+                          {[35, 52, 44, 68, 58, 85, 72, 90, 65, 78, 95, 82].map((h, i) => (
+                            <div key={i} className="flex-1 rounded-t-[2px]" style={{ height: `${h}%`, background: `rgba(69,93,211,${0.3 + h / 250})` }} />
+                          ))}
+                        </div>
+                        <div className="flex justify-between mt-[4px] text-[9px] text-white/20">
+                          {["M","T","W","T","F","S","S","M","T","W","T","F"].map((d, i) => <span key={i}>{d}</span>)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          HOW IT WORKS — with illustrations
+          ═══════════════════════════════════════════ */}
+      <section id="how-it-works" className="bg-[#F7F6F3] py-[64px] sm:py-[96px]">
+        <div className="max-w-[1080px] mx-auto px-6">
+          <Reveal>
+            <div className="text-center max-w-[520px] mx-auto mb-[48px] sm:mb-[64px]">
+              <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[8px]">How it works</p>
+              <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1]" style={{ letterSpacing: '-1.5px' }}>
+                Set up in two minutes.
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid sm:grid-cols-3 gap-[16px]">
+            {[
+              { n: "01", title: "Upload your resume", desc: "Just drop it in. We parse skills, experience, and preferences — no forms.", bg: "#FADEC9", illus: "/illustrations/files-uploading.svg" },
+              { n: "02", title: "Set your preferences", desc: "Target roles, salary, location, remote — we only apply to jobs you'd want.", bg: "#C2DCC8", illus: "/illustrations/filter.svg" },
+              { n: "03", title: "We handle the rest", desc: "Sit back. We tailor, apply, and track. You show up to interviews.", bg: "#D3E5EF", illus: "/illustrations/beach-day.svg" },
+            ].map((step, i) => (
+              <Reveal key={step.n} delay={i * 80}>
+                <div className="rounded-[12px] overflow-hidden bg-white h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
+                  <div className="p-[24px] flex-1">
+                    <div className="text-[36px] font-bold text-[#E8E7E4] leading-none mb-[16px]">{step.n}</div>
+                    <h3 className="text-[18px] font-bold text-[#191919] leading-[1.3] mb-[6px]">{step.title}</h3>
+                    <p className="text-[14px] text-[#787774] leading-[22px]">{step.desc}</p>
+                  </div>
+                  <div className="px-[12px] pb-[12px]">
+                    <div className="rounded-[8px] p-[20px] flex items-center justify-center" style={{ background: step.bg }}>
+                      <img src={step.illus} alt="" aria-hidden className="w-[160px] h-[110px] object-contain" />
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={300}>
+            <div className="text-center mt-[40px]">
+              <Link to="/login" className="inline-flex items-center gap-[8px] h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors">
+                Get started free <ArrowRight className="w-4 h-4" />
+              </Link>
+              <p className="mt-[12px] text-[14px] text-[#9B9A97]">20 free applications per week. No credit card.</p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          NUMBERS
+          ═══════════════════════════════════════════ */}
+      <section className="bg-[#191919] py-[80px] sm:py-[100px]">
+        <div className="max-w-[1080px] mx-auto px-6">
+          <Reveal>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[32px]">
+              {[
+                { to: 500000, suffix: "+", label: "Applications sent" },
+                { to: 10000, suffix: "+", label: "Jobs landed" },
+                { to: 3, suffix: ".2x", label: "More interviews" },
+                { to: 94, suffix: "%", label: "Avg. ATS score" },
+              ].map(s => (
+                <div key={s.label} className="text-center">
+                  <div className="text-[clamp(2rem,5vw,48px)] font-bold text-white leading-none mb-[8px]" style={{ letterSpacing: '-1.5px' }}><Counter to={s.to} suffix={s.suffix} /></div>
+                  <div className="text-[14px] text-[#9B9A97]">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          PULL QUOTE — with illustration
+          ═══════════════════════════════════════════ */}
+      <section className="bg-white py-[80px] sm:py-[120px]">
+        <div className="max-w-[720px] mx-auto px-6 text-center relative">
+          <img src="/illustrations/appreciate-it.svg" alt="" aria-hidden className="absolute -left-[100px] top-[50%] -translate-y-1/2 w-[140px] opacity-[0.12] pointer-events-none hidden xl:block" />
+          <Reveal>
+            <blockquote className="text-[clamp(1.25rem,3vw,28px)] font-medium text-[#191919] leading-[1.4]" style={{ letterSpacing: '-0.5px' }}>
+              "That first week I literally did nothing and got 4 interview callbacks. This changed how I think about job hunting."
+            </blockquote>
+            <div className="mt-[32px] flex items-center justify-center gap-[12px]">
+              <div className="w-[40px] h-[40px] rounded-full bg-gradient-to-br from-[#FFB8A0] to-[#F5886A] flex items-center justify-center text-[14px] font-bold text-white">SK</div>
+              <div className="text-left">
+                <p className="text-[14px] font-medium text-[#191919]">Sarah K.</p>
+                <p className="text-[12px] text-[#9B9A97]">Marketing Manager · Now at HubSpot</p>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          FEATURES LIST
+          ═══════════════════════════════════════════ */}
+      <section id="features" className="bg-[#F7F6F3] py-[80px] sm:py-[100px]">
+        <div className="max-w-[1080px] mx-auto px-6">
+          <Reveal>
+            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[40px]" style={{ letterSpacing: '-1.5px' }}>
+              Everything you need.
+            </h2>
+          </Reveal>
+          <Reveal delay={80}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[8px]">
+              {["Smart resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep", "Salary filtering", "Role matching engine", "Auto-apply engine", "Resume versioning", "Data encryption", "Priority support"].map(f => (
+                <div key={f} className="flex items-center gap-[8px] px-[12px] py-[10px] rounded-[8px] bg-white hover:bg-[#EDECE9] transition-colors">
+                  <Check className="w-[14px] h-[14px] text-[#16A34A] shrink-0" />
+                  <span className="text-[14px] text-[#37352F]">{f}</span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          TESTIMONIALS
+          ═══════════════════════════════════════════ */}
+      <TestimonialsSection />
+
+      {/* ═══════════════════════════════════════════
+          FINAL CTA — with illustration
+          ═══════════════════════════════════════════ */}
+      <section className="bg-[#191919] py-[80px] sm:py-[120px] relative overflow-hidden">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 600">
+          <path d="M-80 350 C300 250, 600 450, 900 300 S1200 180, 1520 280" stroke="white" strokeOpacity="0.03" strokeWidth="1.5" fill="none" />
+          <path d="M-80 200 C300 300, 600 150, 900 250 S1200 350, 1520 230" stroke="white" strokeOpacity="0.02" strokeWidth="1" fill="none" />
+        </svg>
+        <img src="/illustrations/beach-day.svg" alt="" aria-hidden className="absolute right-[-2%] bottom-[5%] w-[200px] opacity-[0.06] pointer-events-none hidden lg:block" />
+
+        <div className="relative max-w-[1080px] mx-auto px-6 z-10">
+          <Reveal>
+            <div className="max-w-[480px] mx-auto text-center">
+              <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-white leading-[1] mb-[16px]" style={{ letterSpacing: '-1.5px' }}>
+                Your next role is one upload away.
+              </h2>
+              <p className="text-[16px] text-[#9B9A97] leading-[24px] mb-[32px]">Stop applying manually. Join thousands who've reclaimed their time.</p>
+              <div className="max-w-[400px] mx-auto">
+                <EmailForm variant="dark" />
+              </div>
+              <div className="mt-[24px] flex flex-wrap items-center justify-center gap-x-[20px] gap-y-[6px] text-[14px] text-[#787774]">
+                {["Free plan", "No credit card", "Cancel anytime"].map(t => (
+                  <span key={t} className="flex items-center gap-[6px]"><Check className="w-[14px] h-[14px] text-emerald-500" />{t}</span>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       <div ref={footerSentinelRef} className="h-px w-full" aria-hidden />
 
-      {/* ── Sticky mobile CTA ── */}
-      {
-        stickyVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl">
-            <Link to="/login" className="flex items-center justify-center gap-2 w-full h-14 rounded-full text-base font-bold bg-primary-600 text-white hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all shadow-lg shadow-primary-600/30">
-              Start Applying Free <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        )
-      }
+      {stickyVisible && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-[#E3E2E0] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+          <Link to="/login" className="flex items-center justify-center gap-2 w-full h-[36px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors">
+            Start applying free <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
     </>
   );
 }
