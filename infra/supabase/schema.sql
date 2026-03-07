@@ -8,6 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS tenants (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255),
     domain VARCHAR(255) UNIQUE,
     plan VARCHAR(50) DEFAULT 'FREE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -31,9 +32,22 @@ CREATE TABLE IF NOT EXISTS users (
     avatar_url TEXT,
     linkedin_url TEXT,
     resume_url TEXT,
+    profile_completeness INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- User profiles (stores profile_data JSONB, resume URL, etc.)
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL UNIQUE REFERENCES public.users(id) ON DELETE CASCADE,
+    profile_data jsonb NOT NULL DEFAULT '{}'::jsonb,
+    resume_url text,
+    tenant_id text,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);
 
 -- User preferences
 CREATE TABLE IF NOT EXISTS user_preferences (

@@ -899,7 +899,7 @@ async def upload_resume(
         raise HTTPException(status_code=400, detail="File is empty or corrupted")
 
     # Enhanced file validation - check for malicious content patterns
-    filename = file.filename.lower()
+    filename = (file.filename or "upload.pdf").lower()
 
     # Check for suspicious file extensions disguised as PDF
     suspicious_extensions = [
@@ -917,14 +917,6 @@ async def upload_resume(
         if filename.endswith(ext):
             logger.warning(f"[UPLOAD] Suspicious file extension detected: {filename}")
             raise HTTPException(status_code=400, detail="Invalid file type")
-
-    # Check for suspicious filenames
-    suspicious_names = ["resume", "cv", "document", "upload", "test", "admin", "config"]
-    base_name = os.path.splitext(filename)[0].lower()
-    for name in suspicious_names:
-        if base_name == name:
-            logger.warning(f"[UPLOAD] Suspicious filename detected: {filename}")
-            raise HTTPException(status_code=400, detail="Invalid filename")
 
     # Read file content for validation
     pdf_bytes = await file.read()

@@ -137,6 +137,7 @@ export default function Login() {
       setShowCaptcha(false);
       setCaptchaToken("");
       telemetry.track("login_magic_link_requested", { usedCaptcha: !!captchaToken });
+      setSuccessState({ email: normalized || email.trim().toLowerCase() });
       pushToast({ title: "Check your inbox", tone: "success" });
     } catch (error) {
       const err = error as Error;

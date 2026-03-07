@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const sessionExpiryRef = useRef<number | null>(null);
     const warningShownRef = useRef(false);
+    const verifyRedirectingRef = useRef(false);
 
     // Helper to fetch user profile
     const fetchUser = useCallback(async (isInitialLoad = false) => {
@@ -179,21 +180,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const tokenFromUrl = params.get("token");
 
                 if (tokenFromUrl) {
-                    if (import.meta.env.DEV) console.log('[AUTH] Token found in URL (legacy flow), redirecting to backend verify...');
+                    if (verifyRedirectingRef.current) {
+                        if (import.meta.env.DEV) console.log('[AUTH] Verify redirect already in progress, skipping duplicate');
+                        return;
+                    }
+                    verifyRedirectingRef.current = true;
 
-                    // IMPORTANT: We must NOT use fetch() here. fetch() follows redirects internally
-                    // and httpOnly cookies set on the API domain during a redirect are blocked by
-                    // the browser's cross-origin cookie restrictions.
-                    //
-                    // Instead, do a real browser navigation to the backend verify endpoint.
-                    // The backend will set the cookie and redirect back to the app.
+                    if (import.meta.env.DEV) console.log('[AUTH] Token found in URL, redirecting to backend verify...');
+
                     const base = getApiBase();
                     const returnTo = params.get("returnTo") || sessionStorage.getItem('returnTo') || "/app/dashboard";
                     if (base) {
                         const verifyUrl = `${base.replace(/\/$/, "")}/auth/verify-magic?token=${encodeURIComponent(tokenFromUrl)}&returnTo=${encodeURIComponent(returnTo)}`;
                         if (import.meta.env.DEV) console.log('[AUTH] Navigating to verify-magic:', verifyUrl);
                         window.location.href = verifyUrl;
-                        return; // Stop execution — browser will navigate away
+                        return;
                     }
                 }
 

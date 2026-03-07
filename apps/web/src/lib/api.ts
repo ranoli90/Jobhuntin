@@ -138,7 +138,7 @@ export async function getAuthHeaders(): Promise<HeadersInit> {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
   if (csrf) {
-    (headers as Record<string, string>)["X-CSRF-Token"] = csrf;
+    (headers as Record<string, string>)["x-csrftoken"] = csrf;
   }
   return headers;
 }

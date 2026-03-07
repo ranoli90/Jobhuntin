@@ -154,18 +154,18 @@ class MagicLinkService {
       }
 
       // Check circuit breaker before making request
+      // States: 'closed' = healthy (default), 'open' = tripped/blocking, 'half-open' = testing recovery
       const circuitKey = `magiclink_${normalizedEmail}`;
-      const circuitState = this.circuitBreakerState.get(circuitKey) || { failures: 0, lastFailure: 0, state: 'open' };
+      const circuitState = this.circuitBreakerState.get(circuitKey) || { failures: 0, lastFailure: 0, state: 'closed' };
 
-      // Check if circuit is open
-      if (circuitState.state === 'closed') {
-        const timeUntilOpen = circuitState.lastFailure + this.CIRCUIT_BREAKER_TIMEOUT - Date.now();
-        if (timeUntilOpen > 0) {
+      if (circuitState.state === 'open') {
+        const timeUntilReset = circuitState.lastFailure + this.CIRCUIT_BREAKER_TIMEOUT - Date.now();
+        if (timeUntilReset > 0) {
           return {
             success: false,
             email: normalizedEmail,
-            error: `Service temporarily unavailable. Please try again in ${Math.ceil(timeUntilOpen / 1000)} seconds.`,
-            retryAfter: Math.ceil(timeUntilOpen / 1000)
+            error: `Service temporarily unavailable. Please try again in ${Math.ceil(timeUntilReset / 1000)} seconds.`,
+            retryAfter: Math.ceil(timeUntilReset / 1000)
           };
         }
       } else if (circuitState.state === 'half-open') {
@@ -204,7 +204,7 @@ class MagicLinkService {
       this.circuitBreakerState.set(circuitKey, {
         failures: 0,
         lastFailure: 0,
-        state: 'open',
+        state: 'closed',
         successCount: 0,
         testRequests: 0
       });
@@ -225,27 +225,24 @@ class MagicLinkService {
       const circuitState = this.circuitBreakerState.get(circuitKey) || {
         failures: 0,
         lastFailure: 0,
-        state: 'open',
+        state: 'closed' as const,
         successCount: 0,
         testRequests: 0
       };
       const newFailures = circuitState.failures + 1;
       const now = Date.now();
-      let newState: 'open' | 'half-open' | 'closed' = 'open';
+      let newState: 'closed' | 'half-open' | 'open' = 'closed';
 
       if (newFailures >= this.CIRCUIT_BREAKER_THRESHOLD) {
-        newState = 'closed';
+        newState = 'open';
       } else if (newFailures >= Math.ceil(this.CIRCUIT_BREAKER_THRESHOLD / 2)) {
         newState = 'half-open';
       }
 
-      // Handle half-open state transitions
       if (circuitState.state === 'half-open') {
-        // If we're in half-open and this request failed, go back to closed
         if (newFailures >= this.CIRCUIT_BREAKER_THRESHOLD) {
-          newState = 'closed';
+          newState = 'open';
         }
-        // Reset test request count on failure in half-open
         circuitState.testRequests = 0;
         circuitState.successCount = 0;
       }
