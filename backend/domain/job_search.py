@@ -108,13 +108,15 @@ def _build_job_search_query(
         params.append(job_type.lower())
 
     # Filter out expired jobs using last_synced_at
+    from datetime import timedelta
+
     ttl_days = getattr(settings, "jobspy_job_ttl_days", 7)
     if ttl_days > 0:
         n += 1
         query += (
             f" AND (last_synced_at IS NULL OR last_synced_at >= now() - ${n}::interval)"
         )
-        params.append(f"{ttl_days} days")
+        params.append(timedelta(days=ttl_days))
 
     query += (
         " ORDER BY date_posted DESC NULLS LAST, created_at DESC LIMIT $%d OFFSET $%d"

@@ -501,7 +501,6 @@ async def list_jobs(
         source=source,
         is_remote=is_remote,
         job_type=job_type,
-        user_id=str(ctx.user_id),
         limit=limit,
         offset=offset,
     )
@@ -742,6 +741,20 @@ async def update_profile(
             tenant_id=ctx.tenant_id,
         )
 
+        # Sync full_name to users table for display consistency
+        contact = profile_data.get("contact") or {}
+        full_name = contact.get("full_name") or ""
+        if not full_name:
+            first = contact.get("first_name", "")
+            last = contact.get("last_name", "")
+            full_name = f"{first} {last}".strip()
+        if full_name:
+            await conn.execute(
+                "UPDATE public.users SET full_name = $1, updated_at = now() WHERE id = $2",
+                full_name,
+                ctx.user_id,
+            )
+
         logger.info(
             "[PROFILE] Profile updated successfully",
             extra={
@@ -825,52 +838,26 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
 async def _hydrate_job_matches(
     db_pool: asyncpg.Pool, user_id: str, tenant_id: str, preferences: dict
 ) -> None:
-    """Background task to pre-fetch and cache job matches after onboarding.
-
-    Attempts profile-aware scoring first; falls back to basic search.
-    """
+    """Background task to pre-fetch and cache job matches after onboarding."""
     try:
         logger.info("Hydrating job matches for user %s", user_id)
 
-        # Try profile-aware scoring first
-        try:
-            from backend.domain.deep_profile import dict_to_profile
-            from backend.domain.job_search import search_jobs_for_profile
-
-            async with db_pool.acquire() as conn:
-                row = await conn.fetchrow(
-                    "SELECT profile_data FROM public.profiles WHERE user_id = $1",
-                    user_id,
-                )
-            if row and row["profile_data"]:
-                import json as _json
-
-                pd = row["profile_data"]
-                data = _json.loads(pd) if isinstance(pd, str) else pd
-                data["user_id"] = user_id
-                profile = dict_to_profile(data)
-                await search_jobs_for_profile(db_pool, profile, limit=25)
-                logger.info("Hydrated scored matches for user %s", user_id)
-                return
-        except Exception as inner:
-            logger.warning("Profile-aware hydration failed, falling back: %s", inner)
-
-        # Fallback: basic search
         from backend.domain.job_search import search_and_list_jobs
 
         location = preferences.get("location")
         role = preferences.get("role_type")
-        salary_str = preferences.get("salary_min")
-        salary = int(salary_str) if salary_str and str(salary_str).isdigit() else None
+        salary_val = preferences.get("salary_min")
+        salary = int(salary_val) if salary_val and str(salary_val).isdigit() and int(str(salary_val)) > 0 else None
 
         await search_and_list_jobs(
             db_pool=db_pool,
             location=location,
             keywords=role,
             min_salary=salary,
-            limit=20,
+            limit=25,
             offset=0,
         )
+        logger.info("Hydrated job matches for user %s", user_id)
     except Exception as e:
         logger.error("Failed to hydrate job matches: %s", e)
 

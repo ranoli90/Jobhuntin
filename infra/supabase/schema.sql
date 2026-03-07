@@ -82,11 +82,16 @@ CREATE TABLE IF NOT EXISTS applications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id),
     job_id UUID REFERENCES jobs(id),
+    tenant_id UUID REFERENCES tenants(id),
+    blueprint_key VARCHAR(50) DEFAULT 'job-app',
     status VARCHAR(50) DEFAULT 'SAVED',
+    priority_score INTEGER DEFAULT 0,
     notes TEXT,
     applied_date DATE,
+    snoozed_until TIMESTAMPTZ,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, job_id)
 );
 
 -- Application inputs (for dynamic forms)
