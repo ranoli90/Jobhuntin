@@ -58,18 +58,18 @@ export function HelpButton({ className }: HelpButtonProps) {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="absolute bottom-16 right-0 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
           >
-            <div className="p-4 bg-primary-600">
+            <div className="p-4 bg-black dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-white font-bold text-lg">How can we help?</h3>
-              <p className="text-white/80 text-sm">Choose an option below</p>
+              <p className="text-gray-400 text-sm">Choose an option below</p>
             </div>
             
             <div className="p-2">
               <a
                 href="/guides"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 transition-colors group"
               >
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                  <Book className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition-colors">
+                  <Book className="w-5 h-5 text-black" />
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">Help Center</p>
@@ -79,10 +79,10 @@ export function HelpButton({ className }: HelpButtonProps) {
               
               <a
                 href="mailto:support@jobhuntin.com"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 transition-colors group"
               >
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                  <Mail className="w-5 h-5 text-emerald-600" />
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition-colors">
+                  <Mail className="w-5 h-5 text-black" />
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">Email Support</p>
@@ -94,10 +94,10 @@ export function HelpButton({ className }: HelpButtonProps) {
                 href="https://twitter.com/jobhuntin"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 transition-colors group"
               >
-                <div className="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
-                  <MessageCircle className="w-5 h-5 text-sky-600" />
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition-colors">
+                  <MessageCircle className="w-5 h-5 text-black" />
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">Twitter/X</p>
@@ -116,9 +116,9 @@ export function HelpButton({ className }: HelpButtonProps) {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className={cn(
-          "w-14 h-14 rounded-full shadow-2xl flex items-center justify-center",
-          "bg-primary-600 text-white hover:bg-primary-700",
-          "transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          "w-14 h-14 rounded-full shadow-lg flex items-center justify-center border border-gray-200",
+          "bg-white text-black hover:bg-gray-100",
+          "transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
         )}
         aria-label={isOpen ? "Close help menu" : "Open help menu"}
         aria-expanded={isOpen}

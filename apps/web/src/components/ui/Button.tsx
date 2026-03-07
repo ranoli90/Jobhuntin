@@ -9,14 +9,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500 shadow-lg shadow-primary-600/20 hover:shadow-primary-600/30 active:scale-95",
+          "bg-black text-white hover:bg-gray-800 focus-visible:ring-black shadow-sm active:scale-[0.98]",
         secondary:
-          "bg-slate-100 text-slate-900 hover:bg-slate-200 focus-visible:ring-slate-500 active:scale-95",
-        ghost: "bg-transparent text-slate-900 hover:bg-slate-100 focus-visible:ring-slate-500 active:scale-95",
-        outline: "bg-transparent border-2 border-slate-200 text-slate-700 hover:border-primary-200 hover:bg-primary-50/50 focus-visible:ring-primary-500 active:scale-95",
-        danger: "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 shadow-lg shadow-red-600/20 active:scale-95",
-        success: "bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500 shadow-lg shadow-emerald-600/20 active:scale-95",
-        lagoon: "bg-cyan-600 text-white hover:bg-cyan-700 focus-visible:ring-cyan-500 shadow-lg shadow-cyan-600/20 active:scale-95",
+          "bg-gray-100 text-black hover:bg-gray-200 focus-visible:ring-gray-300 active:scale-[0.98]",
+        ghost: "bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-300 active:scale-[0.98]",
+        outline: "bg-transparent border border-gray-200 text-black hover:bg-gray-50 focus-visible:ring-gray-300 active:scale-[0.98]",
+        danger: "bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400 shadow-sm active:scale-[0.98]",
+        success: "bg-emerald-500 text-white hover:bg-emerald-600 focus-visible:ring-emerald-400 shadow-sm active:scale-[0.98]",
+        lagoon: "bg-gray-800 text-white hover:bg-black focus-visible:ring-gray-500 shadow-sm active:scale-[0.98]",
       },
       size: {
         sm: "h-10 px-4 text-xs rounded-xl",
