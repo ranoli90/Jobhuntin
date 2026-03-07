@@ -182,7 +182,7 @@ _DISPOSABLE_EMAIL_DOMAINS: set[str] = {
     "trashmail.com",
     "trash-mail.com",
     "wegwerfmail.de",
-    "yandex.com",  # Often abused
+    # yandex.com removed: legitimate provider used by millions
     # Temporary mail variants
     "10minutemail.com",
     "10minutemail.net",
@@ -524,12 +524,17 @@ def _render_email_text(
             branding["api_public_url"], branding["app_base_url"]
         )
 
+    destination_path = return_to or "/app/dashboard"
+    destination_label = _get_destination_label(destination_path)
+
     text = (
         MAGIC_LINK_TEMPLATE_TXT.replace("$action_link", display_link)
+        .replace("$destination", destination_label)
         .replace("$expires_minutes", str(expires_minutes))
         .replace("$app_name", branding["app_name"])
         .replace("$app_domain", branding["app_domain"])
         .replace("$app_tagline", branding["app_tagline"])
+        .replace("$app_base_url", branding["app_base_url"])
     )
     return text
 

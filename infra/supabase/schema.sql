@@ -1,29 +1,30 @@
 -- Combined schema for local development (auto-generated for docker-compose)
--- Source: migrations/001_initial_schema.sql (Up section) + migrations/002_onboarding_tables.sql
+-- All tables required by the backend API, worker, and job sync pipeline
 
--- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Tenants table
+-- ============================================================
+-- Core: Tenants & Users
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS tenants (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255),
     domain VARCHAR(255) UNIQUE,
     plan VARCHAR(50) DEFAULT 'FREE',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Tenant members
 CREATE TABLE IF NOT EXISTS tenant_members (
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
     user_id UUID NOT NULL,
     role VARCHAR(50) DEFAULT 'MEMBER',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT now(),
     PRIMARY KEY (tenant_id, user_id)
 );
 
--- Users table (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -31,51 +32,121 @@ CREATE TABLE IF NOT EXISTS users (
     avatar_url TEXT,
     linkedin_url TEXT,
     resume_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    profile_completeness INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- User preferences
+CREATE TABLE IF NOT EXISTS profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    profile_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    resume_url TEXT,
+    tenant_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS user_preferences (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     location TEXT,
     role_type TEXT,
     salary_min INTEGER,
     remote_only BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Jobs table
+-- ============================================================
+-- Jobs: Listings synced from external sources (JobSpy)
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS jobs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    external_id TEXT UNIQUE,
     title VARCHAR(500) NOT NULL,
     company VARCHAR(255) NOT NULL,
     description TEXT,
     location TEXT,
     salary_min INTEGER,
     salary_max INTEGER,
-    url TEXT,
-    posted_date DATE,
-    remote_policy VARCHAR(50) DEFAULT 'onsite',
-    experience_level VARCHAR(50) DEFAULT 'mid',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    application_url TEXT,
+    source TEXT,
+    is_remote BOOLEAN DEFAULT FALSE,
+    job_type TEXT,
+    date_posted TIMESTAMPTZ,
+    job_level TEXT,
+    company_industry TEXT,
+    company_logo_url TEXT,
+    raw_data JSONB DEFAULT '{}',
+    is_scam BOOLEAN DEFAULT FALSE,
+    quality_score REAL,
+    dedup_key TEXT,
+    skills TEXT[],
+    benefits TEXT,
+    last_synced_at TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Job applications
+-- ============================================================
+-- Job Sync: Configuration and run tracking for JobSpy pipeline
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS job_sync_config (
+    source TEXT PRIMARY KEY,
+    enabled BOOLEAN DEFAULT TRUE,
+    last_synced_at TIMESTAMPTZ,
+    sync_interval_hours INTEGER DEFAULT 4,
+    max_results INTEGER DEFAULT 50,
+    search_queries JSONB DEFAULT '[]',
+    config JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS job_sync_runs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    source TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'running',
+    jobs_fetched INTEGER DEFAULT 0,
+    jobs_new INTEGER DEFAULT 0,
+    jobs_updated INTEGER DEFAULT 0,
+    jobs_skipped INTEGER DEFAULT 0,
+    errors JSONB DEFAULT '[]',
+    duration_ms INTEGER,
+    started_at TIMESTAMPTZ DEFAULT now(),
+    completed_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS popular_searches (
+    search_term TEXT NOT NULL,
+    location TEXT,
+    search_count INTEGER DEFAULT 1,
+    last_searched_at TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (search_term, COALESCE(location, ''))
+);
+
+-- ============================================================
+-- Applications: User job applications tracked by the agent
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS applications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id),
     job_id UUID REFERENCES jobs(id),
-    status VARCHAR(50) DEFAULT 'SAVED',
+    tenant_id UUID REFERENCES tenants(id),
+    blueprint_key VARCHAR(50) DEFAULT 'job-app',
+    status VARCHAR(50) DEFAULT 'QUEUED',
+    priority_score INTEGER DEFAULT 0,
     notes TEXT,
     applied_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    snoozed_until TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, job_id)
 );
 
--- Application inputs (for dynamic forms)
 CREATE TABLE IF NOT EXISTS application_inputs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     application_id UUID REFERENCES applications(id) ON DELETE CASCADE,
@@ -85,21 +156,23 @@ CREATE TABLE IF NOT EXISTS application_inputs (
     answer TEXT,
     resolved BOOLEAN DEFAULT FALSE,
     meta JSONB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Events table for audit trail
 CREATE TABLE IF NOT EXISTS events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     application_id UUID REFERENCES applications(id) ON DELETE CASCADE,
     event_type VARCHAR(100) NOT NULL,
     data JSONB,
     tenant_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Answer memory for smart pre-fill
+-- ============================================================
+-- User Data: Skills, Work Style, Answer Memory
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS answer_memory (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id),
@@ -107,56 +180,72 @@ CREATE TABLE IF NOT EXISTS answer_memory (
     field_type VARCHAR(50) DEFAULT 'text',
     answer_value TEXT NOT NULL,
     use_count INTEGER DEFAULT 1,
-    last_used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_used_at TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE(user_id, field_label)
 );
 
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_jobs_title ON jobs(title);
-CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company);
+CREATE TABLE IF NOT EXISTS work_style_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    autonomy_preference TEXT NOT NULL DEFAULT 'medium',
+    learning_style TEXT NOT NULL DEFAULT 'building',
+    company_stage_preference TEXT NOT NULL DEFAULT 'flexible',
+    communication_style TEXT NOT NULL DEFAULT 'mixed',
+    pace_preference TEXT NOT NULL DEFAULT 'steady',
+    ownership_preference TEXT NOT NULL DEFAULT 'team',
+    career_trajectory TEXT NOT NULL DEFAULT 'open',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS user_skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    skill TEXT NOT NULL,
+    confidence REAL NOT NULL DEFAULT 0.5,
+    years_actual REAL,
+    context TEXT DEFAULT '',
+    last_used TEXT,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    related_to TEXT[] DEFAULT '{}',
+    source TEXT NOT NULL DEFAULT 'resume',
+    project_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, skill)
+);
+
+-- ============================================================
+-- Indexes
+-- ============================================================
+
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_external_id ON jobs(external_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_title ON jobs USING gin(to_tsvector('english', title));
 CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location);
+CREATE INDEX IF NOT EXISTS idx_jobs_source ON jobs(source);
+CREATE INDEX IF NOT EXISTS idx_jobs_last_synced ON jobs(last_synced_at);
 CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
-CREATE INDEX IF NOT EXISTS idx_application_inputs_application_id ON application_inputs(application_id);
-CREATE INDEX IF NOT EXISTS idx_events_application_id ON events(application_id);
-CREATE INDEX IF NOT EXISTS idx_events_created_at ON events(created_at);
-CREATE INDEX IF NOT EXISTS idx_answer_memory_user_id ON answer_memory(user_id);
+CREATE INDEX IF NOT EXISTS idx_applications_tenant ON applications(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_application_inputs_app ON application_inputs(application_id);
+CREATE INDEX IF NOT EXISTS idx_events_application ON events(application_id);
+CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at);
+CREATE INDEX IF NOT EXISTS idx_answer_memory_user ON answer_memory(user_id);
+CREATE INDEX IF NOT EXISTS idx_work_style_user ON work_style_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_skills_user ON user_skills(user_id);
+CREATE INDEX IF NOT EXISTS idx_sync_runs_source ON job_sync_runs(source);
+CREATE INDEX IF NOT EXISTS idx_sync_runs_started ON job_sync_runs(started_at);
 
--- Work style profiles (from migration 002)
-CREATE TABLE IF NOT EXISTS public.work_style_profiles (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id     UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    autonomy_preference   TEXT NOT NULL DEFAULT 'medium',
-    learning_style        TEXT NOT NULL DEFAULT 'building',
-    company_stage_preference TEXT NOT NULL DEFAULT 'flexible',
-    communication_style   TEXT NOT NULL DEFAULT 'mixed',
-    pace_preference       TEXT NOT NULL DEFAULT 'steady',
-    ownership_preference  TEXT NOT NULL DEFAULT 'team',
-    career_trajectory     TEXT NOT NULL DEFAULT 'open',
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_work_style_user UNIQUE (user_id)
-);
+-- ============================================================
+-- Seed: Default job sync sources
+-- ============================================================
 
-CREATE INDEX IF NOT EXISTS idx_work_style_user ON public.work_style_profiles(user_id);
-
--- User skills (from migration 002)
-CREATE TABLE IF NOT EXISTS public.user_skills (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    skill           TEXT NOT NULL,
-    confidence      REAL NOT NULL DEFAULT 0.5,
-    years_actual    REAL,
-    context         TEXT DEFAULT '',
-    last_used       TEXT,
-    verified        BOOLEAN NOT NULL DEFAULT false,
-    related_to      TEXT[] DEFAULT '{}',
-    source          TEXT NOT NULL DEFAULT 'resume',
-    project_count   INTEGER NOT NULL DEFAULT 0,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_user_skill UNIQUE (user_id, skill)
-);
-
-CREATE INDEX IF NOT EXISTS idx_user_skills_user ON public.user_skills(user_id);
+INSERT INTO job_sync_config (source, enabled, sync_interval_hours, max_results)
+VALUES
+    ('indeed', TRUE, 4, 50),
+    ('linkedin', TRUE, 4, 50),
+    ('glassdoor', TRUE, 6, 30),
+    ('zip_recruiter', TRUE, 6, 30)
+ON CONFLICT (source) DO NOTHING;

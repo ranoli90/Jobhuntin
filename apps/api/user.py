@@ -470,6 +470,81 @@ async def snooze_application(
 
 
 # ---------------------------------------------------------------------------
+# POST /me/applications/{application_id}/review
+# ---------------------------------------------------------------------------
+
+
+@router.post("/me/applications/{application_id}/review")
+async def mark_application_reviewed(
+    application_id: str = FastAPIPath(...),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Mark an application as reviewed (acknowledge its current status)."""
+    from shared.validators import validate_uuid
+
+    validate_uuid(application_id, "application_id")
+    async with db.acquire() as conn:
+        res = await conn.execute(
+            """
+            UPDATE public.applications
+            SET    updated_at = now()
+            WHERE  id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)
+            """,
+            application_id,
+            ctx.user_id,
+            ctx.tenant_id,
+        )
+        if res == "UPDATE 0":
+            raise HTTPException(status_code=404, detail="Application not found")
+
+    return {"status": "reviewed", "application_id": application_id}
+
+
+# ---------------------------------------------------------------------------
+# POST /me/applications/{application_id}/withdraw
+# ---------------------------------------------------------------------------
+
+
+@router.post("/me/applications/{application_id}/withdraw")
+async def withdraw_application(
+    application_id: str = FastAPIPath(...),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Withdraw/cancel an application."""
+    from shared.validators import validate_uuid
+
+    validate_uuid(application_id, "application_id")
+    async with db.acquire() as conn:
+        app_row = await conn.fetchrow(
+            "SELECT status FROM public.applications WHERE id = $1 AND user_id = $2",
+            application_id,
+            ctx.user_id,
+        )
+        if not app_row:
+            raise HTTPException(status_code=404, detail="Application not found")
+
+        if app_row["status"] in ("APPLIED", "SUBMITTED", "COMPLETED"):
+            raise HTTPException(
+                status_code=409,
+                detail="Cannot withdraw an already submitted application",
+            )
+
+        await conn.execute(
+            """
+            UPDATE public.applications
+            SET    status = 'REJECTED', updated_at = now()
+            WHERE  id = $1 AND user_id = $2
+            """,
+            application_id,
+            ctx.user_id,
+        )
+
+    return {"status": "withdrawn", "application_id": application_id}
+
+
+# ---------------------------------------------------------------------------
 # GET /jobs
 # ---------------------------------------------------------------------------
 
@@ -501,7 +576,6 @@ async def list_jobs(
         source=source,
         is_remote=is_remote,
         job_type=job_type,
-        user_id=str(ctx.user_id),
         limit=limit,
         offset=offset,
     )
@@ -742,6 +816,20 @@ async def update_profile(
             tenant_id=ctx.tenant_id,
         )
 
+        # Sync full_name to users table for display consistency
+        contact = profile_data.get("contact") or {}
+        full_name = contact.get("full_name") or ""
+        if not full_name:
+            first = contact.get("first_name", "")
+            last = contact.get("last_name", "")
+            full_name = f"{first} {last}".strip()
+        if full_name:
+            await conn.execute(
+                "UPDATE public.users SET full_name = $1, updated_at = now() WHERE id = $2",
+                full_name,
+                ctx.user_id,
+            )
+
         logger.info(
             "[PROFILE] Profile updated successfully",
             extra={
@@ -825,52 +913,26 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
 async def _hydrate_job_matches(
     db_pool: asyncpg.Pool, user_id: str, tenant_id: str, preferences: dict
 ) -> None:
-    """Background task to pre-fetch and cache job matches after onboarding.
-
-    Attempts profile-aware scoring first; falls back to basic search.
-    """
+    """Background task to pre-fetch and cache job matches after onboarding."""
     try:
         logger.info("Hydrating job matches for user %s", user_id)
 
-        # Try profile-aware scoring first
-        try:
-            from backend.domain.deep_profile import dict_to_profile
-            from backend.domain.job_search import search_jobs_for_profile
-
-            async with db_pool.acquire() as conn:
-                row = await conn.fetchrow(
-                    "SELECT profile_data FROM public.profiles WHERE user_id = $1",
-                    user_id,
-                )
-            if row and row["profile_data"]:
-                import json as _json
-
-                pd = row["profile_data"]
-                data = _json.loads(pd) if isinstance(pd, str) else pd
-                data["user_id"] = user_id
-                profile = dict_to_profile(data)
-                await search_jobs_for_profile(db_pool, profile, limit=25)
-                logger.info("Hydrated scored matches for user %s", user_id)
-                return
-        except Exception as inner:
-            logger.warning("Profile-aware hydration failed, falling back: %s", inner)
-
-        # Fallback: basic search
         from backend.domain.job_search import search_and_list_jobs
 
         location = preferences.get("location")
         role = preferences.get("role_type")
-        salary_str = preferences.get("salary_min")
-        salary = int(salary_str) if salary_str and str(salary_str).isdigit() else None
+        salary_val = preferences.get("salary_min")
+        salary = int(salary_val) if salary_val and str(salary_val).isdigit() and int(str(salary_val)) > 0 else None
 
         await search_and_list_jobs(
             db_pool=db_pool,
             location=location,
             keywords=role,
             min_salary=salary,
-            limit=20,
+            limit=25,
             offset=0,
         )
+        logger.info("Hydrated job matches for user %s", user_id)
     except Exception as e:
         logger.error("Failed to hydrate job matches: %s", e)
 
@@ -899,7 +961,7 @@ async def upload_resume(
         raise HTTPException(status_code=400, detail="File is empty or corrupted")
 
     # Enhanced file validation - check for malicious content patterns
-    filename = file.filename.lower()
+    filename = (file.filename or "upload.pdf").lower()
 
     # Check for suspicious file extensions disguised as PDF
     suspicious_extensions = [
@@ -917,14 +979,6 @@ async def upload_resume(
         if filename.endswith(ext):
             logger.warning(f"[UPLOAD] Suspicious file extension detected: {filename}")
             raise HTTPException(status_code=400, detail="Invalid file type")
-
-    # Check for suspicious filenames
-    suspicious_names = ["resume", "cv", "document", "upload", "test", "admin", "config"]
-    base_name = os.path.splitext(filename)[0].lower()
-    for name in suspicious_names:
-        if base_name == name:
-            logger.warning(f"[UPLOAD] Suspicious filename detected: {filename}")
-            raise HTTPException(status_code=400, detail="Invalid filename")
 
     # Read file content for validation
     pdf_bytes = await file.read()

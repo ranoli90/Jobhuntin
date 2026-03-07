@@ -254,6 +254,106 @@ async def create_portal(
         return {"portal_url": portal_session.url}
 
 
+@router.get("/invoices")
+async def list_invoices(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: Any = Depends(_get_pool),
+    settings: Settings = Depends(settings_dependency),
+) -> list[dict[str, Any]]:
+    """List billing invoices for the current tenant."""
+    if not settings.stripe_secret_key:
+        return []
+
+    stripe = get_stripe()
+    try:
+        async with db.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT plan FROM public.tenants WHERE id = $1",
+                ctx.tenant_id,
+            )
+        if not row or row["plan"] == "FREE":
+            return []
+
+        customer_id = await ensure_stripe_customer(
+            db, ctx.tenant_id, ctx.user_id, stripe
+        )
+        invoices = protected_stripe_call(
+            lambda: stripe.Invoice.list(customer=customer_id, limit=20)
+        )
+        return [
+            {
+                "id": inv.id,
+                "number": inv.number,
+                "amount_due": inv.amount_due,
+                "amount_paid": inv.amount_paid,
+                "currency": inv.currency,
+                "status": inv.status,
+                "created": inv.created,
+                "period_start": inv.period_start,
+                "period_end": inv.period_end,
+                "invoice_pdf": inv.invoice_pdf,
+                "hosted_invoice_url": inv.hosted_invoice_url,
+            }
+            for inv in invoices.auto_paging_iter()
+        ][:20]
+    except Exception as e:
+        logger.warning("Failed to fetch invoices: %s", e)
+        return []
+
+
+class TeamCheckoutRequest(BaseModel):
+    seats: int = 1
+
+
+@router.post("/team-checkout")
+async def team_checkout(
+    body: TeamCheckoutRequest,
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: Any = Depends(_get_pool),
+    settings: Settings = Depends(settings_dependency),
+) -> dict[str, Any]:
+    """Create a Stripe checkout session for team plan with additional seats."""
+    stripe = get_stripe()
+    if not settings.stripe_team_base_price_id:
+        raise HTTPException(status_code=503, detail="Team pricing not configured")
+
+    try:
+        customer_id = await ensure_stripe_customer(
+            db, ctx.tenant_id, ctx.user_id, stripe
+        )
+
+        line_items = [
+            {"price": settings.stripe_team_base_price_id, "quantity": 1},
+        ]
+        if settings.stripe_team_seat_price_id and body.seats > 0:
+            line_items.append(
+                {"price": settings.stripe_team_seat_price_id, "quantity": body.seats}
+            )
+
+        session = protected_stripe_call(
+            lambda: stripe.checkout.Session.create(
+                customer=customer_id,
+                mode="subscription",
+                line_items=line_items,
+                success_url=f"{settings.app_base_url}/app/billing?success=true",
+                cancel_url=f"{settings.app_base_url}/app/billing?canceled=true",
+                metadata={
+                    "tenant_id": str(ctx.tenant_id),
+                    "plan": "TEAM",
+                    "seats": str(body.seats),
+                },
+            )
+        )
+        return {"checkout_url": session.url}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Team checkout creation failed: %s", e)
+        raise HTTPException(
+            status_code=503, detail="Payment service temporarily unavailable"
+        )
+
+
 @router.post("/webhook")
 async def stripe_webhook(
     request: Request,

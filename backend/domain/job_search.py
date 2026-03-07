@@ -26,29 +26,36 @@ async def search_and_list_jobs(
     limit: int = 25,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
-    """Search jobs from local database (synced from JobSpy).
-
-    No longer fetches from external APIs on-demand - uses background sync.
-    """
+    """Search jobs from local database, with Adzuna live fallback when DB is empty."""
     s = get_settings()
 
     async with db_pool.acquire() as conn:
         query, params = _build_job_search_query(
-            s,
-            location,
-            min_salary,
-            keywords,
-            source,
-            is_remote,
-            job_type,
-            limit,
-            offset,
+            s, location, min_salary, keywords, source,
+            is_remote, job_type, limit, offset,
         )
         rows = await conn.fetch(query, *params)
 
-    # Track popular searches for proactive syncing
     if keywords or location:
         await _track_search(db_pool, keywords, location)
+
+    # If DB is empty on first page, try live Adzuna fetch
+    if not rows and offset == 0 and s.adzuna_app_id and s.adzuna_api_key:
+        logger.info("[JOB_SEARCH] DB empty, fetching from Adzuna live")
+        try:
+            from backend.domain.job_sync_service import JobSyncService
+
+            sync = JobSyncService(db_pool, s)
+            await sync.sync_adzuna(keywords=keywords or "software engineer", location=location)
+
+            async with db_pool.acquire() as conn:
+                query2, params2 = _build_job_search_query(
+                    s, location, min_salary, keywords, source,
+                    is_remote, job_type, limit, offset,
+                )
+                rows = await conn.fetch(query2, *params2)
+        except Exception as e:
+            logger.warning("[JOB_SEARCH] Adzuna live fallback failed: %s", e)
 
     return [_map_job_row(r) for r in rows]
 
@@ -108,13 +115,15 @@ def _build_job_search_query(
         params.append(job_type.lower())
 
     # Filter out expired jobs using last_synced_at
+    from datetime import timedelta
+
     ttl_days = getattr(settings, "jobspy_job_ttl_days", 7)
     if ttl_days > 0:
         n += 1
         query += (
             f" AND (last_synced_at IS NULL OR last_synced_at >= now() - ${n}::interval)"
         )
-        params.append(f"{ttl_days} days")
+        params.append(timedelta(days=ttl_days))
 
     query += (
         " ORDER BY date_posted DESC NULLS LAST, created_at DESC LIMIT $%d OFFSET $%d"
@@ -174,7 +183,7 @@ async def _track_search(
                     last_searched_at = now()
                 """,
                 keywords,
-                location,
+                location or "",
             )
     except Exception as e:
         logger.warning(f"Failed to track search: {e}")

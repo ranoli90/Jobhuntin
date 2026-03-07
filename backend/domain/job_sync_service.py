@@ -58,13 +58,68 @@ class SyncResult:
 
 
 class JobSyncService:
-    """Service for syncing jobs from multiple sources."""
+    """Service for syncing jobs from multiple sources (Adzuna + JobSpy)."""
 
     def __init__(self, db_pool: asyncpg.Pool, settings=None):
         self.db_pool = db_pool
         self.settings = settings or get_settings()
         self.jobspy = JobSpyClient(self.settings)
         self._running = False
+
+    async def sync_adzuna(
+        self,
+        keywords: str | None = None,
+        location: str | None = None,
+    ) -> SyncResult:
+        """Sync jobs from Adzuna API into the database."""
+        from backend.domain.job_boards import AdzunaClient
+
+        start_time = time.time()
+        client = AdzunaClient(self.settings)
+
+        try:
+            raw_jobs = await client.fetch_jobs(keywords=keywords, location=location)
+            if not raw_jobs:
+                return SyncResult(
+                    source="adzuna", search_term=keywords or "",
+                    location=location, status="completed",
+                    jobs_fetched=0, jobs_new=0, jobs_updated=0, jobs_skipped=0,
+                )
+
+            mapped = []
+            for rj in raw_jobs:
+                db_job = client.map_to_db(rj)
+                db_job.setdefault("is_remote", False)
+                db_job.setdefault("job_type", None)
+                db_job.setdefault("date_posted", None)
+                db_job.setdefault("job_level", None)
+                db_job.setdefault("company_industry",
+                                  (rj.get("category") or {}).get("label"))
+                db_job.setdefault("company_logo_url", None)
+                mapped.append(db_job)
+
+            new_count, updated_count, skipped_count = await self._sync_jobs_to_db(mapped)
+            duration_ms = int((time.time() - start_time) * 1000)
+
+            logger.info(
+                "Adzuna sync: %d fetched, %d new, %d updated, %d skipped in %dms",
+                len(raw_jobs), new_count, updated_count, skipped_count, duration_ms,
+            )
+            return SyncResult(
+                source="adzuna", search_term=keywords or "",
+                location=location, status="completed",
+                jobs_fetched=len(raw_jobs), jobs_new=new_count,
+                jobs_updated=updated_count, jobs_skipped=skipped_count,
+                duration_ms=duration_ms,
+            )
+        except Exception as e:
+            logger.error("Adzuna sync failed: %s", e)
+            return SyncResult(
+                source="adzuna", search_term=keywords or "",
+                location=location, status="failed",
+                jobs_fetched=0, jobs_new=0, jobs_updated=0, jobs_skipped=0,
+                error=str(e), duration_ms=int((time.time() - start_time) * 1000),
+            )
 
     async def sync_all_sources(
         self,
@@ -353,10 +408,7 @@ class JobSyncService:
                 rows = await conn.fetch(
                     """
                     SELECT search_term, location FROM public.popular_searches
-                    WHERE is_active = TRUE
-                      AND (last_synced_at IS NULL
-                           OR last_synced_at < now() - interval '4 hours')
-                    ORDER BY priority DESC, search_count DESC
+                    ORDER BY search_count DESC, last_searched_at DESC
                     LIMIT 15
                     """
                 )

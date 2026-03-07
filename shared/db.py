@@ -30,9 +30,10 @@ def resolve_dsn_ipv4(dsn: str) -> str:
         if not parsed.hostname:
             return dsn
 
-        # Build query params with enforced sslmode=require when missing.
+        # Build query params with sslmode=require as default for production safety.
+        # Respect explicit user overrides (e.g. sslmode=disable for local dev).
         query_params = dict(parse_qsl(parsed.query))
-        if query_params.get("sslmode", "").lower() != "require":
+        if "sslmode" not in query_params:
             query_params["sslmode"] = "require"
 
         # Skip DNS resolution if already an IPv4 literal
