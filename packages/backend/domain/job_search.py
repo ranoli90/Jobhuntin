@@ -27,10 +27,7 @@ async def search_and_list_jobs(
     limit: int = 25,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
-    """Search jobs from local database (synced from JobSpy).
-
-    No longer fetches from external APIs on-demand - uses background sync.
-    """
+    """Search jobs from local database, with Adzuna live fallback when DB is empty."""
     s = get_settings()
 
     async with db_pool.acquire() as conn:
@@ -51,14 +48,30 @@ async def search_and_list_jobs(
     if keywords or location:
         await _track_search(db_pool, keywords, location)
 
-    # Convert to dict format and normalize for deduplication
+    # If DB is empty (first page), try live Adzuna fetch and persist results
+    if not rows and offset == 0 and s.adzuna_app_id and s.adzuna_api_key:
+        logger.info("[JOB_SEARCH] DB empty, fetching from Adzuna live")
+        try:
+            from backend.domain.job_sync_service import JobSyncService
+
+            sync = JobSyncService(db_pool, s)
+            search_kw = keywords or "software engineer"
+            await sync.sync_adzuna(keywords=search_kw, location=location)
+
+            async with db_pool.acquire() as conn:
+                query2, params2 = _build_job_search_query(
+                    s, location, min_salary, keywords, source,
+                    is_remote, job_type, limit, offset,
+                )
+                rows = await conn.fetch(query2, *params2)
+        except Exception as e:
+            logger.warning("[JOB_SEARCH] Adzuna live fallback failed: %s", e)
+
     raw_jobs = [_map_job_row(r) for r in rows]
     normalized_jobs = [normalize_job(job, "database") for job in raw_jobs]
 
-    # Apply deduplication
     unique_jobs, duplicate_jobs = deduplicate_jobs(normalized_jobs, "database")
 
-    # Log deduplication metrics
     if duplicate_jobs:
         logger.info(
             f"[DEDUP] Removed {len(duplicate_jobs)} duplicate jobs from search results",

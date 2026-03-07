@@ -470,6 +470,81 @@ async def snooze_application(
 
 
 # ---------------------------------------------------------------------------
+# POST /me/applications/{application_id}/review
+# ---------------------------------------------------------------------------
+
+
+@router.post("/me/applications/{application_id}/review")
+async def mark_application_reviewed(
+    application_id: str = FastAPIPath(...),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Mark an application as reviewed (acknowledge its current status)."""
+    from shared.validators import validate_uuid
+
+    validate_uuid(application_id, "application_id")
+    async with db.acquire() as conn:
+        res = await conn.execute(
+            """
+            UPDATE public.applications
+            SET    updated_at = now()
+            WHERE  id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)
+            """,
+            application_id,
+            ctx.user_id,
+            ctx.tenant_id,
+        )
+        if res == "UPDATE 0":
+            raise HTTPException(status_code=404, detail="Application not found")
+
+    return {"status": "reviewed", "application_id": application_id}
+
+
+# ---------------------------------------------------------------------------
+# POST /me/applications/{application_id}/withdraw
+# ---------------------------------------------------------------------------
+
+
+@router.post("/me/applications/{application_id}/withdraw")
+async def withdraw_application(
+    application_id: str = FastAPIPath(...),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Withdraw/cancel an application."""
+    from shared.validators import validate_uuid
+
+    validate_uuid(application_id, "application_id")
+    async with db.acquire() as conn:
+        app_row = await conn.fetchrow(
+            "SELECT status FROM public.applications WHERE id = $1 AND user_id = $2",
+            application_id,
+            ctx.user_id,
+        )
+        if not app_row:
+            raise HTTPException(status_code=404, detail="Application not found")
+
+        if app_row["status"] in ("APPLIED", "SUBMITTED", "COMPLETED"):
+            raise HTTPException(
+                status_code=409,
+                detail="Cannot withdraw an already submitted application",
+            )
+
+        await conn.execute(
+            """
+            UPDATE public.applications
+            SET    status = 'REJECTED', updated_at = now()
+            WHERE  id = $1 AND user_id = $2
+            """,
+            application_id,
+            ctx.user_id,
+        )
+
+    return {"status": "withdrawn", "application_id": application_id}
+
+
+# ---------------------------------------------------------------------------
 # GET /jobs
 # ---------------------------------------------------------------------------
 
