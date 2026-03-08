@@ -185,6 +185,7 @@ export default function JobsView() {
                 ))}
 
             </div>
+            </section>
 
             <div className="flex justify-center gap-4 mt-4" role="group" aria-label="Job actions">
                 <Button
