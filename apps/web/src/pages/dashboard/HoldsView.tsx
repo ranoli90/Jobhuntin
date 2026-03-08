@@ -48,27 +48,17 @@ export default function HoldsView() {
 
   if (holdApplications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 px-6">
-        <div className="relative mb-8">
-          <div className="absolute -inset-6 bg-gradient-to-r from-emerald-100 via-teal-100 to-cyan-100 rounded-full blur-2xl opacity-50" />
-          <div className="relative w-28 h-28 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center border border-emerald-100 shadow-lg shadow-emerald-100/50">
-            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-              <path d="M28 8v40M8 28h40" stroke="#10b981" strokeWidth="2" strokeLinecap="round" opacity="0.15"/>
-              <circle cx="28" cy="28" r="16" stroke="#10b981" strokeWidth="2.5" fill="#ecfdf5"/>
-              <path d="M21 28l4 4 10-10" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="28" cy="28" r="22" stroke="#10b981" strokeWidth="1" strokeDasharray="3 3" opacity="0.3"/>
-            </svg>
-          </div>
+      <div className="flex flex-col items-center justify-center py-24 px-6">
+        <div className="w-12 h-12 rounded-full border-2 border-slate-200 flex items-center justify-center mb-6">
+          <CheckCircle className="w-5 h-5 text-slate-400" />
         </div>
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent mb-3">
-          All Caught Up
-        </h2>
-        <p className="text-slate-500 max-w-sm mx-auto text-center mb-2 leading-relaxed">
-          Your AI agent has everything it needs. It's actively working on your applications in the background.
+        <h2 className="text-lg font-semibold text-slate-900 mb-1">Nothing needs your attention</h2>
+        <p className="text-sm text-slate-500 max-w-xs mx-auto text-center mb-4">
+          All your applications are progressing. When the agent needs input from you, it will appear here.
         </p>
-        <div className="flex items-center gap-2 mt-4 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold text-emerald-700">Agent running</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs text-slate-500">Agent active</span>
         </div>
       </div>
     );
