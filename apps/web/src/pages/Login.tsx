@@ -48,6 +48,7 @@ export default function Login() {
   const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(null);
   const [focused, setFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionHighlight, setSuggestionHighlight] = useState(0);
   const [captchaToken, setCaptchaToken] = useState<string>("");
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [isMouseOverSuggestions, setIsMouseOverSuggestions] = useState(false);
@@ -171,97 +172,101 @@ export default function Login() {
 
   if (successState) {
     return (
-      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center p-5">
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(69,93,211,0.12) 0%, transparent 60%)' }} />
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative w-full max-w-md"
         >
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gray-900 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-gray-900/15">
-              <MailCheck className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3 tracking-tight">
-              {t("login.checkInbox", getLocale())}
-            </h1>
-            <p className="text-slate-500 leading-relaxed">
-              {t("login.sentTo", getLocale())}<br />
-              <span className="font-semibold text-slate-900 dark:text-slate-100">{successState.email}</span>
-            </p>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(successState.email);
-                pushToast({ title: "Email copied", tone: "success" });
-              }}
-              className="mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center gap-1 mx-auto transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              Copy email
-            </button>
-            <p className="text-xs text-slate-500 mt-3">
-              {t("login.checkSpam", getLocale())}
-            </p>
-          </div>
-
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 mb-6">
-            <ol className="space-y-4">
-              {[
-                t("login.step1", getLocale()),
-                t("login.step2", getLocale()),
-                t("login.step3", getLocale()),
-              ].map((step, i) => (
-                <motion.li
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 + i * 0.1 }}
-                  className="flex items-start gap-3"
-                >
-                  <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {i + 1}
-                  </div>
-                  <span className="text-slate-600 dark:text-slate-300 text-sm">{step}</span>
-                </motion.li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="space-y-3">
-            {formError && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg"
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 sm:p-10">
+            <div className="text-center mb-8" role="alert">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: 'rgba(69,93,211,0.2)' }}>
+                <MailCheck className="w-8 h-8 text-[#7DD3CF]" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight" style={{ letterSpacing: '-1px' }}>
+                {t("login.checkInbox", getLocale())}
+              </h1>
+              <p className="text-white/70 leading-relaxed">
+                {t("login.sentTo", getLocale())}<br />
+                <span className="font-semibold text-white">{successState.email}</span>
+              </p>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(successState.email);
+                  pushToast({ title: "Email copied", tone: "success" });
+                }}
+                className="mt-2 text-xs text-[#7DD3CF] hover:text-[#9EE7E4] font-medium flex items-center justify-center gap-1 mx-auto transition-colors"
               >
-                <AlertCircle className="w-4 h-4" />
-                {formError}
-              </motion.div>
-            )}
-            <Button
-              variant="ghost"
-              onClick={async () => {
-                try {
-                  setResendLoading(true);
-                  await requestMagicLink(successState.email, safeReturnTo, captchaToken || undefined);
-                  pushToast({ title: "Link resent", tone: "success" });
-                } catch (error) {
-                  const err = error as Error;
-                  const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to resend. Please try again.";
-                  setFormError(msg);
-                } finally {
-                  setResendLoading(false);
-                }
-              }}
-              disabled={resendLoading || !!rateLimitCountdown || (showCaptcha && !captchaToken)}
-              className="w-full text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary-300 focus:outline-none"
-            >
-              {resendLoading ? t("login.sending", getLocale()) : rateLimitCountdown ? formatT("login.resendIn", { seconds: String(rateLimitCountdown) }, getLocale()) : t("login.resendLink", getLocale())}
-            </Button>
-            <Button variant="outline" onClick={() => setSuccessState(null)} className="w-full focus:ring-2 focus:ring-primary-300 focus:outline-none">
-              {t("login.useDifferentEmail", getLocale())}
-            </Button>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy email
+              </button>
+              <p className="text-xs text-white/50 mt-3">
+                {t("login.checkSpam", getLocale())}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-white/5 border border-white/10 p-6 mb-6">
+              <ol className="space-y-4">
+                {[
+                  t("login.step1", getLocale()),
+                  t("login.step2", getLocale()),
+                  t("login.step3", getLocale()),
+                ].map((step, i) => (
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 + i * 0.1 }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ background: 'rgba(69,93,211,0.3)', color: 'white' }}>
+                      {i + 1}
+                    </div>
+                    <span className="text-white/80 text-sm">{step}</span>
+                  </motion.li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="space-y-3">
+              {formError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-red-400 text-sm bg-red-500/20 border border-red-500/30 p-3 rounded-lg"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  {formError}
+                </motion.div>
+              )}
+              <Button
+                variant="ghost"
+                aria-busy={resendLoading}
+                onClick={async () => {
+                  try {
+                    setResendLoading(true);
+                    await requestMagicLink(successState.email, safeReturnTo, captchaToken || undefined);
+                    pushToast({ title: "Link resent", tone: "success" });
+                  } catch (error) {
+                    const err = error as Error;
+                    const msg = (typeof err?.message === 'string' && !err.message.includes('[object')) ? err.message : "Failed to resend. Please try again.";
+                    setFormError(msg);
+                  } finally {
+                    setResendLoading(false);
+                  }
+                }}
+                disabled={resendLoading || !!rateLimitCountdown || (showCaptcha && !captchaToken)}
+                className="w-full text-white/90 hover:bg-white/10 hover:text-white border border-white/20 focus:ring-2 focus:ring-[#455DD3] focus:outline-none"
+              >
+                {resendLoading ? t("login.sending", getLocale()) : rateLimitCountdown ? formatT("login.resendIn", { seconds: String(rateLimitCountdown) }, getLocale()) : t("login.resendLink", getLocale())}
+              </Button>
+              <Button variant="outline" onClick={() => setSuccessState(null)} className="w-full border-white/30 text-white hover:bg-white/10 focus:ring-2 focus:ring-[#455DD3] focus:outline-none">
+                {t("login.useDifferentEmail", getLocale())}
+              </Button>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -270,54 +275,32 @@ export default function Login() {
 
   return (
     <>
-      <a href="#login-form" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:font-medium">
+      <a href="#login-form" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#455DD3] focus:text-white focus:rounded-lg focus:font-medium">
         Skip to login form
       </a>
 
-      <div className="min-h-screen bg-gradient-to-br from-[#FEF9F3] via-white to-[#F0FDF4] flex">
-        {/* Left Side - Brand/Info Panel */}
-        <div className="hidden lg:flex lg:w-[45%] xl:w-1/2 bg-[#2D2A26] relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/10 via-transparent to-[#2DD4BF]/10" />
+      <div className="min-h-screen flex">
+        {/* Left — Hero panel (homepage style) */}
+        <div className="hidden lg:flex lg:w-[48%] xl:w-[45%] relative overflow-hidden" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(69,93,211,0.15) 0%, transparent 60%)' }} />
+          <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-60" preserveAspectRatio="none" viewBox="0 0 1440 800" aria-hidden="true">
+            <path d="M-100 500 C200 380, 500 620, 800 450 S1200 300, 1540 420" stroke="#455DD3" strokeOpacity="0.15" strokeWidth="2" fill="none" />
+            <path d="M-100 550 C300 430, 600 670, 900 500 S1300 350, 1540 470" stroke="#7B93DB" strokeOpacity="0.1" strokeWidth="1.5" fill="none" />
+          </svg>
 
-          <div className="absolute inset-0 overflow-hidden">
-            <motion.div
-              className="absolute top-20 left-10 w-48 h-48 bg-[#F59E0B]/10 rounded-full blur-3xl"
-              animate={{ opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-              className="absolute bottom-20 right-10 w-64 h-64 bg-[#2DD4BF]/10 rounded-full blur-3xl"
-              animate={{ opacity: [0.2, 0.4, 0.2] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            />
-          </div>
+          <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
+            <Logo to="/" variant="dark" size="md" />
 
-          <div className="relative z-10 flex flex-col justify-between p-16 w-full">
-            <div>
-              <Logo className="text-white h-8 w-auto" />
-            </div>
-
-            <div className="space-y-10 max-w-xl">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-              >
-                <h2 className="font-sans text-3xl xl:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-brand-sunrise to-brand-lagoon leading-tight mb-4 tracking-tight">
+            <div className="space-y-10 max-w-md">
+              <div>
+                <h2 className="text-3xl xl:text-4xl font-bold text-white leading-tight mb-4" style={{ letterSpacing: '-1.5px' }}>
                   {t("login.sidebarTitleLine1", getLocale())}{" "}
-                  <span className="text-brand-mango">
-                    {t("login.sidebarTitleLine2", getLocale())}
-                  </span>
+                  <span className="text-[#7DD3CF]">{t("login.sidebarTitleLine2", getLocale())}</span>
                 </h2>
-                <motion.p
-                  className="text-slate-300 text-base leading-relaxed"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                >
+                <p className="text-white/70 text-base leading-relaxed">
                   {t("login.sidebarSubtitle", getLocale())}
-                </motion.p>
-              </motion.div>
+                </p>
+              </div>
 
               <div className="space-y-4">
                 {[
@@ -325,173 +308,84 @@ export default function Login() {
                   { icon: Briefcase, text: t("login.feature2", getLocale()) },
                   { icon: Send, text: t("login.feature3", getLocale()) },
                 ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + i * 0.1 }}
-                    className="flex items-center gap-4"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <motion.div
-                      className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0"
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <motion.div
-                        className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-sunrise to-brand-mango flex items-center justify-center"
-                        animate={{ rotate: [0, 360] }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                      >
-                        <item.icon className="w-3 h-3 text-white" />
-                      </motion.div>
-                    </motion.div>
-                    <motion.span
-                      className="text-slate-300 text-sm font-medium"
-                      whileHover={{ color: "#FFC857" }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {item.text}
-                    </motion.span>
-                  </motion.div>
+                  <div key={i} className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(69,93,211,0.2)' }}>
+                      <item.icon className="w-5 h-5 text-[#7DD3CF]" />
+                    </div>
+                    <span className="text-white/80 text-sm font-medium">{item.text}</span>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-slate-400">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/terms" className="hover:text-brand-mango focus:outline-none focus:text-brand-sunrise transition-colors font-medium">Terms</Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/privacy" className="hover:text-brand-mango focus:outline-none focus:text-brand-sunrise transition-colors font-medium">Privacy</Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <a href="mailto:support@jobhuntin.com" className="hover:text-brand-mango focus:outline-none focus:text-brand-sunrise transition-colors font-medium">Support</a>
-              </motion.div>
+            <div className="flex items-center gap-6 text-sm text-white/50">
+              <Link to="/terms" className="hover:text-white/80 transition-colors font-medium">Terms</Link>
+              <Link to="/privacy" className="hover:text-white/80 transition-colors font-medium">Privacy</Link>
+              <a href="mailto:support@jobhuntin.com" className="hover:text-white/80 transition-colors font-medium">Support</a>
             </div>
           </div>
         </div>
 
-        {/* Right Side - Form */}
-        <div className="w-full lg:w-[55%] xl:w-1/2 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-16 relative">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-10 left-10 w-20 h-20 bg-gradient-to-br from-brand-sunrise/20 to-brand-mango/10 rounded-full blur-xl animate-pulse" />
-            <div className="absolute bottom-10 right-10 w-16 h-16 bg-gradient-to-tr from-brand-lagoon/20 to-brand-plum/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
-          </div>
-
+        {/* Right — Form (homepage white section style) */}
+        <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 xl:p-16 bg-[#F7F6F3] relative">
           <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
             <LanguageSelector />
             <ThemeToggle />
           </div>
 
-          <div className="w-full max-w-sm lg:max-w-md">
-            <motion.div
-              className="lg:hidden text-center mb-8"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <Logo className="mx-auto mb-4 h-10 w-auto" />
-              <motion.h1
-                className="font-sans text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-plum via-brand-sunrise to-brand-lagoon tracking-tight"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                Welcome to JobHuntin
-              </motion.h1>
-              <motion.p
-                className="text-sm text-gray-600 mt-2 mb-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                Sign in to continue
-              </motion.p>
-              <motion.div
-                className="bg-white/80 backdrop-blur-xl dark:bg-slate-800/50 rounded-2xl p-4 text-left space-y-3 border border-brand-lagoon/20"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              >
-                {[
-                  { icon: Zap, text: "Apply to 100+ jobs while you sleep" },
-                  { icon: Briefcase, text: "AI-tailored resumes for every role" },
-                  { icon: Send, text: "Track all applications in one place" },
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    className="flex items-center gap-3"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.8 + i * 0.1 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <motion.div
-                      className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-sunrise/10 to-brand-mango/10 dark:from-brand-sunrise/20 dark:to-brand-mango/20 flex items-center justify-center shrink-0 border border-brand-sunrise/30"
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <item.icon className="w-5 h-5 text-brand-sunrise dark:text-brand-mango" />
-                    </motion.div>
-                    <motion.span
-                      className="text-xs text-gray-700 dark:text-gray-300 font-medium"
-                      whileHover={{ color: "#FF9C6B" }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {item.text}
-                    </motion.span>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
+          <div className="w-full max-w-[400px]">
+            <div className="lg:hidden text-center mb-8">
+              <Logo to="/" variant="light" size="lg" />
+              <h1 className="text-2xl font-bold text-[#2D2A26] mt-6 mb-2 tracking-tight">
+                Welcome back
+              </h1>
+              <p className="text-[#787774] text-sm">
+                Sign in to continue your job hunt
+              </p>
+            </div>
 
             <motion.div
               id="login-form"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
               className="space-y-6"
             >
               <div className="hidden lg:block mb-8">
-                <h1 className="font-sans text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
+                <h1 className="text-2xl font-bold text-[#2D2A26] mb-2 tracking-tight" style={{ letterSpacing: '-0.5px' }}>
                   Sign in to your account
                 </h1>
-                <p className="text-slate-500 text-sm">
+                <p className="text-[#787774] text-sm">
                   Enter your email and we'll send you a magic link
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <SocialLoginGroup
-                  onGoogleClick={() => { }}
-                  onLinkedInClick={() => { }}
-                  disabled={isLoading}
-                  showComingSoon={true}
-                />
-              </div>
-
+              <SocialLoginGroup
+                onGoogleClick={() => { }}
+                onLinkedInClick={() => { }}
+                disabled={isLoading}
+                showComingSoon={true}
+              />
               <SocialLoginDivider />
 
               <motion.form
                 onSubmit={handleSubmit}
                 className="space-y-4"
+                aria-label="Sign in with email"
                 animate={formError ? "shake" : "idle"}
                 variants={{
-                  shake: {
-                    x: [0, -10, 10, -10, 10, 0],
-                    transition: { duration: 0.4 }
-                  },
+                  shake: { x: [0, -10, 10, -10, 10, 0], transition: { duration: 0.4 } },
                   idle: {}
                 }}
               >
                 <div className="relative">
-                  <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label htmlFor="login-email" className="block text-sm font-semibold text-[#2D2A26] mb-2">
                     {t("login.email", getLocale())}
                   </label>
                   <div className={cn(
-                    "relative rounded-xl transition-all duration-200",
-                    "focus-within:ring-2 focus-within:ring-primary-500/30 focus-within:ring-offset-2",
-                    focused && "ring-2 ring-primary-500/20"
+                    "relative rounded-lg transition-all duration-200",
+                    "focus-within:ring-2 focus-within:ring-[#455DD3]/30 focus-within:ring-offset-2",
+                    focused && "ring-2 ring-[#455DD3]/20"
                   )}>
                     <input
                       type="email"
@@ -501,12 +395,15 @@ export default function Login() {
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
-                        setShowSuggestions(e.target.value.includes('@'));
+                        const show = e.target.value.includes('@');
+                        setShowSuggestions(show);
+                        if (show) setSuggestionHighlight(0);
                         if (formError) setFormError(null);
                       }}
                       onFocus={() => {
                         setFocused(true);
                         setShowSuggestions(email.includes('@'));
+                        setSuggestionHighlight(0);
                       }}
                       onBlur={() => {
                         if (!isMouseOverSuggestions) {
@@ -514,11 +411,33 @@ export default function Login() {
                           setShowSuggestions(false);
                         }
                       }}
+                      onKeyDown={(e) => {
+                        if (!showSuggestions || getEmailSuggestions().length === 0) return;
+                        const suggestions = getEmailSuggestions().slice(0, 5);
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          setSuggestionHighlight((i) => (i + 1) % suggestions.length);
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          setSuggestionHighlight((i) => (i - 1 + suggestions.length) % suggestions.length);
+                        } else if (e.key === 'Enter' && suggestions[suggestionHighlight]) {
+                          e.preventDefault();
+                          setEmail(suggestions[suggestionHighlight]);
+                          setShowSuggestions(false);
+                          setFocused(false);
+                        } else if (e.key === 'Escape') {
+                          setShowSuggestions(false);
+                          setFocused(false);
+                        }
+                      }}
+                      aria-autocomplete="list"
+                      aria-expanded={showSuggestions && getEmailSuggestions().length > 0}
+                      aria-controls="login-email-suggestions"
+                      aria-activedescendant={showSuggestions && getEmailSuggestions().length > 0 ? `login-suggestion-${suggestionHighlight}` : undefined}
                       className={cn(
-                        "w-full pl-4 pr-4 py-3.5 rounded-xl bg-white border transition-all duration-200 relative z-20",
-                        "text-slate-900 placeholder:text-slate-400",
-                        "focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 focus:outline-none",
-                        formError ? "border-red-300 bg-red-50/50" : "border-slate-200 hover:border-slate-300"
+                        "w-full px-4 py-3.5 rounded-lg bg-white border-2 transition-all text-[#2D2A26] placeholder:text-[#9B9A97]",
+                        "focus:outline-none focus:border-[#455DD3]",
+                        formError ? "border-red-400 bg-red-50/50" : "border-[#E9E9E7] hover:border-[#D6D3D1]"
                       )}
                       required
                       aria-invalid={formError ? "true" : "false"}
@@ -526,22 +445,31 @@ export default function Login() {
                     />
                     {showSuggestions && getEmailSuggestions().length > 0 && (
                       <div
-                        className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl shadow-slate-200/50 z-30 overflow-hidden max-h-60 overflow-y-auto"
+                        id="login-email-suggestions"
+                        role="listbox"
+                        className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E9E9E7] rounded-lg shadow-lg z-30 overflow-hidden max-h-60 overflow-y-auto"
                         onMouseEnter={() => setIsMouseOverSuggestions(true)}
                         onMouseLeave={() => setIsMouseOverSuggestions(false)}
                       >
                         {getEmailSuggestions().slice(0, 5).map((suggestion, index) => (
                           <button
                             key={index}
+                            id={`login-suggestion-${index}`}
                             type="button"
+                            role="option"
+                            aria-selected={index === suggestionHighlight}
                             onClick={() => {
                               setEmail(suggestion);
                               setShowSuggestions(false);
                               setFocused(false);
                             }}
-                            className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors flex items-center gap-3 focus:bg-primary-50 focus:outline-none"
+                            onMouseEnter={() => setSuggestionHighlight(index)}
+                            className={cn(
+                              "w-full px-4 py-2.5 text-left text-sm text-[#2D2A26] transition-colors",
+                              index === suggestionHighlight ? "bg-[#F7F6F3]" : "hover:bg-[#F7F6F3]"
+                            )}
                           >
-                            <span className="truncate">{suggestion}</span>
+                            {suggestion}
                           </button>
                         ))}
                       </div>
@@ -555,7 +483,7 @@ export default function Login() {
                     role="alert"
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg"
+                    className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 p-3 rounded-lg"
                   >
                     <AlertCircle className="w-4 h-4" aria-hidden />
                     {formError}
@@ -573,66 +501,56 @@ export default function Login() {
                       <CaptchaField
                         value={captchaToken}
                         onChange={setCaptchaToken}
-                        onValidate={(isValid) => {
-                          if (isValid) setFormError(null);
-                        }}
+                        onValidate={(isValid) => { if (isValid) setFormError(null); }}
                         className="mb-4"
                       />
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <Button
+                <button
                   type="submit"
                   disabled={isLoading || !emailIsValid}
-                  className="w-full h-12 rounded-xl font-semibold text-white bg-primary-600 hover:bg-primary-500 focus:ring-4 focus:ring-primary-300 focus:outline-none transition-all shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-[#455DD3] hover:bg-[#3A4FB8] focus:ring-4 focus:ring-[#455DD3]/30 focus:outline-none shadow-lg shadow-[#455DD3]/20"
                 >
                   {isLoading ? (
-                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                      <Loader2 className="w-5 h-5" />
-                    </motion.div>
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <span className="flex items-center gap-2">
+                    <>
                       {t("login.continue", getLocale())} <ArrowRight className="w-4 h-4" aria-hidden />
-                    </span>
+                    </>
                   )}
-                </Button>
+                </button>
               </motion.form>
 
               <div className="flex items-center justify-center gap-4 py-3">
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-full">
-                  <Lock className="w-3.5 h-3.5 text-emerald-500" />
+                <div className="flex items-center gap-1.5 text-xs text-[#787774] bg-white px-3 py-1.5 rounded-full border border-[#E9E9E7]" aria-label="Secure connection">
+                  <Lock className="w-3.5 h-3.5 text-[#16A34A]" aria-hidden />
                   <span className="font-medium">Secure</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-full">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <div className="flex items-center gap-1.5 text-xs text-[#787774] bg-white px-3 py-1.5 rounded-full border border-[#E9E9E7]" aria-label="Encrypted data">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#16A34A]" aria-hidden />
                   <span className="font-medium">Encrypted</span>
                 </div>
-                <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-full">
-                  <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span className="font-medium">Verified</span>
-                </div>
               </div>
 
-              <div className="text-center">
-                <p className="text-xs text-slate-500">
+              <div className="text-center pt-4 border-t border-[#E9E9E7]">
+                <p className="text-xs text-[#787774]">
                   By continuing, you agree to our{' '}
-                  <Link to="/terms" className="underline hover:text-slate-700 focus:outline-none focus:text-primary-600">Terms</Link>
+                  <Link to="/terms" className="text-[#455DD3] hover:underline font-medium">Terms</Link>
                   {' '}and{' '}
-                  <Link to="/privacy" className="underline hover:text-slate-700 focus:outline-none focus:text-primary-600">Privacy Policy</Link>
+                  <Link to="/privacy" className="text-[#455DD3] hover:underline font-medium">Privacy Policy</Link>
                 </p>
-                <p className="text-xs text-slate-500 mt-3">
+                <p className="text-xs text-[#787774] mt-3">
                   Don't have an account?{' '}
-                  <Link to="/login?signup=true" className="text-primary-600 font-semibold hover:text-primary-700 focus:outline-none focus:text-primary-700">Sign up</Link>
+                  <Link to="/login?signup=true" className="text-[#2D2A26] font-semibold hover:underline">Sign up</Link>
                 </p>
               </div>
 
-              <div className="lg:hidden flex items-center justify-center gap-6 text-sm text-slate-500 pt-4 border-t border-slate-200">
-                <Link to="/terms" className="hover:text-slate-700 focus:outline-none focus:text-primary-600 transition-colors">Terms</Link>
-                <Link to="/privacy" className="hover:text-slate-700 focus:outline-none focus:text-primary-600 transition-colors">Privacy</Link>
-                <a href="mailto:support@jobhuntin.com" className="hover:text-slate-700 focus:outline-none focus:text-primary-600 transition-colors">Support</a>
+              <div className="lg:hidden flex items-center justify-center gap-6 text-sm text-[#787774] pt-4">
+                <Link to="/terms" className="hover:text-[#2D2A26] transition-colors">Terms</Link>
+                <Link to="/privacy" className="hover:text-[#2D2A26] transition-colors">Privacy</Link>
+                <a href="mailto:support@jobhuntin.com" className="hover:text-[#2D2A26] transition-colors">Support</a>
               </div>
             </motion.div>
           </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
-import { ArrowRight, MailCheck, Check, Briefcase, TrendingUp } from 'lucide-react';
+import { ArrowRight, MailCheck, Check, Briefcase, TrendingUp, Upload, Send, Phone, PartyPopper } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
 import { TestimonialsSection } from '../components/TestimonialsSection';
@@ -52,8 +52,8 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
       <div className="flex items-center gap-4 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
         <MailCheck className="w-5 h-5 text-emerald-600 shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-[#191919]">Check your inbox</p>
-          <p className="text-xs text-[#999] mt-0.5 truncate">{sentEmail}</p>
+          <p className="text-sm font-medium text-[#2D2A26]">Check your inbox</p>
+          <p className="text-xs text-[#787774] mt-0.5 truncate">{sentEmail}</p>
         </div>
         <button onClick={() => setSentEmail(null)} className="text-xs font-medium text-emerald-700 hover:underline">Change</button>
       </div>
@@ -67,7 +67,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
             "flex-1 h-[36px] px-4 rounded-lg text-[14px] transition-all outline-none",
             dark
               ? "bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:border-white/50"
-              : "bg-white border border-[#E3E2E0] text-[#191919] placeholder:text-[#B0AFA9] focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/10",
+              : "bg-white border border-[#E3E2E0] text-[#2D2A26] placeholder:text-[#B0AFA9] focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/10",
             emailError && "!border-red-400"
           )}
           value={email} onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
@@ -76,7 +76,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
           className={cn(
             "h-[36px] px-4 rounded-lg text-[14px] font-medium flex items-center justify-center gap-2 whitespace-nowrap transition-all disabled:opacity-50",
             dark
-              ? "bg-white text-[#191919] hover:bg-white/90"
+              ? "bg-white text-[#2D2A26] hover:bg-white/90"
               : "bg-[#455DD3] text-white hover:bg-[#3A4FB8]"
           )}
         >{isSubmitting ? "Sending…" : "Get started free"} {!isSubmitting && <ArrowRight className="w-3.5 h-3.5" />}</button>
@@ -124,6 +124,115 @@ function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
+/* ── User journey animated story ── */
+const JOURNEY_STEPS = [
+  { id: 'signup', title: 'You sign up', sub: 'Drop your resume', icon: Upload, color: '#455DD3', duration: 3500 },
+  { id: 'apply', title: 'We apply', sub: '127 applications sent', icon: Send, color: '#17BEBB', duration: 3500 },
+  { id: 'callbacks', title: 'Callbacks roll in', sub: '23 companies reached out', icon: Phone, color: '#16A34A', duration: 3500 },
+  { id: 'landed', title: 'You land the role', sub: 'Interview → Offer → Start', icon: PartyPopper, color: '#EA580C', duration: 4000 },
+];
+
+function UserJourneySection() {
+  const [step, setStep] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const [tabVisible, setTabVisible] = useState(true);
+  const ref = useRef<HTMLDivElement>(null);
+  const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setIsVisible(e.isIntersecting), { threshold: 0.2 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    setTabVisible(!document.hidden);
+    const h = () => setTabVisible(!document.hidden);
+    document.addEventListener('visibilitychange', h);
+    return () => document.removeEventListener('visibilitychange', h);
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible || reduced || !tabVisible) return;
+    const current = JOURNEY_STEPS[step];
+    const t = setTimeout(() => setStep((s) => (s + 1) % JOURNEY_STEPS.length), current.duration);
+    return () => clearTimeout(t);
+  }, [step, isVisible, reduced, tabVisible]);
+
+  const s = JOURNEY_STEPS[step];
+  const Icon = s.icon;
+
+  return (
+    <section ref={ref} className="bg-[#2D2A26] py-[80px] sm:py-[100px] relative overflow-hidden" aria-live="polite" aria-atomic="true">
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(69,93,211,0.08) 0%, transparent 70%)' }} />
+      <div className="relative max-w-[1080px] mx-auto px-6">
+        <Reveal>
+          <p className="text-center text-[12px] font-medium text-white/50 uppercase tracking-widest mb-[12px]">Your story starts here</p>
+          <h2 className="text-center text-[clamp(1.75rem,4vw,40px)] font-bold text-white leading-tight mb-[48px]" style={{ letterSpacing: '-1.5px' }}>
+            From signup to offer — in one flow
+          </h2>
+        </Reveal>
+
+        <div className="max-w-[560px] mx-auto">
+          <Reveal delay={100}>
+            <div className="relative min-h-[280px] sm:min-h-[320px] rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+              {/* Progress bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-white/10">
+                <div
+                  className="h-full transition-all duration-700 ease-out"
+                  style={{ width: `${((step + 1) / JOURNEY_STEPS.length) * 100}%`, background: s.color }}
+                />
+              </div>
+
+              {/* Step content */}
+              <div className="p-8 sm:p-12 flex flex-col items-center justify-center min-h-[260px] sm:min-h-[300px]">
+                <div
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500"
+                  style={{ background: `${s.color}20`, color: s.color }}
+                >
+                  <Icon className="w-8 h-8 sm:w-10 sm:h-10" strokeWidth={2} />
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 text-center">{s.title}</h3>
+                <p className="text-white/70 text-center">{s.sub}</p>
+
+                {/* Step indicators */}
+                <div className="flex gap-2 mt-8">
+                  {JOURNEY_STEPS.map((_, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "w-2 h-2 rounded-full transition-all duration-300",
+                        i === step ? "scale-125" : "opacity-40"
+                      )}
+                      style={{ background: i === step ? s.color : 'white' }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Mini "browser" mock at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5">
+                <div className="flex items-center gap-2 text-white/30 text-xs">
+                  <div className="w-2 h-2 rounded-full bg-white/20" />
+                  <div className="w-2 h-2 rounded-full bg-white/20" />
+                  <div className="w-2 h-2 rounded-full bg-white/20" />
+                  <span className="ml-2 truncate">jobhuntin.com/dashboard</span>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+
+          <p className="text-center text-[14px] text-white/50 mt-6">
+            Join 500,000+ applications sent. Your turn is next.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    PAGE
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -146,7 +255,7 @@ export default function Homepage() {
 
   return (
     <>
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#191919] focus:text-white focus:rounded-lg">Skip to main content</a>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#2D2A26] focus:text-white focus:rounded-lg">Skip to main content</a>
       <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }} />
 
       {/* ═══════════════════════════════════════════
@@ -171,8 +280,8 @@ export default function Homepage() {
           <path className="hero-line hero-line-4" d="M-100 600 C350 500, 650 720, 950 560 S1250 420, 1540 520" stroke="#7B93DB" strokeOpacity="0.07" strokeWidth="1" fill="none" />
         </svg>
 
-        <img src="/illustrations/career-progress.svg" alt="" aria-hidden className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
-        <img src="/illustrations/celebration.svg" alt="" aria-hidden className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/career-progress.svg" alt="" aria-hidden loading="lazy" className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/celebration.svg" alt="" aria-hidden loading="lazy" className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
 
         <div className="relative max-w-[1080px] mx-auto px-6 pt-[140px] sm:pt-[180px] pb-[60px]">
           <div className="max-w-[680px] mx-auto text-center">
@@ -188,10 +297,10 @@ export default function Homepage() {
             </Reveal>
             <Reveal delay={120}>
               <div className="mt-[36px] flex flex-wrap gap-[12px] justify-center">
-                <Link to="/login" className="group h-[44px] px-[20px] rounded-[10px] text-[16px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all duration-300 flex items-center gap-[10px] shadow-lg shadow-[#455DD3]/30 hover:shadow-[#455DD3]/50 hover:scale-[1.02] active:scale-[0.98]">
+                <Link to="/login" className="group h-[44px] px-[20px] rounded-[10px] text-[16px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all duration-300 flex items-center gap-[10px] shadow-lg shadow-[#455DD3]/30 hover:shadow-[#455DD3]/50 hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:outline-none">
                   Get started free <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <a href="#how-it-works" className="h-[44px] px-[20px] rounded-[10px] text-[16px] font-semibold border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 flex items-center gap-[10px]">
+                <a href="#how-it-works" aria-label="Scroll to how it works section" className="h-[44px] px-[20px] rounded-[10px] text-[16px] font-semibold border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 flex items-center gap-[10px] focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:outline-none">
                   See how it works
                 </a>
               </div>
@@ -204,9 +313,9 @@ export default function Homepage() {
           <div className="relative max-w-[900px] mx-auto px-6 pb-[64px]">
             <div className="rounded-[16px] overflow-hidden border border-white/15 shadow-[0_32px_64px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.05)] hover:shadow-[0_40px_80px_rgba(0,0,0,0.55)] transition-shadow duration-500">
               <div className="bg-white p-[20px] sm:p-[32px]">
-                <div className="grid grid-cols-3 gap-[12px] mb-[20px]">
+                <div className="grid grid-cols-3 gap-[12px] mb-[20px]" role="img" aria-label="Dashboard stats: 127 applied, 23 callbacks, 7 interviews">
                   {[
-                    { n: "127", l: "Applied", c: "#191919" },
+                    { n: "127", l: "Applied", c: "#2D2A26" },
                     { n: "23", l: "Callbacks", c: "#16A34A" },
                     { n: "7", l: "Interviews", c: "#EA580C" },
                   ].map(s => (
@@ -224,7 +333,7 @@ export default function Homepage() {
                 ].map((r, i) => (
                   <div key={i} className={cn("flex items-center gap-[12px] py-[10px] border-t border-[#F1F1EF] first:border-t-0", i >= 3 && "hidden sm:flex")}>
                     <div className="w-[32px] h-[32px] rounded-[8px] bg-[#F7F6F3] flex items-center justify-center shrink-0"><Briefcase className="w-[14px] h-[14px] text-[#9B9A97]" /></div>
-                    <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-[#191919] truncate">{r.role}</p><p className="text-[12px] text-[#9B9A97]">{r.co}</p></div>
+                    <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-[#2D2A26] truncate">{r.role}</p><p className="text-[12px] text-[#9B9A97]">{r.co}</p></div>
                     <span className="px-[8px] py-[2px] rounded-[4px] text-[12px] font-medium" style={{ background: r.sBg, color: r.sC }}>{r.status}</span>
                   </div>
                 ))}
@@ -244,7 +353,7 @@ export default function Homepage() {
         </div>
 
         {/* Scroll cue */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-60">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-60" aria-hidden="true">
           <span className="text-[11px] uppercase tracking-widest text-white/50">Scroll</span>
           <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2">
             <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDuration: '2s' }} />
@@ -256,10 +365,10 @@ export default function Homepage() {
           FEATURE CARDS — bento with color blocks + illustrations
           ═══════════════════════════════════════════ */}
       <section className="bg-white py-[72px] sm:py-[112px] relative">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#E7E5E4] to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#E9E9E7] to-transparent" />
         <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
-            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[40px] sm:mb-[56px]" style={{ letterSpacing: '-1.5px' }}>
+            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#2D2A26] leading-[1] mb-[40px] sm:mb-[56px]" style={{ letterSpacing: '-1.5px' }}>
               Meet your 24/7 application engine.
             </h2>
           </Reveal>
@@ -270,7 +379,7 @@ export default function Homepage() {
               <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
                 <div className="p-[24px] sm:p-[32px] flex-1">
                   <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Matching</p>
-                  <h3 className="text-[24px] font-bold text-[#191919] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Precision job matching.</h3>
+                  <h3 className="text-[24px] font-bold text-[#2D2A26] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Precision job matching.</h3>
                   <p className="text-[14px] text-[#787774] leading-[22px]">We scan thousands of listings and surface only the roles that fit your skills, salary, and goals.</p>
                 </div>
                 <div className="px-[16px] pb-[16px]">
@@ -282,12 +391,12 @@ export default function Homepage() {
                         { role: "UX Designer", co: "Figma", pct: 92 },
                       ].map((j, i) => (
                         <div key={j.role} className={cn("flex items-center gap-[8px] py-[8px]", i > 0 && "border-t border-[#F1F1EF]")}>
-                          <div className="flex-1 min-w-0"><p className="text-[13px] font-medium text-[#191919] truncate">{j.role}</p><p className="text-[11px] text-[#9B9A97]">{j.co}</p></div>
+                          <div className="flex-1 min-w-0"><p className="text-[13px] font-medium text-[#2D2A26] truncate">{j.role}</p><p className="text-[11px] text-[#9B9A97]">{j.co}</p></div>
                           <span className="text-[12px] font-semibold text-[#16A34A]">{j.pct}%</span>
                         </div>
                       ))}
                     </div>
-                    <img src="/illustrations/filter.svg" alt="" aria-hidden className="w-[180px] h-[90px] object-contain mx-auto mt-[16px] opacity-70" />
+                    <img src="/illustrations/filter.svg" alt="" aria-hidden loading="lazy" className="w-[180px] h-[90px] object-contain mx-auto mt-[16px] opacity-70" />
                   </div>
                 </div>
               </div>
@@ -298,23 +407,23 @@ export default function Homepage() {
               <div className="rounded-[12px] overflow-hidden bg-[#F7F6F3] h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
                 <div className="p-[24px] sm:p-[32px] flex-1">
                   <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Tailoring</p>
-                  <h3 className="text-[24px] font-bold text-[#191919] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Every resume, custom-built.</h3>
+                  <h3 className="text-[24px] font-bold text-[#2D2A26] leading-[1.2] mb-[8px]" style={{ letterSpacing: '-0.5px' }}>Every resume, custom-built.</h3>
                   <p className="text-[14px] text-[#787774] leading-[22px]">Each application gets a tailored resume — rewritten for the role, ATS-optimized, keyword-matched.</p>
                 </div>
                 <div className="px-[16px] pb-[16px]">
                   <div style={{ background: '#C2DCC8' }} className="rounded-[12px] p-[16px]">
                     <div className="bg-white rounded-[8px] p-[12px] sm:p-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                       <div className="flex items-center justify-between mb-[12px]">
-                        <span className="text-[13px] font-medium text-[#191919]">Tailored Resume</span>
+                        <span className="text-[13px] font-medium text-[#2D2A26]">Tailored Resume</span>
                         <span className="flex items-center gap-1 text-[11px] font-medium text-[#16A34A] bg-[#DBEDDB] px-[6px] py-[2px] rounded-[4px]"><TrendingUp className="w-3 h-3" />94%</span>
                       </div>
                       <div className="space-y-[6px]">
-                        <div className="h-[14px] rounded-[3px] w-[55%] bg-[#191919]" />
+                        <div className="h-[14px] rounded-[3px] w-[55%] bg-[#2D2A26]" />
                         <div className="h-[6px] rounded-full w-full bg-[#F1F1EF]" />
                         <div className="h-[6px] rounded-full w-[85%] bg-[#F1F1EF]" />
                         <div className="h-[6px] rounded-full w-[72%] bg-[#F1F1EF]" />
                         <div className="h-px bg-[#F1F1EF] my-[8px]" />
-                        <div className="h-[10px] rounded-[3px] w-[40%] bg-[#37352F]" />
+                        <div className="h-[10px] rounded-[3px] w-[40%] bg-[#2D2A26]" />
                         <div className="h-[5px] rounded-full w-full bg-[#F7F6F3]" />
                         <div className="h-[5px] rounded-full w-[88%] bg-[#F7F6F3]" />
                       </div>
@@ -324,15 +433,15 @@ export default function Homepage() {
                         ))}
                       </div>
                     </div>
-                    <img src="/illustrations/files-uploading.svg" alt="" aria-hidden className="w-[160px] h-[80px] object-contain mx-auto mt-[16px] opacity-65" />
+                    <img src="/illustrations/files-uploading.svg" alt="" aria-hidden loading="lazy" className="w-[160px] h-[80px] object-contain mx-auto mt-[16px] opacity-65" />
                   </div>
                 </div>
               </div>
             </Reveal>
 
-            {/* Card: Auto-apply — full-width dark */}
+            {/* Card: Auto-apply — full-width warm dark */}
             <Reveal delay={160} className="md:col-span-2">
-              <div className="rounded-[12px] overflow-hidden bg-[#191919] hover:-translate-y-[2px] transition-transform duration-300">
+              <div className="rounded-[12px] overflow-hidden bg-[#2D2A26] hover:-translate-y-[2px] transition-transform duration-300">
                 <div className="grid md:grid-cols-2">
                   <div className="p-[24px] sm:p-[40px] flex flex-col justify-center">
                     <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[4px]">Auto-apply</p>
@@ -345,7 +454,7 @@ export default function Homepage() {
                     </div>
                   </div>
                   <div className="p-[24px] sm:p-[32px] flex items-center relative">
-                    <img src="/illustrations/a-moment-to-relax.svg" alt="" aria-hidden className="w-[200px] sm:w-[260px] mx-auto opacity-30" />
+                    <img src="/illustrations/a-moment-to-relax.svg" alt="" aria-hidden loading="lazy" className="w-[200px] sm:w-[260px] mx-auto opacity-30" />
                     <div className="absolute inset-0 flex items-end p-[24px]">
                       <div className="w-full bg-white/5 rounded-[8px] p-[16px]">
                         <div className="flex items-end gap-[4px] h-[80px]">
@@ -374,7 +483,7 @@ export default function Homepage() {
           <Reveal>
             <div className="text-center max-w-[520px] mx-auto mb-[48px] sm:mb-[64px]">
               <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[8px]">How it works</p>
-              <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1]" style={{ letterSpacing: '-1.5px' }}>
+              <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#2D2A26] leading-[1]" style={{ letterSpacing: '-1.5px' }}>
                 Set up in two minutes.
               </h2>
             </div>
@@ -390,12 +499,12 @@ export default function Homepage() {
                 <div className="rounded-[12px] overflow-hidden bg-white h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
                   <div className="p-[24px] flex-1">
                     <div className="text-[36px] font-bold text-[#E8E7E4] leading-none mb-[16px]">{step.n}</div>
-                    <h3 className="text-[18px] font-bold text-[#191919] leading-[1.3] mb-[6px]">{step.title}</h3>
+                    <h3 className="text-[18px] font-bold text-[#2D2A26] leading-[1.3] mb-[6px]">{step.title}</h3>
                     <p className="text-[14px] text-[#787774] leading-[22px]">{step.desc}</p>
                   </div>
                   <div className="px-[12px] pb-[12px]">
                     <div className="rounded-[8px] p-[20px] flex items-center justify-center" style={{ background: step.bg }}>
-                      <img src={step.illus} alt="" aria-hidden className="w-[160px] h-[110px] object-contain" />
+                      <img src={step.illus} alt="" aria-hidden loading="lazy" className="w-[160px] h-[110px] object-contain" />
                     </div>
                   </div>
                 </div>
@@ -405,7 +514,7 @@ export default function Homepage() {
 
           <Reveal delay={300}>
             <div className="text-center mt-[40px]">
-              <Link to="/login" className="inline-flex items-center gap-[8px] h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors">
+              <Link to="/login" className="inline-flex items-center gap-[8px] h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:outline-none">
                 Get started free <ArrowRight className="w-4 h-4" />
               </Link>
               <p className="mt-[12px] text-[14px] text-[#9B9A97]">20 free applications per week. No credit card.</p>
@@ -415,42 +524,24 @@ export default function Homepage() {
       </section>
 
       {/* ═══════════════════════════════════════════
-          NUMBERS
+          USER JOURNEY — animated story
           ═══════════════════════════════════════════ */}
-      <section className="bg-[#191919] py-[80px] sm:py-[100px]">
-        <div className="max-w-[1080px] mx-auto px-6">
-          <Reveal>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[32px]">
-              {[
-                { to: 500000, suffix: "+", label: "Applications sent" },
-                { to: 10000, suffix: "+", label: "Jobs landed" },
-                { to: 3, suffix: ".2x", label: "More interviews" },
-                { to: 94, suffix: "%", label: "Avg. ATS score" },
-              ].map(s => (
-                <div key={s.label} className="text-center">
-                  <div className="text-[clamp(2rem,5vw,48px)] font-bold text-white leading-none mb-[8px]" style={{ letterSpacing: '-1.5px' }}><Counter to={s.to} suffix={s.suffix} /></div>
-                  <div className="text-[14px] text-[#9B9A97]">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
+      <UserJourneySection />
 
       {/* ═══════════════════════════════════════════
           PULL QUOTE — with illustration
           ═══════════════════════════════════════════ */}
       <section className="bg-white py-[80px] sm:py-[120px]">
         <div className="max-w-[720px] mx-auto px-6 text-center relative">
-          <img src="/illustrations/appreciate-it.svg" alt="" aria-hidden className="absolute -left-[100px] top-[50%] -translate-y-1/2 w-[140px] opacity-[0.12] pointer-events-none hidden xl:block" />
+          <img src="/illustrations/appreciate-it.svg" alt="" aria-hidden loading="lazy" className="absolute -left-[100px] top-[50%] -translate-y-1/2 w-[140px] opacity-[0.12] pointer-events-none hidden xl:block" />
           <Reveal>
-            <blockquote className="text-[clamp(1.25rem,3vw,28px)] font-medium text-[#191919] leading-[1.4]" style={{ letterSpacing: '-0.5px' }}>
+            <blockquote className="text-[clamp(1.25rem,3vw,28px)] font-medium text-[#2D2A26] leading-[1.4]" style={{ letterSpacing: '-0.5px' }}>
               "That first week I literally did nothing and got 4 interview callbacks. This changed how I think about job hunting."
             </blockquote>
             <div className="mt-[32px] flex items-center justify-center gap-[12px]">
               <div className="w-[40px] h-[40px] rounded-full bg-gradient-to-br from-[#FFB8A0] to-[#F5886A] flex items-center justify-center text-[14px] font-bold text-white">SK</div>
               <div className="text-left">
-                <p className="text-[14px] font-medium text-[#191919]">Sarah K.</p>
+                <p className="text-[14px] font-medium text-[#2D2A26]">Sarah K.</p>
                 <p className="text-[12px] text-[#9B9A97]">Marketing Manager · Now at HubSpot</p>
               </div>
             </div>
@@ -464,7 +555,7 @@ export default function Homepage() {
       <section id="features" className="bg-[#F7F6F3] py-[80px] sm:py-[100px]">
         <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
-            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[40px]" style={{ letterSpacing: '-1.5px' }}>
+            <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#2D2A26] leading-[1] mb-[40px]" style={{ letterSpacing: '-1.5px' }}>
               Everything you need.
             </h2>
           </Reveal>
@@ -473,7 +564,7 @@ export default function Homepage() {
               {["Smart resume analysis", "Custom cover letters", "ATS optimization", "Thousands of positions", "Real-time tracking", "Interview prep", "Salary filtering", "Role matching engine", "Auto-apply engine", "Resume versioning", "Data encryption", "Priority support"].map(f => (
                 <div key={f} className="flex items-center gap-[8px] px-[12px] py-[10px] rounded-[8px] bg-white hover:bg-[#EDECE9] transition-colors">
                   <Check className="w-[14px] h-[14px] text-[#16A34A] shrink-0" />
-                  <span className="text-[14px] text-[#37352F]">{f}</span>
+                  <span className="text-[14px] text-[#2D2A26]">{f}</span>
                 </div>
               ))}
             </div>
@@ -489,12 +580,12 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════
           FINAL CTA — with illustration
           ═══════════════════════════════════════════ */}
-      <section className="bg-[#191919] py-[80px] sm:py-[120px] relative overflow-hidden">
+      <section className="bg-[#2D2A26] py-[80px] sm:py-[120px] relative overflow-hidden">
         <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 600">
           <path d="M-80 350 C300 250, 600 450, 900 300 S1200 180, 1520 280" stroke="white" strokeOpacity="0.03" strokeWidth="1.5" fill="none" />
           <path d="M-80 200 C300 300, 600 150, 900 250 S1200 350, 1520 230" stroke="white" strokeOpacity="0.02" strokeWidth="1" fill="none" />
         </svg>
-        <img src="/illustrations/beach-day.svg" alt="" aria-hidden className="absolute right-[-2%] bottom-[5%] w-[200px] opacity-[0.06] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/beach-day.svg" alt="" aria-hidden loading="lazy" className="absolute right-[-2%] bottom-[5%] w-[200px] opacity-[0.06] pointer-events-none hidden lg:block" />
 
         <div className="relative max-w-[1080px] mx-auto px-6 z-10">
           <Reveal>
@@ -520,7 +611,7 @@ export default function Homepage() {
 
       {stickyVisible && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-[#E3E2E0] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-          <Link to="/login" className="flex items-center justify-center gap-2 w-full h-[36px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors">
+          <Link to="/login" className="flex items-center justify-center gap-2 w-full h-[36px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:outline-none">
             Start applying free <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

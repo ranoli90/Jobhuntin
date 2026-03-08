@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ArrowRight, LayoutDashboard, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../brand/Logo';
@@ -13,6 +13,7 @@ export function MarketingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, loading } = useAuth();
 
   useEffect(() => {
@@ -26,21 +27,40 @@ export function MarketingNavbar() {
     setIsMobileMenuOpen(false);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     closeMenu();
-  }, [location.pathname, location.search, location.hash, location.key, closeMenu]);
+  }, [location.pathname, location.search, location.hash, closeMenu]);
 
   const navLinks = [
-    { name: "How it Works", path: "/#how-it-works" },
-    { name: "Features", path: "/#features" },
-    { name: "Success Stories", path: "/success-stories" },
-    { name: "Pricing", path: "/pricing" },
-    { name: "Blog", path: "/blog" },
+    { name: "How it Works", path: "/#how-it-works", hash: "how-it-works" },
+    { name: "Features", path: "/#features", hash: "features" },
+    { name: "Success Stories", path: "/success-stories", hash: null },
+    { name: "Pricing", path: "/pricing", hash: null },
+    { name: "Blog", path: "/blog", hash: null },
   ];
 
   const isLoggedIn = !loading && user;
   const isHomePage = location.pathname === '/';
   const inHeroZone = isHomePage && !isScrolled && !isMobileMenuOpen;
+
+  const isLinkActive = (link: { path: string; hash: string | null }) => {
+    if (link.hash) {
+      return isHomePage && location.hash === `#${link.hash}`;
+    }
+    return location.pathname === link.path;
+  };
+
+  const handleMobileNavClick = useCallback((path: string, hash: string | null) => {
+    closeMenu();
+    if (hash && isHomePage) {
+      const el = document.getElementById(hash);
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 50);
+      }
+      return;
+    }
+    navigate(path);
+  }, [closeMenu, isHomePage, navigate]);
 
   return (
     <nav
@@ -66,10 +86,9 @@ export function MarketingNavbar() {
               key={link.path}
               to={link.path}
               onClick={(e) => {
-                if (link.path.startsWith('/#') && location.pathname === '/') {
+                if (link.hash && location.pathname === '/') {
                   e.preventDefault();
-                  const id = link.path.split('#')[1];
-                  const el = document.getElementById(id);
+                  const el = document.getElementById(link.hash!);
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }
               }}
@@ -166,39 +185,29 @@ export function MarketingNavbar() {
         <MobileDrawerBody>
           <nav className="flex flex-col space-y-0.5 mt-1" aria-label="Mobile navigation">
             {navLinks.map((link) => (
-              <Link
+              <button
                 key={link.path}
-                to={link.path}
-                onClick={(e) => {
-                  closeMenu();
-                  if (link.path.startsWith('/#') && location.pathname === '/') {
-                    e.preventDefault();
-                    const id = link.path.split('#')[1];
-                    const el = document.getElementById(id);
-                    if (el) {
-                      setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
-                    }
-                  }
-                }}
+                type="button"
+                onClick={() => handleMobileNavClick(link.path, link.hash)}
                 className={cn(
-                  "text-[15px] font-semibold block py-3 px-4 rounded-xl transition-colors active:scale-[0.98]",
-                  location.pathname === link.path || (link.path.startsWith('/#') && location.pathname === '/')
+                  "text-[15px] font-semibold block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-left w-full",
+                  isLinkActive(link)
                     ? 'bg-[#F5F5F4] text-[#2D2A26]'
                     : 'text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26]'
                 )}
               >
                 {link.name}
-              </Link>
+              </button>
             ))}
             {isLoggedIn && (
-              <Link
-                to="/app/dashboard"
-                onClick={closeMenu}
-                className="text-[15px] font-medium block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26] flex items-center gap-2"
+              <button
+                type="button"
+                onClick={() => handleMobileNavClick('/app/dashboard', null)}
+                className="text-[15px] font-medium block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26] flex items-center gap-2 w-full text-left"
               >
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
-              </Link>
+              </button>
             )}
           </nav>
         </MobileDrawerBody>
@@ -206,30 +215,30 @@ export function MarketingNavbar() {
         <MobileDrawerFooter>
           <div className="flex flex-col gap-3">
             {isLoggedIn ? (
-              <Link
-                to="/app/jobs"
-                onClick={closeMenu}
+              <button
+                type="button"
+                onClick={() => handleMobileNavClick('/app/jobs', null)}
                 className="block w-full h-12 rounded-xl text-[15px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 Go to Dashboard
-              </Link>
+              </button>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  onClick={closeMenu}
+                <button
+                  type="button"
+                  onClick={() => handleMobileNavClick('/login', null)}
                   className="block w-full h-12 rounded-xl text-[15px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all flex items-center justify-center"
                 >
                   Start Free
-                </Link>
-                <Link
-                  to="/login?mode=login"
-                  onClick={closeMenu}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMobileNavClick('/login?mode=login', null)}
                   className="block w-full h-12 rounded-xl text-[15px] font-medium border-2 border-[#E7E5E4] text-[#57534E] hover:border-[#D6D3D1] hover:bg-[#FAFAF9] transition-all flex items-center justify-center"
                 >
                   Log in
-                </Link>
+                </button>
               </>
             )}
           </div>

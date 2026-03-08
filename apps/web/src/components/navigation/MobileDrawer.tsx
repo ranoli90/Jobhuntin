@@ -100,17 +100,7 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
     return () => document.removeEventListener("keydown", handleFocusTrap);
   }, [isOpen, handleFocusTrap]);
 
-  // Auto-focus first focusable element when drawer opens
-  useEffect(() => {
-    if (isOpen && drawerRef.current) {
-      // Small delay to ensure animation has started and elements are rendered
-      const timeout = setTimeout(() => {
-        const firstFocusable = drawerRef.current?.querySelector(FOCUSABLE_SELECTOR) as HTMLElement | null;
-        firstFocusable?.focus();
-      }, 100);
-      return () => clearTimeout(timeout);
-    }
-  }, [isOpen]);
+  // Don't auto-focus - can cause issues on mobile and interfere with close
 
   if (!mounted) return null;
 
@@ -168,18 +158,21 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
 }
 
 export function MobileDrawerHeader({ children, onClose }: { children: ReactNode; onClose?: () => void }) {
+  const handleClose = useCallback((e: React.MouseEvent | React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClose?.();
+  }, [onClose]);
+
   return (
     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-6 py-5">
       {children}
       {onClose && (
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onClose();
-          }}
-          className="p-3 -mr-3 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-all active:scale-90 touch-manipulation"
+          onClick={handleClose}
+          onPointerDown={handleClose}
+          className="p-3 -mr-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all active:scale-95 touch-manipulation"
           aria-label="Close menu"
         >
           <X className="h-6 w-6" aria-hidden />

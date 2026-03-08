@@ -1,21 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { CheckCircle, Zap, Crown, CreditCard, ChevronDown, X, Sparkles } from 'lucide-react';
+import { CheckCircle, Zap, ChevronDown, X, Sparkles, ArrowRight } from 'lucide-react';
 import { t, getLocale } from '../lib/i18n';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { useAuth } from '../hooks/useAuth';
 import { useBilling } from '../hooks/useBilling';
 import { telemetry } from '../lib/telemetry';
-import { cn } from '../lib/utils';
-import { FadeIn } from '../components/animations/FadeIn';
 import { PricingSkeleton } from '../components/ui/Skeleton';
 
-// Exit Intent Popup Component
 function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const navigate = useNavigate();
-  const locale = getLocale();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const focusables = contentRef.current?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const first = focusables?.[0] as HTMLElement | undefined;
+    first?.focus();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -30,32 +42,37 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
           onClick={onClose}
         >
           <motion.div
+            ref={contentRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exit-intent-title"
+            aria-describedby="exit-intent-desc"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-white dark:bg-slate-950 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden border border-gray-200 dark:border-gray-800"
+            className="rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden border border-white/10 bg-[#2D2A26]"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors"
               aria-label="Close popup"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="relative z-10">
-              <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-slate-900 flex items-center justify-center mb-6 border border-gray-200 dark:border-gray-800">
-                <Zap className="w-8 h-8 text-black dark:text-white" />
+              <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6" style={{ background: 'rgba(69,93,211,0.2)' }}>
+                <Zap className="w-8 h-8 text-[#7DD3CF]" />
               </div>
 
-              <h3 className="text-2xl font-bold text-black dark:text-white mb-3 tracking-tight">
+              <h3 id="exit-intent-title" className="text-2xl font-bold text-white mb-3 tracking-tight">
                 Wait! Don't miss out
               </h3>
 
-              <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed font-medium">
-                Join <span className="font-bold text-black dark:text-white">10,000+ job seekers</span> who automated their job search.
+              <p id="exit-intent-desc" className="text-white/70 mb-6 leading-relaxed font-medium">
+                Join <span className="font-bold text-white">10,000+ job seekers</span> who automated their job search.
                 Get your first interviews in just 48 hours.
               </p>
 
@@ -63,20 +80,20 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                 <Link
                   to="/login"
                   onClick={onClose}
-                  className="block w-full h-12 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold text-center leading-[48px] hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors border border-black dark:border-white"
+                  className="block w-full h-12 rounded-lg bg-[#455DD3] text-white font-bold text-center leading-[48px] hover:bg-[#3A4FB8] transition-colors"
                 >
                   Start Free
                 </Link>
 
                 <button
                   onClick={onClose}
-                  className="block w-full h-12 text-gray-500 font-medium hover:text-black dark:hover:text-white transition-colors"
+                  className="block w-full h-12 text-white/60 font-medium hover:text-white transition-colors"
                 >
                   Maybe later
                 </button>
               </div>
 
-              <p className="text-xs text-slate-400 text-center mt-4">
+              <p className="text-xs text-white/40 text-center mt-4">
                 20 free applications per week. No credit card required.
               </p>
             </div>
@@ -87,26 +104,28 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
   );
 }
 
-function FAQItem({ question, answer }: { question: string; answer: string }) {
+function FAQItem({ question, answer, id }: { question: string; answer: string; id: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-800 pb-6">
+    <div className="border-b border-[#E9E9E7] pb-6">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between text-left focus:outline-none"
+        className="flex w-full items-center justify-between text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:rounded-lg"
         aria-expanded={isOpen}
+        aria-controls={`faq-answer-${id}`}
       >
-        <span className="font-bold text-lg text-black dark:text-white pr-4">{question}</span>
+        <span className="font-bold text-lg text-[#2D2A26] pr-4">{question}</span>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
         >
-          <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" aria-hidden="true" />
+          <ChevronDown className="w-5 h-5 text-[#787774] flex-shrink-0" aria-hidden="true" />
         </motion.div>
       </button>
       <motion.div
+        id={`faq-answer-${id}`}
         initial={false}
         animate={{
           height: isOpen ? "auto" : 0,
@@ -115,7 +134,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3, ease: "easeInOut" }}
         className="overflow-hidden"
       >
-        <p className="pt-3 text-gray-600 dark:text-gray-400 font-medium leading-relaxed">{answer}</p>
+        <p className="pt-3 text-[#787774] font-medium leading-relaxed">{answer}</p>
       </motion.div>
     </div>
   );
@@ -126,27 +145,18 @@ export default function Pricing() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { plan, loading: billingLoading, upgrade } = useBilling();
-  const shouldReduceMotion = useReducedMotion();
   const locale = getLocale();
 
   const isLoggedIn = !!user;
   const isProOrHigher = plan === 'PRO' || plan === 'TEAM';
 
-  // Exit intent detection
   useEffect(() => {
-    // Skip if user is logged in or already pro
     if (isLoggedIn || isProOrHigher) return;
-
-    // Check if we've already shown the popup this session
     if (sessionStorage.getItem('exitIntentShown')) return;
 
     let mouseY = 0;
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseY = e.clientY;
-    };
-
+    const handleMouseMove = (e: MouseEvent) => { mouseY = e.clientY; };
     const handleMouseLeave = (e: MouseEvent) => {
-      // Trigger when mouse leaves through the top of the page
       if (e.clientY < 10 && mouseY < 100 && !sessionStorage.getItem('exitIntentShown')) {
         setShowExitIntent(true);
         sessionStorage.setItem('exitIntentShown', 'true');
@@ -154,12 +164,10 @@ export default function Pricing() {
       }
     };
 
-    // Only track on desktop
     if (window.innerWidth >= 1024) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseleave', handleMouseLeave);
     }
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
@@ -167,11 +175,8 @@ export default function Pricing() {
   }, [isLoggedIn, isProOrHigher]);
 
   const handleFreeCta = () => {
-    if (isLoggedIn) {
-      navigate('/app/jobs');
-    } else {
-      navigate('/login');
-    }
+    if (isLoggedIn) navigate('/app/jobs');
+    else navigate('/login');
   };
 
   const handleProCta = async () => {
@@ -198,13 +203,9 @@ export default function Pricing() {
     return "Get Unlimited";
   };
 
-  // Show skeleton while loading auth/billing state (max 2 seconds to prevent stuck state)
   const [showSkeleton, setShowSkeleton] = React.useState(true);
-
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSkeleton(false);
-    }, 1500); // Max 1.5s loading time
+    const timer = setTimeout(() => setShowSkeleton(false), 1500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -213,7 +214,7 @@ export default function Pricing() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 font-sans text-black dark:text-white selection:bg-gray-200 selection:text-black pb-20">
+    <div className="min-h-screen bg-[#F7F6F3] text-[#2D2A26] pb-20">
       <ExitIntentPopup isOpen={showExitIntent} onClose={() => setShowExitIntent(false)} />
       <SEO
         title="Pricing | JobHuntin: Start Free, Upgrade to Unlimited"
@@ -229,168 +230,149 @@ export default function Pricing() {
             "name": "JobHuntin Pro",
             "description": "AI-powered job application automation with unlimited applications, resume tailoring, and interview coaching.",
             "offers": [
-              {
-                "@type": "Offer",
-                "name": "Free Tier",
-                "url": "https://jobhuntin.com/pricing",
-                "priceCurrency": "USD",
-                "price": "0",
-                "description": "20 applications per week"
-              },
-              {
-                "@type": "Offer",
-                "name": "Pro - Launch Special",
-                "url": "https://jobhuntin.com/pricing",
-                "priceCurrency": "USD",
-                "price": "10",
-                "description": "First month $10, then $29/month"
-              }
+              { "@type": "Offer", "name": "Free Tier", "url": "https://jobhuntin.com/pricing", "priceCurrency": "USD", "price": "0", "description": "20 applications per week" },
+              { "@type": "Offer", "name": "Pro - Launch Special", "url": "https://jobhuntin.com/pricing", "priceCurrency": "USD", "price": "10", "description": "First month $10, then $29/month" }
             ]
           },
           {
             "@context": "https://schema.org",
             "@type": "FAQPage",
             "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "What happens after my 20 free applications?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Your free applications reset every Monday. If you need more, upgrade to Pro for unlimited applications."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Can I cancel anytime?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Yes. Cancel anytime in your dashboard. No questions asked."
-                }
-              }
+              { "@type": "Question", "name": "What happens after my 20 free applications?", "acceptedAnswer": { "@type": "Answer", "text": "Your free applications reset every Monday. If you need more, upgrade to Pro for unlimited applications." } },
+              { "@type": "Question", "name": "Can I cancel anytime?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Cancel anytime in your dashboard. No questions asked." } }
             ]
           }
         ]}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-28 sm:py-36">
-        <div className="text-center mb-24 relative">
-          <FadeIn>
-            <div className="inline-flex items-center gap-2 bg-gray-100 dark:bg-slate-900 text-black dark:text-white px-4 py-2 rounded-lg text-sm font-bold mb-6 border border-gray-200 dark:border-gray-800">
-              <Sparkles className="w-4 h-4" />
-              Launch Special: 80% Off First Month
-            </div>
-            <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-black dark:text-white mb-6 tracking-tight leading-[1.1]">
-              Start free.<br />
-              <span className="text-gray-500">Upgrade when you're ready.</span>
-            </h1>
-          </FadeIn>
+      {/* Hero — homepage style */}
+      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(69,93,211,0.15) 0%, transparent 60%)' }} />
+        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-60" preserveAspectRatio="none" viewBox="0 0 1440 400" aria-hidden="true">
+          <path d="M-100 200 C200 120, 500 280, 800 200 S1200 100, 1540 180" stroke="#455DD3" strokeOpacity="0.15" strokeWidth="2" fill="none" />
+          <path d="M-100 250 C300 170, 600 330, 900 250 S1300 150, 1540 230" stroke="#7B93DB" strokeOpacity="0.1" strokeWidth="1.5" fill="none" />
+        </svg>
 
-          <FadeIn delay={100}>
-            <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-10 font-medium">
-              20 free applications every week. No credit card required. Upgrade to unlimited when you're ready to accelerate your job search.
-            </p>
-          </FadeIn>
+        <div className="relative max-w-[1080px] mx-auto px-6 py-20 sm:py-28">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm font-semibold mb-6 border border-white/20">
+            <Sparkles className="w-4 h-4" />
+            Launch Special: 80% Off First Month
+          </div>
+          <h1 className="text-[clamp(2.25rem,5vw,3.5rem)] font-bold text-white leading-tight mb-4" style={{ letterSpacing: '-1.5px' }}>
+            Start free.<br />
+            <span className="text-[#7DD3CF]">Upgrade when you're ready.</span>
+          </h1>
+          <p className="text-lg text-white/70 max-w-xl font-medium">
+            20 free applications every week. No credit card required.
+          </p>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
-          {/* Free Tier */}
-          <motion.div
-            whileHover={{ y: -4 }}
-            className="bg-white dark:bg-slate-950 rounded-xl p-8 lg:p-10 border border-gray-200 dark:border-gray-800 flex flex-col h-full"
-          >
-            <div className="mb-8">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Free</h3>
-              <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-black dark:text-white">$0</span>
-                <span className="text-sm font-medium text-gray-400">forever</span>
-              </div>
-              <p className="text-sm text-gray-500 mt-2 font-medium">20 applications per week</p>
+      {/* Main pricing — editorial layout, not cards */}
+      <main className="max-w-[900px] mx-auto px-6 -mt-12 relative z-10">
+        {/* Start Free — primary offer */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="rounded-2xl border-2 border-[#E9E9E7] bg-white p-8 sm:p-10 lg:p-12 shadow-lg shadow-black/5 hover:shadow-xl hover:shadow-black/8 transition-shadow duration-300"
+          aria-labelledby="pricing-free-heading"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#787774] mb-2">Free forever</p>
+              <h2 id="pricing-free-heading" className="text-3xl sm:text-4xl font-bold text-[#2D2A26] mb-3" style={{ letterSpacing: '-1px' }}>
+                20 applications per week
+              </h2>
+              <p className="text-[#787774] font-medium mb-6 max-w-md">
+                AI-powered applications, smart matching, resume parsing, and tracking. Resets every Monday.
+              </p>
+              <ul className="space-y-3">
+                {["20 AI-Powered Applications/week", "Smart Job Matching", "Basic Resume Parsing", "Application Tracking", "Weekly Reset (Every Monday)"].map((f, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-[#16A34A] shrink-0" />
+                    <span className="text-[#2D2A26] font-medium">{f}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-
-            <div className="space-y-4 mb-10 flex-1">
-              {[
-                "20 AI-Powered Applications/week",
-                "Smart Job Matching",
-                "Basic Resume Parsing",
-                "Application Tracking",
-                "Weekly Reset (Every Monday)"
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-black dark:text-white" />
-                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{feature}</span>
-                </div>
-              ))}
+            <div className="lg:w-[280px] shrink-0">
+              <div className="text-5xl font-bold text-[#2D2A26] mb-1">$0</div>
+              <p className="text-sm text-[#787774] font-medium mb-6">forever</p>
+              <button
+                onClick={handleFreeCta}
+                className="w-full h-12 rounded-lg font-semibold text-white bg-[#455DD3] hover:bg-[#3A4FB8] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#455DD3]/20 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                {isLoggedIn ? "Go to Dashboard" : "Start Free"} <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
+          </div>
+        </motion.section>
 
-            <button
-              onClick={handleFreeCta}
-              className="w-full py-3.5 rounded-lg border border-gray-200 dark:border-gray-800 text-black dark:text-white font-bold hover:bg-gray-50 dark:hover:bg-slate-900 transition-colors"
-            >
-              {isLoggedIn ? "Go to Dashboard" : "Start Free"}
-            </button>
-          </motion.div>
-
-          {/* Pro Tier — Clean dark card */}
-          <motion.div
-            initial={{ scale: 0.98 }}
-            animate={{ scale: 1 }}
-            whileHover={{ y: -4 }}
-            className="bg-[#1a1a1a] rounded-xl p-8 lg:p-10 border border-[#333] flex flex-col h-full relative"
-          >
-            <div className="mb-8 relative z-10">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">Pro</h3>
-                <Zap className="w-4 h-4 text-white" />
+        {/* Pro — upgrade path, warm dark block */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-6 rounded-2xl border border-white/10 bg-[#2D2A26] p-8 sm:p-10 lg:p-12 relative overflow-hidden hover:border-white/15 transition-colors duration-300"
+          aria-labelledby="pricing-pro-heading"
+        >
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 40% at 100% 0%, rgba(69,93,211,0.1) 0%, transparent 70%)' }} />
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-xs font-bold uppercase tracking-widest text-white/50">Pro</p>
+                <Zap className="w-4 h-4 text-[#7DD3CF]" />
               </div>
-              <div className="flex items-baseline gap-1 text-white">
-                <span className="text-6xl font-bold">$10</span>
-                <span className="text-sm font-medium text-gray-400">first month</span>
+              <h2 id="pricing-pro-heading" className="text-2xl sm:text-3xl font-bold text-white mb-3" style={{ letterSpacing: '-1px' }}>
+                Unlimited applications
+              </h2>
+              <p className="text-white/70 font-medium mb-6 max-w-md">
+                Everything in Free, plus resume tailoring, cover letters, stealth mode, and priority support.
+              </p>
+              <ul className="space-y-3">
+                {["Unlimited AI Applications", "Resume Tailored for Every Job", "Custom Cover Letters", "Stealth Mode", "Priority Support", "LinkedIn Sync", "Interview Coaching"].map((f, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-[#7DD3CF] shrink-0" />
+                    <span className="text-white font-medium">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="lg:w-[240px] shrink-0">
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-4xl font-bold text-white">$10</span>
+                <span className="text-sm text-white/50 font-medium">first month</span>
               </div>
-              <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-2">
+              <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mb-6">
                 Then $29/month • Cancel anytime
               </p>
+              <button
+                onClick={handleProCta}
+                aria-label={isProOrHigher ? "View current plan in billing" : "Get unlimited applications"}
+                className="w-full h-12 rounded-lg font-semibold bg-white text-[#2D2A26] hover:bg-white/90 transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D2A26] focus-visible:outline-none"
+              >
+                {getProCtaLabel()}
+              </button>
             </div>
+          </div>
+        </motion.section>
 
-            <div className="space-y-4 mb-10 flex-1 relative z-10">
-              <p className="text-gray-400 text-sm font-medium mb-4">Everything in Free, plus:</p>
-              {[
-                "Unlimited AI Applications",
-                "Resume Tailored for Every Job",
-                "Custom Cover Letters",
-                "Stealth Mode",
-                "Priority Support",
-                "LinkedIn Sync",
-                "Interview Coaching"
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-white" />
-                  <span className="text-sm font-bold text-white">{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={handleProCta}
-              className="w-full py-3.5 rounded-lg bg-white text-black font-bold hover:bg-gray-200 transition-colors"
-            >
-              {getProCtaLabel()}
-            </button>
-          </motion.div>
-        </div>
-
-        {/* Trust indicators */}
+        {/* Trust */}
         <div className="mt-16 text-center">
-          <p className="text-sm text-gray-500 mb-4 font-bold uppercase tracking-widest">Trusted by job seekers at</p>
-          <div className="flex justify-center flex-wrap gap-8 opacity-40">
-            {['Walmart', 'Target', 'Amazon', 'Costco', 'Home Depot'].map((company) => (
-              <span key={company} className="text-lg font-bold text-black dark:text-white">{company}</span>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#787774] mb-4">Trusted by job seekers at</p>
+          <div className="flex justify-center flex-wrap gap-8 text-[#787774]">
+            {['Walmart', 'Target', 'Amazon', 'Costco', 'Home Depot'].map((c) => (
+              <span key={c} className="text-lg font-bold">{c}</span>
             ))}
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <div className="mt-24 border-t border-gray-200 dark:border-gray-800 pt-16">
-          <h2 className="text-3xl font-bold text-center mb-12 tracking-tight text-black dark:text-white">Frequently Asked Questions</h2>
+        {/* FAQ */}
+        <div className="mt-24 border-t border-[#E9E9E7] pt-16">
+          <h2 className="text-2xl font-bold text-center mb-12 text-[#2D2A26]" style={{ letterSpacing: '-0.5px' }}>
+            Frequently Asked Questions
+          </h2>
           <div className="grid md:grid-cols-2 gap-12 max-w-4xl mx-auto">
             {[
               { q: "What happens after my 20 free applications?", a: "Your free applications reset every Monday at midnight UTC. If you need more before the reset, you can upgrade to Pro for unlimited applications." },
@@ -400,7 +382,7 @@ export default function Pricing() {
               { q: "How does the weekly reset work?", a: "Every Monday at midnight UTC, your free application count resets to 20. Unused applications don't roll over." },
               { q: "Can I get a refund?", a: "If you're not satisfied, contact us within 7 days of upgrading for a full refund. No questions asked." },
             ].map((item, i) => (
-              <FAQItem key={i} question={item.q} answer={item.a} />
+              <FAQItem key={i} id={`faq-${i}`} question={item.q} answer={item.a} />
             ))}
           </div>
         </div>
