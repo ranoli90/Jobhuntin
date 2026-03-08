@@ -217,6 +217,48 @@ CREATE TABLE IF NOT EXISTS user_skills (
 );
 
 -- ============================================================
+-- Billing
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS billing_customers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(id),
+    user_id UUID REFERENCES users(id),
+    provider TEXT DEFAULT 'stripe',
+    provider_customer_id TEXT,
+    status TEXT DEFAULT 'active',
+    plan TEXT DEFAULT 'FREE',
+    current_subscription_id TEXT,
+    current_subscription_status TEXT DEFAULT 'none',
+    current_period_end TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- ============================================================
+-- Saved Jobs & Cover Letters
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS saved_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, job_id)
+);
+
+CREATE TABLE IF NOT EXISTS cover_letters (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    job_id UUID REFERENCES jobs(id),
+    content TEXT NOT NULL,
+    tone TEXT DEFAULT 'professional',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- ============================================================
 -- Indexes
 -- ============================================================
 
@@ -237,6 +279,10 @@ CREATE INDEX IF NOT EXISTS idx_work_style_user ON work_style_profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_skills_user ON user_skills(user_id);
 CREATE INDEX IF NOT EXISTS idx_sync_runs_source ON job_sync_runs(source);
 CREATE INDEX IF NOT EXISTS idx_sync_runs_started ON job_sync_runs(started_at);
+CREATE INDEX IF NOT EXISTS idx_billing_customers_tenant ON billing_customers(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_billing_customers_user ON billing_customers(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_jobs_user ON saved_jobs(user_id);
+CREATE INDEX IF NOT EXISTS idx_cover_letters_user ON cover_letters(user_id);
 
 -- ============================================================
 -- Seed: Default job sync sources
@@ -244,6 +290,7 @@ CREATE INDEX IF NOT EXISTS idx_sync_runs_started ON job_sync_runs(started_at);
 
 INSERT INTO job_sync_config (source, enabled, sync_interval_hours, max_results)
 VALUES
+    ('adzuna', TRUE, 4, 50),
     ('indeed', TRUE, 4, 50),
     ('linkedin', TRUE, 4, 50),
     ('glassdoor', TRUE, 6, 30),

@@ -60,14 +60,14 @@ async function fetchJobs(filters: JobFilters, offset = 0, limit = 25): Promise<J
   params.set("limit", String(limit));
   params.set("offset", String(offset));
   const query = params.toString();
-  const path = query ? `jobs?${query}` : "jobs";
+  const path = query ? `me/jobs?${query}` : "me/jobs";
   const json = await apiGet<JobsResponse | JobPosting[]>(path);
   if (Array.isArray(json)) return { jobs: json, next_offset: null };
   return { jobs: json.jobs ?? [], next_offset: json.next_offset ?? null };
 }
 
 async function fetchJobSources(): Promise<JobSource[]> {
-  return apiGet<JobSource[]>("jobs/sources");
+  return apiGet<JobSource[]>("me/jobs/sources");
 }
 
 export function useJobs(filters: JobFilters) {
