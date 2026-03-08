@@ -96,7 +96,7 @@ export function useProfile() {
 
   const refreshProfile = useCallback(async () => {
     try {
-      const data = await apiGet<UserProfile>("profile");
+      const data = await apiGet<UserProfile>("me/profile");
       setProfile(data);
       setError(null);
       return data;
@@ -132,7 +132,7 @@ export function useProfile() {
   }, [refreshProfile]);
 
   const updateProfile = async (updates: ProfileUpdatePayload) => {
-    const updated = await apiPatch<UserProfile>("profile", updates);
+    const updated = await apiPatch<UserProfile>("me/profile", updates);
     setProfile(updated);
     return updated;
   };
@@ -161,7 +161,7 @@ export function useProfile() {
     try {
       const formData = new FormData();
       formData.append("file", file); // Backend expects "file" from UploadFile = File(...)
-      const data = await apiPostFormData<UploadResumeResponse>("profile/resume", formData, {
+      const data = await apiPostFormData<UploadResumeResponse>("me/profile/resume", formData, {
         signal: controller.signal
       });
       setProfile((prev: UserProfile | null) => {
@@ -218,7 +218,7 @@ export function useProfile() {
   const uploadAvatar = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    const data = await apiPostFormData<{ avatar_url: string }>("profile/avatar", formData);
+    const data = await apiPostFormData<{ avatar_url: string }>("me/profile/avatar", formData);
     setProfile((prev: UserProfile | null) =>
       prev ? { ...prev, contact: { ...prev.contact, avatar_url: data.avatar_url } } : prev
     );

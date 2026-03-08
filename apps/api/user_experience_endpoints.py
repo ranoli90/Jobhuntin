@@ -49,6 +49,14 @@ logger = get_logger("sorce.user_experience_api")
 router = APIRouter(prefix="/ux", tags=["user_experience"])
 
 
+async def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+
+async def _get_tenant_ctx():
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
 # Dependency injection functions
 def get_tenant_context():
     from apps.api.dependencies import get_tenant_context as _get_tenant_context

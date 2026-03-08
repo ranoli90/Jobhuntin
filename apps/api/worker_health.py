@@ -13,7 +13,11 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.domain.tenant import TenantContext, _get_tenant_ctx
+from backend.domain.tenant import TenantContext
+
+
+async def _get_tenant_ctx() -> TenantContext:
+    raise NotImplementedError("Tenant context dependency not injected")
 from shared.logging_config import get_logger
 from shared.metrics import incr
 

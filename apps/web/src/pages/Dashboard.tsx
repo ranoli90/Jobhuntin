@@ -738,7 +738,7 @@ export function JobsView() {
 
     try {
       // Record swipe decision with API
-      await apiPost("applications", { job_id: swipedJob.id, decision: direction });
+      await apiPost("me/applications", { job_id: swipedJob.id, decision: direction });
 
       // Store last swipe for undo functionality (10 second window)
       setLastSwipe({
@@ -802,7 +802,7 @@ export function JobsView() {
 
     try {
       // Call API to undo the swipe decision
-      await apiPost(`applications/${lastSwipe.jobId}/undo`, {});
+      await apiPost(`me/applications/${lastSwipe.jobId}/undo`, {});
 
       // Restore previous state
       setCurrentIndex(lastSwipe.previousIndex);

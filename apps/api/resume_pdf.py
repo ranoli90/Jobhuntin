@@ -30,6 +30,14 @@ logger = get_logger("sorce.resume_pdf")
 router = APIRouter(tags=["resume_pdf"])
 
 
+async def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+
+async def _get_tenant_ctx():
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
 class GenerateResumePDFRequest(BaseModel):
     """Request for generating tailored resume PDF."""
 
@@ -78,16 +86,6 @@ class ResumeTemplate(BaseModel):
     category: str = Field(..., description="Template category")
     ats_optimized: bool = Field(default=True, description="ATS optimized")
     preview_url: Optional[str] = Field(default=None, description="Preview image URL")
-
-
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 @router.post("/generate", response_model=GenerateResumePDFResponse)

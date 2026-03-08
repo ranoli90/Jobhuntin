@@ -4,7 +4,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query, Request, Response, Depends
 from PIL import Image, ImageDraw, ImageFont
 
-from backend.domain.tenant import TenantContext, _get_tenant_ctx
+from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import get_rate_limiter
 from shared.middleware import get_client_ip
@@ -90,7 +90,6 @@ def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[s
 @router.get("/api/og")
 async def generate_og_image(
     request: Request,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
     job: str = Query(..., description="Job Title", max_length=100),
     company: str = Query("Top Company", description="Company Name", max_length=50),
     score: int = Query(90, description="Match Score (0-100)"),

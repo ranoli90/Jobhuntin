@@ -16,7 +16,7 @@ export interface ApplicationRecord {
 }
 
 async function fetchApplications(): Promise<ApplicationRecord[]> {
-  const json = await apiGet<{ applications?: ApplicationRecord[] } | ApplicationRecord[]>("applications");
+  const json = await apiGet<{ applications?: ApplicationRecord[] } | ApplicationRecord[]>("me/applications");
   return Array.isArray(json) ? json : json.applications ?? [];
 }
 
@@ -49,7 +49,7 @@ export function useApplications() {
   const answerHold = useCallback(async (applicationId: string, answer: string) => {
     setSubmittingIds(prev => new Set(prev).add(applicationId));
     try {
-      await apiPost(`applications/${applicationId}/answer`, { answer });
+      await apiPost(`me/applications/${applicationId}/answer`, { answer });
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       pushToast({ title: "Response sent", description: "Your AI agent will resume this application.", tone: "success" });
     } catch (err) {
@@ -68,7 +68,7 @@ export function useApplications() {
   const snoozeApplication = useCallback(async (applicationId: string, hours: number = 24) => {
     setSubmittingIds(prev => new Set(prev).add(`snooze-${applicationId}`));
     try {
-      await apiPost(`applications/${applicationId}/snooze`, { hours });
+      await apiPost(`me/applications/${applicationId}/snooze`, { hours });
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       pushToast({ title: "Snoozed for 24h", description: "This hold will reappear tomorrow.", tone: "info" });
     } catch (err) {

@@ -74,43 +74,43 @@ class DLQManager:
     ) -> List[DLQItem]:
         """Get items from the dead letter queue with filtering."""
         try:
-            query = \"\"\"
+            query = """
                 SELECT * FROM public.job_dead_letter_queue
                 WHERE 1=1
-            \"\"\"
+            """
             params = []
             param_count = 0
             
             if tenant_id:
                 param_count += 1
-                query += f\" AND tenant_id = ${param_count}\"
+                query += f" AND tenant_id = ${param_count}"
                 params.append(tenant_id)
             
             if failure_reason:
                 param_count += 1
-                query += f\" AND failure_reason = ${param_count}\"
+                query += f" AND failure_reason = ${param_count}"
                 params.append(failure_reason)
             
             if date_from:
                 param_count += 1
-                query += f\" AND created_at >= ${param_count}\"
+                query += f" AND created_at >= ${param_count}"
                 params.append(date_from)
             
             if date_to:
                 param_count += 1
-                query += f\" AND created_at <= ${param_count}\"
+                query += f" AND created_at <= ${param_count}"
                 params.append(date_to)
             
-            query += \" ORDER BY created_at DESC\"
+            query += " ORDER BY created_at DESC"
             
             if limit:
                 param_count += 1
-                query += f\" LIMIT ${param_count}\"
+                query += f" LIMIT ${param_count}"
                 params.append(limit)
             
             if offset:
                 param_count += 1
-                query += f\" OFFSET ${param_count}\"
+                query += f" OFFSET ${param_count}"
                 params.append(offset)
             
             async with self.pool.acquire() as conn:
@@ -126,7 +126,7 @@ class DLQManager:
         try:
             async with self.pool.acquire() as conn:
                 row = await conn.fetchrow(
-                    \"SELECT * FROM public.job_dead_letter_queue WHERE id = $1\",
+                    "SELECT * FROM public.job_dead_letter_queue WHERE id = $1",
                     item_id
                 )
                 if row:
@@ -139,7 +139,7 @@ class DLQManager:
     async def get_dlq_stats(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
         """Get statistics about the dead letter queue."""
         try:
-            query = \"\"\"
+            query = """
                 SELECT 
                     COUNT(*) as total_items,
                     COUNT(DISTINCT tenant_id) as unique_tenants,
@@ -150,13 +150,13 @@ class DLQManager:
                     MAX(created_at) as newest_item
                 FROM public.job_dead_letter_queue
                 WHERE 1=1
-            \"\"\"
+            """
             params = []
             param_count = 0
             
             if tenant_id:
                 param_count += 1
-                query += f\" AND tenant_id = ${param_count}\"
+                query += f" AND tenant_id = ${param_count}"
                 params.append(tenant_id)
             
             async with self.pool.acquire() as conn:
@@ -164,13 +164,13 @@ class DLQManager:
                 stats = dict(row) if row else {}
                 
                 # Get failure reason breakdown
-                breakdown_query = \"\"\"
+                breakdown_query = """
                     SELECT failure_reason, COUNT(*) as count
                     FROM public.job_dead_letter_queue
                     WHERE 1=1
-                \"\"\"
+                """
                 if tenant_id:
-                    breakdown_query += \" AND tenant_id = $1\"
+                    breakdown_query += " AND tenant_id = $1"
                     breakdown_rows = await conn.fetch(breakdown_query, tenant_id)
                 else:
                     breakdown_rows = await conn.fetch(breakdown_query)
@@ -194,7 +194,7 @@ class DLQManager:
                 async with conn.transaction():
                     # Get DLQ item
                     dlq_row = await conn.fetchrow(
-                        \"SELECT * FROM public.job_dead_letter_queue WHERE id = $1\",
+                        "SELECT * FROM public.job_dead_letter_queue WHERE id = $1",
                         item_id
                     )
                     
@@ -209,7 +209,7 @@ class DLQManager:
                     
                     # Check if application still exists and is in FAILED status
                     app_row = await conn.fetchrow(
-                        \"SELECT status FROM public.applications WHERE id = $1\",
+                        "SELECT status FROM public.applications WHERE id = $1",
                         dlq_item.application_id
                     )
                     
@@ -230,7 +230,7 @@ class DLQManager:
                     
                     # Reset application to QUEUED status
                     await conn.execute(
-                        \"\"\"
+                        """
                         UPDATE public.applications
                         SET 
                             status = 'QUEUED',
@@ -239,23 +239,23 @@ class DLQManager:
                             updated_at = now(),
                             attempt_count = 0
                         WHERE id = $1
-                        \"\"\",
+                        """,
                         dlq_item.application_id
                     )
                     
                     # Remove from DLQ
                     await conn.execute(
-                        \"DELETE FROM public.job_dead_letter_queue WHERE id = $1\",
+                        "DELETE FROM public.job_dead_letter_queue WHERE id = $1",
                         item_id
                     )
                     
                     # Log retry event
                     await conn.execute(
-                        \"\"\"
+                        """
                         INSERT INTO public.application_events
                         (application_id, event_type, event_data, created_at, tenant_id)
                         VALUES ($1, 'DLQ_RETRY', $2, now(), $3)
-                        \"\"\",
+                        """,
                         dlq_item.application_id,
                         json.dumps({
                             "dlq_item_id": item_id,
@@ -312,7 +312,7 @@ class DLQManager:
         try:
             async with self.pool.acquire() as conn:
                 result = await conn.execute(
-                    \"DELETE FROM public.job_dead_letter_queue WHERE id = $1\",
+                    "DELETE FROM public.job_dead_letter_queue WHERE id = $1",
                     item_id
                 )
                 
@@ -336,23 +336,23 @@ class DLQManager:
     ) -> int:
         """Bulk delete DLQ items based on criteria."""
         try:
-            query = \"DELETE FROM public.job_dead_letter_queue WHERE 1=1\"
+            query = "DELETE FROM public.job_dead_letter_queue WHERE 1=1"
             params = []
             param_count = 0
             
             if tenant_id:
                 param_count += 1
-                query += f\" AND tenant_id = ${param_count}\"
+                query += f" AND tenant_id = ${param_count}"
                 params.append(tenant_id)
             
             if failure_reason:
                 param_count += 1
-                query += f\" AND failure_reason = ${param_count}\"
+                query += f" AND failure_reason = ${param_count}"
                 params.append(failure_reason)
             
             if older_than_days:
                 param_count += 1
-                query += f\" AND created_at < now() - interval '{older_than_days} days'\"
+                query += f" AND created_at < now() - interval '{older_than_days} days'"
             
             async with self.pool.acquire() as conn:
                 result = await conn.execute(query, *params)
@@ -374,7 +374,7 @@ class DLQManager:
         try:
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(
-                    \"SELECT DISTINCT failure_reason FROM public.job_dead_letter_queue ORDER BY failure_reason\"
+                    "SELECT DISTINCT failure_reason FROM public.job_dead_letter_queue ORDER BY failure_reason"
                 )
                 return [row["failure_reason"] for row in rows]
         except Exception as e:

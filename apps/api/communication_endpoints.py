@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from pydantic import BaseModel, Field
 
 from apps.api.dependencies import get_current_user_id
-from apps.api.main import get_tenant_context
+from backend.domain.tenant import TenantContext
 from packages.backend.domain.enhanced_notifications import (
     NotificationContent,
     NotificationCategory,
@@ -28,6 +28,14 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.communication_api")
 
 router = APIRouter(prefix="/communications", tags=["communications"])
+
+
+async def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+
+async def get_tenant_context() -> TenantContext:
+    raise NotImplementedError("Tenant context dependency not injected")
 
 
 # Pydantic models

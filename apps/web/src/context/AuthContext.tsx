@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 try {
                     const base = getApiBase();
                     console.log('[AUTH] Fetching profile from:', base);
-                    const resp = await fetch(`${base.replace(/\/$/, "")}/profile`, {
+                    const resp = await fetch(`${base.replace(/\/$/, "")}/me/profile`, {
                         method: "GET",
                         credentials: "include",
                         headers: { "Content-Type": "application/json" },
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 }
             } else {
                 // Subsequent calls (e.g. refreshUser) — use apiGet which has retry + error handling
-                profile = await apiGet<User>("profile");
+                profile = await apiGet<User>("me/profile");
             }
 
             setUser(profile);

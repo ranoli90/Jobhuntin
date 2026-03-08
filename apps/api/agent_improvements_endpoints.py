@@ -29,6 +29,15 @@ logger = get_logger("sorce.agent_improvements_api")
 
 router = APIRouter(prefix="/agent-improvements", tags=["agent_improvements"])
 
+
+async def get_tenant_context() -> TenantContext:
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
+def get_agent_improvements_manager():
+    raise NotImplementedError("Agent improvements manager dependency not injected")
+
+
 # Pydantic models for API requests/responses
 
 
@@ -553,17 +562,3 @@ async def health_check() -> Dict[str, str]:
     }
 
 
-# Dependency injection functions
-def get_tenant_context():
-    from apps.api.dependencies import get_tenant_context as _get_tenant_context
-
-    return _get_tenant_context
-
-
-def get_agent_improvements_manager():
-    from packages.backend.domain.agent_improvements import (
-        create_agent_improvements_manager,
-    )
-    from apps.api.dependencies import get_pool
-
-    return create_agent_improvements_manager(get_pool())

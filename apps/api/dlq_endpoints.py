@@ -15,15 +15,42 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from apps.api.main import get_tenant_context
-from apps.worker.dlq_manager import get_dlq_manager, DLQItem, RetryResult
-from apps.worker.concurrent_tracker import get_concurrent_tracker
+from backend.domain.tenant import TenantContext
+
+
+async def get_tenant_context() -> TenantContext:
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
+try:
+    from apps.worker.dlq_manager import get_dlq_manager, DLQItem, RetryResult
+except ImportError:
+    get_dlq_manager = None
+    DLQItem = None
+    RetryResult = None
+
+try:
+    from apps.worker.concurrent_tracker import get_concurrent_tracker
+except ImportError:
+    get_concurrent_tracker = None
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.dlq_api")
 
 router = APIRouter(prefix="/admin/dlq", tags=["dlq"])
+
+
+async def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+
+async def _get_tenant_ctx():
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
+async def _get_admin_user_id():
+    raise NotImplementedError("Admin user ID dependency not injected")
 
 
 # Pydantic models

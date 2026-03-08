@@ -1,7 +1,7 @@
 """Skills Analysis API endpoints for skill validation and job matching."""
 
 from typing import Any, Dict, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from backend.domain.skills_taxonomy import get_skills_taxonomy, validate_user_skills
@@ -284,9 +284,9 @@ async def get_skill_categories(
 
 @router.get("/search")
 async def search_skills(
-    query: str = Field(..., description="Search query for skills"),
-    category: str = Field(None, description="Filter by skill category"),
-    limit: int = Field(
+    query: str = Query(..., description="Search query for skills"),
+    category: str = Query(None, description="Filter by skill category"),
+    limit: int = Query(
         default=10, ge=1, le=50, description="Maximum number of results"
     ),
     ctx: TenantContext = Depends(_get_tenant_ctx),

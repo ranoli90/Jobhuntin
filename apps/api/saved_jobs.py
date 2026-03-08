@@ -10,8 +10,19 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from apps.api.auth import _get_user_id, _get_tenant_ctx
-from apps.api.main import _get_pool
+from backend.domain.tenant import TenantContext
+
+
+async def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+
+async def _get_user_id() -> str:
+    raise NotImplementedError("User ID dependency not injected")
+
+
+async def _get_tenant_ctx() -> TenantContext:
+    raise NotImplementedError("Tenant context dependency not injected")
 from shared.logging_config import get_logger
 from shared.validators import validate_uuid
 

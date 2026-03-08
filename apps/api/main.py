@@ -557,16 +557,12 @@ def _mount_sub_routers() -> None:
 
     import api.ccpa as ccpa_mod
 
-    app.dependency_overrides[ccpa_mod._get_pool] = get_pool
-    app.dependency_overrides[ccpa_mod._get_user_id] = get_current_user_id
-    app.dependency_overrides[ccpa_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(ccpa_mod.router)
 
     import api.gdpr as gdpr_mod
 
     app.dependency_overrides[gdpr_mod._get_pool] = get_pool
     app.dependency_overrides[gdpr_mod._get_user_id] = get_current_user_id
-    app.dependency_overrides[gdpr_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(gdpr_mod.router)
 
     import api.interviews as interviews_mod
@@ -637,7 +633,7 @@ def _mount_sub_routers() -> None:
     import api.communication_endpoints as communication_mod
 
     app.dependency_overrides[communication_mod._get_pool] = get_pool
-    app.dependency_overrides[communication_mod._get_tenant_ctx] = get_tenant_context
+    app.dependency_overrides[communication_mod.get_tenant_context] = get_tenant_context
     app.include_router(communication_mod.router)
 
     # Phase 14.1 User Experience System
