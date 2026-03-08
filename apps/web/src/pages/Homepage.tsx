@@ -150,12 +150,15 @@ export default function Homepage() {
       <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }} />
 
       {/* ═══════════════════════════════════════════
-          HERO — dark bg, flowing artwork, Notion-style
+          HERO — dark bg, flowing artwork, experiential
           ═══════════════════════════════════════════ */}
-      <section id="main-content" className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0F1729 0%, #1A2744 100%)' }}>
-        {/* Flowing line artwork — inspired by Notion's hero curves */}
+      <section id="main-content" className="relative overflow-hidden min-h-[90vh] flex flex-col justify-center" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
+        {/* Radial spotlight for depth */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(69,93,211,0.15) 0%, transparent 60%)' }} />
+        {/* Flowing line artwork */}
         <style>{`
           @keyframes line-draw { from { stroke-dashoffset: 2000; } to { stroke-dashoffset: 0; } }
+          @keyframes hero-glow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
           .hero-line { stroke-dasharray: 2000; animation: line-draw 3s ease-out forwards; }
           .hero-line-2 { animation-delay: 0.3s; stroke-dashoffset: 2000; }
           .hero-line-3 { animation-delay: 0.6s; stroke-dashoffset: 2000; }
@@ -168,28 +171,27 @@ export default function Homepage() {
           <path className="hero-line hero-line-4" d="M-100 600 C350 500, 650 720, 950 560 S1250 420, 1540 520" stroke="#7B93DB" strokeOpacity="0.07" strokeWidth="1" fill="none" />
         </svg>
 
-        {/* Illustration — career progress artwork, positioned like Notion's characters */}
         <img src="/illustrations/career-progress.svg" alt="" aria-hidden className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
         <img src="/illustrations/celebration.svg" alt="" aria-hidden className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
 
-        <div className="relative max-w-[1080px] mx-auto px-6 pt-[120px] sm:pt-[160px] pb-[80px]">
+        <div className="relative max-w-[1080px] mx-auto px-6 pt-[140px] sm:pt-[180px] pb-[60px]">
           <div className="max-w-[680px] mx-auto text-center">
             <Reveal>
               <h1 className="text-white text-[clamp(2.5rem,6vw,64px)] font-bold" style={{ lineHeight: '1', letterSpacing: '-2.125px' }}>
-                Your job hunt, on autopilot.
+                Your job hunt, <span className="text-[#7DD3CF]">on autopilot.</span>
               </h1>
             </Reveal>
             <Reveal delay={60}>
-              <p className="mt-[24px] text-[16px] font-normal leading-[24px] text-white/70 max-w-[480px] mx-auto">
+              <p className="mt-[24px] text-[16px] font-normal leading-[24px] text-white/75 max-w-[480px] mx-auto">
                 Upload your resume once. JobHuntin matches, tailors, and auto-applies to hundreds of jobs — every single day.
               </p>
             </Reveal>
             <Reveal delay={120}>
-              <div className="mt-[32px] flex flex-wrap gap-[12px] justify-center">
-                <Link to="/login" className="h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors flex items-center gap-[8px]">
-                  Get started free <ArrowRight className="w-4 h-4" />
+              <div className="mt-[36px] flex flex-wrap gap-[12px] justify-center">
+                <Link to="/login" className="group h-[44px] px-[20px] rounded-[10px] text-[16px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all duration-300 flex items-center gap-[10px] shadow-lg shadow-[#455DD3]/30 hover:shadow-[#455DD3]/50 hover:scale-[1.02] active:scale-[0.98]">
+                  Get started free <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <a href="#how-it-works" className="h-[36px] px-[16px] rounded-[8px] text-[16px] font-medium border border-white/20 text-white/80 hover:bg-white/5 transition-colors flex items-center gap-[8px]">
+                <a href="#how-it-works" className="h-[44px] px-[20px] rounded-[10px] text-[16px] font-semibold border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 flex items-center gap-[10px]">
                   See how it works
                 </a>
               </div>
@@ -197,10 +199,10 @@ export default function Homepage() {
           </div>
         </div>
 
-        {/* Hero product screenshot */}
+        {/* Hero product screenshot — elevated card with subtle depth */}
         <Reveal delay={200}>
-          <div className="relative max-w-[900px] mx-auto px-6 pb-[48px]">
-            <div className="rounded-[12px] overflow-hidden border border-white/10 shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
+          <div className="relative max-w-[900px] mx-auto px-6 pb-[64px]">
+            <div className="rounded-[16px] overflow-hidden border border-white/15 shadow-[0_32px_64px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.05)] hover:shadow-[0_40px_80px_rgba(0,0,0,0.55)] transition-shadow duration-500">
               <div className="bg-white p-[20px] sm:p-[32px]">
                 <div className="grid grid-cols-3 gap-[12px] mb-[20px]">
                   {[
@@ -208,7 +210,7 @@ export default function Homepage() {
                     { n: "23", l: "Callbacks", c: "#16A34A" },
                     { n: "7", l: "Interviews", c: "#EA580C" },
                   ].map(s => (
-                    <div key={s.l} className="rounded-[8px] p-[12px] sm:p-[16px] bg-[#F7F6F3]">
+                    <div key={s.l} className="rounded-[10px] p-[12px] sm:p-[16px] bg-[#F7F6F3] transition-transform duration-300 hover:scale-[1.02]">
                       <div className="text-[24px] sm:text-[32px] font-bold leading-none" style={{ color: s.c }}>{s.n}</div>
                       <div className="text-[12px] mt-[6px] text-[#9B9A97] font-medium">{s.l}</div>
                     </div>
@@ -231,21 +233,30 @@ export default function Homepage() {
           </div>
         </Reveal>
 
-        {/* Trust bar — white logos style */}
-        <div className="relative max-w-[1080px] mx-auto px-6 pb-[56px]">
-          <p className="text-center text-[14px] text-white/50 mb-[20px]">Trusted by 98% of the Forbes Cloud 100</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-[32px] sm:gap-x-[48px] gap-y-[12px]">
+        {/* Trust bar */}
+        <div className="relative max-w-[1080px] mx-auto px-6 pb-[48px]">
+          <p className="text-center text-[13px] text-white/45 mb-[16px] uppercase tracking-widest">Trusted by professionals at</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-[28px] sm:gap-x-[40px] gap-y-[10px]">
             {["OpenAI", "Figma", "ramp", "Cursor", "Vercel", "NVIDIA", "Discord"].map(n => (
-              <span key={n} className="text-[15px] font-semibold text-white/25 tracking-tight hover:text-white/40 transition-colors cursor-default">{n}</span>
+              <span key={n} className="text-[14px] font-semibold text-white/30 tracking-tight hover:text-white/50 transition-colors cursor-default">{n}</span>
             ))}
+          </div>
+        </div>
+
+        {/* Scroll cue */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-60">
+          <span className="text-[11px] uppercase tracking-widest text-white/50">Scroll</span>
+          <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDuration: '2s' }} />
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════
-          FEATURE CARDS — Notion bento with color blocks + illustrations
+          FEATURE CARDS — bento with color blocks + illustrations
           ═══════════════════════════════════════════ */}
-      <section className="bg-white py-[64px] sm:py-[96px]">
+      <section className="bg-white py-[72px] sm:py-[112px] relative">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#E7E5E4] to-transparent" />
         <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
             <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#191919] leading-[1] mb-[40px] sm:mb-[56px]" style={{ letterSpacing: '-1.5px' }}>

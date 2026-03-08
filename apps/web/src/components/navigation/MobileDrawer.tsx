@@ -124,19 +124,27 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
           aria-modal="true"
           aria-label="Navigation menu"
         >
-          {/* Backdrop */}
+          {/* Backdrop - use onPointerDown for reliable close on touch devices */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm cursor-default"
+            onPointerDown={(e) => {
+              if (e.target === e.currentTarget) {
+                e.preventDefault();
+                onClose();
+              }
+            }}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               onClose();
             }}
-            aria-hidden="true"
+            role="button"
+            tabIndex={-1}
+            aria-label="Close menu"
           />
 
           {/* Drawer */}
