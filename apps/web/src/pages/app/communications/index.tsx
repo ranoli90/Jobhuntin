@@ -174,52 +174,37 @@ const CommunicationsPage: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
+                      <Mail className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="text-lg font-medium text-green-600">Online</div>
+                      <div className="text-sm text-gray-500">Email System</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
                       <Bell className="h-6 w-6 text-green-600" />
                     </div>
+                    <div>
+                      <div className="text-lg font-medium text-green-600">Online</div>
+                      <div className="text-sm text-gray-500">Notification System</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4">
                     <div className="text-center">
-                      <div className="text-lg font-medium text-green-600">
-                        <Mail />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">Email System</div>
-                      </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-center">
-                        <Bell className="h-6 w-6 text-green-600" />
-                      </div>
+                      <Shield className="h-6 w-6 text-red-600" />
+                    </div>
                     <div>
-                      <div className="text-center">
-                        <div className="text-lg font-medium text-green-600">
-                          <Bell />
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">Notification System</div>
-                        </div>
-                      </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-center">
-                        <Shield className="h-6 w-6 text-red-600" />
-                      </div>
-                    <div>
-                      <div className="text-center">
-                        <div className="text-lg font-medium text-red-600">
-                          <Shield />
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">Alert System</div>
-                        </div>
-                      </div>
+                      <div className="text-lg font-medium text-red-600">Online</div>
+                      <div className="text-sm text-gray-500">Alert System</div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </CardContent>
+          </div>
         </TabsContent>
 
         <TabsContent value="email" className="space-y-4">

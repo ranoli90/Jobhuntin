@@ -641,6 +641,7 @@ const BatchProcessor: React.FC = () => {
                       )}
                     </div>
                   </div>
+                </div>
                 </Card>
               ))}
               
@@ -656,7 +657,6 @@ const BatchProcessor: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      )}
 
       {/* Batch Details Modal */}
       {showBatchDetails && selectedBatchData && (
@@ -850,7 +850,8 @@ const BatchProcessor: React.FC = () => {
                 a.click();
               }}
             >
-              <Download Data
+              <Download className="h-4 w-4 mr-2" />
+              Export Data
             </Button>
           </div>
         </CardContent>

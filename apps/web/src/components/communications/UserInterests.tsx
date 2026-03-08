@@ -439,7 +439,7 @@ const UserInterests: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {Object.entries(profile.interests)
-                  .sort(([, a]) => b - a)
+                  .sort(([, a], [, b]) => b - a)
                   .slice(0, 5)
                   .map(([category, score]) => (
                     <div key={category} className="flex items-center justify-between">
@@ -454,7 +454,6 @@ const UserInterests: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
                 ))}
                 
                 {Object.keys(profile.interests).length === 0 && (

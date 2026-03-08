@@ -257,7 +257,7 @@ const ConcurrentUsageMonitor: React.FC = () => {
             <CardTitle className="text-sm font-medium">Peak Usage</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{stats.peak_concurrent}</CardTitle>
+            <div className="text-2xl font-bold text-purple-600">{stats.peak_concurrent}</div>
             <div className="text-sm text-gray-500">
               Maximum concurrent sessions
             </div>
@@ -269,7 +269,7 @@ const ConcurrentUsageMonitor: React.FC = () => {
             <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{sessions.length}</CardTitle>
+            <div className="text-2xl font-bold text-blue-600">{sessions.length}</div>
             <div className="text-sm text-gray-500">
               All tracked sessions
             </div>

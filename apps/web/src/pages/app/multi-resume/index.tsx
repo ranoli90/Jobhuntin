@@ -117,11 +117,11 @@ const MultiResumePage: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">24</div>
-              <div className="text-sm text-gray-500">Applications Sent</p>
+              <div className="text-sm text-gray-500">Applications Sent</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">6</div>
-              <div className="text-sm text-gray-500">Interviews Scheduled</p>
+              <div className="text-sm text-gray-500">Interviews Scheduled</div>
             </div>
           </div>
         </CardContent>

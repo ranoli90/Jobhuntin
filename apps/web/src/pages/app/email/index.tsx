@@ -309,6 +309,7 @@ const EmailPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                </div>
                 </Card>
             ))}
             
@@ -326,9 +327,9 @@ const EmailPage: React.FC = () => {
                 </p>
               </div>
             )}
+          </div>
           </CardContent>
         </Card>
-      )}
 
       {/* Email Preferences Modal */}
       {showPreferences && preferences && (
@@ -370,6 +371,7 @@ const EmailPage: React.FC = () => {
                       </Label>
                     </div>
                 ))}
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -514,11 +516,12 @@ const EmailPage: React.FC = () => {
                   a.click();
                 }}
               >
-                <Download Data
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
       </Card>
     </div>
   );

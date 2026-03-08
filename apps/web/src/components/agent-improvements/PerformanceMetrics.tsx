@@ -393,6 +393,7 @@ const PerformanceMetrics: React.FC = () => {
                     )}
                   </div>
                 </div>
+                )}
               </Card>
             ))}
           </div>

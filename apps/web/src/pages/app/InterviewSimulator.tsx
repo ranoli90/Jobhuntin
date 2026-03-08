@@ -256,7 +256,6 @@ export default function InterviewSimulatorPage() {
                       </span>
                     </div>
                   </div>
-                  </div>
                   
                   <div className="flex items-center gap-2">
                     <Button
@@ -364,7 +363,6 @@ export default function InterviewSimulatorPage() {
                         <span className="ml-2 italic">"{sessionDetail.responses[currentQuestionIndex]?.response_text}"</span>
                       </div>
                     )}
-                    </div>
 
                     <div className="mb-4">
                       <div className="text-slate-900 mb-2">

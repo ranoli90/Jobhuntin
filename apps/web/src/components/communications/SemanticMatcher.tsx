@@ -520,6 +520,7 @@ const SemanticMatcher: React.FC = () => {
               <TabsList>
                 <TabsTrigger value="interests">Interests</TabsTrigger>
                 <TabsTrigger value="keywords">Keywords</TabsTrigger>
+              </TabsList>
                 <TabsContent value="interests">
                   <div className="space-y-4">
                     {Object.entries(profile.interests).map(([category, score]) => (

@@ -202,7 +202,7 @@ const StoryCard = ({
 
   return (
     <div
-      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white dark:bg-slate-900 ${isMobile ? 'p-8' : 'p-10'} rounded-2xl border border-slate-100 dark:border-slate-700 shadow-xl relative flex-shrink-0 group hover:border-primary-200 dark:hover:border-primary-600 transition-colors overflow-hidden`
+      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white dark:bg-slate-900 ${isMobile ? 'p-8' : 'p-10'} rounded-2xl border border-slate-100 dark:border-slate-700 shadow-xl relative flex-shrink-0 group hover:border-primary-200 dark:hover:border-primary-600 transition-colors overflow-hidden`}
     >
       {/* Hired Stamp */}
       {/* Hired Ribbon */}

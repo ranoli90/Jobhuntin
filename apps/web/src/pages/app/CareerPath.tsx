@@ -335,8 +335,7 @@ export default function CareerPathPage() {
                       <h4 className="font-semibold text-slate-900">{item.level}</h4>
                       <span className={`ml-2 text-sm ${getLevelColor(item.level)}`}>{item.company}</span>
                     </div>
-                      <p className="text-sm text-slate-600 mt-1">{item.description}</p>
-                    </div>
+                    <p className="text-sm text-slate-600 mt-1">{item.description}</p>
                   </div>
                 </div>
               ))}
@@ -518,7 +517,7 @@ export default function CareerPathPage() {
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
 
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-slate-900 mb-4">
