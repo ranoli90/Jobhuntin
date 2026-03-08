@@ -55,7 +55,7 @@ export default {
           DEFAULT: "rgb(var(--card))",
           foreground: "rgb(var(--card-foreground))",
         },
-        // Notion-esque minimal palette
+        // Notion-esque minimal palette + legacy brand colors for Login/marketing
         brand: {
           black: "#000000",
           ink: "#121212", // Very dark gray for slightly softer text than pure black
@@ -63,6 +63,10 @@ export default {
           gray: "#F6F5F4", // The "Notion Gray" for secondary backgrounds
           grayDark: "#EAEAEA", // For 1px borders
           accent: "#2563EB", // A standard professional blue for primary buttons/links
+          sunrise: "#FF9C6B",
+          lagoon: "#17BEBB",
+          plum: "#6A4C93",
+          mango: "#FFC857",
         },
         // Semantic colors (muted/professional)
         success: {
