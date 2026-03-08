@@ -43,8 +43,8 @@ export function ProgressRing({
                 {/* Gradient definition */}
                 <defs>
                     <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="var(--color-primary-500, #6366f1)" />
-                        <stop offset="100%" stopColor="#a855f7" />
+                        <stop offset="0%" stopColor="#455DD3" />
+                        <stop offset="100%" stopColor="#17BEBB" />
                     </linearGradient>
                     {isMilestone && (
                         <filter id="progress-glow">

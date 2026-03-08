@@ -201,16 +201,16 @@ export default function Onboarding() {
   const [showStepConfetti, setShowStepConfetti] = React.useState(false);
   const prevStepRef = React.useRef(currentStep);
 
-  // Motivational copy per step
+  // Motivational copy per step — conversational, less overwhelming
   const stepMotivationalCopy: Record<string, string> = {
     welcome: "Your career transformation starts here",
-    resume: "Upload once, never fill out forms again",
-    "skill-review": "Your unfair advantage, catalogued",
-    "confirm-contact": "So employers can reach out to you",
-    preferences: "Tell us your dream, we'll find the match",
-    "work-style": "We're learning how you tick",
-    "career-goals": "Tell us where you're headed",
-    ready: "Your AI job hunter is armed and ready",
+    resume: "One upload, no more form-filling",
+    "skill-review": "Quick check — we got most of it",
+    "confirm-contact": "So employers can reach you",
+    preferences: "What you want, we'll find it",
+    "work-style": "A few quick questions",
+    "career-goals": "Where you're headed",
+    ready: "You're all set — let's go",
   };
 
   // Trigger confetti when stepping forward
@@ -967,8 +967,8 @@ export default function Onboarding() {
 
   if (loading) {
     return (
-      <div className="h-[100dvh] w-full bg-slate-50 flex flex-col relative overflow-hidden">
-        <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center bg-white/80 border-b border-slate-200 z-50">
+      <div className="h-[100dvh] w-full bg-[#F7F6F3] flex flex-col relative overflow-hidden">
+        <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center bg-white/90 backdrop-blur-sm border-b border-[#E9E9E7] z-50">
           <Skeleton className="h-6 w-24" />
         </header>
         <main className="flex-1 w-full flex flex-col items-center justify-center p-1.5 md:p-4 bg-grid-premium">
@@ -981,42 +981,42 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 flex flex-col relative">
+    <div className="min-h-screen w-full bg-[#F7F6F3] flex flex-col relative">
       <ErrorBoundary>
         <Confetti active={showStepConfetti} onComplete={() => setShowStepConfetti(false)} />
         {/* Minimal Header */}
-        <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200 z-50 sticky top-0">
+        <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/90 backdrop-blur-sm border-b border-[#E9E9E7] z-50 sticky top-0">
           <Logo to="/app/onboarding" size="sm" />
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100">
-              <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" aria-hidden />
-              <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">{t("onboarding.settingUpProfile", locale) || "Setting up your profile"}</span>
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#455DD3]/10 border border-[#455DD3]/20">
+              <div className="w-2 h-2 rounded-full bg-[#455DD3] animate-pulse" aria-hidden />
+              <span className="text-[10px] font-black text-[#455DD3] uppercase tracking-widest">{t("onboarding.settingUpProfile", locale) || "Setting up your profile"}</span>
             </div>
-            <div className="lg:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary-50 border border-primary-100">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" aria-hidden />
-              <span className="text-[9px] font-black text-primary-700 uppercase tracking-wider">{t("onboarding.setup", locale) || "Setup"}</span>
+            <div className="lg:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#455DD3]/10 border border-[#455DD3]/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#455DD3] animate-pulse" aria-hidden />
+              <span className="text-[9px] font-black text-[#455DD3] uppercase tracking-wider">{t("onboarding.setup", locale) || "Setup"}</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => { if (globalThis.confirm(t("onboarding.confirmRestart", locale) || 'Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-slate-500 text-[10px] md:text-xs font-bold uppercase hover:bg-slate-100 dark:hover:bg-slate-800" title={t("onboarding.clearProgress", locale) || "Clear progress and start over"} aria-label={t("onboarding.restartOnboarding", locale) || "Restart onboarding and clear progress"}>
+            <Button variant="ghost" size="sm" onClick={() => { if (globalThis.confirm(t("onboarding.confirmRestart", locale) || 'Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-[#787774] text-[10px] md:text-xs font-bold uppercase hover:bg-[#E9E9E7]" title={t("onboarding.clearProgress", locale) || "Clear progress and start over"} aria-label={t("onboarding.restartOnboarding", locale) || "Restart onboarding and clear progress"}>
               {t("onboarding.restart", locale) || "Restart"}
             </Button>
           </div>
         </header>
 
-        <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8 bg-grid-premium">
+        <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8">
           <div className="w-full max-w-xl lg:max-w-4xl xl:max-w-5xl">
             {/* Progress bar */}
-            <div className="mb-4 md:mb-6" /* using native progress */ aria-label={`Setup progress: step ${currentStep + 1} of ${steps.length}`}>
+            <div className="mb-4 md:mb-6" aria-label={`Setup progress: step ${currentStep + 1} of ${steps.length}`}>
               <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <span className="text-[10px] md:text-xs font-bold text-[#9B9A97] uppercase tracking-wider">
                   {t("onboarding.step", locale) || "Step"} {currentStep + 1} {t("onboarding.of", locale) || "of"} {steps.length} — {(progress).toFixed(0)}%
                 </span>
-                <span className="text-[10px] md:text-xs font-bold text-primary-600 uppercase tracking-wider">{currentStepData.title}</span>
+                <span className="text-[10px] md:text-xs font-bold text-[#455DD3] uppercase tracking-wider">{currentStepData.title}</span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+              <div className="h-1.5 w-full rounded-full bg-[#E9E9E7] overflow-hidden">
                 <motion.div
                   initial={shouldReduceMotion ? { width: `${progress}%` } : { width: 0 }}
                   animate={{ width: `${progress}%` }}
-                  className="h-full bg-primary-600"
+                  className="h-full bg-[#455DD3]"
                   transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
                 />
               </div>
@@ -1032,7 +1032,7 @@ export default function Onboarding() {
                 transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
                 className="w-full"
               >
-                <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-slate-200/60">
+                <Card tone="glass" shadow="lift" className="p-4 md:p-6 lg:p-8 border-[#E9E9E7] bg-white/95">
                   {/* ProgressRing + Motivational Copy */}
                   <div className="mb-4 md:mb-6 flex flex-col items-center">
                     <ProgressRing
@@ -1041,31 +1041,31 @@ export default function Onboarding() {
                       size={100}
                       strokeWidth={5}
                     />
-                    <p className="mt-2 text-xs md:text-sm font-bold text-slate-500 text-center max-w-xs">
+                    <p className="mt-2 text-xs md:text-sm font-bold text-[#787774] text-center max-w-xs">
                       {stepMotivationalCopy[currentStepData.id] || t("onboarding.buildingProfile", locale) || "Building your profile"}
                     </p>
                     {/* Completion badges */}
                     <div className="flex flex-wrap gap-1.5 mt-3 justify-center">
                       {(profile?.resume_url || resumeFile) && (
-                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-1.5 py-0.5">
+                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-[#17BEBB]/10 text-[#17BEBB] border-[#17BEBB]/20 px-1.5 py-0.5">
                           <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" aria-hidden />
                           {t("onboarding.resumeBadge", locale) || "Resume"}
                         </Badge>
                       )}
                       {preferences.location && (
-                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-1.5 py-0.5">
+                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-[#17BEBB]/10 text-[#17BEBB] border-[#17BEBB]/20 px-1.5 py-0.5">
                           <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" aria-hidden />
                           {t("onboarding.locationBadge", locale) || "Location"}
                         </Badge>
                       )}
                       {preferences.role_type && (
-                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-1.5 py-0.5">
+                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-[#17BEBB]/10 text-[#17BEBB] border-[#17BEBB]/20 px-1.5 py-0.5">
                           <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" aria-hidden />
                           {t("onboarding.roleBadge", locale) || "Role"}
                         </Badge>
                       )}
                       {richSkills.length > 0 && (
-                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-1.5 py-0.5">
+                        <Badge className="text-[8px] font-bold uppercase tracking-wider bg-[#17BEBB]/10 text-[#17BEBB] border-[#17BEBB]/20 px-1.5 py-0.5">
                           <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" aria-hidden />
                           {t("onboarding.skillsBadge", locale) || "Skills"}
                         </Badge>

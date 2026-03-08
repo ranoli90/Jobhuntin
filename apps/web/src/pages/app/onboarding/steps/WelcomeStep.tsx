@@ -16,9 +16,9 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
     const [titleRevealed, setTitleRevealed] = React.useState(shouldReduceMotion ?? false);
 
     const features = [
-        { titleKey: "onboarding.feature1Title", descKey: "onboarding.feature1Desc", icon: Sparkles, color: "from-violet-500 to-purple-600" },
-        { titleKey: "onboarding.feature2Title", descKey: "onboarding.feature2Desc", icon: Target, color: "from-blue-500 to-cyan-500" },
-        { titleKey: "onboarding.feature3Title", descKey: "onboarding.feature3Desc", icon: Zap, color: "from-amber-500 to-orange-500" },
+        { titleKey: "onboarding.feature1Title", descKey: "onboarding.feature1Desc", icon: Sparkles, color: "from-[#455DD3] to-[#3A4FB8]" },
+        { titleKey: "onboarding.feature2Title", descKey: "onboarding.feature2Desc", icon: Target, color: "from-[#17BEBB] to-[#14A3A0]" },
+        { titleKey: "onboarding.feature3Title", descKey: "onboarding.feature3Desc", icon: Zap, color: "from-[#455DD3] to-[#7DD3CF]" },
     ];
 
     const welcomeTitle = t("onboarding.welcomeTitle", locale);
@@ -49,7 +49,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                             {[...Array(6)].map((_, i) => (
                                 <motion.div
                                     key={i}
-                                    className="absolute w-1.5 h-1.5 rounded-full bg-primary-400/60"
+                                    className="absolute w-1.5 h-1.5 rounded-full bg-[#455DD3]/60"
                                     style={{
                                         left: `${30 + Math.cos((i * 60 * Math.PI) / 180) * 40}%`,
                                         top: `${30 + Math.sin((i * 60 * Math.PI) / 180) * 40}%`,
@@ -71,7 +71,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                     <motion.div
                         animate={shouldReduceMotion ? undefined : { rotate: 360 }}
                         transition={shouldReduceMotion ? undefined : { duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 rounded-2xl border-2 border-dashed border-primary-500/20"
+                        className="absolute inset-0 rounded-2xl border-2 border-dashed border-[#455DD3]/20"
                     />
                     <motion.div
                         initial={shouldReduceMotion ? undefined : { scale: 0, rotate: -180 }}
@@ -79,7 +79,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                         transition={shouldReduceMotion ? undefined : { type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
                         className={cn(
                             "relative mx-auto flex h-20 w-20 items-center justify-center",
-                            "rounded-[2rem] bg-gradient-to-br from-primary-600 to-purple-600 shadow-2xl shadow-primary-500/40",
+                            "rounded-[2rem] bg-gradient-to-br from-[#455DD3] to-[#17BEBB] shadow-2xl shadow-[#455DD3]/30",
                             !shouldReduceMotion && "animate-pulse-glow"
                         )}
                     >
@@ -92,10 +92,10 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                     initial={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 mb-4"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#17BEBB]/10 border border-[#17BEBB]/20 mb-4"
                 >
-                    <Clock className="w-3 h-3 text-emerald-600" />
-                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                    <Clock className="w-3 h-3 text-[#17BEBB]" />
+                    <span className="text-[10px] font-bold text-[#17BEBB] uppercase tracking-wider">
                         {t("onboarding.setupTime", locale) || "Takes about 2 min"}
                     </span>
                 </motion.div>
@@ -106,14 +106,14 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                         initial={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="mb-1 text-sm font-black text-primary-600 uppercase tracking-widest"
+                        className="mb-1 text-sm font-black text-[#455DD3] uppercase tracking-widest"
                     >
                         {personalGreeting}
                     </motion.p>
                 )}
 
                 {/* Title with typewriter effect */}
-                <h1 className="mb-3 font-display text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                <h1 className="mb-3 font-display text-4xl md:text-5xl font-black text-[#2D2A26] tracking-tight leading-tight">
                     <motion.span
                         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
                         animate={{ opacity: titleRevealed ? 1 : 0 }}
@@ -125,12 +125,12 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                         animate={{ opacity: titleRevealed ? 1 : 0, y: titleRevealed ? 0 : 10 }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className="text-primary-600 italic"
+                        className="text-[#455DD3] italic"
                     >
                         {titleEnd}.
                     </motion.span>
                     {!titleRevealed && !shouldReduceMotion && (
-                        <span className="inline-block w-0.5 h-8 ml-1 bg-primary-600 align-middle animate-typewriter-cursor" />
+                        <span className="inline-block w-0.5 h-8 ml-1 bg-[#455DD3] align-middle animate-typewriter-cursor" />
                     )}
                 </h1>
 
@@ -140,7 +140,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}
                     className={cn(
-                        "mb-8 text-slate-500 font-bold leading-relaxed max-w-sm mx-auto",
+                        "mb-8 text-[#787774] font-bold leading-relaxed max-w-sm mx-auto",
                         "text-base md:text-lg"
                     )}
                 >
@@ -158,8 +158,8 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                             whileHover={shouldReduceMotion ? undefined : { scale: 1.02, y: -2 }}
                             className={cn(
                                 "flex items-center gap-4 p-5 rounded-2xl",
-                                "bg-white border border-slate-100",
-                                "hover:border-primary-100 hover:shadow-xl hover:shadow-primary-500/5",
+                                "bg-white border border-[#E9E9E7]",
+                                "hover:border-[#455DD3]/20 hover:shadow-xl hover:shadow-[#455DD3]/5",
                                 "transition-all group cursor-default"
                             )}
                         >
@@ -177,10 +177,10 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                                 <item.icon className="h-6 w-6" />
                             </motion.div>
                             <div className="text-left min-w-0">
-                                <p className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                                <p className="text-sm font-black text-[#2D2A26] uppercase tracking-wider">
                                     {t(item.titleKey, locale)}
                                 </p>
-                                <p className="text-xs text-slate-500 font-bold leading-snug mt-0.5">
+                                <p className="text-xs text-[#787774] font-bold leading-snug mt-0.5">
                                     {t(item.descKey, locale)}
                                 </p>
                             </div>
@@ -195,8 +195,8 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                 onClick={onNext}
                 className={cn(
                     "w-full h-16 rounded-[2rem] font-black text-xl",
-                    "shadow-xl shadow-primary-600/20",
-                    "bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500",
+                    "shadow-xl shadow-[#455DD3]/20",
+                    "bg-gradient-to-r from-[#455DD3] to-[#17BEBB] hover:from-[#3A4FB8] hover:to-[#14A3A0]",
                     "group overflow-hidden relative"
                 )}
                 aria-label={t("onboarding.startSetup", locale)}

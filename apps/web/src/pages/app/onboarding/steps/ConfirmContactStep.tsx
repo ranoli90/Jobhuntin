@@ -80,15 +80,15 @@ export function ConfirmContactStep({
                 </div>
             )}
 
-            <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
-                <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
+            <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-[#E9E9E7] pb-4 md:pb-6">
+                <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-[#17BEBB]/10 border border-[#17BEBB]/20 text-[#17BEBB] shadow-sm">
                     <User className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div className="min-w-0">
-                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">
+                    <h2 className="font-display text-lg md:text-2xl font-bold text-[#2D2A26] tracking-tight">
                         {t("onboarding.contactTitle", locale)}
                     </h2>
-                    <p className="text-xs md:text-sm text-slate-500 font-medium">
+                    <p className="text-xs md:text-sm text-[#787774] font-medium">
                         {t("onboarding.contactSubtitle", locale)}
                     </p>
                 </div>
@@ -98,7 +98,7 @@ export function ConfirmContactStep({
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <div>
                         <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                            <div className="w-1 h-1 rounded-full bg-[#17BEBB]" />
                             {t("onboarding.firstName", locale)} <span className="text-red-400">*</span>
                         </label>
                         <Input
@@ -114,7 +114,7 @@ export function ConfirmContactStep({
                     </div>
                     <div>
                         <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                            <div className="w-1 h-1 rounded-full bg-[#17BEBB]" />
                             {t("onboarding.lastName", locale)} <span className="text-red-400">*</span>
                         </label>
                         <Input
