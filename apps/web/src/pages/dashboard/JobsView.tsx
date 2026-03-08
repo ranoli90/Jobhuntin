@@ -5,7 +5,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { AnimatedNumber } from "./shared";
-import { Check, X, Undo2 } from "lucide-react";
+import { Check, X, Undo2, Radar } from "lucide-react";
 import React, { useState, useCallback, useMemo } from "react";
 import { apiPost } from "../../lib/api";
 import { pushToast } from "../../lib/toast";
@@ -92,13 +92,34 @@ export default function JobsView() {
 
     if (visibleJobs.length === 0) {
         return (
-            <div className="text-center p-8 bg-gray-50 rounded-lg">
-                <h3 className="text-2xl font-bold text-gray-800">You're all caught up!</h3>
-                <p className="text-gray-600 mt-2">
-                    There are no new jobs matching your profile right now. Check back later!
+            <div className="flex flex-col items-center justify-center py-16 px-6">
+                <div className="relative mb-8">
+                    <div className="absolute -inset-4 bg-gradient-to-r from-primary-100 via-purple-100 to-pink-100 rounded-full blur-2xl opacity-60 animate-pulse" />
+                    <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-br from-primary-50 to-purple-50 flex items-center justify-center border border-primary-100">
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" className="text-primary-500">
+                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" opacity="0.3"/>
+                            <path d="M22 32l6 6 14-14" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                            <circle cx="52" cy="12" r="4" fill="currentColor" opacity="0.2"/>
+                            <circle cx="8" cy="48" r="3" fill="currentColor" opacity="0.15"/>
+                        </svg>
+                    </div>
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-900 via-primary-900 to-purple-900 bg-clip-text text-transparent mb-2">
+                    You're all caught up!
+                </h3>
+                <p className="text-slate-500 text-center max-w-sm mb-2">
+                    Your AI agent is scanning thousands of listings for your perfect match.
                 </p>
-                <Button className="mt-4" onClick={() => refetch()} aria-label="Refresh job listings">
-                    Refresh Jobs
+                <p className="text-xs text-slate-400 mb-6">
+                    New jobs are added every few hours
+                </p>
+                <Button
+                    className="bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white rounded-xl px-8 py-3 font-semibold shadow-lg shadow-primary-500/20 transition-all hover:shadow-xl hover:shadow-primary-500/30 hover:-translate-y-0.5"
+                    onClick={() => refetch()}
+                    aria-label="Refresh job listings"
+                >
+                    <Radar className="w-4 h-4 mr-2 animate-spin" style={{ animationDuration: '3s' }} />
+                    Scan for new jobs
                 </Button>
             </div>
         );

@@ -321,16 +321,21 @@ export default function ApplicationsView() {
                 <tr>
                   <td colSpan={4} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-6 relative">
-                        <Radar className="w-10 h-10 text-slate-300" />
-                        <div className="absolute inset-0 rounded-full border border-slate-100 animate-ping opacity-20" />
+                      <div className="relative mb-6">
+                        <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 via-primary-100 to-violet-100 rounded-full blur-xl opacity-50 animate-pulse" />
+                        <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-50 to-primary-50 flex items-center justify-center border border-blue-100 shadow-lg shadow-blue-100/50">
+                          <Radar className="w-10 h-10 text-primary-400" />
+                          <div className="absolute inset-0 rounded-2xl border-2 border-primary-200 animate-ping opacity-10" />
+                        </div>
                       </div>
-                      <h3 className="text-xl font-black text-slate-900 mb-2">{t("applications.noActiveApplications", locale)}</h3>
-                      <p className="text-slate-500 font-medium mb-8 max-w-sm">
+                      <h3 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-primary-900 bg-clip-text text-transparent mb-2">
+                        {t("applications.noActiveApplications", locale)}
+                      </h3>
+                      <p className="text-slate-500 font-medium mb-8 max-w-sm leading-relaxed">
                         {searchTerm ? t("applications.searchNoResultsDesktop", locale) : t("applications.emptyDesktopDescription", locale)}
                       </p>
                       {!searchTerm && (
-                        <Button onClick={() => navigate('/app/jobs')} variant="primary" className="font-bold uppercase rounded-xl shadow-lg shadow-primary-500/20">
+                        <Button onClick={() => navigate('/app/jobs')} className="bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 px-8 py-3 transition-all hover:shadow-xl hover:-translate-y-0.5">
                           {t("applications.startSearching", locale)} <Rocket className="ml-2 w-4 h-4" />
                         </Button>
                       )}

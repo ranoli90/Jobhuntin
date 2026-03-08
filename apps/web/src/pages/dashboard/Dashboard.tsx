@@ -153,17 +153,20 @@ export default function Dashboard() {
               className="h-full min-w-[240px] md:min-w-0"
             >
               <Card
-                className="h-full border-slate-200 bg-white/60 hover:bg-white transition-all duration-300 group"
+                className="h-full border-slate-200/80 bg-white hover:shadow-md transition-all duration-300 group relative overflow-hidden"
                 shadow="sm"
                 tone="glass"
               >
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${metric.color} opacity-80`} />
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                      <metric.icon className={`h-4 w-4 ${metric.iconColor}`} />
+                      <div className={`w-8 h-8 rounded-lg ${metric.bg} flex items-center justify-center`}>
+                        <metric.icon className={`h-4 w-4 ${metric.iconColor}`} />
+                      </div>
                       <span>{metric.label}</span>
                     </div>
-                    <p className="text-2xl font-bold text-slate-900">
+                    <p className="text-3xl font-bold text-slate-900">
                       {isLoading ? (
                         <span className="inline-block h-8 w-16 bg-slate-100 rounded animate-pulse"></span>
                       ) : typeof metric.value === 'string' ? (
