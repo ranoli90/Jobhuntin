@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ArrowRight, LayoutDashboard, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -51,14 +52,15 @@ export function MarketingNavbar() {
   };
 
   const handleMobileNavClick = useCallback((path: string, hash: string | null) => {
-    closeMenu();
     if (hash && isHomePage) {
+      flushSync(() => closeMenu());
       const el = document.getElementById(hash);
       if (el) {
         setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 50);
       }
       return;
     }
+    flushSync(() => closeMenu());
     navigate(path);
   }, [closeMenu, isHomePage, navigate]);
 

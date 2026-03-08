@@ -1,7 +1,7 @@
 import React from 'react';
-import { Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
+import { JobHuntinMark } from './JobHuntinMark';
 
 interface LogoProps {
   className?: string;
@@ -21,24 +21,9 @@ export function Logo({
   variant = 'light'
 }: LogoProps) {
   const sizeClasses = {
-    sm: {
-      container: 'gap-1.5',
-      iconBox: 'p-1.5 rounded-lg',
-      briefcase: 'w-4 h-4',
-      text: 'text-base'
-    },
-    md: {
-      container: 'gap-2',
-      iconBox: 'p-2 rounded-xl',
-      briefcase: 'w-5 h-5',
-      text: 'text-xl'
-    },
-    lg: {
-      container: 'gap-3',
-      iconBox: 'p-2.5 rounded-2xl',
-      briefcase: 'w-6 h-6',
-      text: 'text-2xl'
-    }
+    sm: { container: 'gap-1.5', iconBox: 'p-1.5 rounded-lg', text: 'text-base' },
+    md: { container: 'gap-2', iconBox: 'p-2 rounded-xl', text: 'text-xl' },
+    lg: { container: 'gap-3', iconBox: 'p-2.5 rounded-2xl', text: 'text-2xl' }
   };
 
   const currentSize = sizeClasses[size];
@@ -55,7 +40,7 @@ export function Logo({
             : "bg-gradient-to-br from-[#455DD3] via-[#5B6FDB] to-[#17BEBB] text-white shadow-lg shadow-[#455DD3]/25"
         )}
       >
-        <Briefcase className={currentSize.briefcase} aria-hidden strokeWidth={2} />
+        <JobHuntinMark size={size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'} />
       </div>
       {!iconOnly && (
         <span className={cn("font-black tracking-tight", currentSize.text)}>

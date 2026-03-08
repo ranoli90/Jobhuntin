@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
-import { ArrowRight, MailCheck, Check, Briefcase, TrendingUp, Upload, Send, Phone, PartyPopper } from 'lucide-react';
+import { ArrowRight, MailCheck, Check, Briefcase, TrendingUp } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
 import { TestimonialsSection } from '../components/TestimonialsSection';
@@ -125,17 +125,24 @@ function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
 }
 
 /* ── User journey animated story ── */
+const JOURNEY_ILLUSTRATIONS: Record<string, string> = {
+  signup: '/illustrations/files-uploading.svg',
+  apply: '/illustrations/application.svg',
+  callbacks: '/illustrations/emails.svg',
+  landed: '/illustrations/celebration.svg',
+};
 const JOURNEY_STEPS = [
-  { id: 'signup', title: 'You sign up', sub: 'Drop your resume', icon: Upload, color: '#455DD3', duration: 3500 },
-  { id: 'apply', title: 'We apply', sub: '127 applications sent', icon: Send, color: '#17BEBB', duration: 3500 },
-  { id: 'callbacks', title: 'Callbacks roll in', sub: '23 companies reached out', icon: Phone, color: '#16A34A', duration: 3500 },
-  { id: 'landed', title: 'You land the role', sub: 'Interview → Offer → Start', icon: PartyPopper, color: '#EA580C', duration: 4000 },
+  { id: 'signup', title: 'You sign up', sub: 'Drop your resume', color: '#455DD3', duration: 3500 },
+  { id: 'apply', title: 'We apply', sub: '127 applications sent', color: '#17BEBB', duration: 3500 },
+  { id: 'callbacks', title: 'Callbacks roll in', sub: '23 companies reached out', color: '#16A34A', duration: 3500 },
+  { id: 'landed', title: 'You land the role', sub: 'Interview → Offer → Start', color: '#EA580C', duration: 4000 },
 ];
 
 function UserJourneySection() {
   const [step, setStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [tabVisible, setTabVisible] = useState(true);
+  const [justLanded, setJustLanded] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -157,75 +164,99 @@ function UserJourneySection() {
   useEffect(() => {
     if (!isVisible || reduced || !tabVisible) return;
     const current = JOURNEY_STEPS[step];
-    const t = setTimeout(() => setStep((s) => (s + 1) % JOURNEY_STEPS.length), current.duration);
+    const t = setTimeout(() => {
+      const next = (step + 1) % JOURNEY_STEPS.length;
+      setJustLanded(next === 3);
+      setStep(next);
+    }, current.duration);
     return () => clearTimeout(t);
   }, [step, isVisible, reduced, tabVisible]);
 
   const s = JOURNEY_STEPS[step];
-  const Icon = s.icon;
 
   return (
     <section ref={ref} className="bg-[#2D2A26] py-[80px] sm:py-[100px] relative overflow-hidden" aria-live="polite" aria-atomic="true">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(69,93,211,0.08) 0%, transparent 70%)' }} />
+      {/* Floating orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[15%] left-[10%] w-3 h-3 rounded-full bg-[#455DD3]/40 animate-pulse" style={{ animationDuration: '3s' }} />
+        <div className="absolute top-[25%] right-[15%] w-2 h-2 rounded-full bg-[#17BEBB]/30 animate-pulse" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
+        <div className="absolute bottom-[30%] left-[20%] w-2 h-2 rounded-full bg-[#EA580C]/30 animate-pulse" style={{ animationDuration: '2s', animationDelay: '1s' }} />
+        <div className="absolute bottom-[20%] right-[10%] w-3 h-3 rounded-full bg-[#16A34A]/30 animate-pulse" style={{ animationDuration: '2.8s', animationDelay: '0.3s' }} />
+      </div>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(69,93,211,0.12) 0%, transparent 70%)' }} />
       <div className="relative max-w-[1080px] mx-auto px-6">
         <Reveal>
-          <p className="text-center text-[12px] font-medium text-white/50 uppercase tracking-widest mb-[12px]">Your story starts here</p>
+          <p className="text-center text-[12px] font-medium text-[#7DD3CF] uppercase tracking-widest mb-[12px]">Your story starts here</p>
           <h2 className="text-center text-[clamp(1.75rem,4vw,40px)] font-bold text-white leading-tight mb-[48px]" style={{ letterSpacing: '-1.5px' }}>
-            From signup to offer — in one flow
+            From signup to offer — <span className="text-[#7DD3CF]">in one flow</span>
           </h2>
         </Reveal>
 
-        <div className="max-w-[560px] mx-auto">
+        <div className="max-w-[600px] mx-auto">
           <Reveal delay={100}>
-            <div className="relative min-h-[280px] sm:min-h-[320px] rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-              {/* Progress bar */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-white/10">
+            <div className="relative min-h-[300px] sm:min-h-[340px] rounded-2xl border-2 border-white/15 bg-gradient-to-b from-white/[0.08] to-white/[0.02] overflow-hidden shadow-2xl shadow-black/20">
+              {/* Wavy progress path */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-white/10">
                 <div
-                  className="h-full transition-all duration-700 ease-out"
-                  style={{ width: `${((step + 1) / JOURNEY_STEPS.length) * 100}%`, background: s.color }}
+                  className="h-full transition-all duration-700 ease-out rounded-r-full"
+                  style={{ width: `${((step + 1) / JOURNEY_STEPS.length) * 100}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}99)` }}
                 />
               </div>
 
-              {/* Step content */}
-              <div className="p-8 sm:p-12 flex flex-col items-center justify-center min-h-[260px] sm:min-h-[300px]">
+              {/* Step content with illustration */}
+              <div className="p-8 sm:p-12 flex flex-col items-center justify-center min-h-[270px] sm:min-h-[310px]">
                 <div
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500"
-                  style={{ background: `${s.color}20`, color: s.color }}
+                  className={cn(
+                    "w-full max-w-[220px] h-[140px] sm:h-[160px] mb-6 flex items-center justify-center transition-transform duration-500",
+                    justLanded && !reduced && "animate-bounce"
+                  )}
                 >
-                  <Icon className="w-8 h-8 sm:w-10 sm:h-10" strokeWidth={2} />
+                  <img
+                    src={JOURNEY_ILLUSTRATIONS[s.id]}
+                    alt=""
+                    className="object-contain w-full h-full"
+                    loading="lazy"
+                    aria-hidden
+                  />
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 text-center">{s.title}</h3>
-                <p className="text-white/70 text-center">{s.sub}</p>
+                <p className="text-white/80 text-center font-medium">{s.sub}</p>
 
-                {/* Step indicators */}
-                <div className="flex gap-2 mt-8">
+                {/* Step rail - winding path feel */}
+                <div className="flex gap-3 mt-8">
                   {JOURNEY_STEPS.map((_, i) => (
                     <div
                       key={i}
                       className={cn(
-                        "w-2 h-2 rounded-full transition-all duration-300",
-                        i === step ? "scale-125" : "opacity-40"
+                        "w-3 h-3 rounded-full transition-all duration-300",
+                        i === step ? "scale-125 ring-2 ring-offset-2 ring-offset-[#2D2A26]" : "opacity-40"
                       )}
-                      style={{ background: i === step ? s.color : 'white' }}
+                      style={{
+                        background: i === step ? s.color : 'white',
+                        boxShadow: i === step ? `0 0 12px ${s.color}` : 'none',
+                      }}
                     />
                   ))}
                 </div>
               </div>
 
-              {/* Mini "browser" mock at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5">
-                <div className="flex items-center gap-2 text-white/30 text-xs">
-                  <div className="w-2 h-2 rounded-full bg-white/20" />
-                  <div className="w-2 h-2 rounded-full bg-white/20" />
-                  <div className="w-2 h-2 rounded-full bg-white/20" />
+              {/* Dashboard mock - more playful */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-black/20">
+                <div className="flex items-center gap-2 text-white/40 text-xs font-mono">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-red-500/60" />
+                    <div className="w-2 h-2 rounded-full bg-amber-500/60" />
+                    <div className="w-2 h-2 rounded-full bg-emerald-500/60" />
+                  </div>
                   <span className="ml-2 truncate">jobhuntin.com/dashboard</span>
+                  <span className="ml-auto text-[#7DD3CF]/60">● Live</span>
                 </div>
               </div>
             </div>
           </Reveal>
 
-          <p className="text-center text-[14px] text-white/50 mt-6">
-            Join 500,000+ applications sent. Your turn is next.
+          <p className="text-center text-[15px] text-white/60 mt-8 font-medium">
+            Join 500,000+ applications sent. <span className="text-[#7DD3CF]">Your turn is next.</span>
           </p>
         </div>
       </div>

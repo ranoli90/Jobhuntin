@@ -327,16 +327,20 @@ export default function Login() {
         </div>
 
         {/* Right — Form (homepage white section style) */}
-        <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 xl:p-16 bg-[#F7F6F3] relative">
-          <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
-            <LanguageSelector />
-            <ThemeToggle />
+        <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col p-6 sm:p-8 lg:p-12 xl:p-16 bg-[#F7F6F3] relative">
+          {/* Top bar: on mobile, logo left + controls right to prevent overlap */}
+          <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-10">
+            <Logo to="/" variant="light" size="md" className="lg:hidden" />
+            <div className="hidden lg:block" aria-hidden />
+            <div className="flex items-center gap-2 ml-auto">
+              <LanguageSelector />
+              <ThemeToggle />
+            </div>
           </div>
 
-          <div className="w-full max-w-[400px]">
-            <div className="lg:hidden text-center mb-8">
-              <Logo to="/" variant="light" size="lg" />
-              <h1 className="text-2xl font-bold text-[#2D2A26] mt-6 mb-2 tracking-tight">
+          <div className="w-full max-w-[400px] mx-auto flex-1 flex flex-col justify-center pt-16 lg:pt-0">
+            <div className="lg:hidden text-center mb-6">
+              <h1 className="text-2xl font-bold text-[#2D2A26] mb-2 tracking-tight">
                 Welcome back
               </h1>
               <p className="text-[#787774] text-sm">
