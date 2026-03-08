@@ -8,13 +8,28 @@ interface ApiKey {
   is_active: boolean; last_used_at: string | null; created_at: string;
 }
 
-function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
+async function authHeaders(): Promise<Record<string, string>> {
+  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
+  // This prevents XSS attacks from stealing auth tokens
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  // No Authorization header needed - token is sent via httpOnly cookie
+  return h;
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const t = getAuthToken();
-  return t ? { Authorization: `Bearer ${t}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers = await authHeaders();
+  const opts: RequestInit = { 
+    method, 
+    headers,
+    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(`${API_BASE}${path}`, opts);
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`API ${resp.status}: ${text}`);
+  }
+  return resp.json() as Promise<T>;
 }
 
 export default function ApiKeysPage() {
@@ -26,10 +41,14 @@ export default function ApiKeysPage() {
   const [creating, setCreating] = useState(false);
 
   const load = async () => {
-    const h = await authHeaders();
-    const r = await fetch(`${API_BASE}/developer/api-keys`, { headers: h });
-    if (r.ok) setKeys(await r.json());
-    setLoading(false);
+    try {
+      const data = await request<ApiKey[]>("GET", "/developer/api-keys");
+      setKeys(data);
+    } catch (e) {
+      alert(String(e));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -37,24 +56,18 @@ export default function ApiKeysPage() {
   const createKey = async () => {
     setCreating(true);
     try {
-      const h = await authHeaders();
-      const r = await fetch(`${API_BASE}/developer/api-keys`, {
-        method: "POST", headers: h,
-        body: JSON.stringify({ name: newKeyName, tier: newKeyTier }),
+      const data = await request("POST", "/developer/api-keys", {
+        name: newKeyName, tier: newKeyTier
       });
-      if (r.ok) {
-        const data = await r.json();
-        setCreatedKey(data.raw_key);
-        load();
-      }
+      setCreatedKey(data.raw_key);
+      load();
     } catch (e) { alert(String(e)); }
     finally { setCreating(false); }
   };
 
   const revokeKey = async (id: string) => {
     if (!confirm("Revoke this API key? This cannot be undone.")) return;
-    const h = await authHeaders();
-    await fetch(`${API_BASE}/developer/api-keys/${id}`, { method: "DELETE", headers: h });
+    await request("DELETE", `/developer/api-keys/${id}`);
     load();
   };
 

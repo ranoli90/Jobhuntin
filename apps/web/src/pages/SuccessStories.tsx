@@ -110,7 +110,7 @@ export default function SuccessStories() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl md:text-8xl font-sans font-black mb-8 tracking-tighter leading-tight text-slate-900 dark:text-slate-100">
-              {t("successStories.headingWon", locale)} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-amber-500">{t("successStories.headingNext", locale)}</span><br />
+              {t("successStories.headingWon", locale)} <span className="text-primary-600 font-black">{t("successStories.headingNext", locale)}</span><br />
               {t("successStories.headingYou", locale)}
             </h1>
           </motion.div>
@@ -126,10 +126,9 @@ export default function SuccessStories() {
           ))}
 
           {/* CTA Card Mobile */}
-          <div className="w-full bg-gradient-to-br from-primary-500 to-primary-600 p-8 rounded-3xl text-center relative overflow-hidden shadow-xl">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-            <h3 className="text-3xl font-black mb-4 relative z-10 text-white">{t("successStories.ctaTitle", locale)}</h3>
-            <p className="text-white/90 mb-6 relative z-10 font-medium">{t("successStories.ctaDescription", locale)}</p>
+          <div className="w-full bg-primary-600 p-8 rounded-2xl text-center relative overflow-hidden shadow-xl">
+            <h3 className="text-3xl font-black mb-4 text-white">{t("successStories.ctaTitle", locale)}</h3>
+            <p className="text-white/90 mb-6 font-medium">{t("successStories.ctaDescription", locale)}</p>
             <Button asChild className="w-full bg-white text-primary-600 hover:bg-slate-50 border-none shadow-lg text-lg font-bold">
               <Link to="/login">
                 {t("successStories.startFreeTrial", locale)}
@@ -157,11 +156,10 @@ export default function SuccessStories() {
               ))}
 
               {/* CTA Card at the end */}
-              <div className="w-[500px] bg-gradient-to-br from-primary-500 to-primary-600 p-10 rounded-[3rem] flex flex-col justify-center items-center text-center relative overflow-hidden shadow-2xl shadow-primary-500/30">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                <h3 className="text-4xl font-black mb-6 relative z-10 text-white">{t("successStories.ctaTitle", locale)}</h3>
-                <p className="text-white/90 mb-8 relative z-10 text-lg font-medium">{t("successStories.ctaDescription", locale)}</p>
-                <Button asChild className="bg-white text-primary-600 hover:bg-slate-50 hover:scale-105 transition-transform relative z-10 shadow-xl hover:shadow-2xl h-16 px-8 text-xl font-bold rounded-2xl border-none">
+              <div className="w-[500px] bg-primary-600 p-10 rounded-2xl flex flex-col justify-center items-center text-center relative overflow-hidden shadow-2xl shadow-primary-500/30">
+                <h3 className="text-4xl font-black mb-6 text-white">{t("successStories.ctaTitle", locale)}</h3>
+                <p className="text-white/90 mb-8 text-lg font-medium">{t("successStories.ctaDescription", locale)}</p>
+                <Button asChild className="bg-white text-primary-600 hover:bg-slate-50 hover:scale-105 transition-transform shadow-xl hover:shadow-2xl h-16 px-8 text-xl font-bold rounded-lg border-none">
                   <Link to="/login">
                     {t("successStories.startFreeTrial", locale)}
                   </Link>
@@ -204,7 +202,7 @@ const StoryCard = ({
 
   return (
     <div
-      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white dark:bg-slate-900 ${isMobile ? 'p-8' : 'p-10'} rounded-3xl border border-slate-100 dark:border-slate-700 shadow-xl relative flex-shrink-0 group hover:border-primary-200 dark:hover:border-primary-600 transition-colors overflow-hidden`}
+      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white dark:bg-slate-900 ${isMobile ? 'p-8' : 'p-10'} rounded-2xl border border-slate-100 dark:border-slate-700 shadow-xl relative flex-shrink-0 group hover:border-primary-200 dark:hover:border-primary-600 transition-colors overflow-hidden`
     >
       {/* Hired Stamp */}
       {/* Hired Ribbon */}
@@ -217,13 +215,13 @@ const StoryCard = ({
           <img
             src={story.image}
             alt={`${story.name} - ${story.role} Success Story`}
-            className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} rounded-full object-cover border-4 border-white shadow-lg`}
+            className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} rounded-lg object-cover border-4 border-white shadow-lg`}
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button
               onClick={handlePlayAudio}
-              className="bg-white/90 rounded-full p-2 cursor-pointer hover:scale-110 transition-transform shadow-lg backdrop-blur-sm"
+              className="bg-white/90 rounded-lg p-2 cursor-pointer hover:scale-110 transition-transform shadow-lg backdrop-blur-sm"
               aria-label={isCurrentlyPlaying ? 'Pause audio' : 'Play audio testimonial'}
               aria-pressed={isCurrentlyPlaying}
             >

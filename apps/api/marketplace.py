@@ -111,12 +111,25 @@ async def list_blueprints(
     if featured:
         base += " AND is_featured = true"
 
-    order = {
+    # Secure sort parameter with whitelist validation
+    allowed_sort_options = {
         "popular": "install_count DESC",
         "rating": "rating_avg DESC",
         "newest": "published_at DESC",
         "name": "name ASC",
-    }.get(sort, "install_count DESC")
+        "install_count": "install_count DESC",
+        "rating_avg": "rating_avg DESC",
+        "published_at": "published_at DESC",
+    }
+
+    # Validate and get safe sort clause
+    if sort not in allowed_sort_options:
+        logger.warning(f"Invalid sort parameter: {sort}")
+        order = allowed_sort_options["install_count"]  # Default fallback
+    else:
+        order = allowed_sort_options[sort]
+
+    # Use parameterized queries to prevent SQL injection
     base += f" ORDER BY {order}"
 
     idx += 1

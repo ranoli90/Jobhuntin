@@ -76,8 +76,8 @@ async def _get_user_id() -> str:
 async def _get_tenant_id() -> str:
     from api.main import get_tenant_context
 
-    ctx = get_tenant_context()
-    return ctx.get("tenant_id", "")
+    ctx = await get_tenant_context()
+    return ctx.tenant_id
 
 
 TABLES_WITH_USER_DATA = [
@@ -198,7 +198,9 @@ async def export_user_data(
                     extra={"table": table, "error": str(e)},
                 )
 
-    json.dumps(export_data, indent=2, default=str)
+    # Generate JSON export and include in response
+    json_export = json.dumps(export_data, indent=2, default=str)
+    export_data["json_export"] = json_export
 
     incr("gdpr.export_completed", tags={"tenant_id": tenant_id})
 

@@ -19,11 +19,14 @@ async def ensure_stripe_customer(
     if row and row["provider_customer_id"]:
         return row["provider_customer_id"]
 
-    # Create new customer
-    customer = stripe.Customer.create(
-        email=user_email,
-        metadata={"tenant_id": tenant_id},
-    )
+    # Create new customer - handle None email gracefully
+    customer_params = {"metadata": {"tenant_id": tenant_id}}
+
+    # Only add email if it's provided (Stripe doesn't accept None)
+    if user_email:
+        customer_params["email"] = user_email
+
+    customer = stripe.Customer.create(**customer_params)
 
     await conn.execute(
         """INSERT INTO public.billing_customers (tenant_id, provider, provider_customer_id)

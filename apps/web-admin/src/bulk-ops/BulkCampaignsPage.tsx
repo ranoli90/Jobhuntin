@@ -15,13 +15,28 @@ interface Campaign {
   completed_at: string | null;
 }
 
-function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
+async function authHeaders(): Promise<Record<string, string>> {
+  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
+  // This prevents XSS attacks from stealing auth tokens
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  // No Authorization header needed - token is sent via httpOnly cookie
+  return h;
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const t = getAuthToken();
-  return t ? { Authorization: `Bearer ${t}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers = await authHeaders();
+  const opts: RequestInit = { 
+    method, 
+    headers,
+    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(`${API_BASE}${path}`, opts);
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`API ${resp.status}: ${text}`);
+  }
+  return resp.json() as Promise<T>;
 }
 
 export default function BulkCampaignsPage() {
@@ -37,9 +52,8 @@ export default function BulkCampaignsPage() {
 
   const load = async () => {
     try {
-      const h = await authHeaders();
-      const r = await fetch(`${API_BASE}/bulk/campaigns`, { headers: h });
-      if (r.ok) setCampaigns(await r.json());
+      const r = await request<Campaign[]>("GET", "/bulk/campaigns");
+      setCampaigns(r);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -50,31 +64,19 @@ export default function BulkCampaignsPage() {
     if (!name.trim()) return;
     setCreating(true);
     try {
-      const h = await authHeaders();
-      const r = await fetch(`${API_BASE}/bulk/campaigns`, {
-        method: "POST", headers: h,
-        body: JSON.stringify({
-          name: name.trim(),
-          filters: { title: title.trim(), location: location.trim() },
-        }),
+      await request("POST", "/bulk/campaigns", {
+        name: name.trim(),
+        filters: { title: title.trim(), location: location.trim() },
       });
-      if (r.ok) {
-        setName(""); setTitle(""); setLocation(""); setShowCreate(false);
-        load();
-      } else {
-        const err = await r.json().catch(() => ({}));
-        alert(err.detail || "Failed to create campaign");
-      }
+      setName(""); setTitle(""); setLocation(""); setShowCreate(false);
+      load();
     } catch (e) { alert(String(e)); }
     finally { setCreating(false); }
   };
 
   const handleStart = async (id: string) => {
-    try {
-      const h = await authHeaders();
-      await fetch(`${API_BASE}/bulk/campaigns/${id}/start`, { method: "POST", headers: h });
-      load();
-    } catch (e) { alert(String(e)); }
+    await request("POST", `/bulk/campaigns/${id}/start`);
+    load();
   };
 
   const statusColor = (s: string) => {

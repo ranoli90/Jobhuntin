@@ -12,14 +12,13 @@
 from __future__ import annotations
 
 import json
-import os
 import uuid
-from datetime import timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
 import asyncpg
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, HTTPException
 from fastapi import Path as FastAPIPath
 from fastapi import UploadFile
 from pydantic import BaseModel, Field, field_validator
@@ -35,12 +34,16 @@ from backend.domain.repositories import (
 )
 from backend.domain.resume import process_resume_upload
 from backend.domain.tenant import TenantContext
+from backend.domain.document_processor import create_document_processor
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import RateLimiter
 from shared.storage import get_storage_service
 
 logger = get_logger("sorce.user")
+
+# Initialize document processor for file type validation
+processor = create_document_processor()
 
 router = APIRouter(tags=["user"])
 
@@ -150,13 +153,36 @@ def _format_location(location: str | None) -> str:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/applications")
+@router.get("/me/applications")
 async def list_applications(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
-) -> list[dict[str, Any]]:
-    """List applications for the current user; status mapped for web (HOLD, APPLYING, etc.)."""
+    limit: int = 25,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """List applications for the current user with pagination; status mapped for web (HOLD, APPLYING, etc.)."""
+    # Validate and limit pagination parameters
+    limit = max(5, min(limit, 100))  # Between 5 and 100 items
+    offset = max(0, offset)
+
     async with db.acquire() as conn:
+        # Get total count for pagination
+        count_result = await conn.fetchrow(
+            """
+            SELECT COUNT(*) as total
+            FROM   public.applications a
+            JOIN   public.jobs j ON j.id = a.job_id
+            WHERE  a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
+              AND a.status != 'REJECTED'
+              AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
+            """,
+            ctx.user_id,
+            ctx.tenant_id,
+        )
+
+        total_count = count_result["total"]
+
+        # Get paginated results
         rows = await conn.fetch(
             """
             SELECT a.id, a.status::text, a.updated_at, a.snoozed_until,
@@ -172,9 +198,12 @@ async def list_applications(
               AND a.status != 'REJECTED'
               AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
             ORDER  BY a.updated_at DESC
+            LIMIT $3 OFFSET $4
             """,
             ctx.user_id,
             ctx.tenant_id,
+            limit,
+            offset,
         )
 
     out: list[dict[str, Any]] = []
@@ -193,7 +222,25 @@ async def list_applications(
                 ),
             }
         )
-    return out
+
+    # Calculate pagination metadata
+    has_more = offset + limit < total_count
+    next_offset = offset + limit if has_more else None
+    prev_offset = max(0, offset - limit) if offset > 0 else None
+
+    return {
+        "applications": out,
+        "pagination": {
+            "total_count": total_count,
+            "limit": limit,
+            "offset": offset,
+            "has_more": has_more,
+            "next_offset": next_offset,
+            "prev_offset": prev_offset,
+            "total_pages": (total_count + limit - 1) // limit,
+            "current_page": (offset // limit) + 1,
+        },
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -206,7 +253,7 @@ class CreateApplicationBody(BaseModel):
     decision: Literal["ACCEPT", "REJECT"]
 
 
-@router.post("/applications")
+@router.post("/me/applications")
 async def create_application(
     body: CreateApplicationBody,
     ctx: TenantContext = Depends(_get_tenant_ctx),
@@ -224,6 +271,38 @@ async def create_application(
         # H-3: Persist rejection with REJECTED status (not FAILED) to avoid
         # inflating failure metrics while still preventing job resurfacing.
         async with db.acquire() as conn:
+            # Check for existing application first
+            existing_app = await conn.fetchrow(
+                """
+                SELECT id, status, created_at, updated_at 
+                FROM public.applications 
+                WHERE user_id = $1 AND job_id = $2 AND tenant_id = $3
+                """,
+                ctx.user_id,
+                body.job_id,
+                ctx.tenant_id,
+            )
+
+            if existing_app:
+                # Return appropriate response for duplicate application
+                logger.info(
+                    f"[APPLICATION] Duplicate application prevented: user={ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
+                )
+                return {
+                    "status": "duplicate",
+                    "message": "You have already applied to this job",
+                    "existing_application": {
+                        "id": str(existing_app["id"]),
+                        "status": existing_app["status"],
+                        "created_at": existing_app["created_at"].isoformat()
+                        if existing_app["created_at"]
+                        else None,
+                        "updated_at": existing_app["updated_at"].isoformat()
+                        if existing_app["updated_at"]
+                        else None,
+                    },
+                }
+
             job = await JobRepo.get_by_id(conn, body.job_id)
             if not job:
                 raise HTTPException(status_code=404, detail="Job not found")
@@ -249,6 +328,38 @@ async def create_application(
         return {"status": "recorded", "decision": body.decision}
 
     async with db.acquire() as conn:
+        # Check for existing application first
+        existing_app = await conn.fetchrow(
+            """
+            SELECT id, status, created_at, updated_at 
+            FROM public.applications 
+            WHERE user_id = $1 AND job_id = $2 AND tenant_id = $3
+            """,
+            ctx.user_id,
+            body.job_id,
+            ctx.tenant_id,
+        )
+
+        if existing_app:
+            # Return appropriate response for duplicate application
+            logger.info(
+                f"[APPLICATION] Duplicate application prevented: user={ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
+            )
+            return {
+                "status": "duplicate",
+                "message": "You have already applied to this job",
+                "existing_application": {
+                    "id": str(existing_app["id"]),
+                    "status": existing_app["status"],
+                    "created_at": existing_app["created_at"].isoformat()
+                    if existing_app["created_at"]
+                    else None,
+                    "updated_at": existing_app["updated_at"].isoformat()
+                    if existing_app["updated_at"]
+                    else None,
+                },
+            }
+
         job = await JobRepo.get_by_id(conn, body.job_id)
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
@@ -295,7 +406,7 @@ async def create_application(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/applications/{job_id}/undo")
+@router.post("/me/applications/{job_id}/undo")
 async def undo_application(
     job_id: str = FastAPIPath(
         ..., description="The job ID (not application ID) whose swipe to undo"
@@ -361,7 +472,7 @@ class AnswerHoldBody(BaseModel):
     answer: str
 
 
-@router.post("/applications/{application_id}/answer")
+@router.post("/me/applications/{application_id}/answer")
 async def answer_hold(
     application_id: str = FastAPIPath(...),
     body: AnswerHoldBody = ...,
@@ -429,7 +540,7 @@ class SnoozeBody(BaseModel):
     hours: int = Field(default=24, ge=1, le=720)
 
 
-@router.post("/applications/{application_id}/snooze")
+@router.post("/me/applications/{application_id}/snooze")
 async def snooze_application(
     application_id: str = FastAPIPath(...),
     body: SnoozeBody | None = None,
@@ -545,11 +656,99 @@ async def withdraw_application(
 
 
 # ---------------------------------------------------------------------------
+# PATCH /me/applications/{application_id}/status
+# ---------------------------------------------------------------------------
+
+
+class UpdateApplicationStatusBody(BaseModel):
+    """Request body for updating application status."""
+
+    status: str = Field(
+        ...,
+        description="New status: 'INTERVIEW_SCHEDULED', 'OFFER_RECEIVED', 'ACCEPTED', 'REJECTED'",
+    )
+    notes: str | None = Field(
+        None, description="Optional notes about the status update"
+    )
+
+
+@router.patch("/me/applications/{application_id}/status")
+async def update_application_status(
+    application_id: str = FastAPIPath(..., description="Application ID to update"),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+    body: UpdateApplicationStatusBody = Body(...),
+) -> dict[str, Any]:
+    """Update application status manually."""
+    from shared.validators import validate_uuid
+
+    # Validate application_id format
+    try:
+        validate_uuid(application_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid application ID format")
+
+    # Validate status
+    valid_statuses = [
+        "INTERVIEW_SCHEDULED",
+        "OFFER_RECEIVED",
+        "ACCEPTED",
+        "REJECTED",
+        "WITHDRAWN",
+    ]
+    if body.status not in valid_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
+        )
+
+    async with db.acquire() as conn:
+        # Check if application exists and belongs to user
+        app = await conn.fetchrow(
+            "SELECT id, user_id, status FROM public.applications WHERE id = $1 AND user_id = $2",
+            application_id,
+            ctx.user_id,
+        )
+
+        if not app:
+            raise HTTPException(status_code=404, detail="Application not found")
+
+        # Update status and notes
+        update_fields = ["status = $3", "updated_at = CURRENT_TIMESTAMP"]
+        params = [body.status, application_id, ctx.user_id]
+
+        if body.notes:
+            update_fields.append("notes = $4")
+            params.append(body.notes)
+
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query
+        await conn.execute(
+            f"""
+            UPDATE public.applications 
+            SET {", ".join(update_fields)}
+            WHERE id = ${len(params)} AND user_id = ${len(params) + 1}
+            """,
+            *params,
+        )
+
+        logger.info(
+            f"Application {application_id} status updated to {body.status} by user {ctx.user_id}"
+        )
+
+        return {
+            "status": "updated",
+            "application_id": application_id,
+            "new_status": body.status,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+
+# ---------------------------------------------------------------------------
 # GET /jobs
 # ---------------------------------------------------------------------------
 
 
-@router.get("/jobs")
+@router.get("/me/jobs")
 async def list_jobs(
     location: str | None = None,
     min_salary: int | None = None,
@@ -584,7 +783,7 @@ async def list_jobs(
     return {"jobs": jobs, "next_offset": next_offset}
 
 
-@router.get("/jobs/sources")
+@router.get("/me/jobs/sources")
 async def get_job_sources(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
@@ -600,7 +799,7 @@ async def get_job_sources(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/applications/export")
+@router.get("/me/applications/export")
 async def export_applications(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
@@ -650,7 +849,7 @@ async def export_applications(
     )
 
 
-@router.get("/profile")
+@router.get("/me/profile")
 async def get_profile(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
@@ -750,8 +949,37 @@ class ProfileUpdate(BaseModel):
             raise ValueError("avatar_url must be a full URL")
         return value
 
+    @field_validator("work_style")
+    @classmethod
+    def _validate_work_style(cls, value: dict | None) -> dict | None:
+        """Validate work_style field and handle unknown fields properly."""
+        if value is None:
+            return None
 
-@router.patch("/profile")
+        # Define allowed work style fields
+        allowed_fields = {
+            "preferred_work_environment",
+            "work_hours",
+            "team_size_preference",
+            "management_style",
+            "communication_style",
+            "work_life_balance_priority",
+            "learning_preference",
+            "company_culture_fit",
+        }
+
+        # Filter out unknown fields but preserve known ones
+        validated_style = {}
+        for key, val in value.items():
+            if key in allowed_fields:
+                validated_style[key] = val
+            else:
+                logger.warning(f"Unknown work_style field ignored: {key}")
+
+        return validated_style if validated_style else None
+
+
+@router.patch("/me/profile")
 async def update_profile(
     body: ProfileUpdate,
     background_tasks: BackgroundTasks,
@@ -922,7 +1150,11 @@ async def _hydrate_job_matches(
         location = preferences.get("location")
         role = preferences.get("role_type")
         salary_val = preferences.get("salary_min")
-        salary = int(salary_val) if salary_val and str(salary_val).isdigit() and int(str(salary_val)) > 0 else None
+        salary = (
+            int(salary_val)
+            if salary_val and str(salary_val).isdigit() and int(str(salary_val)) > 0
+            else None
+        )
 
         await search_and_list_jobs(
             db_pool=db_pool,
@@ -942,25 +1174,35 @@ async def _hydrate_job_matches(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/profile/resume")
+@router.post("/me/profile/resume")
 async def upload_resume(
     file: UploadFile = File(...),
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """Upload PDF resume: extract text, parse via LLM, upsert profile, store file. Returns parsed data."""
+    """Upload resume: extract text, parse via LLM, upsert profile, store file. Returns parsed data."""
     limiter = _get_upload_limiter(ctx.user_id)
     if not await limiter.acquire():
         raise HTTPException(
             status_code=429, detail="Too many uploads. Please retry later."
         )
-    if file.content_type not in ("application/pdf", "application/octet-stream"):
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+
+    # Enhanced file type validation for multiple formats
+    supported_types = (
+        processor.SUPPORTED_PDF_TYPES
+        | processor.SUPPORTED_DOCX_TYPES
+        | processor.SUPPORTED_IMAGE_TYPES
+    )
+    if file.content_type not in supported_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type: {file.content_type}. Supported formats: PDF, DOCX, and images.",
+        )
 
     if file.size == 0:
         raise HTTPException(status_code=400, detail="File is empty or corrupted")
 
-    # Enhanced file validation - check for malicious content patterns
+    # Enhanced file validation with virus scanning
     filename = (file.filename or "upload.pdf").lower()
 
     # Check for suspicious file extensions disguised as PDF
@@ -968,78 +1210,141 @@ async def upload_resume(
         ".exe",
         ".bat",
         ".cmd",
+        ".com",
         ".scr",
+        ".pif",
         ".vbs",
         ".js",
         ".jar",
-        ".php",
-        ".asp",
+        ".app",
+        ".deb",
+        ".rpm",
+        ".dmg",
+        ".pkg",
+        ".msi",
+        ".torrent",
     ]
+
     for ext in suspicious_extensions:
         if filename.endswith(ext):
-            logger.warning(f"[UPLOAD] Suspicious file extension detected: {filename}")
+            logger.warning(f"[UPLOAD] Suspicious file extension detected: {ext}")
             raise HTTPException(status_code=400, detail="Invalid file type")
 
-    # Read file content for validation
-    pdf_bytes = await file.read()
+    # Validate file type is allowed for scanning
+    from shared.virus_scanner import is_file_type_allowed
+
+    if not is_file_type_allowed(filename, file.content_type):
+        raise HTTPException(status_code=400, detail="File type not allowed")
+
+    # Read file content for validation and scanning
+    file_bytes = await file.read()
     await file.seek(0)  # Reset file pointer for later use
 
-    # Validate PDF magic number and header
-    if len(pdf_bytes) < 8:
-        raise HTTPException(status_code=400, detail="File too small to be a valid PDF")
+    # Perform virus scan before processing
+    from shared.virus_scanner import scan_uploaded_file, generate_file_hash
 
-    # PDF files start with %PDF-
-    if not pdf_bytes.startswith(b"%PDF-"):
+    scan_result = await scan_uploaded_file(file_bytes, filename)
+
+    if not scan_result.clean:
+        logger.error(f"[UPLOAD] Virus scan failed: {scan_result.threats}")
         raise HTTPException(
-            status_code=400, detail="Invalid PDF format - does not contain PDF header"
+            status_code=400,
+            detail="File security scan failed. Please upload a different file.",
         )
 
-    # Check for PDF version (should be 1.x)
-    try:
-        version_part = pdf_bytes[5:8].decode("ascii")
-        major_version = int(version_part[0])
-        minor_version = int(version_part[2]) if len(version_part) > 2 else 0
-        if major_version < 1 or major_version > 2:
-            logger.warning(
-                f"[UPLOAD] Unusual PDF version: {major_version}.{minor_version}"
-            )
-    except (ValueError, IndexError):
-        raise HTTPException(status_code=400, detail="Invalid PDF version format")
+    # Log file hash for audit trail
+    file_hash = generate_file_hash(file_bytes)
+    logger.info(f"[UPLOAD] File hash: {file_hash}, scan engine: {scan_result.engine}")
 
-    # Check for embedded malicious content patterns
-    pdf_content = pdf_bytes.decode("latin-1", errors="ignore").lower()
-    malicious_patterns = [
-        "javascript:",
-        "vbscript:",
-        "data:",
-        "<script",
-        "</script>",
-        "eval(",
-        "exec(",
-        "system(",
-        "shell_exec(",
-        "passthru(",
-        "iframe",
-        "object",
-        "embed",
-        "form action=",
-        "onclick=",
-        "onload=",
-        "onerror=",
-        "onmouseover=",
-    ]
+    # Enhanced validation for different file types
+    if file.content_type in processor.SUPPORTED_PDF_TYPES:
+        # PDF-specific validation
+        if len(file_bytes) < 8:
+            raise HTTPException(
+                status_code=400, detail="File too small to be a valid PDF"
+            )
+
+        # PDF files start with %PDF-
+        if not file_bytes.startswith(b"%PDF-"):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid PDF format - does not contain PDF header",
+            )
+
+        # Check for PDF version (should be 1.x)
+        try:
+            version_part = file_bytes[5:8].decode("ascii")
+            major_version = int(version_part[0])
+            minor_version = int(version_part[2]) if len(version_part) > 2 else 0
+            if major_version < 1 or major_version > 2:
+                logger.warning(
+                    f"[UPLOAD] Unusual PDF version: {major_version}.{minor_version}"
+                )
+        except (ValueError, IndexError):
+            raise HTTPException(status_code=400, detail="Invalid PDF version format")
+
+        # Check for embedded malicious content patterns
+        pdf_content = file_bytes.decode("latin-1", errors="ignore").lower()
+        malicious_patterns = [
+            "javascript:",
+            "vbscript:",
+            "data:text/html",
+            "<script",
+            "eval(",
+            "document.write",
+        ]
+
+        for pattern in malicious_patterns:
+            if pattern in pdf_content:
+                logger.warning(
+                    f"[UPLOAD] Malicious content pattern detected: {pattern}"
+                )
+                raise HTTPException(
+                    status_code=400, detail="PDF contains potentially malicious content"
+                )
+
+    elif file.content_type in processor.SUPPORTED_DOCX_TYPES:
+        # DOCX-specific validation
+        if len(file_bytes) < 1000:  # DOCX files have minimum size due to ZIP structure
+            raise HTTPException(
+                status_code=400, detail="File too small to be a valid DOCX"
+            )
+
+        # Check for DOCX magic number (PK header for ZIP files)
+        if not file_bytes.startswith(b"PK"):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid DOCX format - does not contain ZIP header",
+            )
+
+    elif file.content_type in processor.SUPPORTED_IMAGE_TYPES:
+        # Image-specific validation
+        if len(file_bytes) < 100:
+            raise HTTPException(
+                status_code=400, detail="File too small to be a valid image"
+            )
+
+        # Basic image validation - check for common image headers
+        image_headers = {
+            b"\xff\xd8\xff": "JPEG",
+            b"\x89PNG\r\n\x1a\n": "PNG",
+            b"II*\x00": "TIFF",
+            b"MM\x00*": "TIFF",
+            b"BM": "BMP",
+        }
+
+        valid_image = any(
+            file_bytes.startswith(header) for header in image_headers.keys()
+        )
+        if not valid_image:
+            raise HTTPException(
+                status_code=400, detail="Invalid image format - unsupported image type"
+            )
 
     settings = get_settings()
 
-    for pattern in malicious_patterns:
-        if pattern in pdf_content:
-            logger.warning(f"[UPLOAD] Malicious content pattern detected: {pattern}")
-            raise HTTPException(
-                status_code=400, detail="PDF contains potentially malicious content"
-            )
-
     # Check file size again after reading
-    if len(pdf_bytes) > settings.max_upload_size_bytes:
+    if len(file_bytes) > settings.max_upload_size_bytes:
         raise HTTPException(
             status_code=413,
             detail=f"File too large. Maximum size is {settings.max_upload_size_bytes // 1_048_576} MB",
@@ -1049,7 +1354,9 @@ async def upload_resume(
         resume_url, canonical = await process_resume_upload(
             user_id=ctx.user_id,
             tenant_id=ctx.tenant_id,
-            pdf_bytes=pdf_bytes,
+            file_bytes=file_bytes,
+            filename=file.filename or "upload",
+            content_type=file.content_type,
             db_pool=db,
             storage=get_storage_service(),
         )
@@ -1076,7 +1383,7 @@ async def upload_resume(
     }
 
 
-@router.post("/profile/avatar")
+@router.post("/me/profile/avatar")
 async def upload_avatar(
     file: UploadFile = File(...),
     ctx: TenantContext = Depends(_get_tenant_ctx),
@@ -1149,7 +1456,7 @@ async def upload_avatar(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/admin/jobs/sync/status")
+@router.get("/me/admin/jobs/sync/status")
 async def get_job_sync_status(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
@@ -1165,7 +1472,7 @@ async def get_job_sync_status(
     return await get_sync_status(db)
 
 
-@router.post("/admin/jobs/sync/trigger")
+@router.post("/me/admin/jobs/sync/trigger")
 async def trigger_job_sync(
     background_tasks: BackgroundTasks,
     ctx: TenantContext = Depends(_get_tenant_ctx),

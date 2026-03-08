@@ -60,8 +60,15 @@ async def search_and_list_jobs(
 
             async with db_pool.acquire() as conn:
                 query2, params2 = _build_job_search_query(
-                    s, location, min_salary, keywords, source,
-                    is_remote, job_type, limit, offset,
+                    s,
+                    location,
+                    min_salary,
+                    keywords,
+                    source,
+                    is_remote,
+                    job_type,
+                    limit,
+                    offset,
                 )
                 rows = await conn.fetch(query2, *params2)
         except Exception as e:

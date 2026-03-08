@@ -7,13 +7,28 @@ interface Webhook {
   failure_count: number; last_success_at: string | null; created_at: string;
 }
 
-function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
+async function authHeaders(): Promise<Record<string, string>> {
+  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
+  // This prevents XSS attacks from stealing auth tokens
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  // No Authorization header needed - token is sent via httpOnly cookie
+  return h;
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const t = getAuthToken();
-  return t ? { Authorization: `Bearer ${t}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers = await authHeaders();
+  const opts: RequestInit = { 
+    method, 
+    headers,
+    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(`${API_BASE}${path}`, opts);
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`API ${resp.status}: ${text}`);
+  }
+  return resp.json() as Promise<T>;
 }
 
 const EVENT_OPTIONS = [
@@ -29,9 +44,8 @@ export default function WebhooksPage() {
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
 
   const load = async () => {
-    const h = await authHeaders();
-    const r = await fetch(`${API_BASE}/developer/webhooks`, { headers: h });
-    if (r.ok) setHooks(await r.json());
+    const data = await request<Webhook[]>("GET", "/developer/webhooks");
+    setHooks(data);
     setLoading(false);
   };
 
@@ -39,21 +53,14 @@ export default function WebhooksPage() {
 
   const create = async () => {
     if (!url.trim()) return;
-    const h = await authHeaders();
-    const r = await fetch(`${API_BASE}/developer/webhooks`, {
-      method: "POST", headers: h, body: JSON.stringify({ url, events }),
-    });
-    if (r.ok) {
-      const data = await r.json();
-      setCreatedSecret(data.secret);
-      setUrl("");
-      load();
-    }
+    const data = await request("POST", "/developer/webhooks", { url, events });
+    setCreatedSecret(data.secret);
+    setUrl("");
+    load();
   };
 
   const remove = async (id: string) => {
-    const h = await authHeaders();
-    await fetch(`${API_BASE}/developer/webhooks/${id}`, { method: "DELETE", headers: h });
+    await request("DELETE", `/developer/webhooks/${id}`);
     load();
   };
 

@@ -36,13 +36,9 @@ async def create_db_pool():
     """Create database connection pool."""
     settings = get_settings()
     return await asyncpg.create_pool(
-        host=settings.db_host,
-        port=settings.db_port,
-        user=settings.db_user,
-        password=settings.db_password,
-        database=settings.db_name,
-        min_size=2,
-        max_size=10,
+        settings.database_url,
+        min_size=settings.db_pool_min,
+        max_size=settings.db_pool_max,
     )
 
 

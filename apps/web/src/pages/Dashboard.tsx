@@ -908,26 +908,122 @@ export function JobsView() {
           focusTrapOptions={{ allowOutsideClick: true, escapeDeactivates: true }}
         >
           <Card className="mb-6 border-primary-200 bg-primary-50/50" role="dialog" aria-label={t("dashboard.firstStepsTitle", locale)}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">{t("dashboard.firstStepsTitle", locale)}</h3>
-                <ol className="list-decimal list-inside space-y-1 text-sm text-slate-600 dark:text-slate-400">
-                  <li>{t("dashboard.firstSteps1", locale)}</li>
-                  <li>{t("dashboard.firstSteps2", locale)}</li>
-                  <li>{t("dashboard.firstSteps3", locale)}</li>
-                </ol>
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">{t("dashboard.firstStepsTitle", locale)}</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    {t("dashboard.firstStepsDescription", locale) || "Get started with these key actions to maximize your job search success"}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowFirstStepsModal(false);
+                    telemetry.track("first_steps_dismissed", {});
+                  }}
+                  aria-label={t("dashboard.dismissFirstSteps", locale)}
+                >
+                  {t("dashboard.dismiss", locale)}
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowFirstStepsModal(false);
-                  telemetry.track("first_steps_dismissed", {});
-                }}
-                aria-label={t("dashboard.dismissFirstSteps", locale)}
-              >
-                {t("dashboard.dismiss", locale)}
-              </Button>
+              
+              <div className="grid gap-4 md:grid-cols-3">
+                <Card className="p-4 border-l-4 border-l-blue-500 bg-white dark:bg-slate-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 dark:text-blue-300 font-bold text-sm">1</span>
+                    </div>
+                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                      {t("dashboard.step1Title", locale) || "Complete Your Profile"}
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
+                    {t("dashboard.step1Description", locale) || "Add your resume and work experience to get better job matches"}
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => {
+                      setShowFirstStepsModal(false);
+                      navigate("/app/profile");
+                      telemetry.track("first_steps_profile_clicked", {});
+                    }}
+                  >
+                    {t("dashboard.completeProfile", locale) || "Complete Profile"}
+                  </Button>
+                </Card>
+
+                <Card className="p-4 border-l-4 border-l-green-500 bg-white dark:bg-slate-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                      <span className="text-green-600 dark:text-green-300 font-bold text-sm">2</span>
+                    </div>
+                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                      {t("dashboard.step2Title", locale) || "Start Swiping Jobs"}
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
+                    {t("dashboard.step2Description", locale) || "Swipe right on jobs you like and left on those you don't"}
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => {
+                      setShowFirstStepsModal(false);
+                      navigate("/app/dashboard");
+                      telemetry.track("first_steps_jobs_clicked", {});
+                    }}
+                  >
+                    {t("dashboard.browseJobs", locale) || "Browse Jobs"}
+                  </Button>
+                </Card>
+
+                <Card className="p-4 border-l-4 border-l-purple-500 bg-white dark:bg-slate-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                      <span className="text-purple-600 dark:text-purple-300 font-bold text-sm">3</span>
+                    </div>
+                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                      {t("dashboard.step3Title", locale) || "Set Up Job Alerts"}
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
+                    {t("dashboard.step3Description", locale) || "Get notified when new jobs match your criteria"}
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => {
+                      setShowFirstStepsModal(false);
+                      navigate("/app/alerts");
+                      telemetry.track("first_steps_alerts_clicked", {});
+                    }}
+                  >
+                    {t("dashboard.setupAlerts", locale) || "Set Up Alerts"}
+                  </Button>
+                </Card>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {t("dashboard.needHelp", locale) || "Need help? Check out our"}
+                  <a href="/help" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 ml-1">
+                    {t("dashboard.helpCenter", locale) || "Help Center"}
+                  </a>
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowFirstStepsModal(false);
+                    telemetry.track("first_steps_completed", {});
+                  }}
+                >
+                  {t("dashboard.gotIt", locale) || "Got it!"}
+                </Button>
+              </div>
             </div>
           </Card>
         </FocusTrap>

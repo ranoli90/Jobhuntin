@@ -33,20 +33,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from backend.domain.analytics_events import (
+from packages.backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
 )
-from backend.domain.models import CanonicalProfile, ErrorDetail, ErrorResponse
-from backend.domain.repositories import (
+from packages.backend.domain.models import CanonicalProfile, ErrorDetail, ErrorResponse
+from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
     JobRepo,
     db_transaction,
 )
-from backend.domain.resume import process_resume_upload
-from backend.domain.tenant import TenantContext, resolve_tenant_context
+from packages.backend.domain.agent_improvements import create_agent_improvements_manager
+from packages.backend.domain.resume import process_resume_upload
+from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
 from shared.config import Environment, get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import incr
@@ -326,7 +327,13 @@ app.add_middleware(
     allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token", "x-csrftoken"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Request-ID",
+        "X-CSRF-Token",
+        "x-csrftoken",
+    ],
     expose_headers=["X-Request-ID"],
     max_age=3600,
 )
@@ -423,6 +430,87 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[user_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(user_mod.router)
 
+    # Skills taxonomy and validation
+    import api.skills as skills_mod
+
+    app.dependency_overrides[skills_mod._get_pool] = get_pool
+    app.dependency_overrides[skills_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(skills_mod.router)
+
+    # Match weights configuration
+    import api.match_weights as match_weights_mod
+
+    app.dependency_overrides[match_weights_mod._get_pool] = get_pool
+    app.dependency_overrides[match_weights_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(match_weights_mod.router)
+
+    # Match score calibration
+    import api.match_calibration as match_calibration_mod
+
+    app.dependency_overrides[match_calibration_mod._get_pool] = get_pool
+    app.dependency_overrides[match_calibration_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(match_calibration_mod.router)
+
+    # Job details and listings
+    import api.job_details as job_details_mod
+
+    app.dependency_overrides[job_details_mod._get_pool] = get_pool
+    app.dependency_overrides[job_details_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(job_details_mod.router)
+
+    # Resume PDF generation
+    import api.resume_pdf as resume_pdf_mod
+
+    app.dependency_overrides[resume_pdf_mod._get_pool] = get_pool
+    app.dependency_overrides[resume_pdf_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(resume_pdf_mod.router)
+
+    # Resume agent integration
+    import api.resume_integration as resume_integration_mod
+
+    app.dependency_overrides[resume_integration_mod._get_pool] = get_pool
+    app.dependency_overrides[resume_integration_mod._get_tenant_ctx] = (
+        get_tenant_context
+    )
+    app.include_router(resume_integration_mod.router)
+
+    # ATS recommendations
+    import api.ats_recommendations as ats_recommendations_mod
+
+    app.dependency_overrides[ats_recommendations_mod._get_pool] = get_pool
+    app.dependency_overrides[ats_recommendations_mod._get_tenant_ctx] = (
+        get_tenant_context
+    )
+    app.include_router(ats_recommendations_mod.router)
+
+    # Voice interview simulator
+    import api.voice_interviews as voice_interviews_mod
+
+    app.dependency_overrides[voice_interviews_mod._get_pool] = get_pool
+    app.dependency_overrides[voice_interviews_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(voice_interviews_mod.router)
+
+    # LLM career path analyzer
+    import api.llm_career_path as llm_career_path_mod
+
+    app.dependency_overrides[llm_career_path_mod._get_pool] = get_pool
+    app.dependency_overrides[llm_career_path_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(llm_career_path_mod.router)
+
+    # AI onboarding system
+    import api.ai_onboarding as ai_onboarding_mod
+
+    app.dependency_overrides[ai_onboarding_mod._get_pool] = get_pool
+    app.dependency_overrides[ai_onboarding_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(ai_onboarding_mod.router)
+
+    # A/B testing system
+    import api.ab_testing as ab_testing_mod
+
+    app.dependency_overrides[ab_testing_mod._get_pool] = get_pool
+    app.dependency_overrides[ab_testing_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(ab_testing_mod.router)
+
     # Billing routes
     import api.billing as billing_mod
 
@@ -469,7 +557,17 @@ def _mount_sub_routers() -> None:
 
     import api.ccpa as ccpa_mod
 
+    app.dependency_overrides[ccpa_mod._get_pool] = get_pool
+    app.dependency_overrides[ccpa_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[ccpa_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(ccpa_mod.router)
+
+    import api.gdpr as gdpr_mod
+
+    app.dependency_overrides[gdpr_mod._get_pool] = get_pool
+    app.dependency_overrides[gdpr_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[gdpr_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(gdpr_mod.router)
 
     import api.interviews as interviews_mod
 
@@ -483,6 +581,13 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[career_mod._get_user_id] = get_current_user_id
     app.include_router(career_mod.router)
 
+    import api.saved_jobs as saved_jobs_mod
+
+    app.dependency_overrides[saved_jobs_mod._get_pool] = get_pool
+    app.dependency_overrides[saved_jobs_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[saved_jobs_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(saved_jobs_mod.router)
+
     import api.calendar_api as calendar_mod
 
     async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
@@ -492,6 +597,14 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[calendar_mod._get_user_id] = get_current_user_id
     app.dependency_overrides[calendar_mod._get_tenant_id] = _get_tenant_id_from_context
     app.include_router(calendar_mod.router)
+
+    import api.worker_health as worker_health_mod
+
+    app.dependency_overrides[worker_health_mod._get_pool] = get_pool
+    app.dependency_overrides[worker_health_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(worker_health_mod.router)
+
+    # Import routers
 
     import api.integrations as integrations_mod
 
@@ -508,6 +621,39 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[admin_sec_mod._get_user_id] = get_current_user_id
     app.dependency_overrides[admin_sec_mod._get_tenant_id] = _get_tenant_id_from_context
     app.include_router(admin_sec_mod.router)
+
+    # Phase 12.1 Agent Improvements
+    import api.agent_improvements_endpoints as agent_improvements_mod
+
+    app.dependency_overrides[agent_improvements_mod.get_tenant_context] = (
+        get_tenant_context
+    )
+    app.dependency_overrides[agent_improvements_mod.get_agent_improvements_manager] = (
+        lambda: create_agent_improvements_manager(get_pool())
+    )
+    app.include_router(agent_improvements_mod.router)
+
+    # Phase 13.1 Communication System
+    import api.communication_endpoints as communication_mod
+
+    app.dependency_overrides[communication_mod._get_pool] = get_pool
+    app.dependency_overrides[communication_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(communication_mod.router)
+
+    # Phase 14.1 User Experience System
+    import api.user_experience_endpoints as ux_mod
+
+    app.dependency_overrides[ux_mod._get_pool] = get_pool
+    app.dependency_overrides[ux_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(ux_mod.router)
+
+    # DLQ Management and Concurrent Usage
+    import api.dlq_endpoints as dlq_mod
+
+    app.dependency_overrides[dlq_mod._get_pool] = get_pool
+    app.dependency_overrides[dlq_mod._get_tenant_ctx] = get_tenant_context
+    app.dependency_overrides[dlq_mod._get_admin_user_id] = get_current_user_id
+    app.include_router(dlq_mod.router)
 
 
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
@@ -759,12 +905,12 @@ async def save_user_skills(
                 )
                 raise
 
-        # Update profile completeness
+        # Update profile completeness with proper capping at 100%
         await conn.execute(
             """UPDATE public.users SET profile_completeness =
-               COALESCE(profile_completeness, 0) +
+               LEAST(100, COALESCE(profile_completeness, 0) +
                CASE WHEN (SELECT COUNT(*) FROM public.user_skills WHERE user_id = $1) >= 3
-                    THEN 20 ELSE 10 END
+                    THEN 20 ELSE 10 END)
                WHERE id = $1""",
             user_id,
         )
@@ -843,10 +989,10 @@ async def save_work_style(
             body.career_trajectory,
         )
 
-        # Update profile completeness
+        # Update profile completeness with proper capping at 100%
         await conn.execute(
             """UPDATE public.users SET profile_completeness =
-               COALESCE(profile_completeness, 0) + 20
+               LEAST(100, COALESCE(profile_completeness, 0) + 20)
                WHERE id = $1""",
             user_id,
         )
@@ -1171,6 +1317,7 @@ async def serve_storage_file(
     bucket: str,
     path: str,
     user_id: str = Depends(get_current_user_id),
+    tenant_ctx: dict = Depends(get_tenant_context),
 ):
     """Serve files from storage (e.g., resumes, avatars)."""
     # SECURITY: Prevent path traversal with canonicalization
@@ -1180,6 +1327,12 @@ async def serve_storage_file(
     # Validate bucket name (alphanumeric, hyphens, underscores only)
     if not re.match(r"^[a-zA-Z0-9_-]+$", bucket):
         raise HTTPException(status_code=400, detail="Invalid bucket name")
+
+    # SECURITY: Ensure user can only access their own tenant's files
+    # Add tenant_id prefix to prevent cross-tenant access
+    tenant_id = tenant_ctx.get("tenant_id", "")
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
 
     # Validate path components
     # Normalize path and check for traversal attempts
@@ -1196,10 +1349,13 @@ async def serve_storage_file(
     if ".." in decoded_path:
         raise HTTPException(status_code=400, detail="Invalid path")
 
+    # SECURITY: Add tenant isolation to storage path
+    # Only allow access to files within user's tenant directory
+    storage_path = f"{tenant_id}/{bucket}/{normalized_path}"
+
     from shared.storage import get_storage_service
 
     storage = get_storage_service()
-    storage_path = f"{bucket}/{normalized_path}"
 
     try:
         data = await storage.download_file(storage_path)

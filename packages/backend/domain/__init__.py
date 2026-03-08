@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------
 # Generic core models (agent-core vocabulary)
 # ---------------------------------------------------------------------------
-from backend.domain.core_models import (
+from packages.backend.domain.core_models import (
     COMPLETION_STATUS_ALIASES,
     ActorHistoryEntry,
     ActorIdentity,
@@ -12,9 +12,9 @@ from backend.domain.core_models import (
     ActorQualification,
     DomMappingResult,
 )
-from backend.domain.core_models import FormField as CoreFormField
-from backend.domain.core_models import FormFieldOption as CoreFormFieldOption
-from backend.domain.core_models import (
+from packages.backend.domain.core_models import FormField as CoreFormField
+from packages.backend.domain.core_models import FormFieldOption as CoreFormFieldOption
+from packages.backend.domain.core_models import (
     TargetForm,
     Task,
     TaskEvent,
@@ -22,9 +22,9 @@ from backend.domain.core_models import (
     TaskInput,
     TaskStatus,
 )
-from backend.domain.core_models import UnresolvedField as CoreUnresolvedField
-from backend.domain.core_models import is_terminal, to_generic_status
-from backend.domain.models import (
+from packages.backend.domain.core_models import UnresolvedField as CoreUnresolvedField
+from packages.backend.domain.core_models import is_terminal, to_generic_status
+from packages.backend.domain.models import (
     Application,
     ApplicationEvent,
     ApplicationInput,
@@ -50,7 +50,7 @@ from backend.domain.models import (
 # ---------------------------------------------------------------------------
 # Repositories
 # ---------------------------------------------------------------------------
-from backend.domain.repositories import (
+from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
@@ -63,7 +63,7 @@ from backend.domain.repositories import (
 # ---------------------------------------------------------------------------
 # Tenant context and guards
 # ---------------------------------------------------------------------------
-from backend.domain.tenant import (
+from packages.backend.domain.tenant import (
     TenantContext,
     TenantScopeError,
     assert_tenant_owns,
@@ -134,4 +134,4 @@ __all__ = [
 ]
 
 # Session management
-from backend.domain.session_manager import SessionManager
+from packages.backend.domain.session_manager import SessionManager

@@ -298,20 +298,33 @@ class AIService:
         return matches
 
     async def _get_job_details(self, job_id: str) -> dict[str, Any] | None:
-        """Get job details from database."""
+        """Get comprehensive job details from database."""
         try:
-            # This should be implemented based on your job repository
-            query = """
-                SELECT id, title, description, requirements, location, salary_range
-                FROM jobs
-                WHERE id = $1
-            """
-            row = await self.db.fetchrow(query, job_id)
-            if row:
-                return dict(row)
+            from backend.domain.repositories import JobRepo
+
+            job_details = await JobRepo.get_by_id(self.db, job_id)
+            if not job_details:
+                return {
+                    "id": job_id,
+                    "title": "Unknown Job",
+                    "description": "Job details not available",
+                    "requirements": [],
+                    "location": "Unknown",
+                    "salary_range": "Not specified",
+                    "error": "Job not found",
+                }
+            return job_details
         except Exception as e:
             logger.error(f"Error fetching job details for {job_id}: {e}")
-        return None
+            return {
+                "id": job_id,
+                "title": "Error Loading Job",
+                "description": "Failed to load job details",
+                "requirements": [],
+                "location": "Unknown",
+                "salary_range": "Not specified",
+                "error": str(e),
+            }
 
     def _generate_cache_key(self, *args) -> str:
         """Generate a cache key from arguments."""

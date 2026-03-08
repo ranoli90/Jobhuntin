@@ -1,0 +1,157 @@
+{
+  "domain_managers": {
+    "missing": [],
+    "existing": [
+      "packages/backend/domain/database_performance_manager.py",
+      "packages/backend/domain/query_optimizer.py",
+      "packages/backend/domain/cache_manager.py",
+      "packages/backend/domain/connection_pool_manager.py",
+      "packages/backend/domain/index_analyzer.py",
+      "packages/backend/domain/performance_monitor.py"
+    ]
+  },
+  "api_endpoints": {
+    "missing": [],
+    "existing": [
+      "apps/api/performance_endpoints.py",
+      "apps/api/database_stats_endpoints.py",
+      "apps/api/cache_endpoints.py",
+      "apps/api/query_optimization_endpoints.py",
+      "apps/api/monitoring_endpoints.py"
+    ]
+  },
+  "database_migrations": {
+    "missing": [],
+    "existing": [
+      "migrations/010_database_performance.sql",
+      "migrations/011_monitoring_tables.sql",
+      "migrations/012_caching_tables.sql"
+    ]
+  },
+  "performance_optimizations": {
+    "missing": [],
+    "existing": [
+      "shared/performance_config.py",
+      "shared/query_cache.py",
+      "shared/connection_pool.py",
+      "shared/metrics_collector.py"
+    ]
+  },
+  "monitoring_systems": {
+    "missing": [],
+    "existing": [
+      "shared/monitoring.py",
+      "shared/metrics.py",
+      "shared/alerting.py",
+      "shared/health_checks.py",
+      "shared/performance_metrics.py"
+    ]
+  },
+  "caching_systems": {
+    "missing": [],
+    "existing": [
+      "shared/redis_cache.py",
+      "shared/memory_cache.py",
+      "shared/cache_manager.py",
+      "shared/cache_strategies.py"
+    ]
+  },
+  "database_optimizations": {
+    "missing": [],
+    "existing": [
+      "001_initial_schema.sql",
+      "002_onboarding_tables.sql",
+      "003_interview_sessions.sql",
+      "003_match_weights_config.sql",
+      "004_monitoring_tables.sql",
+      "004_resume_pdfs.sql",
+      "004_saved_jobs.sql",
+      "005_application_screenshots.sql",
+      "006_email_communications.sql",
+      "007_agent_improvements.sql",
+      "007_enhanced_notifications.sql",
+      "007_performance_monitoring.sql",
+      "008_communication_system.sql",
+      "008_enhanced_performance.sql",
+      "008_performance_indexes.sql",
+      "008_user_experience_features.sql",
+      "009_cache_connection_pools.sql",
+      "009_missing_indexes.sql",
+      "009_user_experience.sql",
+      "010_database_performance.sql",
+      "010_missing_components_fix.sql",
+      "011_monitoring_tables.sql",
+      "012_caching_tables.sql"
+    ]
+  },
+  "api_optimizations": {
+    "missing": [],
+    "existing": [
+      "ab_testing.py",
+      "ab_testing_endpoints.py",
+      "admin.py",
+      "admin_security.py",
+      "agent_improvements_endpoints.py",
+      "ai.py",
+      "ai_endpoints.py",
+      "ai_onboarding.py",
+      "ai_rate_limiting.py",
+      "ai_services.py",
+      "ai_validation.py",
+      "analytics.py",
+      "application_status_fix.py",
+      "ats_recommendations.py",
+      "auth.py",
+      "billing.py",
+      "bulk.py",
+      "cache_endpoints.py",
+      "calendar_api.py",
+      "career.py",
+      "ccpa.py",
+      "communications_endpoints.py",
+      "communication_endpoints.py",
+      "concurrent_usage_endpoints.py",
+      "dashboard.py",
+      "database_stats_endpoints.py",
+      "dependencies.py",
+      "developer.py",
+      "dlq_endpoints.py",
+      "document_tracking_endpoints.py",
+      "export.py",
+      "feedback_endpoints.py",
+      "gdpr.py",
+      "growth.py",
+      "integrations.py",
+      "interviews.py",
+      "job_alerts.py",
+      "job_details.py",
+      "llm_career_path.py",
+      "main.py",
+      "marketplace.py",
+      "match_calibration.py",
+      "match_weights.py",
+      "mfa.py",
+      "monitoring_endpoints.py",
+      "oauth_endpoints.py",
+      "og.py",
+      "performance_endpoints.py",
+      "performance_metrics_endpoints.py",
+      "query_optimization_endpoints.py",
+      "resume_integration.py",
+      "resume_pdf.py",
+      "saved_jobs.py",
+      "screenshot_endpoints.py",
+      "sessions.py",
+      "skills.py",
+      "sso.py",
+      "ui_analytics_endpoints.py",
+      "user.py",
+      "user_behavior_endpoints.py",
+      "user_experience_endpoints.py",
+      "ux_metrics_endpoints.py",
+      "vector_db.py",
+      "voice_interviews.py",
+      "worker_health.py"
+    ]
+  }
+}

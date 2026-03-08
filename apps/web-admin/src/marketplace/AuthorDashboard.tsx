@@ -13,13 +13,28 @@ interface Earnings {
   paid_out_cents: number; total_payouts: number; total_installs: number;
 }
 
-function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
+async function authHeaders(): Promise<Record<string, string>> {
+  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
+  // This prevents XSS attacks from stealing auth tokens
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  // No Authorization header needed - token is sent via httpOnly cookie
+  return h;
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const t = getAuthToken();
-  return t ? { Authorization: `Bearer ${t}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers = await authHeaders();
+  const opts: RequestInit = { 
+    method, 
+    headers,
+    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(`${API_BASE}${path}`, opts);
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`API ${resp.status}: ${text}`);
+  }
+  return resp.json() as Promise<T>;
 }
 
 export default function AuthorDashboard() {
@@ -30,13 +45,12 @@ export default function AuthorDashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const h = await authHeaders();
         const [bpResp, eResp] = await Promise.all([
-          fetch(`${API_BASE}/marketplace/author/blueprints`, { headers: h }),
-          fetch(`${API_BASE}/marketplace/author/earnings`, { headers: h }),
+          request<AuthorBlueprint[]>("GET", "/marketplace/author/blueprints"),
+          request<Earnings>("GET", "/marketplace/author/earnings"),
         ]);
-        if (bpResp.ok) setBlueprints(await bpResp.json());
-        if (eResp.ok) setEarnings(await eResp.json());
+        if (bpResp) setBlueprints(bpResp);
+        if (eResp) setEarnings(eResp);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     })();

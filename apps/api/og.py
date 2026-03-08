@@ -1,9 +1,10 @@
 import io
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response, Depends
 from PIL import Image, ImageDraw, ImageFont
 
+from backend.domain.tenant import TenantContext, _get_tenant_ctx
 from shared.logging_config import get_logger
 from shared.metrics import get_rate_limiter
 from shared.middleware import get_client_ip
@@ -89,17 +90,26 @@ def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[s
 @router.get("/api/og")
 async def generate_og_image(
     request: Request,
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     job: str = Query(..., description="Job Title", max_length=100),
     company: str = Query("Top Company", description="Company Name", max_length=50),
     score: int = Query(90, description="Match Score (0-100)"),
     location: str = Query("Denver, CO", description="Job Location", max_length=50),
 ):
     """Generate a dynamic Open Graph image for a job posting."""
-    # Rate limit OG image generation per IP
-    client_ip = get_client_ip(request)
-    limiter = get_rate_limiter(f"og:{client_ip}", max_calls=30, window_seconds=60)
+    # Require authentication - only authenticated users can generate OG images
+    if not ctx.user_id:
+        logger.warning(
+            f"[OG] Unauthorized OG image generation attempt from IP: {get_client_ip(request)}"
+        )
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # Rate limit OG image generation per authenticated user
+    limiter = get_rate_limiter(f"og:{ctx.user_id}", max_calls=30, window_seconds=60)
     if not await limiter.acquire():
         raise HTTPException(status_code=429, detail="Too many requests")
+
+    logger.info(f"[OG] Generating OG image for user: {ctx.user_id}, job: {job}")
 
     # 1. Create Canvas
     im = Image.new("RGB", (WIDTH, HEIGHT), BG_COLOR)

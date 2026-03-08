@@ -91,7 +91,7 @@ export default function Recruiters() {
               <div className="text-center">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-black mb-6 leading-tight text-slate-900 text-balance">
                   Hire talent, <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">not keyword stuffers.</span>
+                  <span className="text-primary-600 font-black">not keyword stuffers.</span>
                 </h1>
                 <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto mb-8 font-medium text-balance">
                   Our AI pre-interviews every candidate before they reach your inbox. You get structured data, not PDF chaos.
@@ -103,7 +103,6 @@ export default function Recruiters() {
 
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-primary-500 to-blue-400 rounded-[2rem] opacity-20 blur-xl" />
                   <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl relative border border-slate-100">
                     <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
                       <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&q=80" alt="Michael Chen - Top Talent Candidate" className="w-12 h-12 rounded-full ring-2 ring-white shadow-sm" loading="lazy" />

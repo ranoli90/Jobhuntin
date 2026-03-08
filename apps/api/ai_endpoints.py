@@ -409,17 +409,33 @@ def _generate_cache_key(profile_id: str, job_ids: list[str]) -> str:
 
 
 async def _get_job_details(db: asyncpg.Connection, job_id: str) -> dict[str, Any]:
-    """Get job details for matching."""
-    # This should be implemented based on your job repository
-    # For now, return a placeholder
-    return {
-        "id": job_id,
-        "title": "Software Engineer",
-        "description": "Develop and maintain software applications",
-        "requirements": ["Python", "JavaScript", "SQL"],
-        "location": "Remote",
-        "salary_range": "$80,000 - $120,000",
-    }
+    """Get comprehensive job details for matching."""
+    from backend.domain.repositories import JobRepo
+
+    try:
+        job_details = await JobRepo.get_by_id(db, job_id)
+        if not job_details:
+            return {
+                "id": job_id,
+                "title": "Unknown Job",
+                "description": "Job details not available",
+                "requirements": [],
+                "location": "Unknown",
+                "salary_range": "Not specified",
+                "error": "Job not found",
+            }
+        return job_details
+    except Exception as e:
+        logger.error(f"Error fetching job details for {job_id}: {e}")
+        return {
+            "id": job_id,
+            "title": "Error Loading Job",
+            "description": "Failed to load job details",
+            "requirements": [],
+            "location": "Unknown",
+            "salary_range": "Not specified",
+            "error": str(e),
+        }
 
 
 async def emit_analytics_event(event_name: str, data: dict[str, Any]) -> None:

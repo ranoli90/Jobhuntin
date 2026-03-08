@@ -169,7 +169,7 @@ export default function PricingVs() {
                     </div>
                     <h1 className="text-4xl md:text-6xl font-sans font-black mb-6 leading-tight text-slate-900">
                         {competitor.name} Pricing vs{' '}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-emerald-400">
+                        <span className="text-primary-600 font-black">
                             JobHuntin
                         </span>
                     </h1>

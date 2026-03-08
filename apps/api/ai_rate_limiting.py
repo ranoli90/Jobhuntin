@@ -22,11 +22,43 @@ class RateLimitExceededError(Exception):
     pass
 
 
+class InMemoryRateLimiter:
+    """Fallback in-memory rate limiter when Redis is unavailable."""
+
+    def __init__(self):
+        self._storage = {}
+        self._timestamps = {}
+
+    async def get(self, key: str) -> str | None:
+        """Get value from in-memory storage."""
+        return self._storage.get(key)
+
+    async def setex(self, key: str, seconds: int, value: str) -> None:
+        """Set value with expiration in in-memory storage."""
+        self._storage[key] = value
+        self._timestamps[key] = time.time() + seconds
+        self._cleanup_expired()
+
+    def _cleanup_expired(self) -> None:
+        """Remove expired entries from in-memory storage."""
+        current_time = time.time()
+        expired_keys = [
+            key
+            for key, expire_time in self._timestamps.items()
+            if current_time > expire_time
+        ]
+        for key in expired_keys:
+            self._storage.pop(key, None)
+            self._timestamps.pop(key, None)
+
+
 class RateLimiter:
-    """Rate limiter for AI endpoints using Redis."""
+    """Rate limiter for AI endpoints using Redis with fallback."""
 
     def __init__(self, redis_client=None):
         self.redis = redis_client or get_redis()
+        self.fallback = InMemoryRateLimiter()
+        self.redis_available = True
         self.limits = {
             "ai_suggestions": {
                 "requests_per_minute": 10,
@@ -95,6 +127,31 @@ class RateLimiter:
 
         return True
 
+    async def _safe_redis_get(self, key: str) -> str | None:
+        """Safely get value from Redis with fallback to in-memory."""
+        try:
+            if self.redis_available:
+                return await self.redis.get(key)
+        except Exception as e:
+            logger.warning(f"Redis get failed, using fallback: {e}")
+            self.redis_available = False
+
+        # Fallback to in-memory
+        return await self.fallback.get(key)
+
+    async def _safe_redis_setex(self, key: str, seconds: int, value: str) -> None:
+        """Safely set value in Redis with fallback to in-memory."""
+        try:
+            if self.redis_available:
+                await self.redis.setex(key, seconds, value)
+                return
+        except Exception as e:
+            logger.warning(f"Redis setex failed, using fallback: {e}")
+            self.redis_available = False
+
+        # Fallback to in-memory
+        await self.fallback.setex(key, seconds, value)
+
     async def _check_minute_limit(
         self, identifier: str, endpoint_type: str, limit: int
     ) -> None:
@@ -103,8 +160,8 @@ class RateLimiter:
         current_time = int(time.time())
         minute_key = f"{key}:{current_time // 60}"
 
-        # Get current count
-        current_count = await self.redis.get(minute_key)
+        # Get current count with fallback
+        current_count = await self._safe_redis_get(minute_key)
         current_count = int(current_count) if current_count else 0
 
         if current_count >= limit:
@@ -114,7 +171,7 @@ class RateLimiter:
             )
 
         # Increment counter with expiration
-        await self.redis.setex(minute_key, 60, str(current_count + 1))
+        await self._safe_redis_setex(minute_key, 60, str(current_count + 1))
 
     async def _check_hour_limit(
         self, identifier: str, endpoint_type: str, limit: int
@@ -124,8 +181,8 @@ class RateLimiter:
         current_time = int(time.time())
         hour_key = f"{key}:{current_time // 3600}"
 
-        # Get current count
-        current_count = await self.redis.get(hour_key)
+        # Get current count with fallback
+        current_count = await self._safe_redis_get(hour_key)
         current_count = int(current_count) if current_count else 0
 
         if current_count >= limit:
@@ -135,7 +192,7 @@ class RateLimiter:
             )
 
         # Increment counter with expiration
-        await self.redis.setex(hour_key, 3600, str(current_count + 1))
+        await self._safe_redis_setex(hour_key, 3600, str(current_count + 1))
 
     async def _check_day_limit(
         self, identifier: str, endpoint_type: str, limit: int
@@ -145,8 +202,8 @@ class RateLimiter:
         current_time = int(time.time())
         day_key = f"{key}:{current_time // 86400}"
 
-        # Get current count
-        current_count = await self.redis.get(day_key)
+        # Get current count with fallback
+        current_count = await self._safe_redis_get(day_key)
         current_count = int(current_count) if current_count else 0
 
         if current_count >= limit:
@@ -156,7 +213,7 @@ class RateLimiter:
             )
 
         # Increment counter with expiration
-        await self.redis.setex(day_key, 86400, str(current_count + 1))
+        await self._safe_redis_setex(day_key, 86400, str(current_count + 1))
 
     async def _check_ip_limit(self, ip_address: str, endpoint_type: str) -> None:
         """Check IP-based rate limits."""

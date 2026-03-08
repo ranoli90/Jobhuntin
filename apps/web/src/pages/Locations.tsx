@@ -82,7 +82,7 @@ export default function Locations() {
                     </div>
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black mb-6 text-slate-900">
                         Find Jobs by Location <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">& Role</span>
+                        <span className="text-primary-600 font-black">& Role</span>
                     </h1>
                     <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium">
                         Browse AI-powered job opportunities in your city or target role. 
@@ -166,7 +166,7 @@ export default function Locations() {
                     </div>
                 </section>
 
-                <section className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-3xl p-8 sm:p-12 text-white text-center">
+                <section className="bg-primary-600 rounded-3xl p-8 sm:p-12 text-white text-center">
                     <h2 className="text-2xl sm:text-3xl font-bold mb-4">Let Our AI Find Jobs For You</h2>
                     <p className="text-primary-100 mb-8 max-w-xl mx-auto">
                         Stop browsing manually. Set your preferences once, and JobHuntin's AI agent discovers and applies to matching jobs 24/7.

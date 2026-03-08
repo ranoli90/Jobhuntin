@@ -13,13 +13,28 @@ interface AuditEntry {
   created_at: string;
 }
 
-function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
+async function authHeaders(): Promise<Record<string, string>> {
+  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
+  // This prevents XSS attacks from stealing auth tokens
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  // No Authorization header needed - token is sent via httpOnly cookie
+  return h;
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const t = getAuthToken();
-  return t ? { Authorization: `Bearer ${t}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers = await authHeaders();
+  const opts: RequestInit = { 
+    method, 
+    headers,
+    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(`${API_BASE}${path}`, opts);
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`API ${resp.status}: ${text}`);
+  }
+  return resp.json() as Promise<T>;
 }
 
 export default function AuditLogPage() {
@@ -33,15 +48,11 @@ export default function AuditLogPage() {
   const load = async (p: number = page, action: string = actionFilter) => {
     setLoading(true);
     try {
-      const h = await authHeaders();
       const params = new URLSearchParams({ limit: String(pageSize), offset: String(p * pageSize) });
       if (action) params.set("action", action);
-      const r = await fetch(`${API_BASE}/billing/audit-log?${params}`, { headers: h });
-      if (r.ok) {
-        const data = await r.json();
-        setLogs(data.logs || []);
-        setTotal(data.total || 0);
-      }
+      const resp = await request("GET", `/billing/audit-log?${params}`);
+      setLogs(resp.logs || []);
+      setTotal(resp.total || 0);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -51,10 +62,11 @@ export default function AuditLogPage() {
   const handleFilter = () => { setPage(0); load(0, actionFilter); };
   const handleExport = async () => {
     try {
-      const h = await authHeaders();
-      const r = await fetch(`${API_BASE}/billing/audit-log/export?days=90`, { headers: h });
-      if (r.ok) {
-        const blob = await r.blob();
+      const resp = await fetch(`${API_BASE}/billing/audit-log/export?days=90`, {
+        credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
+      });
+      if (resp.ok) {
+        const blob = await resp.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url; a.download = "audit_log.csv"; a.click();

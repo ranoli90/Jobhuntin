@@ -56,7 +56,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       onClick={cycleTheme}
       aria-label={ariaLabel}
       title={`Theme: ${theme} (click to cycle)`}
-      className={cn('relative shrink-0', className)}
+      className={cn('relative shrink-0 min-h-[44px] min-w-[44px]', className)}
     >
       <span className="relative flex h-4 w-4">
         <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" aria-hidden />

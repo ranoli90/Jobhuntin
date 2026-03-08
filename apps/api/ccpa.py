@@ -15,11 +15,18 @@ async def data_access_request(
         application_data = await conn.fetch(
             "SELECT * FROM applications WHERE user_id = $1", user_id
         )
+
+        # Handle None user_data and application_data gracefully
+        user_dict = dict(user_data) if user_data else {}
+        app_list = [dict(app) for app in application_data] if application_data else []
+
         return CCPAComplianceManager.handle_data_access_request(
-            user_id, user_data, application_data
+            user_id, user_dict, app_list
         )
 
 
 @router.post("/data-deletion-request")
-async def data_deletion_request(user_id: str = Depends(get_current_user_id)):
-    return CCPAComplianceManager.handle_data_deletion_request(user_id)
+async def data_deletion_request(
+    user_id: str = Depends(get_current_user_id), pool=Depends(get_pool)
+):
+    return await CCPAComplianceManager.handle_data_deletion_request(user_id, pool)

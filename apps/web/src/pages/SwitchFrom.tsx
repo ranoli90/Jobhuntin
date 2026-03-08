@@ -161,17 +161,17 @@ export default function SwitchFrom() {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center mb-20"
                 >
-                    <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-amber-100">
+                    <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-4 py-1 rounded-lg text-sm font-bold mb-6 border border-amber-100">
                         <Clock className="w-4 h-4" />
                         5-Minute Migration
                     </div>
                     <h1 className="text-4xl md:text-6xl font-sans font-black mb-6 leading-tight text-slate-900">
                         Switch from{' '}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-400 to-slate-300 line-through decoration-red-400">
+                        <span className="text-slate-400 line-through decoration-red-400">
                             {competitor.name}
                         </span>
                         {' '}to{' '}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-amber-400">
+                        <span className="text-primary-600 font-black">
                             JobHuntin
                         </span>
                     </h1>
@@ -196,16 +196,16 @@ export default function SwitchFrom() {
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.1 }}
-                                className="flex gap-6 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow"
+                                className="flex gap-6 bg-white rounded-2xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow"
                             >
                                 <div className="flex-shrink-0">
-                                    <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 border border-primary-100">
+                                    <div className="w-14 h-14 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600 border border-primary-100">
                                         <step.icon className="w-7 h-7" />
                                     </div>
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
+                                        <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-lg">
                                             Step {i + 1}
                                         </span>
                                         <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
@@ -226,7 +226,7 @@ export default function SwitchFrom() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="mb-20 bg-white rounded-3xl border border-slate-100 p-10 shadow-sm"
+                    className="mb-20 bg-white rounded-2xl border border-slate-100 p-10 shadow-sm"
                 >
                     <h2 className="text-2xl font-bold text-slate-900 mb-8">
                         What You Gain by Switching
@@ -255,7 +255,7 @@ export default function SwitchFrom() {
                 >
                     <Link
                         to="/login"
-                        className="inline-flex items-center gap-3 bg-primary-600 hover:bg-primary-700 text-white px-10 py-5 rounded-2xl font-bold text-xl shadow-xl shadow-primary-500/20 transition-colors"
+                        className="inline-flex items-center gap-3 bg-primary-600 hover:bg-primary-700 text-white px-10 py-5 rounded-lg font-bold text-xl shadow-xl shadow-primary-500/20 transition-colors"
                     >
                         Start Your Switch Now <ArrowRight className="w-6 h-6" />
                     </Link>

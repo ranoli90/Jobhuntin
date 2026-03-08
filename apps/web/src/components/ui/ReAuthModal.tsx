@@ -6,7 +6,7 @@ import { cn } from "../../lib/utils";
 interface ReAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (password: string) => void | Promise<void>;
   title?: string;
   description?: string;
   isLoading?: boolean;
@@ -80,7 +80,7 @@ export function ReAuthModal({
 
     try {
       // Call the success callback with the password
-      await onSuccess();
+      await onSuccess(password.trim());
     } catch (error) {
       // Error handling is managed by parent component
     }

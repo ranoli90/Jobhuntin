@@ -46,8 +46,8 @@ class Settings(BaseSettings):
     # SECURITY: Database URL must be provided via DATABASE_URL environment variable
     # Hardcoded credentials are a critical security vulnerability
     database_url: str = ""  # Required - must be set via DATABASE_URL env var
-    db_pool_min: int = 2
-    db_pool_max: int = 10
+    db_pool_min: int = 5  # Increased from 2 for better baseline performance
+    db_pool_max: int = 20  # Increased from 10 for higher concurrency
 
     # ── Web App ──────────────────────────────────────────────────
     app_base_url: str = "https://sorce-web.onrender.com"
@@ -108,12 +108,8 @@ class Settings(BaseSettings):
     enabled_blueprints: str = "job-app,grant,staffing-agency"  # comma-separated list
 
     # ── Security ─────────────────────────────────────────────────
-    csrf_secret: str = (
-        "dev-csrf-secret-change-in-production"  # Required in prod - generate with: secrets.token_hex(32)
-    )
-    jwt_secret: str = (
-        "dev-secret-key-change-in-production"  # Default for local dev only - change in production
-    )
+    csrf_secret: str = "dev-csrf-secret-change-in-production"  # Required in prod - generate with: secrets.token_hex(32)
+    jwt_secret: str = "dev-secret-key-change-in-production"  # Default for local dev only - change in production
     request_id_header: str = "X-Request-ID"
     db_ssl_ca_cert_path: str = (
         ""  # Path to CA cert for DB SSL verification (overrides CERT_NONE)
@@ -144,6 +140,26 @@ class Settings(BaseSettings):
     adzuna_max_pages: int = 3
     adzuna_job_ttl_days: int = 14
     adzuna_rate_limit_per_minute: int = 60
+
+    @field_validator("adzuna_app_id", "adzuna_api_key")
+    @classmethod
+    def validate_adzuna_credentials(cls, v):
+        """Validate Adzuna API credentials are properly configured."""
+        if not v or v in (
+            "your-adzuna-app-id",
+            "your-adzuna-api-key",
+            "your-app-id",
+            "your-api-key",
+        ):
+            # Only validate in production/staging, allow empty in local development
+            import os
+
+            env = os.getenv("ENV", "local")
+            if env not in ("local",):
+                raise ValueError(
+                    f"Adzuna credentials must be configured. Get them from https://developer.adzuna.com/overview"
+                )
+        return v
 
     # ── JobSpy Job Aggregation (Replaces Adzuna) ──────────────────
     jobspy_enabled: bool = True
@@ -210,8 +226,8 @@ class Settings(BaseSettings):
 
     # ── Worker scaling ─────────────────────────────────────────────
     worker_instance_count: int = 1
-    enterprise_db_pool_min: int = 2
-    enterprise_db_pool_max: int = 10
+    enterprise_db_pool_min: int = 5  # Increased from 2 for enterprise performance
+    enterprise_db_pool_max: int = 25  # Increased from 10 for enterprise scaling
     read_replica_url: str = ""  # Read replica connection string (optional, for scaling)
 
     # ── Browser pool (distributed scaling) ────────────────────────
@@ -304,6 +320,13 @@ class Settings(BaseSettings):
 
     # ── Clearbit (company logos) ────────────────────────────────────
     clearbit_api_key: str = ""
+
+    # ── CAPTCHA Solving Services ─────────────────────────────────────
+    captcha_solvers: str = ""  # Comma-separated: 2captcha,anticaptcha
+    twocaptcha_api_key: str = ""
+    anticaptcha_api_key: str = ""
+    captcha_solve_timeout: int = 120  # seconds
+    captcha_max_attempts: int = 3
 
     # ── Feature Flags ───────────────────────────────────────────────
     enable_interview_simulator: bool = True

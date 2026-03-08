@@ -97,7 +97,7 @@ export default function JobsView() {
                 <p className="text-gray-600 mt-2">
                     There are no new jobs matching your profile right now. Check back later!
                 </p>
-                <Button className="mt-4" onClick={() => refetch()}>
+                <Button className="mt-4" onClick={() => refetch()} aria-label="Refresh job listings">
                     Refresh Jobs
                 </Button>
             </div>
@@ -107,29 +107,34 @@ export default function JobsView() {
     const topJob = visibleJobs[0];
 
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <main className="space-y-6" aria-label="Job applications">
+            <section aria-labelledby="stats-heading">
+                <h2 id="stats-heading" className="sr-only">Application Statistics</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="p-4 flex flex-col items-center justify-center">
                     <p className="text-sm font-medium text-gray-500">Applied</p>
-                    <p className="text-3xl font-bold text-green-600">
+                    <p className="text-3xl font-bold text-green-600" aria-label={`Applied to ${appliedCount} jobs`}>
                         <AnimatedNumber value={appliedCount} />
                     </p>
                 </Card>
                 <Card className="p-4 flex flex-col items-center justify-center">
                     <p className="text-sm font-medium text-gray-500">Skipped</p>
-                    <p className="text-3xl font-bold text-red-600">
+                    <p className="text-3xl font-bold text-red-600" aria-label={`Skipped ${rejectedCount} jobs`}>
                         <AnimatedNumber value={rejectedCount} />
                     </p>
                 </Card>
                 <Card className="p-4 flex flex-col items-center justify-center">
                     <p className="text-sm font-medium text-gray-500">Remaining</p>
-                    <p className="text-3xl font-bold">
+                    <p className="text-3xl font-bold" aria-label={`${visibleJobs.length} jobs remaining`}>
                         <AnimatedNumber value={visibleJobs.length} />
                     </p>
                 </Card>
-            </div>
+                </div>
+            </section>
 
-            <div className="relative h-[450px] w-full max-w-md mx-auto">
+            <section aria-labelledby="jobs-heading">
+                <h2 id="jobs-heading" className="sr-only">Job Cards</h2>
+                <div className="relative h-[450px] w-full max-w-md mx-auto" role="region" aria-label="Job card stack">
                 {visibleJobs.slice(0, 3).map((job, index) => (
                     <motion.div
                         key={job.id}
@@ -151,9 +156,9 @@ export default function JobsView() {
                         }}
                         transition={{ duration: shouldReduceMotion ? 0.1 : 0.3 }}
                     >
-                        <Card className="w-full h-full p-6 flex flex-col justify-between bg-white shadow-lg rounded-xl">
+                        <Card className="w-full h-full p-6 flex flex-col justify-between bg-white shadow-lg rounded-xl" role="article" aria-labelledby={`job-${job.id}-title`}>
                             <div>
-                                <h3 className="text-xl font-bold">{job.title}</h3>
+                                <h3 id={`job-${job.id}-title`} className="text-xl font-bold">{job.title}</h3>
                                 <p className="text-gray-600">{job.company}</p>
                                 <p className="text-sm text-gray-500 mt-1">{job.location}</p>
                                 {job.match_score != null && (
@@ -181,15 +186,17 @@ export default function JobsView() {
 
             </div>
 
-            <div className="flex justify-center gap-4 mt-4">
+            <div className="flex justify-center gap-4 mt-4" role="group" aria-label="Job actions">
                 <Button
                     variant="outline"
                     size="icon"
                     className="w-16 h-16 rounded-full bg-red-100 text-red-600 hover:bg-red-200"
                     onClick={() => handleSwipe(topJob.id, "reject")}
                     disabled={!topJob || !!submitting}
+                    aria-label="Skip this job"
+                    aria-describedby={`job-${topJob?.id}-title`}
                 >
-                    <X className="w-8 h-8" />
+                    <X className="w-8 h-8" aria-hidden="true" />
                 </Button>
                 <Button
                     variant="outline"
@@ -197,10 +204,12 @@ export default function JobsView() {
                     className="w-16 h-16 rounded-full bg-green-100 text-green-600 hover:bg-green-200"
                     onClick={() => handleSwipe(topJob.id, "accept")}
                     disabled={!topJob || !!submitting}
+                    aria-label="Apply to this job"
+                    aria-describedby={`job-${topJob?.id}-title`}
                 >
-                    <Check className="w-8 h-8" />
+                    <Check className="w-8 h-8" aria-hidden="true" />
                 </Button>
             </div>
-        </div>
+        </main>
     );
 }

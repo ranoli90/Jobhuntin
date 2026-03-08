@@ -13,7 +13,7 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.models import (
+from packages.backend.domain.models import (
     Application,
     ApplicationDetail,
     ApplicationEvent,
@@ -371,12 +371,233 @@ class ProfileRepo:
 
 
 class JobRepo:
-    """Read operations for jobs."""
+    """Read operations for jobs with comprehensive job details."""
 
     @staticmethod
     async def get_by_id(conn: asyncpg.Connection, job_id: str) -> dict | None:
-        row = await conn.fetchrow("SELECT * FROM public.jobs WHERE id = $1", job_id)
-        return dict(row) if row else None
+        """Get comprehensive job details by ID."""
+        row = await conn.fetchrow(
+            """
+            SELECT 
+                j.*,
+                c.name as company_name,
+                c.description as company_description,
+                c.logo_url as company_logo_url,
+                c.size as company_size,
+                c.industry as company_industry,
+                c.culture as company_culture,
+                c.values as company_values,
+                c.technologies as company_technologies,
+                c.benefits as company_benefits,
+                c.work_style as company_work_style,
+                c.growth_stage as company_growth_stage,
+                c.funding_stage as company_funding_stage,
+                c.headquarters_location as company_headquarters_location,
+                c.employee_count as employee_count,
+                c.founded_year as founded_year,
+                c.website as company_website,
+                c.linkedin_url as company_linkedin_url
+            FROM public.jobs j
+            LEFT JOIN public.companies c ON j.company_id = c.id
+            WHERE j.id = $1
+        """,
+            job_id,
+        )
+        if not row:
+            return None
+
+        # Format job details with comprehensive information
+        job_details = {
+            "id": row["id"],
+            "title": row["title"],
+            "company": row["company"],
+            "location": row["location"],
+            "remote": row["remote"],
+            "salary_min": row["salary_min"],
+            "salary_max": row["salary_max"],
+            "job_type": row["job_type"],
+            "description": row["description"],
+            "requirements": row["requirements"] or [],
+            "responsibilities": row["responsibilities"] or [],
+            "qualifications": row["qualifications"] or [],
+            "benefits": row["benefits"] or [],
+            "work_environment": row["work_environment"] or [],
+            "company_name": row["company_name"],
+            "company_description": row["company_description"],
+            "company_logo_url": row["company_logo_url"],
+            "company_size": row["company_size"],
+            "company_industry": row["company_industry"],
+            "company_culture": row["company_culture"],
+            "company_values": row["company_values"] or [],
+            "company_technologies": row["company_technologies"] or [],
+            "company_benefits": row["company_benefits"] or [],
+            "company_work_style": row["company_work_style"],
+            "company_growth_stage": row["company_growth_stage"],
+            "company_funding_stage": row["company_funding_stage"],
+            "company_headquarters_location": row["company_headquarters_location"],
+            "employee_count": row["employee_count"],
+            "founded_year": row["founded_year"],
+            "company_website": row["company_website"],
+            "company_linkedin_url": row["company_linkedin_url"],
+            "created_at": row["created_at"].isoformat(),
+            "updated_at": row["updated_at"].isoformat(),
+            "is_active": row["is_active"],
+            "source": row["source"],
+            "job_level": row.get("job_level", ""),
+            "experience_years_min": row.get("experience_years_min"),
+            "experience_years_max": row.get("experience_years_max"),
+            "education_required": row.get("education_required"),
+            "skills_required": row.get("skills_required") or [],
+            "industry_focus": row.get("industry_focus"),
+            "remote_option": row.get("remote_option"),
+            "visa_sponsorship": row.get("visa_sponsorship"),
+            "deadline": row.get("deadline"),
+            "application_url": row.get("application_url"),
+            "company_culture": row.get("company_culture"),
+            "team_size": row.get("team_size"),
+            "team_structure": row.get("team_structure"),
+            "reporting_to": row.get("reporting_to"),
+            "tags": row.get("tags") or [],
+            "job_level": row.get("job_level", ""),
+            "experience_years_min": row.get("experience_years_min"),
+            "experience_years_max": row.get("experience_years_max"),
+            "education_required": row.get("education_required"),
+            "skills_required": row.get("skills_required") or [],
+            "industry_focus": row.get("industry_focus"),
+            "remote_option": row.get("remote_option"),
+            "visa_sponsorship": row.get("visa_sponsorship"),
+            "deadline": row.get("deadline"),
+            "application_url": row.get("application_url"),
+            "company_culture": row.get("company_culture"),
+            "team_size": row.get("team_size"),
+            "team_structure": row.get("team_structure"),
+            "reporting_to": row.get("reporting_to"),
+            "tags": row.get("tags") or [],
+        }
+
+        return job_details
+
+    @staticmethod
+    async def list_jobs(
+        conn: asyncpg.Connection,
+        limit: int = 100,
+        offset: int = 0,
+        filters: dict | None = None,
+        tenant_id: str | None = None,
+        user_id: str | None = None,
+    ) -> List[dict]:
+        """List jobs with comprehensive details."""
+        query = """
+            SELECT 
+                j.*,
+                c.name as company_name,
+                c.description as company_description,
+                c.logo_url as company_logo_url,
+                c.size as company_size,
+                c.industry as company_industry,
+                c.culture as company_culture,
+                c.values as company_values,
+                c.technologies as company_technologies,
+                c.benefits as company_benefits,
+                c.work_style as company_work_style,
+                c.growth_stage as company_growth_stage,
+                c.funding_stage as company_funding_stage,
+                c.headquarters_location as company_headquarters_location,
+                c.employee_count as employee_count,
+                c.founded_year as founded_year,
+                c.website as company_website,
+                c.linkedin_url as company_linkedin_url
+            FROM public.jobs j
+            LEFT JOIN public.companies c ON j.company_id = c.id
+            WHERE j.is_active = true
+        """
+
+        # Apply filters if provided
+        if filters:
+            if "location" in filters:
+                query += "AND j.location ILIKE $1"
+        if "remote" in filters:
+            query += "AND j.remote = $1"
+        if "job_type" in filters:
+            query += "AND j.job_type = $1"
+        if "company_size" in filters:
+            query += "AND c.size = $1"
+        if "industry" in filters:
+            query += "AND c.industry = $1"
+        if "salary_min" in filters:
+            query += "AND j.salary_min >= $1"
+        if "salary_max" in filters:
+            query += "AND j.salary_max <= $1"
+
+        query += " ORDER BY j.created_at DESC"
+
+        if offset > 0:
+            query += f" OFFSET {offset}"
+
+        if limit > 0:
+            query += f" LIMIT {limit}"
+
+        rows = await conn.fetch(query)
+
+        # Format with comprehensive job details
+        jobs = []
+        for row in rows:
+            job_details = {
+                "id": row["id"],
+                "title": row["title"],
+                "company": row["company"],
+                "location": row["location"],
+                "remote": row["remote"],
+                "salary_min": row["salary_min"],
+                "salary_max": row["salary_max"],
+                "job_type": row["job_type"],
+                "description": row["description"],
+                "requirements": row["requirements"] or [],
+                "responsibilities": row["responsibilities"] or [],
+                "qualifications": row["qualifications"] or [],
+                "benefits": row["benefits"] or [],
+                "work_environment": row["work_environment"] or [],
+                "company_name": row["company_name"],
+                "company_description": row["company_description"],
+                "company_logo_url": row["company_logo_url"],
+                "company_size": row["company_size"],
+                "company_industry": row["company_industry"],
+                "company_culture": row["company_culture"],
+                "company_values": row["company_values"] or [],
+                "company_technologies": row["company_technologies"] or [],
+                "company_benefits": row["company_benefits"] or [],
+                "company_work_style": row["company_work_style"] or [],
+                "company_growth_stage": row["company_growth_stage"] or "",
+                "company_funding_stage": row["company_funding_stage"] or "",
+                "company_headquarters_location": row["company_headquarters_location"]
+                or "",
+                "employee_count": row["employee_count"],
+                "founded_year": row["founded_year"],
+                "company_website": row["company_website"],
+                "company_linkedin_url": row["company_linkedin_url"],
+                "created_at": row["created_at"].isoformat(),
+                "updated_at": row["updated_at"].isoformat(),
+                "is_active": row["is_active"],
+                "source": row["source"],
+                "job_level": row.get("job_level", ""),
+                "experience_years_min": row.get("experience_years_min"),
+                "experience_years_max": row.get("experience_years_max"),
+                "education_required": row.get("education_required"),
+                "skills_required": row.get("skills_required") or [],
+                "industry_focus": row.get("industry_focus"),
+                "remote_option": row.get("remote_option"),
+                "visa_sponsorship": row.get("visa_sponsorship"),
+                "deadline": row.get("deadline"),
+                "application_url": row.get("application_url"),
+                "company_culture": row.get("company_culture"),
+                "team_size": row.get("team_size"),
+                "team_structure": row.get("team_structure"),
+                "reporting_to": row.get("reporting_to"),
+                "tags": row.get("tags") or [],
+            }
+            jobs.append(job_details)
+
+        return jobs
 
 
 # ---------------------------------------------------------------------------

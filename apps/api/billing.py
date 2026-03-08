@@ -112,9 +112,9 @@ async def billing_usage(
         )
         monthly_used = usage_row["count"] if usage_row else 0
 
-        # Set limits based on plan
+        # Set limits based on plan - using canonical values from plans.py
         if plan == "FREE":
-            monthly_limit = 20
+            monthly_limit = 25  # Match plans.py FREE tier limit
         elif plan == "PRO":
             monthly_limit = None  # Unlimited
         elif plan == "TEAM":
@@ -132,7 +132,9 @@ async def billing_usage(
             "monthly_used": monthly_used,
             "monthly_remaining": monthly_remaining,
             "percentage_used": min(percentage_used, 100),
-            "concurrent_limit": 5 if plan == "FREE" else None,
+            "concurrent_limit": 2
+            if plan == "FREE"
+            else None,  # Match plans.py FREE tier concurrent limit
             "concurrent_used": 0,  # TODO: Track concurrent usage
         }
 
@@ -163,9 +165,31 @@ async def create_checkout(
                 status_code=500, detail="Stripe price ID not configured"
             )
 
-        # Create checkout session with $10 first month promotion
-        # Apply the FIRST_MONTH_10 coupon automatically for new subscribers
-        coupon_id = getattr(settings, "first_month_coupon", "FIRST_MONTH_10")
+        # Create checkout session with optional first month promotion
+        # Apply coupon if configured and valid
+        coupon_id = getattr(settings, "first_month_coupon", None)
+
+        # Validate coupon exists in Stripe before applying (optional but safer)
+        discounts = []
+        if coupon_id:
+            try:
+                # Verify coupon exists before applying
+                coupon = protected_stripe_call(
+                    lambda: stripe.Coupon.retrieve(coupon_id)
+                )
+                if coupon:
+                    discounts = [{"coupon": coupon_id}]
+                    logger.info(
+                        f"Applying coupon {coupon_id} for tenant {tenant_ctx.tenant_id}"
+                    )
+                else:
+                    logger.warning(
+                        f"Coupon {coupon_id} not found in Stripe, proceeding without discount"
+                    )
+            except Exception as e:
+                logger.warning(
+                    f"Failed to validate coupon {coupon_id}: {e}, proceeding without discount"
+                )
 
         checkout_session = protected_stripe_call(
             lambda: stripe.checkout.Session.create(
@@ -180,7 +204,7 @@ async def create_checkout(
                 mode="subscription",
                 success_url=body.success_url,
                 cancel_url=body.cancel_url,
-                discounts=[{"coupon": coupon_id}] if coupon_id else [],
+                discounts=discounts,
                 subscription_data={
                     "trial_period_days": (
                         settings.stripe_free_trial_days
@@ -404,12 +428,23 @@ async def handle_checkout_completed(conn: asyncpg.Connection, session: dict):
     """Handle successful checkout completion."""
     customer_id = session.get("customer")
     subscription_id = session.get("subscription")
-    session.get("metadata", {})  # metadata reserved for future use
+    metadata = session.get("metadata", {})
+
+    # Extract tenant_id and plan from metadata to update tenant record
+    tenant_id = metadata.get("tenant_id")
+    plan = metadata.get("plan")
 
     if subscription_id:
         await update_subscription_state(conn, customer_id, "active", subscription_id)
 
-    logger.info("Checkout completed for customer %s", customer_id)
+    # Update tenant plan if metadata is available
+    if tenant_id and plan:
+        await conn.execute(
+            "UPDATE public.tenants SET plan = $1 WHERE id = $2", plan, tenant_id
+        )
+        logger.info(f"Updated tenant {tenant_id} plan to {plan}")
+
+    logger.info("Checkout completed for customer %s, tenant %s", customer_id, tenant_id)
 
 
 async def handle_payment_succeeded(conn: asyncpg.Connection, invoice: dict):

@@ -14,6 +14,7 @@ import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { AIMatchBadge } from "../ui/AIMatchBadge";
 import type { JobPosting } from "../../hooks/useJobs";
+import { useSavedJobs } from "../../hooks/useSavedJobs";
 import { cn } from "../../lib/utils";
 import { formatCurrency } from "../../lib/format";
 
@@ -140,8 +141,6 @@ export function JobCard({
   isActive,
   onSwipe,
   onViewDetail,
-  isSaved,
-  onSave,
   matchScore,
   matchScoreLoading,
   dealbreakers,
@@ -149,11 +148,18 @@ export function JobCard({
   skillMatch,
   onQuickApply,
   isApplying = false,
-}: JobCardProps) {
+}: Omit<JobCardProps, 'isSaved' | 'onSave'>) {
+  const { isJobSaved, saveJob, isSaving } = useSavedJobs();
+  const isSaved = isJobSaved(job.id);
+  
   const hasDealbreakers =
     dealbreakers?.salaryMismatch ||
     dealbreakers?.locationMismatch ||
     dealbreakers?.visaIssue;
+
+  const handleSave = () => {
+    saveJob(job.id);
+  };
 
   return (
     <div
@@ -293,9 +299,9 @@ export function JobCard({
           View details
         </Button>
 
-        <Button variant="ghost" size="sm" className="gap-2" onClick={onSave}>
+        <Button variant="ghost" size="sm" className="gap-2" onClick={handleSave} disabled={isSaving}>
           <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
-          {isSaved ? "Saved" : "Save"}
+          {isSaving ? "Saving..." : (isSaved ? "Saved" : "Save")}
         </Button>
 
         {matchExplanation && (

@@ -3,20 +3,21 @@ import { useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
-}
-
 async function authHeaders(): Promise<Record<string, string>> {
-  const token = getAuthToken();
+  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
+  // This prevents XSS attacks from stealing auth tokens
   const h: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) h["Authorization"] = `Bearer ${token}`;
+  // No Authorization header needed - token is sent via httpOnly cookie
   return h;
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers = await authHeaders();
-  const opts: RequestInit = { method, headers };
+  const opts: RequestInit = { 
+    method, 
+    headers,
+    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
+  };
   if (body) opts.body = JSON.stringify(body);
   const resp = await fetch(`${API_BASE}${path}`, opts);
   if (!resp.ok) {

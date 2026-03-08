@@ -832,7 +832,7 @@ async def list_cover_letter_templates(
 
 Dear [Hiring Manager's Name],
 
-I am writing to express my interest in the [Job Title] position at [Company Name], as advertised. With my background in [Your Field/Industry] and experience in [Key Skills/Experience], I am excited about the opportunity to contribute to your team.  # noqa: E501
+I am writing to express my interest in the [Job Title] position at [Company Name], as advertised. With my background in [Your Field/Industry] and experience in [Key Skills/Experience], I am excited about the opportunity to contribute to your team.
 
 [Body paragraph 1 - Highlight relevant experience and achievements]
 
@@ -841,8 +841,7 @@ I am writing to express my interest in the [Job Title] position at [Company Name
 [Body paragraph 3 - Call to action and closing]
 
 Sincerely,
-[Your Name]"""
-            "",
+[Your Name]""",
             variables=[
                 "hiring_manager_name",
                 "company_name",
@@ -868,9 +867,9 @@ Sincerely,
 
 Dear [Hiring Manager's Name],
 
-What if I told you that [hook - interesting fact about your experience]?  # noqa: E501
+What if I told you that [hook - interesting fact about your experience]?
 
-That's the kind of innovative thinking I bring to [Company Name] as a candidate for the [Job Title] role. With [X years] of experience in [Your Field], I've developed a unique perspective on [relevant topic].  # noqa: E501
+That's the kind of innovative thinking I bring to [Company Name] as a candidate for the [Job Title] role. With [X years] of experience in [Your Field], I've developed a unique perspective on [relevant topic].
 
 [Body - Tell your story and connect it to the role]
 
@@ -879,8 +878,7 @@ I'm particularly drawn to [Company Name] because [why this company/role excites 
 Let's connect and explore how my [key strength] can drive [company goal/outcome].
 
 Best regards,
-[Your Name]"""
-            "",
+[Your Name]""",
             variables=[
                 "hook",
                 "job_title",
@@ -890,6 +888,217 @@ Best regards,
                 "relevant_topic",
                 "key_strength",
                 "company_goal",
+            ],
+            is_default=False,
+        ),
+        CoverLetterTemplate(
+            id="executive_senior",
+            name="Executive Senior",
+            description="Executive-level cover letter for senior positions",
+            category="executive",
+            content="""[Your Name]
+[Your Title] | [Your Email] | [Your Phone] | [Your LinkedIn]
+[Date]
+
+[Hiring Manager's Name]
+[Company Name]
+[Company Address]
+
+Dear [Hiring Manager's Name],
+
+I am writing to express my strong interest in the [Job Title] position at [Company Name]. As a [Your Current Role] with [X] years of executive experience in [Your Industry], I have a proven track record of [key achievement 1] and [key achievement 2].
+
+Throughout my career, I have demonstrated expertise in [key area 1], [key area 2], and [key area 3]. Notably, I led [specific project] that resulted in [quantifiable result], and spearheaded [initiative] that improved [metric] by [percentage].
+
+I am particularly drawn to [Company Name] because of your reputation for [company strength] and your commitment to [company value]. The opportunity to [specific opportunity] aligns perfectly with my professional goals.
+
+I would welcome the opportunity to discuss how my leadership experience and strategic vision can contribute to your team's success.
+
+Thank you for your time and consideration.
+
+Sincerely,
+[Your Name]""",
+            variables=[
+                "your_title",
+                "your_current_role",
+                "years_experience",
+                "your_industry",
+                "key_achievement_1",
+                "key_achievement_2",
+                "key_area_1",
+                "key_area_2",
+                "key_area_3",
+                "specific_project",
+                "quantifiable_result",
+                "initiative",
+                "metric",
+                "percentage",
+                "company_strength",
+                "company_value",
+                "specific_opportunity",
+                "professional_goals",
+            ],
+            is_default=False,
+        ),
+        CoverLetterTemplate(
+            id="technical_developer",
+            name="Technical Developer",
+            description="Technical developer cover letter with focus on skills",
+            category="technical",
+            content="""[Your Name]
+[Your Email] | [Your Phone] | [Your GitHub/Portfolio]
+[Date]
+
+[Hiring Manager's Name]
+[Technical Lead]
+[Company Name]
+[Company Address]
+
+Dear [Hiring Manager's Name],
+
+I am writing to apply for the [Job Title] position at [Company Name]. As a [Your Current Role] with [X] years of experience in software development, I have extensive expertise in [primary technology stack] and a strong background in [secondary technologies].
+
+My technical expertise includes:
+- [Programming Language 1]: [experience level] years
+- [Programming Language 2]: [experience level] years
+- [Framework/Platform]: [experience level] years
+- [Database Technology]: [experience level] years
+- [Cloud Platform]: [experience level] years
+
+In my current role at [Current Company], I have successfully [key technical achievement 1] and [key technical achievement 2]. Notably, I [specific technical project] that improved [technical metric] by [percentage] and [another technical project] that enhanced [business outcome].
+
+I am particularly interested in [Company Name] because of your [technical innovation/tech stack] and your work in [specific technical area]. The opportunity to [technical challenge] aligns perfectly with my skills and career aspirations.
+
+I would be excited to discuss how my technical background and problem-solving abilities can contribute to your engineering team.
+
+Thank you for considering my application.
+
+Best regards,
+[Your Name]""",
+            variables=[
+                "primary_technology_stack",
+                "secondary_technologies",
+                "framework_platform",
+                "database_technology",
+                "cloud_platform",
+                "experience_level",
+                "current_company",
+                "key_technical_achievement_1",
+                "key_technical_achievement_2",
+                "specific_technical_project",
+                "technical_metric",
+                "percentage",
+                "another_technical_project",
+                "business_outcome",
+                "technical_innovation",
+                "tech_stack",
+                "specific_technical_area",
+                "technical_challenge",
+                "skills",
+                "career_aspirations",
+            ],
+            is_default=False,
+        ),
+        CoverLetterTemplate(
+            id="entry_level",
+            name="Entry Level",
+            description="Entry-level cover letter for recent graduates",
+            category="entry",
+            content="""[Your Name]
+[Your Email] | [Your Phone] | [Your LinkedIn/Portfolio]
+[Date]
+
+[Hiring Manager's Name]
+[Hiring Manager]
+[Company Name]
+[Company Address]
+
+Dear [Hiring Manager's Name],
+
+I am writing to express my strong interest in the [Job Title] position at [Company Name]. As a recent [Your Degree] graduate from [Your University], I am eager to begin my professional career and contribute my fresh perspective and enthusiasm to your team.
+
+During my studies, I developed strong skills in [relevant skill 1], [relevant skill 2], and [relevant skill 3]. I also gained practical experience through [internship/project 1] and [internship/project 2], where I [specific achievement 1] and [specific achievement 2].
+
+I am particularly excited about [Company Name] because of your [company reputation] and your commitment to [company value]. The opportunity to [entry-level opportunity] would allow me to apply my academic knowledge and learn from experienced professionals like you.
+
+I am a quick learner, highly motivated, and ready to contribute my energy and fresh ideas to your team. I would be grateful for the chance to discuss how my educational background and enthusiasm can benefit [Company Name].
+
+Thank you for considering my application.
+
+Sincerely,
+[Your Name]""",
+            variables=[
+                "your_degree",
+                "your_university",
+                "relevant_skill_1",
+                "relevant_skill_2",
+                "relevant_skill_3",
+                "internship_project_1",
+                "internship_project_2",
+                "specific_achievement_1",
+                "specific_achievement_2",
+                "company_reputation",
+                "company_value",
+                "entry_level_opportunity",
+                "academic_knowledge",
+                "experienced_professionals",
+                "company_name",
+            ],
+            is_default=False,
+        ),
+        CoverLetterTemplate(
+            id="career_change",
+            name="Career Change",
+            description="Career change cover letter for transitioning professionals",
+            category="professional",
+            content="""[Your Name]
+[Your Address]
+[City, State, ZIP Code]
+[Email Address]
+[Phone Number]
+[Date]
+
+[Hiring Manager's Name]
+[Hiring Manager]
+[Company Name]
+[Company Address]
+
+Dear [Hiring Manager's Name],
+
+I am writing to express my interest in the [Job Title] position at [Company Name]. While my background has been in [Previous Industry], I am actively transitioning to [New Industry] and bring valuable transferable skills from my [X] years of professional experience.
+
+Throughout my career in [Previous Industry], I have developed strong skills in [transferable skill 1], [transferable skill 2], and [transferable skill 3]. These skills, combined with my experience in [relevant experience area], have prepared me well for success in [New Industry].
+
+I have been actively upskilling through [training/certification 1] and [training/certification 2], and I am passionate about [new industry passion]. My unique perspective, combining [previous industry insight] with [new industry knowledge], allows me to approach challenges with [unique approach].
+
+I am particularly drawn to [Company Name] because of your [company innovation/industry leadership] and your commitment to [company value]. The opportunity to [career change opportunity] would allow me to apply my diverse experience while learning from your team.
+
+I would be excited to discuss how my transferable skills and fresh perspective can contribute to your team's success.
+
+Thank you for considering my application.
+
+Sincerely,
+[Your Name]""",
+            variables=[
+                "previous_industry",
+                "new_industry",
+                "x_years",
+                "transferable_skill_1",
+                "transferable_skill_2",
+                "transferable_skill_3",
+                "relevant_experience_area",
+                "training/certification_1",
+                "training/certification_2",
+                "new_industry_passion",
+                "previous_industry_insight",
+                "new_industry_knowledge",
+                "unique_approach",
+                "company_innovation",
+                "industry_leadership",
+                "company_value",
+                "career_change_opportunity",
+                "diverse_experience",
+                "learning_from_your_team",
             ],
             is_default=False,
         ),
@@ -1001,6 +1210,37 @@ I would welcome the opportunity to discuss how my skills and experience align wi
 Sincerely,
 [Your Name]"""
 
+        # Fetch comprehensive job details to include in the prompt
+        job_details = "Job details not available"
+        if request.job_id:
+            try:
+                from backend.domain.repositories import JobRepo
+
+                async with db.acquire() as conn:
+                    job_data = await JobRepo.get_by_id(conn, request.job_id)
+                    if job_data:
+                        job_details = f"""
+                        Title: {job_data.get("title", "Unknown")}
+                        Company: {job_data.get("company_name", job_data.get("company", "Unknown"))}
+                        Location: {job_data.get("location", "Unknown")}
+                        Remote: {job_data.get("remote", False)}
+                        Salary: ${job_data.get("salary_min", "Not specified")} - ${job_data.get("salary_max", "Not specified")}
+                        Job Type: {job_data.get("job_type", "Not specified")}
+                        Description: {job_data.get("description", "No description available")}
+                        Requirements: {job_data.get("requirements", [])}
+                        Responsibilities: {job_data.get("responsibilities", [])}
+                        Qualifications: {job_data.get("qualifications", [])}
+                        Benefits: {job_data.get("benefits", [])}
+                        Company Size: {job_data.get("company_size", "Unknown")}
+                        Industry: {job_data.get("company_industry", "Unknown")}
+                        Company Culture: {job_data.get("company_culture", "Not specified")}
+                        """.strip()
+                    else:
+                        job_details = f"Job with ID {request.job_id} not found"
+            except Exception as e:
+                job_details = f"Error loading job details: {str(e)}"
+                logger.error(f"Error fetching job details for cover letter: {e}")
+
         focus_areas_str = (
             ", ".join(request.focus_areas)
             if request.focus_areas
@@ -1010,14 +1250,16 @@ Sincerely,
 
 {template_content}
 
-Job details: {request.job_id}
+Job details:
+{job_details}
+
 User profile: {profile_summary}
 Tone: {request.tone}
 Length: {request.length}
 
 Focus areas: {focus_areas_str}
 
-Make it specific to the job and company. Keep it professional and concise."""
+Make it specific to the job and company. Include relevant skills and experience from the profile that match the job requirements. Keep it professional and concise."""
 
         result = await client.call(
             prompt=prompt,

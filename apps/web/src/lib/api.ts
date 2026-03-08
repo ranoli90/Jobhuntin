@@ -111,8 +111,20 @@ export function getAuthToken(): string | null {
     return null; // Let server handle auth via cookie
   }
 
-  // Fallback to localStorage for backward compatibility
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  // SECURITY: No localStorage fallback for production - only use httpOnly cookies
+  // This prevents XSS attacks from stealing auth tokens
+  if (import.meta.env.PROD) {
+    console.warn('localStorage auth fallback disabled in production');
+    return null;
+  }
+
+  // Fallback to localStorage only for development
+  if (import.meta.env.DEV) {
+    console.warn('Using localStorage auth fallback - development only');
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  }
+
+  return null;
 }
 
 /** Read csrf cookie set by backend (starlette-csrf) */
@@ -123,11 +135,23 @@ function getCsrfToken(): string | null {
 }
 
 export function setAuthToken(token: string) {
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
+  // SECURITY: Only store tokens in localStorage for development
+  // In production, tokens should only be stored in httpOnly cookies
+  if (import.meta.env.DEV) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } else {
+    console.warn('Token storage in localStorage disabled in production');
+  }
 }
 
 export function clearAuthToken() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+  // SECURITY: Only clear tokens from localStorage for development
+  // In production, tokens should only be cleared via httpOnly cookies
+  if (import.meta.env.DEV) {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  } else {
+    console.warn('Token clearing from localStorage disabled in production');
+  }
 }
 
 export async function getAuthHeaders(): Promise<HeadersInit> {

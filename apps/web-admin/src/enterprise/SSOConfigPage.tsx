@@ -10,13 +10,28 @@ interface SSOConfig {
   sso_url: string;
 }
 
-function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
+async function authHeaders(): Promise<Record<string, string>> {
+  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
+  // This prevents XSS attacks from stealing auth tokens
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  // No Authorization header needed - token is sent via httpOnly cookie
+  return h;
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const t = getAuthToken();
-  return t ? { Authorization: `Bearer ${t}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers = await authHeaders();
+  const opts: RequestInit = { 
+    method, 
+    headers,
+    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(`${API_BASE}${path}`, opts);
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`API ${resp.status}: ${text}`);
+  }
+  return resp.json() as Promise<T>;
 }
 
 export default function SSOConfigPage() {
@@ -32,15 +47,11 @@ export default function SSOConfigPage() {
   useEffect(() => {
     (async () => {
       try {
-        const h = await authHeaders();
-        const r = await fetch(`${API_BASE}/sso/config`, { headers: h });
-        if (r.ok) {
-          const c: SSOConfig = await r.json();
-          setConfig(c);
-          setProvider(c.provider || "saml");
-          setEntityId(c.entity_id);
-          setSsoUrl(c.sso_url);
-        }
+        const c: SSOConfig = await request("GET", "/sso/config");
+        setConfig(c);
+        setProvider(c.provider || "saml");
+        setEntityId(c.entity_id);
+        setSsoUrl(c.sso_url);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     })();
@@ -49,19 +60,11 @@ export default function SSOConfigPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const h = await authHeaders();
-      const r = await fetch(`${API_BASE}/sso/config`, {
-        method: "POST", headers: h,
-        body: JSON.stringify({ provider, entity_id: entityId, sso_url: ssoUrl, certificate }),
+      const c = await request("POST", "/sso/config", {
+        provider, entity_id: entityId, sso_url: ssoUrl, certificate
       });
-      if (r.ok) {
-        const c = await r.json();
-        setConfig(c);
-        alert("SSO configuration saved!");
-      } else {
-        const err = await r.json().catch(() => ({}));
-        alert(err.detail || "Failed to save");
-      }
+      setConfig(c);
+      alert("SSO configuration saved!");
     } catch (e) { alert(String(e)); }
     finally { setSaving(false); }
   };

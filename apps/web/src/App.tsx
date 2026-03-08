@@ -57,6 +57,23 @@ const MatchesPage = React.lazy(() => import("./pages/app/matches"));
 const AITailorPage = React.lazy(() => import("./pages/app/ai-tailor"));
 const ATSScorePage = React.lazy(() => import("./pages/app/ats-score"));
 
+// Phase 12.1 Agent Improvements Pages
+const AgentImprovementsPage = React.lazy(() => import("./pages/app/agent-improvements"));
+const DLQDashboardPage = React.lazy(() => import("./pages/app/dlq-dashboard"));
+const ScreenshotCapturePage = React.lazy(() => import("./pages/app/screenshot-capture"));
+
+// Phase 13.1 Communication Pages
+const CommunicationPreferencesPage = React.lazy(() => import("./pages/app/communication-preferences"));
+const NotificationHistoryPage = React.lazy(() => import("./pages/app/notification-history"));
+
+// Phase 14.1 User Experience Pages
+const PipelineViewPage = React.lazy(() => import("./pages/app/pipeline-view"));
+const ApplicationExportPage = React.lazy(() => import("./pages/app/application-export"));
+const FollowUpRemindersPage = React.lazy(() => import("./pages/app/follow-up-reminders"));
+const InterviewPracticePage = React.lazy(() => import("./pages/app/interview-practice"));
+const MultiResumePage = React.lazy(() => import("./pages/app/multi-resume"));
+const ApplicationNotesPage = React.lazy(() => import("./pages/app/application-notes"));
+
 // Admin Pages
 const ApplicationDetailPage = React.lazy(() => import("./pages/app/ApplicationDetailPage"));
 const AdminUsagePage = React.lazy(() => import("./pages/admin/usage"));
@@ -225,6 +242,23 @@ export default function App() {
                 <Route path="matches" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><MatchesPage /></React.Suspense></RouteErrorBoundary>} />
                 <Route path="tailor" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><AITailorPage /></React.Suspense></RouteErrorBoundary>} />
                 <Route path="ats-score" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><ATSScorePage /></React.Suspense></RouteErrorBoundary>} />
+
+                {/* Phase 12.1 Agent Improvements Routes */}
+                <Route path="agent-improvements" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><AgentImprovementsPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="dlq-dashboard" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><DLQDashboardPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="screenshot-capture" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><ScreenshotCapturePage /></React.Suspense></RouteErrorBoundary>} />
+
+                {/* Phase 13.1 Communication Routes */}
+                <Route path="communication-preferences" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><CommunicationPreferencesPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="notification-history" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><NotificationHistoryPage /></React.Suspense></RouteErrorBoundary>} />
+
+                {/* Phase 14.1 User Experience Routes */}
+                <Route path="pipeline-view" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><PipelineViewPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="application-export" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><ApplicationExportPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="follow-up-reminders" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><FollowUpRemindersPage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="interview-practice" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><InterviewPracticePage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="multi-resume" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><MultiResumePage /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="application-notes" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><ApplicationNotesPage /></React.Suspense></RouteErrorBoundary>} />
 
                 {/* Admin Routes */}
                 <Route path="admin" element={<AdminGuard />}>
