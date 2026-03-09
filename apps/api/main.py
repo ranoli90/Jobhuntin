@@ -279,6 +279,111 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
 
 
 @app.middleware("http")
+async def idempotency_middleware(request: Request, call_next):
+    """C2: Idempotency Keys - Prevent duplicate writes on retries.
+    
+    Checks for Idempotency-Key header on POST/PUT/PATCH requests.
+    If present, caches the response in Redis and returns cached response
+    for duplicate requests within the TTL window.
+    """
+    import json
+    
+    # Only apply to write operations
+    if request.method not in ["POST", "PUT", "PATCH"]:
+        return await call_next(request)
+    
+    idempotency_key = request.headers.get("Idempotency-Key")
+    if not idempotency_key:
+        # No idempotency key provided - proceed normally
+        # (Optional: could require it for certain endpoints)
+        return await call_next(request)
+    
+    # Validate key format (UUID or alphanumeric, max 128 chars)
+    if not idempotency_key or len(idempotency_key) > 128 or not idempotency_key.replace("-", "").replace("_", "").isalnum():
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid Idempotency-Key format. Must be alphanumeric, max 128 characters.",
+        )
+    
+    # Check Redis for cached response
+    if _settings.redis_url:
+        try:
+            from shared.redis_client import get_redis
+            
+            r = await get_redis()
+            cache_key = f"idempotency:{idempotency_key}"
+            
+            # Check for existing response
+            cached = await r.get(cache_key)
+            if cached:
+                logger.info(
+                    "Idempotent request detected - returning cached response",
+                    extra={"idempotency_key": idempotency_key[:16] + "...", "path": request.url.path},
+                )
+                try:
+                    cached_data = json.loads(cached)
+                    return JSONResponse(
+                        content=cached_data.get("body", {}),
+                        status_code=cached_data.get("status_code", 200),
+                        headers=cached_data.get("headers", {}),
+                    )
+                except json.JSONDecodeError:
+                    logger.warning("Failed to parse cached idempotency response")
+                    # Fall through to process request
+            
+            # Process request
+            response = await call_next(request)
+            
+            # Cache successful responses (2xx status codes)
+            if 200 <= response.status_code < 300:
+                try:
+                    # Read response body
+                    response_body = b""
+                    async for chunk in response.body_iterator:
+                        response_body += chunk
+                    
+                    # Parse JSON if possible
+                    try:
+                        body_json = json.loads(response_body.decode())
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        body_json = {"raw": response_body.decode(errors="ignore")[:100]}
+                    
+                    # Cache response for 1 hour
+                    cache_data = {
+                        "body": body_json,
+                        "status_code": response.status_code,
+                        "headers": dict(response.headers),
+                    }
+                    await r.setex(cache_key, 3600, json.dumps(cache_data))
+                    
+                    # Return new response with body
+                    return JSONResponse(
+                        content=body_json,
+                        status_code=response.status_code,
+                        headers=dict(response.headers),
+                    )
+                except Exception as e:
+                    logger.warning("Failed to cache idempotency response: %s", e)
+                    # Return original response if caching fails
+                    return response
+            else:
+                # Don't cache error responses
+                return response
+                
+        except Exception as e:
+            logger.warning("Idempotency check failed (Redis unavailable): %s", e)
+            # Fail open - process request normally if Redis is down
+            return await call_next(request)
+    else:
+        # No Redis - can't provide idempotency (log warning in production)
+        if _settings.env.value == "prod":
+            logger.warning(
+                "Idempotency-Key provided but Redis not available - idempotency disabled"
+            )
+        return await call_next(request)
+
+
+@app.middleware("http")
 async def latency_middleware(request: Request, call_next):
     """Track API latency and performance metrics (H3: API Performance Monitoring)."""
     start_time = time.time()
