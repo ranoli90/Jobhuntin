@@ -19,7 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from typing import Any, Dict, List, TypeVar
+from typing import Any, Callable, Dict, List, TypeVar
 
 T = TypeVar("T")
 
@@ -256,7 +256,9 @@ class CacheManager:
 
         return cleared
 
-    async def warm_cache(self, data_loader: callable, key_patterns: List[str]) -> int:
+    async def warm_cache(
+        self, data_loader: Callable[..., Any], key_patterns: List[str]
+    ) -> int:
         """Warm cache with data from loader function."""
         warmed = 0
 

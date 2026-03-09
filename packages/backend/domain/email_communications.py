@@ -584,9 +584,7 @@ class EmailCommunicationManager:
         </div>
         """.format(
             web_url=self.settings.web_url,
-            reason_block=f'<div style="margin-top: 10px;"><strong>Additional Information:</strong><br>{reason}</div>'
-            if "{reason}" != "{reason}"
-            else "",
+            reason_block="",
             user_name="{user_name}",
             company="{company}",
             job_title="{job_title}",

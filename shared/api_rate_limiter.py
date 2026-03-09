@@ -122,9 +122,9 @@ class RateLimiter:
         self.key_patterns = {
             RateLimitScope.GLOBAL: "rate_limit:global:",
             RateLimitScope.PER_USER: "rate_limit:user:",
-            RateLimit.Scope.PER_IP: "rate_limit:ip:",
-            RateLimit.Scope.PER_ENDPOINT: "rate_limit:endpoint:",
-            RateLimit.Scope.PER_TENANT: "rate_limit:tenant:",
+            RateLimitScope.PER_IP: "rate_limit:ip:",
+            RateLimitScope.PER_ENDPOINT: "rate_limit:endpoint:",
+            RateLimitScope.PER_TENANT: "rate_limit:tenant:",
         }
 
         # Token bucket parameters
@@ -191,7 +191,8 @@ class RateLimiter:
         self,
         key: str,
         identifier: Optional[str] = None,
-        rule_name: Optional[str] = None**kwargs,
+        rule_name: Optional[str] = None,
+        **kwargs,
     ) -> RateLimitResult:
         """Check if request is allowed under rate limits."""
         # Find applicable rule
@@ -406,7 +407,7 @@ class RateLimiter:
                 retry_after=None,
                 rule_name=rule.name,
                 scope=rule.scope.value,
-                limit=limit,
+                limit=rule.limit,
                 window_seconds=rule.window_seconds,
             )
 
@@ -464,11 +465,11 @@ class RateLimiter:
             else:
                 # Rate limit exceeded
                 # Calculate when oldest entry expires
-                oldest_entry_time = await self.redis_client.zrange(
+                oldest_entries = await self.redis_client.zrange(
                     cache_key, 0, 1, withscores=True
                 )
-                (
-                    float(oldest_entry_time[0]) if oldest_entry_time else current_time
+                oldest_entry_time = (
+                    float(oldest_entries[0][1]) if oldest_entries else current_time
                 )
                 retry_after = max(
                     0, oldest_entry_time + rule.window_seconds - current_time
@@ -497,7 +498,7 @@ class RateLimiter:
                 retry_after=None,
                 rule_name=rule.name,
                 scope=rule.scope.value,
-                limit=limit,
+                limit=rule.limit,
                 window_seconds=rule.window_seconds,
             )
 

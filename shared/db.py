@@ -50,8 +50,8 @@ def resolve_dsn_ipv4(dsn: str) -> str:
             updated = parsed._replace(query=urlencode(query_params))
             return urlunparse(updated)
 
-        ipv4_addr = infos[0][4][0]
-        netloc = parsed.netloc.replace(parsed.hostname, ipv4_addr)
+        ipv4_addr = str(infos[0][4][0])
+        netloc = parsed.netloc.replace(parsed.hostname or "", ipv4_addr)
         resolved = urlunparse(
             parsed._replace(netloc=netloc, query=urlencode(query_params))
         )

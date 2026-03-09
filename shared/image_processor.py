@@ -401,7 +401,7 @@ class ImageProcessor:
 
         return output_data, len(output_data)
 
-    def get_image_info(self, image_data: bytes) -> Dict[str, Any]:
+    async def get_image_info(self, image_data: bytes) -> Dict[str, Any]:
         """Get comprehensive image information."""
         if not PIL_AVAILABLE:
             return {
@@ -413,7 +413,7 @@ class ImageProcessor:
             }
 
         try:
-            image, format_name = self._load_image(image_data)
+            image, format_name = await self._load_image(image_data)
             if image is None:
                 return {"error": "Failed to load image"}
 

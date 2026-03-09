@@ -13,6 +13,8 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from packages.backend.domain.feedback_manager import NPSResponse
+from packages.backend.domain.user_experience_manager import UXScore
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.ab_testing_manager")
@@ -426,7 +428,10 @@ class ABTestingManager:
                 experiment = self._experiments.get(exp_id)
                 if experiment:
                     variant = self._get_user_variant(user_id, exp_id)
-
+                    assignment = next(
+                        (a for a in user_assignments if a.experiment_id == exp_id),
+                        None,
+                    )
                     experiments.append(
                         {
                             "experiment_id": experiment.id,
@@ -434,7 +439,7 @@ class ABTestingManager:
                             "experiment_status": experiment.status.value,
                             "variant_id": variant.id if variant else None,
                             "variant_name": variant.name if variant else None,
-                            "assigned_at": assignment.assigned_at.isoformat(),
+                            "assigned_at": assignment.assigned_at.isoformat() if assignment else None,
                         }
                     )
 
@@ -751,7 +756,7 @@ class ABTestingManager:
             # Find best analysis for each metric
             for metric in experiment.target_metrics:
                 if metric in metric_analyses:
-                    best_analysis = metric_analytics[metric]
+                    best_analysis = metric_analyses[metric]
                     break
 
             return best_analysis

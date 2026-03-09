@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
@@ -28,6 +29,7 @@ from typing import Any, Dict, List, Optional
 import redis.asyncio as redis
 
 from shared.alerting import get_alert_manager
+from shared.api_rate_limiter import RateLimitStrategy
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api_cache")
@@ -186,6 +188,9 @@ class ResponseCache:
         # Background tasks
         self._cleanup_task: Optional[asyncio.Task] = None
         self._warming_task: Optional[asyncio.Task] = None
+
+        # Rate limit rules (for Redis cleanup; empty by default)
+        self.rules: List[Any] = []
 
         self._lock = asyncio.Lock()
 
@@ -820,8 +825,8 @@ class ResponseCache:
         errors = []
 
         # Process in batches
-        for i in range(0, len(warm_up_queries), batch_size):
-            batch = warm_up_queries[i : i + batch_size]
+        for i in range(0, len(warmup_queries), batch_size):
+            batch = warmup_queries[i : i + batch_size]
 
             for query in batch:
                 try:
@@ -849,10 +854,10 @@ class ResponseCache:
 
         return {
             "warmed_queries": warmed_count,
-            "total_queries": len(warm_up_queries),
+            "total_queries": len(warmup_queries),
             "errors": errors,
             "success_rate": (
-                warmed_count / len(warm_up_queries) * 100 if warm_up_queries else 0
+                warmed_count / len(warmup_queries) * 100 if warmup_queries else 0
             ),
         }
 
@@ -964,6 +969,7 @@ class ResponseCache:
 
     async def export_metrics(self) -> Dict[str, Any]:
         """Export all metrics for analysis."""
+        stats = self.get_cache_stats()
         return {
             "timestamp": time.time(),
             "config": {
@@ -983,7 +989,28 @@ class ResponseCache:
                 },
             },
             "metrics": {
-                level: {
+                level.value: {
+                    "total_entries": m.total_entries,
+                    "total_size_mb": m.total_size_mb,
+                    "hit_count": m.hit_count,
+                    "miss_count": m.total_requests - m.hit_count,
+                    "hit_rate_pct": m.hit_rate_pct,
+                    "avg_response_time_ms": m.avg_response_time_ms,
+                    "eviction_count": m.eviction_count,
+                    "invalidation_count": m.invalidation_count,
+                    "avg_ttl_seconds": m.avg_ttl_seconds,
+                    "peak_usage": m.peak_usage,
+                }
+                for level, m in self.metrics.items()
+            },
+            "summary": {
+                    "total_entries": stats["total_entries"],
+                    "total_size_mb": stats["total_size_mb"],
+                    "hit_rate_pct": stats["hit_rate_pct"],
+                    "avg_response_time_ms": stats["avg_response_time_ms"],
+                    "error_rate_pct": stats["error_rate_pct"],
+                    "global_hit_rate_pct": stats["global_hit_rate_pct"],
+                "cache_levels": {
                     level.value: {
                         "total_entries": m.total_entries,
                         "total_size_mb": m.total_size_mb,
@@ -997,29 +1024,6 @@ class ResponseCache:
                         "peak_usage": m.peak_usage,
                     }
                     for level, m in self.metrics.items()
-                },
-                "summary": {
-                    "total_entries": stats["total_entries"],
-                    "total_size_mb": stats["total_size_mb"],
-                    "hit_rate_pct": stats["hit_rate_pct"],
-                    "avg_response_time_ms": stats["avg_response_time_ms"],
-                    "error_rate_pct": stats["error_rate_pct"],
-                    "global_hit_rate_pct": stats["global_hit_rate_pct"],
-                    "cache_levels": {
-                        level.value: {
-                            "total_entries": m.total_entries,
-                            "total_size_mb": m.total_size_mb,
-                            "hit_count": m.hit_count,
-                            "miss_count": m.total_requests - m.hit_count,
-                            "hit_rate_pct": m.hit_rate_pct,
-                            "avg_response_time_ms": m.avg_response_time_ms,
-                            "eviction_count": m.eviction_count,
-                            "invalidation_count": m.invalidation_count,
-                            "avg_ttl_seconds": m.avg_ttl_seconds,
-                            "peak_usage": m.peak_usage,
-                        }
-                        for level, m in self.metrics.items()
-                    },
                 },
             },
         }

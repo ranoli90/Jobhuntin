@@ -17,6 +17,8 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
+import asyncpg
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.enhanced_notifications")

@@ -501,7 +501,10 @@ async def fill_form_from_mapping(
             elif field_type == "textarea":
                 await el.fill(value)
             elif field_type == "file":
-                await self._handle_file_upload(el, value, ff, ctx)
+                if resume_path and (value.lower().endswith(".pdf") or "resume" in (value or "").lower()):
+                    await el.set_input_files(resume_path)
+                else:
+                    logger.warning("File upload skipped: no resume_path or unsupported type")
             else:
                 await el.fill(value)
 

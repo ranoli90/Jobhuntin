@@ -531,7 +531,7 @@ class ATSRecommendationsEngine:
         for issue in issues:
             if "action verbs" in issue.lower():
                 recommendations.append(
-                    AnATSRecommendation(
+                    ATSRecommendation(
                         category="content",
                         priority="high",
                         title="Add Action Verbs",

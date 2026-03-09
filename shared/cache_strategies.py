@@ -334,7 +334,7 @@ class HybridStrategy(CacheStrategy):
             await self.primary_strategy.on_eviction(key, entry)
 
             # Update secondary strategy
-            await self._secondary_strategy.on_eviction(key, entry)
+            await self.secondary_strategy.on_eviction(key, entry)
 
         except Exception as e:
             logger.error(f"Hybrid strategy eviction tracking error: {e}")
@@ -396,7 +396,7 @@ class CacheStrategyManager:
 
             return HybridStrategy(
                 primary_strategy=primary,
-                secondary_strategy=secondary_strategy,
+                secondary_strategy=secondary,
                 primary_weight=primary_weight,
                 secondary_weight=secondary_weight,
             )

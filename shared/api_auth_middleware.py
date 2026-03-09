@@ -26,8 +26,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import jwt
-from fastapi import Request
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+security = HTTPBearer()
 
 from shared.alerting import AlertSeverity, get_alert_manager
 from shared.logging_config import get_logger
@@ -398,7 +400,7 @@ class AuthMiddleware:
         except Exception as e:
             logger.error(f"API key authentication error: {e}")
             return AuthResult(
-                status=Status.INVALID, error_message="API key authentication failed"
+                status=AuthStatus.INVALID, error_message="API key authentication failed"
             )
 
     async def _authenticate_oauth2(self, request: Request) -> AuthResult:
