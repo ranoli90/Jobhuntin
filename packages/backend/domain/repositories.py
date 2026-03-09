@@ -274,47 +274,130 @@ class ApplicationRepo:
         application_id: str,
         tenant_id: str | None = None,
     ) -> ApplicationDetail | None:
-        """Fetch application + inputs + last 10 events."""
+        """Fetch application + inputs + last 10 events.
+        
+        H5: N+1 Query Fix - Uses single query with JOINs instead of 3 separate queries.
+        This reduces database round-trips from 3 to 1, improving performance.
+        """
+        import json
+        
+        # Single query with LEFT JOINs and array aggregation
         if tenant_id:
-            app_row = await conn.fetchrow(
-                "SELECT * FROM public.applications WHERE id = $1 AND tenant_id = $2",
+            row = await conn.fetchrow(
+                """
+                SELECT 
+                    a.*,
+                    COALESCE(
+                        json_agg(
+                            DISTINCT jsonb_build_object(
+                                'id', ai.id,
+                                'selector', ai.selector,
+                                'question', ai.question,
+                                'field_type', ai.field_type,
+                                'answer', ai.answer,
+                                'meta', ai.meta,
+                                'resolved', ai.resolved,
+                                'created_at', ai.created_at,
+                                'answered_at', ai.answered_at
+                            )
+                            ORDER BY ai.created_at
+                        ) FILTER (WHERE ai.id IS NOT NULL),
+                        '[]'::json
+                    ) AS inputs_array,
+                    COALESCE(
+                        json_agg(
+                            DISTINCT jsonb_build_object(
+                                'id', ae.id,
+                                'event_type', ae.event_type,
+                                'payload', ae.payload,
+                                'created_at', ae.created_at
+                            )
+                            ORDER BY ae.created_at DESC
+                        ) FILTER (WHERE ae.id IS NOT NULL),
+                        '[]'::json
+                    ) AS events_array
+                FROM public.applications a
+                LEFT JOIN public.application_inputs ai ON ai.application_id = a.id
+                LEFT JOIN (
+                    SELECT id, event_type, payload, created_at, application_id
+                    FROM public.application_events
+                    WHERE application_id = $1
+                    ORDER BY created_at DESC
+                    LIMIT 10
+                ) ae ON ae.application_id = a.id
+                WHERE a.id = $1 AND (a.tenant_id = $2 OR $2 IS NULL)
+                GROUP BY a.id
+                """,
                 application_id,
                 tenant_id,
             )
         else:
-            app_row = await conn.fetchrow(
-                "SELECT * FROM public.applications WHERE id = $1",
+            row = await conn.fetchrow(
+                """
+                SELECT 
+                    a.*,
+                    COALESCE(
+                        json_agg(
+                            DISTINCT jsonb_build_object(
+                                'id', ai.id,
+                                'selector', ai.selector,
+                                'question', ai.question,
+                                'field_type', ai.field_type,
+                                'answer', ai.answer,
+                                'meta', ai.meta,
+                                'resolved', ai.resolved,
+                                'created_at', ai.created_at,
+                                'answered_at', ai.answered_at
+                            )
+                            ORDER BY ai.created_at
+                        ) FILTER (WHERE ai.id IS NOT NULL),
+                        '[]'::json
+                    ) AS inputs_array,
+                    COALESCE(
+                        json_agg(
+                            DISTINCT jsonb_build_object(
+                                'id', ae.id,
+                                'event_type', ae.event_type,
+                                'payload', ae.payload,
+                                'created_at', ae.created_at
+                            )
+                            ORDER BY ae.created_at DESC
+                        ) FILTER (WHERE ae.id IS NOT NULL),
+                        '[]'::json
+                    ) AS events_array
+                FROM public.applications a
+                LEFT JOIN public.application_inputs ai ON ai.application_id = a.id
+                LEFT JOIN (
+                    SELECT id, event_type, payload, created_at, application_id
+                    FROM public.application_events
+                    WHERE application_id = $1
+                    ORDER BY created_at DESC
+                    LIMIT 10
+                ) ae ON ae.application_id = a.id
+                WHERE a.id = $1
+                GROUP BY a.id
+                """,
                 application_id,
             )
-        if app_row is None:
+        
+        if row is None:
             return None
-
-        inputs_rows = await conn.fetch(
-            """
-            SELECT id, selector, question, field_type, answer, meta, resolved,
-                   created_at, answered_at
-            FROM   public.application_inputs
-            WHERE  application_id = $1
-            ORDER  BY created_at
-            """,
-            application_id,
-        )
-
-        events_rows = await conn.fetch(
-            """
-            SELECT id, event_type, payload, created_at
-            FROM   public.application_events
-            WHERE  application_id = $1
-            ORDER  BY created_at DESC
-            LIMIT  10
-            """,
-            application_id,
-        )
-
-        application = Application.model_validate(dict(app_row))
-        inputs = [ApplicationInput.model_validate(dict(r)) for r in inputs_rows]
-        events = [ApplicationEvent.model_validate(dict(r)) for r in events_rows]
-
+        
+        # Extract application data (all columns except the aggregated arrays)
+        app_dict = {k: v for k, v in dict(row).items() if k not in ("inputs_array", "events_array")}
+        application = Application.model_validate(app_dict)
+        
+        # Parse aggregated JSON arrays
+        inputs_data = row.get("inputs_array") or []
+        if isinstance(inputs_data, str):
+            inputs_data = json.loads(inputs_data)
+        inputs = [ApplicationInput.model_validate(dict(inp)) for inp in inputs_data]
+        
+        events_data = row.get("events_array") or []
+        if isinstance(events_data, str):
+            events_data = json.loads(events_data)
+        events = [ApplicationEvent.model_validate(dict(evt)) for evt in events_data]
+        
         return ApplicationDetail(application=application, inputs=inputs, events=events)
 
 
