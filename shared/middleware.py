@@ -52,7 +52,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         # Add to response headers
         response.headers[header_name] = request_id
 
-        return response
+        return response  # type: ignore[no-any-return]
 
 
 def get_request_id(request: Request) -> str:
@@ -173,7 +173,12 @@ def get_client_ip(request: Request) -> str:
     if forwarded:
         # Use rightmost (most trustworthy) entry — the one added by our reverse proxy
         parts = [p.strip() for p in forwarded.split(",")]
-        return parts[-1] if parts else request.client.host or "unknown"
+        if parts:
+            return parts[-1]
+        elif request.client:
+            return request.client.host or "unknown"
+        else:
+            return "unknown"
     real_ip = request.headers.get("x-real-ip")
     if real_ip:
         return real_ip.strip()
@@ -243,7 +248,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "max-age=31536000; includeSubDomains"
             )
 
-        return response
+        return response  # type: ignore[no-any-return]
 
 
 def setup_security_headers(app) -> None:

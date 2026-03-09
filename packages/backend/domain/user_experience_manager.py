@@ -305,7 +305,7 @@ class UserExperienceManager:
                 SELECT * FROM user_journeys
                 WHERE user_id = $1 AND tenant_id = $2
             """
-            params = [user_id, tenant_id]
+            params: list[Any] = [user_id, tenant_id]
 
             if journey_name:
                 query += " AND journey_name = $3"

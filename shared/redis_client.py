@@ -14,8 +14,9 @@ class RedisManager:
         if self._client is None:
             s = get_settings()
             # redis-py handles connection pooling automatically
+            redis_url = s.redis_url or "redis://localhost:6379"
             self._client = redis.from_url(
-                s.redis_url,
+                redis_url,
                 encoding="utf-8",
                 decode_responses=True,
                 socket_timeout=5.0,

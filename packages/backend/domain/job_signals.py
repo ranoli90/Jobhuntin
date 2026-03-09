@@ -236,8 +236,8 @@ def compute_work_style_fit(
             "steady": WorkPace.STEADY,
             "methodical": WorkPace.METHODICAL,
         }
-        expected = pace_map.get(pace_pref)
-        scores.append(1.0 if expected == job_signals.pace else 0.6)
+        expected_pace: WorkPace | None = pace_map.get(pace_pref)
+        scores.append(1.0 if expected_pace == job_signals.pace else 0.6)
 
     # Autonomy match
     auto_pref = work_style.get("autonomy_preference", "medium")
@@ -247,8 +247,8 @@ def compute_work_style_fit(
             "medium": AutonomyLevel.MEDIUM,
             "low": AutonomyLevel.LOW,
         }
-        expected = autonomy_map.get(auto_pref)
-        scores.append(1.0 if expected == job_signals.autonomy_level else 0.5)
+        expected_autonomy: AutonomyLevel | None = autonomy_map.get(auto_pref)
+        scores.append(1.0 if expected_autonomy == job_signals.autonomy_level else 0.5)
 
     # Communication style match (if remote culture detected)
     comm_pref = work_style.get("communication_style", "flexible")

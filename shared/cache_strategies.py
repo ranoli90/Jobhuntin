@@ -47,7 +47,7 @@ class LRUStrategy(CacheStrategy):
                 return None
 
             # Return the least recently used key
-            return self._access_order[0]
+            return str(self._access_order[0]) if self._access_order else None
 
         except Exception as e:
             logger.error(f"LRU strategy error: {e}")
@@ -90,7 +90,7 @@ class LFUStrategy(CacheStrategy):
             # Find the least frequently used key
             lfu_key = min(self._frequency.items(), key=lambda item: item[1])[0]
 
-            return lfu_key
+            return str(lfu_key) if lfu_key else None
 
         except Exception as e:
             logger.error(f"LFU strategy error: {e}")
@@ -128,7 +128,7 @@ class FIFOStrategy(CacheStrategy):
                 return None
 
             # Return the oldest key (first in access order)
-            return self._access_order[0]
+            return str(self._access_order[0]) if self._access_order else None
 
         except Exception as e:
             logger.error(f"FIFO strategy error: {e}")
@@ -148,8 +148,8 @@ class FIFOStrategy(CacheStrategy):
     async def on_eviction(self, key: str, entry: Any) -> None:
         """Remove key from FIFO tracking."""
         try:
-            if key in self._cache_data:
-                del self._cache_data[key]
+            if key in self._access_order:
+                self._access_order.remove(key)
 
         except Exception as e:
             logger.error(f"FIFO eviction tracking error: {e}")
@@ -229,7 +229,7 @@ class SizeBasedStrategy(CacheStrategy):
             "size_based", f"Evicts largest entries first (max: {max_size_mb}MB)"
         )
         self.max_size_bytes = max_size_mb * 1024 * 1024  # Convert MB to bytes
-        self._size_order = []
+        self._size_order: List[str] = []
 
     async def select_victim(self, cache_data: Dict[str, Any]) -> Optional[str]:
         """Select largest entry for eviction."""
@@ -285,7 +285,7 @@ class HybridStrategy(CacheStrategy):
 
     def __init__(
         self,
-        primary_strategy: CacheStrategy = None,
+        primary_strategy: Optional[CacheStrategy] = None,
         secondary_strategy: Optional[CacheStrategy] = None,
         primary_weight: float = 0.7,
         secondary_weight: float = 0.3,
@@ -367,7 +367,7 @@ class CacheStrategyManager:
 
     def get_default_strategy(self) -> CacheStrategy:
         """Get default cache strategy."""
-        return self._default_strategy
+        return self._default_strategy  # type: ignore[no-any-return]
 
     def set_default_strategy(self, strategy: CacheStrategy) -> None:
         """Set default cache strategy."""
@@ -403,13 +403,13 @@ class CacheStrategyManager:
 
         except Exception as e:
             logger.error(f"Failed to create hybrid strategy: {e}")
-            return None
+            return None  # type: ignore[no-any-return]
 
     def get_strategy_recommendation(
         self,
         cache_size: int,
         access_pattern: str = "mixed",
-        performance_requirements: Dict[str, Any] = None,
+        performance_requirements: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Get strategy recommendation based on cache characteristics."""
         try:
@@ -440,7 +440,7 @@ class AdaptiveStrategy(CacheStrategy):
 
     def __init__(self):
         super().__init__("adaptive", "Adaptive strategy based on performance metrics")
-        self._performance_history: List[Dict[str, float]] = []
+        self._performance_history: List[Dict[str, Any]] = []
         self._current_strategy = LRUStrategy()
         self._strategy_performance: Dict[str, Dict[str, float]] = {}
         self._strategy_performance["lru"] = {"hit_rate": 0.8, "avg_time_ms": 50.0}
@@ -454,7 +454,8 @@ class AdaptiveStrategy(CacheStrategy):
         """Select victim based on current strategy performance."""
         try:
             # Use current strategy
-            return await self._current_strategy.select_victim(cache_data)
+            result = await self._current_strategy.select_victim(cache_data)
+            return str(result) if result else None
 
         except Exception as e:
             logger.error(f"Adaptive strategy error: {e}")
@@ -479,7 +480,7 @@ class AdaptiveStrategy(CacheStrategy):
                     "strategy": strategy_name,
                     "hit_rate": hit_rate,
                     "avg_time_ms": avg_time_ms,
-                    "timestamp": datetime.now(timezone.utc),
+                    "timestamp": datetime.now(timezone.utc).timestamp(),
                 }
             )
 
@@ -520,7 +521,11 @@ class AdaptiveStrategy(CacheStrategy):
                 logger.info(
                     f"Switching from {self._current_strategy.name} to {best_strategy}"
                 )
-                self._current_strategy = self._strategies[best_strategy]
+                # Create strategy instance from factory
+                from shared.cache_strategies import CacheStrategyFactory
+                new_strategy = CacheStrategyFactory.create_strategy(best_strategy)
+                if new_strategy:
+                    self._current_strategy = new_strategy
 
         except Exception as e:
             logger.error(f"Failed to evaluate strategy change: {e}")
@@ -561,7 +566,7 @@ class CacheStrategyFactory:
         """Create a cache strategy by name."""
         strategy_class = cls._strategies.get(strategy_name)
         if strategy_class:
-            return strategy_class(**kwargs)
+            return strategy_class(**kwargs)  # type: ignore[no-any-return]
         return None
 
     @classmethod
@@ -578,10 +583,12 @@ class CacheStrategyFactory:
         secondary_weight: float = 0.3,
     ) -> Optional[HybridStrategy]:
         """Create a hybrid strategy."""
-        primary = cls._strategies.get(primary_name)
-        secondary = cls._strategies.get(secondary_name)
+        primary_class = cls._strategies.get(primary_name)
+        secondary_class = cls._strategies.get(secondary_name)
 
-        if primary and secondary:
+        if primary_class and secondary_class:
+            primary = primary_class()
+            secondary = secondary_class() if secondary_class else None
             return HybridStrategy(
                 primary_strategy=primary,
                 secondary_strategy=secondary,

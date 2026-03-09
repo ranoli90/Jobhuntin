@@ -98,24 +98,24 @@ class DLQManager:
             if date_from:
                 param_count += 1
                 query += f" AND created_at >= ${param_count}"
-                params.append(date_from)
+                params.append(date_from)  # type: ignore[arg-type]
 
             if date_to:
                 param_count += 1
                 query += f" AND created_at <= ${param_count}"
-                params.append(date_to)
+                params.append(date_to)  # type: ignore[arg-type]
 
             query += " ORDER BY created_at DESC"
 
             if limit:
                 param_count += 1
                 query += f" LIMIT ${param_count}"
-                params.append(limit)
+                params.append(limit)  # type: ignore[arg-type]
 
             if offset:
                 param_count += 1
                 query += f" OFFSET ${param_count}"
-                params.append(offset)
+                params.append(offset)  # type: ignore[arg-type]
 
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(query, *params)
@@ -326,7 +326,7 @@ class DLQManager:
                 else:
                     logger.warning("DLQ item %s not found for deletion", item_id)
 
-                return deleted
+                return bool(deleted)  # type: ignore[arg-type]
 
         except Exception as e:
             logger.error("Failed to delete DLQ item %s: %s", item_id, e)

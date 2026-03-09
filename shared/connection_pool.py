@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 import asyncpg
 
@@ -130,7 +130,7 @@ class PooledConnection:
             query_time_ms = (time.time() - start_time) * 1000
             self._update_query_metrics(query_time_ms, True)
 
-            return result
+            return str(result)  # type: ignore[arg-type]
 
         except Exception:
             self._update_query_metrics(0, False)
@@ -150,7 +150,7 @@ class PooledConnection:
             query_time_ms = (time.time() - start_time) * 1000
             self._update_query_metrics(query_time_ms, True)
 
-            return result
+            return result  # type: ignore[no-any-return]
 
         except Exception:
             self._update_query_metrics(0, False)
@@ -170,7 +170,7 @@ class PooledConnection:
             query_time_ms = (time.time() - start_time) * 1000
             self._update_query_metrics(query_time_ms, True)
 
-            return result
+            return str(result)  # type: ignore[arg-type]
 
         except Exception:
             self._update_query_metrics(0, False)
@@ -188,7 +188,7 @@ class PooledConnection:
             query_time_ms = (time.time() - start_time) * 1000
             self._update_query_metrics(query_time_ms, True)
 
-            return result
+            return str(result)  # type: ignore[arg-type]
 
         except Exception:
             self._update_query_metrics(0, False)
@@ -237,7 +237,7 @@ class ConnectionPool:
         self._pool: Optional[asyncpg.Pool] = None
         self._status = PoolStatus.INITIALIZING
         self._connections: Dict[str, PooledConnection] = {}
-        self._queue = asyncio.Queue()
+        self._queue: asyncio.Queue[Any] = asyncio.Queue()
         self._metrics = PoolMetrics(
             pool_name=config.pool_name,
             status=PoolStatus.INITIALIZING,
@@ -302,10 +302,13 @@ class ConnectionPool:
             raise
 
     @asynccontextmanager
-    async def acquire(self, timeout: Optional[float] = None) -> PooledConnection:
+    async def acquire(self, timeout: Optional[float] = None) -> AsyncIterator[PooledConnection]:
         """Acquire a connection from the pool."""
         if self._status == PoolStatus.FAILED:
             raise RuntimeError(f"Pool {self.config.pool_name} has failed")
+
+        if self._pool is None:
+            raise RuntimeError(f"Pool {self.config.pool_name} is not initialized")
 
         timeout = timeout or self.config.connection_timeout
         start_time = time.time()
@@ -328,7 +331,8 @@ class ConnectionPool:
                 yield connection
             finally:
                 # Return connection to pool
-                await self._pool.release(raw_connection)
+                if self._pool:
+                    await self._pool.release(raw_connection)
 
                 # Remove from tracking
                 if connection._connection_id in self._connections:
@@ -346,21 +350,24 @@ class ConnectionPool:
     async def execute(self, query: str, *args, timeout: Optional[float] = None) -> str:
         """Execute a query using a connection from the pool."""
         async with self.acquire(timeout) as conn:
-            return await conn.execute(query, *args, timeout=timeout)
+            result = await conn.execute(query, *args, timeout=timeout)
+            return result  # type: ignore[no-any-return]
 
     async def fetch(
         self, query: str, *args, timeout: Optional[float] = None
     ) -> List[asyncpg.Record]:
         """Fetch query results using a connection from the pool."""
         async with self.acquire(timeout) as conn:
-            return await conn.fetch(query, *args, timeout=timeout)
+            result = await conn.fetch(query, *args, timeout=timeout)
+            return result  # type: ignore[no-any-return]
 
     async def fetchrow(
         self, query: str, *args, timeout: Optional[float] = None
     ) -> asyncpg.Record:
         """Fetch single row using a connection from the pool."""
         async with self.acquire(timeout) as conn:
-            return await conn.fetchrow(query, *args, timeout=timeout)
+            result = await conn.fetchrow(query, *args, timeout=timeout)
+            return result  # type: ignore[no-any-return]
 
     async def fetchval(self, query: str, *args, timeout: Optional[float] = None) -> Any:
         """Fetch single value using a connection from the pool."""

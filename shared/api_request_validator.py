@@ -72,7 +72,7 @@ class ValidationResult:
 
     is_valid: bool
     errors: List[str]
-    sanitized_data: Dict[str, Any]
+    sanitized_data: Dict[str, Any] | Any  # Can be dict for full validation or single value for field validation
     warnings: List[str]
 
 
@@ -193,9 +193,9 @@ class APIRequestValidator:
         method: str = "POST",
     ) -> ValidationResult:
         """Validate API request data."""
-        errors = []
-        warnings = []
-        sanitized_data = {}
+        errors: List[str] = []
+        warnings: List[str] = []
+        sanitized_data: Dict[str, Any] = {}
 
         try:
             # Get validation schema
@@ -210,8 +210,12 @@ class APIRequestValidator:
                 errors.extend(field_result.errors)
                 warnings.extend(field_result.warnings)
 
-                if field_result.is_valid:
-                    sanitized_data[field.name] = field_result.value
+                if field_result.is_valid and field_result.sanitized_data:
+                    # For single field validation, sanitized_data contains the validated value
+                    if isinstance(field_result.sanitized_data, dict):
+                        sanitized_data.update(field_result.sanitized_data)
+                    else:
+                        sanitized_data[field.name] = field_result.sanitized_data
 
             # Apply global validators
             for validator in self.global_validators:
@@ -258,24 +262,24 @@ class APIRequestValidator:
                     warnings.append(f"Using default value for {field.name}")
                 else:
                     return ValidationResult(
-                        False, [f"{field.name} is required"], None, warnings
+                        False, [f"{field.name} is required"], {}, warnings
                     )
             elif field.rule == ValidationRule.OPTIONAL:
-                return ValidationResult(True, [], None, warnings)
+                return ValidationResult(True, [], {}, warnings)
             else:
-                return ValidationResult(True, [], None, warnings)
+                return ValidationResult(True, [], {}, warnings)
 
         # Type validation
         type_error = self._validate_type(field, value)
         if type_error:
-            return ValidationResult(False, [type_error], None, warnings)
+            return ValidationResult(False, [type_error], {}, warnings)
 
         # Convert to correct type
         try:
             value = self._convert_type(field.data_type, value)
         except Exception as e:
             return ValidationResult(
-                False, [f"Invalid {field.name}: {str(e)}"], None, warnings
+                False, [f"Invalid {field.name}: {str(e)}"], {}, warnings
             )
 
         # String-specific validations
@@ -323,7 +327,7 @@ class APIRequestValidator:
             except Exception as e:
                 errors.append(f"Custom validation error for {field.name}: {str(e)}")
 
-        return ValidationResult(len(errors) == 0, errors, value, warnings)
+        return ValidationResult(len(errors) == 0, errors, value, warnings)  # type: ignore[arg-type]
 
     def _validate_type(self, field: ValidationField, value: Any) -> Optional[str]:
         """Validate field type."""

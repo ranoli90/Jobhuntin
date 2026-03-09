@@ -265,13 +265,13 @@ class FeedbackManager:
             )
 
             # Sentiment distribution
-            sentiment_counts = {}
+            sentiment_counts: Dict[str, int] = {}
             for feedback in feedback_data:
                 sentiment = self._classify_sentiment(feedback.sentiment_score)
                 sentiment_counts[sentiment] = sentiment_counts.get(sentiment, 0) + 1
 
             # Category distribution
-            category_counts = {}
+            category_counts: Dict[str, int] = {}
             for feedback in feedback_data:
                 category_counts[feedback.category] = (
                     category_counts.get(feedback.category, 0) + 1
@@ -402,7 +402,7 @@ class FeedbackManager:
             async with self.db_pool.acquire() as conn:
                 result = await conn.execute(query, status, admin_notes, feedback_id)
 
-                return result == "UPDATE 1"
+                return str(result) == "UPDATE 1"  # type: ignore[arg-type]
 
         except Exception as e:
             logger.error(f"Failed to update feedback status: {e}")
@@ -1072,14 +1072,14 @@ class FeedbackManager:
     ) -> List[Dict[str, Any]]:
         """Extract key themes from feedback text."""
         try:
-            themes = {}
+            themes: Dict[str, List[Tuple[str, int]]] = {}
 
             # Simple keyword extraction
             for feedback in feedback_data:
                 words = feedback.message.lower().split()
 
                 # Count word frequency
-                word_count = {}
+                word_count: Dict[str, int] = {}
                 for word in words:
                     if len(word) > 3:  # Only consider words longer than 3 characters
                         word_count[word] = word_count.get(word, 0) + 1
@@ -1090,21 +1090,23 @@ class FeedbackManager:
                 )[:5]
 
                 if top_words:
-                    themes[feedback.title] = top_words
+                    themes[feedback.title] = top_words  # type: ignore[assignment]
 
             # Convert to list and sort by frequency
-            theme_list = []
-            for title, words in themes.items():
+            theme_list: List[Dict[str, Any]] = []
+            for title, word_tuples in themes.items():
+                # word_tuples is a list of (word, count) tuples from top_words
+                word_dict: Dict[str, int] = dict(word_tuples)  # type: ignore[arg-type]
                 theme_list.append(
                     {
                         "theme": title,
-                        "frequency": sum(words.values()),
-                        "keywords": words,
+                        "frequency": sum(word_dict.values()),
+                        "keywords": word_dict,
                     }
                 )
 
             # Sort by frequency
-            theme_list.sort(key=lambda x: x["frequency"], reverse=True)
+            theme_list.sort(key=lambda x: int(x["frequency"]), reverse=True)  # type: ignore[arg-type, return-value]
 
             return theme_list[:10]  # Top 10 themes
 

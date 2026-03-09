@@ -176,7 +176,7 @@ class RateLimiter:
             cutoff = now - self.window
             key = f"rate_limit:{self.name}"
 
-            result = await client.eval(
+            result = await client.eval(  # type: ignore[assignment, misc]
                 self._LUA_SLIDING_WINDOW,
                 1,  # number of KEYS
                 key,  # KEYS[1]

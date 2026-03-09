@@ -146,7 +146,7 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
         """Process request and add rate limit headers."""
         info = self.check_rate_limit(request)
 
-        response = await call_next(request)
+        response: Response = await call_next(request)  # type: ignore[assignment]
 
         # Add rate limit headers
         response.headers["X-RateLimit-Limit"] = str(info.limit)

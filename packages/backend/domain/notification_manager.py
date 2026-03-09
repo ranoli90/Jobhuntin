@@ -327,7 +327,7 @@ class NotificationManager:
                 SELECT * FROM notifications
                 WHERE user_id = $1 AND tenant_id = $2
             """
-            params = [user_id, tenant_id]
+            params: list[Any] = [user_id, tenant_id]
 
             if category:
                 query += " AND category = $3"
@@ -343,10 +343,10 @@ class NotificationManager:
             query += " ORDER BY created_at DESC LIMIT $"
             if category and unread_only:
                 query += "5 OFFSET $6"
-                params.extend([limit, offset])
+                params.extend([limit, offset])  # type: ignore[arg-type]
             else:
                 query += "4 OFFSET $5"
-                params.extend([limit, offset])
+                params.extend([limit, offset])  # type: ignore[arg-type]
 
             async with self.db_pool.acquire() as conn:
                 results = await conn.fetch(query, *params)
@@ -393,7 +393,7 @@ class NotificationManager:
                 # Update delivery tracking
                 await self._update_delivery_status(notification_id, "read")
 
-                return result == "UPDATE 1"
+                return str(result) == "UPDATE 1"  # type: ignore[arg-type]
 
         except Exception as e:
             logger.error(f"Failed to mark notification as read: {e}")
@@ -441,7 +441,7 @@ class NotificationManager:
             async with self.db_pool.acquire() as conn:
                 result = await conn.execute(query, notification_id, user_id, tenant_id)
 
-                return result == "DELETE 1"
+                return str(result) == "DELETE 1"  # type: ignore[arg-type]
 
         except Exception as e:
             logger.error(f"Failed to delete notification: {e}")

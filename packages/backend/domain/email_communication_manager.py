@@ -390,7 +390,7 @@ class EmailCommunicationManager:
                 SELECT * FROM email_communications_log
                 WHERE user_id = $1 AND tenant_id = $2
             """
-            params = [user_id, tenant_id]
+            params: list[Any] = [user_id, tenant_id]
 
             if category:
                 query += " AND category = $3"
@@ -486,7 +486,7 @@ class EmailCommunicationManager:
             async with self.db_pool.acquire() as conn:
                 result = await conn.fetchval(query, user_id, tenant_id, category)
 
-                return result < limit
+                return int(result or 0) < limit  # type: ignore[arg-type]
 
         except Exception as e:
             logger.error(f"Failed to check rate limit: {e}")

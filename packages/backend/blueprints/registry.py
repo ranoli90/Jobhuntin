@@ -9,7 +9,7 @@ Usage:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
     from backend.blueprints.protocol import AgentBlueprint
@@ -45,7 +45,7 @@ def load_default_blueprints(enabled_slugs: list[str] | None = None) -> None:
     from backend.blueprints.grant import GrantApplicationBlueprint
     from backend.blueprints.job_app import JobApplicationBlueprint
 
-    registry: dict[str, callable] = {
+    registry: dict[str, Callable[[], Any]] = {
         "job-app": JobApplicationBlueprint,
         "grant": GrantApplicationBlueprint,
     }

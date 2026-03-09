@@ -5,7 +5,7 @@ Concurrent Usage Tracker for Phase 12.1 Agent Improvements
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
 from shared.logging_config import get_logger
@@ -163,7 +163,7 @@ class ConcurrentTracker:
 
     def get_stats(self) -> ConcurrentUsageStats:
         """Get concurrent usage statistics."""
-        return self._stats
+        return self._stats  # type: ignore[no-any-return]
 
     def get_tenant_stats(self, tenant_id: str) -> Dict[str, int]:
         """Get statistics for a specific tenant."""
@@ -180,7 +180,7 @@ class ConcurrentTracker:
 
     async def cleanup_old_sessions(self, max_age_hours: int = 24) -> int:
         """Clean up old session data."""
-        cutoff_time = datetime.now(timezone.utc) - datetime.timedelta(
+        cutoff_time = datetime.now(timezone.utc) - timedelta(
             hours=max_age_hours
         )
         old_sessions = [
@@ -199,6 +199,6 @@ class ConcurrentTracker:
 # Factory function
 def get_concurrent_tracker() -> ConcurrentTracker:
     """Get concurrent tracker instance."""
-    if not hasattr(get_concurrent_tracker._instance):
-        get_concurrent_tracker._instance = ConcurrentTracker()
-    return get_concurrent_tracker._instance
+    if not hasattr(get_concurrent_tracker, "_instance"):
+        get_concurrent_tracker._instance = ConcurrentTracker()  # type: ignore[attr-defined]
+    return get_concurrent_tracker._instance  # type: ignore[no-any-return, attr-defined]

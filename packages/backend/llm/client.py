@@ -117,6 +117,14 @@ class LLMClient:
 
                 return result
 
+            except LLMValidationError as exc:
+                # Validation errors (e.g., input too large) won't be fixed by switching models
+                # Don't try fallbacks - raise immediately to avoid unnecessary latency
+                logger.warning(
+                    f"[LLM] Validation error on {current_model}, not trying fallbacks: {exc}"
+                )
+                raise
+
             except LLMError as exc:
                 all_errors.append((current_model, exc))
                 logger.warning(
@@ -127,14 +135,6 @@ class LLMClient:
                 incr("llm.fallback.failure", {"model": current_model})
                 # Continue to next model
                 continue
-
-            except LLMValidationError as exc:
-                # Validation errors (e.g., input too large) won't be fixed by switching models
-                # Don't try fallbacks - raise immediately to avoid unnecessary latency
-                logger.warning(
-                    f"[LLM] Validation error on {current_model}, not trying fallbacks: {exc}"
-                )
-                raise
 
         # All models failed
         error_summary = "; ".join(f"{m}: {e}" for m, e in all_errors)

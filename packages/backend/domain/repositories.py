@@ -336,7 +336,8 @@ class ProfileRepo:
         if row is None:
             return None
         data = row["profile_data"]
-        return json.loads(data) if isinstance(data, str) else data
+        result = json.loads(data) if isinstance(data, str) else data
+        return result  # type: ignore[no-any-return]
 
     @staticmethod
     async def upsert(
@@ -496,18 +497,18 @@ class JobRepo:
         if filters:
             if "location" in filters:
                 query += "AND j.location ILIKE $1"
-        if "remote" in filters:
-            query += "AND j.remote = $1"
-        if "job_type" in filters:
-            query += "AND j.job_type = $1"
-        if "company_size" in filters:
-            query += "AND c.size = $1"
-        if "industry" in filters:
-            query += "AND c.industry = $1"
-        if "salary_min" in filters:
-            query += "AND j.salary_min >= $1"
-        if "salary_max" in filters:
-            query += "AND j.salary_max <= $1"
+            if "remote" in filters:
+                query += "AND j.remote = $1"
+            if "job_type" in filters:
+                query += "AND j.job_type = $1"
+            if "company_size" in filters:
+                query += "AND c.size = $1"
+            if "industry" in filters:
+                query += "AND c.industry = $1"
+            if "salary_min" in filters:
+                query += "AND j.salary_min >= $1"
+            if "salary_max" in filters:
+                query += "AND j.salary_max <= $1"
 
         query += " ORDER BY j.created_at DESC"
 

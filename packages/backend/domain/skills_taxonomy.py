@@ -7,7 +7,7 @@ skill data for better job matching and analytics.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from shared.logging_config import get_logger
 
@@ -749,23 +749,30 @@ class SkillsTaxonomy:
 
         # Calculate weighted score
         total_score = 0.0
-        category_scores = {}
+        category_scores: Dict[str, List[float]] = {}
 
         for skill_name in skills:
             skill_info = self.get_skill_info(skill_name)
             if skill_info:
                 category = skill_info.category
                 demand_score = skill_info.demand_score
+                category_key = category.value if hasattr(category, 'value') else str(category)
 
-                if category not in category_scores:
-                    category_scores[category] = []
-                category_scores[category].append(demand_score)
+                if category_key not in category_scores:
+                    category_scores[category_key] = []
+                category_scores[category_key].append(demand_score)
+
+        # Convert category_weights to string keys for lookup
+        category_weights_str: Dict[str, float] = {
+            (k.value if hasattr(k, 'value') else str(k)): v
+            for k, v in category_weights.items()
+        }
 
         # Calculate weighted average
-        for category, scores in category_scores.items():
-            if category in category_weights:
+        for category_key, scores in category_scores.items():
+            if category_key in category_weights_str:
                 avg_score = sum(scores) / len(scores)
-                weight = category_weights[category]
+                weight = category_weights_str[category_key]
                 total_score += avg_score * weight
 
         # Normalize to 0-1 range
@@ -922,7 +929,7 @@ def validate_user_skills(skills: List[str]) -> Tuple[List[str], List[str], Dict]
     valid_skills, invalid_skills = taxonomy.validate_and_normalize_skills(skills)
 
     # Calculate analysis
-    analysis = {
+    analysis: Dict[str, Any] = {
         "total_skills": len(skills),
         "valid_skills": len(valid_skills),
         "invalid_skills": len(invalid_skills),
@@ -932,18 +939,18 @@ def validate_user_skills(skills: List[str]) -> Tuple[List[str], List[str], Dict]
     }
 
     # Category distribution
+    category_dist: Dict[str, int] = analysis["category_distribution"]  # type: ignore[assignment]
     for skill_name in valid_skills:
         skill_info = taxonomy.get_skill_info(skill_name)
         if skill_info:
             category = skill_info.category.value
-            analysis["category_distribution"][category] = (
-                analysis["category_distribution"].get(category, 0) + 1
-            )
+            category_dist[category] = category_dist.get(category, 0) + 1
 
     # Top skills by demand
-    valid_skills.sort(
-        key=lambda x: taxonomy.get_skill_info(x).demand_score, reverse=True
-    )
+    def get_demand_score(skill_name: str) -> float:
+        skill_info = taxonomy.get_skill_info(skill_name)
+        return skill_info.demand_score if skill_info else 0.0
+    valid_skills.sort(key=get_demand_score, reverse=True)
     analysis["top_skills"] = valid_skills[:5]
 
     return valid_skills, invalid_skills, analysis

@@ -282,7 +282,7 @@ class DataLoader:
         cache_key = f"users:{','.join(sorted(user_ids))}"
         cached = self._get_cached(cache_key)
         if cached is not None:
-            return cached
+            return cached  # type: ignore[no-any-return]
 
         loader = BatchLoader(self.pool)
         result = await loader.load_users(user_ids)
@@ -296,7 +296,7 @@ class DataLoader:
         cache_key = f"apps_with_jobs:{','.join(sorted(user_ids))}:{limit}"
         cached = self._get_cached(cache_key)
         if cached is not None:
-            return cached
+            return cached  # type: ignore[no-any-return]
 
         loader = BatchLoader(self.pool)
 

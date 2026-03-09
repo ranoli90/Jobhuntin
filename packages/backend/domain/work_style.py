@@ -209,7 +209,8 @@ def compute_work_style_from_answers(answers: dict[str, str]) -> WorkStyleProfile
         if trajectory in ["ic", "tech_lead", "manager", "founder", "open"]:
             profile_data["career_trajectory"] = trajectory
 
-    return WorkStyleProfile(**profile_data)
+    # Type cast to satisfy mypy - the dict values are validated to match Literal types
+    return WorkStyleProfile(**profile_data)  # type: ignore[arg-type]
 
 
 def get_all_questions() -> list[dict]:

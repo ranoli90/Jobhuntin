@@ -11,7 +11,7 @@ import random
 import time
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 
 from shared.logging_config import get_logger
 
@@ -263,16 +263,16 @@ class RetryConfigs:
 
 
 # Convenience decorators
-@retry_async(RetryConfigs.DATABASE, "database operation")
-async def retry_database_async(func: Callable[..., Any]) -> Callable[..., Any]:
+def retry_database_async(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator for database operations with retry logic."""
-    return func
+    decorator = retry_async(RetryConfigs.DATABASE, "database operation")
+    return decorator(func)  # type: ignore[no-any-return, operator]
 
 
-@retry_async(RetryConfigs.EXTERNAL_API, "external API call")
-async def retry_api_async(func: Callable[..., Any]) -> Callable[..., Any]:
+def retry_api_async(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator for external API calls with retry logic."""
-    return func
+    decorator = retry_async(RetryConfigs.EXTERNAL_API, "external API call")
+    return decorator(func)  # type: ignore[no-any-return, operator]
 
 
 @retry_sync(RetryConfigs.FILE_OPERATIONS, "file operation")
@@ -296,7 +296,7 @@ class CircuitBreaker:
         self.expected_exception = expected_exception
 
         self.failure_count = 0
-        self.last_failure_time = None
+        self.last_failure_time: Optional[float] = None
         self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
 
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
@@ -347,6 +347,8 @@ class CircuitBreaker:
             raise
 
     def _should_attempt_reset(self) -> bool:
+        if self.last_failure_time is None:
+            return False
         return time.time() - self.last_failure_time >= self.recovery_timeout
 
     def _on_success(self) -> None:

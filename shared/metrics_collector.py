@@ -127,7 +127,7 @@ class Metric:
                     values = [
                         v
                         for v in values
-                        if all(v.labels.get(k) == v for k, v in labels.items())
+                        if all(v.labels.get(k) == label_val for k, label_val in labels.items())
                     ]
 
                 # Limit results
@@ -195,7 +195,7 @@ class Counter(Metric):
 
     def __init__(self, definition: MetricDefinition):
         super().__init__(definition)
-        self._counter = 0
+        self._counter: float = 0.0
 
     async def inc(
         self,
@@ -205,7 +205,7 @@ class Counter(Metric):
     ) -> None:
         """Increment the counter."""
         try:
-            self._counter += value
+            self._counter = float(self._counter) + value
             await self.record(self._counter, labels, metadata)
         except Exception as e:
             logger.error(f"Failed to increment counter {self.definition.name}: {e}")
@@ -361,7 +361,7 @@ class MetricsCollector:
     """Advanced metrics collection system."""
 
     def __init__(self):
-        self._metrics: Dict[str, Metric] = {}
+        self._metrics: Dict[str, Any] = {}  # Can contain Counter, Gauge, Histogram, Timer, or Metric
         self._definitions: Dict[str, MetricDefinition] = {}
         self._snapshots: deque = deque(maxlen=100)  # Keep last 100 snapshots
         self._lock = asyncio.Lock()
@@ -574,9 +574,11 @@ class MetricsCollector:
 
             # Add type-specific summary
             if isinstance(metric, Histogram):
-                summary.update(await metric.get_summary())
+                hist_summary = await metric.get_summary()
+                summary.update({k: str(v) for k, v in hist_summary.items()})  # type: ignore[arg-type]
             elif isinstance(metric, Timer):
-                summary.update(await metric.get_summary())
+                timer_summary = await metric.get_summary()
+                summary.update({k: str(v) for k, v in timer_summary.items()})  # type: ignore[arg-type]
             else:
                 values = await metric.get_values(since=since)
                 numeric_values = [
@@ -584,13 +586,13 @@ class MetricsCollector:
                 ]
 
                 if numeric_values:
-                    summary.update(
+                    summary.update(  # type: ignore[arg-type]
                         {
-                            "count": len(numeric_values),
-                            "avg": statistics.mean(numeric_values),
-                            "min": min(numeric_values),
-                            "max": max(numeric_values),
-                            "latest": numeric_values[-1] if numeric_values else None,
+                            "count": str(len(numeric_values)),
+                            "avg": str(statistics.mean(numeric_values)),
+                            "min": str(min(numeric_values)),
+                            "max": str(max(numeric_values)),
+                            "latest": str(numeric_values[-1]) if numeric_values else "None",
                         }
                     )
 
@@ -613,7 +615,7 @@ class MetricsCollector:
                 if metric.definition.category == category
             }
 
-            summary = {
+            summary: Dict[str, Any] = {
                 "category": category.value,
                 "metric_count": len(category_metrics),
                 "metrics": {},
@@ -661,7 +663,7 @@ class MetricsCollector:
             for snapshot in self._snapshots:
                 # This is a simplified approach - in practice, you'd store snapshots with IDs
                 if snapshot.metadata.get("id") == snapshot_id:
-                    return snapshot
+                    return snapshot  # type: ignore[no-any-return]
 
             return None
 
@@ -727,7 +729,8 @@ class MetricsCollector:
 
                 values = await metric.get_values(since=since)
 
-                data["metrics"][name] = {
+                metrics_dict: Dict[str, Any] = data["metrics"]  # type: ignore[assignment]
+                metrics_dict[name] = {
                     "definition": {
                         "type": metric.definition.metric_type.value,
                         "category": metric.definition.category.value,

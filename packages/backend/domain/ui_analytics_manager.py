@@ -36,6 +36,7 @@ class PageView:
     scroll_depth: Optional[float] = None
     clicks: int = 0
     created_at: datetime = datetime.now(timezone.utc)
+    updated_at: datetime = datetime.now(timezone.utc)
 
 
 @dataclass
@@ -89,10 +90,10 @@ class FunnelAnalysis:
     tenant_id: str
     funnel_name: str
     total_users: int
-    step_analytics: List[Dict[str, Any]] = field(default_factory=list)
     conversion_rate: float
     abandonment_rate: float
     avg_time_to_convert: Optional[int]
+    step_analytics: List[Dict[str, Any]] = field(default_factory=list)
     created_at: datetime = datetime.now(timezone.utc)
 
 
@@ -395,7 +396,7 @@ class UIAnalyticsManager:
                             view.scroll_depth = scroll_depth
                             break
 
-                return result == "UPDATE 1"
+                return str(result) == "UPDATE 1"  # type: ignore[arg-type]
 
         except Exception as e:
             logger.error(f"Failed to update page view time: {e}")
@@ -748,7 +749,7 @@ class UIAnalyticsManager:
                 total_users = result[0] if result else 0
 
             # Get step data
-            steps_data = {}
+            steps_data: Dict[str, Dict[str, Any]] = {}
             for step in steps:
                 step_name = step["name"]
 

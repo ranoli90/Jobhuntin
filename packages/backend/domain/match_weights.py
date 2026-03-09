@@ -511,7 +511,7 @@ class MatchWeightsManager:
             return self._calculate_seniority_score(match_data, weight_config)
         else:
             # Default scoring for other categories
-            return match_data.get(f"{category.value}_score", 0.0)
+            return float(match_data.get(f"{category.value}_score", 0.0))
 
     def _calculate_skills_score(
         self, match_data: Dict[str, Any], weight_config: WeightConfig
@@ -552,7 +552,8 @@ class MatchWeightsManager:
             # Category boosts
             if "category_boost" in rules:
                 category_boost = 0.0
-                for skill in exact_matches:
+                matched_skills = user_skill_set.intersection(job_skill_set)
+                for skill in matched_skills:
                     for category, boost in rules["category_boost"].items():
                         # This would need actual skill categorization
                         pass
@@ -820,13 +821,15 @@ class MatchWeightsManager:
             if ">" in condition:
                 field, value = condition.split(">", 1)
                 field = field.strip()
-                value = float(value.strip())
-                return match_data.get(field, 0) > value
+                threshold = float(value.strip())
+                field_value = float(match_data.get(field, 0))
+                return field_value > threshold
             elif "<" in condition:
                 field, value = condition.split("<", 1)
                 field = field.strip()
-                value = float(value.strip())
-                return match_data.get(field, 0) < value
+                threshold = float(value.strip())
+                field_value = float(match_data.get(field, 0))
+                return field_value < threshold
             elif "=" in condition:
                 field, value = condition.split("=", 1)
                 field = field.strip()

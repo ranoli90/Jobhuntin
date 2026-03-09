@@ -105,8 +105,8 @@ class AlertProcessor:
                 id=str(uuid.uuid4()),
                 type=AlertType(alert_data.get("type", "system_error")),
                 priority=AlertPriority(alert_data.get("priority", "medium")),
-                user_id=alert_data.get("user_id"),
-                tenant_id=alert_data.get("tenant_id"),
+                user_id=alert_data.get("user_id") or "",
+                tenant_id=alert_data.get("tenant_id") or "",
                 title=alert_data.get("title", "System Alert"),
                 message=alert_data.get("message", "An alert has been triggered"),
                 data=alert_data.get("data", {}),
@@ -263,7 +263,7 @@ class AlertProcessor:
         """Get alert history with filtering."""
         try:
             query = "SELECT * FROM alert_processing_log WHERE 1=1"
-            params = []
+            params: list[Any] = []
             param_count = 0
 
             if user_id:
@@ -289,24 +289,24 @@ class AlertProcessor:
             if date_from:
                 param_count += 1
                 query += f" AND created_at >= ${param_count}"
-                params.append(date_from)
+                params.append(date_from)  # type: ignore[arg-type]
 
             if date_to:
                 param_count += 1
                 query += f" AND created_at <= ${param_count}"
-                params.append(date_to)
+                params.append(date_to)  # type: ignore[arg-type]
 
             query += " ORDER BY created_at DESC"
 
             if limit:
                 param_count += 1
                 query += f" LIMIT ${param_count}"
-                params.append(limit)
+                params.append(limit)  # type: ignore[arg-type]
 
-                if offset:
-                    param_count += 1
-                    query += f" OFFSET ${param_count}"
-                    params.append(offset)
+            if offset:
+                param_count += 1
+                query += f" OFFSET ${param_count}"
+                params.append(offset)  # type: ignore[arg-type]
 
             async with self.db_pool.acquire() as conn:
                 results = await conn.fetch(query, *params)
@@ -425,22 +425,24 @@ class AlertProcessor:
                         if alert_value != value:
                             return False
                     elif operator == "contains":
-                        if value not in str(alert_value):
+                        if value is None or value not in str(alert_value):
                             return False
                     elif operator == "greater_than":
                         if (
                             not isinstance(alert_value, (int, float))
+                            or value is None
                             or alert_value <= value
                         ):
                             return False
                     elif operator == "less_than":
                         if (
                             not isinstance(alert_value, (int, float))
+                            or value is None
                             or alert_value >= value
                         ):
                             return False
                     elif operator == "in":
-                        if alert_value not in value:
+                        if value is None or alert_value not in value:
                             return False
                 else:
                     # Simple equality check

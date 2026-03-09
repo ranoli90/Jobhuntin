@@ -23,8 +23,8 @@ class SemanticTag:
     tag: str
     category: str
     confidence_score: float
-    context: Dict[str, Any] = field(default_factory=dict)
     tenant_id: str
+    context: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = datetime.now(timezone.utc)
 
 
@@ -161,8 +161,11 @@ class SemanticNotificationMatcher:
 
             for notification in notifications:
                 # Calculate relevance
+                notif_id = notification.get("id")
+                if not notif_id:
+                    continue
                 relevance = await self.calculate_relevance(
-                    notification_id=notification.get("id"),
+                    notification_id=notif_id,
                     user_id=user_id,
                     tenant_id=tenant_id,
                     notification_content=notification,
@@ -417,14 +420,14 @@ class SemanticNotificationMatcher:
         category_scores = {}
 
         # Group user interests by category
-        user_categories = {}
+        user_categories: Dict[str, List[Any]] = {}
         for interest in user_interests:
             if interest.interest_category not in user_categories:
                 user_categories[interest.interest_category] = []
             user_categories[interest.interest_category].append(interest)
 
         # Group notification tags by category
-        notification_categories = {}
+        notification_categories: Dict[str, List[Any]] = {}
         for tag in notification_tags:
             if tag.category not in notification_categories:
                 notification_categories[tag.category] = []
@@ -551,7 +554,7 @@ class SemanticNotificationMatcher:
         )
 
         # Overall score
-        overall_score = (
+        overall_score = float(
             category_score * category_weight
             + keyword_score * keyword_weight
             + semantic_score * semantic_weight
@@ -640,7 +643,7 @@ class SemanticNotificationMatcher:
         self, interactions: List[Dict[str, Any]]
     ) -> Dict[str, List[str]]:
         """Analyze user interactions to extract interests."""
-        interest_updates = {}
+        interest_updates: Dict[str, List[str]] = {}
 
         for interaction in interactions:
             # Extract keywords from interaction content
