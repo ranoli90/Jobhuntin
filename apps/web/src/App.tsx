@@ -45,6 +45,7 @@ const Onboarding = React.lazy(() => import("./pages/app/Onboarding"));
 const Billing = React.lazy(() => import("./pages/app/Billing"));
 const AppNotFound = React.lazy(() => import("./pages/app/NotFound"));
 const Settings = React.lazy(() => import("./pages/Settings"));
+const Sessions = React.lazy(() => import("./pages/app/Sessions"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Maintenance = React.lazy(() => import("./pages/Maintenance"));
 const About = React.lazy(() => import("./pages/About"));
@@ -237,6 +238,7 @@ export default function App() {
                 <Route path="team" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense></RouteErrorBoundary>} />
                 <Route path="billing" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><Billing /></React.Suspense></RouteErrorBoundary>} />
                 <Route path="settings" element={<RouteErrorBoundary><Settings /></RouteErrorBoundary>} />
+                <Route path="sessions" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><Sessions /></React.Suspense></RouteErrorBoundary>} />
 
                 {/* AI Feature Routes */}
                 <Route path="matches" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><MatchesPage /></React.Suspense></RouteErrorBoundary>} />

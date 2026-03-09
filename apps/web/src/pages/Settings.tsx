@@ -1,5 +1,6 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download, Trash2, AlertTriangle, Ban, Tag, Moon, Sun } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download, Trash2, AlertTriangle, Ban, Tag, Moon, Sun, Shield, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useProfile } from "../hooks/useProfile";
 import { t, getLocale } from "../lib/i18n";
 import { Button } from "../components/ui/Button";
@@ -12,6 +13,7 @@ import { telemetry } from "../lib/telemetry";
 import { ThemeToggle } from "../components/ThemeToggle";
 
 export default function Settings() {
+  const navigate = useNavigate();
   const { profile, loading, updateProfile, uploadResume, uploadAvatar } = useProfile();
   const [preferences, setPreferences] = React.useState({
     location: "",
@@ -562,6 +564,20 @@ export default function Settings() {
               {t("settings.themeToggle", locale) || "Click to cycle: light → dark → system"}
             </span>
           </div>
+        </Card>
+
+        <Card tone="shell" shadow="lift" className="p-6">
+          <h2 className="font-display text-xl mb-2 flex items-center gap-2">
+            <Shield className="h-5 w-5" aria-hidden />
+            Security
+          </h2>
+          <p className="text-sm text-brand-ink/60 mb-4">
+            Manage your active sessions and sign out from devices you no longer use.
+          </p>
+          <Button variant="outline" onClick={() => navigate("/app/sessions")} className="flex items-center gap-2">
+            <LogOut className="h-4 w-4" />
+            Manage Sessions
+          </Button>
         </Card>
 
         <Card tone="shell" shadow="lift" className="p-6">
