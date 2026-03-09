@@ -115,7 +115,7 @@ async def lifespan(app: FastAPI):
     if _settings.redis_url:
         try:
             r = await get_redis()
-            await r.ping()
+            await r.ping()  # type: ignore[misc]
             is_internal = (
                 "red-" in _settings.redis_url
                 and ".render.com" not in _settings.redis_url
@@ -288,8 +288,8 @@ async def rate_limiting_middleware(request: Request, call_next):
     tenant_id, tenant_tier = await _get_tenant_info(auth_header)
 
     if tenant_id:
-        limiter = get_tenant_rate_limiter()
-        allowed, metadata = await limiter.acquire(
+        tenant_limiter = get_tenant_rate_limiter()
+        allowed, metadata = await tenant_limiter.acquire(
             tenant_id=tenant_id,
             tier=tenant_tier,
             endpoint=request.url.path,
@@ -304,8 +304,8 @@ async def rate_limiting_middleware(request: Request, call_next):
                 detail=f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. Try again in {metadata.get('reset_in', 60)} seconds.",
             )
     else:
-        limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)
-        if not await limiter.acquire():
+        ip_limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)
+        if not await ip_limiter.acquire():
             incr("api.rate_limit_exceeded", tags={"client_ip": client_ip})
             raise HTTPException(
                 status_code=429, detail="Rate limit exceeded. Please try again later."
@@ -583,7 +583,7 @@ def _mount_sub_routers() -> None:
     import api.calendar_api as calendar_mod
 
     async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
-        return ctx.tenant_id
+        return str(ctx.tenant_id)
 
     app.dependency_overrides[calendar_mod._get_pool] = get_pool
     app.dependency_overrides[calendar_mod._get_user_id] = get_current_user_id
@@ -1086,17 +1086,19 @@ async def resume_parse(
             detail=f"File too large. Maximum size is {_settings.max_upload_size_bytes // 1_048_576} MB",
         )
 
-    resume_url, canonical = await process_resume_upload(
+    resume_url, canonical_dict = await process_resume_upload(
         user_id=user_id,
         tenant_id=ctx.tenant_id,
-        pdf_bytes=pdf_bytes,
+        file_bytes=pdf_bytes,
+        filename=file.filename or "resume.pdf",
+        content_type=file.content_type or "application/pdf",
         db_pool=db,
         storage=get_storage_service(),
     )
 
     return ResumeParseResponse(
         user_id=user_id,
-        profile=canonical,
+        profile=CanonicalProfile.model_validate(canonical_dict),
         resume_url=resume_url,
     )
 

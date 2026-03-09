@@ -273,7 +273,7 @@ class ApplicationRepo:
         conn: asyncpg.Connection,
         application_id: str,
         tenant_id: str | None = None,
-    ) -> dict | None:
+    ) -> ApplicationDetail | None:
         """Fetch application + inputs + last 10 events."""
         if tenant_id:
             app_row = await conn.fetchrow(

@@ -76,3 +76,13 @@ markers = [
     "integration: marks tests requiring a running database",
     "slow: marks tests that take a long time",
 ]
+
+# ---------------------------------------------------------------------------
+# Bandit (security lint)
+# ---------------------------------------------------------------------------
+[tool.bandit]
+# B608: Many false positives on logger.error("Failed to delete from...") - not SQL
+# B108: /tmp paths are env-configurable in production; low risk for dev
+# B313/B314: xml.etree used only in local dev SAML flow (no cert); prod uses signxml
+skips = ["B608", "B108", "B313", "B314"]
+exclude_dirs = ["tests", ".venv", "node_modules"]

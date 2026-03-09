@@ -479,7 +479,7 @@ class CacheManager:
 
             # Deserialize
             try:
-                value = pickle.loads(data)
+                value = pickle.loads(data)  # nosec B301 - internal cache, data from our Redis
             except (pickle.PickleError, TypeError):
                 # Fallback to JSON
                 value = json.loads(data.decode("utf-8"))

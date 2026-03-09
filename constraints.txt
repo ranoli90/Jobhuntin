@@ -1,0 +1,4 @@
+# Security constraints for pip install
+# Use: pip install -r requirements.txt -c constraints.txt
+# Ensures markdownify >= 0.14.1 (CVE-2025-46656) overrides python-jobspy's <0.14.0
+markdownify>=0.14.1
