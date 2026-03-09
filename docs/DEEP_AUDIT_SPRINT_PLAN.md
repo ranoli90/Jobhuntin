@@ -25,6 +25,17 @@
 - **useProfile.ts**, **Settings.tsx**: Accept DOCX/DOC in addition to PDF for resume upload.
 - **Onboarding.tsx**: Persist LinkedIn URL when leaving Resume step (handleResumeNext); no longer lost if user skips to later steps.
 
+## Quality Sprint: Bandit & npm Audit Status (March 2026)
+
+**Bandit**: 0 high, 52 medium, 63 low. pyproject.toml skips B608 (SQL false positives on logger), B108, B313, B314. Remaining medium findings are dynamic SQL with whitelisted column names (application_status_fix, user.py, communication_endpoints, application_notes) — safe by design.
+
+**npm audit**: 6 high, 9 moderate in apps/web. Fixes require breaking upgrades:
+- esbuild/vite: vite@7.3.1
+- prismjs/react-syntax-highlighter: react-syntax-highlighter@16.1.1
+- robots-txt-guard/serialize-javascript: broken-link-checker, vite-plugin-pwa upgrades
+
+Documented in docs/AUDIT_ERRORS_REVIEW.md. Overrides attempted but increased vuln count; deferred to dedicated upgrade sprint.
+
 ## Quality Sprint: Mypy Fixes (March 2026)
 
 - **masking.py**: Annotate `result: dict[str, Any]` in `redact_event_payload`.
