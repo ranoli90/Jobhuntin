@@ -58,6 +58,28 @@ export default function Onboarding() {
   const locale = getLocale();
   const [isLowPowerMode, setIsLowPowerMode] = React.useState(false);
   const cacheService = React.useMemo(() => BrowserCacheService.getInstance(), []);
+  
+  // C4: Analytics Tracking - Track onboarding start
+  React.useEffect(() => {
+    if (!loading && profile && !profile.has_completed_onboarding) {
+      telemetry.track("onboarding_started", {
+        user_id: profile.id,
+        step_count: steps.length,
+      });
+    }
+  }, [loading, profile?.id, profile?.has_completed_onboarding]);
+  
+  // C4: Analytics Tracking - Track each step view
+  React.useEffect(() => {
+    if (!loading && profile && currentStepData) {
+      telemetry.track("onboarding_step_viewed", {
+        step_id: currentStepData.id,
+        step_number: currentStep + 1,
+        step_title: currentStepData.title,
+        progress: Math.round(progress),
+      });
+    }
+  }, [currentStep, currentStepData?.id, loading, profile?.id, progress]);
 
   React.useEffect(() => {
     // Check for save-data preference
@@ -451,6 +473,11 @@ export default function Onboarding() {
   // Onboarding completion guard - redirect if already completed
   React.useEffect(() => {
     if (profile?.has_completed_onboarding) {
+      // C4: Analytics Tracking - Track onboarding abandonment (user already completed)
+      telemetry.track("onboarding_abandoned", {
+        reason: "already_completed",
+        current_step: currentStep,
+      });
       // Clear onboarding state and redirect to dashboard
       resetOnboarding();
       // Use replace to prevent back navigation to onboarding
@@ -461,7 +488,7 @@ export default function Onboarding() {
         tone: "info"
       });
     }
-  }, [profile, navigate, resetOnboarding]);
+  }, [profile, navigate, resetOnboarding, currentStep]);
 
   // O25: Backend rate limits magic-link (auth.py), profile writes (user.py), and AI endpoints (ai_rate_limiting.py)
   // O14: Asset preloading (favicon + critical fonts for LCP)
@@ -953,7 +980,15 @@ export default function Onboarding() {
       resetOnboarding();
       sessionStorage.setItem("onboarding_just_completed", "true");
       sessionStorage.setItem("show_first_steps", "true");
-      telemetry.track("onboarding_completed", { step: "ready" });
+      // C4: Analytics Tracking - Track onboarding completion
+      telemetry.track("onboarding_completed", { 
+        step: "ready",
+        total_steps: steps.length,
+        final_progress: Math.round(progress),
+        has_resume: !!profile?.resume_url,
+        has_skills: richSkills.length > 0,
+        has_preferences: !!preferences.location && !!preferences.role_type,
+      });
       pushToast({ title: t("onboarding.allSet", locale) || "You're all set! Let's job hunt!", tone: "success" });
       navigate("/app/dashboard");
     } catch (error) {

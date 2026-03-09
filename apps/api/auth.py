@@ -899,12 +899,22 @@ async def verify_magic_link(
         jti,
     )
 
-    # Track verification success metrics
+    # C4: Analytics Tracking - Track magic link verification (backend metric)
     incr(
         "auth.magic_link.verified",
         tags={
             "is_new_user": str(is_new_user_flag),
             "destination": dest,
+            "email_domain": email.split("@")[-1] if "@" in email else "unknown",
+        },
+    )
+    logger.info(
+        "[MAGIC_LINK] Magic link verified successfully",
+        extra={
+            "user_id": user_id,
+            "is_new_user": is_new_user_flag,
+            "destination": dest,
+            "email_domain": email.split("@")[-1] if "@" in email else "unknown",
         },
     )
     redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}"
@@ -1121,7 +1131,16 @@ async def request_magic_link(
         settings, body.email, redirect, db, body.return_to, client_ip
     )
     await _send_magic_link_email(settings, body.email, action_link, body.return_to)
+    # C4: Analytics Tracking - Track magic link sent (backend metric)
     incr("auth.magic_link.sent", tags={"email_domain": body.email.split("@")[-1]})
+    logger.info(
+        "[MAGIC_LINK] Magic link sent successfully",
+        extra={
+            "email": _mask_email(body.email),
+            "email_domain": body.email.split("@")[-1],
+            "return_to": body.return_to,
+        },
+    )
     return MagicLinkResponse()
 
 

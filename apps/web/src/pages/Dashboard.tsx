@@ -226,6 +226,18 @@ export default function Dashboard() {
   const { profile, refreshProfile } = useProfile();
 
   const shouldReduceMotion = useReducedMotion();
+  
+  // C4: Analytics Tracking - Track dashboard view
+  React.useEffect(() => {
+    if (!isLoading && profile) {
+      telemetry.track("dashboard_viewed", {
+        application_count: applications.length,
+        active_count: byStatus.APPLYING + byStatus.APPLIED,
+        hold_count: byStatus.HOLD,
+        success_rate: stats.successRate,
+      });
+    }
+  }, [isLoading, profile?.id, applications.length, byStatus, stats.successRate]);
 
   // Check for onboarding completion and refresh data
   useEffect(() => {
@@ -739,6 +751,16 @@ export function JobsView() {
     try {
       // Record swipe decision with API
       await apiPost("me/applications", { job_id: swipedJob.id, decision: direction });
+
+      // C4: Analytics Tracking - Track application started when user accepts
+      if (direction === "ACCEPT") {
+        telemetry.track("application_started", {
+          job_id: swipedJob.id,
+          company: swipedJob.company,
+          job_title: swipedJob.title,
+          match_score: swipedJob.match_score,
+        });
+      }
 
       // Store last swipe for undo functionality (10 second window)
       setLastSwipe({

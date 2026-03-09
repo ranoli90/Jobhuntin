@@ -1300,6 +1300,24 @@ class FormAgent:
                 tenant_id=ctx["tenant_id"],
             )
 
+        # C4: Analytics Tracking - Track application submitted
+        if final_status in ("APPLIED", "SUBMITTED", "COMPLETED"):
+            incr(
+                "application_submitted",
+                tags={
+                    "tenant_id": ctx["tenant_id"] or "none",
+                    "blueprint": ctx["blueprint_key"],
+                    "status": final_status,
+                    "attempt_count": str(ctx["attempt"]),
+                },
+            )
+            logger.info(
+                "[ANALYTICS] Application submitted: app_id=%s, company=%s, status=%s",
+                ctx["app_id"],
+                ctx["job"].get("company", "Unknown"),
+                final_status,
+            )
+        
         incr(
             "agent.tasks_completed",
             tags={

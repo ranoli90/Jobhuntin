@@ -84,6 +84,11 @@ export default function Login() {
     const error = searchParams.get('error');
     if (error === 'auth_failed') {
       setFormError('Your magic link has expired or was already used. Please request a new one.');
+      // C4: Analytics Tracking - Track magic link verification failure
+      telemetry.track("magic_link_failed", { 
+        reason: "auth_failed",
+        error_type: error 
+      });
     }
   }, [searchParams]);
 
@@ -129,6 +134,12 @@ export default function Login() {
       const normalized = await requestMagicLink(email, safeReturnTo, captchaToken || undefined);
       setShowCaptcha(false);
       setCaptchaToken("");
+      // C4: Analytics Tracking - Track magic link events
+      telemetry.track("magic_link_sent", { 
+        email_domain: normalized?.split("@")[1] || email.split("@")[1],
+        usedCaptcha: !!captchaToken,
+        destination: safeReturnTo 
+      });
       telemetry.track("login_magic_link_requested", { usedCaptcha: !!captchaToken });
       setSuccessState({ email: normalized || email.trim().toLowerCase() });
       pushToast({ title: "Check your inbox", tone: "success" });
