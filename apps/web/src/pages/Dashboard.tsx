@@ -302,6 +302,104 @@ export default function Dashboard() {
     },
   ];
 
+  // H8: Empty States - Show comprehensive empty state for new users
+  const isNewUser = !isLoading && applications.length === 0 && stats.total_all_time === 0 && !error;
+  
+  if (isNewUser) {
+    return (
+      <ErrorBoundary reportError showToast>
+        <motion.div
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
+          className="space-y-6 max-w-4xl mx-auto px-4 lg:px-6 pb-8"
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-black text-slate-900 mb-3">Welcome to JobHuntin! 🎉</h1>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+              Let's get you started. Your dashboard will show your job applications and progress here.
+            </p>
+          </div>
+          
+          <Card className="p-8 border-2 border-dashed border-primary-200 bg-gradient-to-br from-primary-50/50 to-white">
+            <div className="text-center space-y-6">
+              <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center mx-auto">
+                <Rocket className="w-12 h-12 text-primary-600" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 mb-3">Get Started in 3 Steps</h2>
+                <p className="text-slate-600 mb-8">Follow these steps to start your automated job search</p>
+              </div>
+              
+              <div className="grid md:grid-cols-3 gap-6 text-left max-w-3xl mx-auto">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">1</div>
+                    <h3 className="font-bold text-slate-900">Complete Your Profile</h3>
+                  </div>
+                  <p className="text-sm text-slate-600 ml-11">
+                    Upload your resume and fill in your preferences to get better job matches.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="ml-11 w-auto"
+                    onClick={() => navigate("/app/onboarding")}
+                  >
+                    Go to Profile
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">2</div>
+                    <h3 className="font-bold text-slate-900">Browse Jobs</h3>
+                  </div>
+                  <p className="text-sm text-slate-600 ml-11">
+                    Swipe through AI-matched jobs and let us handle the applications.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="ml-11 w-auto"
+                    onClick={() => navigate("/app/jobs")}
+                  >
+                    Find Jobs
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">3</div>
+                    <h3 className="font-bold text-slate-900">Track Progress</h3>
+                  </div>
+                  <p className="text-sm text-slate-600 ml-11">
+                    Monitor your applications and answer any questions from employers.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="ml-11 w-auto"
+                    onClick={() => navigate("/app/applications")}
+                  >
+                    View Applications
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="pt-6 border-t border-slate-200">
+                <Button 
+                  className="bg-primary-600 hover:bg-primary-500 text-white px-8 py-3 text-lg font-bold"
+                  onClick={() => navigate("/app/jobs")}
+                >
+                  <Rocket className="w-5 h-5 mr-2" />
+                  Start Finding Jobs
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary reportError showToast>
       <motion.div
@@ -444,6 +542,20 @@ export default function Dashboard() {
                       <CheckCircle className="mx-auto h-8 w-8 text-amber-500/50 mb-2" />
                       <p className="text-amber-900/80 font-medium">No pending questions</p>
                       <p className="text-sm text-amber-900/50">You're all caught up!</p>
+                      {/* H8: Empty States - Add CTA for new users */}
+                      {applications.length === 0 && (
+                        <div className="mt-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate("/app/jobs")}
+                            className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                          >
+                            <Rocket className="w-4 h-4 mr-2" />
+                            Start Applying
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <motion.div
