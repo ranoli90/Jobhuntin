@@ -2,10 +2,17 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from "fs";
+
+const pkg = JSON.parse(readFileSync(path.join(__dirname, "package.json"), "utf-8"));
+const version = pkg.version ?? "0.0.2";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
+    define: {
+      "import.meta.env.VITE_APP_VERSION": JSON.stringify(version),
+    },
     plugins: [react(), VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],

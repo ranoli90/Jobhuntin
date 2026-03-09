@@ -68,11 +68,14 @@ class CSRFMiddleware:
     """
 
     # Paths exempt from CSRF protection (webhooks, public endpoints)
+    # Narrow /auth/ to specific endpoints — do not exempt all /auth/* (audit #7)
+    # Patterns match path suffix (e.g. /auth/magic-link or /api/auth/magic-link)
     EXEMPT_PATHS = [
         "/health",
         "/healthz",
-        "/auth/magic-link",
-        "/auth/",
+        r".*auth/magic-link",
+        r".*auth/verify-magic",
+        r".*auth/logout",
         "/api/v2/webhook",
         "/billing/webhook",
         "/sso/saml/acs",
@@ -198,15 +201,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         # S3 (Audit): Enhanced CSP with nonce support for dynamic scripts
-        # Uses nonce-based approach instead of 'unsafe-inline' for better security
+        # Uses nonce-based approach instead of 'unsafe-inline' for better security.
+        # Avoid 'unsafe-eval' — use nonce or strict-src. If nonce unavailable, allow
+        # 'unsafe-inline' only for style-src; script-src stays strict.
         csp_script_src = (
             "'self' https://www.googletagmanager.com https://www.google-analytics.com"
         )
         if hasattr(request.state, "csp_nonce"):
             csp_script_src += f" 'nonce-{request.state.csp_nonce}'"
-        else:
-            # Fallback to 'unsafe-eval' only when nonce not available (rare)
-            csp_script_src += " 'unsafe-eval'"
+        # No unsafe-eval — ensure app uses nonce for any inline scripts
 
         # CSP connect-src: must include API URL if it's cross-origin, and analytics
         connect_src = "'self' https://www.google-analytics.com https://www.googletagmanager.com https://api.resend.com"

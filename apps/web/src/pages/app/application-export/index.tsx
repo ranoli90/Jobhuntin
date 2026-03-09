@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Clock
 } from 'lucide-react';
+import { apiGet, apiFetch } from '../../../lib/api';
 
 interface Application {
   id: string;
@@ -97,14 +98,7 @@ const ApplicationExportPage: React.FC = () => {
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch('/api/applications', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch applications');
-      const data = await response.json();
+      const data = await apiGet<{ applications: Application[] }>('me/applications');
       setApplications(data.applications || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch applications');
@@ -113,14 +107,7 @@ const ApplicationExportPage: React.FC = () => {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/ux/export/templates', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch templates');
-      const data = await response.json();
+      const data = await apiGet<{ templates: ExportTemplate[] }>('ux/export/templates');
       setTemplates(data.templates || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch templates');
@@ -134,19 +121,15 @@ const ApplicationExportPage: React.FC = () => {
       setSuccess(null);
       setExportProgress(0);
 
-      const response = await fetch('/api/ux/export/applications', {
+      const resp = await apiFetch('ux/export/applications', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(exportConfig),
       });
-
-      if (!response.ok) throw new Error('Export failed');
-
-      // Get the blob for download
-      const blob = await response.blob();
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || 'Export failed');
+      }
+      const blob = await resp.blob();
       const url = window.URL.createObjectURL(blob);
       
       // Create download link

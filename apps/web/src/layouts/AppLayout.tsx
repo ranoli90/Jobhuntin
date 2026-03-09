@@ -25,19 +25,17 @@ import {
 import { ThemeToggle } from "../components/ThemeToggle";
 import { LanguageSelector } from "../components/LanguageSelector";
 
+// Core nav items — stub pages (Pipeline View, Export, Agent Improvements, DLQ, Communication,
+// Multi-Resume, Interview Practice, Follow-Up Reminders, Application Notes, Notification History,
+// Screenshot Capture) are hidden until implemented. Routes remain defined in App.tsx.
 const NAV_ITEMS = [
   { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
   { label: "Jobs", to: "/app/jobs", icon: Briefcase },
   { label: "Applications", to: "/app/applications", icon: FileText },
-  { label: "Pipeline View", to: "/app/pipeline-view", icon: FileText },
-  { label: "Export Data", to: "/app/application-export", icon: FileText },
   { label: "HOLDs", to: "/app/holds", icon: HelpCircle },
   { label: "Team", to: "/app/team", icon: Users },
-  { label: "Agent Improvements", to: "/app/agent-improvements", icon: Settings },
-  { label: "DLQ Dashboard", to: "/app/dlq-dashboard", icon: HelpCircle },
-  { label: "Communication", to: "/app/communication-preferences", icon: Globe },
   { label: "Billing", to: "/app/billing", icon: CreditCard },
-  { label: "Sources", to: "/app/admin/sources", icon: Globe },
+  { label: "Sources", to: "/app/admin/sources", icon: Globe, adminOnly: true },
   { label: "Settings", to: "/app/settings", icon: Settings },
 ];
 
@@ -59,7 +57,7 @@ export default function AppLayout() {
     );
 
   const visibleNavItems = NAV_ITEMS.filter(item => {
-    if (item.to === '/app/admin/sources') return isAdmin;
+    if ('adminOnly' in item && item.adminOnly) return isAdmin;
     return true;
   });
 
@@ -175,7 +173,7 @@ export default function AppLayout() {
                 <p className="text-[9px] uppercase tracking-[0.3em] text-slate-400 font-bold mb-0.5">Application</p>
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-black text-slate-900 dark:text-slate-100">JobHuntin Agent</p>
-                  <Badge variant="outline" size="sm" className="bg-slate-50 text-[10px] h-5 border-slate-200 px-1.5">v2.4.0</Badge>
+                  <Badge variant="outline" size="sm" className="bg-slate-50 text-[10px] h-5 border-slate-200 px-1.5">v{import.meta.env.VITE_APP_VERSION || "0.0.2"}</Badge>
                 </div>
               </div>
               <div className="lg:hidden">

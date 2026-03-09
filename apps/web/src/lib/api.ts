@@ -97,19 +97,9 @@ export function getApiBase(): string {
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
 
-  // First try to get token from httpOnly cookie (via server-side set cookie)
-  // Note: We can't access httpOnly cookies directly from JavaScript, but we can check
-  // if we have a session by making a test request or checking for a session indicator
-
-  // For now, check if we have a session indicator cookie that tells us server has auth
-  const hasSession = document.cookie.split(';').some(cookie =>
-    cookie.trim().startsWith('jobhuntin_auth=')
-  );
-
-  if (hasSession) {
-    // Server will handle authentication via httpOnly cookie
-    return null; // Let server handle auth via cookie
-  }
+  // Session detection: httpOnly cookies cannot be read from JS. Use credentials: "include"
+  // on fetch so cookies are sent automatically. A successful /me/profile response indicates
+  // a valid session (see AuthContext). We never pass a Bearer token when using httpOnly auth.
 
   // SECURITY: No localStorage fallback for production - only use httpOnly cookies
   // This prevents XSS attacks from stealing auth tokens
@@ -418,6 +408,18 @@ export async function downloadFile(path: string, filename: string) {
 export async function apiPost<T = unknown>(path: string, body?: unknown): Promise<T> {
   const resp = await apiFetch(path, {
     method: "POST",
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const text = await resp.text();
+  if (!resp.ok) handleApiError(resp, text);
+  if (!text) return {} as T;
+  return JSON.parse(text) as T;
+}
+
+/** PUT JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login. */
+export async function apiPut<T = unknown>(path: string, body?: unknown): Promise<T> {
+  const resp = await apiFetch(path, {
+    method: "PUT",
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const text = await resp.text();
