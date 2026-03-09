@@ -768,12 +768,17 @@ async def list_jobs(
     source: str | None = None,
     is_remote: bool | None = None,
     job_type: str | None = None,
+    sort_by: str = "date_posted",
     limit: int = 25,
     offset: int = 0,
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """List jobs from DB with optional filters. Returns { jobs: [...], next_offset } for web."""
+    """List jobs from DB with optional filters. Returns { jobs: [...], next_offset } for web.
+
+    sort_by: match_score | recently_matched | salary | date_posted
+    When authenticated, match_score/recently_matched use profile-based scoring.
+    """
     from backend.domain.job_search import search_and_list_jobs
 
     limit = max(5, min(limit, 100))
@@ -787,6 +792,8 @@ async def list_jobs(
         source=source,
         is_remote=is_remote,
         job_type=job_type,
+        user_id=str(ctx.user_id),
+        sort_by=sort_by,
         limit=limit,
         offset=offset,
     )

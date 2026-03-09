@@ -151,7 +151,7 @@ class ColdStartHandler:
                     f"""  # nosec
                     j.description ILIKE ANY(${param_idx})
                     OR EXISTS (
-                        SELECT 1 FROM unnest(j.required_skills) skill
+                        SELECT 1 FROM unnest(COALESCE(j.skills, ARRAY[]::text[])) skill
                         WHERE skill ILIKE ANY(${param_idx})
                     )
                 """
@@ -182,12 +182,13 @@ class ColdStartHandler:
             if not conditions:
                 return matches
 
+            # jobs table has no status column; filter by recent sync
             query = f"""  # nosec
                 SELECT
                     j.id, j.title, j.company, j.location,
-                    j.required_skills, j.description
+                    j.skills, j.description
                 FROM public.jobs j
-                WHERE j.status = 'ACTIVE'
+                WHERE (j.last_synced_at IS NOT NULL OR j.created_at > now() - interval '30 days')
                 AND ({" OR ".join(conditions)})
                 ORDER BY j.created_at DESC
                 LIMIT 30
@@ -230,7 +231,7 @@ class ColdStartHandler:
                     COUNT(a.id) AS application_count
                 FROM public.jobs j
                 LEFT JOIN public.applications a ON a.job_id = j.id
-                WHERE j.status = 'ACTIVE'
+                WHERE (j.last_synced_at IS NOT NULL OR j.created_at > now() - interval '30 days')
                 AND ($1::text[] IS NULL OR array_length($1, 1) IS NULL
                     OR j.location ILIKE ANY($1))
                 GROUP BY j.id
@@ -278,9 +279,9 @@ class ColdStartHandler:
                     COUNT(a.id) FILTER (WHERE a.created_at > now() - interval '7 days') AS recent_apps
                 FROM public.jobs j
                 LEFT JOIN public.applications a ON a.job_id = j.id
-                WHERE j.status = 'ACTIVE'
+                WHERE (j.last_synced_at IS NOT NULL OR j.created_at > now() - interval '30 days')
                 AND ($1::text[] IS NULL OR array_length($1, 1) IS NULL
-                    OR j.industry ILIKE ANY($1))
+                    OR j.company_industry ILIKE ANY($1))
                 GROUP BY j.id
                 HAVING COUNT(a.id) FILTER (WHERE a.created_at > now() - interval '7 days') > 0
                 ORDER BY recent_apps DESC
@@ -322,38 +323,21 @@ class ColdStartHandler:
         matches: list[ColdStartRecommendation] = []
 
         try:
-            # Find users with similar profiles
+            # profiles table has profile_data JSONB, not skills/desired_titles columns.
+            # Use application-based popularity: jobs that many users have applied to.
             query = """
-                WITH similar_users AS (
-                    SELECT DISTINCT p.user_id
-                    FROM public.profiles p
-                    WHERE p.skills && $1::text[]
-                    OR p.desired_titles && $2::text[]
-                    LIMIT 100
-                ),
-                similar_applications AS (
-                    SELECT
-                        a.job_id,
-                        COUNT(*) AS similar_user_count
-                    FROM public.applications a
-                    JOIN similar_users su ON su.user_id = a.user_id
-                    GROUP BY a.job_id
-                    ORDER BY similar_user_count DESC
-                    LIMIT 20
-                )
                 SELECT
                     j.id, j.title, j.company, j.location,
-                    sa.similar_user_count
-                FROM similar_applications sa
-                JOIN public.jobs j ON j.id = sa.job_id
-                WHERE j.status = 'ACTIVE'
+                    COUNT(a.id) AS similar_user_count
+                FROM public.jobs j
+                JOIN public.applications a ON a.job_id = j.id
+                WHERE (j.last_synced_at IS NOT NULL OR j.created_at > now() - interval '30 days')
+                GROUP BY j.id
+                ORDER BY similar_user_count DESC
+                LIMIT 20
             """
 
-            rows = await self.db.fetch(
-                query,
-                onboarding.skills,
-                onboarding.job_titles,
-            )
+            rows = await self.db.fetch(query)
 
             max_count = max((r["similar_user_count"] or 0 for r in rows), default=1)
 
@@ -388,7 +372,7 @@ class ColdStartHandler:
                     COUNT(a.id) AS application_count
                 FROM public.jobs j
                 LEFT JOIN public.applications a ON a.job_id = j.id
-                WHERE j.status = 'ACTIVE'
+                WHERE (j.last_synced_at IS NOT NULL OR j.created_at > now() - interval '30 days')
                 AND j.created_at > now() - interval '30 days'
                 GROUP BY j.id
                 ORDER BY application_count DESC, j.created_at DESC
@@ -438,7 +422,7 @@ class ColdStartHandler:
         # Skills match (weight: 25%)
         max_score += 0.25
         if onboarding.skills:
-            job_skills = job_row.get("required_skills") or []
+            job_skills = job_row.get("skills") or job_row.get("required_skills") or []
             description = (job_row.get("description") or "").lower()
 
             matched_skills = sum(

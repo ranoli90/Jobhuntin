@@ -1,6 +1,7 @@
 """Job search domain logic.
 Jobs are synced from JobSpy via background worker.
 This module queries the local database with deduplication.
+When user_id is provided, loads profile and scores jobs by match.
 """
 
 import json
@@ -9,10 +10,15 @@ from typing import Any
 import asyncpg
 
 from backend.domain.job_dedup import deduplicate_jobs, normalize_job
+from backend.domain.job_scoring import apply_dealbreaker_filters, score_job_match
+from backend.domain.profile_assembly import assemble_profile
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.job_search")
+
+# Sort options: match_score requires profile; others use SQL
+SORT_OPTIONS = ("match_score", "recently_matched", "salary", "date_posted")
 
 
 async def search_and_list_jobs(
@@ -24,11 +30,27 @@ async def search_and_list_jobs(
     is_remote: bool | None = None,
     job_type: str | None = None,
     *,
+    user_id: str | None = None,
+    sort_by: str = "date_posted",
     limit: int = 25,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
-    """Search jobs from local database, with Adzuna live fallback when DB is empty."""
+    """Search jobs from local database, with Adzuna live fallback when DB is empty.
+
+    When user_id is provided and profile exists, jobs are scored by match and
+    optionally sorted by match_score. Dealbreakers are applied.
+    """
     s = get_settings()
+    if sort_by not in SORT_OPTIONS:
+        sort_by = "date_posted"
+
+    # When scoring, fetch more to account for dealbreaker filtering and pagination
+    if user_id:
+        fetch_limit = min(offset + limit * 3, 200)
+        fetch_offset = 0
+    else:
+        fetch_limit = limit
+        fetch_offset = offset
 
     async with db_pool.acquire() as conn:
         query, params = _build_job_search_query(
@@ -39,8 +61,9 @@ async def search_and_list_jobs(
             source,
             is_remote,
             job_type,
-            limit,
-            offset,
+            fetch_limit,
+            fetch_offset,
+            sort_by=sort_by if not user_id else "date_posted",
         )
         rows = await conn.fetch(query, *params)
 
@@ -67,8 +90,9 @@ async def search_and_list_jobs(
                     source,
                     is_remote,
                     job_type,
-                    limit,
-                    offset,
+                    fetch_limit,
+                    fetch_offset,
+                    sort_by=sort_by if not user_id else "date_posted",
                 )
                 rows = await conn.fetch(query2, *params2)
         except Exception as e:
@@ -76,15 +100,18 @@ async def search_and_list_jobs(
 
     raw_jobs = [_map_job_row(r) for r in rows]
     normalized_jobs = [normalize_job(job, "database") for job in raw_jobs]
+    unique_norm, duplicate_jobs = deduplicate_jobs(normalized_jobs, "database")
 
-    unique_jobs, duplicate_jobs = deduplicate_jobs(normalized_jobs, "database")
+    # Map back to full dicts (preserve salary_min, salary_max, logo_url, etc.)
+    raw_by_id = {j["id"]: j for j in raw_jobs}
+    result = [raw_by_id[j.id] for j in unique_norm if j.id in raw_by_id]
 
     if duplicate_jobs:
         logger.info(
             f"[DEDUP] Removed {len(duplicate_jobs)} duplicate jobs from search results",
             extra={
                 "total_jobs": len(raw_jobs),
-                "unique_jobs": len(unique_jobs),
+                "unique_jobs": len(result),
                 "duplicate_jobs": len(duplicate_jobs),
                 "deduplication_rate": (
                     len(duplicate_jobs) / len(raw_jobs) if raw_jobs else 0
@@ -92,7 +119,36 @@ async def search_and_list_jobs(
             },
         )
 
-    return unique_jobs
+        # Profile-based scoring when user_id provided
+    if user_id and result:
+        async with db_pool.acquire() as conn:
+            profile = await assemble_profile(conn, user_id)
+        if profile:
+            result = apply_dealbreaker_filters(result, profile.dealbreakers)
+            for job in result:
+                # Ensure job has keys expected by score_job_match
+                job.setdefault("requirements", job.get("skills") or [])
+                score_job_match(job, profile)
+            # Sort by match_score when requested
+            if sort_by in ("match_score", "recently_matched"):
+                result.sort(
+                    key=lambda j: (
+                        j.get("match_score") or 0,
+                        j.get("date_posted") or "",
+                    ),
+                    reverse=True,
+                )
+            elif sort_by == "salary":
+                result.sort(
+                    key=lambda j: (
+                        j.get("salary_max") or 0,
+                        j.get("salary_min") or 0,
+                    ),
+                    reverse=True,
+                )
+        result = result[offset : offset + limit]
+
+    return result
 
 
 def _build_job_search_query(
@@ -105,12 +161,14 @@ def _build_job_search_query(
     job_type: str | None,
     limit: int,
     offset: int,
+    *,
+    sort_by: str = "date_posted",
 ) -> tuple[str, list[Any]]:
     query = """
         SELECT id, title, company, description, location,
                salary_min, salary_max, application_url, source,
                is_remote, job_type, date_posted, job_level,
-               company_industry, company_logo_url, raw_data
+               company_industry, company_logo_url, raw_data, skills
         FROM   public.jobs
         WHERE  1=1
     """
@@ -160,10 +218,13 @@ def _build_job_search_query(
         )
         params.append(timedelta(days=ttl_days))
 
-    query += (
-        " ORDER BY date_posted DESC NULLS LAST, created_at DESC LIMIT $%d OFFSET $%d"
-        % (n + 1, n + 2)
-    )
+    # ORDER BY
+    if sort_by == "salary":
+        order_clause = "salary_max DESC NULLS LAST, salary_min DESC NULLS LAST, created_at DESC"
+    else:
+        order_clause = "date_posted DESC NULLS LAST, created_at DESC"
+
+    query += f" ORDER BY {order_clause} LIMIT ${n + 1} OFFSET ${n + 2}"
     params.extend([limit, offset])
 
     return query, params
@@ -181,6 +242,13 @@ def _map_job_row(r: Any) -> dict[str, Any]:
     if not logo_url and isinstance(raw, dict):
         logo_url = raw.get("logo_url") or raw.get("logo")
 
+    skills = r.get("skills")
+    if skills is None:
+        skills = []
+    elif isinstance(skills, str):
+        skills = [s.strip() for s in skills.split(",") if s.strip()]
+    requirements = list(skills) if isinstance(skills, (list, tuple)) else []
+
     job_data = {
         "id": str(r["id"]),
         "title": r["title"],
@@ -197,6 +265,8 @@ def _map_job_row(r: Any) -> dict[str, Any]:
         "job_level": r.get("job_level"),
         "company_industry": r.get("company_industry"),
         "logo_url": logo_url,
+        "skills": requirements,
+        "requirements": requirements,
     }
 
     # Apply source verification and scam detection

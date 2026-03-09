@@ -189,7 +189,11 @@ export default function JobsView() {
                                 <p className="text-sm text-gray-500 mt-1">{job.location}</p>
                                 {job.match_score != null && (
                                     <p className="text-xs font-medium text-primary-600 mt-1">
-                                        {Math.round(job.match_score * 100)}% match
+                                        {Math.round(
+                                            Number(job.match_score) <= 1
+                                                ? Number(job.match_score) * 100
+                                                : Number(job.match_score)
+                                        )}% match
                                     </p>
                                 )}
                             </div>

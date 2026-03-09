@@ -123,6 +123,21 @@ services:
         sync: false
     autoDeploy: true
 
+  # Background Worker (Job Sync — JobSpy)
+  - type: worker
+    name: jobhuntin-job-sync
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. python apps/worker/job_sync_worker.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Set in Render dashboard - NEVER hardcode credentials
+      - key: env
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+    autoDeploy: true
+
   # Background Worker (Auto-Apply Agent)
   - type: worker
     name: sorce-auto-apply-agent
