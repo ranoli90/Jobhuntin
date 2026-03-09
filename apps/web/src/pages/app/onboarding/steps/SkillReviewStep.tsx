@@ -171,11 +171,11 @@ function AddSkillForm({ onAdd, onCancel, locale }: AddSkillFormProps) {
                 />
             </div>
             <div className="flex flex-col sm:flex-row justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={onCancel} className="h-10 sm:h-8 text-xs touch-manipulation">
+                <Button type="button" variant="ghost" onClick={onCancel} className="min-h-[44px] h-11 sm:h-12 text-xs touch-manipulation">
                     <X className="w-3 h-3 mr-1" />
                     {t("onboarding.cancel", locale)}
                 </Button>
-                <Button type="submit" disabled={!skillName.trim()} className="h-10 sm:h-8 text-xs bg-emerald-600 hover:bg-emerald-500 touch-manipulation">
+                <Button type="submit" disabled={!skillName.trim()} className="min-h-[44px] h-11 sm:h-12 text-xs bg-emerald-600 hover:bg-emerald-500 touch-manipulation">
                     <Check className="w-3 h-3 mr-1" />
                     {t("onboarding.addSkillButton", locale) || "Add Skill"}
                 </Button>
@@ -367,7 +367,7 @@ export function SkillReviewStep({
                 <Button
                     variant="outline"
                     onClick={() => setIsAddingSkill(true)}
-                    className="mt-3 md:mt-4 h-10 sm:h-9 md:h-10 text-xs md:text-sm w-full border-dashed border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50 touch-manipulation"
+                    className="mt-3 md:mt-4 min-h-[44px] h-11 sm:h-12 md:h-12 text-xs md:text-sm w-full border-dashed border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50 touch-manipulation"
                     aria-label={t("onboarding.addMissingSkill", locale) || "Add a new skill"}
                 >
                     <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5" />

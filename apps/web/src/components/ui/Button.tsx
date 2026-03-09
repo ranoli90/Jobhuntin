@@ -22,11 +22,12 @@ const buttonVariants = cva(
         lagoon: "bg-gray-800 text-white hover:bg-black focus-visible:ring-gray-500 shadow-sm active:scale-[0.98]",
       },
       size: {
-        sm: "h-10 px-4 text-xs rounded-xl",
-        md: "h-12 px-6 text-sm rounded-xl",
-        lg: "h-14 px-8 text-base rounded-2xl",
-        xl: "h-16 px-10 text-lg rounded-2xl",
-        icon: "h-12 w-12 rounded-xl",
+        // H10: All sizes meet 44px minimum touch target requirement
+        sm: "min-h-[44px] h-11 px-4 text-xs rounded-xl", // 44px minimum
+        md: "h-12 px-6 text-sm rounded-xl", // 48px
+        lg: "h-14 px-8 text-base rounded-2xl", // 56px
+        xl: "h-16 px-10 text-lg rounded-2xl", // 64px
+        icon: "min-h-[44px] min-w-[44px] h-12 w-12 rounded-xl", // 48px, 44px minimum
       },
     },
     defaultVariants: {
