@@ -66,7 +66,7 @@ export function useApplications() {
 
   // L-7: snoozeApplication now shows toast feedback
   const snoozeApplication = useCallback(async (applicationId: string, hours: number = 24) => {
-    setSubmittingIds(prev => new Set(prev).add(`snooze-${applicationId}`));
+    setSubmittingIds(prev => new Set(prev).add(applicationId));
     try {
       await apiPost(`me/applications/${applicationId}/snooze`, { hours });
       queryClient.invalidateQueries({ queryKey: ["applications"] });
@@ -77,7 +77,7 @@ export function useApplications() {
     } finally {
       setSubmittingIds(prev => {
         const next = new Set(prev);
-        next.delete(`snooze-${applicationId}`);
+        next.delete(applicationId);
         return next;
       });
     }

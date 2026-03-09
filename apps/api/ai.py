@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
+from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
@@ -39,6 +41,23 @@ from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.ai")
+
+# ---------------------------------------------------------------------------
+# Per-user rate limiting for expensive AI endpoints
+# ---------------------------------------------------------------------------
+_user_rate_limits: dict[str, list[float]] = defaultdict(list)
+
+
+def _check_user_rate_limit(user_id: str, action: str, max_per_hour: int = 20) -> bool:
+    key = f"{user_id}:{action}"
+    now = time.time()
+    window = 3600  # 1 hour
+    _user_rate_limits[key] = [t for t in _user_rate_limits[key] if now - t < window]
+    if len(_user_rate_limits[key]) >= max_per_hour:
+        return False
+    _user_rate_limits[key].append(now)
+    return True
+
 
 # ---------------------------------------------------------------------------
 # Singleton LLM client — avoids per-request instantiation overhead
@@ -296,6 +315,8 @@ async def suggest_roles(
     This analyzes the candidate's experience, skills, and career progression
     to suggest the most suitable job titles and experience level.
     """
+    if not _check_user_rate_limit(user_id, "suggest_roles", 20):
+        raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     validation_result = validate_and_sanitize_ai_input(
         profile=request.profile,
         user_id=user_id,
@@ -402,6 +423,7 @@ async def suggest_locations(
     This analyzes where the candidate's skills are most in-demand and
     evaluates remote work viability for their role type.
     """
+    location = (request.current_location or "").strip()[:200]
     client = _get_llm_client()
 
     # Strip PII before sending to external LLM
@@ -412,7 +434,7 @@ async def suggest_locations(
     try:
         prompt = build_location_suggestion_prompt(
             sanitized_profile,
-            request.current_location,
+            location,
         )
         result = await client.call(
             prompt=prompt,
@@ -450,6 +472,8 @@ async def match_job(
     Returns a 0-100 score with detailed breakdowns for skill match,
     experience match, location compatibility, and any red flags.
     """
+    if not _check_user_rate_limit(user_id, "match_job", 20):
+        raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     # Sanitize inputs and strip PII before sending to external LLM
     from backend.domain.masking import strip_pii_for_llm
 
@@ -713,10 +737,18 @@ class BatchSemanticMatchResult(BaseModel):
     dealbreaker_reasons: list[str] = Field(default_factory=list)
 
 
+class BatchSemanticMatchFailedItem(BaseModel):
+    """A job that failed to match in batch."""
+
+    job_id: str
+    error: str
+
+
 class BatchSemanticMatchResponse(BaseModel):
     """Response for batch semantic matching."""
 
     results: list[BatchSemanticMatchResult]
+    failed: list[BatchSemanticMatchFailedItem] = Field(default_factory=list)
 
 
 @router.post("/semantic-match/batch", response_model=BatchSemanticMatchResponse)
@@ -750,9 +782,11 @@ async def semantic_match_batch(
 
     service = get_matching_service()
     results: list[BatchSemanticMatchResult] = []
+    failed_items: list[dict[str, str]] = []
 
     for job in request.jobs[:20]:
         sanitized_job = sanitize_dict_input(job)
+        job_id = str(job.get("id", ""))
         try:
             result = await service.compute_match_score(
                 profile=sanitized_profile,
@@ -780,26 +814,18 @@ async def semantic_match_batch(
                 )
             )
         except Exception as exc:
-            logger.warning("Failed to match job %s: %s", job.get("id", "unknown"), exc)
-            results.append(
-                BatchSemanticMatchResult(
-                    job_id=str(job.get("id", "")),
-                    score=0.0,
-                    explanation={
-                        "reasoning": "Matching temporarily unavailable",
-                        "confidence": "low",
-                    },
-                    passed_dealbreakers=False,
-                    dealbreaker_reasons=["Matching temporarily unavailable"],
-                )
-            )
+            logger.warning("Failed to match job %s: %s", job_id, exc)
+            failed_items.append({"job_id": job_id, "error": str(exc)})
 
     logger.info(
         "Batch semantic match completed",
-        extra={"user_id": user_id, "jobs_matched": len(results)},
+        extra={"user_id": user_id, "jobs_matched": len(results), "failed": len(failed_items)},
     )
 
-    return BatchSemanticMatchResponse(results=results)
+    return BatchSemanticMatchResponse(
+        results=results,
+        failed=[BatchSemanticMatchFailedItem(**f) for f in failed_items],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1145,6 +1171,8 @@ async def generate_cover_letter_enhanced(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> GeneratedCoverLetter:
     """Generate a personalized cover letter (enhanced endpoint)."""
+    if not _check_user_rate_limit(user_id, "generate_cover_letter", 10):
+        raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     client = _get_llm_client()
 
     try:
@@ -1327,6 +1355,8 @@ async def generate_cover_letter(
     request: CoverLetterRequest, user_id: str = Depends(_get_user_id)
 ) -> CoverLetterResponse_V1:
     """Generate a personalized cover letter for a specific job."""
+    if not _check_user_rate_limit(user_id, "generate_cover_letter", 10):
+        raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     client = _get_llm_client()
 
     # Sanitize and strip PII before sending to external LLM
@@ -1387,6 +1417,8 @@ async def tailor_resume(
     3. Generates a tailored summary
     4. Computes ATS optimization score
     """
+    if not _check_user_rate_limit(user_id, "tailor_resume", 10):
+        raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     from backend.domain.masking import strip_pii_for_llm
     from backend.domain.resume_tailoring import get_tailoring_service
 
@@ -1441,6 +1473,8 @@ async def compute_ats_score(
 
     Implements 23 scoring metrics for ATS optimization analysis.
     """
+    if not _check_user_rate_limit(user_id, "ats_score", 20):
+        raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     from backend.domain.resume_tailoring import ATSScorer
 
     try:

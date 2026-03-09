@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import asyncpg
@@ -139,6 +140,17 @@ async def billing_usage(
         }
 
 
+def _validate_redirect_url(url: str, param_name: str, settings: Settings) -> None:
+    """Validate that redirect URL starts with an allowed origin."""
+    app_url = getattr(settings, "app_base_url", None) or os.getenv("APP_PUBLIC_URL", "https://jobhuntin.com")
+    if app_url and app_url != "[REDACTED]":
+        allowed_origins = [app_url.rstrip("/"), "http://localhost:5173"]
+    else:
+        allowed_origins = ["https://jobhuntin.com", "http://localhost:5173"]
+    if not any(url.startswith(origin) for origin in allowed_origins):
+        raise HTTPException(status_code=400, detail=f"Invalid {param_name}")
+
+
 @router.post("/checkout")
 async def create_checkout(
     request: Request,
@@ -148,6 +160,8 @@ async def create_checkout(
     tenant_ctx: Any = Depends(_get_tenant_ctx),
 ):
     """Create a Stripe checkout session for PRO subscription."""
+    _validate_redirect_url(body.success_url, "success_url", settings)
+    _validate_redirect_url(body.cancel_url, "cancel_url", settings)
     stripe = get_stripe()
 
     async with db.acquire() as conn:
@@ -257,8 +271,10 @@ async def create_portal(
         )
 
         if not row or not row["provider_customer_id"]:
-            # No Stripe customer yet - redirect to checkout instead
-            return {"checkout_url": f"{body.return_url}/upgrade"}
+            raise HTTPException(
+                status_code=400,
+                detail="No active subscription. Please subscribe first at /billing/checkout",
+            )
 
         customer_id = row["provider_customer_id"]
 
@@ -295,12 +311,18 @@ async def list_invoices(
                 "SELECT plan FROM public.tenants WHERE id = $1",
                 ctx.tenant_id,
             )
-        if not row or row["plan"] == "FREE":
-            return []
+            if not row or row["plan"] == "FREE":
+                return []
 
-        customer_id = await ensure_stripe_customer(
-            db, ctx.tenant_id, ctx.user_id, stripe
-        )
+            user_row = await conn.fetchrow(
+                "SELECT email FROM public.users WHERE id = $1",
+                ctx.user_id,
+            )
+            user_email = user_row["email"] if user_row else None
+
+            customer_id = await ensure_stripe_customer(
+                conn, ctx.tenant_id, user_email
+            )
         invoices = protected_stripe_call(
             lambda: stripe.Invoice.list(customer=customer_id, limit=20)
         )
@@ -337,14 +359,24 @@ async def team_checkout(
     settings: Settings = Depends(settings_dependency),
 ) -> dict[str, Any]:
     """Create a Stripe checkout session for team plan with additional seats."""
+    if body.seats < 1:
+        raise HTTPException(status_code=400, detail="Seats must be at least 1")
+    if body.seats > 500:
+        raise HTTPException(status_code=400, detail="Maximum 500 seats")
     stripe = get_stripe()
     if not settings.stripe_team_base_price_id:
         raise HTTPException(status_code=503, detail="Team pricing not configured")
 
     try:
-        customer_id = await ensure_stripe_customer(
-            db, ctx.tenant_id, ctx.user_id, stripe
-        )
+        async with db.acquire() as conn:
+            user_row = await conn.fetchrow(
+                "SELECT email FROM public.users WHERE id = $1",
+                ctx.user_id,
+            )
+            user_email = user_row["email"] if user_row else None
+            customer_id = await ensure_stripe_customer(
+                conn, ctx.tenant_id, user_email
+            )
 
         line_items = [
             {"price": settings.stripe_team_base_price_id, "quantity": 1},

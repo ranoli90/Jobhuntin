@@ -4,6 +4,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { useApplications } from "../../hooks/useApplications";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getApiBase, getAuthHeaders } from "../../lib/api";
@@ -37,12 +38,12 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
   };
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
       <Button
         variant="ghost"
         size="sm"
         className="h-8 w-8 p-0 hover:bg-slate-100"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
         aria-label="Actions menu"
         aria-expanded={isOpen}
       >
@@ -99,6 +100,7 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
 
 export default function ApplicationsView() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { applications, isLoading, answerHold, snoozeApplication, isSubmitting } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -107,6 +109,7 @@ export default function ApplicationsView() {
 
   const STATUS_FILTERS = [
     { label: 'All', value: null },
+    { label: 'Applying', value: 'APPLYING' },
     { label: 'Applied', value: 'APPLIED' },
     { label: 'Hold', value: 'HOLD' },
     { label: 'Failed', value: 'FAILED' },
@@ -140,6 +143,7 @@ export default function ApplicationsView() {
             method: 'POST',
             headers: await getAuthHeaders(),
           });
+          await queryClient.invalidateQueries({ queryKey: ["applications"] });
           pushToast({ title: "Marked as reviewed", description: "Application has been marked as reviewed.", tone: "success" });
           break;
         case 'snooze':
@@ -150,6 +154,7 @@ export default function ApplicationsView() {
             method: 'POST',
             headers: await getAuthHeaders(),
           });
+          await queryClient.invalidateQueries({ queryKey: ["applications"] });
           pushToast({ title: "Application withdrawn", description: "The application has been withdrawn.", tone: "info" });
           break;
         default:
@@ -158,7 +163,7 @@ export default function ApplicationsView() {
     } catch (error) {
       if (import.meta.env.DEV) console.error('Action failed:', error);
     }
-  }, [navigate, snoozeApplication]);
+  }, [navigate, snoozeApplication, queryClient]);
 
   if (isLoading) {
     return (

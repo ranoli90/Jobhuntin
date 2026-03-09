@@ -206,10 +206,11 @@ export function useOnboarding() {
   }, [isFirstStep]);
 
   const goToStep = useCallback((index: number) => {
-    if (index >= 0 && index < currentSteps.length) {
-      setCurrentStep(index);
-    }
-  }, [currentSteps.length]);
+    if (index < 0 || index >= currentSteps.length) return;
+    // Can't skip more than one step ahead - must complete steps in order
+    if (index > currentStep + 1) return;
+    setCurrentStep(index);
+  }, [currentSteps.length, currentStep]);
 
   useEffect(() => {
     saveState();

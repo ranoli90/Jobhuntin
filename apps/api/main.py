@@ -962,6 +962,12 @@ async def save_work_style(
     )
 
     async with db.acquire() as conn:
+        # Check if user has already saved work style (only add completeness on first save)
+        had_work_style = await conn.fetchval(
+            "SELECT 1 FROM public.work_style_profiles WHERE user_id = $1 LIMIT 1",
+            user_id,
+        )
+
         await conn.execute(
             """INSERT INTO public.work_style_profiles
                (user_id, autonomy_preference, learning_style, company_stage_preference,
@@ -986,13 +992,14 @@ async def save_work_style(
             body.career_trajectory,
         )
 
-        # Update profile completeness with proper capping at 100%
-        await conn.execute(
-            """UPDATE public.users SET profile_completeness =
-               LEAST(100, COALESCE(profile_completeness, 0) + 20)
-               WHERE id = $1""",
-            user_id,
-        )
+        # Update profile completeness only on first work style save
+        if not had_work_style:
+            await conn.execute(
+                """UPDATE public.users SET profile_completeness =
+                   LEAST(100, COALESCE(profile_completeness, 0) + 20)
+                   WHERE id = $1""",
+                user_id,
+            )
 
         # Sync work_style to profile_data JSONB so the scoring engine can read it
         existing = await conn.fetchrow(

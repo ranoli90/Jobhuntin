@@ -49,11 +49,12 @@ export function useBilling() {
   const status = query.data?.status ?? null;
   const usage = query.data?.usage ?? null;
 
-  // M-11: Detect ?success=1 param (from Stripe redirect) and celebrate
+  // M-11: Detect ?success=1 or ?success=true param (from Stripe redirect) and celebrate
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("success") === "1") {
+    const isSuccess = params.get("success") === "true" || params.get("success") === "1";
+    if (isSuccess) {
       pushToast({
         title: "Upgrade successful! 🎉",
         description: "Your new plan is now active. It may take a moment to fully reflect.",

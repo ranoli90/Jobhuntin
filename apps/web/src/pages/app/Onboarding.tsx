@@ -276,46 +276,28 @@ export default function Onboarding() {
     }
   }, [currentStepData.id]);
 
-  // Restore data from formData on mount and step changes (for back navigation persistence)
+  // Restore local state from formData on mount and step changes (for back navigation persistence)
+  // Only restores; does NOT call updateFormData to avoid dependency loop
   React.useEffect(() => {
-    // Atomic state update to prevent race conditions
-    const updates: any = {};
-    
-    // Restore linkedinUrl
     if (formData.linkedinUrl && linkedinUrl !== formData.linkedinUrl) {
-      updates.linkedinUrl = formData.linkedinUrl;
+      setLinkedinUrl(formData.linkedinUrl);
     }
-    // Restore workStyleAnswers
     if (formData.workStyleAnswers && JSON.stringify(workStyleAnswers) !== JSON.stringify(formData.workStyleAnswers)) {
-      updates.workStyleAnswers = formData.workStyleAnswers;
+      setWorkStyleAnswers(formData.workStyleAnswers);
     }
-    // Restore parsed resume data
     if (formData.parsedResume && (!parsedResume || JSON.stringify(parsedResume) !== JSON.stringify(formData.parsedResume))) {
-      updates.parsedResume = formData.parsedResume;
+      setParsedResume(formData.parsedResume);
     }
-    // Restore parsed profile
     if (formData.parsedProfile && (!parsedProfile || JSON.stringify(parsedProfile) !== JSON.stringify(formData.parsedProfile))) {
-      updates.parsedProfile = formData.parsedProfile;
+      setParsedProfile(formData.parsedProfile);
     }
-    // Restore rich skills
     if (formData.richSkills && (!richSkills.length || JSON.stringify(richSkills) !== JSON.stringify(formData.richSkills))) {
-      updates.richSkills = formData.richSkills;
+      setRichSkills(formData.richSkills);
     }
-    // Restore parsing preview state
     if (formData.showParsingPreview !== undefined && showParsingPreview !== formData.showParsingPreview) {
-      updates.showParsingPreview = formData.showParsingPreview;
+      setShowParsingPreview(formData.showParsingPreview);
     }
-    
-    // Sync contactInfo, preferences, linkedinUrl to formData for persistence
-    updates.contactInfo = contactInfo;
-    updates.preferences = preferences;
-    updates.linkedinUrl = linkedinUrl;
-    
-    // Single atomic update to prevent race conditions
-    if (Object.keys(updates).length > 0) {
-      updateFormData(updates);
-    }
-  }, [currentStep, formData, contactInfo, preferences, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview]);
+  }, [currentStep, formData, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview]);
 
   const triggerHaptic = (type: 'success' | 'warning' | 'light' = 'light') => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -394,10 +376,20 @@ export default function Onboarding() {
     }
   }, [profile?.contact, profile?.email]);
 
-  // Sync internal states to useOnboarding's formData for refresh persistence
+  // Persist internal states to useOnboarding's formData for refresh persistence
+  // Separate from restore effect to avoid dependency loop (formData not in deps)
   React.useEffect(() => {
-    updateFormData({ contactInfo, preferences, linkedinUrl });
-  }, [contactInfo, preferences, linkedinUrl, updateFormData]);
+    updateFormData({
+      contactInfo,
+      preferences,
+      linkedinUrl,
+      workStyleAnswers,
+      parsedResume,
+      parsedProfile,
+      richSkills,
+      showParsingPreview,
+    });
+  }, [contactInfo, preferences, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview, updateFormData]);
 
   // Remember Me - Welcome Back (OB-7 fix: only once per browser session, skipped on step 0)
   React.useEffect(() => {

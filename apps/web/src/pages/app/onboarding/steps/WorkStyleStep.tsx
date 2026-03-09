@@ -3,18 +3,19 @@ import { ArrowLeft, ArrowRight, Brain, Check, Rocket, Users, Compass, Microscope
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../../../../components/ui/Button";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
-import { BehavioralQuestion, WorkStyleProfile } from "../../../../types/onboarding";
+import { WorkStyleProfile } from "../../../../types/onboarding";
 import { t, getLocale } from "../../../../lib/i18n";
 
-const getBehavioralQuestions = (locale: string): BehavioralQuestion[] => [
+// Raw API values as keys - options use value for state, label for display (i18n-safe)
+const getBehavioralQuestions = (locale: string): Array<{ id: string; question: string; options: { value: string; label: string }[]; maps_to: string }> => [
     {
         id: "blocked_dependency",
         question: t("onboarding.workStyleQuestion1", locale),
         options: [
-            t("onboarding.workStyleQ1Option1", locale),
-            t("onboarding.workStyleQ1Option2", locale),
-            t("onboarding.workStyleQ1Option3", locale),
-            t("onboarding.workStyleQ1Option4", locale)
+            { value: "high", label: t("onboarding.workStyleQ1Option1", locale) },
+            { value: "medium", label: t("onboarding.workStyleQ1Option2", locale) },
+            { value: "low", label: t("onboarding.workStyleQ1Option3", locale) },
+            { value: "medium", label: t("onboarding.workStyleQ1Option4", locale) }
         ],
         maps_to: "autonomy_preference"
     },
@@ -22,10 +23,10 @@ const getBehavioralQuestions = (locale: string): BehavioralQuestion[] => [
         id: "learning_new_tech",
         question: t("onboarding.workStyleQuestion2", locale),
         options: [
-            t("onboarding.workStyleQ2Option1", locale),
-            t("onboarding.workStyleQ2Option2", locale),
-            t("onboarding.workStyleQ2Option3", locale),
-            t("onboarding.workStyleQ2Option4", locale)
+            { value: "docs", label: t("onboarding.workStyleQ2Option1", locale) },
+            { value: "building", label: t("onboarding.workStyleQ2Option2", locale) },
+            { value: "pairing", label: t("onboarding.workStyleQ2Option3", locale) },
+            { value: "courses", label: t("onboarding.workStyleQ2Option4", locale) }
         ],
         maps_to: "learning_style"
     },
@@ -33,10 +34,10 @@ const getBehavioralQuestions = (locale: string): BehavioralQuestion[] => [
         id: "company_stage",
         question: t("onboarding.workStyleQuestion3", locale),
         options: [
-            t("onboarding.workStyleQ3Option1", locale),
-            t("onboarding.workStyleQ3Option2", locale),
-            t("onboarding.workStyleQ3Option3", locale),
-            t("onboarding.workStyleQ3Option4", locale)
+            { value: "early_startup", label: t("onboarding.workStyleQ3Option1", locale) },
+            { value: "growth", label: t("onboarding.workStyleQ3Option2", locale) },
+            { value: "enterprise", label: t("onboarding.workStyleQ3Option3", locale) },
+            { value: "flexible", label: t("onboarding.workStyleQ3Option4", locale) }
         ],
         maps_to: "company_stage_preference"
     },
@@ -44,10 +45,10 @@ const getBehavioralQuestions = (locale: string): BehavioralQuestion[] => [
         id: "communication_style",
         question: t("onboarding.workStyleQuestion4", locale),
         options: [
-            t("onboarding.workStyleQ4Option1", locale),
-            t("onboarding.workStyleQ4Option2", locale),
-            t("onboarding.workStyleQ4Option3", locale),
-            t("onboarding.workStyleQ4Option4", locale)
+            { value: "async", label: t("onboarding.workStyleQ4Option1", locale) },
+            { value: "sync", label: t("onboarding.workStyleQ4Option2", locale) },
+            { value: "mixed", label: t("onboarding.workStyleQ4Option3", locale) },
+            { value: "flexible", label: t("onboarding.workStyleQ4Option4", locale) }
         ],
         maps_to: "communication_style"
     },
@@ -55,10 +56,10 @@ const getBehavioralQuestions = (locale: string): BehavioralQuestion[] => [
         id: "work_pace",
         question: t("onboarding.workStyleQuestion5", locale),
         options: [
-            t("onboarding.workStyleQ5Option1", locale),
-            t("onboarding.workStyleQ5Option2", locale),
-            t("onboarding.workStyleQ5Option3", locale),
-            t("onboarding.workStyleQ5Option4", locale)
+            { value: "fast", label: t("onboarding.workStyleQ5Option1", locale) },
+            { value: "steady", label: t("onboarding.workStyleQ5Option2", locale) },
+            { value: "methodical", label: t("onboarding.workStyleQ5Option3", locale) },
+            { value: "flexible", label: t("onboarding.workStyleQ5Option4", locale) }
         ],
         maps_to: "pace_preference"
     },
@@ -66,10 +67,10 @@ const getBehavioralQuestions = (locale: string): BehavioralQuestion[] => [
         id: "ownership_style",
         question: t("onboarding.workStyleQuestion6", locale),
         options: [
-            t("onboarding.workStyleQ6Option1", locale),
-            t("onboarding.workStyleQ6Option2", locale),
-            t("onboarding.workStyleQ6Option3", locale),
-            t("onboarding.workStyleQ6Option4", locale)
+            { value: "solo", label: t("onboarding.workStyleQ6Option1", locale) },
+            { value: "team", label: t("onboarding.workStyleQ6Option2", locale) },
+            { value: "lead", label: t("onboarding.workStyleQ6Option3", locale) },
+            { value: "flexible", label: t("onboarding.workStyleQ6Option4", locale) }
         ],
         maps_to: "ownership_preference"
     }
@@ -86,45 +87,6 @@ const getTrajectoryQuestion = (locale: string) => ({
         { value: "open", label: t("onboarding.workStyleQ7Option5", locale) }
     ]
 });
-
-const VALUE_MAPS: Record<string, Record<string, string>> = {
-    autonomy_preference: {
-        "Build a workaround and move forward": "high",
-        "Escalate to get unblocked": "medium",
-        "Document the blocker and wait": "low",
-        "Pick up other work while waiting": "medium"
-    },
-    learning_style: {
-        "Read docs thoroughly first": "docs",
-        "Build something small immediately": "building",
-        "Pair with someone experienced": "pairing",
-        "Take a structured course": "courses"
-    },
-    company_stage_preference: {
-        "Early-stage startup (chaos, ownership)": "early_startup",
-        "Growth-stage company (scaling, process)": "growth",
-        "Enterprise (stability, specialization)": "enterprise",
-        "No strong preference": "flexible"
-    },
-    communication_style: {
-        "Async (Slack, docs, PRs)": "async",
-        "Real-time (meetings, pairing)": "sync",
-        "Mixed depending on urgency": "mixed",
-        "Whatever the team prefers": "flexible"
-    },
-    pace_preference: {
-        "Fast (ship fast, iterate)": "fast",
-        "Steady (predictable sprints)": "steady",
-        "Methodical (thorough before shipping)": "methodical",
-        "Varies by project": "flexible"
-    },
-    ownership_preference: {
-        "Solo (end-to-end ownership)": "solo",
-        "Team (collaborative ownership)": "team",
-        "Lead (guide others, delegate)": "lead",
-        "Mix depending on scope": "flexible"
-    }
-};
 
 // Work style archetype definitions
 interface Archetype {
@@ -189,21 +151,9 @@ export function WorkStyleStep({
     const progress = (answeredCount / totalQuestions) * 100;
     const isComplete = answeredCount >= 4;
 
-    const handleAnswer = (questionId: string, option: string, mapsTo: string) => {
-        let value = option;
-
-        // For trajectory, use the value directly
-        if (questionId === "career_trajectory") {
-            value = option;
-        } else {
-            // For behavioral questions, map to the profile value
-            const valueMap = VALUE_MAPS[mapsTo];
-            if (valueMap && valueMap[option]) {
-                value = valueMap[option];
-            }
-        }
-
-        setAnswers(prev => ({ ...prev, [mapsTo]: value }));
+    const handleAnswer = (questionId: string, optionValue: string, mapsTo: string) => {
+        // optionValue is already the raw API value (from options[].value)
+        setAnswers(prev => ({ ...prev, [mapsTo]: optionValue }));
 
         if (currentQuestion < totalQuestions - 1) {
             // Skip to next unanswered question instead of blindly incrementing
@@ -274,47 +224,26 @@ export function WorkStyleStep({
 
                         <div className="space-y-2 md:space-y-3">
                             {"options" in question && question.options.length > 0 && (
-                                typeof question.options[0] === "string"
-                                    ? (question.options as string[]).map((option) => {
-                                        const isSelected = answers[question.maps_to] === VALUE_MAPS[question.maps_to]?.[option];
-                                        return (
-                                            <button
-                                                key={option}
-                                                onClick={() => handleAnswer(question.id, option, question.maps_to)}
-                                                className={`w-full p-3 md:p-4 rounded-xl text-left transition-all border-2 ${isSelected
-                                                    ? "border-emerald-500 bg-emerald-50 scale-[1.02] shadow-md"
-                                                    : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50 active:scale-[0.98]"
-                                                    }`}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-sm md:text-base font-medium text-slate-700">{option}</span>
-                                                    {isSelected && (
-                                                        <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
-                                                    )}
-                                                </div>
-                                            </button>
-                                        );
-                                    })
-                                    : (question.options as { value: string; label: string }[]).map((option) => {
-                                        const isSelected = answers[question.maps_to] === option.value;
-                                        return (
-                                            <button
-                                                key={option.value}
-                                                onClick={() => handleAnswer(question.id, option.value, question.maps_to)}
-                                                className={`w-full p-3 md:p-4 rounded-xl text-left transition-all border-2 ${isSelected
-                                                    ? "border-emerald-500 bg-emerald-50 scale-[1.02] shadow-md"
-                                                    : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50 active:scale-[0.98]"
-                                                    }`}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-sm md:text-base font-medium text-slate-700">{option.label}</span>
-                                                    {isSelected && (
-                                                        <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
-                                                    )}
-                                                </div>
-                                            </button>
-                                        );
-                                    })
+                                (question.options as { value: string; label: string }[]).map((option) => {
+                                    const isSelected = answers[question.maps_to] === option.value;
+                                    return (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => handleAnswer(question.id, option.value, question.maps_to)}
+                                            className={`w-full p-3 md:p-4 rounded-xl text-left transition-all border-2 ${isSelected
+                                                ? "border-emerald-500 bg-emerald-50 scale-[1.02] shadow-md"
+                                                : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50 active:scale-[0.98]"
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm md:text-base font-medium text-slate-700">{option.label}</span>
+                                                {isSelected && (
+                                                    <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })
                             )}
                         </div>
                     </motion.div>

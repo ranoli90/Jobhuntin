@@ -159,9 +159,9 @@ export function ResumeStep({
             e.target.value = "";
             return;
         }
-        const allowedTypes = ['application/pdf'];
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         if (file && !allowedTypes.includes(file.type)) {
-            setResumeError("Please upload a PDF file");
+            setResumeError("Please upload a PDF or Word document");
             e.target.value = "";
             return;
         }
@@ -238,7 +238,7 @@ export function ResumeStep({
             <div className="mb-6 relative group">
                 <input
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.docx,.doc,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     onChange={handleFileSelect}
                     className="hidden"
                     id="resume-upload"

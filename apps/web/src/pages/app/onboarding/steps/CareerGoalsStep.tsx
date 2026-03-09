@@ -65,8 +65,6 @@ export function CareerGoalsStep({
 }: CareerGoalsStepProps) {
     const locale = getLocale();
 
-    const isMinimumComplete = careerGoals.experience_level && careerGoals.urgency;
-
     return (
         <div className="flex flex-col h-full">
             <div className="flex-1">
@@ -220,7 +218,7 @@ export function CareerGoalsStep({
                 <Button
                     type="button"
                     onClick={onNext}
-                    disabled={!isMinimumComplete || isSaving}
+                    disabled={isSaving || !careerGoals.experience_level || !careerGoals.urgency}
                     className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 shadow-lg shadow-primary-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
                     aria-label={t("onboarding.saveContinue", locale) || "Save & Continue"}
                     data-onboarding-next

@@ -1,12 +1,11 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download, Trash2, AlertTriangle } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download, Trash2, AlertTriangle, Ban, Tag } from "lucide-react";
 import { useProfile } from "../hooks/useProfile";
 import { t, getLocale } from "../lib/i18n";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
-import { ReAuthModal } from "../components/ui/ReAuthModal";
 import { pushToast } from "../lib/toast";
 import { getApiBase, getAuthHeaders } from "../lib/api";
 import { telemetry } from "../lib/telemetry";
@@ -21,6 +20,8 @@ export default function Settings() {
     remote_only: false,
     work_authorized: true,
     visa_sponsorship: false,
+    excluded_companies: [] as string[],
+    excluded_keywords: [] as string[],
   });
   const [contactForm, setContactForm] = React.useState({
     full_name: "",
@@ -37,9 +38,7 @@ export default function Settings() {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = React.useState('');
-  const [showReAuthModal, setShowReAuthModal] = React.useState(false);
-  const [reAuthPassword, setReAuthPassword] = React.useState('');
-  const [reAuthError, setReAuthError] = React.useState('');
+  const [showExportConfirm, setShowExportConfirm] = React.useState(false);
 
   React.useEffect(() => {
     if (profile?.preferences) {
@@ -52,6 +51,8 @@ export default function Settings() {
         remote_only: p.remote_only ?? false,
         work_authorized: p.work_authorized ?? true,
         visa_sponsorship: p.visa_sponsorship ?? false,
+        excluded_companies: p.excluded_companies ?? [],
+        excluded_keywords: p.excluded_keywords ?? [],
       });
     }
   }, [profile?.preferences]);
@@ -77,6 +78,8 @@ export default function Settings() {
           remote_only: preferences.remote_only,
           work_authorized: preferences.work_authorized,
           visa_sponsorship: preferences.visa_sponsorship,
+          excluded_companies: preferences.excluded_companies?.length ? preferences.excluded_companies : undefined,
+          excluded_keywords: preferences.excluded_keywords?.length ? preferences.excluded_keywords : undefined,
         },
       });
       telemetry.track("preferences_saved", {});
@@ -207,37 +210,21 @@ export default function Settings() {
       setDeleteConfirmation('');
     }
   };
-  const handleExportData = async () => {
-    // Show re-authentication modal first
-    setShowReAuthModal(true);
+  const handleExportData = () => {
+    setShowExportConfirm(true);
   };
 
-  const handleReAuthExport = async (password: string) => {
+  const doExportData = async () => {
     setIsExporting(true);
-    setReAuthError('');
-    
+    setShowExportConfirm(false);
     try {
       const base = getApiBase();
       const headers = await getAuthHeaders();
-      
-      // Include password in headers for re-authentication
-      const authHeaders = {
-        ...headers,
-        'X-Re-Auth-Password': password,
-      };
-      
-      const res = await fetch(`${base.replace(/\/$/, "")}/me/export`, { 
-        headers: authHeaders, 
-        credentials: "include" 
+      const res = await fetch(`${base.replace(/\/$/, "")}/me/export`, {
+        headers,
+        credentials: "include",
       });
-      
-      if (res.status === 401) {
-        setReAuthError('Invalid password. Please try again.');
-        return;
-      }
-      
       if (!res.ok) throw new Error(res.statusText || "Export failed");
-      
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -245,25 +232,12 @@ export default function Settings() {
       a.download = `jobhuntin-data-export-${new Date().toISOString().slice(0, 10)}.ndjson`;
       a.click();
       URL.revokeObjectURL(url);
-      
-      telemetry.track("data_exported", { reauth_required: true });
+      telemetry.track("data_exported", {});
       pushToast({ title: "Data exported successfully", tone: "success" });
-      
-      // Close modal on success
-      setShowReAuthModal(false);
-      setReAuthPassword('');
-      
     } catch (error) {
       const err = error as Error;
-      if (import.meta.env.DEV) console.error('Export failed:', err);
-
-      if (err.message.includes('401') || err.message.includes('Unauthorized')) {
-        setReAuthError('Invalid password. Please try again.');
-      } else {
-        pushToast({ title: "Export failed", description: err.message, tone: "error" });
-        setShowReAuthModal(false);
-        setReAuthPassword('');
-      }
+      if (import.meta.env.DEV) console.error("Export failed:", err);
+      pushToast({ title: "Export failed", description: err.message, tone: "error" });
     } finally {
       setIsExporting(false);
     }
@@ -526,11 +500,51 @@ export default function Settings() {
                 </div>
               ))}
             </div>
+            <div>
+              <label htmlFor="settings-excluded-companies" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
+                <Ban className="h-4 w-4" aria-hidden /> Excluded companies
+              </label>
+              <input
+                id="settings-excluded-companies"
+                type="text"
+                placeholder="e.g. Acme Corp, Beta Inc (comma-separated)"
+                value={preferences.excluded_companies?.join(", ") ?? ""}
+                onChange={(e) =>
+                  setPreferences((p) => ({
+                    ...p,
+                    excluded_companies: e.target.value.split(",").map((c) => c.trim()).filter(Boolean),
+                  }))
+                }
+                className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
+              />
+              <p className="text-xs text-brand-ink/50 mt-1">Companies to exclude from job matches</p>
+            </div>
+            <div>
+              <label htmlFor="settings-excluded-keywords" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
+                <Tag className="h-4 w-4" aria-hidden /> Excluded keywords
+              </label>
+              <input
+                id="settings-excluded-keywords"
+                type="text"
+                placeholder="e.g. contract, freelance (comma-separated)"
+                value={preferences.excluded_keywords?.join(", ") ?? ""}
+                onChange={(e) =>
+                  setPreferences((p) => ({
+                    ...p,
+                    excluded_keywords: e.target.value.split(",").map((k) => k.trim()).filter(Boolean),
+                  }))
+                }
+                className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
+              />
+              <p className="text-xs text-brand-ink/50 mt-1">Keywords to exclude from job matches</p>
+            </div>
             <Button type="submit" disabled={isSaving}>
               {isSaving ? t("settings.saving", locale) : t("settings.savePreferences", locale)}
             </Button>
           </form>
         </Card>
+
+        {/* TODO: Dark mode / theme toggle - hidden behind feature flag for now (magic-link users may not need it) */}
 
         <Card tone="shell" shadow="lift" className="p-6">
           <h2 className="font-display text-xl mb-2">{t("settings.dataPrivacy", locale)}</h2>
@@ -608,26 +622,17 @@ export default function Settings() {
           isLoading={isDeleting}
         />
 
-        {/* Re-authentication Modal for Data Export */}
-        <ReAuthModal
-          isOpen={showReAuthModal}
-          onClose={() => {
-            setShowReAuthModal(false);
-            setReAuthPassword('');
-            setReAuthError('');
-          }}
-          onSuccess={() => {
-            // Get password from the modal's internal state
-            const passwordInput = document.getElementById('reauth-password') as HTMLInputElement;
-            const password = passwordInput?.value || '';
-            if (password) {
-              handleReAuthExport(password);
-            }
-          }}
-          title="Re-authentication Required"
-          description="For your security, please confirm your password to download your data export."
+        {/* Data Export Confirmation Modal - no password required (magic-link users don't have passwords) */}
+        <ConfirmModal
+          isOpen={showExportConfirm}
+          onClose={() => setShowExportConfirm(false)}
+          onConfirm={doExportData}
+          title="Export Your Data"
+          description="Are you sure you want to export your data? A file will be downloaded with your profile and application data."
+          confirmText="Export"
+          cancelText="Cancel"
+          variant="info"
           isLoading={isExporting}
-          error={reAuthError}
         />
       </div>
     </div>

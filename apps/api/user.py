@@ -469,7 +469,7 @@ async def undo_application(
 
 
 class AnswerHoldBody(BaseModel):
-    answer: str
+    answer: str = Field(..., min_length=1, max_length=5000)
 
 
 @router.post("/me/applications/{application_id}/answer")
@@ -629,9 +629,13 @@ async def withdraw_application(
     validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         app_row = await conn.fetchrow(
-            "SELECT status FROM public.applications WHERE id = $1 AND user_id = $2",
+            """
+            SELECT status FROM public.applications
+            WHERE id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)
+            """,
             application_id,
             ctx.user_id,
+            ctx.tenant_id,
         )
         if not app_row:
             raise HTTPException(status_code=404, detail="Application not found")
@@ -646,10 +650,11 @@ async def withdraw_application(
             """
             UPDATE public.applications
             SET    status = 'REJECTED', updated_at = now()
-            WHERE  id = $1 AND user_id = $2
+            WHERE  id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)
             """,
             application_id,
             ctx.user_id,
+            ctx.tenant_id,
         )
 
     return {"status": "withdrawn", "application_id": application_id}

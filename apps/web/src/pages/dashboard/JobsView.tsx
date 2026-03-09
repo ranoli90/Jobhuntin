@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useJobs, type JobFilters } from "../../hooks/useJobs";
+import { useProfile } from "../../hooks/useProfile";
 import { Button } from "../../components/ui/Button";
 
 import { Card } from "../../components/ui/Card";
@@ -7,6 +8,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { AnimatedNumber } from "./shared";
 import { Check, X, Undo2, Radar } from "lucide-react";
 import React, { useState, useCallback, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { apiPost } from "../../lib/api";
 import { pushToast } from "../../lib/toast";
 
@@ -16,14 +18,19 @@ interface SwipeRecord {
 }
 
 export default function JobsView() {
-    // Empty filters — dashboard shows all matching jobs
-    const filters: JobFilters = useMemo(() => ({}), []);
+    const { profile } = useProfile();
+    const filters: JobFilters = useMemo(() => ({
+        location: profile?.preferences?.location,
+        isRemote: profile?.preferences?.remote_only,
+        minSalary: profile?.preferences?.salary_min,
+    }), [profile?.preferences]);
     const { jobs, isLoading, refetch } = useJobs(filters);
     const shouldReduceMotion = useReducedMotion();
 
     // Local swipe state — tracks which jobs have been swiped and in which direction
     const [swipedJobs, setSwipedJobs] = useState<Map<string, SwipeRecord>>(new Map());
     const [submitting, setSubmitting] = useState<string | null>(null);
+    const [undoStack, setUndoStack] = useState<string[]>([]);
 
     const appliedCount = useMemo(
         () => [...swipedJobs.values()].filter((r) => r.direction === "accept").length,
@@ -51,9 +58,12 @@ export default function JobsView() {
                 next.set(jobId, { direction: action, timestamp: Date.now() });
                 return next;
             });
+            if (action === "reject") {
+                setUndoStack((prev) => [...prev.slice(-4), jobId].slice(-5));
+            }
 
             try {
-                await apiPost("/applications", {
+                await apiPost("/me/applications", {
                     job_id: jobId,
                     decision: action.toUpperCase(), // ACCEPT or REJECT
                 });
@@ -110,6 +120,12 @@ export default function JobsView() {
                 >
                     Refresh
                 </Button>
+                <Link
+                    to="/app/settings"
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 mt-3"
+                >
+                    Set up job alerts →
+                </Link>
             </div>
         );
     }
@@ -209,6 +225,21 @@ export default function JobsView() {
                 >
                     <X className="w-8 h-8" aria-hidden="true" />
                 </Button>
+                {undoStack.length > 0 && (
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="w-12 h-12 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        onClick={() => {
+                            const lastRejected = undoStack[undoStack.length - 1];
+                            setUndoStack(prev => prev.slice(0, -1));
+                            setSwipedJobs(prev => { const next = new Map(prev); next.delete(lastRejected); return next; });
+                        }}
+                        aria-label="Undo last skip"
+                    >
+                        <Undo2 className="w-5 h-5" />
+                    </Button>
+                )}
                 <Button
                     variant="outline"
                     size="icon"

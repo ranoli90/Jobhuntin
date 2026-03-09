@@ -67,6 +67,8 @@ export function ConfirmContactStep({
         // Validate phone number if provided
         if (formatted && !isValidPhoneNumber(formatted) && onSetFormError) {
             onSetFormError('phone', t("onboarding.phoneInvalid", locale) || 'Please enter a valid phone number');
+        } else if (onClearError) {
+            onClearError('phone');
         }
     };
 

@@ -43,9 +43,10 @@ export default function Dashboard() {
   const totalApps = applications.length || 1; // avoid /0
   const activeCount = byStatus.APPLYING + byStatus.APPLIED;
   const activeProgress = Math.min(100, Math.round((activeCount / totalApps) * 100));
-  const successProgress = Math.min(100, stats.successRate);
+  const appliedRate = applications.length > 0 ? Math.round((byStatus.APPLIED / applications.length) * 100) : 0;
+  const appliedProgress = Math.min(100, appliedRate);
   const holdProgress = Math.min(100, Math.round((byStatus.HOLD / totalApps) * 100));
-  const monthlyProgress = Math.min(100, Math.round((stats.monthlyApps / Math.max(stats.monthlyApps, 100)) * 100));
+  const totalProgress = Math.min(100, Math.round((applications.length / Math.max(applications.length, 100)) * 100));
 
   const metrics = [
     {
@@ -59,14 +60,14 @@ export default function Dashboard() {
       progress: activeProgress,
     },
     {
-      label: "Success Rate",
-      value: `${stats.successRate}%`,
+      label: "Applied Rate",
+      value: `${appliedRate}%`,
       icon: BarChart3,
       color: 'from-emerald-500 to-emerald-600',
       bg: 'bg-emerald-50',
       text: 'text-emerald-600',
       iconColor: 'text-emerald-500',
-      progress: successProgress,
+      progress: appliedProgress,
     },
     {
       label: "Needs Your Input",
@@ -80,13 +81,13 @@ export default function Dashboard() {
     },
     {
       label: "Total Applications",
-      value: stats.monthlyApps,
+      value: applications.length,
       icon: Zap,
       color: 'from-primary-500 to-primary-600',
       bg: 'bg-primary-50',
       text: 'text-primary-600',
       iconColor: 'text-primary-500',
-      progress: monthlyProgress,
+      progress: totalProgress,
     },
   ];
 
@@ -142,6 +143,16 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
+      {applications.length === 0 && !isLoading ? (
+        <Card className="p-8 text-center border-primary-100 bg-primary-50/30">
+          <Rocket className="h-12 w-12 text-primary-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Welcome to your dashboard!</h2>
+          <p className="text-slate-600 mb-6 max-w-md mx-auto">Start by reviewing jobs matched to your profile. Our AI agent will handle the rest.</p>
+          <Button onClick={() => navigate("/app/jobs")} className="bg-primary-600 hover:bg-primary-700 text-white">
+            <Rocket className="mr-2 h-4 w-4" /> Browse Jobs
+          </Button>
+        </Card>
+      ) : (
       <div className="-mx-1 overflow-x-auto pb-1 lg:mx-0">
         <div className="flex gap-2 md:grid md:grid-cols-2 xl:grid-cols-4 min-w-full px-1">
           {metrics.map((metric, index) => (
@@ -184,6 +195,7 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+      )}
 
       <div className="grid gap-3 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
@@ -274,7 +286,7 @@ export default function Dashboard() {
                             variant="ghost"
                             size="sm"
                             className="text-xs font-medium text-amber-600 hover:bg-amber-50 hover:text-amber-700 transition-colors"
-                            onClick={() => navigate("/app/applications")}
+                            onClick={() => navigate(`/app/applications/${app.id}`)}
                           >
                             Review
                           </Button>
@@ -297,6 +309,38 @@ export default function Dashboard() {
             </Card>
           </motion.div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <Card className="border-slate-200 bg-white" tone="glass">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-slate-500">Recent Activity</h3>
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/app/applications")}>View all</Button>
+                </div>
+                {recentApps.length === 0 ? (
+                  <p className="text-sm text-slate-400 text-center py-4">No applications yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {recentApps.map(app => (
+                      <div key={app.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs">{app.company?.charAt(0) || '?'}</div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">{app.company}</p>
+                            <p className="text-xs text-slate-500">{app.job_title}{app.last_activity ? ` · ${formatDate(app.last_activity, locale)}` : ''}</p>
+                          </div>
+                        </div>
+                        <Badge variant={statusVariant(app.status)} className="text-[10px]">{app.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
         </div>
 
         <div className="space-y-3">
@@ -328,8 +372,8 @@ export default function Dashboard() {
                     <span className="font-medium text-emerald-600 capitalize">{status?.subscription_status ?? "active"}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Success Rate</span>
-                    <span className="font-medium text-emerald-600">{stats.successRate}%</span>
+                    <span className="text-slate-500">Applied Rate</span>
+                    <span className="font-medium text-emerald-600">{appliedRate}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Next Billing</span>
