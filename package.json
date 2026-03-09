@@ -14,10 +14,12 @@
     "sonar:dry": "sonar-scanner -Dsonar.scanner.dumpToFile=sonar-report.json",
     "lint:python": "bash scripts/lint-python.sh",
     "audit:full": "node scripts/full-stack-audit.js",
-    "audit:full:skip-install": "node scripts/full-stack-audit.js --skip-install"
+    "audit:full:skip-install": "node scripts/full-stack-audit.js --skip-install",
+    "audit": "node scripts/full-stack-audit.js --skip-install"
   },
   "devDependencies": {
     "@sonar/scan": "^4.3.4",
+    "hadolint": "^0.4.2",
     "turbo": "^1.10.0"
   },
   "overrides": {

@@ -9,9 +9,11 @@ const badgeVariants = cva(
       variant: {
         default: "bg-slate-100 text-slate-700 border-slate-200",
         primary: "bg-primary-100 text-primary-700 border-primary-200",
+        secondary: "bg-slate-100 text-slate-700 border-slate-200",
         success: "bg-success-100 text-success-700 border-success-200",
         warning: "bg-warning-100 text-warning-700 border-warning-200",
         error: "bg-error-100 text-error-700 border-error-200",
+        destructive: "bg-red-100 text-red-700 border-red-200",
         outline: "bg-white text-slate-700 border-slate-300",
         lagoon: "bg-cyan-50 text-cyan-700 border-cyan-200",
         mango: "bg-amber-50 text-amber-700 border-amber-200",

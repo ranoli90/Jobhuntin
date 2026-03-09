@@ -278,7 +278,7 @@ export default function InterviewSimulatorPage() {
                       </Badge>
                       <span className="ml-2">
                         <Clock className="w-4 h-4" />
-                        {new Date(session.created_at).toLocaleDateString(locale)}
+                        {session.created_at ? new Date(session.created_at).toLocaleDateString(locale) : ""}
                       </span>
                     </div>
                   </div>

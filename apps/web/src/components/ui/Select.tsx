@@ -1,5 +1,5 @@
 import React from "react";
-export const Select = ({ children, value, onValueChange, ...props }: { children: React.ReactNode; value?: string; onValueChange?: (value: string) => void; [key: string]: any }) => (
+export const Select = ({ children, value, onValueChange, ...props }: { children: React.ReactNode; value?: string; onValueChange?: (value: string) => void; [key: string]: unknown }) => (
   <div {...props}>{children}</div>
 );
 export const SelectTrigger = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (

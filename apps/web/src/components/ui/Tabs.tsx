@@ -1,6 +1,6 @@
 import React from "react";
 
-export const Tabs = ({ children, className = "", defaultValue, ...props }: { children: React.ReactNode; className?: string; defaultValue?: string; [key: string]: any }) => (
+export const Tabs = ({ children, className = "", defaultValue, ...props }: { children: React.ReactNode; className?: string; defaultValue?: string; [key: string]: unknown }) => (
   <div className={`${className}`} data-default-value={defaultValue} {...props}>{children}</div>
 );
 

@@ -29,3 +29,29 @@ See `Makefile` for canonical commands. Key additions:
 - Python tests: `PYTHONPATH=apps:packages:. pytest tests/ -v -s --tb=short`
 - Web build: `cd apps/web && npx vite build`
 - Web types: `cd apps/web && npx tsc --noEmit`
+
+### Full-Stack Quality / Debugging Tools (no sign-up required)
+
+Run `npm run audit` or `make audit` to execute all tools. Installed tools:
+
+| Category | Tool | Purpose |
+|----------|------|---------|
+| **Python** | ruff | Lint, style |
+| | mypy | Type checking |
+| | bandit | Security (SQL injection, hardcoded secrets, etc.) |
+| | pip-audit | Dependency vulnerabilities |
+| | semgrep | Security, bugs, anti-patterns |
+| | vulture | Dead code detection |
+| | radon | Cyclomatic complexity |
+| | deptry | Dependency consistency |
+| | detect-secrets | Secret detection |
+| | flake8 | Style (legacy, ruff preferred) |
+| **Web** | TypeScript (tsc) | Type checking |
+| | ESLint | Lint, security, accessibility |
+| | depcheck | Unused dependencies |
+| | knip | Dead code, unused exports |
+| | type-coverage | TypeScript coverage |
+| | npm audit | Dependency vulnerabilities |
+| **Docker** | hadolint | Dockerfile best practices |
+
+Install Python tools: `pip install -r requirements-dev.txt`
