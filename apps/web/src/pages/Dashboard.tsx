@@ -21,6 +21,7 @@ import { telemetry } from "../lib/telemetry";
 import { useProfile } from "../hooks/useProfile";
 import { sanitizeHtml } from "../lib/utils";
 import { ErrorBoundary } from "../components/ErrorBoundary";
+import { useKeyboardShortcuts, COMMON_SHORTCUTS } from "../hooks/useKeyboardShortcuts";
 
 // N-10: Centralised status → Badge variant mapping
 function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
@@ -230,6 +231,37 @@ export default function Dashboard() {
   
   // M6: Accessibility - Ensure main content is focusable
   const mainContentRef = React.useRef<HTMLDivElement>(null);
+  
+  // M8: Keyboard Navigation - Add keyboard shortcuts
+  useKeyboardShortcuts(
+    [
+      {
+        ...COMMON_SHORTCUTS.GO_TO_JOBS,
+        action: () => navigate("/app/jobs"),
+      },
+      {
+        ...COMMON_SHORTCUTS.GO_TO_APPLICATIONS,
+        action: () => navigate("/app/applications"),
+      },
+      {
+        ...COMMON_SHORTCUTS.GO_TO_SETTINGS,
+        action: () => navigate("/app/settings"),
+      },
+      {
+        key: "?",
+        shift: true,
+        action: () => {
+          pushToast({
+            title: "Keyboard Shortcuts",
+            description: "Ctrl+K: Search, Ctrl+J: Jobs, Ctrl+A: Applications, Ctrl+,: Settings, Esc: Close",
+            tone: "info",
+          });
+        },
+        description: "Show keyboard shortcuts",
+      },
+    ],
+    true
+  );
   
   // C4: Analytics Tracking - Track dashboard view
   React.useEffect(() => {

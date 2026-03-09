@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { LanguageSelector } from "../components/LanguageSelector";
+import { useKeyboardShortcuts, COMMON_SHORTCUTS } from "../hooks/useKeyboardShortcuts";
+import { KeyboardShortcutsHelp } from "../components/KeyboardShortcutsHelp";
 
 type NavItem = { label: string; to: string; icon: typeof LayoutDashboard; adminOnly?: boolean; badge?: string };
 
@@ -62,8 +64,36 @@ export default function AppLayout() {
   const { plan } = useBilling();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreExpanded, setMoreExpanded] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [, forceLocaleUpdate] = useState(0);
   const location = useLocation();
+  
+  // M8: Keyboard Navigation - Global keyboard shortcuts
+  useKeyboardShortcuts(
+    [
+      {
+        ...COMMON_SHORTCUTS.GO_TO_DASHBOARD,
+        action: () => location.pathname !== "/app/dashboard" && navigate("/app/dashboard"),
+      },
+      {
+        ...COMMON_SHORTCUTS.GO_TO_JOBS,
+        action: () => location.pathname !== "/app/jobs" && navigate("/app/jobs"),
+      },
+      {
+        ...COMMON_SHORTCUTS.GO_TO_APPLICATIONS,
+        action: () => location.pathname !== "/app/applications" && navigate("/app/applications"),
+      },
+      {
+        ...COMMON_SHORTCUTS.GO_TO_SETTINGS,
+        action: () => location.pathname !== "/app/settings" && navigate("/app/settings"),
+      },
+      {
+        ...COMMON_SHORTCUTS.HELP,
+        action: () => setShowKeyboardHelp(true),
+      },
+    ],
+    true
+  );
 
   useEffect(() => {
     const handler = () => forceLocaleUpdate((n) => n + 1);
@@ -344,6 +374,12 @@ export default function AppLayout() {
           </div>
         </nav>
       </div>
+      
+      {/* M8: Keyboard shortcuts help modal */}
+      <KeyboardShortcutsHelp
+        isOpen={showKeyboardHelp}
+        onClose={() => setShowKeyboardHelp(false)}
+      />
     </div>
   );
 }
