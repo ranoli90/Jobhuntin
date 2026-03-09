@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from typing import Any
+from typing import Any, cast
 
 import asyncpg
 
@@ -56,7 +56,7 @@ async def get_variant(
         subject_id,
     )
     if existing is not None:
-        return existing
+        return str(existing)
 
     # Deterministic hash-based assignment
     hash_input = f"{experiment_key}:{subject_id}"
@@ -91,7 +91,7 @@ async def get_variant(
         assigned_variant,
         experiment_key,
     )
-    return assigned_variant
+    return cast(str, assigned_variant)
 
 
 async def get_variant_for_tenant(
@@ -100,7 +100,8 @@ async def get_variant_for_tenant(
     tenant_id: str,
 ) -> str | None:
     """Convenience wrapper: get variant for a tenant subject."""
-    return await get_variant(conn, experiment_key, tenant_id, subject_type="TENANT")
+    result = await get_variant(conn, experiment_key, tenant_id, subject_type="TENANT")
+    return result
 
 
 async def get_variant_for_user(

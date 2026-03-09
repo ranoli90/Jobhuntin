@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import json
-from typing import Any
+from typing import Any, cast
 
 import asyncpg
 
@@ -86,15 +86,18 @@ async def build_debug_bundle(
             ed["payload"] = redact_event_payload(payload)
         redacted_events.append(ed)
 
-    return _serialize(
-        {
-            "application": app_dict,
-            "events": redacted_events,
-            "inputs": [dict(i) for i in inputs],
-            "evaluations": [dict(ev) for ev in evaluations],
-            "analytics_events": [dict(a) for a in analytics],
-            "experiment_assignments": assignments,
-        }
+    return cast(
+        dict[str, Any] | None,
+        _serialize(
+            {
+                "application": app_dict,
+                "events": redacted_events,
+                "inputs": [dict(i) for i in inputs],
+                "evaluations": [dict(ev) for ev in evaluations],
+                "analytics_events": [dict(a) for a in analytics],
+                "experiment_assignments": assignments,
+            }
+        ),
     )
 
 

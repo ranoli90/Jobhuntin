@@ -241,7 +241,7 @@ def deduplicate_jobs(
 
 def merge_job_sources(
     sources: list[tuple[list[dict], str]],
-) -> tuple[list[JobListing], dict[str, int]]:
+) -> tuple[list[JobListing], dict[str, dict[str, int]]]:
     """Merge jobs from multiple sources with deduplication.
 
     Args:
@@ -252,7 +252,7 @@ def merge_job_sources(
 
     """
     all_unique: list[JobListing] = []
-    stats: dict[str, int] = {}
+    stats: dict[str, dict[str, int]] = {}
 
     for jobs, source in sources:
         unique, duplicates = deduplicate_jobs(jobs, source, all_unique)

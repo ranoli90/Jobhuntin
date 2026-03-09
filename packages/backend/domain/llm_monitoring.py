@@ -135,18 +135,17 @@ class LLMModelMonitor:
 
     _instance: LLMModelMonitor | None = None
     _lock = threading.Lock()
+    _models: dict[str, ModelMetrics]
+    _model_pricing: dict[str, dict[str, float]]
 
     def __new__(cls) -> LLMModelMonitor:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    cls._instance = super().__new__(cls)
-                    cls._instance._models: dict[str, ModelMetrics] = defaultdict(
-                        ModelMetrics
-                    )
-                    cls._instance._model_pricing: dict[str, dict[str, float]] = (
-                        cls._default_pricing()
-                    )
+                    inst = super().__new__(cls)
+                    object.__setattr__(inst, "_models", defaultdict(ModelMetrics))
+                    object.__setattr__(inst, "_model_pricing", cls._default_pricing())
+                    cls._instance = inst
         return cls._instance
 
     @classmethod

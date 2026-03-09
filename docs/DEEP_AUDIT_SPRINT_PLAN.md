@@ -25,6 +25,16 @@
 - **useProfile.ts**, **Settings.tsx**: Accept DOCX/DOC in addition to PDF for resume upload.
 - **Onboarding.tsx**: Persist LinkedIn URL when leaving Resume step (handleResumeNext); no longer lost if user skips to later steps.
 
+## Quality Sprint: Mypy Fixes (March 2026)
+
+- **masking.py**: Annotate `result: dict[str, Any]` in `redact_event_payload`.
+- **pagination.py**: Make `PaginatedResult` generic; fix `decode_cursor` return; add `Generic[T]`.
+- **job_dedup.py**: Fix `stats` type to `dict[str, dict[str, int]]`; update `merge_job_sources` return type.
+- **llm_monitoring.py**: Declare `_models` and `_model_pricing`; use `object.__setattr__` in `__new__`.
+- **batch_processor.py**: Type `_rate_limit_tokens` as float; narrow `BaseException` in gather loop.
+- **debug.py**: Use `cast()` for `_serialize` return.
+- **experiments.py**: Fix `fetchval` return handling; add `cast` for `assigned_variant`.
+
 ## Quality Sprint: Test Schema Fixes (March 2026)
 
 - **migrations/015_tenant_slug_job_external_id.sql**: Add `tenants.slug`, `jobs.external_id`, `jobs.application_url`, `applications.attempt_count`.

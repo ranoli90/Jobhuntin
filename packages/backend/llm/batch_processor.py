@@ -69,7 +69,7 @@ class BatchProcessor:
     def __init__(self, config: BatchConfig | None = None):
         self.config = config or BatchConfig()
         self._semaphore = asyncio.Semaphore(self.config.max_concurrent)
-        self._rate_limit_tokens = self.config.rate_limit_per_minute
+        self._rate_limit_tokens: float = float(self.config.rate_limit_per_minute)
         self._last_refill = time.time()
 
     async def _acquire_rate_limit(self) -> bool:
@@ -79,7 +79,8 @@ class BatchProcessor:
         # Refill tokens based on elapsed time
         tokens_to_add = elapsed * (self.config.rate_limit_per_minute / 60.0)
         self._rate_limit_tokens = min(
-            self.config.rate_limit_per_minute, self._rate_limit_tokens + tokens_to_add
+            float(self.config.rate_limit_per_minute),
+            self._rate_limit_tokens + tokens_to_add,
         )
         self._last_refill = now
 
@@ -156,11 +157,12 @@ class BatchProcessor:
         # Process all tasks and collect results
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        for result in results:
-            if isinstance(result, Exception):
+        for raw in results:
+            if isinstance(raw, BaseException):
                 summary.failed += 1
-                summary.results.append(BatchResult(success=False, error=str(result)))
+                summary.results.append(BatchResult(success=False, error=str(raw)))
             else:
+                result: BatchResult = raw
                 summary.results.append(result)
                 if result.success:
                     summary.successful += 1

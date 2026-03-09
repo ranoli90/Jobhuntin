@@ -6,7 +6,7 @@ import base64
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -79,10 +79,10 @@ class PageInfo:
 
 
 @dataclass
-class PaginatedResult:
+class PaginatedResult(Generic[T]):
     """Paginated result with items and page info."""
 
-    items: list[Any]
+    items: list[T]
     page_info: PageInfo
     extra: dict[str, Any] = field(default_factory=dict)
 
@@ -121,7 +121,8 @@ def decode_cursor(cursor: str) -> dict[str, Any] | None:
     """Decode cursor string to data."""
     try:
         json_str = base64.urlsafe_b64decode(cursor.encode()).decode()
-        return json.loads(json_str)
+        data: dict[str, Any] = json.loads(json_str)
+        return data
     except Exception:
         return None
 
