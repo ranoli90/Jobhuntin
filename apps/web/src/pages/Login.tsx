@@ -408,11 +408,21 @@ export default function Login() {
                       id="login-email"
                       value={email}
                       onChange={(e) => {
-                        setEmail(e.target.value);
-                        const show = e.target.value.includes('@');
+                        const val = e.target.value.trimStart();
+                        setEmail(val);
+                        const show = val.includes('@');
                         setShowSuggestions(show);
                         if (show) setSuggestionHighlight(0);
                         if (formError) setFormError(null);
+                      }}
+                      onPaste={(e) => {
+                        const pasted = (e.clipboardData?.getData('text') || '').trim();
+                        if (pasted && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pasted)) {
+                          e.preventDefault();
+                          setEmail(pasted.toLowerCase());
+                          setShowSuggestions(false);
+                          setFormError(null);
+                        }
                       }}
                       onFocus={() => {
                         setFocused(true);

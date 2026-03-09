@@ -223,13 +223,13 @@ function UserJourneySection() {
                 <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 text-center">{s.title}</h3>
                 <p className="text-white/80 text-center font-medium">{s.sub}</p>
 
-                {/* Step rail - winding path feel */}
-                <div className="flex gap-3 mt-8">
+                {/* Step rail - dots aligned horizontally */}
+                <div className="flex justify-center items-center gap-3 sm:gap-4 mt-8">
                   {JOURNEY_STEPS.map((_, i) => (
                     <div
                       key={i}
                       className={cn(
-                        "w-3 h-3 rounded-full transition-all duration-300",
+                        "w-3 h-3 rounded-full shrink-0 transition-all duration-300",
                         i === step ? "scale-125 ring-2 ring-offset-2 ring-offset-[#2D2A26]" : "opacity-40"
                       )}
                       style={{
@@ -312,8 +312,8 @@ export default function Homepage() {
           <path className="hero-line hero-line-4" d="M-100 600 C350 500, 650 720, 950 560 S1250 420, 1540 520" stroke="#7B93DB" strokeOpacity="0.07" strokeWidth="1" fill="none" />
         </svg>
 
-        <img src="/illustrations/career-progress.svg" alt="" aria-hidden loading="lazy" className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
-        <img src="/illustrations/celebration.svg" alt="" aria-hidden loading="lazy" className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/career-progress.svg" alt="" aria-hidden loading="lazy" decoding="async" className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/celebration.svg" alt="" aria-hidden loading="lazy" decoding="async" className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
 
         <div className="relative max-w-[1080px] mx-auto px-6 pt-[140px] sm:pt-[180px] pb-[60px]">
           <div className="max-w-[680px] mx-auto text-center">
@@ -384,13 +384,6 @@ export default function Homepage() {
           </div>
         </div>
 
-        {/* Scroll cue */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-60" aria-hidden="true">
-          <span className="text-[11px] uppercase tracking-widest text-white/50">Scroll</span>
-          <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDuration: '2s' }} />
-          </div>
-        </div>
       </section>
 
       {/* ═══════════════════════════════════════════
@@ -403,6 +396,11 @@ export default function Homepage() {
             {['Google', 'Meta', 'Amazon', 'Microsoft', 'Apple', 'Netflix'].map(company => (
               <span key={company} className="text-lg font-bold text-[#2D2A26] tracking-tight">{company}</span>
             ))}
+          </div>
+          <div className="mt-6 text-center">
+            <Link to="/login" className="inline-flex items-center gap-2 h-11 px-6 rounded-xl text-[15px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all">
+              Start applying free <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
@@ -644,7 +642,7 @@ export default function Homepage() {
           <h2 className="text-[clamp(1.5rem,3vw,28px)] font-bold text-[#2D2A26] text-center mb-10 sm:mb-12" style={{ letterSpacing: '-0.5px' }}>
             Explore More
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-8">
             {[
               { label: 'Compare Tools', links: [{ text: 'vs LazyApply', to: '/vs/lazyapply' }, { text: 'vs Jobright', to: '/vs/jobright' }, { text: 'vs Simplify', to: '/vs/simplify' }, { text: 'vs Teal', to: '/vs/teal' }] },
               { label: 'Guides', links: [{ text: 'Beat ATS with AI', to: '/guides/how-to-beat-ats-with-ai' }, { text: 'Resume Tailoring', to: '/guides/resume-tailoring-guide' }, { text: 'Cover Letter Mastery', to: '/guides/ai-cover-letter-mastery' }, { text: 'All Guides', to: '/guides' }] },

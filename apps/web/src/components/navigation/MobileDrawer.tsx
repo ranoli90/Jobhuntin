@@ -114,13 +114,13 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
           aria-modal="true"
           aria-label="Navigation menu"
         >
-          {/* Backdrop - use onPointerDown for reliable close on touch devices */}
+          {/* Backdrop - tap/click to close menu */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm cursor-default"
+            className="absolute inset-0 z-[9998] bg-slate-900/50 backdrop-blur-sm cursor-pointer"
             onPointerDown={(e) => {
               if (e.target === e.currentTarget) {
                 e.preventDefault();
@@ -128,9 +128,10 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
               }
             }}
             onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onClose();
+              if (e.target === e.currentTarget) {
+                e.preventDefault();
+                onClose();
+              }
             }}
             role="button"
             tabIndex={-1}

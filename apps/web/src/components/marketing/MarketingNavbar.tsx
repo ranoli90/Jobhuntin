@@ -52,15 +52,14 @@ export function MarketingNavbar() {
   };
 
   const handleMobileNavClick = useCallback((path: string, hash: string | null) => {
+    closeMenu();
     if (hash && isHomePage) {
-      flushSync(() => closeMenu());
       const el = document.getElementById(hash);
       if (el) {
         setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 50);
       }
       return;
     }
-    flushSync(() => closeMenu());
     navigate(path);
   }, [closeMenu, isHomePage, navigate]);
 
@@ -144,7 +143,7 @@ export function MarketingNavbar() {
                 to="/login"
                 className="h-10 px-5 rounded-lg text-sm font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all flex items-center gap-2"
               >
-                Get 20 Free <ArrowRight className="w-4 h-4" />
+                Start free <ArrowRight className="w-4 h-4" />
               </Link>
             </>
           )}
@@ -230,17 +229,17 @@ export function MarketingNavbar() {
                 <button
                   type="button"
                   onClick={() => handleMobileNavClick('/login', null)}
-                  className="block w-full h-12 rounded-xl text-[15px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all flex items-center justify-center"
+                  className="block w-full h-12 rounded-xl text-[15px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all flex items-center justify-center gap-2"
                 >
-                  Start Free
+                  Start applying free <ArrowRight className="w-4 h-4" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleMobileNavClick('/login?mode=login', null)}
+                <Link
+                  to="/login?mode=login"
+                  onClick={() => closeMenu()}
                   className="block w-full h-12 rounded-xl text-[15px] font-medium border-2 border-[#E7E5E4] text-[#57534E] hover:border-[#D6D3D1] hover:bg-[#FAFAF9] transition-all flex items-center justify-center"
                 >
-                  Log in
-                </button>
+                  Already have an account? Log in
+                </Link>
               </>
             )}
           </div>

@@ -152,12 +152,6 @@ function StepVisual({ type, color }: { type: string; color: string }) {
                 <div className="h-2 w-full bg-white/20 rounded" />
                 <div className="h-2 w-4/5 bg-white/10 rounded" />
               </div>
-              {/* Cursor */}
-              <motion.div
-                className="absolute bottom-4 right-4 w-0.5 h-4 bg-violet-400"
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-              />
             </motion.div>
           </div>
         </div>
