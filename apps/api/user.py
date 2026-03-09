@@ -967,6 +967,26 @@ class ProfileUpdate(BaseModel):
     career_goals: dict | None = None
     work_style: dict | None = None
 
+    @field_validator("career_goals")
+    @classmethod
+    def _validate_career_goals(cls, value: dict | None) -> dict | None:
+        """Validate career_goals experience_level and urgency when provided."""
+        if value is None:
+            return None
+        allowed_exp = {"entry", "mid", "senior", "staff", "principal", "executive"}
+        allowed_urgency = {"passive", "casual", "active", "urgent"}
+        exp = value.get("experience_level")
+        if exp is not None and str(exp).lower() not in allowed_exp:
+            raise ValueError(
+                f"experience_level must be one of {sorted(allowed_exp)}"
+            )
+        urgency = value.get("urgency")
+        if urgency is not None and str(urgency).lower() not in allowed_urgency:
+            raise ValueError(
+                f"urgency must be one of {sorted(allowed_urgency)}"
+            )
+        return value
+
     @field_validator("avatar_url")
     @classmethod
     def _validate_avatar(cls, value: str | None) -> str | None:

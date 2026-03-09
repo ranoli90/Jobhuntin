@@ -129,10 +129,10 @@ export default function HoldsView() {
                       variant="ghost"
                       size="sm"
                       className="text-slate-500 hover:text-slate-600 font-bold text-xs uppercase"
-                      disabled={isSubmitting(`snooze-${app.id}`)}
+                      disabled={isSubmitting(app.id)}
                       onClick={() => snoozeApplication(app.id)}
                     >
-                      {isSubmitting(`snooze-${app.id}`) ? <LoadingSpinner className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />} Snooze 24h
+                      {isSubmitting(app.id) ? <LoadingSpinner className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />} Snooze 24h
                     </Button>
                     <Button
                       disabled={!answers[app.id] || isSubmitting(app.id)}

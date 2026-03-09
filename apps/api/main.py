@@ -1010,12 +1010,12 @@ async def save_work_style(
 
 @app.get("/me/dashboard")
 async def user_dashboard(
-    user_id: str = Depends(get_current_user_id),
+    ctx: TenantContext = Depends(get_tenant_context),
     db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """User dashboard data for mobile v3 home screen + widget."""
-    # TODO: applications table lacks tenant_id column per audit; add tenant_id filter when
-    # column is added for multi-tenant isolation
+    user_id = ctx.user_id
+    tenant_id = ctx.tenant_id
     async with db.acquire() as conn:
         counts = await conn.fetchrow(
             """SELECT
@@ -1026,16 +1026,19 @@ async def user_dashboard(
                 COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
                                  AND updated_at >= date_trunc('week', now()))::int AS completed_week,
                 COUNT(*)::int AS total_all_time
-               FROM public.applications WHERE user_id = $1""",
+               FROM public.applications
+               WHERE user_id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)""",
             user_id,
+            tenant_id,
         )
         recent = await conn.fetch(
             """SELECT a.id, j.title AS job_title, a.status::text, a.updated_at
                FROM public.applications a
                LEFT JOIN public.jobs j ON j.id = a.job_id
-               WHERE a.user_id = $1
+               WHERE a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
                ORDER BY a.updated_at DESC LIMIT 10""",
             user_id,
+            tenant_id,
         )
 
     return {

@@ -173,6 +173,59 @@ services:
         sync: false  # For caching worker results
     autoDeploy: true
 
+  # Cron: Job Alerts (daily)
+  - type: cron
+    name: jobhuntin-job-alerts-daily
+    env: python
+    schedule: "0 14 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. ALERT_FREQUENCY=daily python scripts/cron/process_job_alerts.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: env
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+      - key: ALERT_FREQUENCY
+        value: daily
+
+  # Cron: Job Alerts (weekly)
+  - type: cron
+    name: jobhuntin-job-alerts-weekly
+    env: python
+    schedule: "0 15 * * 1"
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. ALERT_FREQUENCY=weekly python scripts/cron/process_job_alerts.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: env
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+      - key: ALERT_FREQUENCY
+        value: weekly
+
+  # Cron: Weekly Email Digest (Mondays 9am UTC)
+  - type: cron
+    name: jobhuntin-weekly-digest
+    env: python
+    schedule: "0 9 * * 1"
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. python scripts/cron/run_weekly_digest.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: env
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: [REDACTED]
+
 # Environment Variables Setup Instructions:
 # 1. Go to your Render dashboard
 # 2. Add these environment variables to each service:

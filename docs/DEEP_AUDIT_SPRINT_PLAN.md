@@ -25,6 +25,15 @@
 - **useProfile.ts**, **Settings.tsx**: Accept DOCX/DOC in addition to PDF for resume upload.
 - **Onboarding.tsx**: Persist LinkedIn URL when leaving Resume step (handleResumeNext); no longer lost if user skips to later steps.
 
+## Sprint 3–5, 9 Implementation (March 2026)
+
+- **HoldsView.tsx**: Fix snooze loading — use `isSubmitting(app.id)` (hook uses app.id, not `snooze-${app.id}`).
+- **user.py**: Add career_goals validation (experience_level, urgency) in ProfileUpdate.
+- **Onboarding.tsx**: Work style skip — don't POST `/me/work-style` when answers are empty.
+- **render.yaml**: Add cron jobs for job alerts (daily 14:00, weekly Mon 15:00 UTC) and weekly digest (Mon 9:00 UTC).
+- **scripts/cron/**: Add `process_job_alerts.py`, `run_weekly_digest.py`.
+- **main.py**: Add tenant_id filter to `/me/dashboard` applications query.
+
 ---
 
 ## Executive Summary
@@ -305,22 +314,22 @@ Sprint 10 (Testing) — ongoing
 
 ## Part 6: Checklist — Quick Reference
 
-- [ ] Job sync worker deployed
-- [ ] Jobs feed returns match_score
-- [ ] Jobs feed supports sort_by
-- [ ] Profile assembly unified
-- [ ] user_skills merged into profile
-- [ ] DOCX accepted in resume upload
-- [ ] LinkedIn persisted in Resume step
-- [ ] Career goals backend validation
-- [ ] HoldsView snooze fixed
+- [x] Job sync worker deployed
+- [x] Jobs feed returns match_score
+- [x] Jobs feed supports sort_by
+- [x] Profile assembly unified
+- [x] user_skills merged into profile
+- [x] DOCX accepted in resume upload
+- [x] LinkedIn persisted in Resume step
+- [x] Career goals backend validation
+- [x] HoldsView snooze fixed
 - [ ] Billing upgrade UI
-- [ ] Job alerts cron
-- [ ] Email digest cron
+- [x] Job alerts cron
+- [x] Email digest cron
 - [ ] Follow-up reminders worker
 - [ ] Communication endpoints implemented
 - [ ] DLQ wired
-- [ ] tenant_id in applications
+- [x] tenant_id in applications (dashboard filter)
 
 ---
 

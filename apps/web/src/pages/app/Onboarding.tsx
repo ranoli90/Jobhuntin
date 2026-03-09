@@ -311,23 +311,22 @@ export default function Onboarding() {
     triggerHaptic('light');
     setIsSavingWorkStyle(true);
     try {
-      if (import.meta.env.DEV) console.log('[Onboarding] Saving work style:', workStyleAnswers);
-      await api.post("/me/work-style", workStyleAnswers);
-      if (import.meta.env.DEV) console.log('[Onboarding] Work style saved');
-      pushToast({ title: "Work style saved!", tone: "success" });
-
-      // Track AI learning event
-      telemetry.track("AI Learned Work Style", {
-        answersCount: Object.keys(workStyleAnswers).length,
-        hasAutonomyPreference: !!workStyleAnswers.autonomy_preference,
-        hasLearningStyle: !!workStyleAnswers.learning_style,
-        hasCompanyStagePreference: !!workStyleAnswers.company_stage_preference,
-        hasCommunicationStyle: !!workStyleAnswers.communication_style,
-        hasPacePreference: !!workStyleAnswers.pace_preference,
-        hasOwnershipPreference: !!workStyleAnswers.ownership_preference,
-        hasCareerTrajectory: !!workStyleAnswers.career_trajectory,
-      });
-
+      const hasAnswers = Object.keys(workStyleAnswers).some((k) => workStyleAnswers[k]);
+      if (hasAnswers) {
+        if (import.meta.env.DEV) console.log('[Onboarding] Saving work style:', workStyleAnswers);
+        await api.post("/me/work-style", workStyleAnswers);
+        pushToast({ title: "Work style saved!", tone: "success" });
+        telemetry.track("AI Learned Work Style", {
+          answersCount: Object.keys(workStyleAnswers).length,
+          hasAutonomyPreference: !!workStyleAnswers.autonomy_preference,
+          hasLearningStyle: !!workStyleAnswers.learning_style,
+          hasCompanyStagePreference: !!workStyleAnswers.company_stage_preference,
+          hasCommunicationStyle: !!workStyleAnswers.communication_style,
+          hasPacePreference: !!workStyleAnswers.pace_preference,
+          hasOwnershipPreference: !!workStyleAnswers.ownership_preference,
+          hasCareerTrajectory: !!workStyleAnswers.career_trajectory,
+        });
+      }
       nextStep();
     } catch (error) {
       const err = error as Error;
