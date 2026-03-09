@@ -144,22 +144,15 @@ class Settings(BaseSettings):
     @field_validator("adzuna_app_id", "adzuna_api_key")
     @classmethod
     def validate_adzuna_credentials(cls, v):
-        """Validate Adzuna API credentials are properly configured."""
-        if not v or v in (
+        """Adzuna is optional when JobSpy is primary. Empty/placeholder allowed."""
+        if v and v not in (
             "your-adzuna-app-id",
             "your-adzuna-api-key",
             "your-app-id",
             "your-api-key",
         ):
-            # Only validate in production/staging, allow empty in local development
-            import os
-
-            env = os.getenv("ENV", "local")
-            if env not in ("local",):
-                raise ValueError(
-                    "Adzuna credentials must be configured. Get them from https://developer.adzuna.com/overview"
-                )
-        return v
+            return v
+        return ""  # Allow empty - JobSpy is primary; Adzuna is optional fallback
 
     # ── JobSpy Job Aggregation (Replaces Adzuna) ──────────────────
     jobspy_enabled: bool = True
