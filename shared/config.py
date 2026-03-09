@@ -207,6 +207,8 @@ class Settings(BaseSettings):
     # ── Alerting v2 ──────────────────────────────────────────────
     pagerduty_api_key: str = ""
     pagerduty_service_id: str = ""
+    opsgenie_api_key: str = ""  # M10: Opsgenie integration
+    opsgenie_api_url: str = "https://api.opsgenie.com/v2/alerts"  # M10: Opsgenie API endpoint
     slack_webhook_url: str = ""
     slack_enterprise_channel: str = "#enterprise-alerts"
     slack_ops_channel: str = "#ops-alerts"

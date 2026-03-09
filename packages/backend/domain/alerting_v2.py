@@ -70,6 +70,84 @@ async def send_pagerduty_event(
 
 
 # ---------------------------------------------------------------------------
+# Opsgenie (M10: Alerting Integration)
+# ---------------------------------------------------------------------------
+
+
+async def send_opsgenie_alert(
+    message: str,
+    alias: str | None = None,
+    description: str | None = None,
+    priority: str = "P3",
+    tags: list[str] | None = None,
+    details: dict[str, Any] | None = None,
+) -> str | None:
+    """M10: Send an alert to Opsgenie.
+    
+    Args:
+        message: Alert message/title
+        alias: Unique identifier for deduplication
+        description: Detailed description
+        priority: P1 (Critical), P2 (High), P3 (Moderate), P4 (Low), P5 (Info)
+        tags: List of tags for filtering
+        details: Additional custom details
+        
+    Returns:
+        Alert ID if successful, None otherwise
+    """
+    from shared.config import get_settings
+    
+    s = get_settings()
+    if not s.opsgenie_api_key:
+        logger.debug("Opsgenie not configured — skipping alert")
+        return None
+
+    try:
+        import httpx
+
+        payload: dict[str, Any] = {
+            "message": message,
+            "priority": priority,
+        }
+        
+        if alias:
+            payload["alias"] = alias
+        if description:
+            payload["description"] = description
+        if tags:
+            payload["tags"] = tags
+        if details:
+            payload["details"] = details
+
+        headers = {
+            "Authorization": f"GenieKey {s.opsgenie_api_key}",
+            "Content-Type": "application/json",
+        }
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                s.opsgenie_api_url,
+                json=payload,
+                headers=headers,
+                timeout=10,
+            )
+            if resp.status_code in (200, 201, 202):
+                data = resp.json()
+                alert_id = data.get("data", {}).get("alertId") or data.get("requestId")
+                logger.info("Opsgenie alert created: %s", alert_id)
+                return alert_id
+            else:
+                logger.error("Opsgenie error %d: %s", resp.status_code, resp.text)
+                return None
+    except ImportError:
+        logger.warning("httpx not installed — Opsgenie disabled")
+        return None
+    except Exception as exc:
+        logger.error("Opsgenie send failed: %s", exc)
+        return None
+
+
+# ---------------------------------------------------------------------------
 # Slack
 # ---------------------------------------------------------------------------
 
@@ -276,7 +354,8 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
     # 4. Dispatch critical alerts
     for alert in alerts:
         if alert.get("level") == "critical":
-            await send_pagerduty_event(
+            # M10: Send to both PagerDuty and Opsgenie if configured
+            pagerduty_dedup = await send_pagerduty_event(
                 summary=alert.get("message", "Sorce alert"),
                 severity="critical",
                 details=alert,
@@ -292,14 +371,34 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
             )
 
     if rollback:
-        await send_pagerduty_event(
+        # M10: Send auto-rollback alerts to both PagerDuty and Opsgenie
+        pagerduty_dedup = await send_pagerduty_event(
             summary=f"AUTO-ROLLBACK: {rollback.get('reason')}",
             severity="critical",
             details=rollback,
         )
+        
+        opsgenie_id = await send_opsgenie_alert(
+            message=f"AUTO-ROLLBACK: {rollback.get('reason')}",
+            alias="auto-rollback",
+            description=f"Automatic rollback triggered: {rollback.get('reason')}",
+            priority="P1",  # Critical
+            tags=["auto-rollback", "critical", "agent"],
+            details={
+                **rollback,
+                "pagerduty_dedup": pagerduty_dedup,
+            },
+        )
+        
         await send_slack_message(
             text=f"🔄 *AUTO-ROLLBACK*: {rollback.get('reason')}",
             channel=get_settings().slack_ops_channel,
+        )
+        
+        logger.info(
+            "Auto-rollback alert dispatched: PagerDuty=%s, Opsgenie=%s",
+            pagerduty_dedup,
+            opsgenie_id,
         )
 
     for grad in graduated:
