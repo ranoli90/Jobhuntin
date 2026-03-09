@@ -521,11 +521,12 @@ async def latency_middleware(request: Request, call_next):
             },
         )
         
-            return response
-        except Exception as exc:
-            duration = time.time() - start_time
-            
-            # M4: Record exception in span
+        return response
+    except Exception as exc:
+        duration = time.time() - start_time
+        
+        # M4: Record exception in span
+        if span and span.get_span_context().is_valid:
             span.record_exception(exc)
             span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc)))
             span.set_attribute("http.status_code", 500)
