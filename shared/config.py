@@ -97,8 +97,9 @@ class Settings(BaseSettings):
 
     # ── Rate limiting / guardrails ───────────────────────────────
     max_applications_per_minute: int = 30
-    magic_link_requests_per_hour: int = 20
-    magic_link_rate_limit_window_seconds: int = 300
+    # H1: Rate Limiting Hardening - Reduced from 20 to 10 per hour to prevent enumeration
+    magic_link_requests_per_hour: int = 10
+    magic_link_rate_limit_window_seconds: int = 3600  # 1 hour window
     magic_link_token_ttl_seconds: int = 3600
     # H2: IP Binding - Bind magic link tokens to requesting IP (security feature)
     # When enabled, magic links can only be used from the IP that requested them

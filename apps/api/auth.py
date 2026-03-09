@@ -1086,22 +1086,44 @@ async def request_magic_link(
             detail="Too many requests. Please wait before requesting another magic link.",
         )
 
+    # H1: Rate Limiting Hardening - Enforce CAPTCHA for high-risk scenarios
+    # Check IP-based rate limit first (stricter for new IPs)
+    ip_limiter = get_rate_limiter(
+        f"magic_link_ip:{client_ip}",
+        max_calls=30,  # Reduced from 60 to 30 per hour
+        window_seconds=3600,
+    )
+    ip_request_count = ip_limiter.current_count()
+    requires_captcha = ip_request_count >= 5  # Require CAPTCHA after 5 requests from same IP
+    
+    # Also require CAPTCHA if email has hit rate limit recently
+    email_limiter = _get_rate_limiter(settings, body.email)
+    email_request_count = email_limiter.current_count()
+    if email_request_count >= settings.magic_link_requests_per_hour * 0.5:  # 50% of limit
+        requires_captcha = True
+    
+    if requires_captcha and not body.captcha_token:
+        logger.warning(
+            "CAPTCHA required but not provided",
+            extra={"email": _mask_email(body.email), "ip": client_ip, "ip_count": ip_request_count, "email_count": email_request_count},
+        )
+        raise HTTPException(
+            status_code=400,
+            detail="CAPTCHA verification required. Please complete the CAPTCHA and try again.",
+        )
+    
     if body.captcha_token:
         if not await _verify_captcha(settings, body.captcha_token, client_ip):
             raise HTTPException(status_code=400, detail="Invalid CAPTCHA token")
 
-    ip_limiter = get_rate_limiter(
-        f"magic_link_ip:{client_ip}",
-        max_calls=60,
-        window_seconds=3600,
-    )
+    # H1: Rate Limiting Hardening - Check IP rate limit (moved up, already checked above for CAPTCHA)
     if not await ip_limiter.acquire():
         retry_after = ip_limiter.next_available_in()
         logger.warning(
             "Magic link IP rate limit hit",
-            extra={"retry_after": retry_after},
+            extra={"retry_after": retry_after, "ip": client_ip},
         )
-        incr("auth.magic_link.ip_rate_limited", tags={})
+        incr("auth.magic_link.ip_rate_limited", tags={"ip": client_ip})
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait before requesting another magic link.",
