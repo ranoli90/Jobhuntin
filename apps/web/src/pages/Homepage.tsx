@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { magicLinkService } from '../services/magicLinkService';
 import { telemetry } from '../lib/telemetry';
-import { ArrowRight, MailCheck, Check, Briefcase, TrendingUp } from 'lucide-react';
+import { ArrowRight, MailCheck, Check, Briefcase, TrendingUp, Calendar, Clock, Eye, Sparkles } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
 import { FAQAccordion } from '../components/seo/FAQAccordion';
@@ -342,56 +342,67 @@ export default function Homepage() {
 
         {/* Hero product screenshot — warm, inviting card with personality */}
         <Reveal delay={200}>
-          <div className="relative max-w-[900px] mx-auto px-6 pb-[64px]">
-            {/* Warm gradient border glow */}
-            <div className="rounded-[20px] p-[1px] sm:p-[2px] transition-all duration-500 hover:shadow-[0_0_60px_rgba(255,159,28,0.15)]" style={{ background: 'linear-gradient(135deg, rgba(255,159,28,0.4) 0%, rgba(23,190,187,0.3) 50%, rgba(255,107,107,0.25) 100%)' }}>
-              <div className="rounded-[18px] overflow-hidden border border-white/20 shadow-[0_32px_64px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] hover:shadow-[0_40px_80px_rgba(0,0,0,0.55),0_0_40px_rgba(255,159,28,0.08)] transition-all duration-500 group">
+          <div className="relative max-w-[900px] mx-auto px-6 pb-[64px] perspective-[1200px]">
+            {/* Warm gradient border glow + subtle 3D tilt on hover */}
+            <div className="rounded-[20px] p-[1px] sm:p-[2px] transition-all duration-500 hover:shadow-[0_0_60px_rgba(255,159,28,0.2),0_0_100px_rgba(23,190,187,0.08)] [transform-style:preserve-3d] hover:[transform:rotateX(-2deg)_rotateY(1deg)_translateZ(8px)]" style={{ background: 'linear-gradient(135deg, rgba(255,159,28,0.5) 0%, rgba(23,190,187,0.35) 50%, rgba(255,107,107,0.3) 100%)' }}>
+              <div className="rounded-[18px] overflow-hidden border border-white/20 shadow-[0_32px_64px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] hover:shadow-[0_48px_96px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.05)] transition-all duration-500 group">
                 {/* Card: warm cream-to-peach gradient, feels human not corporate */}
                 <div className="p-[20px] sm:p-[32px] relative overflow-hidden" style={{ background: 'linear-gradient(165deg, #FFFBF7 0%, #FFF5ED 40%, #FFEFE3 100%)' }}>
                   {/* Subtle decorative mesh */}
                   <div className="absolute top-0 right-0 w-[200px] h-[200px] rounded-full opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle, #FF9F1C 0%, transparent 70%)' }} />
                   <div className="absolute bottom-0 left-0 w-[150px] h-[150px] rounded-full opacity-20 pointer-events-none" style={{ background: 'radial-gradient(circle, #17BEBB 0%, transparent 70%)' }} />
 
-                  {/* Stats: animated counters + warm, distinctive colors (no generic AI green/orange) */}
+                  {/* Stats: animated counters + gradient text for wins (23, 7) */}
                   <div className="grid grid-cols-3 gap-[12px] mb-[24px] relative" role="img" aria-label="Dashboard stats: 127 applied, 23 callbacks, 7 interviews">
                     {[
-                      { n: 127, l: "Applied", accent: "#2D2A26", bg: "rgba(45,42,38,0.06)", border: "rgba(45,42,38,0.12)" },
-                      { n: 23, l: "Callbacks", accent: "#0D9488", bg: "rgba(13,148,136,0.12)", border: "rgba(13,148,136,0.25)" },
-                      { n: 7, l: "Interviews", accent: "#C2410C", bg: "rgba(194,65,12,0.12)", border: "rgba(194,65,12,0.25)" },
+                      { n: 127, l: "Applied", gradient: false, accent: "#2D2A26", bg: "rgba(45,42,38,0.06)", border: "rgba(45,42,38,0.12)" },
+                      { n: 23, l: "Callbacks", gradient: true, gradientFrom: "#0D9488", gradientTo: "#14B8A6", bg: "rgba(13,148,136,0.12)", border: "rgba(13,148,136,0.25)" },
+                      { n: 7, l: "Interviews", gradient: true, gradientFrom: "#C2410C", gradientTo: "#EA580C", bg: "rgba(194,65,12,0.12)", border: "rgba(194,65,12,0.25)" },
                     ].map(s => (
                       <div key={s.l} className="rounded-[12px] p-[14px] sm:p-[18px] transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                        <div className="text-[24px] sm:text-[32px] font-bold leading-none tabular-nums" style={{ color: s.accent }}>
+                        <div
+                          className="text-[24px] sm:text-[32px] font-bold leading-none tabular-nums"
+                          style={s.gradient ? { background: `linear-gradient(135deg, ${s.gradientFrom}, ${s.gradientTo})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' } : { color: s.accent }}
+                        >
                           <Counter to={s.n} />
                         </div>
-                        <div className="text-[12px] mt-[8px] font-semibold" style={{ color: s.accent, opacity: 0.75 }}>{s.l}</div>
+                        <div className="text-[12px] mt-[8px] font-semibold" style={{ color: s.gradient ? s.gradientFrom : s.accent, opacity: 0.8 }}>{s.l}</div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Job list: company brand colors + playful status badges */}
+                  {/* Job list: staggered reveal + status icons + Interview row highlight */}
                   <div className="relative space-y-0">
                     {[
-                      { role: "Senior Frontend Engineer", co: "Stripe", status: "Interview", coColor: "#635BFF", statusStyle: "bg-[#0D9488] text-white border border-[#0D9488]/30 shadow-sm" },
-                      { role: "Product Manager", co: "Airbnb", status: "Applied", coColor: "#FF5A5F", statusStyle: "bg-[#FEF3C7] text-[#92400E] border border-amber-200" },
-                      { role: "Data Scientist", co: "Netflix", status: "Viewed", coColor: "#E50914", statusStyle: "bg-[#FED7AA] text-[#9A3412] border border-orange-200" },
-                      { role: "UX Designer", co: "Figma", status: "Applied", coColor: "#A259FF", statusStyle: "bg-[#FEF3C7] text-[#92400E] border border-amber-200" },
-                    ].map((r, i) => (
-                      <div key={i} className={cn("flex items-center gap-[12px] py-[12px] px-[4px] -mx-[4px] rounded-[10px] border-t border-[#F5E6DC] first:border-t-0 transition-colors hover:bg-white/60", i >= 3 && "hidden sm:flex")}>
-                        <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0" style={{ background: `${r.coColor}15` }}>
-                          <Briefcase className="w-[16px] h-[16px]" style={{ color: r.coColor }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[14px] font-semibold text-[#2D2A26] truncate">{r.role}</p>
-                          <p className="text-[12px] font-medium truncate" style={{ color: r.coColor }}>{r.co}</p>
-                        </div>
-                        <span className={cn("px-[10px] py-[4px] rounded-full text-[11px] font-bold uppercase tracking-wider", r.statusStyle)}>{r.status}</span>
-                      </div>
-                    ))}
+                      { role: "Senior Frontend Engineer", co: "Stripe", status: "Interview", coColor: "#635BFF", statusStyle: "bg-[#0D9488] text-white border border-[#0D9488]/30 shadow-md shadow-[#0D9488]/20", Icon: Calendar, highlight: true },
+                      { role: "Product Manager", co: "Airbnb", status: "Applied", coColor: "#FF5A5F", statusStyle: "bg-[#FEF3C7] text-[#92400E] border border-amber-200", Icon: Clock, highlight: false },
+                      { role: "Data Scientist", co: "Netflix", status: "Viewed", coColor: "#E50914", statusStyle: "bg-[#FED7AA] text-[#9A3412] border border-orange-200", Icon: Eye, highlight: false },
+                      { role: "UX Designer", co: "Figma", status: "Applied", coColor: "#A259FF", statusStyle: "bg-[#FEF3C7] text-[#92400E] border border-amber-200", Icon: Clock, highlight: false },
+                      { role: "Backend Engineer", co: "Linear", status: "Just applied", coColor: "#5E6AD2", statusStyle: "bg-[#E0F2FE] text-[#0369A1] border border-sky-200", Icon: Sparkles, highlight: false },
+                    ].map((r, i) => {
+                      const StatusIcon = r.Icon;
+                      return (
+                        <Reveal key={i} delay={i * 80}>
+                          <div className={cn("flex items-center gap-[12px] py-[12px] px-[4px] -mx-[4px] rounded-[10px] border-t border-[#F5E6DC] first:border-t-0 transition-all duration-200 hover:bg-white/70 hover:shadow-sm", i >= 4 && "hidden sm:flex", r.highlight && "bg-[#0D9488]/[0.07] pl-[12px] border-l-4 border-l-[#0D9488] ml-0")}>
+                            <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0" style={{ background: `${r.coColor}15` }}>
+                              <Briefcase className="w-[16px] h-[16px]" style={{ color: r.coColor }} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[14px] font-semibold text-[#2D2A26] truncate">{r.role}</p>
+                              <p className="text-[12px] font-medium truncate" style={{ color: r.coColor }}>{r.co}</p>
+                            </div>
+                            <span className={cn("inline-flex items-center gap-1.5 px-[10px] py-[4px] rounded-full text-[11px] font-bold uppercase tracking-wider shrink-0", r.statusStyle)}>
+                              <StatusIcon className="w-3 h-3" />{r.status}
+                            </span>
+                          </div>
+                        </Reveal>
+                      );
+                    })}
                   </div>
 
-                  {/* Live indicator — adds energy */}
-                  <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0D9488]/15 border border-[#0D9488]/25">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488] animate-pulse" aria-hidden />
+                  {/* Live indicator — refined, premium feel */}
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0D9488]/10 border border-[#0D9488]/20 backdrop-blur-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488] animate-pulse" style={{ animationDuration: '2s' }} aria-hidden />
                     <span className="text-[10px] font-bold text-[#0D9488] uppercase tracking-wider">Live</span>
                   </div>
                 </div>
