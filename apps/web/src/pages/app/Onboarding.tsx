@@ -1062,10 +1062,10 @@ export default function Onboarding() {
           </div>
         </header>
 
-        <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8">
+        <main className="flex-1 w-full flex flex-col items-center p-4 md:p-6 lg:p-8" id="main-content" aria-label="Onboarding">
           <div className="w-full max-w-xl lg:max-w-4xl xl:max-w-5xl">
             {/* Progress bar */}
-            <div className="mb-4 md:mb-6" aria-label={`Setup progress: step ${currentStep + 1} of ${steps.length}`}>
+            <div className="mb-4 md:mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={steps.length} aria-label={`Setup progress: step ${currentStep + 1} of ${steps.length}`}>
               <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-[10px] md:text-xs font-bold text-[#9B9A97] uppercase tracking-wider">
                   {t("onboarding.step", locale) || "Step"} {currentStep + 1} {t("onboarding.of", locale) || "of"} {steps.length} — {(progress).toFixed(0)}%

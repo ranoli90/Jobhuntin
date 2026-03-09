@@ -178,7 +178,7 @@ export default function Sessions() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <main id="main-content" className="max-w-4xl mx-auto p-6 space-y-6" aria-label="Active Sessions">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Active Sessions</h1>

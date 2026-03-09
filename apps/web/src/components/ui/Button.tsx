@@ -45,11 +45,16 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
+    // M6: Accessibility - Ensure buttons have proper type and accessibility attributes
+    const buttonProps = {
+      type: props.type || (Comp === "button" ? "button" : undefined),
+      ...props,
+    };
     return (
       <Comp
         className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
-        {...props}
+        {...buttonProps}
       />
     );
   },

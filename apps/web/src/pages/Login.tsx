@@ -20,6 +20,7 @@ import { telemetry } from '../lib/telemetry';
 import { t, formatT, getLocale } from '../lib/i18n';
 import { SocialLoginGroup, SocialLoginDivider } from '../components/auth/SocialLogin';
 import { CaptchaField } from '../components/ui/Captcha';
+import { SkipLink } from '../components/SkipLink';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -208,6 +209,8 @@ export default function Login() {
   if (successState) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
+        {/* M6: Skip link for keyboard navigation */}
+        <SkipLink href="#login-form">Skip to login form</SkipLink>
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(69,93,211,0.12) 0%, transparent 60%)' }} />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -231,7 +234,8 @@ export default function Login() {
                   navigator.clipboard.writeText(successState.email);
                   pushToast({ title: "Email copied", tone: "success" });
                 }}
-                className="mt-2 text-xs text-[#7DD3CF] hover:text-[#9EE7E4] font-medium flex items-center justify-center gap-1 mx-auto transition-colors"
+                aria-label={`Copy email address ${successState.email} to clipboard`}
+                className="mt-2 text-xs text-[#7DD3CF] hover:text-[#9EE7E4] font-medium flex items-center justify-center gap-1 mx-auto transition-colors focus:outline-none focus:ring-2 focus:ring-[#7DD3CF] focus:ring-offset-2 rounded"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -570,6 +574,8 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading || !emailIsValid}
+                  aria-label={isLoading ? "Sending magic link..." : "Continue to sign in"}
+                  aria-busy={isLoading}
                   className="w-full h-12 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-[#455DD3] hover:bg-[#3A4FB8] focus:ring-4 focus:ring-[#455DD3]/30 focus:outline-none shadow-lg shadow-[#455DD3]/20"
                 >
                   {isLoading ? (

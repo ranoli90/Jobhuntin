@@ -228,6 +228,9 @@ export default function Dashboard() {
 
   const shouldReduceMotion = useReducedMotion();
   
+  // M6: Accessibility - Ensure main content is focusable
+  const mainContentRef = React.useRef<HTMLDivElement>(null);
+  
   // C4: Analytics Tracking - Track dashboard view
   React.useEffect(() => {
     if (!isLoading && profile) {
@@ -308,12 +311,13 @@ export default function Dashboard() {
   if (isNewUser) {
     return (
       <ErrorBoundary reportError showToast>
-        <motion.div
-          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
-          className="space-y-6 max-w-4xl mx-auto px-4 lg:px-6 pb-8"
-        >
+        <main id="main-content" ref={mainContentRef} tabIndex={-1} aria-label="Dashboard">
+          <motion.div
+            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
+            className="space-y-6 max-w-4xl mx-auto px-4 lg:px-6 pb-8"
+          >
           <div className="text-center mb-8">
             <h1 className="text-3xl font-black text-slate-900 mb-3">Welcome to JobHuntin! 🎉</h1>
             <p className="text-slate-600 text-lg max-w-2xl mx-auto">
@@ -396,13 +400,15 @@ export default function Dashboard() {
             </div>
           </Card>
         </motion.div>
+        </main>
       </ErrorBoundary>
     );
   }
 
   return (
     <ErrorBoundary reportError showToast>
-      <motion.div
+      <main id="main-content" ref={mainContentRef} tabIndex={-1} aria-label="Dashboard">
+        <motion.div
         initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
@@ -428,7 +434,7 @@ export default function Dashboard() {
           transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
         >
           <p className="text-[10px] font-medium uppercase tracking-[0.4em] text-slate-500">Dashboard</p>
-          <h1 className="font-display text-xl md:text-2xl font-bold text-slate-900">
+          <h1 className="font-display text-xl md:text-2xl font-bold text-slate-900" id="dashboard-heading">
             Your Dashboard
           </h1>
         </motion.div>
@@ -439,6 +445,7 @@ export default function Dashboard() {
           <Button
             className="group relative overflow-hidden gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white shadow-xl shadow-primary-600/20 transition-all duration-300"
             onClick={() => navigate("/app/jobs")}
+            aria-label="Find jobs to apply to"
           >
             <span className="relative z-10 flex items-center gap-2">
               <Rocket className="h-5 w-5 transition-transform group-hover:rotate-12" aria-hidden />
@@ -1837,7 +1844,9 @@ export function ApplicationsView() {
           {t("dashboard.aiAgentMonitoring", locale)} <span className="font-black">{t("dashboard.aiAgentMonitoringNewListings", locale)}</span> {t("dashboard.aiAgentMonitoringSource", locale)}
         </p>
       </div>
-    </div>
+        </motion.div>
+      </main>
+    </ErrorBoundary>
   );
 }
 
