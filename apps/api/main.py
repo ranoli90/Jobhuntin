@@ -61,7 +61,7 @@ from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
 from shared.config import Environment, get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
-from shared.metrics import incr
+from shared.metrics import incr, observe
 from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
 from shared.redis_client import close_redis, get_redis
 from shared.storage import get_storage_service
@@ -1537,11 +1537,16 @@ async def healthz(
 ) -> dict[str, Any]:
     """Deep health check: pings DB and returns env + basic status.
 
+    H6: Connection Pool Monitoring - Includes pool statistics for monitoring.
     NOTE: circuit_breakers and metrics removed to avoid exposing internal
     operational data to unauthenticated callers (S-40).
     """
+    from api.dependencies import _pool_manager
+
     s = get_settings()
     db_ok = False
+    pool_stats = {}
+    
     try:
         async with db.acquire() as conn:
             await conn.fetchval("SELECT 1")
@@ -1549,12 +1554,65 @@ async def healthz(
     except Exception as e:
         logger.debug(f"Health check DB connection failed: {e}")
 
+    # H6: Collect connection pool statistics
+    try:
+        pool = _pool_manager.pool
+        pool_size = pool.get_size()
+        idle_size = pool.get_idle_size()
+        min_size = pool.get_min_size()
+        max_size = pool.get_max_size()
+        active_size = pool_size - idle_size
+        utilization_pct = (active_size / max_size * 100) if max_size > 0 else 0
+        
+        pool_stats = {
+            "size": pool_size,
+            "idle": idle_size,
+            "active": active_size,
+            "min": min_size,
+            "max": max_size,
+            "utilization_pct": round(utilization_pct, 2),
+        }
+        
+        # Track pool metrics for alerting
+        observe("db.pool.size", pool_size, tags={"type": "total"})
+        observe("db.pool.active", active_size, tags={"type": "active"})
+        observe("db.pool.idle", idle_size, tags={"type": "idle"})
+        observe("db.pool.utilization", utilization_pct, tags={"type": "percentage"})
+        
+        # Alert if pool is near capacity (H6: Connection Pool Monitoring)
+        if utilization_pct > 80:
+            logger.warning(
+                "Database pool utilization high: %.1f%% (%d/%d active connections)",
+                utilization_pct,
+                active_size,
+                max_size,
+            )
+            incr("db.pool.high_utilization", tags={"threshold": "80"})
+        elif utilization_pct > 90:
+            logger.error(
+                "Database pool critically high utilization: %.1f%% (%d/%d active connections)",
+                utilization_pct,
+                active_size,
+                max_size,
+            )
+            incr("db.pool.critical_utilization", tags={"threshold": "90"})
+            
+    except Exception as e:
+        logger.debug(f"Failed to collect pool stats: {e}")
+        pool_stats = {"error": "unavailable"}
+
     status = "ok" if db_ok else "degraded"
-    return {
+    response = {
         "status": status,
         "env": s.env.value,
         "db": "ok" if db_ok else "unreachable",
     }
+    
+    # H6: Include pool stats in health check response
+    if pool_stats:
+        response["pool"] = pool_stats
+    
+    return response
 
 
 # ---------------------------------------------------------------------------
