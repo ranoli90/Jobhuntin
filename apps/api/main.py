@@ -111,6 +111,15 @@ async def lifespan(app: FastAPI):
         logger.warning("JWT_SECRET not set. Authentication will fail.")
 
     await _pool_manager.initialize()
+    
+    # H2: IP Binding - Warn if disabled in production (security recommendation)
+    if _settings.env == Environment.PROD and not _settings.magic_link_bind_to_ip:
+        logger.warning(
+            "MAGIC_LINK_BIND_TO_IP is disabled in production. "
+            "This allows magic links to be used from any IP address, increasing the risk of token theft. "
+            "Consider enabling IP binding by setting MAGIC_LINK_BIND_TO_IP=true for enhanced security."
+        )
+    
     # Initialize Redis (optional, but good to fail fast if config is bad)
     if _settings.redis_url:
         try:

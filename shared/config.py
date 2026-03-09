@@ -100,7 +100,10 @@ class Settings(BaseSettings):
     magic_link_requests_per_hour: int = 20
     magic_link_rate_limit_window_seconds: int = 300
     magic_link_token_ttl_seconds: int = 3600
-    # Bind magic link tokens to requesting IP (security feature, default off)
+    # H2: IP Binding - Bind magic link tokens to requesting IP (security feature)
+    # When enabled, magic links can only be used from the IP that requested them
+    # This prevents token theft attacks. RECOMMENDED: Enable in production.
+    # Set MAGIC_LINK_BIND_TO_IP=true in production environment
     magic_link_bind_to_ip: bool = False
 
     # ── Blueprints ────────────────────────────────────────────────
