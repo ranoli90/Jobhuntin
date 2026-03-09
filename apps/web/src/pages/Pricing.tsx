@@ -223,6 +223,8 @@ export default function Pricing() {
         ogImage="https://jobhuntin.com/og-image.png"
         canonicalUrl="https://jobhuntin.com/pricing"
         includeDate={true}
+        breadcrumbs={[{ name: "Home", url: "https://jobhuntin.com" }, { name: "Pricing", url: "https://jobhuntin.com/pricing" }]}
+        keywords="JobHuntin pricing, AI job search cost, auto apply pricing, job automation price"
         schema={[
           {
             "@context": "https://schema.org",
@@ -386,6 +388,19 @@ export default function Pricing() {
             ))}
           </div>
         </div>
+
+        {/* Compare Our Pricing */}
+        <section className="mt-16 max-w-4xl mx-auto px-6">
+          <h2 className="text-2xl font-bold text-center text-slate-900 mb-6">Compare Our Pricing</h2>
+          <div className="grid sm:grid-cols-3 gap-4">
+            {['lazyapply', 'jobright', 'simplify'].map(slug => (
+              <Link key={slug} to={`/pricing-vs/${slug}`} className="bg-white p-5 rounded-2xl border border-slate-100 hover:border-primary-200 shadow-sm text-center transition-all">
+                <p className="font-bold text-slate-900 capitalize">{slug.replace(/-/g, ' ')} vs JobHuntin</p>
+                <p className="text-sm text-primary-600 mt-1">Compare pricing →</p>
+              </Link>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );

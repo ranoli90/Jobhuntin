@@ -5,6 +5,7 @@ import { telemetry } from '../lib/telemetry';
 import { ArrowRight, MailCheck, Check, Briefcase, TrendingUp } from 'lucide-react';
 import { pushToast } from '../lib/toast';
 import { SEO } from '../components/marketing/SEO';
+import { FAQAccordion } from '../components/seo/FAQAccordion';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { cn } from '../lib/utils';
 import { ValidationUtils } from '../lib/validation';
@@ -287,7 +288,7 @@ export default function Homepage() {
   return (
     <>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#2D2A26] focus:text-white focus:rounded-lg">Skip to main content</a>
-      <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }} />
+      <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" ogImage="https://jobhuntin.com/og-default.png" keywords="AI job search, auto apply jobs, AI resume builder, job application automation, AI job hunting" breadcrumbs={[{ name: "Home", url: "https://jobhuntin.com" }]} schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }} />
 
       {/* ═══════════════════════════════════════════
           HERO — dark bg, flowing artwork, experiential
@@ -388,6 +389,20 @@ export default function Homepage() {
           <span className="text-[11px] uppercase tracking-widest text-white/50">Scroll</span>
           <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2">
             <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDuration: '2s' }} />
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          AS SEEN IN — trust bar
+          ═══════════════════════════════════════════ */}
+      <section className="py-8 border-y border-[#E9E9E7]" aria-label="Trusted by job seekers worldwide">
+        <div className="max-w-5xl mx-auto px-6">
+          <p className="text-center text-sm font-medium text-[#787774] mb-4">Trusted by 10,000+ job seekers from companies like</p>
+          <div className="flex flex-wrap items-center justify-center gap-8 opacity-60">
+            {['Google', 'Meta', 'Amazon', 'Microsoft', 'Apple', 'Netflix'].map(company => (
+              <span key={company} className="text-lg font-bold text-[#2D2A26] tracking-tight">{company}</span>
+            ))}
           </div>
         </div>
       </section>
@@ -607,6 +622,47 @@ export default function Homepage() {
           TESTIMONIALS
           ═══════════════════════════════════════════ */}
       <TestimonialsSection />
+
+      {/* ═══════════════════════════════════════════
+          FAQ
+          ═══════════════════════════════════════════ */}
+      <section className="bg-white">
+        <FAQAccordion items={[
+          { question: "Is JobHuntin free?", answer: "Yes. JobHuntin offers a free plan with 20 applications per week. No credit card required. You can upgrade for more applications and premium features when you're ready." },
+          { question: "How does the AI auto-apply work?", answer: "You upload your resume and set your preferences (role, salary, location). Our AI matches you to relevant jobs, tailors your resume and cover letter for each application, and submits them automatically. You can track everything in your dashboard." },
+          { question: "Is it safe to use auto-apply tools?", answer: "Yes. JobHuntin uses secure connections and encrypts your data. We only apply to jobs you've approved through your preferences, and you maintain full control over your applications and profile." },
+          { question: "How many jobs can JobHuntin apply to per day?", answer: "On the free plan, you get 20 applications per week. Paid plans support hundreds of applications per day, depending on your subscription. Our system runs 24/7 to catch new postings as they go live." },
+          { question: "Does JobHuntin work with LinkedIn and Indeed?", answer: "JobHuntin integrates with major job boards including LinkedIn, Indeed, and many others. We aggregate listings from thousands of sources so you can apply across platforms from one dashboard." },
+        ]} />
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          EXPLORE MORE — internal links
+          ═══════════════════════════════════════════ */}
+      <section className="py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-2xl font-bold text-[#2D2A26] text-center mb-8">Explore More</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: 'Compare Tools', links: [{ text: 'vs LazyApply', to: '/vs/lazyapply' }, { text: 'vs Jobright', to: '/vs/jobright' }, { text: 'vs Simplify', to: '/vs/simplify' }, { text: 'vs Teal', to: '/vs/teal' }] },
+              { label: 'Guides', links: [{ text: 'Beat ATS with AI', to: '/guides/how-to-beat-ats-with-ai' }, { text: 'Resume Tailoring', to: '/guides/resume-tailoring-guide' }, { text: 'Cover Letter Mastery', to: '/guides/ai-cover-letter-mastery' }, { text: 'All Guides', to: '/guides' }] },
+              { label: 'Topics', links: [{ text: 'Remote Work', to: '/topics/remote-work' }, { text: 'ATS Optimization', to: '/topics/ats-optimization' }, { text: 'Salary Negotiation', to: '/topics/salary-negotiation' }, { text: 'All Topics', to: '/blog' }] },
+              { label: 'Tools', links: [{ text: 'AI Resume Tailor', to: '/tools' }, { text: 'ATS Score Checker', to: '/tools' }, { text: 'Cover Letter Gen', to: '/tools' }, { text: 'All Free Tools', to: '/tools' }] },
+            ].map(section => (
+              <div key={section.label}>
+                <h3 className="text-sm font-bold text-[#787774] uppercase tracking-wider mb-3">{section.label}</h3>
+                <ul className="space-y-2">
+                  {section.links.map(link => (
+                    <li key={link.text}>
+                      <Link to={link.to} className="text-sm text-[#2D2A26] hover:text-[#455DD3] font-medium transition-colors">{link.text}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════
           FINAL CTA — with illustration

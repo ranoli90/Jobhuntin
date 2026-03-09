@@ -1,40 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, ArrowLeft, BookOpen, Zap, Shield, Search, ChevronRight, Target, Menu, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { motion, useReducedMotion } from 'framer-motion';
 import { GoogleSearch } from '../components/ui/GoogleSearch';
+import guidesRaw from '../data/guides.json';
 
-const GUIDES = [
-  {
-    slug: 'how-to-beat-ats-with-ai',
-    title: 'How to Beat ATS with AI Agents',
-    desc: 'The definitive guide to bypassing Applicant Tracking Systems using human-like automation.',
-    category: 'Strategy',
-    readTime: '8 min'
-  },
-  {
-    slug: 'automated-job-search-ethics',
-    title: 'The Ethics of Automated Job Hunting',
-    desc: 'Why using AI to apply for jobs is the new standard, and how to stay transparent.',
-    category: 'Ethics',
-    readTime: '12 min'
-  },
-  {
-    slug: 'scaling-your-applications-safely',
-    title: 'Scaling Applications Safely',
-    desc: 'How to send 100+ high-quality applications without getting banned by job boards.',
-    category: 'Safety',
-    readTime: '10 min'
-  },
-  {
-    slug: 'ai-cover-letter-mastery',
-    title: 'AI Cover Letter Mastery',
-    desc: 'Crafting the perfect prompt for cover letters that recruiters actually read.',
-    category: 'Tips',
-    readTime: '6 min'
-  }
-];
+const GUIDES = Object.entries(guidesRaw as Record<string, { title: string; category: string; readTime: string; content: string }>).map(
+  ([slug, data]) => ({
+    slug,
+    title: data.title,
+    desc: data.content.replace(/<[^>]+>/g, '').slice(0, 140) + '...',
+    category: data.category,
+    readTime: data.readTime,
+  })
+);
 
 export default function GuidesHome() {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -47,7 +27,8 @@ export default function GuidesHome() {
         ogTitle="Job Search Guides | AI Automation Playbook"
         ogImage="https://jobhuntin.com/og/guides.png"
         canonicalUrl="https://jobhuntin.com/guides"
-        includeDate={true}
+        keywords="job search guides, AI job hunting tips, ATS optimization guide, resume tips 2026, cover letter guide"
+        breadcrumbs={[{ name: 'Home', url: 'https://jobhuntin.com' }, { name: 'Guides', url: 'https://jobhuntin.com/guides' }]}
         schema={[
           {
             "@context": "https://schema.org",
