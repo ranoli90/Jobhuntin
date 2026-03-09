@@ -21,6 +21,7 @@ from shared.logging_config import get_logger
 from shared.metrics import RateLimiter, get_rate_limiter, incr
 from shared.middleware import get_client_ip
 from shared.repo_root import find_repo_root
+from backend.domain.session_manager import SessionManager
 
 logger = get_logger("sorce.api.auth")
 
@@ -920,11 +921,69 @@ async def verify_magic_link(
     redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}"
 
     # ----------------------------------------------------------------
+    # M2: Device Fingerprinting - Detect suspicious logins
+    # Track device fingerprint and check for suspicious activity
+    # ----------------------------------------------------------------
+    client_ip = get_client_ip(request)
+    user_agent = request.headers.get("user-agent")
+    
+    # Get tenant_id if available
+    tenant_id = None
+    async with db.acquire() as conn:
+        tenant_row = await conn.fetchrow(
+            "SELECT tenant_id FROM public.tenant_members WHERE user_id = $1 LIMIT 1",
+            user_id,
+        )
+        if tenant_row:
+            tenant_id = str(tenant_row["tenant_id"]) if tenant_row["tenant_id"] else None
+    
+    # Create session with device fingerprinting
+    session_manager = SessionManager(db)
+    session_info = await session_manager.create_session(
+        user_id=user_id,
+        tenant_id=tenant_id,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        metadata={"source": "magic_link", "is_new_user": is_new_user_flag},
+    )
+    
+    # Check for suspicious activity
+    suspicious_check = await session_manager.detect_suspicious_activity(
+        user_id=user_id,
+        ip_address=client_ip,
+        user_agent=user_agent,
+    )
+    
+    if suspicious_check["suspicious"]:
+        logger.warning(
+            "[M2] Suspicious login detected for user=%s",
+            user_id,
+            extra={
+                "user_id": user_id,
+                "reasons": suspicious_check["reasons"],
+                "ip_address": client_ip,
+                "user_agent": user_agent,
+                "active_sessions": suspicious_check["active_sessions"],
+                "known_ips": suspicious_check["known_ips"],
+            },
+        )
+        incr(
+            "auth.suspicious_login",
+            tags={
+                "reason": ",".join(suspicious_check["reasons"]),
+                "is_new_user": str(is_new_user_flag),
+            },
+        )
+        # Log security event but don't block login (user may be legitimate)
+        # In production, consider sending alert to security team
+    
+    # ----------------------------------------------------------------
     # CRITICAL FIX: Issue a fresh SESSION JWT with sub=user_id (UUID).
     # The original magic-link JWT may have sub=email for new users.
     # All downstream API dependencies (get_current_user_id) expect sub
     # to be a UUID. The session cookie must use the resolved UUID.
     # Session TTL is 7 days (separate from the 1h magic link TTL).
+    # Store session_id in JWT for session tracking.
     # ----------------------------------------------------------------
     SESSION_TTL_SECONDS = 7 * 24 * 3600  # 7 days
     import uuid as _uuid_mod
@@ -939,6 +998,7 @@ async def verify_magic_link(
         "email": email,
         "aud": "authenticated",
         "jti": str(_uuid_mod.uuid4()),
+        "session_id": session_info.session_id,  # M2: Store session_id for tracking
         "iat": _now,
         "nbf": _now,
         "exp": _now + _td(seconds=SESSION_TTL_SECONDS),

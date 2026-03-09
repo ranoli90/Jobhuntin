@@ -73,7 +73,20 @@ async def list_sessions(
     manager = SessionManager(db)
     sessions = await manager.list_user_sessions(ctx.user_id, include_revoked=False)
 
-    current_session_id = getattr(request.state, "session_id", None)
+    # M2: Extract session_id from JWT cookie
+    current_session_id = None
+    jobhuntin_auth = request.cookies.get("jobhuntin_auth")
+    if jobhuntin_auth:
+        try:
+            import jwt as pyjwt
+            from shared.config import get_settings
+            settings = get_settings()
+            payload = pyjwt.decode(
+                jobhuntin_auth, settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+            )
+            current_session_id = payload.get("session_id")
+        except Exception:
+            pass  # Ignore errors, session_id is optional
 
     session_responses = []
     for s in sessions:
@@ -103,7 +116,20 @@ async def revoke_session(
 ) -> RevokeResponse:
     manager = SessionManager(db)
 
-    current_session_id = getattr(request.state, "session_id", None)
+    # M2: Extract session_id from JWT cookie
+    current_session_id = None
+    jobhuntin_auth = request.cookies.get("jobhuntin_auth")
+    if jobhuntin_auth:
+        try:
+            import jwt as pyjwt
+            from shared.config import get_settings
+            settings = get_settings()
+            payload = pyjwt.decode(
+                jobhuntin_auth, settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+            )
+            current_session_id = payload.get("session_id")
+        except Exception:
+            pass  # Ignore errors, session_id is optional
     if session_id == current_session_id:
         raise HTTPException(
             status_code=400,
@@ -134,7 +160,20 @@ async def revoke_all_other_sessions(
 ) -> RevokeResponse:
     manager = SessionManager(db)
 
-    current_session_id = getattr(request.state, "session_id", None)
+    # M2: Extract session_id from JWT cookie
+    current_session_id = None
+    jobhuntin_auth = request.cookies.get("jobhuntin_auth")
+    if jobhuntin_auth:
+        try:
+            import jwt as pyjwt
+            from shared.config import get_settings
+            settings = get_settings()
+            payload = pyjwt.decode(
+                jobhuntin_auth, settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+            )
+            current_session_id = payload.get("session_id")
+        except Exception:
+            pass  # Ignore errors, session_id is optional
 
     count = await manager.revoke_all_user_sessions(
         ctx.user_id,

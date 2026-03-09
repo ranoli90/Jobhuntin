@@ -240,6 +240,7 @@ async def get_current_user_id(
         )
         user_id: str = payload["sub"]
         jti = payload.get("jti")
+        session_id = payload.get("session_id")  # M2: Extract session_id for tracking
         
         # Check if session token has been revoked (C1: Session Token Replay Fix)
         if jti:
@@ -253,6 +254,9 @@ async def get_current_user_id(
                 raise HTTPException(
                     status_code=401, detail="Session revoked. Please sign in again."
                 )
+        
+        # M2: session_id is stored in JWT payload and extracted by sessions.py
+        # endpoints directly from the cookie for session management
         
         return user_id
     except HTTPException:
