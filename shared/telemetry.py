@@ -15,6 +15,9 @@ from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.propagate import set_global_textmap
+from opentelemetry.propagators.composite import CompositeHTTPPropagator
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 from opentelemetry.sdk.resources import (
     DEPLOYMENT_ENVIRONMENT,
     SERVICE_NAME,
@@ -73,27 +76,51 @@ def setup_telemetry(service_name: str, app=None) -> None:
 
         trace.set_tracer_provider(provider)
 
+        # M4: Distributed Tracing - Set up W3C Trace Context propagation
+        # This enables trace context propagation across service boundaries
+        propagator = CompositeHTTPPropagator([TraceContextTextMapPropagator()])
+        set_global_textmap(propagator)
+        logger.info("W3C Trace Context propagation enabled")
+
         if app:
             from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-            FastAPIInstrumentor.instrument_app(app, tracer_provider=provider)
+            # M4: Enhanced FastAPI instrumentation with custom attributes
+            FastAPIInstrumentor.instrument_app(
+                app,
+                tracer_provider=provider,
+                excluded_urls="health,healthz,/metrics",  # Exclude health checks
+            )
 
+        # M4: Instrument HTTP clients for distributed tracing
         try:
             from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 
             HTTPXClientInstrumentor().instrument(tracer_provider=provider)
+            logger.info("HTTPX client instrumentation enabled")
         except ImportError:
-            pass
+            logger.warning("HTTPX instrumentation not available (httpx not installed)")
 
+        # M4: Instrument database queries for distributed tracing
         try:
             from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
 
             AsyncPGInstrumentor().instrument(tracer_provider=provider)
+            logger.info("AsyncPG database instrumentation enabled")
         except ImportError:
-            pass
+            logger.warning("AsyncPG instrumentation not available")
+
+        # M4: Instrument Redis for distributed tracing
+        try:
+            from opentelemetry.instrumentation.redis import RedisInstrumentor
+
+            RedisInstrumentor().instrument(tracer_provider=provider)
+            logger.info("Redis instrumentation enabled")
+        except ImportError:
+            logger.debug("Redis instrumentation not available (optional)")
 
         _tracer_initialized = True
-        logger.info(f"OpenTelemetry initialized for {service_name} (tracing + metrics)")
+        logger.info(f"OpenTelemetry initialized for {service_name} (distributed tracing + metrics)")
 
     except Exception as e:
         logger.error(f"Failed to initialize OpenTelemetry: {e}")

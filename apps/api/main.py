@@ -451,7 +451,22 @@ async def idempotency_middleware(request: Request, call_next):
 
 @app.middleware("http")
 async def latency_middleware(request: Request, call_next):
-    """Track API latency and performance metrics (H3: API Performance Monitoring)."""
+    """Track API latency and performance metrics (H3: API Performance Monitoring).
+    
+    M4: Enhanced with OpenTelemetry span attributes for distributed tracing.
+    """
+    # M4: Get current span (created by FastAPI instrumentation) and add attributes
+    from opentelemetry import trace
+    
+    span = trace.get_current_span()
+    if span and span.get_span_context().is_valid:
+        # Add request attributes to existing span
+        span.set_attribute("http.method", request.method)
+        span.set_attribute("http.url", str(request.url))
+        span.set_attribute("http.route", request.url.path)
+        if request.client:
+            span.set_attribute("http.client_ip", request.client.host)
+    
     start_time = time.time()
     path = request.url.path
     method = request.method
@@ -459,6 +474,11 @@ async def latency_middleware(request: Request, call_next):
     try:
         response = await call_next(request)
         duration = time.time() - start_time
+        
+        # M4: Add response attributes to span
+        if span and span.get_span_context().is_valid:
+            span.set_attribute("http.status_code", response.status_code)
+            span.set_attribute("http.response_size", response.headers.get("content-length", "0"))
         
         # Record latency metric
         observe(
@@ -501,29 +521,35 @@ async def latency_middleware(request: Request, call_next):
             },
         )
         
-        return response
-    except Exception as exc:
-        duration = time.time() - start_time
-        # Record error latency
-        observe(
-            "api.latency",
-            duration,
-            tags={
-                "path": path,
-                "method": method,
-                "status_code": "500",
-                "error": "true",
-            },
-        )
-        incr(
-            "api.errors",
-            tags={
-                "path": path,
-                "method": method,
-                "error_type": type(exc).__name__,
-            },
-        )
-        raise
+            return response
+        except Exception as exc:
+            duration = time.time() - start_time
+            
+            # M4: Record exception in span
+            span.record_exception(exc)
+            span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc)))
+            span.set_attribute("http.status_code", 500)
+            
+            # Record error latency
+            observe(
+                "api.latency",
+                duration,
+                tags={
+                    "path": path,
+                    "method": method,
+                    "status_code": "500",
+                    "error": "true",
+                },
+            )
+            incr(
+                "api.errors",
+                tags={
+                    "path": path,
+                    "method": method,
+                    "error_type": type(exc).__name__,
+                },
+            )
+            raise
 
 
 @app.middleware("http")
