@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useCallback } from "react";
 import { apiGet, apiPost } from "../lib/api";
 import { pushToast } from "../lib/toast";
+import { useAuth } from "./useAuth";
 
 interface BillingStatus {
   tenant_id: string;
@@ -38,12 +39,14 @@ async function fetchBillingData(): Promise<BillingData> {
 
 export function useBilling() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const query = useQuery({
     queryKey: ["billing"],
     queryFn: fetchBillingData,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true, // Refetch when user returns to tab (e.g. from Stripe)
+    enabled: !!user, // Don't call billing API when logged out (avoids 401 redirect from Pricing page)
   });
 
   const status = query.data?.status ?? null;

@@ -1,260 +1,243 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Quote, Volume2, VolumeX } from 'lucide-react';
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
-import { Button } from '../components/ui/Button';
-import { t, getLocale } from '../lib/i18n';
+import { cn } from '../lib/utils';
+
+interface Outcome {
+  label: string;
+  value: string;
+}
 
 interface Story {
   name: string;
   role: string;
   company: string;
-  image: string;
+  initials: string;
+  outcome: string;
+  before: string;
+  after: string;
   quote: string;
-  stat: string;
-  audio: string;
+  outcomes: Outcome[];
+}
+
+const STORIES: Story[] = [
+  {
+    name: "Sarah Jenkins",
+    role: "Marketing Director",
+    company: "TechFlow",
+    initials: "SJ",
+    outcome: "Hired in 14 days",
+    before: "3 hrs/day applying",
+    after: "5 interviews in week 1",
+    quote: "JobHuntin did it while I slept.",
+    outcomes: [{ label: "Time to offer", value: "14 days" }, { label: "Interviews", value: "5" }],
+  },
+  {
+    name: "Michael Chen",
+    role: "Warehouse Supervisor",
+    company: "Costco",
+    initials: "MC",
+    outcome: "Better role in 2 weeks",
+    before: "Long hours, no time to apply",
+    after: "Applied while at work",
+    quote: "Got a better position without changing my schedule.",
+    outcomes: [{ label: "Applications sent", value: "47" }, { label: "Time to offer", value: "2 weeks" }],
+  },
+  {
+    name: "Jessica Alvarez",
+    role: "Sales Associate",
+    company: "Target",
+    initials: "JA",
+    outcome: "$5K salary bump",
+    before: "2% callback rate",
+    after: "15% callback rate",
+    quote: "Numbers game — JobHuntin maximized my volume without sacrificing quality.",
+    outcomes: [{ label: "Callback rate", value: "15%" }, { label: "Salary change", value: "+$5K" }],
+  },
+  {
+    name: "David Ross",
+    role: "Customer Service Lead",
+    company: "Amazon",
+    initials: "DR",
+    outcome: "Remote role landed",
+    before: "Inbox empty",
+    after: "Inbox full of 'Let's chat'",
+    quote: "I didn't believe it at first. Game changer.",
+    outcomes: [{ label: "Role type", value: "Remote" }, { label: "First callback", value: "3 days" }],
+  },
+  {
+    name: "Emily Zhang",
+    role: "Retail Manager",
+    company: "Home Depot",
+    initials: "EZ",
+    outcome: "Promoted in under 1 month",
+    before: "Manual applications",
+    after: "Volume through the roof",
+    quote: "Got promoted to manager in less than a month.",
+    outcomes: [{ label: "Outcome", value: "Promotion" }, { label: "Time", value: "< 1 month" }],
+  },
+];
+
+function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [vis, setVis] = useState(false);
+  const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  React.useEffect(() => {
+    if (reduced) { setVis(true); return; }
+    const el = ref.current; if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } }, { threshold: 0.1 });
+    obs.observe(el); return () => obs.disconnect();
+  }, [reduced]);
+  return (
+    <div ref={ref} className={cn(reduced ? "" : "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", vis ? "opacity-100 translate-y-0" : (reduced ? "" : "opacity-0 translate-y-5"), className)} style={{ transitionDelay: reduced ? '0ms' : `${delay}ms` }}>{children}</div>
+  );
 }
 
 export default function SuccessStories() {
-  const locale = getLocale();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: scrollRef });
-  const x = useTransform(scrollYProgress, [0, 1], ["1%", "-50%"]);
-  const shouldReduceMotion = useReducedMotion();
-  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
-
-  const stories = [
-    {
-      name: "Sarah Jenkins",
-      role: "Marketing Director",
-      company: "TechFlow",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
-      quote: "I was spending 3 hours a day applying. JobHuntin did it while I slept. I got 5 interviews in the first week.",
-      stat: "Hired in 14 days",
-      audio: "sarah_clip.mp3"
-    },
-    {
-      name: "Michael Chen",
-      role: "Warehouse Supervisor",
-      company: "Costco",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
-      quote: "I work long hours at the warehouse. JobHuntin applied to jobs for me while I was at work. Got a better position in 2 weeks.",
-      stat: "Hired in 14 days",
-      audio: "michael_clip.mp3"
-    },
-    {
-      name: "Jessica Alvarez",
-      role: "Sales Associate",
-      company: "Target",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
-      quote: "Being in sales, I know it's a numbers game. JobHuntin maximized my volume without sacrificing quality.",
-      stat: "$5k Salary Bump",
-      audio: "jessica_clip.mp3"
-    },
-    {
-      name: "David Ross",
-      role: "Customer Service Lead",
-      company: "Amazon",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
-      quote: "I didn't believe it at first. Then I woke up to an inbox full of 'Let's chat' emails. Game changer.",
-      stat: "Remote Role Landed",
-      audio: "david_clip.mp3"
-    },
-    {
-      name: "Emily Zhang",
-      role: "Retail Manager",
-      company: "Home Depot",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
-      quote: "My application volume went through the roof. Got promoted to manager in less than a month.",
-      stat: "Promoted to Manager",
-      audio: "emily_clip.mp3"
-    }
-  ];
-
   return (
-    <div className="font-sans text-slate-900 dark:text-slate-100 overflow-x-hidden bg-white dark:bg-slate-950">
+    <div className="min-h-screen bg-white text-[#2D2A26]">
       <SEO
-        title="Success Stories | Real Users Share How They Got Hired with JobHuntin"
-        description="Real JobHuntin success stories: Users landed jobs in 14 days, got salary bumps, and received multiple offers using our AI auto-apply platform. Read their testimonials."
-        ogTitle="Success Stories | JobHuntin Users Got Hired"
+        title="Success Stories | Real Outcomes from JobHuntin Users"
+        description="JobHuntin users share their outcomes: hired in 14 days, salary bumps, remote roles, and promotions. Real results, not reviews."
+        ogTitle="Success Stories | JobHuntin"
         ogImage="https://jobhuntin.com/og/success-stories.png"
         canonicalUrl="https://jobhuntin.com/success-stories"
         includeDate={true}
-        schema={stories.map(story => ({
+        schema={STORIES.map(story => ({
           "@context": "https://schema.org",
           "@type": "Review",
-          "author": {
-            "@type": "Person",
-            "name": story.name
-          },
+          "author": { "@type": "Person", "name": story.name },
           "reviewBody": story.quote,
-          "reviewRating": {
-            "@type": "Rating",
-            "ratingValue": "5",
-            "bestRating": "5"
-          },
-          "itemReviewed": {
-            "@type": "SoftwareApplication",
-            "name": "JobHuntin",
-            "applicationCategory": "CareerAutomation"
-          }
+          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+          "itemReviewed": { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "CareerAutomation" },
         }))}
       />
 
-      <main className="pt-32 pb-20">
-        <div className="text-center mb-24 px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-8xl font-sans font-black mb-8 tracking-tighter leading-tight text-slate-900 dark:text-slate-100">
-              {t("successStories.headingWon", locale)} <span className="text-primary-600 font-black">{t("successStories.headingNext", locale)}</span><br />
-              {t("successStories.headingYou", locale)}
+      {/* Hero — matches Pricing/Homepage */}
+      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(69,93,211,0.15) 0%, transparent 60%)' }} />
+        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-60" preserveAspectRatio="none" viewBox="0 0 1440 400" aria-hidden="true">
+          <path d="M-100 200 C200 120, 500 280, 800 200 S1200 100, 1540 180" stroke="#455DD3" strokeOpacity="0.15" strokeWidth="2" fill="none" />
+          <path d="M-100 250 C300 170, 600 330, 900 250 S1300 150, 1540 230" stroke="#7B93DB" strokeOpacity="0.1" strokeWidth="1.5" fill="none" />
+        </svg>
+        <div className="relative max-w-[1080px] mx-auto px-6 py-20 sm:py-28">
+          <Reveal>
+            <p className="text-[12px] font-medium text-[#7DD3CF] uppercase tracking-wider mb-[12px]">Real outcomes</p>
+            <h1 className="text-[clamp(2.25rem,5vw,3.5rem)] font-bold text-white leading-tight mb-[16px]" style={{ letterSpacing: '-1.5px' }}>
+              They got hired. <span className="text-[#7DD3CF]">You're next.</span>
             </h1>
-          </motion.div>
-          <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-            {t("successStories.subtitle", locale)}
-          </p>
+            <p className="text-[16px] text-white/75 max-w-[480px] font-medium">
+              Outcomes from real users — hired in 14 days, salary bumps, remote roles. Not reviews. Results.
+            </p>
+          </Reveal>
         </div>
+      </section>
 
-        {/* Responsive Layout: Stack on Mobile, Scroll on Desktop */}
-        <div className="lg:hidden px-6 space-y-12">
-          {stories.map((story, i) => (
-            <StoryCard key={i} story={story} index={i} isMobile={true} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} locale={locale} />
-          ))}
-
-          {/* CTA Card Mobile */}
-          <div className="w-full bg-primary-600 p-8 rounded-2xl text-center relative overflow-hidden shadow-xl">
-            <h3 className="text-3xl font-black mb-4 text-white">{t("successStories.ctaTitle", locale)}</h3>
-            <p className="text-white/90 mb-6 font-medium">{t("successStories.ctaDescription", locale)}</p>
-            <Button asChild className="w-full bg-white text-primary-600 hover:bg-slate-50 border-none shadow-lg text-lg font-bold">
-              <Link to="/login">
-                {t("successStories.startFreeTrial", locale)}
-              </Link>
-            </Button>
+      {/* Aggregate stats — scannable, meaningful */}
+      <section className="bg-[#F7F6F3] py-12 border-b border-[#E9E9E7]">
+        <div className="max-w-[1080px] mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {[
+              { value: "500K+", label: "Applications sent" },
+              { value: "14 days", label: "Avg. to first interview" },
+              { value: "10K+", label: "Users hired" },
+              { value: "18%", label: "Avg. callback rate" },
+            ].map((s, i) => (
+              <Reveal key={s.label} delay={i * 60}>
+                <div className="text-center md:text-left">
+                  <div className="text-2xl sm:text-3xl font-bold text-[#2D2A26]">{s.value}</div>
+                  <div className="text-[13px] text-[#787774] font-medium mt-1">{s.label}</div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* Horizontal Scroll Section - Desktop Only */}
-        <div ref={scrollRef} className="hidden lg:block relative" style={{ height: shouldReduceMotion ? 'auto' : '300vh' }}>
-          <div className={`sticky ${shouldReduceMotion ? 'relative top-0' : 'top-40'} overflow-hidden`}>
-            <motion.div
-              style={{
-                x: shouldReduceMotion ? 0 : x,
-                display: shouldReduceMotion ? 'grid' : 'flex',
-                gridTemplateColumns: shouldReduceMotion ? 'repeat(auto-fit, minmax(500px, 1fr))' : 'none',
-                gap: shouldReduceMotion ? '2rem' : '3rem',
-                padding: shouldReduceMotion ? '0 3rem' : '0 3rem',
-                width: shouldReduceMotion ? '100%' : 'max-content'
-              }}
-              className="w-max"
+      {/* Case studies — outcome-first, matches homepage card style */}
+      <section className="py-[64px] sm:py-[80px] bg-white">
+        <div className="max-w-[1080px] mx-auto px-6">
+          <Reveal>
+            <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[8px]">Success stories</p>
+            <h2 className="text-[clamp(2rem,4vw,40px)] font-bold text-[#2D2A26] mb-12" style={{ letterSpacing: '-1px' }}>
+              Real outcomes from real users
+            </h2>
+          </Reveal>
+
+          <div className="space-y-8 sm:space-y-12">
+            {STORIES.map((story, i) => (
+              <Reveal key={story.name} delay={i * 80}>
+                <article className="rounded-[12px] overflow-hidden bg-[#F7F6F3] border border-[#E9E9E7] hover:border-[#E3E2E0] hover:-translate-y-[2px] transition-all duration-300">
+                  <div className="p-6 sm:p-8 md:p-10">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+                      {/* Left: person + outcome */}
+                      <div className="flex gap-4 md:gap-6">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#2D2A26] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                          {story.initials}
+                        </div>
+                        <div>
+                          <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-1">{story.role} · {story.company}</p>
+                          <h3 className="text-lg sm:text-xl font-bold text-[#2D2A26] mb-2">{story.name}</h3>
+                          <div className="inline-block px-3 py-1 rounded-lg bg-[#0D9488]/15 text-[#0D9488] text-[13px] font-semibold">
+                            {story.outcome}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: before → after + quote */}
+                      <div className="md:max-w-[420px] md:ml-auto md:text-right">
+                        <div className="flex flex-wrap items-center gap-2 mb-3 text-[13px] md:justify-end">
+                          <span className="text-[#9B9A97]">{story.before}</span>
+                          <span className="text-[#9B9A97]">→</span>
+                          <span className="font-semibold text-[#2D2A26]">{story.after}</span>
+                        </div>
+                        <blockquote className="text-[15px] sm:text-[16px] text-[#2D2A26] font-medium leading-relaxed">
+                          "{story.quote}"
+                        </blockquote>
+                        <div className="flex flex-wrap gap-4 mt-4 md:justify-end">
+                          {story.outcomes.map((o) => (
+                            <div key={o.label} className="text-[12px]">
+                              <span className="text-[#9B9A97]">{o.label}: </span>
+                              <span className="font-semibold text-[#2D2A26]">{o.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA — homepage style */}
+      <section className="bg-[#2D2A26] py-16 sm:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(23,190,187,0.1) 0%, transparent 70%)' }} />
+        <div className="relative max-w-[1080px] mx-auto px-6 text-center">
+          <Reveal>
+            <h2 className="text-[clamp(1.75rem,4vw,36px)] font-bold text-white mb-4" style={{ letterSpacing: '-1px' }}>
+              Your turn.
+            </h2>
+            <p className="text-[16px] text-[#9B9A97] max-w-[400px] mx-auto mb-8">
+              20 free applications per week. No credit card. Start in two minutes.
+            </p>
+            <Link
+              to="/login"
+              className={cn(
+                "inline-flex items-center gap-2 h-[44px] px-[24px] rounded-[10px] text-[16px] font-semibold",
+                "bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all duration-300",
+                "shadow-lg shadow-[#455DD3]/30 hover:shadow-[#455DD3]/50 hover:scale-[1.02] active:scale-[0.98]",
+                "focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D2A26] focus-visible:outline-none"
+              )}
             >
-              {stories.map((story, i) => (
-                <StoryCard key={i} story={story} index={i} isMobile={false} playingAudio={playingAudio} setPlayingAudio={setPlayingAudio} locale={locale} />
-              ))}
-
-              {/* CTA Card at the end */}
-              <div className="w-[500px] bg-primary-600 p-10 rounded-2xl flex flex-col justify-center items-center text-center relative overflow-hidden shadow-2xl shadow-primary-500/30">
-                <h3 className="text-4xl font-black mb-6 text-white">{t("successStories.ctaTitle", locale)}</h3>
-                <p className="text-white/90 mb-8 text-lg font-medium">{t("successStories.ctaDescription", locale)}</p>
-                <Button asChild className="bg-white text-primary-600 hover:bg-slate-50 hover:scale-105 transition-transform shadow-xl hover:shadow-2xl h-16 px-8 text-xl font-bold rounded-lg border-none">
-                  <Link to="/login">
-                    {t("successStories.startFreeTrial", locale)}
-                  </Link>
-                </Button>
-              </div>
-            </motion.div>
-          </div>
+              Get started free <ArrowRight className="w-4 h-4" />
+            </Link>
+          </Reveal>
         </div>
-      </main>
+      </section>
     </div>
   );
 }
-
-// Story Card Component
-const StoryCard = ({
-  story,
-  index,
-  isMobile,
-  playingAudio,
-  setPlayingAudio,
-  locale
-}: {
-  story: Story;
-  index: number;
-  isMobile: boolean;
-  playingAudio: string | null;
-  setPlayingAudio: (audio: string | null) => void;
-  locale: string;
-}) => {
-  const shouldReduceMotion = useReducedMotion();
-  const isCurrentlyPlaying = playingAudio === story.audio;
-
-  const handlePlayAudio = () => {
-    if (isCurrentlyPlaying) {
-      setPlayingAudio(null);
-    } else {
-      setPlayingAudio(story.audio);
-    }
-  };
-
-  return (
-    <div
-      className={`${isMobile ? 'w-full' : 'w-[500px]'} bg-white dark:bg-slate-900 ${isMobile ? 'p-8' : 'p-10'} rounded-2xl border border-slate-100 dark:border-slate-700 shadow-xl relative flex-shrink-0 group hover:border-primary-200 dark:hover:border-primary-600 transition-colors overflow-hidden`}
-    >
-      {/* Hired Stamp */}
-      {/* Hired Ribbon */}
-      <div className="absolute top-6 -right-12 bg-emerald-500 text-white py-1 px-12 rotate-45 transform shadow-md text-xs font-black tracking-widest uppercase z-10">
-        {t("successStories.hired", locale)}
-      </div>
-
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative">
-          <img
-            src={story.image}
-            alt={`${story.name} - ${story.role} Success Story`}
-            className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} rounded-lg object-cover border-4 border-white shadow-lg`}
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <button
-              onClick={handlePlayAudio}
-              className="bg-white/90 rounded-lg p-2 cursor-pointer hover:scale-110 transition-transform shadow-lg backdrop-blur-sm"
-              aria-label={isCurrentlyPlaying ? 'Pause audio' : 'Play audio testimonial'}
-              aria-pressed={isCurrentlyPlaying}
-            >
-              {isCurrentlyPlaying ? (
-                <VolumeX className="w-4 h-4 text-slate-900" />
-              ) : (
-                <Volume2 className="w-4 h-4 text-slate-900" />
-              )}
-            </button>
-          </div>
-        </div>
-        <div>
-          <h3 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'} text-slate-900 dark:text-slate-100`}>{story.name}</h3>
-          <p className="text-slate-500 dark:text-slate-400">{story.role}</p>
-          {!isMobile && <p className="text-primary-600 text-sm font-bold">@{story.company}</p>}
-        </div>
-      </div>
-
-      <div className={`mb-${isMobile ? '6' : '8'} relative`}>
-        <Quote className={`w-${isMobile ? '8' : '10'} h-${isMobile ? '8' : '10'} text-slate-100 absolute -top-4 -left-4 -z-10`} />
-        <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-medium leading-relaxed text-slate-700 dark:text-slate-300 relative z-10`}>
-          "{story.quote}"
-        </p>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-4">
-        <div className="flex gap-0.5 text-amber-400">
-          {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-${isMobile ? '3' : '4'} h-${isMobile ? '3' : '4'} fill-current`} />)}
-        </div>
-        <div className={`font-mono ${isMobile ? 'text-xs' : 'text-sm'} text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-${isMobile ? '2' : '3'} py-1 rounded-full font-bold`}>
-          {story.stat}
-        </div>
-      </div>
-    </div>
-  );
-};

@@ -339,10 +339,10 @@ export default function Login() {
 
         {/* Right — Form (homepage white section style) */}
         <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col p-6 sm:p-8 lg:p-12 xl:p-16 bg-[#F7F6F3] relative">
-          {/* Top bar: on mobile, logo left + controls right to prevent overlap */}
+          {/* Top bar: logo left + controls right (navbar hidden on login, so single header) */}
           <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-10">
-            <Logo to="/" variant="light" size="md" className="lg:hidden" />
-            <div className="hidden lg:block" aria-hidden />
+            <Logo to="/" variant="light" size="md" />
+            <div aria-hidden />
             <div className="flex items-center gap-2 ml-auto">
               <LanguageSelector />
               <ThemeToggle />
@@ -351,9 +351,6 @@ export default function Login() {
 
           <div className="w-full max-w-[400px] mx-auto flex-1 flex flex-col justify-center pt-16 lg:pt-0">
             <div className="lg:hidden text-center mb-6">
-              <h1 className="text-2xl font-bold text-[#2D2A26] mb-2 tracking-tight">
-                Welcome back
-              </h1>
               <p className="text-[#787774] text-sm">
                 Sign in to continue your job hunt
               </p>
@@ -387,6 +384,7 @@ export default function Login() {
                 onSubmit={handleSubmit}
                 className="space-y-4"
                 aria-label="Sign in with email"
+                noValidate
                 animate={formError ? "shake" : "idle"}
                 variants={{
                   shake: { x: [0, -10, 10, -10, 10, 0], transition: { duration: 0.4 } },
@@ -403,10 +401,11 @@ export default function Login() {
                     focused && "ring-2 ring-[#455DD3]/20"
                   )}>
                     <input
-                      type="email"
+                      type="text"
+                      inputMode="email"
+                      autoComplete="email"
                       placeholder={t("login.emailPlaceholder", getLocale())}
                       id="login-email"
-                      autoComplete="email"
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -450,11 +449,11 @@ export default function Login() {
                       aria-controls="login-email-suggestions"
                       aria-activedescendant={showSuggestions && getEmailSuggestions().length > 0 ? `login-suggestion-${suggestionHighlight}` : undefined}
                       className={cn(
-                        "w-full px-4 py-3.5 rounded-lg bg-white border-2 transition-all text-[#2D2A26] placeholder:text-[#9B9A97]",
-                        "focus:outline-none focus:border-[#455DD3]",
-                        formError ? "border-red-400 bg-red-50/50" : "border-[#E9E9E7] hover:border-[#D6D3D1]"
+                        "w-full px-4 py-3.5 rounded-lg bg-white border border-[#E9E9E7] transition-all text-[#2D2A26] placeholder:text-[#9B9A97] text-base",
+                        "focus:outline-none focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/20",
+                        "min-h-[48px] sm:min-h-[44px]",
+                        formError ? "border-red-400 bg-red-50/50" : "hover:border-[#D6D3D1]"
                       )}
-                      required
                       aria-invalid={formError ? "true" : "false"}
                       aria-describedby={formError ? "login-email-error" : undefined}
                     />

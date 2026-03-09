@@ -59,17 +59,17 @@ export function MarketingFooter() {
   ];
 
   return (
-    <footer className="bg-slate-50 dark:bg-slate-900 pt-16 sm:pt-20 pb-10 border-t border-slate-200 dark:border-slate-800">
+    <footer className="bg-[#F7F6F3] dark:bg-slate-900 pt-16 sm:pt-20 pb-10 border-t border-[#E9E9E7] dark:border-slate-800 antialiased">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-12 mb-16">
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
             <Link to="/" className="flex items-center gap-2.5 group mb-5">
-              <div className="bg-gray-900 p-2 rounded-xl shadow-lg shadow-gray-900/10 group-hover:bg-gray-800 transition-colors duration-300">
+              <div className="bg-[#2D2A26] p-2 rounded-xl shadow-lg shadow-[#2D2A26]/10 group-hover:bg-[#3D3A36] transition-colors duration-300">
                 <Briefcase className="text-white w-5 h-5" aria-hidden />
               </div>
-              <span className="text-lg font-black text-gray-900 dark:text-slate-100 tracking-tight">JobHuntin</span>
+              <span className="text-lg font-black text-[#2D2A26] dark:text-slate-100 tracking-tight">JobHuntin</span>
             </Link>
-            <p className="text-gray-500 dark:text-slate-400 text-sm mb-6 max-w-xs leading-relaxed font-medium">
+            <p className="text-[#787774] dark:text-slate-400 text-sm mb-6 max-w-xs leading-relaxed font-medium">
               The automation platform for job seekers.
             </p>
             <div className="flex gap-2.5">
@@ -78,7 +78,7 @@ export function MarketingFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow us on Twitter (opens in new tab)" 
-                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-[#E9E9E7] dark:border-slate-700 rounded-full flex items-center justify-center text-[#787774] hover:text-[#455DD3] hover:border-[#455DD3]/30 hover:bg-[#455DD3]/5 transition-all focus:outline-none focus:ring-2 focus:ring-[#455DD3] focus:ring-offset-2"
               >
                 <Twitter className="w-4 h-4" aria-hidden />
               </a>
@@ -87,7 +87,7 @@ export function MarketingFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow us on LinkedIn (opens in new tab)" 
-                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-[#E9E9E7] dark:border-slate-700 rounded-full flex items-center justify-center text-[#787774] hover:text-[#455DD3] hover:border-[#455DD3]/30 hover:bg-[#455DD3]/5 transition-all focus:outline-none focus:ring-2 focus:ring-[#455DD3] focus:ring-offset-2"
               >
                 <Linkedin className="w-4 h-4" aria-hidden />
               </a>
@@ -96,7 +96,7 @@ export function MarketingFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="View our GitHub (opens in new tab)" 
-                className="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-gray-500 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="w-11 h-11 bg-white dark:bg-slate-800 border border-[#E9E9E7] dark:border-slate-700 rounded-full flex items-center justify-center text-[#787774] hover:text-[#455DD3] hover:border-[#455DD3]/30 hover:bg-[#455DD3]/5 transition-all focus:outline-none focus:ring-2 focus:ring-[#455DD3] focus:ring-offset-2"
               >
                 <Github className="w-4 h-4" aria-hidden />
               </a>
@@ -105,13 +105,13 @@ export function MarketingFooter() {
 
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h3 className="font-black text-gray-900 dark:text-slate-100 mb-4 text-[10px] uppercase tracking-[0.2em]">{section.title}</h3>
+              <h3 className="font-bold text-[#2D2A26] dark:text-slate-100 mb-4 text-xs uppercase tracking-wider">{section.title}</h3>
               <ul className="space-y-2.5">
                 {section.links.map((link) => (
                   <li key={link.name}>
                     <Link
                       to={link.path}
-                      className="text-gray-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-sm font-bold"
+                      className="text-[#787774] dark:text-slate-400 hover:text-[#2D2A26] dark:hover:text-slate-100 transition-colors text-sm font-medium"
                     >
                       {link.name}
                     </Link>
@@ -122,12 +122,12 @@ export function MarketingFooter() {
           ))}
         </div>
 
-        <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-gray-500 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">
+        <div className="pt-6 border-t border-[#E9E9E7] dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-[#787774] dark:text-slate-500 text-xs font-semibold uppercase tracking-wider">
             &copy; {new Date().getFullYear()} JobHuntin Inc.
           </p>
-          <p className="text-gray-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
-            Made with <Heart className="w-3.5 h-3.5 text-primary-500 fill-current" aria-hidden /> in Denver
+          <p className="text-[#9B9A97] dark:text-slate-500 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
+            Made with <Heart className="w-3.5 h-3.5 text-[#0D9488] fill-current" aria-hidden /> in Denver
           </p>
         </div>
       </div>
