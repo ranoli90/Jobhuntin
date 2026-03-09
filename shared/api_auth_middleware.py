@@ -22,15 +22,15 @@ import asyncio
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 import jwt
 from fastapi import Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from shared.logging_config import get_logger
 from shared.alerting import AlertSeverity, get_alert_manager
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api_auth")
 

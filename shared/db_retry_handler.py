@@ -21,13 +21,13 @@ import random
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 import asyncpg
 
-from shared.logging_config import get_logger
 from shared.alerting import AlertSeverity, get_alert_manager
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.db_retry")
 

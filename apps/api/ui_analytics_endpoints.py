@@ -2,13 +2,14 @@
 UI Analytics Endpoints for Phase 14.1 User Experience
 """
 
+import json
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from typing import Optional, Dict, Any
-from datetime import datetime, timezone, timedelta
-import json
 
-from apps.api.dependencies import get_db_pool, get_current_user, get_tenant_id
+from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.ui_analytics_manager import create_ui_analytics_manager
 
 router = APIRouter(prefix="/ui-analytics", tags=["ui-analytics"])

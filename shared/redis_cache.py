@@ -4,14 +4,14 @@ Redis Cache Implementation for Phase 15.1 Database & Performance
 
 from __future__ import annotations
 
+import asyncio
 import json
 import pickle
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import asyncio
+from typing import Any, Dict, List, Optional
 
 try:
     import redis.asyncio as redis
@@ -19,7 +19,7 @@ except ImportError:
     redis = None
 
 from shared.logging_config import get_logger
-from shared.metrics_collector import get_metrics_collector, MetricType, MetricCategory
+from shared.metrics_collector import MetricCategory, MetricType, get_metrics_collector
 
 logger = get_logger("sorce.redis_cache")
 

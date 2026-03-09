@@ -4,14 +4,15 @@ Connection Pool Manager for Phase 15.1 Database & Performance
 
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass
-from enum import Enum
 import asyncio
 from collections import defaultdict
-import psutil
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import asyncpg
+import psutil
 
 from shared.logging_config import get_logger
 

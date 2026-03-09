@@ -22,13 +22,13 @@ import json
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 import asyncpg
 
-from shared.logging_config import get_logger
 from shared.alerting import get_alert_manager
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.db_query_cache")
 
@@ -402,8 +402,8 @@ class QueryCache:
     async def _store_in_disk_cache(self, entry: CacheEntry) -> None:
         """Store entry in disk cache."""
         try:
-            import os
             import gzip
+            import os
 
             os.makedirs(self.config.disk_cache_dir, exist_ok=True)
             cache_file = os.path.join(self.config.disk_cache_dir, f"{entry.key}.cache")

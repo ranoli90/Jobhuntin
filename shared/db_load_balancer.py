@@ -20,13 +20,13 @@ import asyncio
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 import asyncpg
 
-from shared.logging_config import get_logger
 from shared.alerting import AlertSeverity, get_alert_manager
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.db_load_balancer")
 

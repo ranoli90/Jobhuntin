@@ -1,6 +1,7 @@
 """Job Details API endpoints for comprehensive job information."""
 
 from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 

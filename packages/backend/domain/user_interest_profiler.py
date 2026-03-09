@@ -5,9 +5,9 @@ User Interest Profiler for Phase 13.1 Communication System
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, Tuple
 
 from shared.logging_config import get_logger
 

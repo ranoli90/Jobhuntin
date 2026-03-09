@@ -19,8 +19,8 @@ from __future__ import annotations
 
 import io
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 from shared.logging_config import get_logger
 
@@ -28,7 +28,7 @@ logger = get_logger("sorce.image_processor")
 
 # Try to import Pillow with fallback
 try:
-    from PIL import Image, ImageOps, ImageEnhance, ExifTags  # noqa: F401
+    from PIL import ExifTags, Image, ImageEnhance, ImageOps  # noqa: F401
 
     PIL_AVAILABLE = True
 except ImportError:

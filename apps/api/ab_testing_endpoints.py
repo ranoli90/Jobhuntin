@@ -2,14 +2,15 @@
 A/B Testing Endpoints for Phase 14.1 User Experience
 """
 
+import json
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timezone
 from pydantic import BaseModel
-import json
 
-from apps.api.dependencies import get_db_pool, get_current_user, get_tenant_id
+from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.ab_testing_manager import (
     MetricType,
     create_ab_testing_manager,

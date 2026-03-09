@@ -6,12 +6,12 @@ Includes content negotiation, compression thresholds, and performance monitoring
 """
 
 import gzip
-import zlib
 import io
-from typing import Dict, Any, List, Optional, Callable
+import re
+import zlib
 from dataclasses import dataclass
 from enum import Enum
-import re
+from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse

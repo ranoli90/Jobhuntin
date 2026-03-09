@@ -19,13 +19,13 @@ from __future__ import annotations
 
 import gc
 import sys
-import time
 import threading
+import time
 import traceback
+import weakref
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
-import weakref
 
 from shared.logging_config import get_logger
 

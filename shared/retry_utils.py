@@ -9,9 +9,9 @@ from __future__ import annotations
 import asyncio
 import random
 import time
-from typing import Any, Callable, TypeVar
-from functools import wraps
 from dataclasses import dataclass
+from functools import wraps
+from typing import Any, Callable, TypeVar
 
 from shared.logging_config import get_logger
 

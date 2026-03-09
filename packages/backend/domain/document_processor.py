@@ -2,12 +2,12 @@
 
 import io
 import os
-from fastapi import HTTPException
 
-import fitz  # PyMuPDF for PDF
 import docx  # python-docx for DOCX
-from PIL import Image
+import fitz  # PyMuPDF for PDF
 import pytesseract  # OCR support
+from fastapi import HTTPException
+from PIL import Image
 
 from shared.logging_config import get_logger
 

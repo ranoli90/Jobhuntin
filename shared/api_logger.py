@@ -5,20 +5,20 @@ Comprehensive API request/response logging with performance monitoring,
 security tracking, and analytics collection.
 """
 
-import time
 import asyncio
-from typing import Dict, Any, List, Optional, Callable
-from dataclasses import dataclass, field, asdict
-from enum import Enum
-from datetime import datetime, timedelta
-from collections import defaultdict, deque
-import uuid
+import time
 import traceback
+import uuid
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from shared.logging_config import get_logger, LogContext, sanitize_for_log
+from shared.logging_config import LogContext, get_logger, sanitize_for_log
 
 logger = get_logger("sorce.api_logger")
 

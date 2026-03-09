@@ -5,9 +5,9 @@ OAuth/SSO Handler for Phase 12.1 Agent Improvements
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional, List
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 import httpx
 from fastapi import HTTPException

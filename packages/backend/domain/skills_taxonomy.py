@@ -5,9 +5,10 @@ to standardized categories, validating skill names, and providing structured
 skill data for better job matching and analytics.
 """
 
-from typing import Dict, List, Set, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, List, Optional, Set, Tuple
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.skills_taxonomy")

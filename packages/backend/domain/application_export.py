@@ -345,16 +345,16 @@ class ApplicationExportManager:
 
         # For now, return a simple text-based PDF
         # In production, use a proper PDF library like reportlab
+        from reportlab.lib import colors
         from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet
         from reportlab.platypus import (
+            Paragraph,
             SimpleDocTemplate,
+            Spacer,
             Table,
             TableStyle,
-            Paragraph,
-            Spacer,
         )
-        from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.lib import colors
 
         output = io.BytesIO()
         doc = SimpleDocTemplate(output, pagesize=A4)

@@ -18,11 +18,19 @@ from pathlib import Path
 from typing import Any, Literal
 
 import asyncpg
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, HTTPException
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+)
 from fastapi import Path as FastAPIPath
-from fastapi import UploadFile
 from pydantic import BaseModel, Field, field_validator
 
+from backend.domain.document_processor import create_document_processor
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
 from backend.domain.repositories import (
     ApplicationRepo,
@@ -34,7 +42,6 @@ from backend.domain.repositories import (
 )
 from backend.domain.resume import process_resume_upload
 from backend.domain.tenant import TenantContext
-from backend.domain.document_processor import create_document_processor
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import RateLimiter
@@ -1246,7 +1253,7 @@ async def upload_resume(
     await file.seek(0)  # Reset file pointer for later use
 
     # Perform virus scan before processing
-    from shared.virus_scanner import scan_uploaded_file, generate_file_hash
+    from shared.virus_scanner import generate_file_hash, scan_uploaded_file
 
     scan_result = await scan_uploaded_file(file_bytes, filename)
 

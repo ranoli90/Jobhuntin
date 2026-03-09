@@ -4,9 +4,9 @@ Cache Strategies for Phase 15.1 Database & Performance
 
 from __future__ import annotations
 
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-from collections import defaultdict
 
 from shared.logging_config import get_logger
 

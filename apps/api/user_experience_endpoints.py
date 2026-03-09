@@ -5,43 +5,42 @@ Pipeline view, export applications, follow-up reminders, answer memory, multi-re
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-
-import json
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 
-from packages.backend.domain.application_pipeline import (
-    ApplicationPipelineManager,
-    PipelineView,
+from packages.backend.domain.answer_memory import (
+    AnswerAttempt,
+    AnswerMemory,
+    AnswerMemoryManager,
+    InterviewQuestion,
 )
 from packages.backend.domain.application_export import (
     ApplicationExportManager,
     ExportConfig,
+)
+from packages.backend.domain.application_notes import (
+    ApplicationNote,
+    ApplicationNotesManager,
+    NoteTemplate,
+)
+from packages.backend.domain.application_pipeline import (
+    ApplicationPipelineManager,
+    PipelineView,
 )
 from packages.backend.domain.follow_up_reminders import (
     FollowUpManager,
     FollowUpReminder,
     ReminderSchedule,
 )
-from packages.backend.domain.answer_memory import (
-    AnswerMemoryManager,
-    InterviewQuestion,
-    AnswerAttempt,
-    AnswerMemory,
-)
 from packages.backend.domain.multi_resume import (
     MultiResumeManager,
-    ResumeVersion,
-    ResumeComparison,
     ResumeAnalytics,
-)
-from packages.backend.domain.application_notes import (
-    ApplicationNotesManager,
-    ApplicationNote,
-    NoteTemplate,
+    ResumeComparison,
+    ResumeVersion,
 )
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
@@ -67,45 +66,45 @@ def get_tenant_context():
 
 
 def get_pipeline_manager():
-    from packages.backend.domain.application_pipeline import create_pipeline_manager
     from apps.api.dependencies import get_pool
+    from packages.backend.domain.application_pipeline import create_pipeline_manager
 
     return create_pipeline_manager(get_pool())
 
 
 def get_export_manager():
-    from packages.backend.domain.application_export import create_export_manager
     from apps.api.dependencies import get_pool
+    from packages.backend.domain.application_export import create_export_manager
 
     return create_export_manager(get_pool())
 
 
 def get_follow_up_manager():
-    from packages.backend.domain.follow_up_reminders import create_follow_up_manager
     from apps.api.dependencies import get_pool
+    from packages.backend.domain.follow_up_reminders import create_follow_up_manager
 
     return create_follow_up_manager(get_pool())
 
 
 def get_answer_memory_manager():
-    from packages.backend.domain.answer_memory import create_answer_memory_manager
     from apps.api.dependencies import get_pool
+    from packages.backend.domain.answer_memory import create_answer_memory_manager
 
     return create_answer_memory_manager(get_pool())
 
 
 def get_multi_resume_manager():
-    from packages.backend.domain.multi_resume import create_multi_resume_manager
     from apps.api.dependencies import get_pool
+    from packages.backend.domain.multi_resume import create_multi_resume_manager
 
     return create_multi_resume_manager(get_pool())
 
 
 def get_application_notes_manager():
+    from apps.api.dependencies import get_pool
     from packages.backend.domain.application_notes import (
         create_application_notes_manager,
     )
-    from apps.api.dependencies import get_pool
 
     return create_application_notes_manager(get_pool())
 

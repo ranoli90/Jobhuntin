@@ -5,9 +5,9 @@ UI Analytics Manager for Phase 14.1 User Experience
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
 from shared.logging_config import get_logger
 

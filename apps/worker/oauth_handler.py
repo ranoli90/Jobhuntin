@@ -16,7 +16,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from playwright.async_api import Page, BrowserContext
+from playwright.async_api import BrowserContext, Page
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.oauth_handler")

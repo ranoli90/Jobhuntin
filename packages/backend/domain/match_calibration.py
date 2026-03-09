@@ -4,18 +4,19 @@ This module provides tools for analyzing match outcomes and automatically calibr
 match weights based on real-world performance data to improve matching accuracy.
 """
 
-from typing import Dict, List, Optional, Any
+import json
+import statistics
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-import json
+from typing import Any, Dict, List, Optional
+
 import asyncpg
-import statistics
 
 from backend.domain.match_weights import (
-    get_match_weights_manager,
-    WeightCategory,
     TenantMatchConfig,
+    WeightCategory,
+    get_match_weights_manager,
 )
 from shared.logging_config import get_logger
 
@@ -560,7 +561,7 @@ class MatchScoreCalibrator:
         """
         try:
             manager = get_match_weights_manager()
-            config = await manager.get_tenant_config(db_pool, tenant_id)
+            weight_config = await manager.get_tenant_config(db_pool, tenant_id)
 
             # Apply recommendations
             for rec in recommendations:

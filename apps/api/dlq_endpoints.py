@@ -34,7 +34,7 @@ async def get_tenant_context() -> TenantContext:
 
 
 try:
-    from apps.worker.dlq_manager import get_dlq_manager, DLQItem, RetryResult
+    from apps.worker.dlq_manager import DLQItem, RetryResult, get_dlq_manager
 except ImportError:
     get_dlq_manager = None
     DLQItem = None

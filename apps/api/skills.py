@@ -1,6 +1,7 @@
 """Skills Analysis API endpoints for skill validation and job matching."""
 
 from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 

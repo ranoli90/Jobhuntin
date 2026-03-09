@@ -15,11 +15,12 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from shared.logging_config import get_logger
+
 import asyncpg
 
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.config import get_settings
-from shared.circuit_breaker import get_circuit_breaker, CircuitBreakerOpenError
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.email_communications")
 

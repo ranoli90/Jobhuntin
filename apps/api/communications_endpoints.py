@@ -6,23 +6,24 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from apps.api.dependencies import get_pool
+from packages.backend.domain.alert_processor import create_alert_processor
 from packages.backend.domain.email_communication_manager import (
     create_email_communication_manager,
+)
+from packages.backend.domain.notification_batch_processor import (
+    create_notification_batch_processor,
 )
 from packages.backend.domain.notification_manager import create_notification_manager
 from packages.backend.domain.semantic_notification_matcher import (
     create_semantic_notification_matcher,
 )
-from packages.backend.domain.user_interest_profiler import create_user_interest_profiler
-from packages.backend.domain.alert_processor import create_alert_processor
-from packages.backend.domain.notification_batch_processor import (
-    create_notification_batch_processor,
-)
 from packages.backend.domain.tenant import TenantContext
-from apps.api.dependencies import get_pool
+from packages.backend.domain.user_interest_profiler import create_user_interest_profiler
 
 router = APIRouter(prefix="/communications", tags=["communications"])
 

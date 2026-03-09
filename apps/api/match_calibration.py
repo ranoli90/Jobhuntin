@@ -1,7 +1,8 @@
 """Match Score Calibration API endpoints for data-driven optimization."""
 
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from backend.domain.match_calibration import get_match_calibrator

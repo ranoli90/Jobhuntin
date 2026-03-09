@@ -5,16 +5,16 @@ Comprehensive pagination support with cursor-based, offset-based, and custom str
 Includes metadata generation, performance optimization, and flexible configuration.
 """
 
-import math
-from typing import Dict, Any, List, Optional, Union, TypeVar, Generic
-from dataclasses import dataclass, field
-from enum import Enum
-import hashlib
 import base64
+import hashlib
 import json
-from datetime import datetime, UTC
+import math
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
-from fastapi import Query, HTTPException, Request
+from fastapi import HTTPException, Query, Request
 from pydantic import BaseModel
 
 from shared.logging_config import get_logger

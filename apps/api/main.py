@@ -30,13 +30,21 @@ from typing import Any
 
 import asyncpg
 import jwt as pyjwt
-from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi import Path as FastAPIPath
-from fastapi import Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
+from packages.backend.domain.agent_improvements import create_agent_improvements_manager
 from packages.backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
@@ -49,17 +57,16 @@ from packages.backend.domain.repositories import (
     JobRepo,
     db_transaction,
 )
-from packages.backend.domain.agent_improvements import create_agent_improvements_manager
 from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
 from shared.config import Environment, get_settings
-from shared.validators import validate_uuid
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import incr
 from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
 from shared.redis_client import close_redis, get_redis
 from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
+from shared.validators import validate_uuid
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -643,7 +650,9 @@ def _mount_sub_routers() -> None:
     # Concurrent Usage (Phase 12.1)
     import api.concurrent_usage_endpoints as concurrent_usage_mod
 
-    app.dependency_overrides[concurrent_usage_mod.get_tenant_context] = get_tenant_context
+    app.dependency_overrides[concurrent_usage_mod.get_tenant_context] = (
+        get_tenant_context
+    )
     app.include_router(concurrent_usage_mod.router)
 
 

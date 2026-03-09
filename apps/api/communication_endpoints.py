@@ -13,14 +13,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from apps.api.dependencies import get_current_user_id
 from backend.domain.tenant import TenantContext
 from packages.backend.domain.enhanced_notifications import (
-    NotificationContent,
     NotificationCategory,
+    NotificationContent,
     NotificationPriority,
 )
 from shared.logging_config import get_logger
@@ -104,20 +104,20 @@ class CommunicationStats(BaseModel):
 # Dependency functions
 def get_email_manager_dep():
     """Get email communication manager."""
+    from apps.api.dependencies import get_pool
     from packages.backend.domain.email_communications import (
         create_email_communication_manager,
     )
-    from apps.api.dependencies import get_pool
 
     return create_email_communication_manager(get_pool())
 
 
 def get_notification_manager_dep():
     """Get enhanced notification manager."""
+    from apps.api.dependencies import get_pool
     from packages.backend.domain.enhanced_notifications import (
         create_enhanced_notification_manager,
     )
-    from apps.api.dependencies import get_pool
 
     return create_enhanced_notification_manager(get_pool())
 

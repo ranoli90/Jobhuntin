@@ -23,8 +23,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 
 def api_get(path: str, token: str) -> dict | list:

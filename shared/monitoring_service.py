@@ -7,17 +7,17 @@ security events, and analytics data storage.
 
 import asyncio
 import json
-from typing import Dict, Any, List, Optional
-from datetime import datetime
 from dataclasses import asdict
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from shared.api_logger import (
+    APILogger,
     APIRequest,
     APIResponse,
-    SecurityEvent,
-    PerformanceMetrics,
     MetricsCollector,
-    APILogger,
+    PerformanceMetrics,
+    SecurityEvent,
 )
 from shared.logging_config import get_logger
 

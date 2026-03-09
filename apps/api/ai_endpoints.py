@@ -13,6 +13,7 @@ import hashlib
 from typing import Any
 
 import asyncpg
+from api.dependencies import get_current_user_id
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
@@ -30,7 +31,6 @@ from backend.llm.contracts import (
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
 )
-from api.dependencies import get_current_user_id
 from shared.ai_validation import validate_and_sanitize_ai_input
 from shared.config import get_settings
 from shared.logging_config import get_logger

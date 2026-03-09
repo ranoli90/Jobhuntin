@@ -4,9 +4,9 @@ Concurrent Usage Tracker for Phase 12.1 Agent Improvements
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
-from dataclasses import dataclass, field
 
 from shared.logging_config import get_logger
 

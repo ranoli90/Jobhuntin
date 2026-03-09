@@ -4,16 +4,17 @@ Cache Manager for Phase 15.1 Database & Performance
 
 from __future__ import annotations
 
-import uuid
-import json
-import hashlib
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
-from enum import Enum
 import asyncio
-from collections import defaultdict
+import hashlib
+import json
 import pickle
+import uuid
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import redis.asyncio as redis
 
 from shared.logging_config import get_logger

@@ -18,12 +18,13 @@ Key endpoints:
 - GET /ai-onboarding/health - Health check for AI onboarding
 """
 
-from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.domain.ai_onboarding import get_ai_onboarding_manager, OnboardingSession
+from backend.domain.ai_onboarding import OnboardingSession, get_ai_onboarding_manager
 from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 

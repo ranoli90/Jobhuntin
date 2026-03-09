@@ -4,16 +4,16 @@ Metrics Collector for Phase 15.1 Database & Performance
 
 from __future__ import annotations
 
-import uuid
-import json
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass, field
-from enum import Enum
 import asyncio
-from collections import deque
+import json
 import statistics
+import time
+import uuid
+from collections import deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 from shared.logging_config import get_logger
 

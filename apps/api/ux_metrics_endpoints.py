@@ -2,17 +2,18 @@
 UX Metrics Collector Endpoints for Phase 14.1 User Experience
 """
 
+import json
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from typing import Optional, Dict, Any
-from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
-import json
 
-from apps.api.dependencies import get_db_pool, get_current_user, get_tenant_id
+from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.ux_metrics_collector import (
-    MetricType,
     MetricCategory,
+    MetricType,
     create_ux_metrics_collector,
 )
 

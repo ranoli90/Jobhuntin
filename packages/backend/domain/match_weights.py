@@ -4,11 +4,12 @@ This module provides a comprehensive system for managing match weights and scori
 configurations on a per-tenant basis, allowing customization of job matching algorithms.
 """
 
-from typing import Dict, Optional, Any
-from dataclasses import dataclass, field
-from enum import Enum
 import json
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Optional
+
 import asyncpg
 
 from shared.logging_config import get_logger

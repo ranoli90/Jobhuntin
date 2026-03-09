@@ -11,17 +11,17 @@ from packages.backend.domain.analytics_events import (
     RESUME_PARSED_SUCCESS,
     emit_analytics_event,
 )
+from packages.backend.domain.document_processor import create_document_processor
 from packages.backend.domain.models import normalize_profile
 from packages.backend.domain.repositories import ProfileRepo
+from packages.backend.domain.skills_taxonomy import (
+    get_skills_taxonomy,
+    validate_user_skills,
+)
 from packages.backend.llm.client import LLMClient, LLMError
 from packages.backend.llm.contracts import (
     ResumeParseResponse_V2,
     build_resume_parse_prompt_v2,
-)
-from packages.backend.domain.document_processor import create_document_processor
-from packages.backend.domain.skills_taxonomy import (
-    get_skills_taxonomy,
-    validate_user_skills,
 )
 from shared.config import get_settings
 from shared.logging_config import get_logger

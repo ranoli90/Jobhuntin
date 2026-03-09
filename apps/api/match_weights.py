@@ -1,13 +1,14 @@
 """Match Weights Configuration API endpoints for per-tenant customization."""
 
 from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from backend.domain.match_weights import (
-    get_match_weights_manager,
     TenantMatchConfig,
     WeightCategory,
+    get_match_weights_manager,
 )
 from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger

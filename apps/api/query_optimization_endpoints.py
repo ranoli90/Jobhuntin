@@ -2,13 +2,14 @@
 Query Optimization Endpoints for Phase 15.1 Database & Performance
 """
 
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timezone
 from pydantic import BaseModel
 
-from apps.api.dependencies import get_db_pool, get_current_user, get_tenant_id
+from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.query_optimizer import (
     create_query_optimizer,
 )

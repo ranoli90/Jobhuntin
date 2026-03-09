@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.multi_resume")

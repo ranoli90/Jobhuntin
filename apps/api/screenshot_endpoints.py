@@ -5,15 +5,16 @@ Screenshot Capture API Endpoints for Phase 12.1 Agent Improvements
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from apps.api.dependencies import get_pool
 from packages.backend.domain.agent_improvements import (
     AgentImprovementsManager,
     create_agent_improvements_manager,
 )
 from packages.backend.domain.tenant import TenantContext
-from apps.api.dependencies import get_pool
 
 router = APIRouter(prefix="/screenshots", tags=["screenshots"])
 

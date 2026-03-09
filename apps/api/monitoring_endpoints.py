@@ -4,14 +4,14 @@ API Monitoring and Analytics Endpoints
 Provides endpoints for accessing API metrics, logs, and monitoring data.
 """
 
-from typing import Dict, Optional
 from datetime import datetime
+from typing import Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
-from shared.api_logger import api_logger
 from shared.api_auth_middleware import get_current_user, require_permissions
+from shared.api_logger import api_logger
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api_monitoring")
@@ -323,13 +323,14 @@ async def test_logging(
 ):
     """Test endpoint for logging functionality."""
     try:
+        import uuid
+
         from shared.api_logger import (
             APIRequest,
             APIResponse,
-            SecurityEvent,
             PerformanceMetrics,
+            SecurityEvent,
         )
-        import uuid
 
         request_id = str(uuid.uuid4())
 

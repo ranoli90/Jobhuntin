@@ -21,16 +21,16 @@ import asyncpg
 from playwright.async_api import BrowserContext, Page, async_playwright
 
 from packages.backend.blueprints.registry import get_blueprint, load_default_blueprints
+from packages.backend.domain.email_communications import get_email_communication_manager
+from packages.backend.domain.enhanced_notifications import (
+    get_enhanced_notification_manager,
+)
 from packages.backend.domain.evaluations import record_system_evaluation
 from packages.backend.domain.experiments import get_variant_for_tenant
 from packages.backend.domain.models import CanonicalProfile, normalize_profile
 from packages.backend.domain.notifications import (
     notify_application_submitted,
     notify_hold_questions,
-)
-from packages.backend.domain.email_communications import get_email_communication_manager
-from packages.backend.domain.enhanced_notifications import (
-    get_enhanced_notification_manager,
 )
 from packages.backend.domain.repositories import (
     ApplicationRepo,
@@ -51,8 +51,9 @@ from shared.config import get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import RateLimiter, incr, observe
 from shared.telemetry import setup_telemetry
-from .oauth_handler import OAuthHandler
+
 from .concurrent_tracker import get_concurrent_tracker
+from .oauth_handler import OAuthHandler
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)

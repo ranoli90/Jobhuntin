@@ -4,11 +4,11 @@ Notification Batch Processor for Phase 13.1 Communication System
 
 from __future__ import annotations
 
-import uuid
 import asyncio
+import uuid
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
 
 from shared.logging_config import get_logger
 

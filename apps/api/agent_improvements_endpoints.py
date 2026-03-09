@@ -13,14 +13,14 @@ from pydantic import BaseModel
 from packages.backend.domain.agent_improvements import (
     AgentImprovementsManager,
     ButtonDetection,
-    FormFieldDetection,
-    DocumentType,
-    ScreenshotCapture,
-    OAuthProvider,
-    OAuthCredentials,
     ConcurrentUsageSession,
     DLQItem,
+    DocumentType,
+    FormFieldDetection,
+    OAuthCredentials,
+    OAuthProvider,
     RetryResult,
+    ScreenshotCapture,
 )
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger

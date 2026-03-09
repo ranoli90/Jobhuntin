@@ -3,12 +3,13 @@ Voice Interview Simulator - Voice-enabled interview preparation system
 Provides speech-to-text, text-to-speech, and voice analytics capabilities
 """
 
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
-from enum import Enum
 import uuid
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.voice_interviews")

@@ -2,11 +2,12 @@
 Cache Endpoints for Phase 15.1 Database & Performance
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from apps.api.dependencies import get_db_pool, get_current_user, get_tenant_id
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.cache_manager import create_cache_manager
 
 router = APIRouter(prefix="/cache", tags=["cache"])
