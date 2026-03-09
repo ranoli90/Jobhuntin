@@ -185,11 +185,11 @@ CORS_ORIGINS = [
         _settings.app_base_url.rstrip("/"),
         "https://jobhuntin.com",
         "https://app.jobhuntin.com",
-        *(
-            ["http://localhost:5173", "http://localhost:3000"]
-            if _settings.env.value != "prod"
-            else []
-        ),
+        # Local dev - always include so CORS works regardless of ENV detection
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
     }
     if o
 ]
