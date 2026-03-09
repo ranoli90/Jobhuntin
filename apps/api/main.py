@@ -234,14 +234,7 @@ async def api_versioning_middleware(request: Request, call_next):
     - Accept-Version header can specify desired version (e.g., "v2")
     - If version not supported, returns 400 with supported versions
     """
-    # Add version headers to response
-    response = await call_next(request)
-    
-    # Add API version headers
-    response.headers["X-API-Version"] = API_VERSION
-    response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
-    
-    # Handle version negotiation via Accept-Version header
+    # Handle version negotiation via Accept-Version header (before processing request)
     requested_version = request.headers.get("Accept-Version")
     if requested_version:
         requested_version = requested_version.strip().lower()
@@ -257,12 +250,23 @@ async def api_versioning_middleware(request: Request, call_next):
                         "supported_versions": SUPPORTED_VERSIONS,
                     }
                 },
+                headers={
+                    "X-API-Version": API_VERSION,
+                    "X-Supported-Versions": ",".join(SUPPORTED_VERSIONS),
+                },
             )
         # Store requested version in request state for use by endpoints
         request.state.api_version = requested_version
     else:
         # Default to current version
         request.state.api_version = API_VERSION
+    
+    # Process request
+    response = await call_next(request)
+    
+    # Add API version headers to response
+    response.headers["X-API-Version"] = API_VERSION
+    response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
     
     return response
 
