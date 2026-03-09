@@ -67,6 +67,17 @@ export default function Login() {
       .map(d => `${prefix}@${d}`);
   };
 
+  // H9: Loading States - Show loading during token verification
+  const [isVerifying, setIsVerifying] = useState(false);
+  
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token && !isVerifying) {
+      setIsVerifying(true);
+      // Token verification happens via backend redirect, show loading state
+    }
+  }, [searchParams, isVerifying]);
+  
   useEffect(() => {
     if (!authLoading && user) {
       navigate(safeReturnTo, { replace: true });
@@ -83,6 +94,7 @@ export default function Login() {
   useEffect(() => {
     const error = searchParams.get('error');
     if (error === 'auth_failed') {
+      setIsVerifying(false); // Stop loading on error
       setFormError('Your magic link has expired or was already used. Please request a new one.');
       // C4: Analytics Tracking - Track magic link verification failure
       telemetry.track("magic_link_failed", { 
@@ -292,6 +304,19 @@ export default function Login() {
             </div>
           </div>
         </motion.div>
+      </div>
+    );
+  }
+
+  // H9: Loading States - Show loading overlay during token verification
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-[#7DD3CF] animate-spin mx-auto" />
+          <h2 className="text-xl font-bold text-white">Verifying your magic link...</h2>
+          <p className="text-white/70">Please wait while we sign you in.</p>
+        </div>
       </div>
     );
   }
