@@ -360,11 +360,41 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
                 severity="critical",
                 details=alert,
             )
+            
+            # M10: Send to Opsgenie as well
+            opsgenie_id = await send_opsgenie_alert(
+                message=alert.get("message", "Sorce critical alert"),
+                alias=f"alert-{alert.get('code', 'unknown')}",
+                description=alert.get("message", ""),
+                priority="P1",  # Critical
+                tags=["critical", alert.get("code", "unknown")],
+                details={
+                    **alert,
+                    "pagerduty_dedup": pagerduty_dedup,
+                },
+            )
+            
             await send_slack_message(
                 text=f"🚨 *CRITICAL*: {alert.get('message')}",
                 channel=get_settings().slack_ops_channel,
             )
+            
+            logger.info(
+                "Critical alert dispatched: PagerDuty=%s, Opsgenie=%s",
+                pagerduty_dedup,
+                opsgenie_id,
+            )
         elif alert.get("level") == "warning":
+            # M10: Send warnings to Opsgenie as P3 (Moderate)
+            await send_opsgenie_alert(
+                message=alert.get("message", "Sorce warning"),
+                alias=f"warning-{alert.get('code', 'unknown')}",
+                description=alert.get("message", ""),
+                priority="P3",  # Moderate
+                tags=["warning", alert.get("code", "unknown")],
+                details=alert,
+            )
+            
             await send_slack_message(
                 text=f"⚠️ *WARNING*: {alert.get('message')}",
                 channel=get_settings().slack_ops_channel,
