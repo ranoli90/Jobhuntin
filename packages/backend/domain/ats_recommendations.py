@@ -150,7 +150,7 @@ class ATSRecommendationsEngine:
             job_title = job.get("title", "")
             company_name = job.get("company", "")
             industry = job.get("industry", job.get("company_industry", ""))
-            job_description = job.get("description", "")
+            job.get("description", "")
 
             # Analyze keywords
             keyword_analysis = await self._analyze_keywords(job, profile)
@@ -457,7 +457,7 @@ class ATSRecommendationsEngine:
         recommendations = []
 
         issues = format_compliance.get("issues", [])
-        checks = format_compliance.get("checks", {})
+        format_compliance.get("checks", {})
 
         for issue in issues:
             if "file format" in issue.lower():

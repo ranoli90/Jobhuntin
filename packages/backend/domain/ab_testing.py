@@ -713,7 +713,7 @@ class ABTestingManager:
             t_stat = (mean_a - mean_b) / se_diff
 
             # Calculate degrees of freedom
-            df = n_a + n_b - 2
+            n_a + n_b - 2
 
             # Calculate p-value (simplified - would use scipy in production)
             # This is a simplified approximation

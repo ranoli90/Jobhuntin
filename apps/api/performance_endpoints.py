@@ -723,7 +723,7 @@ async def warm_cache(
     """Warm cache with data."""
     try:
         # Create cache manager
-        cache_manager = create_cache_manager()
+        create_cache_manager()
 
         # This is a placeholder - in practice, data_loader would be a function
         # For now, return empty results
@@ -828,7 +828,7 @@ async def health_check(
     """Health check for performance monitoring system."""
     try:
         # Create performance monitor
-        monitor = create_performance_monitor(db_pool)
+        create_performance_monitor(db_pool)
 
         # Check database connection
         try:

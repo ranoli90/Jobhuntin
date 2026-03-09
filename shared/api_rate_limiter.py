@@ -467,7 +467,7 @@ class RateLimiter:
                 oldest_entry_time = await self.redis_client.zrange(
                     cache_key, 0, 1, withscores=True
                 )
-                oldest_time = (
+                (
                     float(oldest_entry_time[0]) if oldest_entry_time else current_time
                 )
                 retry_after = max(
@@ -608,7 +608,7 @@ class RateLimiter:
             time_since_update = time.time() - (
                 self.metrics[rule.name].last_reset_time or 0
             )
-            tokens_to_add = int(time_since_update * self.leaky_bucket_refill_rate)
+            int(time_since_update * self.leaky_bucket_refill_rate)
             new_tokens = min(new_tokens + leaked_tokens, self.leaky_bucket_capacity)
 
             # Update Redis

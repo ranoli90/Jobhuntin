@@ -214,7 +214,7 @@ class PoolMetricsCollector:
         for pool_id, pool_info in self.pool_manager.pool_info.items():
             try:
                 snapshot = await self._collect_pool_metrics(
-                    pool_id, pool_info.pool, current_time
+                    pool_id, pool_info.pool, current_time, pool_info
                 )
 
                 async with self._lock:
@@ -224,7 +224,11 @@ class PoolMetricsCollector:
                 logger.error(f"Failed to collect metrics for pool {pool_id}: {e}")
 
     async def _collect_pool_metrics(
-        self, pool_id: str, pool: asyncpg.Pool, timestamp: float
+        self,
+        pool_id: str,
+        pool: asyncpg.Pool,
+        timestamp: float,
+        pool_info: Any = None,
     ) -> PoolMetricSnapshot:
         """Collect metrics from a specific pool."""
         # Get basic pool statistics
@@ -232,23 +236,26 @@ class PoolMetricsCollector:
         idle_size = pool.get_idle_size()
         active_size = pool_size - idle_size
 
-        # Calculate wait times (would need to be tracked during acquire/release)
-        avg_wait_time = pool_info.response_time_ms  # Simplified
-        max_wait_time = pool_info.response_time_ms  # Simplified
-        min_wait_time = pool_info.response_time_ms  # Simplified
+        # Use pool_info if available, else defaults
+        resp_ms = getattr(pool_info, "response_time_ms", 0.0) if pool_info else 0.0
+        q_count = getattr(pool_info, "query_count", 0) if pool_info else 0
+        err_count = getattr(pool_info, "error_count", 0) if pool_info else 0
+        conn_count = getattr(pool_info, "connection_count", 0) if pool_info else 0
 
-        # Get query statistics
-        total_queries = pool_info.query_count
-        total_errors = pool_info.error_count
-        avg_query_time = pool_info.response_time_ms  # Simplified
-        max_query_time = pool_info.response_time_ms  # Simplified
-        min_query_time = pool_info.response_time_ms  # Simplified
+        avg_wait_time = resp_ms
+        max_wait_time = resp_ms
+        min_wait_time = resp_ms
+        total_queries = q_count
+        total_errors = err_count
+        avg_query_time = resp_ms
+        max_query_time = resp_ms
+        min_query_time = resp_ms
 
         # Calculate utilization
         utilization = (active_size / pool_size) * 100 if pool_size > 0 else 0
 
         # Calculate error rate
-        error_rate = (total_errors / max(total_queries, 1)) * 100
+        (total_errors / max(total_queries, 1)) * 100
 
         # Create snapshot
         snapshot = PoolMetricSnapshot(
@@ -258,8 +265,8 @@ class PoolMetricsCollector:
             active_connections=active_size,
             idle_connections=idle_size,
             waiting_requests=0,  # Would need to be tracked
-            total_acquires=pool_info.connection_count,
-            total_releases=pool_info.connection_count,
+            total_acquires=conn_count,
+            total_releases=conn_count,
             avg_wait_time_ms=avg_wait_time,
             max_wait_time_ms=max_wait_time,
             min_wait_time_ms=min_wait_time,

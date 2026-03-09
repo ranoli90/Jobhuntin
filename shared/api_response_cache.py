@@ -1196,7 +1196,7 @@ def cached(
             # Execute function
             start_time = time.time()
             result = await func(*args, **kwargs)
-            execution_time = time.time() - start_time
+            time.time() - start_time
 
             # Cache the result
             await _response_cache.set(

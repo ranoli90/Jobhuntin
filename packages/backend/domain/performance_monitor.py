@@ -343,7 +343,7 @@ class PerformanceMonitor:
     ) -> PerformanceDashboard:
         """Get comprehensive performance dashboard."""
         try:
-            cutoff_time = datetime.now(timezone.utc) - timedelta(
+            datetime.now(timezone.utc) - timedelta(
                 hours=time_period_hours
             )
 
@@ -760,7 +760,6 @@ class PerformanceMonitor:
 
             # Check thresholds
             alert = None
-            severity = None
 
             if self._compare_values(
                 metric.value, threshold.warning_threshold, threshold.comparison_operator
@@ -778,7 +777,6 @@ class PerformanceMonitor:
                     timestamp=metric.timestamp,
                     metadata=metric.metadata,
                 )
-                severity = AlertSeverity.WARNING
 
             elif self._compare_values(
                 metric.value,
@@ -798,7 +796,6 @@ class PerformanceMonitor:
                     timestamp=metric.timestamp,
                     metadata=metric.metadata,
                 )
-                severity = AlertSeverity.CRITICAL
 
             if alert:
                 self._alerts_buffer.append(alert)
@@ -1088,7 +1085,7 @@ class PerformanceMonitor:
             for name, metric_list in metrics_by_name.items():
                 if len(metric_list) >= 2:
                     values = [m.value for m in metric_list]
-                    timestamps = [m.timestamp for m in metric_list]
+                    [m.timestamp for m in metric_list]
 
                     # Calculate trend direction
                     first_half = values[: len(values) // 2]

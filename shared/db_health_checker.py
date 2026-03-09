@@ -108,7 +108,7 @@ class DatabaseHealthChecker:
 
     async def check_health(self) -> DatabaseHealth:
         """Perform comprehensive database health check."""
-        start_time = time.time()
+        time.time()
         checks = []
         issues = []
 

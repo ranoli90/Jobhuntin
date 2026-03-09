@@ -18,6 +18,7 @@ Usage:
 from __future__ import annotations
 
 import io
+import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -129,7 +130,6 @@ class ImageProcessor:
                 raise ValueError("Failed to load image")
 
             original_size = len(image_data)
-            original_dimensions = image.size
 
             # Determine output format
             if output_format is None:
@@ -465,7 +465,3 @@ def init_image_processor(
     global _processor
     _processor = ImageProcessor(config)
     return _processor
-
-
-# Import time for performance measurement
-import time

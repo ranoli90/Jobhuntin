@@ -523,7 +523,7 @@ class ConnectionPoolManager:
                 return
 
             pool = self._pools[pool_name]
-            config = self._pool_configs[pool_name]
+            self._pool_configs[pool_name]
             metrics = self._pool_metrics[pool_name]
 
             # Perform health check

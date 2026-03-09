@@ -108,7 +108,7 @@ class OAuthHandler:
         """Initiate OAuth flow and return authorization URL."""
         try:
             # Get OAuth provider configuration
-            oauth_config = await self._get_oauth_config(provider)
+            await self._get_oauth_config(provider)
 
             # Build authorization URL
             auth_params = {
@@ -162,7 +162,7 @@ class OAuthHandler:
         """Exchange authorization code for access tokens."""
         try:
             # Get OAuth provider configuration
-            oauth_config = await self._get_oauth_config(provider)
+            await self._get_oauth_config(provider)
 
             # Exchange code for tokens
             token_data = {
@@ -260,7 +260,7 @@ class OAuthHandler:
         """Refresh access token using refresh token."""
         try:
             # Get OAuth provider configuration
-            oauth_config = await self._get_oauth_config(provider)
+            await self._get_oauth_config(provider)
 
             token_url = (
                 f"/oauth/token?grant_type=refresh_token&refresh_token={refresh_token}"

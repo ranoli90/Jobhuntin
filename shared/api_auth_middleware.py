@@ -932,7 +932,7 @@ class AuthMiddleware:
         cleaned_count = 0
 
         for key in list(self.user_rate_limits.keys()):
-            original_length = len(self.user_rate_limits[key])
+            len(self.user_rate_limits[key])
 
             # Remove old entries
             while (

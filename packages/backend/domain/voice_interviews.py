@@ -264,7 +264,7 @@ class VoiceInterviewSimulator:
         )
 
         # Create voice session
-        voice_session = VoiceInterviewSession(
+        VoiceInterviewSession(
             interview_session_id=session_id,
             user_id=user_id,
             voice_settings=VoiceSettings(**(voice_settings or {})),

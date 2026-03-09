@@ -28,6 +28,11 @@ from packages.backend.domain.user_interest_profiler import create_user_interest_
 router = APIRouter(prefix="/communications", tags=["communications"])
 
 
+async def get_tenant_context() -> TenantContext:
+    """Stub; inject tenant context via Depends in main app."""
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
 # Pydantic models
 class EmailRequest(BaseModel):
     """Email request model."""

@@ -2,6 +2,7 @@
 Cache Endpoints for Phase 15.1 Database & Performance
 """
 
+import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -9,6 +10,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.cache_manager import create_cache_manager
+from shared.logging_config import get_logger
+
+logger = get_logger("sorce.cache_endpoints")
 
 router = APIRouter(prefix="/cache", tags=["cache"])
 
@@ -172,7 +176,7 @@ async def clear_cache(
     cache_level: Optional[str] = None,
     pattern: Optional[str] = None,
     db_pool=Depends(get_db_pool),
-    current_user=DEps(get_current_user),
+    current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Clear cache entries."""
@@ -196,7 +200,7 @@ async def clear_cache(
 @router.get("/cache/health")
 async def get_cache_health(
     db_pool=Depends(get_db_pool),
-    current_user=DEps(get_current_user),
+    current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get cache health status."""
@@ -221,7 +225,7 @@ async def get_cache_keys(
     pattern: Optional[str] = None,
     limit: int = Query(default=100, ge=1, le=1000),
     db_pool=Depends(get_db_pool),
-    current_user=DEps(get_current_user),
+    current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get cache keys."""
@@ -275,7 +279,7 @@ async def get_cache_keys(
 async def get_cache_size(
     cache_level: Optional[str] = None,
     db_pool=Depends(get_db_pool),
-    current_user=DEps(get_current_user),
+    current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get cache size information."""
@@ -330,12 +334,12 @@ async def get_cache_efficiency(
         # Get metrics from cache manager
         metrics = await cache_manager.get_cache_stats()
 
-        if cache_type := metrics.get("memory"):
+        if metrics.get("memory"):
             total_requests += metrics.get("total_entries", 0)
             cache_hits = metrics.get("hit_count", 0)
             cache_misses = metrics.get("miss_count", 0)
 
-        if cache_type := metrics.get("redis"):
+        if metrics.get("redis"):
             total_requests += metrics.get("total_entries", 0)
             cache_hits = metrics.get("hit_count", 0)
             cache_misses = metrics.get("miss_count", 0)
@@ -375,32 +379,15 @@ async def analyze_cache_performance(
 ) -> Dict[str, Any]:
     """Analyze cache performance."""
     try:
-        # Create cache manager
         cache_manager = create_cache_manager()
-
-        # Get cache health
         health = await cache_manager.get_cache_health()
-
-        # Get cache statistics
         stats = await cache_manager.get_cache_stats()
-
-        # Get system metrics for correlation
-        system_metrics = await self._get_system_metrics()
-
-        # Calculate performance trends
-        trends = await self._calculate_cache_trends(tenant_id, time_period_hours)
-
-        # Generate insights
-        insights = await self._generate_cache_insights(
-            health, stats, system_metrics, trends
-        )
+        insights = _generate_cache_insights(health, stats, {}, {})
 
         return {
             "period_hours": time_period_hours,
             "cache_health": health,
             "cache_statistics": stats,
-            "system_metrics": system_metrics,
-            "trends": trends,
             "insights": insights,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -409,97 +396,6 @@ async def analyze_cache_performance(
         raise HTTPException(
             status_code=500, detail=f"Failed to analyze cache performance: {str(e)}"
         )
-
-
-def _calculate_cache_trends(
-    tenant_id: str,
-    time_period_hours: int,
-) -> Dict[str, Any]:
-    """Calculate cache performance trends."""
-    try:
-        trends = {}
-
-        # Get cache statistics for the period
-        cache_stats = await self._get_cache_stats(time_period_hours)
-
-        # Calculate trends
-        if cache_stats:
-            cache_hit_rate = cache_stats.get("memory_hit_rate", 0.0)
-            redis_hit_rate = cache_stats.get("redis_hit_rate", 0.0)
-            overall_hit_rate = (cache_hit_rate + redis_hit_rate) / 2.0
-            trends["cache_hit_rate"] = self._calculate_trend(
-                cache_hit_rate, time_period_hours
-            )
-            trends["redis_hit_rate"] = self._calculate_trend(
-                redis_hit_rate, time_period_hours
-            )
-
-        return trends
-
-    except Exception as e:
-        logger.error(f"Failed to calculate cache trends: {e}")
-        return {}
-
-
-def _calculate_trend(
-    values: List[float],
-    time_period_hours: int,
-) -> str:
-    """Calculate trend direction."""
-    try:
-        if len(values) < 2:
-            return "stable"
-
-        # Calculate average values
-        first_half = values[: len(values) // 2]
-        second_half = values[len(values) // 2]
-
-        first_avg = sum(first_half) / len(first_half) if first_half else 0
-        second_avg = sum(second_half) / len(second_half) if second_half else 0
-
-        if second_avg > first_avg * 1.1:
-            return "increasing"
-        elif second_avg < first_avg * 0.9:
-            return "decreasing"
-        else:
-            return "stable"
-
-    except Exception as e:
-        logger.error(f"Failed to calculate trend: {e}")
-        return "error"
-
-
-def _calculate_trend(
-    values: List[float],
-    time_period_hours: int,
-) -> Tuple[float, float]:
-    """Calculate trend statistics."""
-    try:
-        if len(values) < 2:
-            return (0.0, 0.0)
-
-        # Calculate trend using linear regression
-        n = len(values)
-        sum_x = sum(i for i in range(n))
-        sum_y = sum(values)
-        sum_xy = sum(i * i for i in range(n))
-        sum_y2 = sum(i * i for i in range(n))
-
-        # Calculate slope (y = b*x + a)
-        slope = (
-            (n * sum_xy - sum_x * sum_y) / (n * sum_x * sum_y)
-            if sum_x * sum_y != 0
-            else 0
-        )
-        intercept = (
-            sum_y / n - (sum_x * sum_x) / sum_x * sum_y if sum_x * sum_y != 0 else 0
-        )
-
-        return slope, intercept
-
-    except Exception as e:
-        logger.error(f"Failed to calculate trend: {e}")
-        return (0.0, 0.0)
 
 
 def _generate_cache_insights(
@@ -520,27 +416,20 @@ def _generate_cache_insights(
             "recommendations": [],
         }
 
-        # Add specific insights based on metrics
         if health.get("memory_usage_percent", 0) > 0.9:
             insights["recommendations"].append(
                 "Consider increasing memory allocation or optimizing cache usage"
             )
-
         if health.get("redis_hit_rate", 0.0) < 0.5:
             insights["recommendations"].append(
                 "Check Redis configuration and query patterns"
             )
-
         if system_metrics.get("cpu_percent", 0) > 80:
             insights["recommendations"].append("Investigate high CPU usage")
-
         if system_metrics.get("memory_percent", 0) > 85:
             insights["recommendations"].append("Consider optimizing memory usage")
-
         if system_metrics.get("avg_response_time_ms", 0) > 500:
             insights["recommendations"].append("Investigate slow query performance")
-
-        # Add optimization recommendations
         if health.get("memory_usage_percent", 0) > 0.8:
             insights["recommendations"].append(
                 "Consider reducing memory usage or optimizing cache configuration"
@@ -551,16 +440,3 @@ def _generate_cache_insights(
     except Exception as e:
         logger.error(f"Failed to generate cache insights: {e}")
         return {"recommendations": []}
-
-
-# create_cache_manager imported from packages.backend.domain.cache_manager
-
-
-def create_database_performance_manager(db_pool) -> DatabasePerformanceManager:
-    """Create database performance manager instance."""
-    return DatabasePerformanceManager(db_pool)
-
-
-def create_query_optimizer(db_pool) -> QueryOptimizer:
-    """Create query optimizer instance."""
-    return QueryOptimizer(db_pool)

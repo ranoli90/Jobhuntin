@@ -861,7 +861,7 @@ async def health_check(
     """Health check for UX metrics collector."""
     try:
         # Create metrics collector
-        collector = create_ux_metrics_collector(db_pool)
+        create_ux_metrics_collector(db_pool)
 
         # Test database connection
         try:

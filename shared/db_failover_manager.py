@@ -183,7 +183,7 @@ class FailoverManager:
     async def _check_primary_health_condition(self) -> FailoverCondition:
         """Check primary database health condition."""
         try:
-            start_time = time.time()
+            time.time()
 
             async with self.primary_pool.acquire() as conn:
                 # Basic health check
@@ -479,7 +479,7 @@ class FailoverManager:
                     lag_score = 0.1
 
                 # Check replica size (should be similar to primary)
-                size_info = await conn.fetchval(
+                await conn.fetchval(
                     "SELECT pg_database_size(current_database())"
                 )
 

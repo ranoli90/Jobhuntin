@@ -290,8 +290,8 @@ async def recommend_template(
         )
 
         # Generate reasoning based on job and profile analysis
-        job_title = request.job.get("title", "").lower()
-        job_description = request.job.get("description", "").lower()
+        request.job.get("title", "").lower()
+        request.job.get("description", "").lower()
 
         reasoning = ""
         confidence = 0.8

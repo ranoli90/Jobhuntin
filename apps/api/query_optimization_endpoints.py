@@ -55,12 +55,11 @@ async def analyze_query(
         optimizer = create_query_optimizer(db_pool)
 
         # Convert optimization types if provided
-        opt_types = None
         if request.optimization_types:
             from packages.backend.domain.query_optimizer import QueryOptimizationType
 
             try:
-                opt_types = [
+                [
                     QueryOptimizationType(opt) for opt in request.optimization_types
                 ]
             except ValueError as e:
@@ -165,12 +164,11 @@ async def get_index_recommendations(
         optimizer = create_query_optimizer(db_pool)
 
         # Convert recommendation type if provided
-        rec_type = None
         if request.recommendation_type:
             from packages.backend.domain.index_analyzer import IndexRecommendationType
 
             try:
-                rec_type = IndexRecommendationType(request.recommendation_type)
+                IndexRecommendationType(request.recommendation_type)
             except ValueError as e:
                 raise HTTPException(
                     status_code=400, detail=f"Invalid recommendation type: {str(e)}"
@@ -512,7 +510,7 @@ async def health_check(
         try:
             # Test basic functionality
             test_query = "SELECT 1"
-            plan = await optimizer.get_execution_plan(test_query, [])
+            await optimizer.get_execution_plan(test_query, [])
             optimizer_status = "healthy"
         except Exception:
             optimizer_status = "unhealthy"

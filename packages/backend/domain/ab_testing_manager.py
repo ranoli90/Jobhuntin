@@ -642,7 +642,7 @@ class ABTestingManager:
             import random
 
             user_hash = hash(user_id) % 100
-            random_value = random.random()
+            random.random()
 
             # Find appropriate variant
             for i, weight in enumerate(cumulative_weights):
@@ -709,7 +709,6 @@ class ABTestingManager:
                             analyses.append(analysis)
 
             # Get the best analysis for each metric
-            best_analyses = {}
             metric_analyses = {}
 
             for analysis in analyses:

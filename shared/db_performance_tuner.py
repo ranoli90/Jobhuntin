@@ -261,7 +261,7 @@ class PerformanceTuner:
                         metrics["locks_wait_ratio_pct"].status = "warning"
 
                 # WAL statistics
-                wal_stats = await conn.fetchrow("""
+                await conn.fetchrow("""
                     SELECT
                         pg_size_pretty(pg_walfile_size(pg_walfile_name(pg_current_wal_lsn()))) as current_wal_size,
                         pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), pg_last_wal_replay_lsn())) as wal_lag

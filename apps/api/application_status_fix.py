@@ -1,6 +1,7 @@
 # CORRECTED VERSION - Use this to replace the problematic section in user.py
 # This file is a reference fragment; add these imports when merging into api.user.
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
@@ -26,8 +27,6 @@ def _get_tenant_ctx() -> TenantContext:
 def _get_pool() -> asyncpg.Pool:
     raise RuntimeError("Fragment: use app _get_pool when merged")
 
-
-import logging
 
 logger = logging.getLogger(__name__)
 

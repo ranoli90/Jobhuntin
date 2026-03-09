@@ -98,7 +98,7 @@ def run_ruff_format():
         f"{YELLOW}Note: Using Black as primary formatter. This check is informational.{RESET}\n"
     )
     cmd = ["python", "-m", "ruff", "format", "--check", "."]
-    result = run_command(cmd, "Ruff Formatter Check")
+    run_command(cmd, "Ruff Formatter Check")
     # Always return True since Black is the primary formatter
     # This avoids conflicts between Ruff Format and Black
     return True

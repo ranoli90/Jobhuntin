@@ -699,7 +699,7 @@ class ConnectionPoolManager:
         try:
             pool = self.pools[pool_type]
             metrics = self.pool_metrics.get(pool_type)
-            config = self.pool_configs[pool_type]
+            self.pool_configs[pool_type]
 
             if not metrics:
                 health_status["status"] = "degraded"

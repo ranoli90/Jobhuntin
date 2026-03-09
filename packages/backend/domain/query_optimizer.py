@@ -1518,8 +1518,8 @@ class QueryOptimizer:
 
                 for row in results:
                     query = row[0]
-                    mean_time = float(row[1])
-                    calls = int(row[2])
+                    float(row[1])
+                    int(row[2])
 
                     # Generate optimizations for slow queries
                     try:

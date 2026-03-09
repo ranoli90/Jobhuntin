@@ -509,7 +509,7 @@ class QueryCache:
     async def _invalidate_memory_entry(self, cache_key: str) -> None:
         """Invalidate memory cache entry."""
         if cache_key in self.memory_cache:
-            entry = self.memory_cache[cache_key]
+            self.memory_cache[cache_key]
 
             # Remove from cache
             del self.memory_cache[cache_key]

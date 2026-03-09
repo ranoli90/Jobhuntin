@@ -165,8 +165,8 @@ class ResumeAgentIntegration:
             Recommended template style
         """
         job_title = job.get("title", "").lower()
-        job_description = job.get("description", "").lower()
-        company_industry = job.get("company_industry", "").lower()
+        job.get("description", "").lower()
+        job.get("company_industry", "").lower()
 
         # Template selection logic
         if any(

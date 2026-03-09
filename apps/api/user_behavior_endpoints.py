@@ -636,7 +636,7 @@ async def health_check(
     """Health check for user behavior analyzer."""
     try:
         # Create behavior analyzer
-        analyzer = create_user_behavior_analyzer(db_pool)
+        create_user_behavior_analyzer(db_pool)
 
         # Test database connection
         try:

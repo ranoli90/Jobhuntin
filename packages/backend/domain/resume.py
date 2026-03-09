@@ -564,7 +564,7 @@ async def process_resume_upload(
     canonical = normalize_profile(raw_profile)
 
     # Validate and normalize skills using taxonomy
-    taxonomy = get_skills_taxonomy()
+    get_skills_taxonomy()
     skills_data = canonical.get("skills", [])
 
     if isinstance(skills_data, list):

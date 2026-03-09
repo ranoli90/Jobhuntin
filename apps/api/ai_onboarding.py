@@ -208,7 +208,7 @@ async def get_session_details(
         Session details
     """
     try:
-        ai_onboarding = get_ai_onboarding_manager()
+        get_ai_onboarding_manager()
 
         # In a real implementation, we would retrieve the session from storage
         # For now, we'll create a mock session for demonstration

@@ -137,7 +137,7 @@ class ReplicationMonitor:
 
     async def check_replication_status(self) -> ReplicationHealth:
         """Check comprehensive replication status."""
-        start_time = time.time()
+        time.time()
 
         try:
             # Determine role

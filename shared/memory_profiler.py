@@ -227,17 +227,15 @@ class MemoryProfiler:
         )[:top_n]:
             # Estimate size based on type
             try:
-                # Get a sample object to estimate size
-                sample_objects = [
-                    obj
-                    for obj_id, info in self.object_tracker._objects.items()
+                # Get sizes from tracked objects of this type
+                sample_sizes = [
+                    info.get("size", 0)
+                    for _obj_id, info in self.object_tracker._objects.items()
                     if info["type"] == type_name
                 ][:5]  # Sample first 5 objects
 
-                if sample_objects:
-                    avg_size = sum(sys.getsizeof(obj) for obj in sample_objects) / len(
-                        sample_objects
-                    )
+                if sample_sizes:
+                    avg_size = sum(sample_sizes) / len(sample_sizes)
                     total_size = avg_size * count
                 else:
                     avg_size = 0

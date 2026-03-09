@@ -587,7 +587,7 @@ class UserBehaviorAnalyzer:
 
             # Find best pattern
             best_pattern = max(pattern_scores.keys(), key=lambda x: pattern_scores[x])
-            best_score = pattern_scores[best_pattern]
+            pattern_scores[best_pattern]
 
             # Determine behavior type
             behavior_type = self._determine_behavior_type(best_pattern)
@@ -972,7 +972,7 @@ class UserBehaviorAnalyzer:
             if not session_durations:
                 return 0.0
 
-            avg_duration = sum(session_durations) / len(session_durations)
+            sum(session_durations) / len(session_durations)
 
             # Quick completion = short sessions (under 2 minutes)
             quick_completion_rate = len(

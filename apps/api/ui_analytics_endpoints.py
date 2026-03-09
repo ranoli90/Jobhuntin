@@ -344,7 +344,7 @@ async def get_page_views(
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=time_period_hours)
 
         # Create analytics manager
-        analytics_manager = create_ui_analytics_manager(db_pool)
+        create_ui_analytics_manager(db_pool)
 
         # Build query
         query = """

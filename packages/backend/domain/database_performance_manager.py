@@ -1230,7 +1230,7 @@ class DatabasePerformanceManager:
             for metric_type, type_metrics in metrics_by_type.items():
                 if len(type_metrics) >= 2:
                     values = [m.value for m in type_metrics]
-                    timestamps = [m.timestamp for m in type_metrics]
+                    [m.timestamp for m in type_metrics]
 
                     # Calculate simple trend
                     if len(values) >= 4:

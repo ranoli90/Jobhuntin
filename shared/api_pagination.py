@@ -313,7 +313,7 @@ class PaginationManager:
         self, metadata: PaginationMetadata, params: PaginationParams, request: Request
     ) -> PaginationMetadata:
         """Generate navigation URLs for pagination."""
-        base_url = str(request.url)
+        str(request.url)
         query_params = dict(request.query_params)
 
         # Helper to build URL with modified parameters

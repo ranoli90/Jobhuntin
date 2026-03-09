@@ -787,7 +787,7 @@ async def health_check(
     """Health check for A/B testing system."""
     try:
         # Create A/B testing manager
-        ab_manager = create_ab_testing_manager(db_pool)
+        create_ab_testing_manager(db_pool)
 
         # Test database connection
         try:

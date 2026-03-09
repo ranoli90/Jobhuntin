@@ -178,7 +178,7 @@ class MemoryCache:
     ) -> bool:
         """Set value in cache."""
         try:
-            start_time = time.time()
+            time.time()
 
             async with self._lock:
                 # Serialize and possibly compress value
@@ -187,7 +187,7 @@ class MemoryCache:
                         serialized_value = pickle.dumps(
                             value, protocol=pickle.HIGHEST_PROTOCOL
                         )
-                    except:
+                    except Exception:
                         serialized_value = json.dumps(value, default=str).encode(
                             "utf-8"
                         )

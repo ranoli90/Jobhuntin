@@ -457,7 +457,7 @@ class UIAnalyticsManager:
         """Calculate funnel analysis."""
         try:
             steps = funnel_def["steps"]
-            conversion_events = funnel_def["conversion_events"]
+            funnel_def["conversion_events"]
 
             # Get funnel data
             funnel_data = await self._get_funnel_data(

@@ -254,7 +254,7 @@ class RetryHandler:
                 # Execute operation
                 if attempt == 0:
                     # First attempt - no delay
-                    result = await operation(*args, **kwargs)
+                    await operation(*args, **kwargs)
                 else:
                     # Retry attempt
                     delay = self._calculate_retry_delay(attempt)
@@ -268,7 +268,7 @@ class RetryHandler:
                     )
 
                     await asyncio.sleep(delay)
-                    result = await operation(*args, **kwargs)
+                    await operation(*args, **kwargs)
 
                 # Success - update circuit breaker and stats
                 total_time = time.time() - start_time

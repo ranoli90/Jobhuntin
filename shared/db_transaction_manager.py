@@ -706,7 +706,7 @@ class TransactionContext:
 
     async def execute(self, query: str, *args, **kwargs) -> Any:
         """Execute query within transaction."""
-        start_time = time.time()
+        time.time()
 
         try:
             if kwargs:
