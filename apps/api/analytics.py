@@ -401,6 +401,31 @@ async def m5_dashboard_refresh(
     return {"status": "refreshed"}
 
 
+# ===================================================================
+# Part 11: M5 Business Metrics Dashboard — GET /admin/business-metrics
+# ===================================================================
+
+
+@router.get("/admin/business-metrics")
+async def business_metrics_dashboard(
+    _admin: str = Depends(_get_admin_user_id),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """M5: Return real-time business metrics dashboard.
+    
+    Provides:
+    - Real-time DAU/WAU/MAU
+    - Daily active users trend (30 days)
+    - User retention by cohort
+    - Conversion funnel (signup → onboarding → application → paid)
+    - Revenue metrics (MRR, ARR, growth rate)
+    
+    All metrics are calculated in real-time from the database.
+    """
+    async with db.acquire() as conn:
+        return await get_business_metrics_dashboard(conn)
+
+
 @router.get("/investors/metrics")
 async def investor_metrics(
     _admin: str = Depends(_get_admin_user_id),
