@@ -220,7 +220,7 @@ export default function CareerPathPage() {
           <h2 className="text-xl font-semibold text-red-600 mb-2">
             {t("careerPath.errorLoading", locale) || "Error Loading Career Data"}
           </h2>
-          <p className="text-slate-600">{error}</p>
+          <p className="text-slate-600">{error instanceof Error ? error.message : String(error)}</p>
           <Button onClick={() => refetchCareerData()}>
             {t("common.retry", locale) || "Retry"}
           </Button>
@@ -354,7 +354,7 @@ export default function CareerPathPage() {
                     <Target className="w-6 h-6 text-primary-600 mr-2" />
                     <h4 className="font-semibold text-slate-900">{role}</h4>
                   </div>
-                  <p className="text-sm text-slate-600">{t("careerPath.readyIn", locale) || "Ready in"} {careerData.estimated_timeline_months} {t("careerPath.months", locale) || "months"}</p>
+                  <p className="text-sm text-slate-600">{t("careerPath.readyIn", locale) || "Ready in"} {(careerData as { estimated_timeline_months?: number }).estimated_timeline_months ?? 6} {t("careerPath.months", locale) || "months"}</p>
                 </div>
               ))}
             </div>
@@ -469,7 +469,7 @@ export default function CareerPathPage() {
                     </div>
                     <span className="text-sm text-slate-600">{gap.acquisition_method}</span>
                   </div>
-                  <p className="text-sm text-slate-600 mt-2">{gap.resources?.join(", ") || "Self-study recommended"}</p>
+                  <p className="text-sm text-slate-600 mt-2">{((gap as { resources?: string[] }).resources)?.join(", ") || "Self-study recommended"}</p>
                 </div>
               ))}
             </div>

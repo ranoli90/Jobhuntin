@@ -15,7 +15,6 @@ Usage:
     await limiter.check_rate_limit("api_calls", "user_123")
 """
 
-
 import asyncio
 import time
 from collections import defaultdict

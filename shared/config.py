@@ -157,7 +157,7 @@ class Settings(BaseSettings):
             env = os.getenv("ENV", "local")
             if env not in ("local",):
                 raise ValueError(
-                    f"Adzuna credentials must be configured. Get them from https://developer.adzuna.com/overview"
+                    "Adzuna credentials must be configured. Get them from https://developer.adzuna.com/overview"
                 )
         return v
 

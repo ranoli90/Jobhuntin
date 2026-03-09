@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { Switch } from '@/components/ui/Switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Progress } from '@/components/ui/Progress';
 import { 
   Send, 
   Clock, 
@@ -17,6 +17,7 @@ import {
   AlertTriangle, 
   Settings, 
   RefreshCw,
+  RotateCw,
   Search,
   Filter,
   Play,
@@ -27,7 +28,8 @@ import {
   Activity,
   Zap,
   Download,
-  Trash2
+  Trash2,
+  Eye
 } from 'lucide-react';
 
 interface NotificationBatch {
@@ -79,7 +81,6 @@ interface BatchProcessingStats {
   total_batches: number;
   completed_batches: number;
   total_notifications: number;
-  average_processing_time: number;
 }
 
 const BatchProcessor: React.FC = () => {
@@ -192,7 +193,6 @@ const BatchProcessor: React.FC = () => {
         total_batches: 2,
         completed_batches: 2,
         total_notifications: 150,
-        average_processing_time: 34.5,
       };
       
       setStats(mockStats);
@@ -322,7 +322,7 @@ const BatchProcessor: React.FC = () => {
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-gray-100 text-gray-800',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getStatusIcon = (status: string) => {
@@ -332,7 +332,7 @@ const BatchProcessor: React.FC = () => {
       completed: <CheckCircle className="h-4 w-4" />,
       cancelled: <Trash2 className="h-4 w-4" />,
     };
-    return icons[status] || <Clock className="h-4 w-4" />;
+    return icons[status as keyof typeof icons] || <Clock className="h-4 w-4" />;
   };
 
   const getPriorityColor = (priority: string) => {
@@ -342,7 +342,7 @@ const BatchProcessor: React.FC = () => {
       medium: 'bg-yellow-100 text-yellow-800',
       low: 'bg-blue-100 text-blue-800',
     };
-    return colors[priority] || 'bg-gray-100 text-gray-800';
+    return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -364,7 +364,7 @@ const BatchProcessor: React.FC = () => {
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-gray-100 text-gray-800',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getBatchStatusIcon = (status: string) => {
@@ -374,7 +374,7 @@ const BatchProcessor: React.FC = () => {
       completed: <CheckCircle className="h-4 w-4" />,
       cancelled: <Trash2 className="h-4 w-4" />,
     };
-    return icons[status] || <Clock className="h-4 w-4" />;
+    return icons[status as keyof typeof icons] || <Clock className="h-4 w-4" />;
   };
 
   const filteredBatches = selectedBatch 
@@ -830,7 +830,7 @@ const BatchProcessor: React.FC = () => {
             <Button
               variant="outline"
               className="h-20"
-              onClick={handleRetryFailed}
+              onClick={() => { const firstFailed = batchResults.find(r => r.failed > 0); if (firstFailed) handleRetryFailed(firstFailed.batch_id); }}
               disabled={!batchResults.some(r => r.failed > 0)}
             >
               <RotateCw className="h-6 w-6 mx-auto mb-2" />

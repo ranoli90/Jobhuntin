@@ -18,6 +18,8 @@ from backend.domain.tenant import TenantContext
 
 async def _get_tenant_ctx() -> TenantContext:
     raise NotImplementedError("Tenant context dependency not injected")
+
+
 from shared.logging_config import get_logger
 from shared.metrics import incr
 

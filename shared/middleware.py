@@ -141,9 +141,7 @@ def setup_csrf_middleware(app, secret: str) -> None:
 
     is_prod = s.env.value in ("prod", "staging")
     # Secure=True is ONLY allowed over HTTPS. In local dev, it must be False.
-    cookie_secure = is_prod or (
-        s.app_base_url and s.app_base_url.startswith("https")
-    )
+    cookie_secure = is_prod or (s.app_base_url and s.app_base_url.startswith("https"))
 
     app.add_middleware(
         CSRFForCORSMiddleware,

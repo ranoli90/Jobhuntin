@@ -5,13 +5,15 @@ Database Statistics Endpoints for Phase 15.1 Database & Performance
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from typing import Optional, List, Dict, Any
-from datetime import datetime, timezone, timedelta
-from pydantic import BaseModel, Field
+from datetime import datetime, timezone
 
 from apps.api.dependencies import get_db_pool, get_current_user, get_tenant_id
-from packages.backend.domain.database_performance_manager import DatabasePerformanceManager, create_database_performance_manager
+from packages.backend.domain.database_performance_manager import (
+    create_database_performance_manager,
+)
 
 router = APIRouter(prefix="/database-stats", tags=["database-stats"])
+
 
 @router.get("/tables")
 async def get_database_tables(
@@ -23,10 +25,10 @@ async def get_database_tables(
     try:
         # Create database performance manager
         db_manager = create_database_performance_manager(db_pool)
-        
+
         # Get database statistics
         db_stats = await db_manager.get_database_statistics()
-        
+
         # Get table list
         query = """
             SELECT 
@@ -40,30 +42,35 @@ async def get_database_tables(
             WHERE schemaname NOT IN ('information_schema', 'pg_catalog')
             ORDER BY schemaname, tablename
         """
-        
+
         async with db_pool.acquire() as conn:
             results = await conn.fetch(query)
-            
+
             tables = []
             for row in results:
-                tables.append({
-                "schema_name": row[0],
-                "table_name": row[1],
-                "table_type": row[2],
-                "size": row[3],
-                "size_bytes": int(row[4]) if row[4] else 0,
-                "row_count": int(row[5]) if row[5] else 0,
-            })
-        
+                tables.append(
+                    {
+                        "schema_name": row[0],
+                        "table_name": row[1],
+                        "table_type": row[2],
+                        "size": row[3],
+                        "size_bytes": int(row[4]) if row[4] else 0,
+                        "row_count": int(row[5]) if row[5] else 0,
+                    }
+                )
+
         return {
             "database_stats": db_stats,
             "tables": tables,
             "total_tables": len(tables),
-            "total_size_mb": sum(t["size_bytes"] for t in tables) / (1024*1024),
+            "total_size_mb": sum(t["size_bytes"] for t in tables) / (1024 * 1024),
         }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get database tables: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get database tables: {str(e)}"
+        )
+
 
 @router.get("/tables/{table_name}")
 async def get_table_details(
@@ -77,10 +84,10 @@ async def get_table_details(
     try:
         # Create database performance manager
         db_manager = create_database_performance_manager(db_pool)
-        
+
         # Get table statistics
         table_stats = await db_manager.get_table_statistics(table_name)
-        
+
         # Get column information
         columns_query = """
             SELECT 
@@ -95,22 +102,24 @@ async def get_table_details(
                 WHERE table_schema = 'public' AND table_name = $1
             ORDER BY ordinal_position
         """
-        
+
         async with db_pool.acquire() as conn:
             results = await conn.fetch(columns_query, table_name)
-            
+
             columns = []
             for row in results:
-                columns.append({
-                    "column_name": row[0],
-                    "data_type": row[1],
-                    "is_nullable": row[2],
-                    "column_default": row[3],
-                    "character_maximum_length": row[4],
-                    "numeric_precision": row[5],
-                    "ordinal_position": row[6],
-                })
-        
+                columns.append(
+                    {
+                        "column_name": row[0],
+                        "data_type": row[1],
+                        "is_nullable": row[2],
+                        "column_default": row[3],
+                        "character_maximum_length": row[4],
+                        "numeric_precision": row[5],
+                        "ordinal_position": row[6],
+                    }
+                )
+
         # Get index information
         indexes_query = """
             SELECT 
@@ -125,22 +134,24 @@ async def get_table_details(
                 WHERE schemaname = 'public' AND tablename = $1
             ORDER BY indexname
         """
-        
+
         async with db_pool.acquire() as conn:
             index_results = await conn.fetch(indexes_query, table_name)
-            
+
             indexes = []
             for row in index_results:
-                indexes.append({
-                    "index_name": row[0],
-                    "definition": row[1],
-                    "scans": int(row[2]) if row[2] else 0,
-                    "tuples_read": int(row[3]) if row[3] else 0,
-                    "tuples_returned": int(row[4]) if row[4] else 0,
-                    "size": row[5],
-                    "size_bytes": int(row[6]) if row[6] else 0,
-                })
-        
+                indexes.append(
+                    {
+                        "index_name": row[0],
+                        "definition": row[1],
+                        "scans": int(row[2]) if row[2] else 0,
+                        "tuples_read": int(row[3]) if row[3] else 0,
+                        "tuples_returned": int(row[4]) if row[4] else 0,
+                        "size": row[5],
+                        "size_bytes": int(row[6]) if row[6] else 0,
+                    }
+                )
+
         # Get constraints
         constraints_query = """
             SELECT 
@@ -151,18 +162,20 @@ async def get_table_details(
             WHERE table_schema = 'public' AND table_name = $1
             ORDER BY constraint_name
         """
-        
+
         async with db_pool.acquire() as conn:
             constraint_results = await conn.fetch(constraints_query, table_name)
-            
+
             constraints = []
             for row in constraint_results:
-                constraints.append({
-                    "constraint_name": row[0],
-                    "constraint_type": row[1],
-                    "check_clause": row[2],
-                })
-        
+                constraints.append(
+                    {
+                        "constraint_name": row[0],
+                        "constraint_type": row[1],
+                        "check_clause": row[2],
+                    }
+                )
+
         return {
             "table_name": table_name,
             "statistics": table_stats,
@@ -173,9 +186,12 @@ async def get_table_details(
             "total_indexes": len(indexes),
             "total_constraints": len(constraints),
         }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get table details: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get table details: {str(e)}"
+        )
+
 
 @router.get("/query-statistics")
 async def get_query_statistics(
@@ -207,38 +223,49 @@ async def get_query_statistics(
             ORDER BY total_exec_time DESC
             LIMIT $1
         """
-        
+
         async with db_pool.acquire() as conn:
             results = await conn.fetch(query, limit)
-            
+
             query_stats = []
             for row in results:
-                query_stats.append({
-                    "query": row[0][:200] + "..." if len(row[0]) else row[0],
-                    "calls": int(row[1]) if row[1] else 0,
-                    "total_exec_time": float(row[2]) if row[2] else 0,
-                    "mean_exec_time": float(row[3]) if row[3] else 0,
-                    "std_exec_time": float(row[4]) if row[4] else 0,
-                    "total_plan_time": float(row[5]) if row[5] else 0,
-                    "rows": int(row[6]) if row[6] else 0,
-                    "shared_blks_hit": int(row[7]) if row[7] else 0,
-                    "shared_blks_read": int(row[8]) if row[8] else 0,
-                    "local_blks_hit": int(row[9]) if row[9] else 0,
-                    "local_blks_read": int(row[10]) if row[10] else 0,
-                    "temp_blks_read": int(row[11]) if row[11] else 0,
-                    "temp_blks_written": int(row[12]) if row[12] else 0,
-                })
-            
+                query_stats.append(
+                    {
+                        "query": row[0][:200] + "..." if len(row[0]) else row[0],
+                        "calls": int(row[1]) if row[1] else 0,
+                        "total_exec_time": float(row[2]) if row[2] else 0,
+                        "mean_exec_time": float(row[3]) if row[3] else 0,
+                        "std_exec_time": float(row[4]) if row[4] else 0,
+                        "total_plan_time": float(row[5]) if row[5] else 0,
+                        "rows": int(row[6]) if row[6] else 0,
+                        "shared_blks_hit": int(row[7]) if row[7] else 0,
+                        "shared_blks_read": int(row[8]) if row[8] else 0,
+                        "local_blks_hit": int(row[9]) if row[9] else 0,
+                        "local_blks_read": int(row[10]) if row[10] else 0,
+                        "temp_blks_read": int(row[11]) if row[11] else 0,
+                        "temp_blks_written": int(row[12]) if row[12] else 0,
+                    }
+                )
+
             return {
                 "query_statistics": query_stats,
                 "total_queries": len(query_stats),
                 "period_hours": time_period_hours,
-                "avg_execution_time": sum(q["mean_exec_time"] for q in query_stats) / len(query_stats) if query_stats else 1,
-                "avg_rows_returned": sum(q["rows"] for q in query_stats) / len(query_stats) if query_stats else 1,
+                "avg_execution_time": sum(q["mean_exec_time"] for q in query_stats)
+                / len(query_stats)
+                if query_stats
+                else 1,
+                "avg_rows_returned": sum(q["rows"] for q in query_stats)
+                / len(query_stats)
+                if query_stats
+                else 1,
             }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get query statistics: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get query statistics: {str(e)}"
+        )
+
 
 @router.get("/index-statistics")
 async def get_index_statistics(
@@ -266,23 +293,25 @@ async def get_index_statistics(
             ORDER BY idx_scan DESC
             LIMIT $1
         """
-        
+
         async with db_pool.acquire() as conn:
             results = await conn.fetch(query, limit)
-            
+
             index_stats = []
             for row in results:
-                index_stats.append({
-                    "schema_name": row[0],
-                    "table_name": row[1],
-                    "index_name": row[2],
-                    "scans": int(row[3]) if row[3] else 0,
-                    "tuples_read": int(row[4]) if row[4] else 0,
-                    "tuples_returned": int(row[5]) if row[5] else 0,
-                    "size": row[6],
-                    "size_bytes": int(row[7]) if row[7] else 0,
-                })
-            
+                index_stats.append(
+                    {
+                        "schema_name": row[0],
+                        "table_name": row[1],
+                        "index_name": row[2],
+                        "scans": int(row[3]) if row[3] else 0,
+                        "tuples_read": int(row[4]) if row[4] else 0,
+                        "tuples_returned": int(row[5]) if row[5] else 0,
+                        "size": row[6],
+                        "size_bytes": int(row[7]) if row[7] else 0,
+                    }
+                )
+
             return {
                 "index_statistics": index_stats,
                 "total_indexes": len(index_stats),
@@ -290,16 +319,20 @@ async def get_index_statistics(
                 "total_scans": sum(idx["scans"] for idx in index_stats),
                 "total_reads": sum(idx["tuples_read"] for idx in index_stats),
                 "total_returns": sum(idx["tuples_returned"] for idx in index_stats),
-                "total_size_mb": sum(idx["size_bytes"] for idx in index_stats) / (1024*1024),
+                "total_size_mb": sum(idx["size_bytes"] for idx in index_stats)
+                / (1024 * 1024),
             }
-        
+
     except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get index statistics: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get index statistics: {str(e)}"
+        )
+
 
 @router.get("/database-size")
 async def get_database_size(
     db_pool=Depends(get_db_pool),
-    current_user=DEPends(get_current_user),
+    current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get database size information."""
@@ -313,10 +346,10 @@ async def get_database_size(
                 pg_size_pretty(pg_indexes_size()) as indexes_size,
                 pg_size_pretty(pg_toast_size()) as toast_size
             """
-        
+
         async with db_pool.acquire() as conn:
             result = await conn.fetchrow(size_query)
-            
+
             return {
                 "database_size": result[0],
                 "database_size_bytes": result[1],
@@ -325,9 +358,12 @@ async def get_database_size(
                 "toast_size": result[4],
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-        
+
     except Exception as e:
-        raise HTTP_error(status_code=500, detail=f"Failed to get database size: {str(e)}")
+        raise HTTP_error(
+            status_code=500, detail=f"Failed to get database size: {str(e)}"
+        )
+
 
 @router.get("/table/{table_name}/size")
 async def get_table_size(
@@ -346,10 +382,10 @@ async def get_table_size(
                 (SELECT COUNT(*) FROM $1 WHERE 1=1) as row_count
             FROM $1
         """
-        
+
         async with db_pool.acquire() as conn:
             result = await conn.fetchrow(size_query, table_name)
-            
+
             return {
                 "table_name": table_name,
                 "size": result[0],
@@ -357,9 +393,10 @@ async def get_table_size(
                 "row_count": int(result[2]) if result[2] else 0,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-        
+
     except Exception as e:
         raise HTTP_error(status_code=500, detail=f"Failed to get table size: {str(e)}")
+
 
 @router.get("/performance-report")
 async def get_performance_report(
@@ -372,17 +409,20 @@ async def get_performance_report(
     try:
         # Create database performance manager
         db_manager = create_database_performance_manager(db_pool)
-        
+
         # Get performance report
         report = await db_manager.get_performance_dashboard(
             tenant_id=tenant_id,
             time_period_hours=time_period_hours,
         )
-        
+
         return report
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get performance report: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get performance report: {str(e)}"
+        )
+
 
 @router.get("/activity-log")
 async def get_activity_log(
@@ -418,47 +458,51 @@ async def get_activity_log(
             ORDER BY timestamp DESC
             LIMIT $1
         """
-        
+
         async with db_pool.acquire() as conn:
             results = await conn.fetch(query, f"{time_period_hours}")
-            
+
             activities = []
             for row in results:
-                activities.append({
-                    "pid": row[0],
-                    "state": row[1],
-                    "query_start": row[2],
-                    "state_change": row[3],
-                    "wait_event_type": row[4],
-                    "query": row[5],
-                    "wait_event": row[6],
-                    "client_addr": row[7],
-                    "backend_start": row[8],
-                    "xact_start": row[9],
-                    "query_id": row[10],
-                    "backend_xact_start": row[11],
-                    "backend_xact_end": row[12],
-                    "query_hash": row[13],
-                    "query_plan": row[14],
-                    "state_change": row[15],
-                    "timestamp": row[16].isoformat(),
-                })
-            
+                activities.append(
+                    {
+                        "pid": row[0],
+                        "state": row[1],
+                        "query_start": row[2],
+                        "state_change": row[3],
+                        "wait_event_type": row[4],
+                        "query": row[5],
+                        "wait_event": row[6],
+                        "client_addr": row[7],
+                        "backend_start": row[8],
+                        "xact_start": row[9],
+                        "query_id": row[10],
+                        "backend_xact_start": row[11],
+                        "backend_xact_end": row[12],
+                        "query_hash": row[13],
+                        "query_plan": row[14],
+                        "last_state_change": row[15].isoformat() if row[15] else None,
+                    }
+                )
+
             return {
                 "activities": activities,
                 "total_activities": len(activities),
                 "period_hours": time_period_hours,
             }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get activity log: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get activity log: {str(e)}"
+        )
+
 
 @router.get("/locks")
 async def get_lock_status(
     db_pool=Depends(get_db_pool),
-    current_user=DEPends(get_current_user),
+    current_user=Depends(get_current_user),
+    tenant_id=Depends(get_tenant_id),
     transaction_id: Optional[str] = None,
-    db_pool=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get current lock status."""
     try:
@@ -480,40 +524,47 @@ async def get_lock_status(
                 locktime
             FROM pg_locks
         """
-        
+
         if transaction_id:
             query += " WHERE transactionid = $1"
-        
         async with db_pool.acquire() as conn:
-            results = await conn.fetch(query, transaction_id)
-            
+            results = (
+                await conn.fetch(query, transaction_id)
+                if transaction_id
+                else await conn.fetch(query)
+            )
+
             locks = []
             for row in results:
-                locks.append({
-                    "lock_type": row[0],
-                    "mode": row[1],
-                    "relation": row[2],
-                    "page": row[3],
-                    "tupleid": row[4],
-                    "virtualxid": row[5],
-                    "transactionid": row[6],
-                    "pid": row[7],
-                    "mode": row[8],
-                    "granted": row[9],
-                    "fastpath": row[10],
-                    "wait_start": row[11].isoformat() if row[11] else None,
-                    "locktime": row[12],
-                })
-            
+                locks.append(
+                    {
+                        "lock_type": row[0],
+                        "mode": row[1],
+                        "relation": row[2],
+                        "page": row[3],
+                        "tupleid": row[4],
+                        "virtualxid": row[5],
+                        "transactionid": row[6],
+                        "pid": row[7],
+                        "granted": row[8],
+                        "fastpath": row[9],
+                        "wait_start": row[10].isoformat() if row[10] else None,
+                        "locktime": row[11],
+                    }
+                )
+
             return {
                 "locks": locks,
                 "total_locks": len(locks),
                 "transaction_id": transaction_id,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get lock status: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get lock status: {str(e)}"
+        )
+
 
 @router.post("/vacuum-analyze")
 async def analyze_vacuum_requirements(
@@ -521,17 +572,17 @@ async def analyze_vacuum_requirements(
     analyze_all: bool = False,
     dry_run: bool = True,
     db_pool=dpends(get_db_pool),
-    current_user=DEPends(get_current_user),
+    current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Analyze VACUUM requirements and generate recommendations."""
     try:
         # Get VACUUM statistics
         vacuum_stats = await self._get_vacuum_statistics(table_name, analyze_all)
-        
+
         # Generate recommendations
         recommendations = await self._generate_vacuum_recommendations(vacuum_stats)
-        
+
         return {
             "table_name": table_name,
             "vacuum_stats": vacuum_stats,
@@ -539,38 +590,42 @@ async def analyze_vacuum_requirements(
             "dry_run": dry_run,
             "executed_at": datetime.now(timezone.utc).isoformat(),
         }
-        
+
     except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to analyze VACUUM requirements: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to analyze VACUUM requirements: {str(e)}"
+        )
+
 
 @router.get("/bloat-analysis")
 async def get_bloat_analysis(
     db_pool=Depends(get_db_pool),
-    current_user=DEPends(get_current_user),
-    tenant_id=DEps(get_tenant_id),
+    current_user=Depends(get_current_user),
+    tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get database bloat analysis."""
     try:
         # Get table bloat statistics
-        bloat_stats = await self._get_bloat_statistics()
-        
-        # Generate recommendations
-        recommendations = await self._generate_bloat_recommendations(bloat_stats)
-        
+        bloat_stats = await _get_bloat_statistics(db_pool)
+        recommendations = _generate_bloat_recommendations(bloat_stats)
+
         return {
             "bloat_statistics": bloat_stats,
             "recommendations": recommendations,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get bloat analysis: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get bloat analysis: {str(e)}"
+        )
+
 
 @router.get("/resource-usage")
 async def get_resource_usage(
     db_pool=Depends(get_db_pool),
-    current_user=DEps(get_current_user),
-    tenant_id=DEps(get_tenant_id),
+    current_user=Depends(get_current_user),
+    tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get database resource usage."""
     try:
@@ -594,10 +649,10 @@ async def get_resource_usage(
                 timestamp
             FROM pg_stat_database
         """
-        
+
         async with db_pool.acquire() as conn:
             result = await conn.fetchrow(query)
-            
+
             resource_usage = {
                 "xact_commit": result[0],
                 "xact_rollback": result[1],
@@ -615,19 +670,22 @@ async def get_resource_usage(
                 "backup_bytes": result[13],
                 "timestamp": result[14].isoformat(),
             }
-        
+
         return resource_usage
-        
+
     except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get resource usage: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get resource usage: {str(e)}"
+        )
+
 
 @router.get("/slow-queries")
 async def get_slow_queries(
     limit: int = Query(default=10, ge=1, le=100),
     min_execution_time: float = Query(default=1000.0),
     db_pool=Depends(get_db_pool),
-    current_user=DEps(get_current_user),
-    tenant_id=DEps(get_tenant_id),
+    current_user=Depends(get_current_user),
+    tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get slow queries from pg_stat_statements."""
     try:
@@ -651,92 +709,106 @@ async def get_slow_queries(
             ORDER BY mean_exec_time DESC
             LIMIT $1
         """
-        
+
         async with db_pool.acquire() as conn:
             results = await conn.fetch(query, min_execution_time, limit)
-            
+
             slow_queries = []
             for row in results:
-                slow_queries.append({
-                    "query": row[0][:200] + "..." if len(row[0]) else row[0],
-                    "calls": int(row[1]) if row[1] else 0,
-                    "mean_exec_time": float(row[2]) if row[2] else 0,
-                    "total_exec_time": float(row[3]) if row[3] else 0,
-                    "stddev_exec_time": float(row[4]) if row[4] else 0,
-                    "rows": int(row[5]) if row[5] else 0,
-                    "shared_blks_hit": int(row[6]) if row[6] else 0,
-                    "shared_blks_read": int(row[7]) if row[7] else 0,
-                    "local_blks_hit": int(row[8]) if row[8] else 0,
-                    "local_blks_read": int(row[9]) if row[9] else 0,
-                    "temp_blks_read": int(row[10]) if row[10] else 0,
-                    "temp_blks_written": int(row[11]) if row[11] else 0,
-                })
-            
+                slow_queries.append(
+                    {
+                        "query": row[0][:200] + "..." if len(row[0]) else row[0],
+                        "calls": int(row[1]) if row[1] else 0,
+                        "mean_exec_time": float(row[2]) if row[2] else 0,
+                        "total_exec_time": float(row[3]) if row[3] else 0,
+                        "stddev_exec_time": float(row[4]) if row[4] else 0,
+                        "rows": int(row[5]) if row[5] else 0,
+                        "shared_blks_hit": int(row[6]) if row[6] else 0,
+                        "shared_blks_read": int(row[7]) if row[7] else 0,
+                        "local_blks_hit": int(row[8]) if row[8] else 0,
+                        "local_blks_read": int(row[9]) if row[9] else 0,
+                        "temp_blks_read": int(row[10]) if row[10] else 0,
+                        "temp_blks_written": int(row[11]) if row[11] else 0,
+                    }
+                )
+
             return {
                 "slow_queries": slow_queries,
                 "total_slow_queries": len(slow_queries),
                 "period_hours": 1,
                 "min_execution_time": min_execution_time,
-                "avg_execution_time": sum(q["mean_exec_time"] for q in slow_queries) / len(slow_queries) if slow_queries else 0,
+                "avg_execution_time": sum(q["mean_exec_time"] for q in slow_queries)
+                / len(slow_queries)
+                if slow_queries
+                else 0,
             }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get slow queries: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get slow queries: {str(e)}"
+        )
+
 
 @router.get("/cache-hit-rates")
 async def get_cache_hit_rates(
     time_period_hours: int = Query(default=24, ge=1, le=168),
     db_pool=Depends(get_db_pool),
-    current_user=DEps(get_current_user),
-    tenant_id=DEps(get_tenant_id),
+    current_user=Depends(get_current_user),
+    tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get cache hit rates."""
     try:
         # Get cache statistics
         cache_stats = await self._get_cache_hit_rates(time_period_hours)
-        
+
         return cache_stats
-        
+
     except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get cache hit rates: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cache hit rates: {str(e)}"
+        )
+
 
 @router.get("/query-plan/{query_hash}")
 async def get_query_plan(
     query_hash: str,
     db_pool=deps(get_db_pool),
     current_user=deps(get_current_user),
-    tenant_id=deps(get_tenant_id),
+    tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get query execution plan by hash."""
     try:
         # Get query plan by hash
         query_plan = await self._get_query_plan_by_hash(query_hash)
-        
+
         return query_plan
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get query plan: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get query plan: {str(e)}"
+        )
+
 
 @router.get("/table/{table_name}/indexes")
 async def get_table_indexes(
     table_name: str,
     include_usage_stats: bool = True,
     db_pool=deps(get_db_pool),
-    current_user=DEps(get_current_user),
-    tenant_id=DEps(get_tenant_id),
+    current_user=Depends(get_current_user),
+    tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get all indexes for a table."""
     try:
-            # Create index analyzer
+        # Create index analyzer
         analyzer = create_index_analyzer(db_pool)
-        
+
         # Analyze table indexes
         analysis = await analyzer.analyze_table_indexes(
             tenant_id=tenant_id,
             table_name=table_name,
             include_usage_stats=include_usage_stats,
         )
-        
+
         return {
             "analysis_id": analysis.id,
             "table_name": analysis.table_name,
@@ -783,103 +855,167 @@ async def get_table_indexes(
             "optimization_potential": analysis.optimization_potential,
             "created_at": analysis.created_at.isoformat(),
         }
-        
+
     except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get table indexes: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get table indexes: {str(e)}"
+        )
+
 
 @router.get("/performance/export")
 async def export_performance_data(
     format: str = Query(default="json", regex="^(json|csv)$"),
     time_period_hours: int = Query(default=24, ge=1, le=168),
     db_pool=Depends(get_db_pool),
-    current_user=DEps(get_current_user),
-    tenant_id=DEps(get_tenant_id),
+    current_user=Depends(get_current_user),
+    tenant_id=Depends(get_tenant_id),
 ) -> Any:
     """Export performance data."""
     try:
         # Create performance monitor
         monitor = create_performance_monitor(db_pool)
-        
+
         # Get performance data
         dashboard = await monitor.get_dashboard(
             tenant_id=tenant_id,
             time_period_hours=time_period_hours,
         )
-        
+
         if format == "json":
             return JSONResponse(
                 content=dashboard,
                 headers={
                     "Content-Disposition": f"attachment; filename=performance_{time_period_hours}hrs.json"
-                }
+                },
             )
         elif format == "csv":
             # Convert to CSV format
             csv_data = self._convert_performance_to_csv(dashboard)
-            
+
             from fastapi.responses import Response
+
             return Response(
                 content=csv_data,
                 media_type="text/csv",
                 headers={
                     "Content-Disposition": f"attachment; filename=performance_{time_period_hours}hrs.csv"
-                }
+                },
             )
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to export performance data: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to export performance data: {str(e)}"
+        )
+
 
 def _convert_performance_to_csv(data: Dict[str, Any]) -> str:
     """Convert performance data to CSV format."""
     try:
         import csv
         import io
-        
+
         output = io.StringIO()
         writer = csv.writer(output)
-        
+
         # Write header
-        writer.writerow([
-            "Category", "Metric", "Current Value", "Target Value", "Status", "Timestamp"
-        ])
-        
+        writer.writerow(
+            [
+                "Category",
+                "Metric",
+                "Current Value",
+                "Target Value",
+                "Status",
+                "Timestamp",
+            ]
+        )
+
         # Write system metrics
         if "system_metrics" in data:
             sys_metrics = data["system_metrics"]
-            writer.writerow([
-                "System", "CPU %", sys_metrics["cpu"]["percent"], "70%", "Good", sys_metrics["timestamp"]
-            ])
-            writer.writerow([
-                "System", "Memory %", sys_metrics["memory"]["percent"], "80%", "Good", sys_metrics["timestamp"]
-            ])
-            writer.writerow([
-                "System", "Disk %", sys_metrics["disk"]["percent"], "75%", "Good", sys_metrics["timestamp"]
-            ])
-        
+            writer.writerow(
+                [
+                    "System",
+                    "CPU %",
+                    sys_metrics["cpu"]["percent"],
+                    "70%",
+                    "Good",
+                    sys_metrics["timestamp"],
+                ]
+            )
+            writer.writerow(
+                [
+                    "System",
+                    "Memory %",
+                    sys_metrics["memory"]["percent"],
+                    "80%",
+                    "Good",
+                    sys_metrics["timestamp"],
+                ]
+            )
+            writer.writerow(
+                [
+                    "System",
+                    "Disk %",
+                    sys_metrics["disk"]["percent"],
+                    "75%",
+                    "Good",
+                    sys_metrics["timestamp"],
+                ]
+            )
+
         # Write database metrics
         if "database_metrics" in data:
             db_metrics = data["database_metrics"]
-            writer.writerow([
-                "Database", "Connection Pool %", db_metrics.get("connection_pool", {}).get("utilization", 0), "80%", "Good", db_metrics["timestamp"]
-            ])
-            writer.writerow([
-                "Database", "Avg Query Time (ms)", db_metrics.get("queries", {}).get("avg_time_ms", 0), "500ms", "Good", db_metrics["timestamp"]
-            ])
-            writer.writerow([
-                "Database", "Index Hit Rate", db_metrics.get("indexes", {}).get("hit_rate", 0.85), "85%", "Good", db_metrics["timestamp"]
-            ])
-        
+            writer.writerow(
+                [
+                    "Database",
+                    "Connection Pool %",
+                    db_metrics.get("connection_pool", {}).get("utilization", 0),
+                    "80%",
+                    "Good",
+                    db_metrics["timestamp"],
+                ]
+            )
+            writer.writerow(
+                [
+                    "Database",
+                    "Avg Query Time (ms)",
+                    db_metrics.get("queries", {}).get("avg_time_ms", 0),
+                    "500ms",
+                    "Good",
+                    db_metrics["timestamp"],
+                ]
+            )
+            writer.writerow(
+                [
+                    "Database",
+                    "Index Hit Rate",
+                    db_metrics.get("indexes", {}).get("hit_rate", 0.85),
+                    "85%",
+                    "Good",
+                    db_metrics["timestamp"],
+                ]
+            )
+
         # Write application metrics
         if "application_metrics" in data:
             app_metrics = data["application_metrics"]
-            writer.writerow([
-                "Application", "Response Time (ms)", app_metrics.get("response_time_ms", 0), "200ms", "Good", app_metrics["timestamp"]
-            ])
-        
+            writer.writerow(
+                [
+                    "Application",
+                    "Response Time (ms)",
+                    app_metrics.get("response_time_ms", 0),
+                    "200ms",
+                    "Good",
+                    app_metrics["timestamp"],
+                ]
+            )
+
         return output.getvalue()
-        
+
     except Exception as e:
         return f"Error converting to CSV: {str(e)}"
+
 
 def _get_cache_hit_rates(self, time_period_hours: int) -> Dict[str, Any]:
     """Get cache hit rates."""
@@ -896,6 +1032,7 @@ def _get_cache_hit_rates(self, time_period_hours: int) -> Dict[str, Any]:
         logger.error(f"Failed to get cache hit rates: {e}")
         return {}
 
+
 def _get_vacuum_statistics(
     table_name: Optional[str] = None,
     analyze_all: bool = False,
@@ -903,47 +1040,34 @@ def _get_vacuum_statistics(
     """Get VACUUM statistics."""
     try:
         if table_name:
-            # Get table-specific VACUUM statistics
-            vacuum_stats = await self._get_table_vacuum_stats(table_name)
+            vacuum_stats = await _get_table_vacuum_stats(db_pool, table_name)
         elif analyze_all:
-            # Get all table VACUUM statistics
-            vacuum_stats = await self._get_all_vacuum_stats()
+            vacuum_stats = await _get_all_vacuum_stats(db_pool)
         else:
-            # Get default VACUUM statistics
-            vacuum_stats = await self._get_table_vacuum_stats()
-        
+            vacuum_stats = await _get_all_vacuum_stats(db_pool)
+
         return vacuum_stats
-        
+
     except Exception as e:
         logger.error(f"Failed to get VACUUM statistics: {e}")
         return {}
 
-async def _get_table_vacuum_stats(table_name: str) -> Dict[str, Any]:
+
+async def _get_table_vacuum_stats(db_pool, table_name: str) -> Dict[str, Any]:
     """Get VACUUM statistics for a specific table."""
     try:
-        # Get table statistics
         query = """
-            SELECT 
-                schemaname,
-                tablename,
-                relpages,
-                reltuples,
-                dead_tuples,
-                last_vacuum,
-                autovacuum,
-                vacuum_count,
-                last_analyze,
-                last_autoanalyze,
-                last_autoanalyze_count,
-                last_vacuum_timestamp,
-                last_analyze_timestamp
-            FROM pg_stat_user_tables 
+            SELECT schemaname, tablename,
+                relpages, reltuples, dead_tuples, last_vacuum, autovacuum,
+                vacuum_count, last_analyze, last_autoanalyze,
+                last_autoanalyze_count, last_vacuum_timestamp, last_analyze_timestamp
+            FROM pg_stat_user_tables
             WHERE schemaname = 'public' AND tablename = $1
         """
-        
-        async with self.db_pool.acquire() as conn:
+        async with db_pool.acquire() as conn:
             result = await conn.fetchrow(query, table_name)
-            
+            if not result:
+                return {}
             return {
                 "table_name": table_name,
                 "relpages": result[2],
@@ -958,37 +1082,25 @@ async def _get_table_vacuum_stats(table_name: str) -> Dict[str, Any]:
                 "last_vacuum_timestamp": result[11],
                 "last_analyze_timestamp": result[12],
             }
-    
     except Exception as e:
         logger.error(f"Failed to get table VACUUM stats for {table_name}: {e}")
         return {}
 
-async def _get_all_vacuum_stats() -> Dict[str, Any]:
+
+async def _get_all_vacuum_stats(db_pool) -> Dict[str, Any]:
     """Get VACUUM statistics for all tables."""
     try:
         query = """
-            SELECT 
-                schemaname,
-                tablename,
-                relpages,
-                reltuples,
-                dead_tuples,
-                last_vacuum,
-                autovacuum,
-                vacuum_count,
-                last_analyze,
-                last_autoanalyze,
-                last_autoanalyze_count,
-                last_vacuum_timestamp,
-                last_analyze_timestamp
-            FROM pg_stat_user_tables 
+            SELECT schemaname, tablename,
+                relpages, reltuples, dead_tuples, last_vacuum, autovacuum,
+                vacuum_count, last_analyze, last_autoanalyze,
+                last_autoanalyze_count, last_vacuum_timestamp, last_analyze_timestamp
+            FROM pg_stat_user_tables
             WHERE schemaname = 'public'
             ORDER BY schemaname, tablename
         """
-        
-        async with self.db_pool.acquire() as conn:
+        async with db_pool.acquire() as conn:
             results = await conn.fetch(query)
-            
             stats = {}
             for row in results:
                 stats[f"{row[0]}.{row[1]}"] = {
@@ -1004,39 +1116,27 @@ async def _get_all_vacuum_stats() -> Dict[str, Any]:
                     "last_vacuum_timestamp": row[11],
                     "last_analyze_timestamp": row[12],
                 }
-            
             return stats
-
     except Exception as e:
         logger.error(f"Failed to get all VACUUM stats: {e}")
         return {}
 
-async def _get_table_vacuum_stats(table_name: str) -> Dict[str, Any]:
+
+async def _get_table_vacuum_stats(db_pool, table_name: str) -> Dict[str, Any]:
     """Get VACUUM statistics for a specific table."""
     try:
-        # Get table statistics
         query = """
-            SELECT 
-                schemaname,
-                tablename,
-                relpages,
-                reltuples,
-                dead_tuples,
-                last_vacuum,
-                autovacuum,
-                vacuum_count,
-                last_analyze,
-                last_autoanalyze,
-                last_autoanalyze_count,
-                last_vacuum_timestamp,
-                last_analyze_timestamp
-            FROM pg_stat_user_tables 
+            SELECT schemaname, tablename,
+                relpages, reltuples, dead_tuples, last_vacuum, autovacuum,
+                vacuum_count, last_analyze, last_autoanalyze,
+                last_autoanalyze_count, last_vacuum_timestamp, last_analyze_timestamp
+            FROM pg_stat_user_tables
             WHERE schemaname = 'public' AND tablename = $1
         """
-        
-        async with self.db_pool.acquire() as conn:
+        async with db_pool.acquire() as conn:
             result = await conn.fetchrow(query, table_name)
-            
+            if not result:
+                return {}
             return {
                 "table_name": table_name,
                 "relpages": result[2],
@@ -1051,81 +1151,74 @@ async def _get_table_vacuum_stats(table_name: str) -> Dict[str, Any]:
                 "last_vacuum_timestamp": result[11],
                 "last_analyze_timestamp": result[12],
             }
-            
-        except Exception as e:
-            logger.error(f"Failed to get table VACUUM stats for {table_name}: {e}")
-            return {}
+    except Exception as e:
+        logger.error(f"Failed to get table VACUUM stats for {table_name}: {e}")
+        return {}
 
-async def _get_bloat_statistics() -> Dict[str, Any]:
+
+async def _get_bloat_statistics(db_pool) -> Dict[str, Any]:
     """Get database bloat statistics."""
     try:
-        # Get table bloat statistics
         query = """
-            SELECT 
-                schemaname,
-                tablename,
-                n_tup_ins + n_tup_upd + n_del + n_del + n_hot_update,
-                (SELECT COUNT(*) FROM " + schemaname + ".public WHERE 1=1) as total_rows,
-                (SELECT COUNT(*) FROM " + schemaname + ".public WHERE 1=1) AS live_rows,
-                (SELECT COUNT(*) FROM " + schemaname + ".public WHERE 1=1 AND state = 'idle') AS idle_rows,
-                (SELECT COUNT(*) FROM " + schemaname + ".public WHERE 1=1 AND state = 'active') AS active_rows,
-                (SELECT AVG(EXTRACT(EPOCH FROM (last_vacuum)) FROM pg_stat_user_tables WHERE tablename = " + schemaname + ".public) as avg_vacuum_age_days
-            FROM pg_stat_user_tables 
+            SELECT schemaname, tablename,
+                n_live_tup, n_dead_tup, n_tup_ins, n_tup_upd, n_tup_del,
+                last_vacuum, last_autovacuum, vacuum_count
+            FROM pg_stat_user_tables
             WHERE schemaname = 'public'
             """
-        
-        async with self.db_pool.acquire() as conn:
+        async with db_pool.acquire() as conn:
             results = await conn.fetch(query)
-            
-            total_rows = sum(row[7] for row in results)
-            live_rows = sum(row[8] for row in results)
-            idle_rows = sum(row[9] for row in results)
-            active_rows = sum(row[10] for row in results)
-            avg_vacuum_age_days = sum(row[11] for row in results) / len(results)) if results else 0
-            
+            if not results:
+                return {
+                    "total_rows": 0,
+                    "live_rows": 0,
+                    "dead_rows": 0,
+                    "tables_analyzed": 0,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+            total_live = sum(row[2] or 0 for row in results)
+            total_dead = sum(row[3] or 0 for row in results)
             return {
-                "total_rows": total_rows,
-                "live_rows": live_rows,
-                "idle_rows": idle_rows,
-                "active_rows": active_rows,
-                "avg_vacuum_age_days": avg_vacuum_age_days,
+                "total_rows": total_live + total_dead,
+                "live_rows": total_live,
+                "dead_rows": total_dead,
                 "tables_analyzed": len(results),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-            
-        except Exception as e:
-            logger.error(f"Failed to get bloat statistics: {e}")
-            return {}
+    except Exception as e:
+        logger.error(f"Failed to get bloat statistics: {e}")
+        return {}
+
 
 def _generate_vacuum_recommendations(
-    vacuum_stats: Dict[str, Any]
+    vacuum_stats: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
     """Generate VACUUM recommendations."""
     try:
         recommendations = []
-        
+
         # Check for tables that need VACUUM
         for table_name, stats in vacuum_stats.items():
             # Check if table needs VACUUM
             needs_vacuum = (
-                stats["dead_tuples"] > stats["reltuples"] * 0.05 or
-                stats["avg_vacuum_age_days"] > 30 or
-                stats["vacuum_count"] < 1
+                stats["dead_tuples"] > stats["reltuples"] * 0.05
+                or stats["avg_vacuum_age_days"] > 30
+                or stats["vacuum_count"] < 1
             )
-            
+
             if needs_vacuum:
                 # Create VACUUM recommendation
                 if stats["avg_vacuum_age_days"] > 30:
                     priority = "high"
                     impact_score = 0.8
                     cost = "medium"
-                    reasoning = f"Table {table_name} hasn't been VACUUMed in {stats['avg_vacuum_age_days:.1f} days"
+                    reasoning = f"Table {table_name} hasn't been VACUUMed in {stats.get('avg_vacuum_age_days', 0):.1f} days"
                 else:
                     priority = "medium"
                     impact_score = 0.6
                     cost = "low"
                     reasoning = f"Table {table_name} needs VACUUM (last VACUUM: {stats['last_vacuum_timestamp']})"
-                
+
                 rec = {
                     "recommendation_type": "vacuum",
                     "table_name": table_name,
@@ -1137,81 +1230,75 @@ def _generate_vacuum_recommendations(
                     "estimated_benefit": "Reduced fragmentation and improved performance",
                     "risks": ["Temporary performance impact during VACUUM"],
                 }
-                
+
                 recommendations.append(rec)
-        
+
         return recommendations
-        
+
     except Exception as e:
-            logger.error(f"Failed to generate VACUUM recommendations: {e}")
-            return []
+        logger.error(f"Failed to generate VACUUM recommendations: {e}")
+        return []
+
 
 def _generate_bloat_recommendations(
-    bloat_stats: Dict[str, Any]
+    bloat_stats: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
     """Generate bloat recommendations."""
     try:
         recommendations = []
-        
+
         # Check for high bloat percentage tables
         for table_name, stats in bloat_stats.items():
             if stats["dead_tuples"] > stats["reltuples"] * 0.2:
-                recommendations.append({
-                    "recommendation_type": "reorganize",
-                    "table_name": table_name,
-                    "priority": "high",
-                    "impact_score": 0.7,
-                    "implementation_cost": "high",
-                    "reasoning": f"Table {table_name} has high dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']} ({stats['dead_tuples']/stats['reltuples']*100:.1}%)",
-                    "sql_statement": f"VACUUM FULL {table_name}",
-                    "estimated_benefit": "Reduced bloat and improved performance",
-                    "risks": ["Temporary performance impact during VACUUM"],
-                })
+                recommendations.append(
+                    {
+                        "recommendation_type": "reorganize",
+                        "table_name": table_name,
+                        "priority": "high",
+                        "impact_score": 0.7,
+                        "implementation_cost": "high",
+                        "reasoning": f"Table {table_name} has high dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']} ({stats['dead_tuples'] / stats['reltuples'] * 100:.1f}%)",
+                        "sql_statement": f"VACUUM FULL {table_name}",
+                        "estimated_benefit": "Reduced bloat and improved performance",
+                        "risks": ["Temporary performance impact during VACUUM"],
+                    }
+                )
             elif stats["dead_tuples"] > stats["reltuples"] * 0.1:
-                recommendations.append({
-                    "recommendation_type": "reorganize",
-                    "table_name": table_name,
-                    "priority": "medium",
-                    "impact_score": 0.5,
-                    "implementation_cost": "medium",
-                    "reasoning": f"Table {table_name} has moderate dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']*100:.1}%)",
-                    "sql_statement": f"VACUUM {table_name}",
-                    "estimated_benefit": "Reduced bloat and improved performance",
-                    "risks": ["Temporary performance impact during VACUUM"],
-                })
-            
-            return recommendations
-        
+                recommendations.append(
+                    {
+                        "recommendation_type": "reorganize",
+                        "table_name": table_name,
+                        "priority": "medium",
+                        "impact_score": 0.5,
+                        "implementation_cost": "medium",
+                        "reasoning": f"Table {table_name} has moderate dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']} ({stats['dead_tuples'] / stats['reltuples'] * 100:.1f}%)",
+                        "sql_statement": f"VACUUM {table_name}",
+                        "estimated_benefit": "Reduced bloat and improved performance",
+                        "risks": ["Temporary performance impact during VACUUM"],
+                    }
+                )
+
+        return recommendations
     except Exception as e:
         logger.error(f"Failed to generate bloat recommendations: {e}")
         return []
 
-async def _get_table_vacuum_stats(table_name: str) -> Dict[str, Any]:
+
+async def _get_table_vacuum_stats(db_pool, table_name: str) -> Dict[str, Any]:
     """Get VACUUM statistics for a specific table."""
     try:
-        # Get table statistics
         query = """
-            SELECT 
-                schemaname,
-                tablename,
-                relpages,
-                reltuples,
-                dead_tuples,
-                last_vacuum,
-                autovacuum,
-                vacuum_count,
-                last_analyze,
-                last_autoanalyze,
-                last_autoanalyze_count,
-                last_vacuum_timestamp,
-                last_analyze_timestamp
-            FROM pg_stat_user_tables 
+            SELECT schemaname, tablename,
+                relpages, reltuples, dead_tuples, last_vacuum, autovacuum,
+                vacuum_count, last_analyze, last_autoanalyze,
+                last_autoanalyze_count, last_vacuum_timestamp, last_analyze_timestamp
+            FROM pg_stat_user_tables
             WHERE schemaname = 'public' AND tablename = $1
         """
-        
-        async with self.db_pool.acquire() as conn:
+        async with db_pool.acquire() as conn:
             result = await conn.fetchrow(query, table_name)
-            
+            if not result:
+                return {}
             return {
                 "table_name": table_name,
                 "relpages": result[2],
@@ -1226,102 +1313,84 @@ async def _get_table_vacuum_stats(table_name: str) -> Dict[str, Any]:
                 "last_vacuum_timestamp": result[11],
                 "last_analyze_timestamp": result[12],
             }
-            
-        except Exception as e:
-            logger.error(f"Failed to get table VACUUM stats for {table_name}: {e}")
-            return {}
+    except Exception as e:
+        logger.error(f"Failed to get table VACUUM stats for {table_name}: {e}")
+        return {}
 
-async def _get_all_vacuum_stats() -> Dict[str, Any]:
+
+async def _get_all_vacuum_stats(db_pool) -> Dict[str, Any]:
     """Get VACUUM statistics for all tables."""
-        try:
-            # Get all table statistics
-            query = """
-                SELECT 
-                    schemaname,
-                    tablename,
-                    relpages,
-                    reltuples,
-                    dead_tuples,
-                    last_vacuum,
-                    autovacuum,
-                    vacuum_count,
-                    last_analyze,
-                    last_autoanalyze,
-                    last_autoanalyze_count,
-                    last_vacuum_timestamp,
-                    last_analyze_timestamp
-                FROM pg_stat_user_tables 
-                WHERE schemaname = 'public'
-                ORDER BY schemaname, tablename
+    try:
+        query = """
+            SELECT schemaname, tablename,
+                relpages, reltuples, dead_tuples, last_vacuum, autovacuum,
+                vacuum_count, last_analyze, last_autoanalyze,
+                last_autoanalyze_count, last_vacuum_timestamp, last_analyze_timestamp
+            FROM pg_stat_user_tables
+            WHERE schemaname = 'public'
+            ORDER BY schemaname, tablename
             """
-            
-            async with self.db_pool.acquire() as conn:
-                results = await conn.fetch(query)
-                
-                stats = {}
-                for row in results:
-                    stats[f"{row[0]}.{row[1]} = {
-                        "relpages": row[2],
-                        "reltuples": row[3],
-                        "dead_tuples": row[4],
-                        "last_vacuum": row[5],
-                        "autovacuum": row[6],
-                        "vacuum_count": row[7],
-                        "last_analyze": row[8],
-                        "last_autoanalyze": row[9],
-                        "last_autoanalyze_count": row[10],
-                        "last_vacuum_timestamp": row[11],
-                        "last_analyze_timestamp": row[12],
-                    }
-                
-                return stats
-                
-        except Exception as e:
-            logger.error(f"Failed to get all VACUUM stats: {e}")
-            return {}
+        async with db_pool.acquire() as conn:
+            results = await conn.fetch(query)
+            stats = {}
+            for row in results:
+                stats[f"{row[0]}.{row[1]}"] = {
+                    "relpages": row[2],
+                    "reltuples": row[3],
+                    "dead_tuples": row[4],
+                    "last_vacuum": row[5],
+                    "autovacuum": row[6],
+                    "vacuum_count": row[7],
+                    "last_analyze": row[8],
+                    "last_autoanalyze": row[9],
+                    "last_autoanalyze_count": row[10],
+                    "last_vacuum_timestamp": row[11],
+                    "last_analyze_timestamp": row[12],
+                }
+            return stats
+    except Exception as e:
+        logger.error(f"Failed to get all VACUUM stats: {e}")
+        return {}
 
-def _get_table_vacuum_timestamp(table_name: str) -> Optional[datetime]:
+
+async def _get_table_vacuum_timestamp(db_pool, table_name: str) -> Optional[datetime]:
     """Get last VACUUM timestamp for a table."""
     try:
-        # Get last VACUUM timestamp
         query = """
             SELECT last_vacuum_timestamp
-            FROM pg_stat_user_tables 
+            FROM pg_stat_user_tables
             WHERE schemaname = 'public' AND tablename = $1
         """
-        
-        async with self.db_pool.acquire() as conn:
+        async with db_pool.acquire() as conn:
             result = await conn.fetchrow(query, table_name)
-            
             if result and result[0]:
                 return datetime.fromisoformat(result[0])
-            
             return None
-            
-        except Exception as e:
-            logger.error(f"Failed to get VACUUM timestamp for {table_name}: {e}")
-            return None
+    except Exception as e:
+        logger.error(f"Failed to get VACUUM timestamp for {table_name}: {e}")
+        return None
 
-# Factory functions
-def create_database_performance_manager(db_pool) -> DatabasePerformanceManager:
-    """Create database performance manager instance."""
-    return DatabasePerformanceManager(db_pool)
 
+# Factory functions (create_database_performance_manager imported from database_performance_manager)
 def create_query_optimizer(db_pool) -> QueryOptimizer:
     """Create query optimizer instance."""
     return QueryOptimizer(db_pool)
+
 
 def create_cache_manager(redis_url: Optional[str] = None) -> CacheManager:
     """Create cache manager instance."""
     return CacheManager(redis_url)
 
+
 def create_connection_pool_manager() -> ConnectionPoolManager:
     """Create connection pool manager instance."""
     return ConnectionPoolManager()
 
+
 def create_index_analyzer(db_pool) -> IndexAnalyzer:
     """Create index analyzer instance."""
     return IndexAnalyzer(db_pool)
+
 
 def create_performance_monitor(db_pool) -> PerformanceMonitor:
     """Create performance monitor instance."""

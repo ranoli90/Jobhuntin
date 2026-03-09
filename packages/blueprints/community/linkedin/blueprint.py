@@ -47,15 +47,17 @@ Text:
         if not profile.get("headline") and profile.get("experience"):
             # Use most recent job title as headline
             latest_job = profile["experience"][0] if profile["experience"] else {}
-            profile["headline"] = f"{latest_job.get('title', '')} at {latest_job.get('company', '')}"
-        
+            profile["headline"] = (
+                f"{latest_job.get('title', '')} at {latest_job.get('company', '')}"
+            )
+
         # Ensure location is properly formatted
         if profile.get("city") and profile.get("state"):
             profile["location"] = f"{profile['city']}, {profile['state']}"
         elif profile.get("location"):
             # Clean up location format
             profile["location"] = profile["location"].strip()
-        
+
         return profile
 
     def build_dom_mapping_prompt(

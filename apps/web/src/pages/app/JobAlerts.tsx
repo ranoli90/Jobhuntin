@@ -6,7 +6,23 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPatch, apiDelete } from "../../lib/api";
+import { formatCurrency } from "../../lib/format";
 import { Button } from "../../components/ui/Button";
+
+interface JobAlert {
+  id: string;
+  name: string;
+  keywords: string[];
+  locations: string[];
+  salary_min?: number;
+  salary_max?: number;
+  is_active: boolean;
+  frequency: string;
+  remote_only?: boolean;
+  last_sent_at?: string | number | Date;
+  [key: string]: unknown;
+}
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { 
@@ -21,7 +37,8 @@ import {
   Clock,
   MapPin,
   DollarSign,
-  Building
+  Building,
+  AlertTriangle
 } from "lucide-react";
 
 export default function JobAlertsPage() {
@@ -55,7 +72,7 @@ export default function JobAlertsPage() {
   } = useQuery({
     queryKey: ["job-alerts"],
     queryFn: async () => {
-      return await apiGet("v1/alerts");
+      return await apiGet<JobAlert[]>("v1/alerts");
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -207,7 +224,7 @@ export default function JobAlertsPage() {
           <h2 className="text-xl font-semibold text-red-600 mb-2">
             {t("jobAlerts.errorLoading", locale) || "Error Loading Alerts"}
           </h2>
-          <p className="text-slate-600">{error}</p>
+          <p className="text-slate-600">{error instanceof Error ? error.message : String(error)}</p>
           <Button onClick={() => refetchAlerts()}>
             {t("common.retry", locale) || "Retry"}
           </Button>
@@ -570,9 +587,9 @@ export default function JobAlertsPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{t("jobAlerts.salaryRange", locale) || "Salary"}:</span>
                         <span>
-                          {alert.salary_min && formatCurrency(alert.salary_min)}
-                          {alert.salary_min && alert.salary_max && " - "}
-                          {alert.salary_max && formatCurrency(alert.salary_max)}
+                          {alert.salary_min != null && formatCurrency(Number(alert.salary_min))}
+                          {alert.salary_min != null && alert.salary_max != null && " - "}
+                          {alert.salary_max != null && formatCurrency(Number(alert.salary_max))}
                         </span>
                       </div>
                     )}
@@ -588,7 +605,7 @@ export default function JobAlertsPage() {
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
                         <span>
-                          {t("jobAlerts.lastSent", locale) || "Last sent"}: {new Date(alert.last_sent_at).toLocaleDateString(locale)}
+                          {t("jobAlerts.lastSent", locale) || "Last sent"}: {alert.last_sent_at ? new Date(alert.last_sent_at).toLocaleDateString(locale) : '-'}
                         </span>
                       </div>
                     )}

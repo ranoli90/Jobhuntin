@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { Progress } from '@/components/ui/Progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { 
   Brain, 
   Target, 
@@ -23,7 +23,8 @@ import {
   BarChart3,
   PieChart,
   Activity,
-  Lightbulb
+  Lightbulb,
+  AlertTriangle
 } from 'lucide-react';
 
 interface UserProfile {
@@ -131,7 +132,7 @@ const SemanticMatcher: React.FC = () => {
       if (!response.ok) throw new Error('Failed to fetch top interests');
       const data = await response.json();
       
-      const interests = data.top_interests.map(([category, score]) => ({
+      const interests = data.top_interests.map(([category, score]: [string, number]) => ({
         name: category,
         score: score,
         keywords: [],
@@ -383,7 +384,7 @@ const SemanticMatcher: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {Object.entries(profile.interests)
-                  .sort(([, a]) => b - a)
+                  .sort(([, a], [, b]) => (b as number) - (a as number))
                   .slice(0, 5)
                   .map(([category, score]) => (
                     <div key={category} className="flex items-center justify-between">

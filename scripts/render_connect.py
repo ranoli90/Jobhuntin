@@ -55,8 +55,11 @@ def api_put_env(path: str, token: str, value: str) -> int:
 
 def main() -> int:
     import argparse
+
     parser = argparse.ArgumentParser(description="Verify/fix Render service config")
-    parser.add_argument("--fix", action="store_true", help="Add missing env vars (API_PUBLIC_URL, ENV)")
+    parser.add_argument(
+        "--fix", action="store_true", help="Add missing env vars (API_PUBLIC_URL, ENV)"
+    )
     args = parser.parse_args()
 
     token = os.environ.get("RENDER_API_KEY")
@@ -87,7 +90,14 @@ def main() -> int:
             print(f"    URL: {url}")
 
     # Check API service
-    api_svc = next((s for s in svc_list if "api" in s.get("name", "").lower() and s.get("type") == "web_service"), None)
+    api_svc = next(
+        (
+            s
+            for s in svc_list
+            if "api" in s.get("name", "").lower() and s.get("type") == "web_service"
+        ),
+        None,
+    )
     if api_svc:
         print("\n--- API Service Env Vars ---")
         try:
@@ -122,13 +132,19 @@ def main() -> int:
                 status = "OK" if found else "MISSING"
                 print(f"  {key}: {status}")
             if "DATABASE_URL" not in keys_present:
-                print("  Note: DATABASE_URL may be set via Render Dashboard (linked Postgres) - not shown in API")
+                print(
+                    "  Note: DATABASE_URL may be set via Render Dashboard (linked Postgres) - not shown in API"
+                )
             if "API_PUBLIC_URL" not in keys_present:
-                print("  Note: API_PUBLIC_URL needed for magic-link verify redirect. Add in Dashboard.")
+                print(
+                    "  Note: API_PUBLIC_URL needed for magic-link verify redirect. Add in Dashboard."
+                )
             if args.fix:
                 fixes = []
                 if "API_PUBLIC_URL" not in keys_present:
-                    slug = api_svc.get("slug") or api_svc.get("name", "jobhuntin-api").replace("_", "-")
+                    slug = api_svc.get("slug") or api_svc.get(
+                        "name", "jobhuntin-api"
+                    ).replace("_", "-")
                     fixes.append(("API_PUBLIC_URL", f"https://{slug}.onrender.com"))
                 if not has_env:
                     fixes.append(("env", "prod"))
@@ -165,11 +181,17 @@ def main() -> int:
                 if status == "live":
                     print("  API is live.")
                 elif status == "update_failed":
-                    print("  Deploy failed. Check build logs: Dashboard → jobhuntin-api → Logs")
+                    print(
+                        "  Deploy failed. Check build logs: Dashboard → jobhuntin-api → Logs"
+                    )
                 elif status in ("update_in_progress", "build_in_progress"):
-                    print("  Deploy in progress. Wait a few minutes and re-run this script.")
+                    print(
+                        "  Deploy in progress. Wait a few minutes and re-run this script."
+                    )
                 else:
-                    print("  Consider triggering a new deploy from the Render dashboard.")
+                    print(
+                        "  Consider triggering a new deploy from the Render dashboard."
+                    )
         except Exception as e:
             print(f"  Could not fetch deploys: {e}")
 

@@ -640,6 +640,12 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[dlq_mod._get_admin_user_id] = get_current_user_id
     app.include_router(dlq_mod.router)
 
+    # Concurrent Usage (Phase 12.1)
+    import api.concurrent_usage_endpoints as concurrent_usage_mod
+
+    app.dependency_overrides[concurrent_usage_mod.get_tenant_context] = get_tenant_context
+    app.include_router(concurrent_usage_mod.router)
+
 
 # NOTE: _mount_sub_routers() is called at the bottom of this file,
 # after get_pool and get_tenant_context are defined.
@@ -842,7 +848,9 @@ async def save_user_skills(
     async with db.acquire() as conn:
         async with conn.transaction():
             # Clear existing skills and insert new ones (atomic)
-            await conn.execute("DELETE FROM public.user_skills WHERE user_id = $1", user_id)
+            await conn.execute(
+                "DELETE FROM public.user_skills WHERE user_id = $1", user_id
+            )
 
             for skill in body.skills:
                 try:
@@ -865,7 +873,11 @@ async def save_user_skills(
                 except Exception as e:
                     logger.error(
                         "[SKILLS] Failed to insert skill",
-                        extra={"user_id": user_id, "skill": skill.skill, "error": str(e)},
+                        extra={
+                            "user_id": user_id,
+                            "skill": skill.skill,
+                            "error": str(e),
+                        },
                     )
                     raise
 

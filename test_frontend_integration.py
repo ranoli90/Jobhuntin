@@ -9,14 +9,15 @@ import os
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
+
 def test_frontend_integration():
     """Test that all frontend pages and components are properly integrated."""
     print("=== FRONTEND INTEGRATION TEST ===")
-    
+
     # Test that all page files exist
     frontend_pages = [
         "apps/web/src/pages/app/agent-improvements/index.tsx",
-        "apps/web/src/pages/app/dlq-dashboard/index.tsx", 
+        "apps/web/src/pages/app/dlq-dashboard/index.tsx",
         "apps/web/src/pages/app/screenshot-capture/index.tsx",
         "apps/web/src/pages/app/communication-preferences/index.tsx",
         "apps/web/src/pages/app/notification-history/index.tsx",
@@ -27,7 +28,7 @@ def test_frontend_integration():
         "apps/web/src/pages/app/multi-resume/index.tsx",
         "apps/web/src/pages/app/application-notes/index.tsx",
     ]
-    
+
     all_pages_exist = True
     for page in frontend_pages:
         if os.path.exists(page):
@@ -35,15 +36,15 @@ def test_frontend_integration():
         else:
             print(f"FAILED: Frontend page missing: {page}")
             all_pages_exist = False
-    
+
     # Test that App.tsx includes all routes
     try:
         with open("apps/web/src/App.tsx", "r") as f:
             app_content = f.read()
-        
+
         required_routes = [
             "AgentImprovementsPage",
-            "DLQDashboardPage", 
+            "DLQDashboardPage",
             "ScreenshotCapturePage",
             "CommunicationPreferencesPage",
             "NotificationHistoryPage",
@@ -54,7 +55,7 @@ def test_frontend_integration():
             "MultiResumePage",
             "ApplicationNotesPage",
         ]
-        
+
         routes_found = True
         for route in required_routes:
             if route in app_content:
@@ -62,24 +63,24 @@ def test_frontend_integration():
             else:
                 print(f"FAILED: Route missing: {route}")
                 routes_found = False
-                
+
     except Exception as e:
         print(f"✗ Error checking App.tsx: {e}")
         routes_found = False
-    
+
     # Test that AppLayout includes navigation items
     try:
         with open("apps/web/src/layouts/AppLayout.tsx", "r") as f:
             layout_content = f.read()
-        
+
         required_nav_items = [
             "Pipeline View",
-            "Export Data", 
+            "Export Data",
             "Agent Improvements",
             "DLQ Dashboard",
             "Communication",
         ]
-        
+
         nav_found = True
         for nav_item in required_nav_items:
             if nav_item in layout_content:
@@ -87,11 +88,11 @@ def test_frontend_integration():
             else:
                 print(f"FAILED: Navigation item missing: {nav_item}")
                 nav_found = False
-                
+
     except Exception as e:
         print(f"✗ Error checking AppLayout.tsx: {e}")
         nav_found = False
-    
+
     # Test that components exist
     components = [
         "apps/web/src/components/agent-improvements/DLQDashboard.tsx",
@@ -99,7 +100,7 @@ def test_frontend_integration():
         "apps/web/src/components/user-experience/PipelineView.tsx",
         "apps/web/src/components/user-experience/ApplicationExport.tsx",
     ]
-    
+
     all_components_exist = True
     for component in components:
         if os.path.exists(component):
@@ -107,25 +108,26 @@ def test_frontend_integration():
         else:
             print(f"FAILED: Component missing: {component}")
             all_components_exist = False
-    
+
     return all_pages_exist and routes_found and nav_found and all_components_exist
+
 
 def test_api_endpoints():
     """Test that all API endpoints are properly configured."""
     print("\n=== API ENDPOINTS TEST ===")
-    
+
     # Test main.py integration
     try:
         with open("apps/api/main.py", "r") as f:
             main_content = f.read()
-        
+
         required_imports = [
             "agent_improvements_endpoints",
             "communication_endpoints",
             "user_experience_endpoints",
             "dlq_endpoints",
         ]
-        
+
         imports_found = True
         for import_name in required_imports:
             if import_name in main_content:
@@ -133,22 +135,23 @@ def test_api_endpoints():
             else:
                 print(f"FAILED: Import missing: {import_name}")
                 imports_found = False
-                
+
     except Exception as e:
         print(f"✗ Error checking main.py: {e}")
         imports_found = False
-    
+
     return imports_found
+
 
 def test_database_migrations():
     """Test that database migrations exist."""
     print("\n=== DATABASE MIGRATIONS TEST ===")
-    
+
     migrations = [
         "migrations/007_agent_improvements.sql",
         "migrations/008_user_experience_features.sql",
     ]
-    
+
     all_migrations_exist = True
     for migration in migrations:
         if os.path.exists(migration):
@@ -156,28 +159,29 @@ def test_database_migrations():
         else:
             print(f"FAILED: Migration missing: {migration}")
             all_migrations_exist = False
-    
+
     return all_migrations_exist
+
 
 def main():
     """Run all frontend integration tests."""
     print("FRONTEND INTEGRATION VERIFICATION")
     print("=" * 50)
-    
+
     success = True
-    
+
     # Test frontend integration
     if not test_frontend_integration():
         success = False
-    
+
     # Test API endpoints
     if not test_api_endpoints():
         success = False
-    
+
     # Test database migrations
     if not test_database_migrations():
         success = False
-    
+
     print("\n" + "=" * 50)
     if success:
         print("SUCCESS: ALL FRONTEND INTEGRATION TESTS PASSED")
@@ -201,8 +205,9 @@ def main():
     else:
         print("FAILED: SOME FRONTEND INTEGRATION TESTS FAILED")
         print("FAILED: Please fix the issues above")
-    
+
     return success
+
 
 if __name__ == "__main__":
     success = main()

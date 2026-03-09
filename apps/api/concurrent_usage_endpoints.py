@@ -18,6 +18,11 @@ from packages.backend.domain.tenant import TenantContext
 router = APIRouter(prefix="/concurrent-usage", tags=["concurrent-usage"])
 
 
+async def get_tenant_context() -> TenantContext:
+    """Tenant context dependency; override in main app."""
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
 # Pydantic models
 class ConcurrentSessionRequest(BaseModel):
     """Concurrent session creation request."""
@@ -53,10 +58,7 @@ class ConcurrentStatsResponse(BaseModel):
     tenant_stats: Dict[str, Dict[str, int]]
 
 
-# Dependency injection functions
-def get_concurrent_tracker() -> ConcurrentTracker:
-    """Get concurrent tracker instance."""
-    return get_concurrent_tracker()
+# Use imported get_concurrent_tracker for Depends()
 
 
 @router.post("/track-session")

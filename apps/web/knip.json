@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/main.tsx", "src/App.tsx", "vite.config.ts", "scripts/**/*.js", "scripts/**/*.cjs"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+  "ignoreDependencies": ["@axe-core/cli", "blc", "broken-link-checker"],
+  "eslint": { "config": [".eslintrc.json"] }
+}

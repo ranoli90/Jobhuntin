@@ -6,8 +6,8 @@
   },
   "extends": [
     "eslint:recommended",
-    "@typescript-eslint/recommended",
-    "@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jsx-a11y/recommended",
@@ -16,7 +16,6 @@
     "plugin:import/typescript",
     "plugin:prettier/recommended",
     "plugin:sonarjs/recommended",
-    "plugin:security/recommended",
     "plugin:unicorn/recommended",
     "plugin:compat/recommended"
   ],
@@ -41,14 +40,7 @@
     "security",
     "unicorn",
     "compat",
-    "no-unsanitized",
-    "xss",
-    "security-node",
-    "node-security",
-    "no-loops",
-    "optimize-regex",
     "promise",
-    "require-path-exists",
     "array-func"
   ],
   "rules": {
@@ -70,10 +62,6 @@
     "security/detect-object-injection": "error",
     "security/detect-non-literal-require": "error",
     "security/detect-possible-timing-attacks": "error",
-    "no-unsanitized/method": "error",
-    "no-unsanitized/property": "error",
-    "xss/no-mixed-html": "error",
-
     // Performance rules
     "sonarjs/no-identical-functions": "error",
     "sonarjs/cognitive-complexity": ["error", 15],
@@ -101,10 +89,6 @@
     "no-implied-eval": "error",
     "no-new-func": "error",
     "no-script-url": "error",
-
-    // Performance rules
-    "no-loops/no-loops": "warn",
-    "optimize-regex/optimize-regex": "warn",
 
     // Promise rules
     "promise/always-return": "error",

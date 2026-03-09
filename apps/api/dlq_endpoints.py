@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 
 from backend.domain.tenant import TenantContext
 
+
 # Stub DLQ manager returned when real implementation is not available.
 # Methods raise NotImplementedError so endpoints can catch and return 501.
 class _StubDLQManager:

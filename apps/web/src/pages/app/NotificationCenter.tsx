@@ -354,7 +354,7 @@ export default function NotificationCenterPage() {
           <h2 className="text-xl font-semibold text-red-600 mb-2">
             {t("notificationCenter.errorLoading", locale) || "Error Loading Notifications"}
           </h2>
-          <p className="text-slate-600">{error}</p>
+          <p className="text-slate-600">{error instanceof Error ? error.message : String(error)}</p>
           <Button onClick={() => refetchNotifications()}>
             {t("common.retry", locale) || "Retry"}
           </Button>

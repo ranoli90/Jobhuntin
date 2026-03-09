@@ -445,9 +445,9 @@ class SearchPaginationHelper:
 
         # Build search conditions
         search_conditions = []
-        for field in search_fields:
+        for search_field in search_fields:
             search_conditions.append(
-                getattr(query.column_described(field)).ilike(f"%{search_term}%")
+                getattr(query.column_described(search_field)).ilike(f"%{search_term}%")
             )
 
         # Combine with OR

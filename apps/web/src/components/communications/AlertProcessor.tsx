@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Progress } from '@/components/ui/Progress';
+import { Switch } from '@/components/ui/Switch';
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -271,7 +272,7 @@ const AlertProcessor: React.FC = () => {
       medium: 'bg-yellow-100 text-yellow-800',
       low: 'bg-blue-100 text-blue-800',
     };
-    return colors[priority] || 'bg-gray-100 text-gray-800';
+    return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getStatusColor = (status: string) => {
@@ -281,7 +282,7 @@ const AlertProcessor: React.FC = () => {
       failed: 'bg-red-100 text-red-800',
       resolved: 'bg-blue-100 text-blue-800',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getStatusIcon = (status: string) => {
@@ -291,7 +292,7 @@ const AlertProcessor: React.FC = () => {
       failed: <AlertTriangle className="h-4 w-4" />,
       resolved: <CheckCircle className="h-4 w-4" />,
     };
-    return icons[status] || <Clock className="h-4 w-4" />;
+    return icons[status as keyof typeof icons] || <Clock className="h-4 w-4" />;
   };
 
   const getTypeIcon = (type: string) => {
@@ -304,7 +305,7 @@ const AlertProcessor: React.FC = () => {
       system_error: <AlertTriangle className="h-4 w-4 text-red-600" />,
       maintenance: <Settings className="h-4 w-4 text-blue-600" />,
     };
-    return icons[type] || <AlertTriangle className="h-4 w-4" />;
+    return icons[type as keyof typeof icons] || <AlertTriangle className="h-4 w-4" />;
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -461,7 +462,7 @@ const AlertProcessor: React.FC = () => {
                   id="title"
                   placeholder="Alert title"
                   value={alertForm.title}
-                  onChange={(e) => setAlertForm({ ...alertForm, title: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAlertForm({ ...alertForm, title: e.target.value })}
                 />
               </div>
 
@@ -504,7 +505,7 @@ const AlertProcessor: React.FC = () => {
                   id="rule-name"
                   placeholder="Rule name"
                   value={ruleForm.name}
-                  onChange={(e) => setRuleForm({ ...ruleForm, name: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRuleForm({ ...ruleForm, name: e.target.value })}
                 />
               </div>
 
@@ -551,7 +552,7 @@ const AlertProcessor: React.FC = () => {
                   max="1440"
                   placeholder="Throttle in minutes"
                   value={ruleForm.throttle_minutes}
-                  onChange={(e) => setRuleForm({ ...ruleForm, throttle_minutes: parseInt(e.target.value) || 5 })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRuleForm({ ...ruleForm, throttle_minutes: parseInt(e.target.value) || 5 })}
                 />
               </div>
 
@@ -559,7 +560,7 @@ const AlertProcessor: React.FC = () => {
                 <Switch
                   id="rule-enabled"
                   checked={ruleForm.enabled}
-                  onCheckedChange={(checked) => setRuleForm({ ...ruleForm, enabled: checked })}
+                  onCheckedChange={(checked: boolean) => setRuleForm({ ...ruleForm, enabled: checked })}
                 />
                 <Label htmlFor="rule-enabled">Enable Rule</Label>
               </div>

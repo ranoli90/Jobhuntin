@@ -863,7 +863,11 @@ class CacheManager:
                 if isinstance(arg, (str, int, float, bool)):
                     key_parts.append(str(arg))
                 else:
-                    key_parts.append(hashlib.md5(str(arg).encode()).hexdigest())
+                    key_parts.append(
+                        hashlib.md5(
+                            str(arg).encode(), usedforsecurity=False
+                        ).hexdigest()
+                    )
 
             # Add keyword arguments
             for k, v in sorted(kwargs.items()):

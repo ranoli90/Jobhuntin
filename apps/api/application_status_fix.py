@@ -1,9 +1,35 @@
 # CORRECTED VERSION - Use this to replace the problematic section in user.py
+# This file is a reference fragment; add these imports when merging into api.user.
 
-# Add this import at the top with other imports:
 from datetime import datetime, timezone
+from typing import Any
 
-# Replace the problematic section starting around line 548:
+import asyncpg
+from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import Path as FastAPIPath
+from pydantic import BaseModel, Field
+
+# Stubs for fragment context (provided by api.user when merged)
+router = APIRouter()
+
+
+class TenantContext:
+    """Stub; use api.types or api.user TenantContext when merged."""
+
+    user_id: str = ""
+
+
+def _get_tenant_ctx() -> TenantContext:
+    return TenantContext()
+
+
+def _get_pool() -> asyncpg.Pool:
+    raise RuntimeError("Fragment: use app _get_pool when merged")
+
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # PATCH /me/applications/{application_id}/status

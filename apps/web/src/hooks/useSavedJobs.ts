@@ -66,7 +66,7 @@ export function useSavedJobs() {
       ...prev,
       savedJobs,
       isLoading: savedJobsLoading,
-      error: savedJobsError,
+      error: savedJobsError instanceof Error ? savedJobsError.message : (savedJobsError ? String(savedJobsError) : null),
       savedJobIds: savedIds,
     }));
   }, [savedJobs, savedJobsLoading, savedJobsError]);

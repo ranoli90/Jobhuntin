@@ -29,7 +29,9 @@ from packages.backend.domain.notifications import (
     notify_hold_questions,
 )
 from packages.backend.domain.email_communications import get_email_communication_manager
-from packages.backend.domain.enhanced_notifications import get_enhanced_notification_manager
+from packages.backend.domain.enhanced_notifications import (
+    get_enhanced_notification_manager,
+)
 from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -40,7 +42,10 @@ from packages.backend.domain.repositories import (
 )
 from packages.backend.domain.resume import download_from_supabase_storage
 from packages.backend.llm.client import LLMClient
-from packages.backend.llm.contracts import DomMappingResponse_V1, build_dom_mapping_prompt
+from packages.backend.llm.contracts import (
+    DomMappingResponse_V1,
+    build_dom_mapping_prompt,
+)
 from packages.backend.llm.prompt_registry import get_prompt
 from shared.config import get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
@@ -304,10 +309,10 @@ async def detect_next_button(page: Page) -> bool:
         'button[class*="continue"]',
         'a[role="button"]:has-text("Next")',
         'a[role="button"]:has-text("Continue")',
-        '.next-button',
-        '.continue-button',
-        '.btn-next',
-        '.btn-continue',
+        ".next-button",
+        ".continue-button",
+        ".btn-next",
+        ".btn-continue",
     ]
     for sel in next_selectors:
         btn = page.locator(sel).first
@@ -340,10 +345,10 @@ async def click_next_button(page: Page) -> bool:
         'button[class*="continue"]',
         'a[role="button"]:has-text("Next")',
         'a[role="button"]:has-text("Continue")',
-        '.next-button',
-        '.continue-button',
-        '.btn-next',
-        '.btn-continue',
+        ".next-button",
+        ".continue-button",
+        ".btn-next",
+        ".btn-continue",
     ]
     for sel in next_selectors:
         btn = page.locator(sel).first
@@ -530,7 +535,7 @@ async def _fill_radio(page: Page, selector: str, el: Any, value: str) -> None:
         if await radio.count() > 0:
             await radio.check()
             return
-    
+
     # Final fallback: click the element directly
     await el.check()
 
@@ -563,7 +568,10 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
                     await btn.click()
             except Exception as e:
                 # Some forms don't navigate; accept the click as success
-                logger.warning("Form submission didn't trigger navigation, falling back to click: %s", e)
+                logger.warning(
+                    "Form submission didn't trigger navigation, falling back to click: %s",
+                    e,
+                )
                 await btn.click()
                 await page.wait_for_timeout(3000)
             return True
@@ -638,7 +646,7 @@ class FormAgent:
         settings = get_settings()
         retry_count = 0
         max_retry_delay = 60.0
-        
+
         while True:
             try:
                 # Use a dedicated connection for listening
@@ -650,7 +658,7 @@ class FormAgent:
                     logger.info("Listening for 'job_queue' notifications...")
                     # Reset retry count on successful connection
                     retry_count = 0
-                    
+
                     # Keep connection open indefinitely
                     while not conn.is_closed():
                         await asyncio.sleep(60)  # Keep-alive check or just sleep
@@ -665,7 +673,7 @@ class FormAgent:
                 delay = min(2 ** (retry_count - 1), max_retry_delay)
                 jitter = delay * 0.1 * random.random()
                 delay += jitter
-                
+
                 logger.error(
                     f"Listener connection failed (attempt {retry_count}): {e}. "
                     f"Retrying in {delay:.2f}s..."
@@ -696,7 +704,7 @@ class FormAgent:
         app_id = str(task["id"])
         tenant_id = str(task["tenant_id"]) if task.get("tenant_id") else None
         blueprint_key = task.get("blueprint_key", _settings.default_blueprint_key)
-        
+
         # Check concurrent usage limits
         concurrent_tracker = get_concurrent_tracker()
         can_start = await concurrent_tracker.start_task(app_id, tenant_id)
@@ -704,7 +712,7 @@ class FormAgent:
             logger.warning("Concurrent usage limit reached, skipping task %s", app_id)
             incr("agent.concurrent_limited", {"tenant_id": tenant_id or "none"})
             return False
-        
+
         LogContext.set(
             application_id=app_id,
             user_id=str(task["user_id"]),
@@ -840,17 +848,21 @@ class FormAgent:
                 wait_until="networkidle",
                 timeout=PAGE_TIMEOUT_MS,
             )
-            
+
             # Check for OAuth/SSO flow
             if await self.oauth_handler.detect_oauth_flow(page):
                 logger.info("OAuth/SSO flow detected, attempting authentication")
                 user_credentials = ctx.get("profile", {}).get("oauth_credentials")
-                oauth_success = await self.oauth_handler.handle_oauth_flow(page, user_credentials)
+                oauth_success = await self.oauth_handler.handle_oauth_flow(
+                    page, user_credentials
+                )
                 if not oauth_success:
-                    logger.warning("OAuth authentication failed, continuing with standard flow")
+                    logger.warning(
+                        "OAuth authentication failed, continuing with standard flow"
+                    )
                 else:
                     logger.info("OAuth authentication successful")
-                    
+
         except Exception as exc:
             raise RuntimeError(
                 f"Page load timeout for {ctx['application_url']}: {exc}"
@@ -936,20 +948,16 @@ class FormAgent:
                     break
 
     async def _handle_file_upload(
-        self, 
-        el: Any, 
-        value: str, 
-        field_info: FormField, 
-        ctx: dict
+        self, el: Any, value: str, field_info: FormField, ctx: dict
     ) -> None:
         """Handle file upload with support for multiple document types."""
         try:
             # Get resume path from context
             resume_path = ctx.get("resume_path")
-            
+
             # Determine file type based on field attributes and label
             file_type = self._determine_file_type(field_info, value)
-            
+
             if file_type == "resume" and resume_path:
                 await el.set_input_files(resume_path)
                 logger.info("Uploaded resume to file input %s", field_info["selector"])
@@ -957,104 +965,130 @@ class FormAgent:
                 cover_letter_path = await self._get_cover_letter_path(ctx)
                 if cover_letter_path:
                     await el.set_input_files(cover_letter_path)
-                    logger.info("Uploaded cover letter to file input %s", field_info["selector"])
+                    logger.info(
+                        "Uploaded cover letter to file input %s", field_info["selector"]
+                    )
                 else:
-                    logger.warning("No cover letter available for upload %s", field_info["selector"])
+                    logger.warning(
+                        "No cover letter available for upload %s",
+                        field_info["selector"],
+                    )
             elif file_type == "portfolio":
                 portfolio_path = await self._get_portfolio_path(ctx)
                 if portfolio_path:
                     await el.set_input_files(portfolio_path)
-                    logger.info("Uploaded portfolio to file input %s", field_info["selector"])
+                    logger.info(
+                        "Uploaded portfolio to file input %s", field_info["selector"]
+                    )
                 else:
-                    logger.warning("No portfolio available for upload %s", field_info["selector"])
+                    logger.warning(
+                        "No portfolio available for upload %s", field_info["selector"]
+                    )
             elif file_type == "other":
                 # Handle other document types
                 doc_path = await self._get_document_path(ctx, value)
                 if doc_path:
                     await el.set_input_files(doc_path)
-                    logger.info("Uploaded document %s to file input %s", file_type, field_info["selector"])
+                    logger.info(
+                        "Uploaded document %s to file input %s",
+                        file_type,
+                        field_info["selector"],
+                    )
                 else:
-                    logger.warning("No document available for %s upload %s", file_type, field_info["selector"])
+                    logger.warning(
+                        "No document available for %s upload %s",
+                        file_type,
+                        field_info["selector"],
+                    )
             else:
-                logger.warning("Unknown file type %s for upload %s", file_type, field_info["selector"])
-                
+                logger.warning(
+                    "Unknown file type %s for upload %s",
+                    file_type,
+                    field_info["selector"],
+                )
+
         except Exception as e:
             logger.error("File upload failed for %s: %s", field_info["selector"], e)
-    
+
     def _determine_file_type(self, field_info: FormField, value: str) -> str:
         """Determine the type of file to upload based on field information."""
         label = field_info.get("label", "").lower()
         selector = field_info.get("selector", "").lower()
-        
+
         # Check for resume indicators
-        if any(keyword in label or keyword in selector for keyword in [
-            "resume", "cv", "curriculum", "vitae"
-        ]):
+        if any(
+            keyword in label or keyword in selector
+            for keyword in ["resume", "cv", "curriculum", "vitae"]
+        ):
             return "resume"
-        
+
         # Check for cover letter indicators
-        if any(keyword in label or keyword in selector for keyword in [
-            "cover letter", "cover", "letter", "motivation"
-        ]):
+        if any(
+            keyword in label or keyword in selector
+            for keyword in ["cover letter", "cover", "letter", "motivation"]
+        ):
             return "cover_letter"
-        
+
         # Check for portfolio indicators
-        if any(keyword in label or keyword in selector for keyword in [
-            "portfolio", "work samples", "samples", "projects"
-        ]):
+        if any(
+            keyword in label or keyword in selector
+            for keyword in ["portfolio", "work samples", "samples", "projects"]
+        ):
             return "portfolio"
-        
+
         # Check for other document types
-        if any(keyword in label or keyword in selector for keyword in [
-            "transcript", "certificate", "diploma", "degree", 
-            "reference", "recommendation", "writing sample"
-        ]):
+        if any(
+            keyword in label or keyword in selector
+            for keyword in [
+                "transcript",
+                "certificate",
+                "diploma",
+                "degree",
+                "reference",
+                "recommendation",
+                "writing sample",
+            ]
+        ):
             return "other"
-        
+
         # Default to resume if no specific type detected
         return "resume"
-    
+
     async def _get_cover_letter_path(self, ctx: dict) -> Optional[str]:
         """Get cover letter file path from context or generate one."""
         # TODO: Implement cover letter generation and storage
         # For now, return None
         return None
-    
+
     async def _get_portfolio_path(self, ctx: dict) -> Optional[str]:
         """Get portfolio file path from context."""
         # TODO: Implement portfolio file handling
         # For now, return None
         return None
-    
+
     async def _get_document_path(self, ctx: dict, doc_type: str) -> Optional[str]:
         """Get document file path for other document types."""
         # TODO: Implement other document type handling
         # For now, return None
         return None
-    
+
     async def capture_screenshot(
-        self, 
-        page: Page, 
-        ctx: dict, 
-        stage: str = "unknown",
-        success: bool = True
+        self, page: Page, ctx: dict, stage: str = "unknown", success: bool = True
     ) -> Optional[str]:
         """Capture screenshot for application success/failure proof."""
         try:
             app_id = ctx.get("app_id", "unknown")
             timestamp = int(time.time())
             filename = f"screenshot_{app_id}_{stage}_{timestamp}.png"
-            
+
             # Capture full page screenshot
             screenshot_bytes = await page.screenshot(
-                full_page=True,
-                type="png",
-                animations="disabled"
+                full_page=True, type="png", animations="disabled"
             )
-            
+
             # Store screenshot (TODO: implement actual storage)
             screenshot_url = f"/screenshots/{filename}"
-            
+
             # Record screenshot metadata
             await self._record_screenshot_metadata(
                 app_id=app_id,
@@ -1062,21 +1096,28 @@ class FormAgent:
                 stage=stage,
                 success=success,
                 screenshot_url=screenshot_url,
-                file_size=len(screenshot_bytes)
+                file_size=len(screenshot_bytes),
             )
-            
+
             logger.info(
                 "Captured screenshot for application %s at stage %s: %s (%d bytes)",
-                app_id, stage, filename, len(screenshot_bytes)
+                app_id,
+                stage,
+                filename,
+                len(screenshot_bytes),
             )
-            
+
             return screenshot_url
-            
+
         except Exception as e:
-            logger.error("Failed to capture screenshot for %s at stage %s: %s", 
-                        ctx.get("app_id", "unknown"), stage, e)
+            logger.error(
+                "Failed to capture screenshot for %s at stage %s: %s",
+                ctx.get("app_id", "unknown"),
+                stage,
+                e,
+            )
             return None
-    
+
     async def _record_screenshot_metadata(
         self,
         app_id: str,
@@ -1084,7 +1125,7 @@ class FormAgent:
         stage: str,
         success: bool,
         screenshot_url: str,
-        file_size: int
+        file_size: int,
     ) -> None:
         """Record screenshot metadata in database."""
         try:
@@ -1095,7 +1136,12 @@ class FormAgent:
                     (application_id, filename, stage, success, screenshot_url, file_size, created_at)
                     VALUES ($1, $2, $3, $4, $5, $6, now())
                     """,
-                    app_id, filename, stage, success, screenshot_url, file_size
+                    app_id,
+                    filename,
+                    stage,
+                    success,
+                    screenshot_url,
+                    file_size,
                 )
         except Exception as e:
             logger.error("Failed to record screenshot metadata: %s", e)
@@ -1111,16 +1157,16 @@ class FormAgent:
         """Send status change email notification."""
         try:
             email_manager = get_email_communication_manager(self.pool)
-            
+
             # Get user_id from context if not present
             user_id = ctx.get("user_id")
             if not user_id:
                 # Try to get user_id from application
                 user_id = await conn.fetchval(
                     "SELECT user_id FROM public.applications WHERE id = $1",
-                    ctx["app_id"]
+                    ctx["app_id"],
                 )
-            
+
             if user_id:
                 await email_manager.send_status_change_email(
                     user_id=user_id,
@@ -1130,7 +1176,7 @@ class FormAgent:
                     reason=reason,
                     tenant_id=ctx.get("tenant_id"),
                 )
-            
+
         except Exception as e:
             logger.error("Failed to send status change email: %s", e)
 
@@ -1138,11 +1184,11 @@ class FormAgent:
         """Click the submit button."""
         # Capture screenshot before submission
         await self.capture_screenshot(page, ctx, "pre_submit", success=True)
-        
+
         submitted = await submit_form(page, ctx["blueprint"].submit_button_selectors())
         if not submitted:
             raise RuntimeError("Could not locate a submit button on the form")
-        
+
         # Capture screenshot after submission
         await self.capture_screenshot(page, ctx, "post_submit", success=True)
 
@@ -1152,7 +1198,7 @@ class FormAgent:
             await self.capture_screenshot(page, ctx, "success", success=True)
         except Exception as e:
             logger.warning("Failed to capture success screenshot: %s", e)
-        
+
         async with self.pool.acquire() as conn:
             final_status = await ctx["blueprint"].on_task_completed(
                 conn, task, ctx["tenant_id"]
@@ -1174,7 +1220,11 @@ class FormAgent:
 
             # Send status change email
             await self._send_status_change_email(
-                conn, ctx, "PROCESSING", final_status, "Application successfully submitted"
+                conn,
+                ctx,
+                "PROCESSING",
+                final_status,
+                "Application successfully submitted",
             )
 
             # Process application success alert
@@ -1249,9 +1299,11 @@ class FormAgent:
 
         # Send status change email
         await self._send_status_change_email(
-            conn, {"app_id": app_id, "tenant_id": tenant_id}, 
-            "PROCESSING", "REQUIRES_INPUT", 
-            f"Application requires {len(unresolved)} answers to proceed"
+            conn,
+            {"app_id": app_id, "tenant_id": tenant_id},
+            "PROCESSING",
+            "REQUIRES_INPUT",
+            f"Application requires {len(unresolved)} answers to proceed",
         )
 
         # Process hold questions alert
@@ -1293,7 +1345,9 @@ class FormAgent:
 
     # -- failure handling --------------------------------------------------
 
-    async def _handle_failure(self, task: dict, exc: Exception, page: Optional[Page] = None) -> None:
+    async def _handle_failure(
+        self, task: dict, exc: Exception, page: Optional[Page] = None
+    ) -> None:
         app_id = str(task["id"])
         tenant_id = str(task["tenant_id"]) if task.get("tenant_id") else None
         attempt = task["attempt_count"]
@@ -1302,13 +1356,17 @@ class FormAgent:
         logger.exception("Application %s failed (attempt %d): %s", app_id, attempt, exc)
 
         user_id = str(task["user_id"]) if task.get("user_id") else None
-        
+
         # Capture failure screenshot if page is available
         if page:
             try:
-                await self.capture_screenshot(page, {"app_id": app_id}, "failure", success=False)
+                await self.capture_screenshot(
+                    page, {"app_id": app_id}, "failure", success=False
+                )
             except Exception as screenshot_exc:
-                logger.warning("Failed to capture failure screenshot: %s", screenshot_exc)
+                logger.warning(
+                    "Failed to capture failure screenshot: %s", screenshot_exc
+                )
 
         async with db_transaction(self.pool) as conn:
             # Check if we reached max attempts
@@ -1322,9 +1380,11 @@ class FormAgent:
 
                 # Send status change email for failure
                 await self._send_status_change_email(
-                    conn, {"app_id": app_id, "tenant_id": tenant_id, "user_id": user_id}, 
-                    "PROCESSING", "FAILED", 
-                    f"Application failed after {attempt} attempts: {error_msg}"
+                    conn,
+                    {"app_id": app_id, "tenant_id": tenant_id, "user_id": user_id},
+                    "PROCESSING",
+                    "FAILED",
+                    f"Application failed after {attempt} attempts: {error_msg}",
                 )
 
                 # Process application failure alert
@@ -1470,9 +1530,7 @@ async def worker_loop() -> None:
             ]
             return await browser.new_context(  # nosec B311
                 viewport=random.choice(_vp_pool),  # nosec B311 - browser fingerprinting
-                user_agent=random.choice(
-                    _ua_pool
-                ),  # nosec B311 - browser fingerprinting
+                user_agent=random.choice(_ua_pool),  # nosec B311 - browser fingerprinting
                 # nosec B311 - browser fingerprinting
                 locale=random.choice(["en-US", "en-GB", "en-CA"]),
                 timezone_id=random.choice(  # nosec B311 - browser fingerprinting

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Progress } from '@/components/ui/Progress';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -139,7 +139,7 @@ const PerformanceMetrics: React.FC = () => {
       memory_usage: '💾',
       cpu_usage: '🔥',
     };
-    return icons[metricType] || '📊';
+    return icons[metricType as keyof typeof icons] || '📊';
   };
 
   const getMetricColor = (metricType: string) => {
@@ -154,7 +154,7 @@ const PerformanceMetrics: React.FC = () => {
       memory_usage: 'text-orange-600',
       cpu_usage: 'text-red-600',
     };
-    return colors[metricType] || 'text-gray-600';
+    return colors[metricType as keyof typeof colors] || 'text-gray-600';
   };
 
   const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
@@ -457,7 +457,7 @@ function getUnitByType(metricType: string): string {
     memory_usage: 'megabytes',
     cpu_usage: 'percentage',
   };
-  return units[metricType] || 'count';
+  return units[metricType as keyof typeof units] || 'count';
 }
 
 export default PerformanceMetrics;

@@ -23,6 +23,8 @@ async def _get_user_id() -> str:
 
 async def _get_tenant_ctx() -> TenantContext:
     raise NotImplementedError("Tenant context dependency not injected")
+
+
 from shared.logging_config import get_logger
 from shared.validators import validate_uuid
 

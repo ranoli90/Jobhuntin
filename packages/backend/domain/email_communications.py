@@ -586,6 +586,12 @@ class EmailCommunicationManager:
             reason_block=f'<div style="margin-top: 10px;"><strong>Additional Information:</strong><br>{reason}</div>'
             if "{reason}" != "{reason}"
             else "",
+            user_name="{user_name}",
+            company="{company}",
+            job_title="{job_title}",
+            old_status="{old_status}",
+            new_status="{new_status}",
+            application_id="{application_id}",
         )
 
     def _get_magic_link_expiry_template(self) -> str:
@@ -718,7 +724,7 @@ class EmailCommunicationManager:
                 Good luck with your application!
             </p>
         </div>
-        """.format(web_url=self.settings.web_url)
+        """
 
     def _get_application_failed_template(self) -> str:
         """Get HTML template for failed application."""
@@ -746,7 +752,7 @@ class EmailCommunicationManager:
                 If the issue persists, our team is here to help.
             </p>
         </div>
-        """.format(web_url=self.settings.web_url)
+        """
 
     def _get_hold_questions_template(self) -> str:
         """Get HTML template for hold questions."""
@@ -774,7 +780,7 @@ class EmailCommunicationManager:
                 Quick responses help maintain momentum with employers.
             </p>
         </div>
-        """.format(web_url=self.settings.web_url)
+        """
 
 
 # Global instance

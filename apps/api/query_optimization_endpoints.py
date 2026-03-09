@@ -10,7 +10,6 @@ from pydantic import BaseModel
 
 from apps.api.dependencies import get_db_pool, get_current_user, get_tenant_id
 from packages.backend.domain.query_optimizer import (
-    QueryOptimizer,
     create_query_optimizer,
 )
 
@@ -623,32 +622,4 @@ def _convert_optimization_to_csv(data: Dict[str, Any]) -> str:
         return f"Error converting to CSV: {str(e)}"
 
 
-# Factory functions
-def create_query_optimizer(db_pool) -> QueryOptimizer:
-    """Create query optimizer instance."""
-    return QueryOptimizer(db_pool)
-
-
-def create_cache_manager(redis_url: Optional[str] = None) -> CacheManager:
-    """Create cache manager instance."""
-    return CacheManager(redis_url)
-
-
-def create_connection_pool_manager() -> ConnectionPoolManager:
-    """Create connection pool manager instance."""
-    return ConnectionPoolManager()
-
-
-def create_index_analyzer(db_pool) -> IndexAnalyzer:
-    """Create index analyzer instance."""
-    return IndexAnalyzer(db_pool)
-
-
-def create_performance_monitor(db_pool) -> PerformanceMonitor:
-    """Create performance monitor instance."""
-    return PerformanceMonitor(db_pool)
-
-
-def create_database_performance_manager(db_pool) -> DatabasePerformanceManager:
-    """Create database performance manager instance."""
-    return DatabasePerformanceManager(db_pool)
+# create_query_optimizer imported from packages.backend.domain.query_optimizer

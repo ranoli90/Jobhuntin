@@ -168,7 +168,7 @@ class VoiceAnalyticsResponse(BaseModel):
     analytics_available: bool = Field(..., description="Analytics data availability")
 
 
-class VoiceSettingsResponse(BaseModel):
+class VoiceSettingsOptionsResponse(BaseModel):
     """Available voice settings and options."""
 
     speech_to_text: Dict[str, Any] = Field(..., description="Speech-to-text settings")

@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Switch } from '@/components/ui/Switch';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
 import { Camera, Download, Eye, EyeOff, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 
 interface ScreenshotCapture {
@@ -148,7 +148,7 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
                 id="step-number"
                 type="number"
                 value={currentStep}
-                onChange={(e) => setCurrentStep(parseInt(e.target.value) || 1)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentStep(parseInt(e.target.value) || 1)}
                 min="1"
               />
             </div>
@@ -158,7 +158,7 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
               <Textarea
                 id="step-description"
                 value={stepDescription}
-                onChange={(e) => setStepDescription(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setStepDescription(e.target.value)}
                 placeholder="Describe what this step accomplishes..."
                 rows={3}
               />
@@ -172,7 +172,7 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
                 value={highlightInput}
                 onChange={(e) => setHighlightInput(e.target.value)}
                 placeholder="Enter CSS selector or element ID..."
-                onKeyPress={(e) => e.key === 'Enter' && handleAddHighlight()}
+                onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') handleAddHighlight(); }}
               />
               <Button onClick={handleAddHighlight} type="button">
                 Add
@@ -198,7 +198,7 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
             <Switch
               id="full-page"
               checked={fullPage}
-              onCheckedChange={setFullPage}
+              onCheckedChange={(checked: boolean) => setFullPage(checked)}
             />
             <Label htmlFor="full-page">Capture Full Page</Label>
           </div>

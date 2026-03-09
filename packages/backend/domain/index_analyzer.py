@@ -584,7 +584,7 @@ class IndexAnalyzer:
                 for col in columns_str.split(","):
                     col = col.strip()
                     # Remove any function calls or expressions
-                    if "(" not in col and not ")" in col:
+                    if "(" not in col and ")" not in col:
                         columns.append(col)
                     else:
                         # For complex expressions, try to extract the column name

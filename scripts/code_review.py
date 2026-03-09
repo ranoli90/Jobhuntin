@@ -74,9 +74,7 @@ def run_command(cmd, description, cwd=None, capture=True):
                 )
                 return False
         else:
-            result = subprocess.run(
-                cmd, cwd=cwd or PROJECT_ROOT, timeout=300
-            )  # nosec B603 - cmd is hardcoded
+            result = subprocess.run(cmd, cwd=cwd or PROJECT_ROOT, timeout=300)  # nosec B603 - cmd is hardcoded
             return result.returncode == 0
     except subprocess.TimeoutExpired:
         print(f"{RED}{CROSS} {description} - TIMEOUT{RESET}")

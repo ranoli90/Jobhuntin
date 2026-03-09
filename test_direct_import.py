@@ -7,9 +7,10 @@ import os
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
+
 def test_direct_imports():
     print("Testing direct imports...")
-    
+
     try:
         # Test direct import of one module
         exec("""
@@ -22,7 +23,9 @@ print("✓ Direct import of ApplicationPipelineManager works")
     except Exception as e:
         print(f"X Direct import failed: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     test_direct_imports()

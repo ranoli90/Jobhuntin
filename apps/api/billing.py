@@ -142,7 +142,9 @@ async def billing_usage(
 
 def _validate_redirect_url(url: str, param_name: str, settings: Settings) -> None:
     """Validate that redirect URL starts with an allowed origin."""
-    app_url = getattr(settings, "app_base_url", None) or os.getenv("APP_PUBLIC_URL", "https://jobhuntin.com")
+    app_url = getattr(settings, "app_base_url", None) or os.getenv(
+        "APP_PUBLIC_URL", "https://jobhuntin.com"
+    )
     if app_url and app_url != "[REDACTED]":
         allowed_origins = [app_url.rstrip("/"), "http://localhost:5173"]
     else:
@@ -320,9 +322,7 @@ async def list_invoices(
             )
             user_email = user_row["email"] if user_row else None
 
-            customer_id = await ensure_stripe_customer(
-                conn, ctx.tenant_id, user_email
-            )
+            customer_id = await ensure_stripe_customer(conn, ctx.tenant_id, user_email)
         invoices = protected_stripe_call(
             lambda: stripe.Invoice.list(customer=customer_id, limit=20)
         )
@@ -374,9 +374,7 @@ async def team_checkout(
                 ctx.user_id,
             )
             user_email = user_row["email"] if user_row else None
-            customer_id = await ensure_stripe_customer(
-                conn, ctx.tenant_id, user_email
-            )
+            customer_id = await ensure_stripe_customer(conn, ctx.tenant_id, user_email)
 
         line_items = [
             {"price": settings.stripe_team_base_price_id, "quantity": 1},

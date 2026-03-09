@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from shared.logging_config import get_logger
 
@@ -21,8 +21,8 @@ class ConcurrentUsageStats:
     max_concurrent: int = 10
     current_concurrent: int = 0
     peak_concurrent: int = 0
-    active_sessions: List[str] = []
-    tenant_stats: Dict[str, Dict[str, int]] = {}
+    active_sessions: List[str] = field(default_factory=list)
+    tenant_stats: Dict[str, Dict[str, int]] = field(default_factory=dict)
 
 
 @dataclass
@@ -32,8 +32,8 @@ class ConcurrentUsageSession:
     session_id: str
     user_id: str
     tenant_id: str
-    application_id: Optional[str] = None
     start_time: datetime
+    application_id: Optional[str] = None
     end_time: Optional[datetime] = None
     status: str = "active"  # active, completed, failed, cancelled
     steps_completed: int = 0
@@ -43,8 +43,8 @@ class ConcurrentUsageSession:
     buttons_detected: int = 0
     forms_processed: int = 0
     duration_seconds: Optional[int] = None
-    created_at: datetime = datetime.now(timezone.utc)
-    updated_at: datetime = datetime.now(timezone.utc)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ConcurrentTracker:

@@ -26,7 +26,7 @@ logger = get_logger("sorce.job_sync_worker")
 _shutdown = False
 
 
-def handle_shutdown(signum, frame):  # noqa: Vulture - frame required by signal API
+def handle_shutdown(signum, frame):  # noqa: ARG001 - frame required by signal API
     global _shutdown
     logger.info(f"Received signal {signum}, shutting down...")
     _shutdown = True

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { 
   ExternalLink, 
   CheckCircle, 
@@ -182,7 +182,7 @@ const OAuthHandler: React.FC = () => {
       salesforce: '☁️',
       workday: '🏢',
     };
-    return icons[provider] || '🔗';
+    return icons[provider as keyof typeof icons] || '🔗';
   };
 
   return (
@@ -354,7 +354,7 @@ const OAuthHandler: React.FC = () => {
                     id="client-id"
                     placeholder="Enter OAuth client ID"
                     value={clientId}
-                    onChange={(e) => setClientId(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClientId(e.target.value)}
                   />
                 </div>
 
@@ -365,7 +365,7 @@ const OAuthHandler: React.FC = () => {
                     type="password"
                     placeholder="Enter OAuth client secret"
                     value={clientSecret}
-                    onChange={(e) => setClientSecret(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClientSecret(e.target.value)}
                   />
                 </div>
 
@@ -375,7 +375,7 @@ const OAuthHandler: React.FC = () => {
                     id="redirect-uri"
                     placeholder="Enter redirect URI"
                     value={redirectUri}
-                    onChange={(e) => setRedirectUri(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRedirectUri(e.target.value)}
                   />
                 </div>
 
@@ -388,7 +388,7 @@ const OAuthHandler: React.FC = () => {
                           type="checkbox"
                           id={scope}
                           checked={scopes.includes(scope)}
-                          onChange={(e) => {
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             if (e.target.checked) {
                               setScopes([...scopes, scope]);
                             } else {
@@ -414,7 +414,7 @@ const OAuthHandler: React.FC = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={handleInitiateOAuth}
+                    onClick={() => selectedProvider && handleInitiateOAuth(selectedProvider)}
                     disabled={!selectedProvider || !clientId || !redirectUri}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />

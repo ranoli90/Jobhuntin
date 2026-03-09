@@ -453,26 +453,6 @@ class JobRepo:
             "visa_sponsorship": row.get("visa_sponsorship"),
             "deadline": row.get("deadline"),
             "application_url": row.get("application_url"),
-            "company_culture": row.get("company_culture"),
-            "team_size": row.get("team_size"),
-            "team_structure": row.get("team_structure"),
-            "reporting_to": row.get("reporting_to"),
-            "tags": row.get("tags") or [],
-            "job_level": row.get("job_level", ""),
-            "experience_years_min": row.get("experience_years_min"),
-            "experience_years_max": row.get("experience_years_max"),
-            "education_required": row.get("education_required"),
-            "skills_required": row.get("skills_required") or [],
-            "industry_focus": row.get("industry_focus"),
-            "remote_option": row.get("remote_option"),
-            "visa_sponsorship": row.get("visa_sponsorship"),
-            "deadline": row.get("deadline"),
-            "application_url": row.get("application_url"),
-            "company_culture": row.get("company_culture"),
-            "team_size": row.get("team_size"),
-            "team_structure": row.get("team_structure"),
-            "reporting_to": row.get("reporting_to"),
-            "tags": row.get("tags") or [],
         }
 
         return job_details
@@ -589,11 +569,6 @@ class JobRepo:
                 "visa_sponsorship": row.get("visa_sponsorship"),
                 "deadline": row.get("deadline"),
                 "application_url": row.get("application_url"),
-                "company_culture": row.get("company_culture"),
-                "team_size": row.get("team_size"),
-                "team_structure": row.get("team_structure"),
-                "reporting_to": row.get("reporting_to"),
-                "tags": row.get("tags") or [],
             }
             jobs.append(job_details)
 

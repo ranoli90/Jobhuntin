@@ -316,7 +316,7 @@ async def process_alert(
         )
 
         return {
-            "message": f"Alert processed successfully",
+            "message": "Alert processed successfully",
             "notifications_sent": sent_count,
         }
 
@@ -422,7 +422,7 @@ async def process_batch_notifications(
         processed_count = await notification_manager.process_batch_queue()
 
         return {
-            "message": f"Batch processed successfully",
+            "message": "Batch processed successfully",
             "notifications_processed": processed_count,
         }
 

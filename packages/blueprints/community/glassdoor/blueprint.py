@@ -47,18 +47,18 @@ Text:
         if not profile.get("salary_expectations"):
             profile["salary_expectations"] = {
                 "min": "50000",
-                "max": "80000", 
-                "currency": "USD"
+                "max": "80000",
+                "currency": "USD",
             }
-        
+
         # Set default work preferences
         if not profile.get("work_preferences"):
             profile["work_preferences"] = "hybrid"
-        
+
         # Ensure location is properly formatted
         if profile.get("city") and profile.get("state"):
             profile["location"] = f"{profile['city']}, {profile['state']}"
-        
+
         return profile
 
     def build_dom_mapping_prompt(

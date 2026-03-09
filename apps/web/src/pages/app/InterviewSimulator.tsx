@@ -6,7 +6,31 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiDelete } from "../../lib/api";
 import { Button } from "../../components/ui/Button";
+
+interface InterviewQuestion {
+  question_text: string;
+  difficulty?: string;
+  options?: string[];
+}
+
+interface InterviewResponse {
+  response_text?: string;
+  feedback?: { feedback?: string; suggestions?: string[]; next_question?: string };
+  next_question?: string;
+}
+
+interface InterviewSessionDetail {
+  session_id: string;
+  status: string;
+  questions?: InterviewQuestion[];
+  responses?: InterviewResponse[];
+  total_score?: number;
+  questions_answered?: number;
+  top_strengths?: string[];
+  top_improvements?: string[];
+}
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { 
@@ -21,7 +45,8 @@ import {
   TrendingUp, 
   Award,
   MessageSquare,
-  Send
+  Send,
+  Trash2
 } from "lucide-react";
 
 export default function InterviewSimulatorPage() {
@@ -45,7 +70,7 @@ export default function InterviewSimulatorPage() {
   } = useQuery({
     queryKey: ["interview-sessions"],
     queryFn: async () => {
-      return await apiGet("interviews/sessions");
+      return await apiGet<Array<{ id: string; job_title?: string; company?: string; status?: string; total_score?: number; duration_minutes?: number; difficulty?: string; created_at?: string }>>("interviews/sessions");
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -59,7 +84,7 @@ export default function InterviewSimulatorPage() {
     queryKey: ["interview-session", selectedSession],
     queryFn: async () => {
       if (!selectedSession) return null;
-      return await apiGet(`interviews/sessions/${selectedSession}`);
+      return await apiGet<InterviewSessionDetail>(`interviews/sessions/${selectedSession}`);
     },
     enabled: !!selectedSession,
     staleTime: 30 * 1000, // 30 seconds
@@ -71,15 +96,16 @@ export default function InterviewSimulatorPage() {
       return await apiPost("interviews/sessions", sessionData);
     },
     onSuccess: (data) => {
+      const d = data as { session_id: string };
       queryClient.invalidateQueries({ queryKey: ["interview-sessions"] });
-      setSelectedSession(data.session_id);
+      setSelectedSession(d.session_id);
     },
   });
 
   // Submit answer mutation
   const submitAnswerMutation = useMutation({
     mutationFn: async ({ sessionId, answer, timeSpent }: { sessionId: string; answer: string; timeSpent: number }) => {
-      return await apiPost(`interviews/sessions/${sessionId}/answer`, {
+      return await apiPost<{ is_complete?: boolean }>(`interviews/sessions/${sessionId}/answer`, {
         response_text: answer,
         response_time_seconds: timeSpent,
       });
@@ -87,7 +113,7 @@ export default function InterviewSimulatorPage() {
     onSuccess: (data) => {
       if (data.is_complete) {
         // Session completed, show summary
-        queryClient.invalidateQueries({ queryKey: ["interview-session", sessionId] });
+        queryClient.invalidateQueries({ queryKey: ["interview-session", selectedSession] });
       } else {
         // Move to next question
         setCurrentQuestionIndex(prev => prev + 1);
@@ -102,9 +128,9 @@ export default function InterviewSimulatorPage() {
     mutationFn: async (sessionId: string) => {
       return await apiDelete(`interviews/sessions/${sessionId}`);
     },
-    onSuccess: () => {
+    onSuccess: (_, deletedSessionId) => {
       queryClient.invalidateQueries({ queryKey: ["interview-sessions"] });
-      if (selectedSession === sessionId) {
+      if (selectedSession === deletedSessionId) {
         setSelectedSession(null);
       }
     },
@@ -180,7 +206,7 @@ export default function InterviewSimulatorPage() {
           <h2 className="text-xl font-semibold text-red-600 mb-2">
             {t("interviewSimulator.errorLoading", locale) || "Error Loading Sessions"}
           </h2>
-          <p className="text-slate-600">{sessionsError}</p>
+          <p className="text-slate-600">{sessionsError instanceof Error ? sessionsError.message : String(sessionsError)}</p>
           <Button onClick={() => refetchSessions()}>
             {t("common.retry", locale) || "Retry"}
           </Button>
@@ -275,12 +301,12 @@ export default function InterviewSimulatorPage() {
                   <div className="mt-3 pt-3 border-t border-slate-200">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium">{t("interviewSimulator.overallScore", locale) || "Overall Score"}:</span>
-                      <span className={`font-bold ${getScoreColor(session.total_score)}`}>
-                        {Math.round(session.total_score)}
+                      <span className={`font-bold ${getScoreColor(session.total_score ?? 0)}`}>
+                        {Math.round(session.total_score ?? 0)}
                       </span>
                     </div>
                     <div className="text-xs text-slate-500">
-                      {t("interviewSimulator.duration", locale) || "Duration"}: {formatTime(session.duration_minutes)}
+                      {t("interviewSimulator.duration", locale) || "Duration"}: {formatTime((session.duration_minutes ?? 0) * 60)}
                     </div>
                   </div>
                 )}

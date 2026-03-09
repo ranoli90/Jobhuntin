@@ -552,7 +552,7 @@ class RetryHandler:
         # Fallback to hash
         import hashlib
 
-        return f"query_{hashlib.md5(query.encode()).hexdigest()[:8]}"
+        return f"query_{hashlib.md5(query.encode(), usedforsecurity=False).hexdigest()[:8]}"
 
     async def execute_transaction_with_retry(
         self,

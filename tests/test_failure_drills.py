@@ -232,9 +232,9 @@ async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
 
         async with db_pool.acquire() as conn:
             app_row = await assert_status(conn, app_id, "FAILED")
-            assert "LLM service unavailable" in (
-                app_row["last_error"] or ""
-            ), f"Expected LLM error in last_error, got: {app_row['last_error']}"
+            assert "LLM service unavailable" in (app_row["last_error"] or ""), (
+                f"Expected LLM error in last_error, got: {app_row['last_error']}"
+            )
 
             event = await assert_event(conn, app_id, "FAILED")
             payload = event["payload"]
@@ -386,9 +386,9 @@ async def test_dom_missing_submit_button(db_pool, browser, clean_db):
 
         async with db_pool.acquire() as conn:
             app_row = await assert_status(conn, app_id, "FAILED")
-            assert (
-                "submit button" in (app_row["last_error"] or "").lower()
-            ), f"Expected 'submit button' in last_error, got: {app_row['last_error']}"
+            assert "submit button" in (app_row["last_error"] or "").lower(), (
+                f"Expected 'submit button' in last_error, got: {app_row['last_error']}"
+            )
     finally:
         agent_module.map_fields_via_llm = original
 

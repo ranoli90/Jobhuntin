@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { Switch } from '@/components/ui/Switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Progress } from '@/components/ui/Progress';
 import { 
   Bell, 
   Send, 
@@ -301,7 +301,7 @@ const NotificationManager: React.FC = () => {
       medium: 'bg-blue-100 text-blue-800',
       low: 'bg-gray-100 text-gray-800',
     };
-    return colors[priority] || 'bg-gray-100 text-gray-800';
+    return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getChannelIcon = (channel: string) => {
@@ -311,7 +311,7 @@ const NotificationManager: React.FC = () => {
       push: <Smartphone className="h-4 w-4" />,
       sms: <MessageSquare className="h-4 w-4" />,
     };
-    return icons[channel] || <Bell className="h-4 w-4" />;
+    return icons[channel as keyof typeof icons] || <Bell className="h-4 w-4" />;
   };
 
   const formatTimeAgo = (dateString: string) => {

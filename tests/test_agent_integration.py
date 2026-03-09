@@ -408,9 +408,9 @@ async def test_agent_hold_form_has_unmappable_field(hold_form_server):
     ]
     mapping = _make_mock_llm_mapping(fields, profile)
     mapped_selectors = {m["selector"] for m in mapping["field_mappings"]}
-    assert (
-        "#security_clearance" not in mapped_selectors
-    ), "security_clearance should NOT be mapped — it should trigger a hold"
+    assert "#security_clearance" not in mapped_selectors, (
+        "security_clearance should NOT be mapped — it should trigger a hold"
+    )
 
 
 @pytest.mark.asyncio

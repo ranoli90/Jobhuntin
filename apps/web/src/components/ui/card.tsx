@@ -1,5 +1,5 @@
 import React from "react";
-import { Card as BaseCard } from "./Card";
+import { Card as BaseCard } from "./ButtonStyles";
 
 export { BaseCard as Card };
 

@@ -43,7 +43,7 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
         variant="ghost"
         size="sm"
         className="h-8 w-8 p-0 hover:bg-slate-100"
-        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); setIsOpen(!isOpen); }}
         aria-label="Actions menu"
         aria-expanded={isOpen}
       >

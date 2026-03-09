@@ -819,7 +819,11 @@ async def semantic_match_batch(
 
     logger.info(
         "Batch semantic match completed",
-        extra={"user_id": user_id, "jobs_matched": len(results), "failed": len(failed_items)},
+        extra={
+            "user_id": user_id,
+            "jobs_matched": len(results),
+            "failed": len(failed_items),
+        },
     )
 
     return BatchSemanticMatchResponse(

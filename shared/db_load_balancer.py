@@ -342,7 +342,9 @@ class DatabaseLoadBalancer:
 
         # Use current time as hash input for demo
         hash_input = str(time.time())
-        hash_value = int(hashlib.md5(hash_input.encode()).hexdigest(), 16)
+        hash_value = int(
+            hashlib.md5(hash_input.encode(), usedforsecurity=False).hexdigest(), 16
+        )
 
         pool_index = hash_value % len(available_pools)
         return available_pools[pool_index]

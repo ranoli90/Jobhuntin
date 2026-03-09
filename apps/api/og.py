@@ -1,10 +1,9 @@
 import io
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query, Request, Response, Depends
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from PIL import Image, ImageDraw, ImageFont
 
-from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import get_rate_limiter
 from shared.middleware import get_client_ip

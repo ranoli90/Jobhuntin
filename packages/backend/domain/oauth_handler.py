@@ -148,9 +148,7 @@ class OAuthHandler:
 
         except Exception as e:
             logger.error(f"Failed to initiate OAuth flow for {provider}: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Failed to initiate OAuth flow"
-            )
+            raise HTTPException(status_code=500, detail="Failed to initiate OAuth flow")
 
     async def exchange_code_for_tokens(
         self,
@@ -209,7 +207,7 @@ class OAuthHandler:
         except Exception as e:
             logger.error(f"Failed to exchange code for {provider} tokens: {e}")
             raise HTTPException(
-                status_code=500, detail=f"Failed to exchange code for tokens"
+                status_code=500, detail="Failed to exchange code for tokens"
             )
 
     async def get_user_info(

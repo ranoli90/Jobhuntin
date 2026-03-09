@@ -49,7 +49,7 @@ Text:
             if len(location_parts) >= 2:
                 profile["city"] = location_parts[0].strip()
                 profile["state"] = location_parts[1].strip()
-        
+
         return profile
 
     def build_dom_mapping_prompt(
@@ -115,7 +115,7 @@ Leave fields empty if no matching data."""
         """Return pre-application validation checks for Indeed."""
         return [
             "verify_resume_uploaded",
-            "check_profile_completeness", 
+            "check_profile_completeness",
             "validate_contact_information",
             "confirm_job_requirements_match",
         ]

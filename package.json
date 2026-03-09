@@ -12,7 +12,9 @@
     "test": "npm run test --workspaces",
     "sonar": "sonar-scanner",
     "sonar:dry": "sonar-scanner -Dsonar.scanner.dumpToFile=sonar-report.json",
-    "lint:python": "bash scripts/lint-python.sh"
+    "lint:python": "bash scripts/lint-python.sh",
+    "audit:full": "node scripts/full-stack-audit.js",
+    "audit:full:skip-install": "node scripts/full-stack-audit.js --skip-install"
   },
   "devDependencies": {
     "@sonar/scan": "^4.3.4",

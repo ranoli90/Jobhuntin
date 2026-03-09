@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
@@ -202,7 +203,9 @@ class QueryMonitor:
 
     def _hash_query(self, query_template: str) -> str:
         """Create hash for query template."""
-        return hashlib.md5(query_template.encode()).hexdigest()[:16]
+        return hashlib.md5(query_template.encode(), usedforsecurity=False).hexdigest()[
+            :16
+        ]
 
     async def _check_query_alerts(self, execution: QueryExecution) -> None:
         """Check if query execution should trigger alerts."""
@@ -267,7 +270,7 @@ class QueryMonitor:
                 )
 
                 if isinstance(plan, str):
-                    plan = eval(plan)  # Parse JSON string
+                    plan = json.loads(plan)  # Parse JSON string
 
                 # Analyze plan for missing indexes
                 if isinstance(plan, list) and plan:

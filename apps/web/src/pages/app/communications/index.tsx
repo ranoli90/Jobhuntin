@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { 
   Mail, 
   Bell, 
@@ -14,7 +14,11 @@ import {
   BarChart3,
   Eye,
   Download,
-  Filter
+  Filter,
+  AlertTriangle,
+  Brain,
+  Heart,
+  Users
 } from 'lucide-react';
 
 // Import components
@@ -27,6 +31,8 @@ import BatchProcessor from '@/components/communications/BatchProcessor';
 
 const CommunicationsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">

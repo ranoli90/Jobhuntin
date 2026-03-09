@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Progress } from '@/components/ui/Progress';
 import { 
   FileText, 
   Upload, 
@@ -118,7 +118,7 @@ const DocumentProcessor: React.FC = () => {
       tiff: '🖼️',
       bmp: '🖼️',
     };
-    return icons[documentType] || '📄';
+    return icons[documentType as keyof typeof icons] || '📄';
   };
 
   const getDocumentColor = (documentType: string) => {
@@ -133,7 +133,7 @@ const DocumentProcessor: React.FC = () => {
       tiff: 'bg-green-100 text-green-800',
       bmp: 'bg-green-100 text-green-800',
     };
-    return colors[documentType] || 'bg-gray-100 text-gray-800';
+    return colors[documentType as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getConfidenceColor = (score: number) => {

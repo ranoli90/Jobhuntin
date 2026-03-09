@@ -16,3 +16,9 @@ black>=24.3.0
 
 # ── Type Checking ────────────────────────────────────────────────
 mypy>=1.10
+
+# ── Audit: Security, dead code, complexity (no sign-up required) ──
+bandit>=1.7.0
+pip-audit>=2.7.0
+vulture>=2.11
+radon>=6.0.0

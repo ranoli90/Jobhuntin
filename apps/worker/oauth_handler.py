@@ -14,11 +14,7 @@ during job application processes.
 
 from __future__ import annotations
 
-import asyncio
-import json
-import time
 from typing import Any, Dict, List, Optional
-from urllib.parse import parse_qs, urlparse
 
 from playwright.async_api import Page, BrowserContext
 from shared.logging_config import get_logger
@@ -56,14 +52,14 @@ class OAuthHandler:
             'button:has-text("Continue with Facebook")',
             'button:has-text("Continue with Apple")',
             # Class-based OAuth buttons
-            '.oauth-button',
-            '.sso-button',
-            '.social-login',
-            '.google-signin',
-            '.linkedin-signin',
-            '.microsoft-signin',
-            '.facebook-signin',
-            '.apple-signin',
+            ".oauth-button",
+            ".sso-button",
+            ".social-login",
+            ".google-signin",
+            ".linkedin-signin",
+            ".microsoft-signin",
+            ".facebook-signin",
+            ".apple-signin",
             # Form-based OAuth
             'form[action*="oauth"]',
             'form[action*="sso"]',
@@ -99,24 +95,34 @@ class OAuthHandler:
         # Check URL patterns for OAuth redirects
         current_url = page.url
         oauth_url_patterns = [
-            "oauth", "sso", "saml", "openid", "auth", "login",
-            "accounts.google.com", "linkedin.com/oauth", "login.microsoftonline.com",
-            "facebook.com/v2.0/dialog", "appleid.apple.com/auth"
+            "oauth",
+            "sso",
+            "saml",
+            "openid",
+            "auth",
+            "login",
+            "accounts.google.com",
+            "linkedin.com/oauth",
+            "login.microsoftonline.com",
+            "facebook.com/v2.0/dialog",
+            "appleid.apple.com/auth",
         ]
-        
+
         if any(pattern in current_url.lower() for pattern in oauth_url_patterns):
             logger.info("OAuth/SSO flow detected via URL: %s", current_url)
             return True
 
         return False
 
-    async def handle_oauth_flow(self, page: Page, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def handle_oauth_flow(
+        self, page: Page, user_credentials: Optional[Dict[str, str]] = None
+    ) -> bool:
         """Handle OAuth/SSO authentication flow.
-        
+
         Args:
             page: Current page instance
             user_credentials: Optional user credentials for manual authentication
-            
+
         Returns:
             True if authentication was successful, False otherwise
         """
@@ -137,13 +143,19 @@ class OAuthHandler:
             # Click OAuth button
             success = await self._click_oauth_button(page, provider)
             if not success:
-                logger.warning("Could not click OAuth button for provider: %s", provider)
+                logger.warning(
+                    "Could not click OAuth button for provider: %s", provider
+                )
                 return False
 
             # Wait for redirect and handle provider-specific flow
-            success = await self._handle_provider_redirect(page, provider, user_credentials)
+            success = await self._handle_provider_redirect(
+                page, provider, user_credentials
+            )
             if not success:
-                logger.warning("Failed to handle OAuth redirect for provider: %s", provider)
+                logger.warning(
+                    "Failed to handle OAuth redirect for provider: %s", provider
+                )
                 return False
 
             # Store authentication cookies/tokens
@@ -162,31 +174,31 @@ class OAuthHandler:
             "google": [
                 'button[aria-label*="Google"]',
                 'button:has-text("Google")',
-                '.google-signin',
+                ".google-signin",
                 'a[href*="accounts.google.com"]',
             ],
             "linkedin": [
                 'button[aria-label*="LinkedIn"]',
                 'button:has-text("LinkedIn")',
-                '.linkedin-signin',
+                ".linkedin-signin",
                 'a[href*="linkedin.com/oauth"]',
             ],
             "microsoft": [
                 'button[aria-label*="Microsoft"]',
                 'button:has-text("Microsoft")',
-                '.microsoft-signin',
+                ".microsoft-signin",
                 'a[href*="login.microsoftonline.com"]',
             ],
             "facebook": [
                 'button[aria-label*="Facebook"]',
                 'button:has-text("Facebook")',
-                '.facebook-signin',
+                ".facebook-signin",
                 'a[href*="facebook.com/v2.0/dialog"]',
             ],
             "apple": [
                 'button[aria-label*="Apple"]',
                 'button:has-text("Apple")',
-                '.apple-signin',
+                ".apple-signin",
                 'a[href*="appleid.apple.com/auth"]',
             ],
         }
@@ -222,31 +234,31 @@ class OAuthHandler:
                 'button:has-text("Sign in with Google")',
                 'button:has-text("Continue with Google")',
                 'button[aria-label*="Google"]',
-                '.google-signin',
+                ".google-signin",
             ],
             "linkedin": [
                 'button:has-text("Sign in with LinkedIn")',
                 'button:has-text("Continue with LinkedIn")',
                 'button[aria-label*="LinkedIn"]',
-                '.linkedin-signin',
+                ".linkedin-signin",
             ],
             "microsoft": [
                 'button:has-text("Sign in with Microsoft")',
                 'button:has-text("Continue with Microsoft")',
                 'button[aria-label*="Microsoft"]',
-                '.microsoft-signin',
+                ".microsoft-signin",
             ],
             "facebook": [
                 'button:has-text("Sign in with Facebook")',
                 'button:has-text("Continue with Facebook")',
                 'button[aria-label*="Facebook"]',
-                '.facebook-signin',
+                ".facebook-signin",
             ],
             "apple": [
                 'button:has-text("Sign in with Apple")',
                 'button:has-text("Continue with Apple")',
                 'button[aria-label*="Apple"]',
-                '.apple-signin',
+                ".apple-signin",
             ],
         }
 
@@ -259,12 +271,19 @@ class OAuthHandler:
                     await page.wait_for_timeout(2000)
                     return True
             except Exception as e:
-                logger.debug("Failed to click OAuth button %s for %s: %s", selector, provider, e)
+                logger.debug(
+                    "Failed to click OAuth button %s for %s: %s", selector, provider, e
+                )
                 continue
 
         return False
 
-    async def _handle_provider_redirect(self, page: Page, provider: str, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def _handle_provider_redirect(
+        self,
+        page: Page,
+        provider: str,
+        user_credentials: Optional[Dict[str, str]] = None,
+    ) -> bool:
         """Handle the provider-specific redirect and authentication."""
         try:
             # Wait for redirect to provider
@@ -292,7 +311,9 @@ class OAuthHandler:
             logger.error("Provider redirect handling failed for %s: %s", provider, e)
             return False
 
-    async def _handle_google_auth(self, page: Page, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def _handle_google_auth(
+        self, page: Page, user_credentials: Optional[Dict[str, str]] = None
+    ) -> bool:
         """Handle Google OAuth authentication."""
         try:
             # Check if we're on Google's auth page
@@ -300,14 +321,18 @@ class OAuthHandler:
                 return False
 
             # Look for email input
-            email_input = page.locator('input[type="email"], input[name="email"], input[id="identifierId"]').first
+            email_input = page.locator(
+                'input[type="email"], input[name="email"], input[id="identifierId"]'
+            ).first
             if await email_input.count() > 0 and await email_input.is_visible():
                 if user_credentials and user_credentials.get("email"):
                     await email_input.fill(user_credentials["email"])
                     await page.wait_for_timeout(1000)
-                    
+
                     # Click next button
-                    next_button = page.locator('button:has-text("Next"), button:has-text("Next")').first
+                    next_button = page.locator(
+                        'button:has-text("Next"), button:has-text("Next")'
+                    ).first
                     if await next_button.count() > 0:
                         await next_button.click()
                         await page.wait_for_timeout(2000)
@@ -316,14 +341,18 @@ class OAuthHandler:
                     return False
 
             # Look for password input
-            password_input = page.locator('input[type="password"], input[name="password"]').first
+            password_input = page.locator(
+                'input[type="password"], input[name="password"]'
+            ).first
             if await password_input.count() > 0 and await password_input.is_visible():
                 if user_credentials and user_credentials.get("password"):
                     await password_input.fill(user_credentials["password"])
                     await page.wait_for_timeout(1000)
-                    
+
                     # Click password next button
-                    password_next = page.locator('button:has-text("Next"), button:has-text("Next")').first
+                    password_next = page.locator(
+                        'button:has-text("Next"), button:has-text("Next")'
+                    ).first
                     if await password_next.count() > 0:
                         await password_next.click()
                         await page.wait_for_timeout(2000)
@@ -343,7 +372,9 @@ class OAuthHandler:
             logger.error("Google OAuth handling failed: %s", e)
             return False
 
-    async def _handle_linkedin_auth(self, page: Page, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def _handle_linkedin_auth(
+        self, page: Page, user_credentials: Optional[Dict[str, str]] = None
+    ) -> bool:
         """Handle LinkedIn OAuth authentication."""
         try:
             # Check if we're on LinkedIn's auth page
@@ -351,21 +382,27 @@ class OAuthHandler:
                 return False
 
             # Look for email input
-            email_input = page.locator('input[type="email"], input[name="session_key"]').first
+            email_input = page.locator(
+                'input[type="email"], input[name="session_key"]'
+            ).first
             if await email_input.count() > 0 and await email_input.is_visible():
                 if user_credentials and user_credentials.get("email"):
                     await email_input.fill(user_credentials["email"])
                     await page.wait_for_timeout(1000)
 
             # Look for password input
-            password_input = page.locator('input[type="password"], input[name="session_password"]').first
+            password_input = page.locator(
+                'input[type="password"], input[name="session_password"]'
+            ).first
             if await password_input.count() > 0 and await password_input.is_visible():
                 if user_credentials and user_credentials.get("password"):
                     await password_input.fill(user_credentials["password"])
                     await page.wait_for_timeout(1000)
 
             # Click sign in button
-            signin_button = page.locator('button:has-text("Sign in"), button:has-text("Allow")').first
+            signin_button = page.locator(
+                'button:has-text("Sign in"), button:has-text("Allow")'
+            ).first
             if await signin_button.count() > 0:
                 await signin_button.click()
                 await page.wait_for_timeout(2000)
@@ -378,7 +415,9 @@ class OAuthHandler:
             logger.error("LinkedIn OAuth handling failed: %s", e)
             return False
 
-    async def _handle_microsoft_auth(self, page: Page, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def _handle_microsoft_auth(
+        self, page: Page, user_credentials: Optional[Dict[str, str]] = None
+    ) -> bool:
         """Handle Microsoft OAuth authentication."""
         try:
             # Check if we're on Microsoft's auth page
@@ -386,27 +425,35 @@ class OAuthHandler:
                 return False
 
             # Look for email input
-            email_input = page.locator('input[type="email"], input[name="loginfmt"]').first
+            email_input = page.locator(
+                'input[type="email"], input[name="loginfmt"]'
+            ).first
             if await email_input.count() > 0 and await email_input.is_visible():
                 if user_credentials and user_credentials.get("email"):
                     await email_input.fill(user_credentials["email"])
                     await page.wait_for_timeout(1000)
-                    
+
                     # Click next button
-                    next_button = page.locator('button:has-text("Next"), input[type="submit"][value="Next"]').first
+                    next_button = page.locator(
+                        'button:has-text("Next"), input[type="submit"][value="Next"]'
+                    ).first
                     if await next_button.count() > 0:
                         await next_button.click()
                         await page.wait_for_timeout(2000)
 
             # Look for password input
-            password_input = page.locator('input[type="password"], input[name="passwd"]').first
+            password_input = page.locator(
+                'input[type="password"], input[name="passwd"]'
+            ).first
             if await password_input.count() > 0 and await password_input.is_visible():
                 if user_credentials and user_credentials.get("password"):
                     await password_input.fill(user_credentials["password"])
                     await page.wait_for_timeout(1000)
 
             # Click sign in button
-            signin_button = page.locator('button:has-text("Sign in"), input[type="submit"][value="Sign in"]').first
+            signin_button = page.locator(
+                'button:has-text("Sign in"), input[type="submit"][value="Sign in"]'
+            ).first
             if await signin_button.count() > 0:
                 await signin_button.click()
                 await page.wait_for_timeout(2000)
@@ -423,7 +470,9 @@ class OAuthHandler:
             logger.error("Microsoft OAuth handling failed: %s", e)
             return False
 
-    async def _handle_facebook_auth(self, page: Page, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def _handle_facebook_auth(
+        self, page: Page, user_credentials: Optional[Dict[str, str]] = None
+    ) -> bool:
         """Handle Facebook OAuth authentication."""
         try:
             # Check if we're on Facebook's auth page
@@ -438,20 +487,26 @@ class OAuthHandler:
                     await page.wait_for_timeout(1000)
 
             # Look for password input
-            password_input = page.locator('input[type="password"], input[name="pass"]').first
+            password_input = page.locator(
+                'input[type="password"], input[name="pass"]'
+            ).first
             if await password_input.count() > 0 and await password_input.is_visible():
                 if user_credentials and user_credentials.get("password"):
                     await password_input.fill(user_credentials["password"])
                     await page.wait_for_timeout(1000)
 
             # Click login button
-            login_button = page.locator('button:has-text("Log In"), input[type="submit"][value="Log In"]').first
+            login_button = page.locator(
+                'button:has-text("Log In"), input[type="submit"][value="Log In"]'
+            ).first
             if await login_button.count() > 0:
                 await login_button.click()
                 await page.wait_for_timeout(2000)
 
             # Handle permission dialog if present
-            continue_button = page.locator('button:has-text("Continue"), button:has-text("Allow")').first
+            continue_button = page.locator(
+                'button:has-text("Continue"), button:has-text("Allow")'
+            ).first
             if await continue_button.count() > 0:
                 await continue_button.click()
                 await page.wait_for_timeout(2000)
@@ -464,7 +519,9 @@ class OAuthHandler:
             logger.error("Facebook OAuth handling failed: %s", e)
             return False
 
-    async def _handle_apple_auth(self, page: Page, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def _handle_apple_auth(
+        self, page: Page, user_credentials: Optional[Dict[str, str]] = None
+    ) -> bool:
         """Handle Apple OAuth authentication."""
         try:
             # Check if we're on Apple's auth page
@@ -472,14 +529,18 @@ class OAuthHandler:
                 return False
 
             # Look for Apple ID input
-            apple_id_input = page.locator('input[type="email"], input[name="accountName"]').first
+            apple_id_input = page.locator(
+                'input[type="email"], input[name="accountName"]'
+            ).first
             if await apple_id_input.count() > 0 and await apple_id_input.is_visible():
                 if user_credentials and user_credentials.get("email"):
                     await apple_id_input.fill(user_credentials["email"])
                     await page.wait_for_timeout(1000)
 
             # Click continue button
-            continue_button = page.locator('button:has-text("Continue"), button:has-text("Sign In")').first
+            continue_button = page.locator(
+                'button:has-text("Continue"), button:has-text("Sign In")'
+            ).first
             if await continue_button.count() > 0:
                 await continue_button.click()
                 await page.wait_for_timeout(2000)
@@ -509,12 +570,18 @@ class OAuthHandler:
             logger.error("Apple OAuth handling failed: %s", e)
             return False
 
-    async def _handle_generic_oauth(self, page: Page, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def _handle_generic_oauth(
+        self, page: Page, user_credentials: Optional[Dict[str, str]] = None
+    ) -> bool:
         """Handle generic OAuth authentication."""
         try:
             # Look for common OAuth form fields
-            email_input = page.locator('input[type="email"], input[name*="email"], input[name*="username"]').first
-            password_input = page.locator('input[type="password"], input[name*="password"]').first
+            email_input = page.locator(
+                'input[type="email"], input[name*="email"], input[name*="username"]'
+            ).first
+            password_input = page.locator(
+                'input[type="password"], input[name*="password"]'
+            ).first
 
             # Fill email if found
             if await email_input.count() > 0 and await email_input.is_visible():
@@ -529,7 +596,9 @@ class OAuthHandler:
                     await page.wait_for_timeout(1000)
 
             # Look for submit button
-            submit_button = page.locator('button[type="submit"], input[type="submit"], button:has-text("Sign"), button:has-text("Login")').first
+            submit_button = page.locator(
+                'button[type="submit"], input[type="submit"], button:has-text("Sign"), button:has-text("Login")'
+            ).first
             if await submit_button.count() > 0:
                 await submit_button.click()
                 await page.wait_for_timeout(2000)
@@ -564,20 +633,26 @@ class OAuthHandler:
 
         return False
 
-    async def _handle_2fa(self, page: Page, user_credentials: Optional[Dict[str, str]] = None) -> bool:
+    async def _handle_2fa(
+        self, page: Page, user_credentials: Optional[Dict[str, str]] = None
+    ) -> bool:
         """Handle 2FA authentication."""
         try:
             logger.info("2FA detected, attempting to handle")
 
             # Look for 2FA code input
-            code_input = page.locator('input[type="text"][name*="code"], input[type="text"][placeholder*="code"]').first
+            code_input = page.locator(
+                'input[type="text"][name*="code"], input[type="text"][placeholder*="code"]'
+            ).first
             if await code_input.count() > 0 and await code_input.is_visible():
                 if user_credentials and user_credentials.get("two_factor_code"):
                     await code_input.fill(user_credentials["two_factor_code"])
                     await page.wait_for_timeout(1000)
 
                     # Click verify button
-                    verify_button = page.locator('button:has-text("Verify"), button:has-text("Continue")').first
+                    verify_button = page.locator(
+                        'button:has-text("Verify"), button:has-text("Continue")'
+                    ).first
                     if await verify_button.count() > 0:
                         await verify_button.click()
                         await page.wait_for_timeout(2000)
@@ -617,7 +692,11 @@ class OAuthHandler:
             except Exception as e:
                 logger.debug("Could not access sessionStorage: %s", e)
 
-            logger.info("Stored %d cookies and %d auth tokens", len(self.auth_cookies), len(self.auth_tokens))
+            logger.info(
+                "Stored %d cookies and %d auth tokens",
+                len(self.auth_cookies),
+                len(self.auth_tokens),
+            )
 
         except Exception as e:
             logger.error("Failed to store auth session: %s", e)
@@ -634,9 +713,13 @@ class OAuthHandler:
             if self.auth_tokens:
                 for key, value in self.auth_tokens.items():
                     try:
-                        await page.evaluate(f"() => localStorage.setItem('{key}', '{value}')")
+                        await page.evaluate(
+                            f"() => localStorage.setItem('{key}', '{value}')"
+                        )
                     except Exception as e:
-                        logger.debug("Could not restore localStorage item %s: %s", key, e)
+                        logger.debug(
+                            "Could not restore localStorage item %s: %s", key, e
+                        )
 
                 logger.info("Restored %d auth tokens", len(self.auth_tokens))
 
@@ -653,7 +736,9 @@ class OAuthHandler:
             "cookies_count": len(self.auth_cookies),
             "tokens_count": len(self.auth_tokens),
             "session_state": self.session_state,
-            "auth_providers": list(set(cookie.get("domain", "") for cookie in self.auth_cookies)),
+            "auth_providers": list(
+                set(cookie.get("domain", "") for cookie in self.auth_cookies)
+            ),
         }
 
     async def clear_auth_session(self) -> None:

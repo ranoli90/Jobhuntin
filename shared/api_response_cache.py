@@ -495,7 +495,7 @@ class ResponseCache:
             return default
 
         try:
-            cache_file = f"/tmp/api_cache/{hashlib.md5(key).cache}"
+            cache_file = f"/tmp/api_cache/{hashlib.md5(key.encode() if isinstance(key, str) else key, usedforsecurity=False).hexdigest()}.cache"
 
             import os
 
@@ -568,7 +568,7 @@ class ResponseCache:
             return
 
         try:
-            cache_file = f"/tmp/api_cache/{hashlib.md5(entry.key)}.cache"
+            cache_file = f"/tmp/api_cache/{hashlib.md5(entry.key.encode() if isinstance(entry.key, str) else entry.key, usedforsecurity=False).hexdigest()}.cache"
             metadata_file = f"{cache_file}.meta"
 
             import os
@@ -629,7 +629,7 @@ class ResponseCache:
                 deleted = True
         elif cache_level == CacheLevel.DISK:
             if key in self.disk_cache:
-                cache_file = f"/tmp/api_cache/{hashlib.md5(key)}.cache"
+                cache_file = f"/tmp/api_cache/{hashlib.md5(key.encode() if isinstance(key, str) else key, usedforsecurity=False).hexdigest()}.cache"
                 metadata_file = f"{cache_file}.meta"
 
                 try:
@@ -1213,35 +1213,6 @@ def cached(
 def _generate_cache_key(func_name: str, key_func: Optional[str] = None) -> str:
     """Generate cache key for function."""
     if key_func:
-        return f"{func_name}:{key_func}:{hashlib.md5(func_name)}"
+        return f"{func_name}:{key_func}:{hashlib.md5(func_name.encode(), usedforsecurity=False).hexdigest()}"
     else:
-        return f"{func_name}:{hashlib.md5(func_name)}"
-
-
-# Global response cache instance
-_response_cache: ResponseCache | None = None
-
-
-def get_response_cache() -> ResponseCache:
-    """Get global response cache instance."""
-    global _response_cache
-    if _response_cache is None:
-        raise RuntimeError(
-            "Response cache not initialized. Call init_response_cache() first."
-        )
-    return _response_cache
-
-
-async def init_response_cache(
-    redis_client: Optional[redis.asyncio.Redis] = None,
-    config: Optional[CacheConfig] = None,
-    alert_manager: Optional[Any] = None,
-    default_ttl_seconds: float = 300.0,
-    default_burst: int = 10,
-) -> ResponseCache:
-    """Initialize global response cache."""
-    global _response_cache
-    _response_cache = ResponseCache(
-        redis_client, config, alert_manager, default_ttl_seconds, default_burst
-    )
-    return _response_cache
+        return f"{func_name}:{hashlib.md5(func_name.encode(), usedforsecurity=False).hexdigest()}"

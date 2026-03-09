@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { Switch } from '@/components/ui/Switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Progress } from '@/components/ui/Progress';
 import { 
   Heart, 
   Star, 
@@ -26,7 +26,8 @@ import {
   Target,
   Activity,
   BarChart3,
-  PieChart
+  PieChart,
+  AlertTriangle
 } from 'lucide-react';
 
 interface UserInterestProfile {
@@ -62,7 +63,8 @@ interface UserInteraction {
   content: string;
   category: string;
   timestamp: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
+  keywords?: string[];
 }
 
 const UserInterests: React.FC = () => {
@@ -90,7 +92,7 @@ const UserInterests: React.FC = () => {
     if (autoRefresh) {
       const interval = setInterval(() => {
         fetchProfile();
-        fetchTopInterInterests();
+        fetchTopInterests();
         fetchInteractionHistory();
       }, 30000);
       
@@ -127,7 +129,7 @@ const UserInterests: React.FC = () => {
       if (!response.ok) throw new Error('Failed to fetch top interests');
       const data = await response.json();
       
-      const interests = data.top_interests.map(([category, score]) => ({
+      const interests = data.top_interests.map(([category, score]: [string, number]) => ({
         name: category,
         score: score,
         keywords: [],
@@ -206,7 +208,7 @@ const UserInterests: React.FC = () => {
           interactions: [
             {
               type: 'manual',
-              content: interestForm.keywords.join(', '),
+              content: typeof interestForm.keywords === 'string' ? interestForm.keywords : (interestForm.keywords as string[]).join(', '),
               category: interestForm.category,
               timestamp: new Date().toISOString(),
               metadata: {},
@@ -300,7 +302,7 @@ const UserInterests: React.FC = () => {
       sports: <Heart className="h-4 w-4" />,
       travel: <Heart className="h-4 w-4" />,
     };
-    return icons[category] || <Star className="h-4 w-4" />;
+    return icons[category as keyof typeof icons] || <Star className="h-4 w-4" />;
   };
 
   const getInteractionTypeColor = (type: string) => {
@@ -313,7 +315,7 @@ const UserInterests: React.FC = () => {
       bookmark: 'bg-red-100 text-red-800',
       apply: 'bg-indigo-100 text-indigo-800',
     };
-    return colors[type] || 'bg-gray-100 text-gray-800';
+    return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -572,9 +574,9 @@ const UserInterests: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {interaction.keywords.length > 0 && (
+                    {interaction.keywords && interaction.keywords.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                      {interaction.keywords.slice(0, 3).map((keyword, index) => (
+                      {interaction.keywords.slice(0, 3).map((keyword: string, index: number) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {keyword}
                         </Badge>

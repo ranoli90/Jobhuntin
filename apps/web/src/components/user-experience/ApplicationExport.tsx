@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Textarea } from '@/components/ui/Textarea';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Progress } from '@/components/ui/Progress';
 import { 
   Download, 
   FileText, 
@@ -518,8 +518,11 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                               : field === 'salary_max' && app.salary_max
                               ? `$${app.salary_max.toLocaleString()}`
                               : field === 'created_at' || field === 'last_activity'
-                              ? new Date(app[field as keyof Application]).toLocaleDateString()
-                              : app[field as keyof Application] || '-'
+                              ? (() => {
+                                  const val = app[field as keyof Application];
+                                  return val ? new Date(val as string | number).toLocaleDateString() : '-';
+                                })()
+                              : (app[field as keyof Application] ?? '-') as string
                             }
                           </td>
                         ))}

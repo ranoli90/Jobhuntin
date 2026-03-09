@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { Switch } from '@/components/ui/Switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { 
   Mail, 
   Send, 
@@ -53,6 +53,9 @@ interface EmailPreferences {
 const EmailPage: React.FC = () => {
   const [emails, setEmails] = useState<EmailCommunication[]>([]);
   const [preferences, setPreferences] = useState<EmailPreferences | null>(null);
+  const [preferencesForm, setPreferencesForm] = useState<EmailPreferences | null>(null);
+  const [composeForm, setComposeForm] = useState({ to_email: '', subject: '', body: '', category: 'general' });
+  const [showCompose, setShowCompose] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -106,8 +109,28 @@ const EmailPage: React.FC = () => {
       if (!response.ok) throw new Error('Failed to fetch preferences');
       const data = await response.json();
       setPreferences(data);
+      setPreferencesForm(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch preferences');
+    }
+  };
+
+  const handleSendEmail = async () => {
+    try {
+      const response = await fetch('/api/communications/email/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(composeForm),
+      });
+      if (!response.ok) throw new Error('Failed to send email');
+      setShowCompose(false);
+      setComposeForm({ to_email: '', subject: '', body: '', category: 'general' });
+      await fetchEmails();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send email');
     }
   };
 
@@ -149,7 +172,8 @@ const EmailPage: React.FC = () => {
     }
   };
 
-  const handleUpdatePreferences = async (preferencesForm: any) => {
+  const handleUpdatePreferences = async () => {
+    if (!preferencesForm) return;
     try {
       const response = await fetch('/api/communications/email/preferences', {
         method: 'PUT',
@@ -180,7 +204,7 @@ const EmailPage: React.FC = () => {
       usage_limits: 'bg-orange-100 text-orange-800',
       reminders: 'bg-pink-100 text-pink-800',
     };
-    return colors[category] || 'bg-gray-100 text-gray-800';
+    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getStatusColor = (status: string) => {
@@ -190,7 +214,7 @@ const EmailPage: React.FC = () => {
       failed: 'bg-red-100 text-red-800',
       bounced: 'bg-gray-100 text-gray-800',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getStatusIcon = (status: string) => {
@@ -200,7 +224,7 @@ const EmailPage: React.FC = () => {
       failed: <AlertTriangle className="h-4 w-4" />,
       bounced: <AlertTriangle className="h-4 w-4" />,
     };
-    return icons[status] || <Clock className="h-4 w-4" />;
+    return icons[status as keyof typeof icons] || <Clock className="h-4 w-4" />;
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -332,7 +356,7 @@ const EmailPage: React.FC = () => {
         </Card>
 
       {/* Email Preferences Modal */}
-      {showPreferences && preferences && (
+      {showPreferences && preferences && preferencesForm && (
         <Card className="p-6">
           <CardHeader>
             <CardTitle>Email Preferences</CardTitle>
@@ -392,7 +416,7 @@ const EmailPage: React.FC = () => {
                       <Input
                         id="quiet-hours-start"
                         type="time"
-                        value={preferencesForm.quiet_hours_start}
+                        value={preferencesForm.quiet_hours_start ?? ''}
                         onChange={(e) => setPreferencesForm({ ...preferencesForm, quiet_hours_start: e.target.value })}
                       />
                     </div>
@@ -401,7 +425,7 @@ const EmailPage: React.FC = () => {
                       <Input
                         id="quiet-hours-end"
                         type="time"
-                        value={preferencesForm.quiet_hours_end}
+                        value={preferencesForm.quiet_hours_end ?? ''}
                         onChange={(e) => setPreferencesForm({ ...preferencesForm, quiet_hours_end: e.target.value })}
                       />
                     </div>
@@ -410,7 +434,7 @@ const EmailPage: React.FC = () => {
               </div>
 
               <div className="flex space-x-2">
-                <Button onClick={handleUpdatePreferences} disabled={!preferencesForm}>
+                <Button onClick={handleUpdatePreferences}>
                   <Settings className="h-4 w-4 mr-2" />
                   Update Preferences
                 </Button>

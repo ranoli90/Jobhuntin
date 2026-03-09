@@ -7,7 +7,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 
 from apps.api.dependencies import get_db_pool, get_current_user, get_tenant_id
-from packages.backend.domain.cache_manager import CacheManager, create_cache_manager
+from packages.backend.domain.cache_manager import create_cache_manager
 
 router = APIRouter(prefix="/cache", tags=["cache"])
 
@@ -549,28 +549,10 @@ def _generate_cache_insights(
 
     except Exception as e:
         logger.error(f"Failed to generate cache insights: {e}")
-        return {"recommendations": [], "recommendations": []}
+        return {"recommendations": []}
 
 
-# Factory functions
-def create_cache_manager(redis_url: Optional[str] = None) -> CacheManager:
-    """Create cache manager instance."""
-    return CacheManager(redis_url)
-
-
-def create_connection_pool_manager() -> ConnectionPoolManager:
-    """Create connection pool manager instance."""
-    return ConnectionPoolManager()
-
-
-def create_index_analyzer(db_pool) -> IndexAnalyzer:
-    """Create index analyzer instance."""
-    return IndexAnalyzer(db_pool)
-
-
-def create_performance_monitor(db_pool) -> PerformanceMonitor:
-    """Create performance monitor instance."""
-    return PerformanceMonitor(db_pool)
+# create_cache_manager imported from packages.backend.domain.cache_manager
 
 
 def create_database_performance_manager(db_pool) -> DatabasePerformanceManager:
