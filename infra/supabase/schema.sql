@@ -121,10 +121,10 @@ CREATE TABLE IF NOT EXISTS job_sync_runs (
 
 CREATE TABLE IF NOT EXISTS popular_searches (
     search_term TEXT NOT NULL,
-    location TEXT,
+    location TEXT NOT NULL DEFAULT '',
     search_count INTEGER DEFAULT 1,
     last_searched_at TIMESTAMPTZ DEFAULT now(),
-    PRIMARY KEY (search_term, COALESCE(location, ''))
+    PRIMARY KEY (search_term, location)
 );
 
 -- ============================================================
@@ -149,6 +149,25 @@ CREATE TABLE IF NOT EXISTS applications (
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE(user_id, job_id)
+);
+
+-- Agent event log (record_event, repositories)
+DO $$ BEGIN
+    CREATE TYPE application_event_type AS ENUM (
+        'CREATED', 'CLAIMED', 'STARTED_PROCESSING',
+        'FIELDS_EXTRACTED', 'FORM_FILLED', 'SUBMITTED',
+        'APPLIED', 'FAILED', 'HOLD', 'RESUMED', 'RETRY_SCHEDULED'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE TABLE IF NOT EXISTS application_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    event_type application_event_type NOT NULL,
+    payload JSONB,
+    tenant_id UUID,
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS application_inputs (

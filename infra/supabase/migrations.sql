@@ -44,3 +44,11 @@ CREATE TABLE IF NOT EXISTS public.job_dead_letter_queue (
 CREATE INDEX IF NOT EXISTS idx_job_dead_letter_queue_application ON public.job_dead_letter_queue(application_id);
 CREATE INDEX IF NOT EXISTS idx_job_dead_letter_queue_tenant ON public.job_dead_letter_queue(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_job_dead_letter_queue_created ON public.job_dead_letter_queue(created_at DESC);
+
+-- 015: tenants.slug, jobs.external_id, jobs.application_url, applications.attempt_count (schema alignment for tests)
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS slug VARCHAR(255);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tenants_slug ON public.tenants(slug) WHERE slug IS NOT NULL;
+ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS external_id TEXT;
+ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS application_url TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_external_id ON public.jobs(external_id) WHERE external_id IS NOT NULL;
+ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS attempt_count INTEGER NOT NULL DEFAULT 0;

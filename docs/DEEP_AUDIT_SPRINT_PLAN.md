@@ -25,6 +25,13 @@
 - **useProfile.ts**, **Settings.tsx**: Accept DOCX/DOC in addition to PDF for resume upload.
 - **Onboarding.tsx**: Persist LinkedIn URL when leaving Resume step (handleResumeNext); no longer lost if user skips to later steps.
 
+## Quality Sprint: Test Schema Fixes (March 2026)
+
+- **migrations/015_tenant_slug_job_external_id.sql**: Add `tenants.slug`, `jobs.external_id`, `jobs.application_url`, `applications.attempt_count`.
+- **infra/supabase/schema.sql**: Fix `popular_searches` PRIMARY KEY (COALESCE invalid); add `application_events` table and `application_event_type` enum for `record_event`.
+- **infra/supabase/migrations.sql**: Append 015 migration for schema alignment.
+- **Tests**: `test_agent_claim_navigate_fill_submit` and `test_application_input_meta_with_unknown_keys` now pass with `DATABASE_URL=.../sorce`.
+
 ## Sprint 3–5, 9 Implementation (March 2026)
 
 - **HoldsView.tsx**: Fix snooze loading — use `isSubmitting(app.id)` (hook uses app.id, not `snooze-${app.id}`).
