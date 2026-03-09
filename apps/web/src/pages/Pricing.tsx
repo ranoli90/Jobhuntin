@@ -82,7 +82,7 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                   onClick={onClose}
                   className="block w-full h-12 rounded-lg bg-[#455DD3] text-white font-bold text-center leading-[48px] hover:bg-[#3A4FB8] transition-colors"
                 >
-                  Start Free
+                  Start free
                 </Link>
 
                 <button
@@ -305,7 +305,7 @@ export default function Pricing() {
                 onClick={handleFreeCta}
                 className="w-full h-12 rounded-lg font-semibold text-white bg-[#455DD3] hover:bg-[#3A4FB8] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#455DD3]/20 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:outline-none"
               >
-                {isLoggedIn ? "Go to Dashboard" : "Start Free"} <ArrowRight className="w-4 h-4" />
+                {isLoggedIn ? "Go to Dashboard" : "Start free"} <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>

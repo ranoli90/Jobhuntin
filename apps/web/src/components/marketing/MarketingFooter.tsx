@@ -43,7 +43,7 @@ export function MarketingFooter() {
         { name: "Privacy Policy", path: "/privacy" },
         { name: "Terms of Service", path: "/terms" },
         { name: "Do Not Sell My Info", path: "/privacy#ccpa" },
-        { name: "Contact", path: "mailto:support@jobhuntin.com" },
+        { name: "Contact", path: "/contact" },
       ]
     },
     {

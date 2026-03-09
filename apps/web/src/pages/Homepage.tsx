@@ -71,7 +71,16 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
               : "bg-white border-2 border-[#E3E2E0] text-[#2D2A26] placeholder:text-[#B0AFA9] focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/10",
             emailError && "!border-red-400"
           )}
-          value={email} onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
+          value={email}
+          onChange={e => { setEmail(e.target.value.trimStart()); if (emailError) setEmailError(""); }}
+          onPaste={e => {
+            const pasted = (e.clipboardData?.getData('text') || '').trim();
+            if (pasted && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pasted)) {
+              e.preventDefault();
+              setEmail(pasted.toLowerCase());
+              if (emailError) setEmailError("");
+            }
+          }}
         />
         <button type="submit" disabled={isSubmitting}
           className={cn(

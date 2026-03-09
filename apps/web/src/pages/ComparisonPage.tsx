@@ -240,7 +240,7 @@ export default function ComparisonPage() {
               to="/login"
               className="flex-shrink-0 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold transition-colors"
             >
-              Start Free <ArrowRight className="w-4 h-4" />
+              Start free <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </motion.div>

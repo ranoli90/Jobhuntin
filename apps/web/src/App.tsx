@@ -48,6 +48,7 @@ const Settings = React.lazy(() => import("./pages/Settings"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Maintenance = React.lazy(() => import("./pages/Maintenance"));
 const About = React.lazy(() => import("./pages/About"));
+const Contact = React.lazy(() => import("./pages/Contact"));
 const Locations = React.lazy(() => import("./pages/Locations"));
 const TopicPage = React.lazy(() => import("./pages/TopicPage"));
 const AuthorPage = React.lazy(() => import("./pages/AuthorPage"));
@@ -215,6 +216,7 @@ export default function App() {
               <Route path="/privacy" element={<RouteErrorBoundary><Privacy /></RouteErrorBoundary>} />
               <Route path="/terms" element={<RouteErrorBoundary><Terms /></RouteErrorBoundary>} />
               <Route path="/about" element={<RouteErrorBoundary><About /></RouteErrorBoundary>} />
+              <Route path="/contact" element={<RouteErrorBoundary><Contact /></RouteErrorBoundary>} />
               <Route path="/locations" element={<RouteErrorBoundary><Locations /></RouteErrorBoundary>} />
               <Route path="/topics/:slug" element={<RouteErrorBoundary><TopicPage /></RouteErrorBoundary>} />
               <Route path="/authors/:authorId" element={<RouteErrorBoundary><AuthorPage /></RouteErrorBoundary>} />
