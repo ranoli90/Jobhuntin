@@ -1116,7 +1116,7 @@ async def request_magic_link(
         if not await _verify_captcha(settings, body.captcha_token, client_ip):
             raise HTTPException(status_code=400, detail="Invalid CAPTCHA token")
 
-    # H1: Rate Limiting Hardening - Check IP rate limit (moved up, already checked above for CAPTCHA)
+    # H1: Rate Limiting Hardening - Check IP rate limit
     if not await ip_limiter.acquire():
         retry_after = ip_limiter.next_available_in()
         logger.warning(
@@ -1234,28 +1234,41 @@ async def resend_webhook(
         },
     )
 
-    # Track metrics
+    # C8: Email Delivery Tracking - Track all email events for delivery confirmation
     if event_type == "email.delivered":
-        incr("email.delivered", tags={"provider": "resend"})
+        incr("email.delivered", tags={"provider": "resend", "email_type": "magic_link"})
+        # Track delivery rate for magic links specifically
+        if "magic" in str(data.get("subject", "")).lower() or "sign in" in str(data.get("subject", "")).lower():
+            incr("auth.magic_link.delivered", tags={"email_domain": email_to.split("@")[-1] if "@" in email_to else "unknown"})
+        logger.info(
+            f"Email delivered: {_mask_email(email_to)}",
+            extra={"email_id": email_id, "email_type": "magic_link"},
+        )
     elif event_type == "email.bounced":
-        incr("email.bounced", tags={"provider": "resend"})
+        incr("email.bounced", tags={"provider": "resend", "email_type": "magic_link"})
+        if "magic" in str(data.get("subject", "")).lower() or "sign in" in str(data.get("subject", "")).lower():
+            incr("auth.magic_link.bounced", tags={"email_domain": email_to.split("@")[-1] if "@" in email_to else "unknown"})
         logger.warning(
             f"Email bounced: {_mask_email(email_to)}",
             extra={"bounce_reason": data.get("bounce_type"), "email_id": email_id},
         )
     elif event_type == "email.complained":
-        incr("email.complained", tags={"provider": "resend"})
+        incr("email.complained", tags={"provider": "resend", "email_type": "magic_link"})
         logger.warning(
             f"Email complaint: {_mask_email(email_to)}", extra={"email_id": email_id}
         )
     elif event_type == "email.opened":
-        incr("email.opened", tags={"provider": "resend"})
+        incr("email.opened", tags={"provider": "resend", "email_type": "magic_link"})
+        if "magic" in str(data.get("subject", "")).lower() or "sign in" in str(data.get("subject", "")).lower():
+            incr("auth.magic_link.opened", tags={})
     elif event_type == "email.clicked":
-        incr("email.clicked", tags={"provider": "resend"})
+        incr("email.clicked", tags={"provider": "resend", "email_type": "magic_link"})
+        if "magic" in str(data.get("subject", "")).lower() or "sign in" in str(data.get("subject", "")).lower():
+            incr("auth.magic_link.clicked", tags={})
     elif event_type == "email.sent":
-        incr("email.sent", tags={"provider": "resend"})
+        incr("email.sent", tags={"provider": "resend", "email_type": "magic_link"})
     elif event_type == "email.delivery_delayed":
-        incr("email.delivery_delayed", tags={"provider": "resend"})
+        incr("email.delivery_delayed", tags={"provider": "resend", "email_type": "magic_link"})
         logger.warning(
             f"Email delivery delayed: {_mask_email(email_to)}",
             extra={"email_id": email_id, "delay_reason": data.get("reason")},
