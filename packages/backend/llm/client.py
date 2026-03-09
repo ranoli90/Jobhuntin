@@ -164,25 +164,49 @@ class LLMClient:
         ):  # retry_count retries + 1 initial
             t0 = time.monotonic()
             try:
-                raw_json = await self._request(payload)
+                raw_response = await self._request(payload)
                 duration = time.monotonic() - t0
                 observe("llm.latency_seconds", duration, {"model": model})
                 incr("llm.calls.success", {"model": model})
 
-                # Record success in model monitor
-                prompt_tokens = len(str(messages)) // 4  # Rough estimate
-                completion_tokens = len(str(raw_json)) // 4
+                # H7: Extract actual token counts from API response (not estimates)
+                # OpenRouter/OpenAI API returns usage in response.usage
+                prompt_tokens = 0
+                completion_tokens = 0
+                if isinstance(raw_response, dict) and "usage" in raw_response:
+                    usage = raw_response["usage"]
+                    prompt_tokens = usage.get("prompt_tokens", 0)
+                    completion_tokens = usage.get("completion_tokens", 0)
+                else:
+                    # Fallback to estimate only if usage not available (shouldn't happen)
+                    logger.warning(
+                        "LLM response missing usage field, using token estimates",
+                        extra={"model": model, "response_keys": list(raw_response.keys()) if isinstance(raw_response, dict) else []}
+                    )
+                    prompt_tokens = len(str(messages)) // 4  # Rough estimate fallback
+                    completion_tokens = len(str(raw_response.get("choices", [{}])[0].get("message", {}).get("content", ""))) // 4
+                
                 get_llm_monitor().record_success(
                     model=model,
                     latency_seconds=duration,
                     prompt_tokens=prompt_tokens,
                     completion_tokens=completion_tokens,
                 )
+                
+                # Extract content for validation/return
+                raw_json = raw_response
 
                 if response_format is not None:
-                    validated: T = self._validate(raw_json, response_format)
+                    # Extract content for validation (preserve full response for token tracking)
+                    content = self._extract_content(raw_json)
+                    cleaned_content = self._clean_content(content)
+                    parsed_content = self._parse_json(cleaned_content)
+                    validated: T = self._validate(parsed_content, response_format)
                     return validated
-                return raw_json  # type: ignore[return-value]
+                # For non-typed responses, return the content (not full response)
+                content = self._extract_content(raw_json)
+                cleaned_content = self._clean_content(content)
+                return self._parse_json(cleaned_content)  # type: ignore[return-value]
 
             except (
                 httpx.HTTPStatusError,
@@ -235,13 +259,15 @@ class LLMClient:
         ) from last_error
 
     async def _request(self, payload: dict) -> dict:
-        """Make the HTTP request with circuit breaker protection."""
+        """Make the HTTP request with circuit breaker protection.
+        
+        Returns the full API response dict (including usage field for token counts).
+        """
         try:
             async with self._circuit_breaker:
                 data = await self._make_http_request(payload)
-                content = self._extract_content(data)
-                cleaned_content = self._clean_content(content)
-                return self._parse_json(cleaned_content)
+                # Return full response to preserve usage field for token tracking
+                return data
         except CircuitBreakerOpenError as exc:
             incr("llm.circuit_breaker.open", {})
             raise LLMError(
