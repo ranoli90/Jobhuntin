@@ -379,7 +379,7 @@ export default function Login() {
         </div>
 
         {/* Right — Form (homepage white section style) */}
-        <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col p-6 sm:p-8 lg:p-12 xl:p-16 bg-[#F7F6F3] relative">
+        <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col p-6 sm:p-8 lg:p-12 xl:p-16 bg-[#F7F6F3] dark:bg-slate-900 relative">
           {/* Top bar: controls right (navbar has logo, avoid duplicate) */}
           <div className="absolute top-6 left-6 right-6 flex items-center justify-end z-10">
             <div className="flex items-center gap-2">
@@ -403,10 +403,10 @@ export default function Login() {
               className="space-y-6"
             >
               <div className="hidden lg:block mb-8">
-                <h1 className="text-2xl font-bold text-[#2D2A26] mb-2 tracking-tight" style={{ letterSpacing: '-0.5px' }}>
+                <h1 className="text-2xl font-bold text-[#2D2A26] dark:text-slate-100 mb-2 tracking-tight" style={{ letterSpacing: '-0.5px' }}>
                   Sign in to your account
                 </h1>
-                <p className="text-[#787774] text-sm">
+                <p className="text-[#787774] dark:text-slate-400 text-sm">
                   Enter your email and we'll send you a magic link
                 </p>
               </div>
@@ -431,7 +431,7 @@ export default function Login() {
                 }}
               >
                 <div className="relative">
-                  <label htmlFor="login-email" className="block text-sm font-semibold text-[#2D2A26] mb-2">
+                  <label htmlFor="login-email" className="block text-sm font-semibold text-[#2D2A26] dark:text-slate-100 mb-2">
                     {t("login.email", getLocale())}
                   </label>
                   <div className={cn(
@@ -498,10 +498,10 @@ export default function Login() {
                       aria-controls="login-email-suggestions"
                       aria-activedescendant={showSuggestions && getEmailSuggestions().length > 0 ? `login-suggestion-${suggestionHighlight}` : undefined}
                       className={cn(
-                        "w-full px-4 py-3.5 rounded-lg bg-white border border-[#E9E9E7] transition-all text-[#2D2A26] placeholder:text-[#9B9A97] text-base",
+                        "w-full px-4 py-3.5 rounded-lg bg-white dark:bg-slate-800 border border-[#E9E9E7] dark:border-slate-700 transition-all text-[#2D2A26] dark:text-slate-100 placeholder:text-[#9B9A97] dark:placeholder:text-slate-500 text-base",
                         "focus:outline-none focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/20",
                         "min-h-[48px] sm:min-h-[44px]",
-                        formError ? "border-red-400 bg-red-50/50" : "hover:border-[#D6D3D1]"
+                        formError ? "border-red-400 bg-red-50/50 dark:bg-red-900/20 dark:border-red-600" : "hover:border-[#D6D3D1] dark:hover:border-slate-600"
                       )}
                       aria-invalid={formError ? "true" : "false"}
                       aria-describedby={formError ? "login-email-error" : undefined}
@@ -510,7 +510,7 @@ export default function Login() {
                       <div
                         id="login-email-suggestions"
                         role="listbox"
-                        className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E9E9E7] rounded-lg shadow-lg z-30 overflow-hidden max-h-60 overflow-y-auto"
+                        className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-[#E9E9E7] dark:border-slate-700 rounded-lg shadow-lg z-30 overflow-hidden max-h-60 overflow-y-auto"
                         onMouseEnter={() => setIsMouseOverSuggestions(true)}
                         onMouseLeave={() => setIsMouseOverSuggestions(false)}
                       >
@@ -528,8 +528,8 @@ export default function Login() {
                             }}
                             onMouseEnter={() => setSuggestionHighlight(index)}
                             className={cn(
-                              "w-full px-4 py-2.5 text-left text-sm text-[#2D2A26] transition-colors",
-                              index === suggestionHighlight ? "bg-[#F7F6F3]" : "hover:bg-[#F7F6F3]"
+                              "w-full px-4 py-2.5 text-left text-sm text-[#2D2A26] dark:text-slate-100 transition-colors",
+                              index === suggestionHighlight ? "bg-[#F7F6F3] dark:bg-slate-700" : "hover:bg-[#F7F6F3] dark:hover:bg-slate-700"
                             )}
                           >
                             {suggestion}
