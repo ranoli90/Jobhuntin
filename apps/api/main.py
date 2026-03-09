@@ -152,6 +152,10 @@ async def lifespan(app: FastAPI):
     await _pool_manager.close()
 
 
+# M3: API Versioning - Current API version
+API_VERSION = "v1"
+SUPPORTED_VERSIONS = ["v1", "v2"]
+
 app = FastAPI(
     title="Sorce API",
     version="0.4.0",
@@ -207,11 +211,60 @@ app.state.cors_origins = CORS_ORIGINS
 
 # ---------------------------------------------------------------------------
 # IMPORTANT: Middleware executes in REVERSE order of registration.
-# CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
-# ---------------------------------------------------------------------------
+    # CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
+    # ---------------------------------------------------------------------------
 
-# Add Request ID middleware for distributed tracing
-setup_request_id_middleware(app)
+    # Add Request ID middleware for distributed tracing
+    setup_request_id_middleware(app)
+    
+    # M3: API Versioning - Register versioned routers
+    # Note: api_v2 router is already registered below with prefix /api/v2
+    # For v1, we use the default routes (no prefix)
+
+# M3: API Versioning Middleware - Add version headers and handle version negotiation
+@app.middleware("http")
+async def api_versioning_middleware(request: Request, call_next):
+    """Add API version headers and handle version negotiation.
+    
+    Headers added:
+    - X-API-Version: Current API version (v1)
+    - X-Supported-Versions: Comma-separated list of supported versions
+    
+    Version negotiation:
+    - Accept-Version header can specify desired version (e.g., "v2")
+    - If version not supported, returns 400 with supported versions
+    """
+    # Add version headers to response
+    response = await call_next(request)
+    
+    # Add API version headers
+    response.headers["X-API-Version"] = API_VERSION
+    response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
+    
+    # Handle version negotiation via Accept-Version header
+    requested_version = request.headers.get("Accept-Version")
+    if requested_version:
+        requested_version = requested_version.strip().lower()
+        if requested_version not in SUPPORTED_VERSIONS:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "UNSUPPORTED_API_VERSION",
+                        "message": f"API version '{requested_version}' is not supported",
+                        "detail": f"Supported versions: {', '.join(SUPPORTED_VERSIONS)}",
+                        "requested_version": requested_version,
+                        "supported_versions": SUPPORTED_VERSIONS,
+                    }
+                },
+            )
+        # Store requested version in request state for use by endpoints
+        request.state.api_version = requested_version
+    else:
+        # Default to current version
+        request.state.api_version = API_VERSION
+    
+    return response
 
 from shared.metrics import get_rate_limiter, observe, incr
 from shared.middleware import get_client_ip, setup_security_headers
