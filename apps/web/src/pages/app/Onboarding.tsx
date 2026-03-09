@@ -412,7 +412,7 @@ export default function Onboarding() {
     });
   }, [contactInfo, preferences, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview, updateFormData]);
 
-  // Remember Me - Welcome Back (OB-7 fix: only once per browser session, skipped on step 0)
+  // OB4: Resume Where You Left Off - Show banner for returning users
   React.useEffect(() => {
     if (profile && !profile.has_completed_onboarding && currentStep > 0) {
       const welcomeKey = `has_welcomed_back_${profile.id || 'anon'}`;
@@ -420,14 +420,14 @@ export default function Onboarding() {
       if (!hasWelcomed) {
         const locale = getLocale();
         pushToast({
-          title: t("onboarding.welcomeBack", locale),
-          description: t("onboarding.pickingUpAt", locale).replace("{step}", currentStepData.title),
+          title: t("onboarding.welcomeBack", locale) || "Welcome back!",
+          description: t("onboarding.pickingUpAt", locale).replace("{step}", currentStepData.title) || `Picking up at: ${currentStepData.title}`,
           tone: "info"
         });
         sessionStorage.setItem(welcomeKey, "true");
       }
     }
-  }, [profile?.id]); // Only re-run when profile ID changes, not on every step change
+  }, [profile?.id, currentStep, currentStepData.title]); // Re-run when step changes to show updated step info
 
   // Handle email typo check (FV1: debounce to avoid flicker while typing)
   React.useEffect(() => {
@@ -662,10 +662,24 @@ export default function Onboarding() {
       await resumeUploadRetry.updateAfterFailure(message);
       setShowRetryComponent(true);
 
-      setResumeError(message);
+      // OB2: Improve Resume Upload Error Messages - Provide actionable recovery steps
+      let userFriendlyMessage = message;
+      if (status === 413) {
+        userFriendlyMessage = "File is too large. Please use a PDF under 15MB and try again.";
+      } else if (status === 400) {
+        userFriendlyMessage = "Invalid file format. Please upload a PDF resume.";
+      } else if (status && status >= 500) {
+        userFriendlyMessage = "Server error. Your file was saved and will retry automatically. Check back in a moment.";
+      } else if (message.includes("network") || message.includes("timeout")) {
+        userFriendlyMessage = "Network error. Your file was saved and will retry when connection is restored.";
+      } else if (!message || message === "Upload failed") {
+        userFriendlyMessage = "Upload failed. Your file was saved and will retry automatically. You can also try again manually.";
+      }
+      
+      setResumeError(userFriendlyMessage);
       pushToast({
         title: "Upload failed",
-        description: status ? `[${status}] ${message}` : message,
+        description: userFriendlyMessage,
         tone: "error"
       });
     } finally {
@@ -1027,6 +1041,13 @@ export default function Onboarding() {
         <header className="px-3 md:px-6 h-11 md:h-12 shrink-0 flex items-center justify-between bg-white/90 backdrop-blur-sm border-b border-[#E9E9E7] z-50 sticky top-0">
           <Logo to="/app/onboarding" size="sm" />
           <div className="flex items-center gap-2 md:gap-4">
+            {/* OB1: Progress Persistence Warning - Show auto-save indicator */}
+            <div className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden />
+              <span className="text-[9px] font-medium text-emerald-700">
+                {t("onboarding.autoSaved", locale) || "Auto-saved"}
+              </span>
+            </div>
             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#455DD3]/10 border border-[#455DD3]/20">
               <div className="w-2 h-2 rounded-full bg-[#455DD3] animate-pulse" aria-hidden />
               <span className="text-[10px] font-black text-[#455DD3] uppercase tracking-widest">{t("onboarding.settingUpProfile", locale) || "Setting up your profile"}</span>
@@ -1050,6 +1071,15 @@ export default function Onboarding() {
                   {t("onboarding.step", locale) || "Step"} {currentStep + 1} {t("onboarding.of", locale) || "of"} {steps.length} — {(progress).toFixed(0)}%
                 </span>
                 <span className="text-[10px] md:text-xs font-bold text-[#455DD3] uppercase tracking-wider">{currentStepData.title}</span>
+              </div>
+              {/* OB1: Progress Persistence Warning - Show auto-save indicator */}
+              <div className="flex items-center gap-1.5 mb-2 px-1">
+                <div className="flex items-center gap-1 text-[9px] text-emerald-600 font-medium">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden />
+                  <span>
+                    {t("onboarding.progressAutoSaved", locale) || "Your progress is saved automatically"}
+                  </span>
+                </div>
               </div>
               <div className="h-1.5 w-full rounded-full bg-[#E9E9E7] overflow-hidden">
                 <motion.div
