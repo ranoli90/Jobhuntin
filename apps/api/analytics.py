@@ -22,6 +22,7 @@ from backend.domain.m1_metrics import get_m1_dashboard, refresh_dashboard_views
 from backend.domain.m2_metrics import get_m2_dashboard, refresh_m2_views
 from backend.domain.m3_metrics import get_m3_dashboard, refresh_m3_views
 from backend.domain.m4_metrics import get_m4_dashboard, refresh_m4_views
+from backend.domain.business_metrics import get_business_metrics_dashboard
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
