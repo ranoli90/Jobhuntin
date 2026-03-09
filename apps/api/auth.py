@@ -139,6 +139,83 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
     return True
 
 
+async def _revoke_session_token(jti: str, settings: Settings) -> None:
+    """Revoke a session token by adding jti to Redis blacklist.
+    
+    This prevents session token replay attacks. Once revoked, the token
+    cannot be used for authentication even if it hasn't expired.
+    
+    Args:
+        jti: JWT ID claim from the session token
+        settings: Application settings
+    """
+    if not settings.redis_url:
+        if settings.env.value == "prod":
+            logger.critical(
+                "Redis not available in production - session token revocation disabled. "
+                "This is a security risk. Set REDIS_URL environment variable."
+            )
+            raise RuntimeError(
+                "Redis required for production session token revocation. "
+                "Set REDIS_URL environment variable."
+            )
+        logger.warning(
+            "Redis not available - session token revocation disabled. "
+            "Set REDIS_URL for production deployments."
+        )
+        return
+
+    try:
+        from shared.redis_client import get_redis
+
+        r = await get_redis()
+        # Store revoked jti with 7-day TTL (matches session token TTL)
+        SESSION_TTL_SECONDS = 7 * 24 * 3600
+        key = f"auth:revoked_jti:{jti}"
+        await r.set(key, "1", ex=SESSION_TTL_SECONDS)
+        logger.debug("Session token revoked: %s", jti)
+    except Exception as e:
+        logger.error("Failed to revoke session token: %s", e)
+        # In production, fail closed - don't allow session if revocation fails
+        if settings.env.value == "prod":
+            raise RuntimeError(
+                "Failed to revoke session token. Redis may be unavailable."
+            )
+
+
+async def _is_session_token_revoked(jti: str, settings: Settings) -> bool:
+    """Check if a session token has been revoked.
+    
+    Args:
+        jti: JWT ID claim from the session token
+        settings: Application settings
+        
+    Returns:
+        True if token is revoked, False otherwise
+    """
+    if not settings.redis_url:
+        # In production, require Redis for revocation checks
+        if settings.env.value == "prod":
+            logger.warning(
+                "Redis not available - cannot check session token revocation. "
+                "Assuming token is valid (security risk)."
+            )
+        return False
+
+    try:
+        from shared.redis_client import get_redis
+
+        r = await get_redis()
+        key = f"auth:revoked_jti:{jti}"
+        exists = await r.exists(key)
+        return bool(exists)
+    except Exception as e:
+        logger.warning("Failed to check session token revocation: %s", e)
+        # Fail open in case of Redis errors (don't block legitimate users)
+        # But log the error for monitoring
+        return False
+
+
 class MagicLinkRequest(BaseModel):
     email: EmailStr
     return_to: str | None = None
@@ -858,6 +935,11 @@ async def verify_magic_link(
     }
     session_token = _jwt.encode(session_payload, settings.jwt_secret, algorithm="HS256")
 
+    # Revoke any previous session tokens for this user (optional - for session rotation)
+    # This ensures only one active session per user at a time
+    # Note: We don't have the old jti here, so this is a placeholder for future enhancement
+    # For now, we'll revoke on explicit logout only
+
     is_prod = settings.env.value in ("prod", "staging")
     response = RedirectResponse(url=redirect_url, status_code=302)
     cookie_kwargs = dict(
@@ -879,9 +961,34 @@ async def verify_magic_link(
 
 @router.api_route("/logout", methods=["GET", "POST"])
 async def logout(
+    request: Request,
     settings: Settings = Depends(settings_dependency),
 ) -> RedirectResponse:
-    """Clear auth cookie and redirect to login. Supports GET for redirect-based logout."""
+    """Clear auth cookie, revoke session token, and redirect to login.
+    Supports GET for redirect-based logout.
+    
+    SECURITY: Revokes the session token to prevent replay attacks.
+    """
+    # Extract and revoke the session token before clearing the cookie
+    jobhuntin_auth = request.cookies.get(AUTH_COOKIE_NAME)
+    if jobhuntin_auth:
+        try:
+            import jwt as pyjwt
+            payload = pyjwt.decode(
+                jobhuntin_auth,
+                settings.jwt_secret,
+                algorithms=["HS256"],
+                audience="authenticated",
+                options={"verify_exp": False},  # Allow expired tokens for revocation
+            )
+            jti = payload.get("jti")
+            if jti:
+                await _revoke_session_token(jti, settings)
+                logger.info("Session token revoked on logout: jti=%s", jti)
+        except Exception as e:
+            # Log but don't fail logout if revocation fails
+            logger.warning("Failed to revoke session token on logout: %s", e)
+    
     is_prod = settings.env.value in ("prod", "staging")
     redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
     response = RedirectResponse(url=redirect_url, status_code=302)

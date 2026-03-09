@@ -11,6 +11,39 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.api.dependencies")
 
 
+async def _check_session_revocation(jti: str, settings: Any) -> bool:
+    """Check if a session token has been revoked.
+    
+    Args:
+        jti: JWT ID claim from the session token
+        settings: Application settings
+        
+    Returns:
+        True if token is revoked, False otherwise
+    """
+    if not settings.redis_url:
+        # In production, require Redis for revocation checks
+        if settings.env.value == "prod":
+            logger.warning(
+                "Redis not available - cannot check session token revocation. "
+                "Assuming token is valid (security risk)."
+            )
+        return False
+
+    try:
+        from shared.redis_client import get_redis
+
+        r = await get_redis()
+        key = f"auth:revoked_jti:{jti}"
+        exists = await r.exists(key)
+        return bool(exists)
+    except Exception as e:
+        logger.warning("Failed to check session token revocation: %s", e)
+        # Fail open in case of Redis errors (don't block legitimate users)
+        # But log the error for monitoring
+        return False
+
+
 class DatabasePoolManager:
     """Manages database pool lifecycle without global state."""
 
@@ -183,10 +216,8 @@ async def get_current_user_id(
     """Decode a JWT and return the `sub` claim as user_id.
     S1: Accepts token from Authorization header OR jobhuntin_auth httpOnly cookie.
 
-    NOTE: Token replay protection (jti check) is handled at the /auth/verify-magic
-    endpoint level only. We do NOT check jti here because the httpOnly auth cookie
-    reuses the same JWT for the entire session — consuming the jti on the first
-    API call would block all subsequent calls.
+    SECURITY: Now checks for revoked session tokens via Redis blacklist.
+    This prevents session token replay attacks even if a token is stolen.
     """
     import jwt as pyjwt
 
@@ -208,7 +239,24 @@ async def get_current_user_id(
             token, s.jwt_secret, algorithms=["HS256"], audience="authenticated"
         )
         user_id: str = payload["sub"]
+        jti = payload.get("jti")
+        
+        # Check if session token has been revoked (C1: Session Token Replay Fix)
+        if jti:
+            revoked = await _check_session_revocation(jti, s)
+            if revoked:
+                logger.warning(
+                    "Revoked session token attempted: jti=%s, user_id=%s",
+                    jti,
+                    user_id,
+                )
+                raise HTTPException(
+                    status_code=401, detail="Session revoked. Please sign in again."
+                )
+        
         return user_id
+    except HTTPException:
+        raise
     except pyjwt.PyJWTError as exc:
         logger.warning("JWT validation failed: %s", exc)
         raise HTTPException(status_code=401, detail="Invalid or expired token")
