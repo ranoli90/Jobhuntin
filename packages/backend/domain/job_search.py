@@ -120,7 +120,7 @@ async def search_and_list_jobs(
             },
         )
 
-        # Profile-based scoring when user_id provided
+    # Profile-based scoring when user_id provided
     if user_id and result:
         async with db_pool.acquire() as conn:
             profile = await assemble_profile(conn, user_id)
@@ -150,6 +150,7 @@ async def search_and_list_jobs(
                     ),
                     reverse=True,
                 )
+        # When user_id provided we fetched extra; always slice to requested page
         result = result[offset : offset + limit]
 
     return result

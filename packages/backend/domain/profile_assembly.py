@@ -152,10 +152,20 @@ async def assemble_profile(
         if prefs_row["remote_only"] is not None:
             preferences["remote_only"] = prefs_row["remote_only"]
 
-    # Dealbreakers from preferences
+    # Dealbreakers from preferences (coerce salary from form strings)
+    def _to_int(v: Any) -> int | None:
+        if v is None:
+            return None
+        if isinstance(v, int):
+            return v
+        try:
+            return int(float(v))
+        except (TypeError, ValueError):
+            return None
+
     dealbreakers = DealbreakerConfig(
-        min_salary=preferences.get("salary_min"),
-        max_salary=preferences.get("salary_max"),
+        min_salary=_to_int(preferences.get("salary_min")),
+        max_salary=_to_int(preferences.get("salary_max")),
         locations=[preferences["location"]] if preferences.get("location") else [],
         remote_only=bool(preferences.get("remote_only")),
         onsite_only=False,
