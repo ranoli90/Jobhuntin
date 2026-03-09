@@ -20,6 +20,7 @@ import { useSessionMilestone } from "../hooks/useCelebrations";
 import { telemetry } from "../lib/telemetry";
 import { useProfile } from "../hooks/useProfile";
 import { sanitizeHtml } from "../lib/utils";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 // N-10: Centralised status → Badge variant mapping
 function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
@@ -302,25 +303,26 @@ export default function Dashboard() {
   ];
 
   return (
-    <motion.div
-      initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
-      className="space-y-3 max-w-7xl mx-auto px-4 lg:px-6 pb-8"
-    >
-      {/* M-5: Error banner when data fetch fails */}
-      {error && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800" role="alert">
-          <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" aria-hidden />
-          <div className="flex-1">
-            <p className="font-bold text-sm">Unable to load dashboard data</p>
-            <p className="text-xs text-red-600 mt-0.5">{error}</p>
+    <ErrorBoundary reportError showToast>
+      <motion.div
+        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
+        className="space-y-3 max-w-7xl mx-auto px-4 lg:px-6 pb-8"
+      >
+        {/* M-5: Error banner when data fetch fails */}
+        {error && (
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800" role="alert">
+            <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" aria-hidden />
+            <div className="flex-1">
+              <p className="font-bold text-sm">Unable to load dashboard data</p>
+              <p className="text-xs text-red-600 mt-0.5">{error}</p>
+            </div>
+            <Button variant="ghost" size="sm" className="text-red-600 font-bold text-xs" onClick={() => refetch()} aria-label="Retry loading dashboard">
+              Try again
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" className="text-red-600 font-bold text-xs" onClick={() => refetch()} aria-label="Retry loading dashboard">
-            Try again
-          </Button>
-        </div>
-      )}
+        )}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <motion.div
           initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
@@ -397,12 +399,13 @@ export default function Dashboard() {
 
       <div className="grid gap-3 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="relative overflow-hidden border-amber-200/50 bg-gradient-to-br from-amber-50/50 to-white" tone="glass">
+          <ErrorBoundary reportError>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="relative overflow-hidden border-amber-200/50 bg-gradient-to-br from-amber-50/50 to-white" tone="glass">
               {/* Animated background elements */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber-500/5 blur-3xl"></div>
@@ -506,17 +509,19 @@ export default function Dashboard() {
                 )}
               </div>
             </Card>
-          </motion.div>
+            </motion.div>
+          </ErrorBoundary>
 
         </div>
 
         <div className="space-y-3">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card className="relative overflow-hidden border-primary-200/50 bg-gradient-to-br from-primary-50/50 to-white" tone="glass">
+          <ErrorBoundary reportError>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Card className="relative overflow-hidden border-primary-200/50 bg-gradient-to-br from-primary-50/50 to-white" tone="glass">
               {/* Animated background elements */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
@@ -560,11 +565,13 @@ export default function Dashboard() {
                 </Button>
               </div>
             </Card>
-          </motion.div>
+            </motion.div>
+          </ErrorBoundary>
 
         </div>
       </div>
-    </motion.div>
+      </motion.div>
+    </ErrorBoundary>
   );
 }
 

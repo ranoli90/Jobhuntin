@@ -865,21 +865,84 @@ def _mount_sub_routers() -> None:
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    """Return all HTTP errors in FastAPI standard format."""
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    """C7: Error Handling - Standardize error responses.
+    
+    Returns consistent error format:
+    {
+        "error": {
+            "code": "ERROR_CODE",
+            "message": "Human-readable message",
+            "detail": "Additional context",
+            "request_id": "X-Request-ID"
+        }
+    }
+    """
+    request_id = request.headers.get("X-Request-ID", "unknown")
+    
+    # Extract error code from status code
+    error_codes = {
+        400: "BAD_REQUEST",
+        401: "UNAUTHORIZED",
+        403: "FORBIDDEN",
+        404: "NOT_FOUND",
+        409: "CONFLICT",
+        429: "RATE_LIMIT_EXCEEDED",
+        500: "INTERNAL_SERVER_ERROR",
+        502: "BAD_GATEWAY",
+        503: "SERVICE_UNAVAILABLE",
+        504: "GATEWAY_TIMEOUT",
+    }
+    error_code = error_codes.get(exc.status_code, "HTTP_ERROR")
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": error_code,
+                "message": exc.detail or "An error occurred",
+                "request_id": request_id,
+            }
+        },
+    )
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Catch-all for unhandled exceptions to prevent stack trace leaks in production."""
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    """C7: Error Handling - Catch-all for unhandled exceptions.
+    
+    Prevents stack trace leaks in production while providing useful
+    error information in development.
+    """
+    request_id = request.headers.get("X-Request-ID", "unknown")
+    logger.error(
+        "Unhandled exception",
+        extra={
+            "exception_type": type(exc).__name__,
+            "exception_message": str(exc),
+            "request_id": request_id,
+            "path": request.url.path,
+        },
+        exc_info=True,
+    )
 
     if _settings.env == Environment.LOCAL:
         msg = f"Internal Server Error: {str(exc)}"
+        detail = f"{type(exc).__name__}: {str(exc)}"
     else:
         msg = "Internal Server Error"
+        detail = "An unexpected error occurred. Our team has been notified."
 
-    return JSONResponse(status_code=500, content={"detail": msg})
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "code": "INTERNAL_SERVER_ERROR",
+                "message": msg,
+                "detail": detail,
+                "request_id": request_id,
+            }
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
