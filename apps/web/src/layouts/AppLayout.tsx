@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useBilling } from "../hooks/useBilling";
@@ -43,7 +43,14 @@ export default function AppLayout() {
   const { user, signOut } = useAuth();
   const { plan } = useBilling();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [, forceLocaleUpdate] = useState(0);
   const location = useLocation();
+
+  useEffect(() => {
+    const handler = () => forceLocaleUpdate((n) => n + 1);
+    window.addEventListener("localechange", handler);
+    return () => window.removeEventListener("localechange", handler);
+  }, []);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 

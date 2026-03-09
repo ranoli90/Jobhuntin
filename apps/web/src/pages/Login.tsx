@@ -339,11 +339,9 @@ export default function Login() {
 
         {/* Right — Form (homepage white section style) */}
         <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col p-6 sm:p-8 lg:p-12 xl:p-16 bg-[#F7F6F3] relative">
-          {/* Top bar: logo left + controls right (navbar hidden on login, so single header) */}
-          <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-10">
-            <Logo to="/" variant="light" size="md" />
-            <div aria-hidden />
-            <div className="flex items-center gap-2 ml-auto">
+          {/* Top bar: controls right (navbar has logo, avoid duplicate) */}
+          <div className="absolute top-6 left-6 right-6 flex items-center justify-end z-10">
+            <div className="flex items-center gap-2">
               <LanguageSelector />
               <ThemeToggle />
             </div>

@@ -942,11 +942,13 @@ export function setDocumentDirection(locale: string) {
   document.documentElement.lang = locale;
 }
 
+const LANGUAGE_KEY = "jobhuntin-language";
+
 export function getLocale(): string {
-  if (typeof navigator !== "undefined") {
-    return navigator.language || navigator.languages?.[0] || "en";
-  }
-  return "en";
+  if (typeof window === "undefined") return "en";
+  const stored = localStorage.getItem(LANGUAGE_KEY);
+  if (stored) return stored;
+  return navigator.language || navigator.languages?.[0] || "en";
 }
 
 export function t(key: string, locale?: string): string {

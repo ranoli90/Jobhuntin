@@ -328,7 +328,7 @@ export default function Homepage() {
           <div className="max-w-[680px] mx-auto text-center">
             <Reveal>
               <h1 className="text-white text-[clamp(2.5rem,6vw,64px)] font-bold" style={{ lineHeight: '1', letterSpacing: '-2.125px' }}>
-                Your job hunt, <span className="text-[#7DD3CF]">on autopilot.</span>
+                Your job hunt, <span className="text-[#7DD3CF] whitespace-nowrap">on autopilot.</span>
               </h1>
             </Reveal>
             <Reveal delay={60}>
@@ -651,16 +651,16 @@ export default function Homepage() {
           <h2 className="text-[clamp(1.5rem,3vw,28px)] font-bold text-[#2D2A26] text-center mb-10 sm:mb-12" style={{ letterSpacing: '-0.5px' }}>
             Explore More
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8 sm:gap-8 lg:gap-8 justify-items-center sm:justify-items-start">
             {[
               { label: 'Compare Tools', links: [{ text: 'vs LazyApply', to: '/vs/lazyapply' }, { text: 'vs Jobright', to: '/vs/jobright' }, { text: 'vs Simplify', to: '/vs/simplify' }, { text: 'vs Teal', to: '/vs/teal' }] },
               { label: 'Guides', links: [{ text: 'Beat ATS with AI', to: '/guides/how-to-beat-ats-with-ai' }, { text: 'Resume Tailoring', to: '/guides/resume-tailoring-guide' }, { text: 'Cover Letter Mastery', to: '/guides/ai-cover-letter-mastery' }, { text: 'All Guides', to: '/guides' }] },
               { label: 'Topics', links: [{ text: 'Remote Work', to: '/topics/remote-work' }, { text: 'ATS Optimization', to: '/topics/ats-optimization' }, { text: 'Salary Negotiation', to: '/topics/salary-negotiation' }, { text: 'All Topics', to: '/blog' }] },
               { label: 'Tools', links: [{ text: 'AI Resume Tailor', to: '/tools' }, { text: 'ATS Score Checker', to: '/tools' }, { text: 'Cover Letter Gen', to: '/tools' }, { text: 'All Free Tools', to: '/tools' }] },
             ].map(section => (
-              <div key={section.label} className="min-w-0">
+              <div key={section.label} className="min-w-0 w-full sm:w-auto flex flex-col items-center sm:items-start">
                 <h3 className="text-[12px] font-semibold text-[#9B9A97] uppercase tracking-wider mb-4">{section.label}</h3>
-                <ul className="space-y-3">
+                <ul className="space-y-3 text-center sm:text-left">
                   {section.links.map(link => (
                     <li key={link.text}>
                       <Link to={link.to} className="text-[14px] sm:text-[15px] text-[#2D2A26] hover:text-[#455DD3] font-medium transition-colors block">

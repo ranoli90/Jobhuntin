@@ -155,26 +155,26 @@ export default function SuccessStories() {
             </h2>
           </Reveal>
 
-          <div className="space-y-8 sm:space-y-10">
+          <div className="space-y-6 sm:space-y-8">
             {STORIES.map((story, i) => (
               <Reveal key={story.name} delay={i * 80}>
-                <article className="rounded-2xl overflow-hidden bg-white border border-[#E9E9E7] hover:border-[#E3E2E0] hover:-translate-y-[2px] hover:shadow-lg transition-all duration-300">
+                <article className="rounded-2xl overflow-hidden bg-white border border-[#E9E9E7] shadow-sm hover:border-[#E3E2E0] hover:shadow-lg transition-all duration-300">
                   <div className="flex flex-col md:flex-row">
-                    {/* Left: color block + person + outcome — playful */}
-                    <div className="md:w-[42%] p-6 sm:p-8 md:p-10 flex flex-col" style={{ background: `${story.accent}40` }}>
-                      <div className="flex items-start gap-4 mb-4">
+                    {/* Left: color block + person + outcome */}
+                    <div className="md:w-[42%] p-6 sm:p-8 md:p-8 flex flex-col gap-4" style={{ background: `${story.accent}40` }}>
+                      <div className="flex items-start gap-4">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-white text-lg font-bold shrink-0 shadow-lg" style={{ background: `linear-gradient(135deg, ${story.accent}, ${story.accent}cc)` }}>
                           {story.initials}
                         </div>
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-0.5">{story.role} · {story.company}</p>
                           <h3 className="text-xl sm:text-2xl font-bold text-[#2D2A26] mb-2">{story.name}</h3>
-                          <span className="inline-block px-5 py-2 rounded-xl text-[14px] font-bold text-white shadow-sm" style={{ background: story.accent }}>
+                          <span className="inline-block px-4 py-1.5 rounded-xl text-[14px] font-bold text-white shadow-sm" style={{ background: story.accent }}>
                             {story.outcome}
                           </span>
                         </div>
                       </div>
-                      <div className="mt-auto pt-4 flex flex-wrap gap-4">
+                      <div className="flex flex-wrap gap-x-6 gap-y-1">
                         {story.outcomes.map((o) => (
                           <div key={o.label} className="text-[13px]">
                             <span className="text-[#9B9A97]">{o.label}: </span>
@@ -184,17 +184,17 @@ export default function SuccessStories() {
                       </div>
                     </div>
 
-                    {/* Right: before → after + quote — story flow */}
-                    <div className="md:w-[58%] p-6 sm:p-8 md:p-10 flex flex-col justify-center">
+                    {/* Right: before → after + quote */}
+                    <div className="md:w-[58%] p-6 sm:p-8 md:p-8 flex flex-col justify-center border-t md:border-t-0 md:border-l border-[#E9E9E7]">
                       <div className="flex flex-wrap items-center gap-2 mb-4 text-[14px]">
                         <span className="text-[#9B9A97] line-through">{story.before}</span>
                         <span className="text-[#455DD3] font-bold">→</span>
                         <span className="font-bold text-[#2D2A26]">{story.after}</span>
                       </div>
                       <div className="relative">
-                        <Quote className="absolute -top-2 -left-1 w-8 h-8 text-[#E9E9E7]" aria-hidden />
-                        <blockquote className="text-[17px] sm:text-[18px] text-[#2D2A26] font-medium leading-relaxed pl-6">
-                          "{story.quote}"
+                        <Quote className="absolute -top-1 -left-1 w-7 h-7 text-[#E9E9E7]" aria-hidden />
+                        <blockquote className="text-[16px] sm:text-[18px] text-[#2D2A26] font-medium leading-relaxed pl-6">
+                          &ldquo;{story.quote}&rdquo;
                         </blockquote>
                       </div>
                     </div>

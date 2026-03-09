@@ -185,21 +185,37 @@ export function MarketingNavbar() {
 
         <MobileDrawerBody>
           <nav className="flex flex-col space-y-0.5 mt-1" aria-label="Mobile navigation">
-            {navLinks.map((link) => (
-              <button
-                key={link.path}
-                type="button"
-                onClick={() => handleMobileNavClick(link.path, link.hash)}
-                className={cn(
-                  "text-[15px] font-semibold block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-left w-full",
-                  isLinkActive(link)
-                    ? 'bg-[#F5F5F4] text-[#2D2A26]'
-                    : 'text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26]'
-                )}
-              >
-                {link.name}
-              </button>
-            ))}
+            {navLinks.map((link) =>
+              link.hash && isHomePage ? (
+                <button
+                  key={link.path}
+                  type="button"
+                  onClick={() => handleMobileNavClick(link.path, link.hash)}
+                  className={cn(
+                    "text-[15px] font-semibold block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-left w-full",
+                    isLinkActive(link)
+                      ? 'bg-[#F5F5F4] text-[#2D2A26]'
+                      : 'text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26]'
+                  )}
+                >
+                  {link.name}
+                </button>
+              ) : (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={closeMenu}
+                  className={cn(
+                    "text-[15px] font-semibold block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-left w-full",
+                    isLinkActive(link)
+                      ? 'bg-[#F5F5F4] text-[#2D2A26]'
+                      : 'text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26]'
+                  )}
+                >
+                  {link.name}
+                </Link>
+              )
+            )}
             {isLoggedIn && (
               <button
                 type="button"

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { MarketingNavbar } from "../components/marketing/MarketingNavbar";
@@ -9,6 +10,13 @@ import { cn } from "../lib/utils";
 export default function MarketingLayout() {
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
+  const [, forceLocaleUpdate] = useState(0);
+
+  useEffect(() => {
+    const handler = () => forceLocaleUpdate((n) => n + 1);
+    window.addEventListener("localechange", handler);
+    return () => window.removeEventListener("localechange", handler);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 font-sans text-gray-900 dark:text-slate-100 selection:bg-gray-200 selection:text-gray-900 dark:selection:text-slate-100 flex flex-col antialiased">

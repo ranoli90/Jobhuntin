@@ -48,7 +48,7 @@ export function HelpButton({ className }: HelpButtonProps) {
   if (isAppPage) return null;
 
   return (
-    <div ref={menuRef} className={cn("fixed bottom-6 right-6 z-50", className)}>
+    <div ref={menuRef} className={cn("fixed bottom-6 right-6 z-40 md:z-50 md:bottom-6 md:right-6", "max-md:bottom-24 max-md:right-4", className)}>
       <AnimatePresence>
         {isOpen && (
           <motion.div

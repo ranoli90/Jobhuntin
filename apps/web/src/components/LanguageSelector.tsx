@@ -41,6 +41,7 @@ export function LanguageSelector({ className }: { className?: string }) {
   useEffect(() => {
     localStorage.setItem(LANGUAGE_KEY, currentLang.code);
     document.documentElement.lang = currentLang.code;
+    window.dispatchEvent(new CustomEvent('localechange', { detail: currentLang.code }));
   }, [currentLang]);
 
   // Close dropdown when clicking outside
