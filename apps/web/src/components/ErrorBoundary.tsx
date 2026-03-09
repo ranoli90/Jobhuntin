@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertCircle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import { pushToast } from '../lib/toast';
@@ -58,10 +59,26 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   _reportError = async (errorDetails: { error: Error; errorInfo: React.ErrorInfo }) => {
     try {
-      // Here you could integrate with error reporting services like Sentry
-      if (import.meta.env.DEV) console.error('Error reported:', errorDetails);
+      // Report to Sentry if available (H4: Frontend Error Tracking)
+      Sentry.captureException(errorDetails.error, {
+        contexts: {
+          react: {
+            componentStack: errorDetails.errorInfo.componentStack,
+          },
+        },
+        tags: {
+          errorBoundary: true,
+        },
+      });
+      if (import.meta.env.DEV) {
+        console.log('[ErrorBoundary] Error reported to Sentry');
+      }
     } catch (reportingError) {
-      if (import.meta.env.DEV) console.error('Failed to report error:', reportingError);
+      // Fallback: log to console if Sentry fails
+      if (import.meta.env.DEV) {
+        console.error('Failed to report error to Sentry:', reportingError);
+        console.error('Original error:', errorDetails);
+      }
     }
   };
 

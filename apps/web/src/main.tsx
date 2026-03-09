@@ -3,12 +3,62 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
+import * as Sentry from "@sentry/react";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 import { validateConfig } from "./config";
 import "./index.css";
+
+// Initialize Sentry for frontend error tracking (H4: Frontend Error Tracking)
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+if (sentryDsn) {
+  try {
+    Sentry.init({
+      dsn: sentryDsn,
+      environment: import.meta.env.MODE || "production",
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.replayIntegration({
+          maskAllText: true,
+          blockAllMedia: true,
+        }),
+      ],
+      // Performance Monitoring
+      tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in prod, 100% in dev
+      // Session Replay
+      replaysSessionSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in prod
+      replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
+      // Filter out sensitive data
+      beforeSend(event, hint) {
+        // Remove PII from error messages
+        if (event.request?.url) {
+          // Remove query params that might contain sensitive data
+          try {
+            const url = new URL(event.request.url);
+            url.search = "";
+            event.request.url = url.toString();
+          } catch {
+            // Ignore URL parsing errors
+          }
+        }
+        // Remove user email from contexts if present
+        if (event.user?.email) {
+          event.user.email = "[REDACTED]";
+        }
+        return event;
+      },
+    });
+    if (import.meta.env.DEV) {
+      console.log("[Sentry] Initialized for error tracking (DEV mode)");
+    }
+  } catch (error) {
+    console.error("[Sentry] Failed to initialize:", error);
+  }
+} else if (import.meta.env.DEV) {
+  console.log("[Sentry] Not initialized (DSN not set in VITE_SENTRY_DSN)");
+}
 
 // Service Worker Registration
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
