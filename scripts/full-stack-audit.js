@@ -84,7 +84,8 @@ function main() {
   if (run('Ruff (lint)', py, ['-m', 'ruff', 'check', 'apps', 'packages', 'shared', 'scripts', '--select', 'E,W,F,I', '--ignore', 'E501,E402', '--output-format', 'concise']) !== 0) hasErrors = true;
   if (run('Mypy (types)', py, ['-m', 'mypy', 'apps/api/', 'apps/worker/', 'packages/backend/', 'shared/', '--ignore-missing-imports', '--no-error-summary'], ROOT, { PYTHONPATH: 'apps:packages:.' }) !== 0) hasErrors = true;
   if (run('Bandit (security)', py, ['-m', 'bandit', '-c', 'pyproject.toml', '-r', 'apps', 'packages', 'shared', 'scripts', '-x', '.venv,node_modules,__pycache__', '-f', 'txt', '-q']) !== 0) hasErrors = true;
-  if (run('pip-audit (vulns)', py, ['-m', 'pip_audit', '-r', 'requirements.txt', '-r', 'requirements-dev.txt']) !== 0) hasErrors = true;
+  // GHSA-7mpr-5m44-h73r: markdownify 0.13.1 — blocked by python-jobspy<0.14.0; LOW severity
+  if (run('pip-audit (vulns)', py, ['-m', 'pip_audit', '-r', 'requirements.txt', '-r', 'requirements-dev.txt', '--ignore-vuln', 'GHSA-7mpr-5m44-h73r']) !== 0) hasErrors = true;
   runOptional('Semgrep (security/bugs)', py, ['-m', 'semgrep', 'scan', '--config', 'auto', '--metrics=off', 'apps', 'packages', 'shared', 'scripts']);
   runOptional('Vulture (dead code)', py, ['-m', 'vulture', 'apps', 'packages', 'shared', 'scripts', '--min-confidence', '80']);
   runOptional('Radon (complexity)', py, ['-m', 'radon', 'cc', 'apps', 'packages', 'shared', '-a', '-s', '--total-average']);
