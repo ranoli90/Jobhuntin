@@ -65,6 +65,12 @@ export default function AlternativeTo() {
                 description={description}
                 ogTitle={title}
                 canonicalUrl={canonicalUrl}
+                breadcrumbs={[
+                    { name: "Home", url: "https://jobhuntin.com" },
+                    { name: "Alternatives", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
+                    { name: competitor.name + " Alternative", url: canonicalUrl },
+                ]}
+                keywords={competitor.seo_keywords?.join(", ")}
                 schema={[
                     {
                         "@context": "https://schema.org",
@@ -142,6 +148,31 @@ export default function AlternativeTo() {
                             : `Stop settling for ${competitor.name}'s limitations. Upgrade to fully autonomous job hunting with JobHuntin.`
                         }
                     </p>
+                    <p className="text-sm text-slate-400 mt-3">Last updated: March 2026</p>
+                </motion.div>
+
+                {/* TL;DR */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-20"
+                >
+                    <div className="bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                        <div>
+                            <p className="text-slate-700 font-medium leading-relaxed">
+                                JobHuntin is the best {competitor.name} alternative — fully autonomous AI with stealth mode.
+                            </p>
+                            <p className="text-slate-600 text-sm mt-1 font-medium">
+                                Per-application resume tailoring and 24/7 auto-apply. No data migration needed to switch.
+                            </p>
+                        </div>
+                        <Link
+                            to="/login"
+                            className="flex-shrink-0 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold transition-colors"
+                        >
+                            Start Free <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
                 </motion.div>
 
                 {/* Why Switch Section */}

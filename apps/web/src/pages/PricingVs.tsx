@@ -99,6 +99,12 @@ export default function PricingVs() {
                 description={description}
                 ogTitle={title}
                 canonicalUrl={canonicalUrl}
+                breadcrumbs={[
+                    { name: "Home", url: "https://jobhuntin.com" },
+                    { name: "Compare Tools", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
+                    { name: competitor.name + " vs JobHuntin Pricing", url: canonicalUrl },
+                ]}
+                keywords={competitor.seo_keywords?.join(", ")}
                 schema={[
                     {
                         "@context": "https://schema.org",

@@ -104,6 +104,12 @@ export default function ComparisonPage() {
         ogTitle={title}
         canonicalUrl={canonicalUrl}
         includeDate={true}
+        breadcrumbs={[
+          { name: "Home", url: "https://jobhuntin.com" },
+          { name: "Compare Tools", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
+          { name: "vs " + competitor.name, url: canonicalUrl },
+        ]}
+        keywords={competitor.seo_keywords?.join(", ")}
         schema={[
           {
             "@context": "https://schema.org",
@@ -207,11 +213,36 @@ export default function ComparisonPage() {
           <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium text-balance">
             {competitor.verdict}
           </p>
+          <p className="text-sm text-slate-400 mt-3">Last updated: March 2026</p>
           {competitor.status === 'discontinued' && (
             <div className="mt-4 inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-bold border border-red-100">
               <span aria-hidden="true">⚠️</span> {competitor.name} has been discontinued
             </div>
           )}
+        </motion.div>
+
+        {/* TL;DR */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-16 sm:mb-20"
+        >
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div>
+              <p className="text-slate-700 font-medium leading-relaxed">
+                JobHuntin beats {competitor.name} on automation, stealth mode, and per-application resume tailoring.
+              </p>
+              <p className="text-slate-600 text-sm mt-1 font-medium">
+                One AI agent handles discovery, tailoring, and submission — {competitor.name} can&apos;t match that.
+              </p>
+            </div>
+            <Link
+              to="/login"
+              className="flex-shrink-0 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold transition-colors"
+            >
+              Start Free <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </motion.div>
 
         {/* Feature Comparison Table */}

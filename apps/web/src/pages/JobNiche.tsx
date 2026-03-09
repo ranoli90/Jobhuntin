@@ -5,6 +5,7 @@ import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
 import rolesData from '../data/roles.json';
 import locationsData from '../data/locations.json';
+import guidesData from '../data/guides.json';
 
 interface RoleSchema {
   "@context": string;
@@ -129,6 +130,12 @@ export default function JobNiche() {
         canonicalUrl={canonicalUrl}
         includeDate={true}
         schema={seoData.schema}
+        breadcrumbs={[
+          { name: "Home", url: "https://jobhuntin.com" },
+          { name: "Jobs by Location", url: "https://jobhuntin.com/locations" },
+          { name: `${formattedRole} in ${formattedCity}`, url: canonicalUrl }
+        ]}
+        keywords={`${formattedRole} jobs ${formattedCity}, ${formattedRole} salary ${formattedCity}, ${formattedRole} career ${formattedCity}`}
       />
 
       {/* Mobile-optimized sticky header */}
@@ -370,6 +377,28 @@ export default function JobNiche() {
           </div>
         </section>
 
+        {/* Related Guides */}
+        <section className="mb-10 sm:mb-20">
+          <h2 className="text-xl sm:text-2xl font-black mb-6">Related Guides</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {(['resume-tailoring-guide', 'how-to-beat-ats-with-ai', 'ai-cover-letter-mastery'] as const)
+              .filter(slug => guidesData[slug])
+              .map(slug => {
+                const guide = guidesData[slug as keyof typeof guidesData];
+                return (
+                  <Link
+                    key={slug}
+                    to={`/guides/${slug}`}
+                    className="bg-white p-4 sm:p-6 rounded-xl border border-slate-100 shadow-sm hover:border-primary-200 hover:shadow-md transition-all"
+                  >
+                    <p className="font-bold text-slate-900 mb-1">{guide.title}</p>
+                    <p className="text-xs text-slate-500">{guide.readTime} read</p>
+                  </Link>
+                );
+              })}
+          </div>
+        </section>
+
         <TopicalClusters clusters={topicalClusters} />
 
         {/* Related Links - Mobile optimized */}
@@ -408,6 +437,24 @@ export default function JobNiche() {
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Compare Job Search Tools */}
+        <section className="mb-10 sm:mb-20">
+          <h2 className="text-xl sm:text-2xl font-black mb-6">Compare AI Job Search Tools</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { name: 'LazyApply', slug: 'lazyapply' },
+              { name: 'Jobright', slug: 'jobright' },
+              { name: 'Simplify', slug: 'simplify' },
+              { name: 'Teal', slug: 'teal' },
+            ].map(c => (
+              <Link key={c.slug} to={`/vs/${c.slug}`} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center hover:border-primary-200 hover:shadow-md transition-all">
+                <p className="font-bold text-slate-900 text-sm">vs {c.name}</p>
+                <p className="text-xs text-primary-600 mt-1">Compare →</p>
+              </Link>
+            ))}
           </div>
         </section>
 

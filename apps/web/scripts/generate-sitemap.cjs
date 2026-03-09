@@ -16,6 +16,12 @@ const roles = JSON.parse(
 const locations = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../src/data/locations.json'), 'utf-8')
 );
+const topics = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../src/data/topics.json'), 'utf-8')
+);
+const guides = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../src/data/guides.json'), 'utf-8')
+);
 
 // Static routes
 const staticRoutes = [
@@ -83,6 +89,20 @@ const localRoutes = roles
       }))
   );
 
+// Topic routes from topics.json
+const topicRoutes = Object.keys(topics).map((slug) => ({
+  path: `/topics/${slug}`,
+  priority: 0.7,
+  changefreq: 'monthly',
+}));
+
+// Guide routes from guides.json
+const guideRoutes = Object.keys(guides).map((slug) => ({
+  path: `/guides/${slug}`,
+  priority: 0.8,
+  changefreq: 'monthly',
+}));
+
 const today = new Date().toISOString().split('T')[0];
 
 function writeSitemap(filename, routes) {
@@ -110,6 +130,8 @@ const sections = [
   { name: 'competitors', routes: competitorRoutes },
   { name: 'categories', routes: categoryRoutes },
   { name: 'jobs', routes: localRoutes },
+  { name: 'topics', routes: topicRoutes },
+  { name: 'guides', routes: guideRoutes },
 ];
 
 function generateSitemaps() {
@@ -139,6 +161,8 @@ ${indexEntries
   console.log("   -", competitorRoutes.length, "competitor routes (" + competitors.length, "brands × 5 page types)");
   console.log("   -", categoryRoutes.length, "category hub routes");
   console.log("   -", localRoutes.length, "job routes");
+  console.log("   -", topicRoutes.length, "topic routes");
+  console.log("   -", guideRoutes.length, "guide routes");
 }
 
 generateSitemaps();

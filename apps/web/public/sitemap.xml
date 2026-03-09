@@ -2,18 +2,26 @@
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>https://jobhuntin.com/sitemap-core.xml</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-09</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://jobhuntin.com/sitemap-competitors.xml</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-09</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://jobhuntin.com/sitemap-categories.xml</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-09</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://jobhuntin.com/sitemap-jobs.xml</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-09</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://jobhuntin.com/sitemap-topics.xml</loc>
+    <lastmod>2026-03-09</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://jobhuntin.com/sitemap-guides.xml</loc>
+    <lastmod>2026-03-09</lastmod>
   </sitemap>
 </sitemapindex>

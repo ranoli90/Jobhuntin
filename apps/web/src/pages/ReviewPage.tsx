@@ -73,6 +73,12 @@ export default function ReviewPage() {
                 ogTitle={title}
                 canonicalUrl={canonicalUrl}
                 includeDate={true}
+                breadcrumbs={[
+                    { name: "Home", url: "https://jobhuntin.com" },
+                    { name: "Reviews", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
+                    { name: competitor.name + " Review", url: canonicalUrl },
+                ]}
+                keywords={competitor.seo_keywords?.join(", ")}
                 schema={[
                     {
                         "@context": "https://schema.org",
@@ -186,7 +192,7 @@ export default function ReviewPage() {
                             Review
                         </span>
                         <span className="text-slate-400 text-sm flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" /> Updated February 2026
+                            <Calendar className="w-3.5 h-3.5" /> Last updated: March 2026
                         </span>
                         <span className="text-slate-400 text-sm flex items-center gap-1">
                             <Globe className="w-3.5 h-3.5" /> {competitor.domain}
