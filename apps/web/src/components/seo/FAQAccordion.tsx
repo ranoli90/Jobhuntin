@@ -29,39 +29,41 @@ export function FAQAccordion({ items, competitorName }: FAQAccordionProps) {
     };
 
     return (
-        <section className="py-16">
-            <h2 className="text-3xl font-bold font-display text-slate-900 mb-8 text-center">
-                Frequently Asked Questions
-                {competitorName && <span className="text-slate-400"> about {competitorName}</span>}
-            </h2>
+        <section className="py-16 sm:py-20 bg-[#F7F6F3]">
+            <div className="max-w-[720px] mx-auto px-6">
+                <h2 className="text-[clamp(1.75rem,3.5vw,28px)] font-bold text-[#2D2A26] mb-10 text-center" style={{ letterSpacing: '-0.5px' }}>
+                    Frequently Asked Questions
+                    {competitorName && <span className="text-[#9B9A97] font-normal"> about {competitorName}</span>}
+                </h2>
 
-            <div className="max-w-3xl mx-auto space-y-3">
-                {items.map((item, i) => (
-                    <div
-                        key={i}
-                        className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-all hover:shadow-md"
-                    >
-                        <button
-                            onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                            className="w-full flex items-center justify-between px-6 py-5 text-left group"
-                            aria-expanded={openIndex === i}
+                <div className="space-y-2">
+                    {items.map((item, i) => (
+                        <div
+                            key={i}
+                            className="rounded-xl border border-[#E9E9E7] bg-white overflow-hidden transition-all duration-200 hover:border-[#E3E2E0]"
                         >
-                            <span className="text-lg font-semibold text-slate-900 group-hover:text-primary-600 transition-colors pr-4">
-                                {item.question}
-                            </span>
-                            {openIndex === i ? (
-                                <ChevronUp className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                            ) : (
-                                <ChevronDown className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                            <button
+                                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                                className="w-full flex items-center justify-between gap-4 px-5 sm:px-6 py-4 sm:py-5 text-left group"
+                                aria-expanded={openIndex === i}
+                            >
+                                <span className="text-[15px] sm:text-[16px] font-semibold text-[#2D2A26] group-hover:text-[#455DD3] transition-colors pr-2">
+                                    {item.question}
+                                </span>
+                                {openIndex === i ? (
+                                    <ChevronUp className="w-5 h-5 text-[#455DD3] flex-shrink-0" />
+                                ) : (
+                                    <ChevronDown className="w-5 h-5 text-[#9B9A97] flex-shrink-0" />
+                                )}
+                            </button>
+                            {openIndex === i && (
+                                <div className="px-5 sm:px-6 pb-5 pt-0 text-[15px] text-[#787774] leading-[1.6] border-t border-[#F1F1EF]">
+                                    <p>{item.answer}</p>
+                                </div>
                             )}
-                        </button>
-                        {openIndex === i && (
-                            <div className="px-6 pb-5 text-slate-600 leading-relaxed animate-in fade-in">
-                                <p>{item.answer}</p>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml - JSON-LD schema; JSON.stringify+replace prevents XSS */}

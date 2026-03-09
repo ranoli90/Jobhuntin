@@ -65,24 +65,24 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
       <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
         <input type="email" placeholder="you@example.com" aria-label="Email address"
           className={cn(
-            "flex-1 h-[36px] px-4 rounded-lg text-[14px] transition-all outline-none",
+            "flex-1 min-h-[48px] sm:min-h-[44px] px-4 rounded-xl text-base sm:text-[14px] transition-all outline-none w-full",
             dark
-              ? "bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:border-white/50"
-              : "bg-white border border-[#E3E2E0] text-[#2D2A26] placeholder:text-[#B0AFA9] focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/10",
+              ? "bg-white/10 border-2 border-white/20 text-white placeholder:text-white/50 focus:border-white/50 focus:ring-2 focus:ring-white/20"
+              : "bg-white border-2 border-[#E3E2E0] text-[#2D2A26] placeholder:text-[#B0AFA9] focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/10",
             emailError && "!border-red-400"
           )}
           value={email} onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(""); }}
         />
         <button type="submit" disabled={isSubmitting}
           className={cn(
-            "h-[36px] px-4 rounded-lg text-[14px] font-medium flex items-center justify-center gap-2 whitespace-nowrap transition-all disabled:opacity-50",
+            "min-h-[48px] sm:min-h-[44px] px-6 rounded-xl text-base sm:text-[14px] font-semibold flex items-center justify-center gap-2 whitespace-nowrap transition-all disabled:opacity-50 shrink-0",
             dark
               ? "bg-white text-[#2D2A26] hover:bg-white/90"
               : "bg-[#455DD3] text-white hover:bg-[#3A4FB8]"
           )}
-        >{isSubmitting ? "Sending…" : "Get started free"} {!isSubmitting && <ArrowRight className="w-3.5 h-3.5" />}</button>
+        >{isSubmitting ? "Sending…" : "Get started free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}</button>
       </form>
-      {emailError && <p className="mt-2 text-xs text-red-500 pl-1">{emailError}</p>}
+      {emailError && <p className="mt-2 text-sm text-red-500 pl-1">{emailError}</p>}
     </div>
   );
 }
@@ -257,7 +257,7 @@ function UserJourneySection() {
           </Reveal>
 
           <p className="text-center text-[15px] text-white/60 mt-8 font-medium">
-            Join 500,000+ applications sent. <span className="text-[#7DD3CF]">Your turn is next.</span>
+            <span className="text-[#7DD3CF]">Your turn is next.</span>
           </p>
         </div>
       </div>
@@ -626,7 +626,7 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════
           FAQ
           ═══════════════════════════════════════════ */}
-      <section className="bg-white">
+      <section>
         <FAQAccordion items={[
           { question: "Is JobHuntin free?", answer: "Yes. JobHuntin offers a free plan with 20 applications per week. No credit card required. You can upgrade for more applications and premium features when you're ready." },
           { question: "How does the AI auto-apply work?", answer: "You upload your resume and set your preferences (role, salary, location). Our AI matches you to relevant jobs, tailors your resume and cover letter for each application, and submits them automatically. You can track everything in your dashboard." },
@@ -639,22 +639,26 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════
           EXPLORE MORE — internal links
           ═══════════════════════════════════════════ */}
-      <section className="py-16 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl font-bold text-[#2D2A26] text-center mb-8">Explore More</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="py-16 sm:py-20 bg-white">
+        <div className="max-w-[1080px] mx-auto px-6">
+          <h2 className="text-[clamp(1.5rem,3vw,28px)] font-bold text-[#2D2A26] text-center mb-10 sm:mb-12" style={{ letterSpacing: '-0.5px' }}>
+            Explore More
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-8">
             {[
               { label: 'Compare Tools', links: [{ text: 'vs LazyApply', to: '/vs/lazyapply' }, { text: 'vs Jobright', to: '/vs/jobright' }, { text: 'vs Simplify', to: '/vs/simplify' }, { text: 'vs Teal', to: '/vs/teal' }] },
               { label: 'Guides', links: [{ text: 'Beat ATS with AI', to: '/guides/how-to-beat-ats-with-ai' }, { text: 'Resume Tailoring', to: '/guides/resume-tailoring-guide' }, { text: 'Cover Letter Mastery', to: '/guides/ai-cover-letter-mastery' }, { text: 'All Guides', to: '/guides' }] },
               { label: 'Topics', links: [{ text: 'Remote Work', to: '/topics/remote-work' }, { text: 'ATS Optimization', to: '/topics/ats-optimization' }, { text: 'Salary Negotiation', to: '/topics/salary-negotiation' }, { text: 'All Topics', to: '/blog' }] },
               { label: 'Tools', links: [{ text: 'AI Resume Tailor', to: '/tools' }, { text: 'ATS Score Checker', to: '/tools' }, { text: 'Cover Letter Gen', to: '/tools' }, { text: 'All Free Tools', to: '/tools' }] },
             ].map(section => (
-              <div key={section.label}>
-                <h3 className="text-sm font-bold text-[#787774] uppercase tracking-wider mb-3">{section.label}</h3>
-                <ul className="space-y-2">
+              <div key={section.label} className="min-w-0">
+                <h3 className="text-[12px] font-semibold text-[#9B9A97] uppercase tracking-wider mb-4">{section.label}</h3>
+                <ul className="space-y-3">
                   {section.links.map(link => (
                     <li key={link.text}>
-                      <Link to={link.to} className="text-sm text-[#2D2A26] hover:text-[#455DD3] font-medium transition-colors">{link.text}</Link>
+                      <Link to={link.to} className="text-[14px] sm:text-[15px] text-[#2D2A26] hover:text-[#455DD3] font-medium transition-colors block">
+                        {link.text}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -681,7 +685,7 @@ export default function Homepage() {
                 Your next role is one upload away.
               </h2>
               <p className="text-[16px] text-[#9B9A97] leading-[24px] mb-[32px]">Stop applying manually. Join thousands who've reclaimed their time.</p>
-              <div className="max-w-[400px] mx-auto">
+              <div className="w-full max-w-[420px] mx-auto px-2 sm:px-0">
                 <EmailForm variant="dark" />
               </div>
               <div className="mt-[24px] flex flex-wrap items-center justify-center gap-x-[20px] gap-y-[6px] text-[14px] text-[#787774]">

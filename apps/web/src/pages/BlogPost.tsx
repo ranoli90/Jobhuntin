@@ -6,6 +6,8 @@ import { ArrowLeft, Clock, User, Tag, Share2, Twitter, Linkedin, Facebook } from
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
+marked.setOptions({ gfm: true });
+
 const blogPosts: Record<string, {
   title: string;
   excerpt: string;
@@ -14,8 +16,12 @@ const blogPosts: Record<string, {
   date: string;
   readTime: string;
   author: string;
+  heroImage: string;
+  heroGradient: string;
 }> = {
   'is-jobright-legit': {
+    heroImage: '/illustrations/filter.svg',
+    heroGradient: 'linear-gradient(135deg, rgba(69,93,211,0.2) 0%, rgba(23,190,187,0.1) 100%)',
     title: 'Is Jobright Legit? Complete 2026 Review',
     excerpt: 'An honest, in-depth analysis of Jobright AI. We test every feature, compare pricing, and reveal whether it\'s worth your time in 2026.',
     content: `
@@ -182,6 +188,8 @@ The best approach? Use JobHuntin for volume applications while networking separa
     date: '2026-02-12',
     readTime: '12 min',
     author: 'JobHuntin Team',
+    heroImage: '/illustrations/career-progress.svg',
+    heroGradient: 'linear-gradient(135deg, rgba(23,190,187,0.2) 0%, rgba(69,93,211,0.15) 100%)',
   },
 };
 
@@ -197,9 +205,9 @@ export default function BlogPost() {
 
   if (!post) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
-        <h1 className="text-2xl font-bold mb-4 text-slate-900">Article Not Found</h1>
-        <Link to="/blog" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#F7F6F3]">
+        <h1 className="text-2xl font-bold mb-4 text-[#2D2A26]">Article Not Found</h1>
+        <Link to="/blog" className="text-[#455DD3] hover:underline flex items-center gap-2 font-medium">
           <ArrowLeft className="w-4 h-4" /> Back to Blog
         </Link>
       </div>
@@ -211,7 +219,7 @@ export default function BlogPost() {
   const canonicalUrl = `https://jobhuntin.com/blog/${slug}`;
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900">
+    <div className="min-h-screen bg-white font-sans text-[#2D2A26]">
       <SEO
         title={title}
         description={description}
@@ -243,74 +251,90 @@ export default function BlogPost() {
         ]}
       />
 
-      <main className="max-w-3xl mx-auto px-6 py-16">
+      <main className="max-w-[720px] mx-auto px-6 sm:px-8 py-8 sm:py-12">
         {/* Breadcrumb */}
-        <nav className="mb-8">
-          <Link to="/blog" className="text-primary-600 hover:underline flex items-center gap-2 text-sm font-medium">
+        <nav className="mb-6 sm:mb-8">
+          <Link to="/blog" className="text-[#455DD3] hover:underline flex items-center gap-2 text-sm font-medium">
             <ArrowLeft className="w-4 h-4" /> Back to Blog
           </Link>
         </nav>
+
+        {/* Hero image — thematic illustration */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="aspect-video rounded-2xl overflow-hidden mb-8 sm:mb-12 flex items-center justify-center"
+          style={{ background: post.heroGradient }}
+        >
+          <img
+            src={post.heroImage}
+            alt=""
+            aria-hidden
+            className="w-[60%] max-w-[320px] h-auto object-contain opacity-70"
+          />
+        </motion.div>
 
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
+          className="mb-10 sm:mb-12"
         >
-          <div className="flex items-center gap-3 text-sm text-slate-500 mb-4">
-            <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full font-medium">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-[#787774] mb-4">
+            <span className="bg-[#455DD3]/10 text-[#455DD3] px-3 py-1.5 rounded-lg font-semibold">
               {post.category}
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
               {post.readTime}
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <User className="w-4 h-4" />
               {post.author}
             </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-tight">
+          <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-[#2D2A26] mb-4 tracking-tight leading-[1.2]" style={{ letterSpacing: '-0.5px' }}>
             {post.title}
           </h1>
-          <p className="text-xl text-slate-600">
+          <p className="text-lg sm:text-xl text-[#787774] leading-relaxed">
             {post.excerpt}
           </p>
         </motion.header>
 
-        {/* Content */}
+        {/* Content — prose with site tokens */}
         <motion.article
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="prose prose-lg prose-slate max-w-none mb-12
-            prose-headings:font-bold prose-headings:text-slate-900
-            prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6
-            prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4
-            prose-p:text-slate-600 prose-p:leading-relaxed
-            prose-a:text-primary-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-slate-900
-            prose-li:text-slate-600
-            prose-table:text-sm
-            prose-th:bg-slate-50 prose-th:p-3 prose-th:text-left
-            prose-td:p-3 prose-td:border-t prose-td:border-slate-200"
+          className="blog-content prose prose-lg max-w-none mb-12
+            prose-headings:font-bold prose-headings:text-[#2D2A26]
+            prose-h2:text-xl sm:prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-[#E9E9E7]
+            prose-h3:text-lg sm:prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
+            prose-p:text-[#787774] prose-p:leading-[1.7] prose-p:mb-4
+            prose-a:text-[#455DD3] prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+            prose-strong:text-[#2D2A26] prose-strong:font-semibold
+            prose-li:text-[#787774] prose-li:my-1
+            prose-ul:my-4 prose-ol:my-4
+            prose-table:text-sm prose-table:w-full prose-table:my-6
+            prose-th:bg-[#F7F6F3] prose-th:p-3 prose-th:text-left prose-th:font-semibold prose-th:text-[#2D2A26] prose-th:border prose-th:border-[#E9E9E7]
+            prose-td:p-3 prose-td:border prose-td:border-[#E9E9E7] prose-td:text-[#787774]"
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(marked.parse(post.content, { async: false }) as string),
           }}
         />
 
         {/* Share */}
-        <div className="border-t border-slate-200 pt-8 mb-12">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <span className="text-slate-600 font-medium">Share this article:</span>
+        <div className="border-t border-[#E9E9E7] pt-8 mb-12">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <span className="text-[#787774] font-medium">Share this article:</span>
             <div className="flex gap-3">
-              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(canonicalUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-primary-100 hover:text-primary-600 transition-colors">
+              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(canonicalUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-[#F7F6F3] flex items-center justify-center text-[#787774] hover:bg-[#455DD3]/10 hover:text-[#455DD3] transition-colors">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonicalUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-primary-100 hover:text-primary-600 transition-colors">
+              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonicalUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-[#F7F6F3] flex items-center justify-center text-[#787774] hover:bg-[#455DD3]/10 hover:text-[#455DD3] transition-colors">
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-primary-100 hover:text-primary-600 transition-colors">
+              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-[#F7F6F3] flex items-center justify-center text-[#787774] hover:bg-[#455DD3]/10 hover:text-[#455DD3] transition-colors">
                 <Facebook className="w-5 h-5" />
               </a>
             </div>
@@ -318,17 +342,17 @@ export default function BlogPost() {
         </div>
 
         {/* Related Posts */}
-        <div className="border-t border-slate-200 pt-12">
-          <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+        <div className="border-t border-[#E9E9E7] pt-12">
+          <h2 className="text-xl font-bold text-[#2D2A26] mb-6">Related Articles</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
             {relatedPosts.filter(p => p.slug !== slug).slice(0, 2).map((relatedPost) => (
               <Link
                 key={relatedPost.slug}
                 to={`/blog/${relatedPost.slug}`}
-                className="bg-slate-50 rounded-xl p-5 hover:bg-slate-100 transition-colors"
+                className="block rounded-xl p-5 bg-[#F7F6F3] hover:bg-[#EDECE9] border border-[#E9E9E7] hover:border-[#E3E2E0] transition-all"
               >
-                <span className="text-xs text-primary-600 font-medium">{relatedPost.category}</span>
-                <h3 className="font-semibold text-slate-900 mt-2">{relatedPost.title}</h3>
+                <span className="text-xs font-semibold text-[#455DD3]">{relatedPost.category}</span>
+                <h3 className="font-semibold text-[#2D2A26] mt-2">{relatedPost.title}</h3>
               </Link>
             ))}
           </div>

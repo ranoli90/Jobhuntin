@@ -14,6 +14,8 @@ const blogPosts = [
     readTime: '8 min',
     author: 'JobHuntin Team',
     featured: true,
+    heroImage: '/illustrations/filter.svg',
+    heroGradient: 'linear-gradient(135deg, rgba(69,93,211,0.2) 0%, rgba(23,190,187,0.1) 100%)',
   },
   {
     slug: 'ai-job-application-tools-compared',
@@ -24,6 +26,8 @@ const blogPosts = [
     readTime: '12 min',
     author: 'JobHuntin Team',
     featured: true,
+    heroImage: '/illustrations/career-progress.svg',
+    heroGradient: 'linear-gradient(135deg, rgba(23,190,187,0.2) 0%, rgba(69,93,211,0.15) 100%)',
   },
   {
     slug: 'how-to-auto-apply-jobs',
@@ -34,6 +38,8 @@ const blogPosts = [
     readTime: '10 min',
     author: 'JobHuntin Team',
     featured: false,
+    heroImage: '/illustrations/application.svg',
+    heroGradient: 'linear-gradient(135deg, rgba(234,88,12,0.15) 0%, rgba(69,93,211,0.1) 100%)',
   },
   {
     slug: 'ats-resume-optimization',
@@ -44,6 +50,8 @@ const blogPosts = [
     readTime: '7 min',
     author: 'JobHuntin Team',
     featured: false,
+    heroImage: '/illustrations/files-uploading.svg',
+    heroGradient: 'linear-gradient(135deg, rgba(22,163,74,0.15) 0%, rgba(69,93,211,0.1) 100%)',
   },
   {
     slug: 'job-search-statistics-2026',
@@ -54,6 +62,8 @@ const blogPosts = [
     readTime: '6 min',
     author: 'JobHuntin Team',
     featured: false,
+    heroImage: '/illustrations/dashboard.svg',
+    heroGradient: 'linear-gradient(135deg, rgba(69,93,211,0.15) 0%, rgba(23,190,187,0.1) 100%)',
   },
   {
     slug: 'interview-success-stories',
@@ -64,6 +74,8 @@ const blogPosts = [
     readTime: '9 min',
     author: 'JobHuntin Team',
     featured: true,
+    heroImage: '/illustrations/celebration.svg',
+    heroGradient: 'linear-gradient(135deg, rgba(234,88,12,0.15) 0%, rgba(23,190,187,0.12) 100%)',
   },
 ];
 
@@ -74,7 +86,7 @@ export default function BlogHome() {
   const description = 'Expert insights on AI-powered job search. Tool reviews, application strategies, interview tips, and real success stories from job seekers who landed their dream jobs.';
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="min-h-screen bg-[#F7F6F3] font-sans text-[#2D2A26]">
       <SEO
         title={title}
         description={description}
@@ -113,37 +125,37 @@ export default function BlogHome() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-16"
         >
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
+          <h1 className="text-[clamp(2rem,4vw,3rem)] font-bold text-[#2D2A26] mb-4 tracking-tight" style={{ letterSpacing: '-0.5px' }}>
             Job Search Intelligence
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-[#787774] max-w-2xl mx-auto leading-relaxed">
             In-depth guides, honest reviews, and data-driven insights to help you land your dream job faster.
           </p>
         </motion.div>
 
         {/* Search */}
-        <div className="max-w-xl mx-auto mb-12">
+        <div className="max-w-xl mx-auto mb-10">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9B9A97]" />
             <input
               type="text"
               placeholder="Search articles..."
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+              className="w-full pl-12 pr-4 py-3.5 sm:py-4 rounded-xl border-2 border-[#E9E9E7] bg-white focus:border-[#455DD3] focus:ring-2 focus:ring-[#455DD3]/10 outline-none transition-all text-[#2D2A26] placeholder:text-[#9B9A97]"
             />
           </div>
         </div>
 
         {/* Categories */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10 sm:mb-12">
           {categories.map((cat) => (
             <button
               key={cat}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+              className={`px-4 sm:px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
                 cat === 'All'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-white text-slate-600 hover:bg-primary-50 hover:text-primary-700 border border-slate-200'
+                  ? 'bg-[#455DD3] text-white'
+                  : 'bg-white text-[#787774] hover:bg-[#455DD3]/10 hover:text-[#455DD3] border border-[#E9E9E7]'
               }`}
             >
               {cat}
@@ -152,9 +164,9 @@ export default function BlogHome() {
         </div>
 
         {/* Featured Posts */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold mb-8">Featured Articles</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+        <div className="mb-12 sm:mb-16">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#2D2A26] mb-6 sm:mb-8">Featured Articles</h2>
+          <div className="grid sm:grid-cols-2 gap-6">
             {blogPosts.filter(p => p.featured).slice(0, 2).map((post, index) => (
               <motion.div
                 key={post.slug}
@@ -164,14 +176,22 @@ export default function BlogHome() {
               >
                 <Link
                   to={`/blog/${post.slug}`}
-                  className="block bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-lg transition-all group"
+                  className="block bg-white rounded-2xl overflow-hidden border border-[#E9E9E7] hover:border-[#E3E2E0] hover:shadow-lg transition-all duration-300 group"
                 >
-                  <div className="aspect-video bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-                    <span className="text-6xl opacity-50">📝</span>
+                  <div
+                    className="aspect-video flex items-center justify-center"
+                    style={{ background: post.heroGradient }}
+                  >
+                    <img
+                      src={post.heroImage}
+                      alt=""
+                      aria-hidden
+                      className="w-[50%] max-w-[200px] h-auto object-contain opacity-60 group-hover:opacity-80 transition-opacity"
+                    />
                   </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-3 text-sm text-slate-500 mb-3">
-                      <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full font-medium">
+                  <div className="p-5 sm:p-6">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-[#787774] mb-3">
+                      <span className="bg-[#455DD3]/10 text-[#455DD3] px-3 py-1 rounded-lg font-semibold">
                         {post.category}
                       </span>
                       <span className="flex items-center gap-1">
@@ -179,15 +199,15 @@ export default function BlogHome() {
                         {post.readTime}
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-primary-600 transition-colors mb-3">
+                    <h3 className="text-lg sm:text-xl font-bold text-[#2D2A26] group-hover:text-[#455DD3] transition-colors mb-2">
                       {post.title}
                     </h3>
-                    <p className="text-slate-600 leading-relaxed">
+                    <p className="text-[#787774] text-sm sm:text-base leading-relaxed line-clamp-2">
                       {post.excerpt}
                     </p>
                     <div className="mt-4 flex items-center justify-between">
-                      <span className="text-sm text-slate-500">{post.date}</span>
-                      <span className="text-primary-600 font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                      <span className="text-sm text-[#9B9A97]">{post.date}</span>
+                      <span className="text-[#455DD3] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
                         Read More <ArrowRight className="w-4 h-4" />
                       </span>
                     </div>
@@ -200,8 +220,8 @@ export default function BlogHome() {
 
         {/* All Posts */}
         <div>
-          <h2 className="text-2xl font-bold mb-8">All Articles</h2>
-          <div className="space-y-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#2D2A26] mb-6 sm:mb-8">All Articles</h2>
+          <div className="space-y-3 sm:space-y-4">
             {blogPosts.map((post, index) => (
               <motion.div
                 key={post.slug}
@@ -211,25 +231,28 @@ export default function BlogHome() {
               >
                 <Link
                   to={`/blog/${post.slug}`}
-                  className="block bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md hover:border-primary-100 transition-all group"
+                  className="block bg-white rounded-xl p-5 sm:p-6 border border-[#E9E9E7] hover:border-[#E3E2E0] hover:shadow-md transition-all duration-300 group"
                 >
-                  <div className="flex items-start gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 text-sm text-slate-500 mb-2">
-                        <Tag className="w-4 h-4" />
+                  <div className="flex items-start gap-4 sm:gap-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ background: post.heroGradient }}>
+                      <img src={post.heroImage} alt="" aria-hidden className="w-[70%] h-[70%] object-contain opacity-60" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-[#787774] mb-1.5">
+                        <Tag className="w-4 h-4 shrink-0" />
                         {post.category}
-                        <span>•</span>
+                        <span className="text-[#E9E9E7]">•</span>
                         <Clock className="w-4 h-4" />
                         {post.readTime}
                       </div>
-                      <h3 className="text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors mb-2">
+                      <h3 className="text-base sm:text-lg font-bold text-[#2D2A26] group-hover:text-[#455DD3] transition-colors mb-1.5">
                         {post.title}
                       </h3>
-                      <p className="text-slate-600 text-sm line-clamp-2">
+                      <p className="text-[#787774] text-sm line-clamp-2">
                         {post.excerpt}
                       </p>
                     </div>
-                    <div className="hidden md:flex items-center text-primary-600 font-semibold text-sm whitespace-nowrap">
+                    <div className="hidden sm:flex items-center text-[#455DD3] font-semibold text-sm whitespace-nowrap shrink-0">
                       Read <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
