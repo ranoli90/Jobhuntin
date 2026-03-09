@@ -204,8 +204,9 @@ app.state.cors_origins = CORS_ORIGINS
 # Add Request ID middleware for distributed tracing
 setup_request_id_middleware(app)
 
-from shared.metrics import get_rate_limiter
+from shared.metrics import get_rate_limiter, observe, incr
 from shared.middleware import get_client_ip, setup_security_headers
+import time
 
 # ---------------------------------------------------------------------------
 # CSRF Protection Middleware
@@ -275,6 +276,83 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
         logger.debug(f"Failed to decode JWT for tenant info: {e}")
 
     return None, TenantTier.FREE
+
+
+@app.middleware("http")
+async def latency_middleware(request: Request, call_next):
+    """Track API latency and performance metrics (H3: API Performance Monitoring)."""
+    start_time = time.time()
+    path = request.url.path
+    method = request.method
+    
+    try:
+        response = await call_next(request)
+        duration = time.time() - start_time
+        
+        # Record latency metric
+        observe(
+            "api.latency",
+            duration,
+            tags={
+                "path": path,
+                "method": method,
+                "status_code": str(response.status_code),
+            },
+        )
+        
+        # Track slow requests (>1 second)
+        if duration > 1.0:
+            logger.warning(
+                "Slow API request detected",
+                extra={
+                    "path": path,
+                    "method": method,
+                    "duration": duration,
+                    "status_code": response.status_code,
+                },
+            )
+            incr(
+                "api.slow_requests",
+                tags={
+                    "path": path,
+                    "method": method,
+                    "status_code": str(response.status_code),
+                },
+            )
+        
+        # Track request count
+        incr(
+            "api.requests",
+            tags={
+                "path": path,
+                "method": method,
+                "status_code": str(response.status_code),
+            },
+        )
+        
+        return response
+    except Exception as exc:
+        duration = time.time() - start_time
+        # Record error latency
+        observe(
+            "api.latency",
+            duration,
+            tags={
+                "path": path,
+                "method": method,
+                "status_code": "500",
+                "error": "true",
+            },
+        )
+        incr(
+            "api.errors",
+            tags={
+                "path": path,
+                "method": method,
+                "error_type": type(exc).__name__,
+            },
+        )
+        raise
 
 
 @app.middleware("http")
