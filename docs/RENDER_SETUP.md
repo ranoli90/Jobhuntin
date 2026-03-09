@@ -40,7 +40,8 @@ This document describes how to connect and verify all Render services for JobHun
 
 ```bash
 export RENDER_API_KEY=rnd_your_key
-python scripts/render_connect.py
+python scripts/render_connect.py           # Verify only
+python scripts/render_connect.py --fix     # Add missing API_PUBLIC_URL, env
 ```
 
 ## Trigger Deploy via API

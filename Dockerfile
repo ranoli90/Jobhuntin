@@ -18,10 +18,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN groupadd -r sorce && useradd -r -g sorce -m sorce
 
-# Install system dependencies for Pillow/OGP (fonts, etc)
+# Install system dependencies for Pillow/OGP (fonts, etc) and Tesseract for OCR
 RUN apt-get update && apt-get install -y --no-install-recommends \
     fontconfig \
     fonts-dejavu-core \
+    tesseract-ocr \
+    tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

@@ -3,13 +3,13 @@
 
 Usage:
   export RENDER_API_KEY=rnd_xxx
-  python scripts/render_connect.py
+  python scripts/render_connect.py           # Verify only
+  python scripts/render_connect.py --fix     # Add missing API_PUBLIC_URL, ENV
 
 Verifies:
   - All services are running
-  - API has DATABASE_URL, REDIS_URL, RESEND_API_KEY, EMAIL_FROM, JWT_SECRET
+  - API has required env vars (DATABASE_URL, REDIS_URL, etc.)
   - Web has VITE_API_URL pointing to API
-  - Redis is available and linked
 """
 
 from __future__ import annotations
@@ -34,7 +34,31 @@ def api_get(path: str, token: str) -> dict | list:
         return json.loads(r.read().decode())
 
 
+def api_put_env(path: str, token: str, value: str) -> int:
+    """PUT env var to Render API. Returns status_code."""
+    url = f"https://api.render.com/v1{path}"
+    req = urllib.request.Request(
+        url,
+        data=json.dumps({"value": value}).encode(),
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+        method="PUT",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
+
+
 def main() -> int:
+    import argparse
+    parser = argparse.ArgumentParser(description="Verify/fix Render service config")
+    parser.add_argument("--fix", action="store_true", help="Add missing env vars (API_PUBLIC_URL, ENV)")
+    args = parser.parse_args()
+
     token = os.environ.get("RENDER_API_KEY")
     if not token:
         print("ERROR: Set RENDER_API_KEY environment variable")
@@ -74,13 +98,51 @@ def main() -> int:
                 for ev in ev_list
                 if ev
             }
-            required = ["DATABASE_URL", "REDIS_URL", "RESEND_API_KEY", "EMAIL_FROM", "JWT_SECRET", "CSRF_SECRET"]
+            # Required for prod: config.validate_critical + main.py lifespan
+            required = [
+                "DATABASE_URL",
+                "REDIS_URL",
+                "RESEND_API_KEY",
+                "EMAIL_FROM",
+                "JWT_SECRET",
+                "CSRF_SECRET",
+                "APP_BASE_URL",
+                "LLM_API_KEY",
+                "API_PUBLIC_URL",  # Magic link verify redirect
+                "WEBHOOK_SIGNING_SECRET",
+            ]
+            # env=prod is typically set in render.yaml; check ENV or env
+            env_keys = ["ENV", "env"]
+            has_env = any(k in keys_present for k in env_keys)
+            if not has_env:
+                required.append("ENV (or env)")  # Must be prod for production
             for key in required:
-                found = key in keys_present
+                k = key.split()[0] if " " in key else key
+                found = k in keys_present
                 status = "OK" if found else "MISSING"
                 print(f"  {key}: {status}")
             if "DATABASE_URL" not in keys_present:
                 print("  Note: DATABASE_URL may be set via Render Dashboard (linked Postgres) - not shown in API")
+            if "API_PUBLIC_URL" not in keys_present:
+                print("  Note: API_PUBLIC_URL needed for magic-link verify redirect. Add in Dashboard.")
+            if args.fix:
+                fixes = []
+                if "API_PUBLIC_URL" not in keys_present:
+                    slug = api_svc.get("slug") or api_svc.get("name", "jobhuntin-api").replace("_", "-")
+                    fixes.append(("API_PUBLIC_URL", f"https://{slug}.onrender.com"))
+                if not has_env:
+                    fixes.append(("env", "prod"))
+                for key, val in fixes:
+                    # Render API: PUT /services/{id}/env-vars/{key}
+                    status = api_put_env(
+                        f"/services/{api_svc['id']}/env-vars/{key}",
+                        token,
+                        val,
+                    )
+                    if status in (200, 201, 204):
+                        print(f"  [FIXED] Set {key}")
+                    else:
+                        print(f"  [FAILED] {key}: HTTP {status}")
         except Exception as e:
             print(f"  Could not fetch env vars: {e}")
 

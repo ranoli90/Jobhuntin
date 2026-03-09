@@ -208,6 +208,7 @@ class DocumentProcessor:
 
                 for page_num in range(len(doc)):
                     try:
+                        page = doc[page_num]
                         # Get page as image
                         pix = page.get_pixmap()
                         img = Image.frombytes("RGB", pix.size, pix.samples)
@@ -288,7 +289,7 @@ class DocumentProcessor:
         if file_type == "pdf":
             metadata.update(await self._extract_pdf_metadata(file_bytes))
         elif file_type == "docx":
-            metadata.update(self._extract_docx_metadata(docx_bytes))
+            metadata.update(self._extract_docx_metadata(file_bytes))
 
         return metadata
 
