@@ -14,6 +14,10 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
+
+# Auth dependency - must be overridden by main app with get_current_user_id
+async def _get_current_user_id() -> str:
+    raise NotImplementedError("Auth dependency not injected")
 from pydantic import BaseModel, Field
 
 from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
@@ -45,7 +49,9 @@ def _get_llm_client() -> LLMClient:
     """Get or create the singleton LLM client."""
     global _llm_client
     if _llm_client is None:
-        _llm_client = LLMClient()
+        from shared.config import get_settings
+
+        _llm_client = LLMClient(get_settings())
     return _llm_client
 
 
@@ -125,6 +131,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 )
 async def suggest_roles(
     request: RoleSuggestionRequest,
+    user_id: str = Depends(_get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> RoleSuggestionResponse_V1:
     """Get AI-powered role suggestions based on resume analysis."""
@@ -175,6 +182,7 @@ async def suggest_roles(
 )
 async def suggest_salary(
     request: SalarySuggestionRequest,
+    user_id: str = Depends(_get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> SalarySuggestionResponse_V1:
     """Get AI-powered salary suggestions."""
@@ -227,6 +235,7 @@ async def suggest_salary(
 )
 async def suggest_locations(
     request: LocationSuggestionRequest,
+    user_id: str = Depends(_get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> LocationSuggestionResponse_V1:
     """Get AI-powered location suggestions."""
@@ -283,6 +292,7 @@ async def suggest_locations(
 )
 async def match_jobs(
     request: JobMatchRequest,
+    user_id: str = Depends(_get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> JobMatchScore_V1:
     """Get AI-powered job matching scores."""
@@ -356,6 +366,7 @@ async def match_jobs(
 )
 async def generate_onboarding_questions(
     request: OnboardingQuestionsRequest,
+    user_id: str = Depends(_get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> OnboardingQuestionsResponse_V1:
     """Get AI-powered onboarding questions."""

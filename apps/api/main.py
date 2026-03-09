@@ -873,43 +873,44 @@ async def save_user_skills(
         return {"status": "saved", "count": 0}
 
     async with db.acquire() as conn:
-        # Clear existing skills and insert new ones
-        await conn.execute("DELETE FROM public.user_skills WHERE user_id = $1", user_id)
+        async with conn.transaction():
+            # Clear existing skills and insert new ones (transactional)
+            await conn.execute("DELETE FROM public.user_skills WHERE user_id = $1", user_id)
 
-        for skill in body.skills:
-            try:
-                await conn.execute(
-                    """INSERT INTO public.user_skills
-                       (user_id, skill, confidence, years_actual, context, last_used,
-                        verified, related_to, source, project_count)
-                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
-                    user_id,
-                    skill.skill,
-                    skill.confidence,
-                    skill.years_actual,
-                    skill.context,
-                    skill.last_used,
-                    skill.verified,
-                    skill.related_to,
-                    skill.source,
-                    skill.project_count,
-                )
-            except Exception as e:
-                logger.error(
-                    "[SKILLS] Failed to insert skill",
-                    extra={"user_id": user_id, "skill": skill.skill, "error": str(e)},
-                )
-                raise
+            for skill in body.skills:
+                try:
+                    await conn.execute(
+                        """INSERT INTO public.user_skills
+                           (user_id, skill, confidence, years_actual, context, last_used,
+                            verified, related_to, source, project_count)
+                           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
+                        user_id,
+                        skill.skill,
+                        skill.confidence,
+                        skill.years_actual,
+                        skill.context,
+                        skill.last_used,
+                        skill.verified,
+                        skill.related_to,
+                        skill.source,
+                        skill.project_count,
+                    )
+                except Exception as e:
+                    logger.error(
+                        "[SKILLS] Failed to insert skill",
+                        extra={"user_id": user_id, "skill": skill.skill, "error": str(e)},
+                    )
+                    raise
 
-        # Update profile completeness with proper capping at 100%
-        await conn.execute(
-            """UPDATE public.users SET profile_completeness =
-               LEAST(100, COALESCE(profile_completeness, 0) +
-               CASE WHEN (SELECT COUNT(*) FROM public.user_skills WHERE user_id = $1) >= 3
-                    THEN 20 ELSE 10 END)
-               WHERE id = $1""",
-            user_id,
-        )
+            # Update profile completeness with proper capping at 100%
+            await conn.execute(
+                """UPDATE public.users SET profile_completeness =
+                   LEAST(100, COALESCE(profile_completeness, 0) +
+                   CASE WHEN (SELECT COUNT(*) FROM public.user_skills WHERE user_id = $1) >= 3
+                        THEN 20 ELSE 10 END)
+                   WHERE id = $1""",
+                user_id,
+            )
 
     logger.info(
         "[SKILLS] Skills saved successfully",
@@ -1016,11 +1017,14 @@ async def save_work_style(
 
 @app.get("/me/dashboard")
 async def user_dashboard(
-    user_id: str = Depends(get_current_user_id),
+    ctx: TenantContext = Depends(get_tenant_context),
     db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """User dashboard data for mobile v3 home screen + widget."""
+    user_id = ctx.user_id
+    tenant_id = ctx.tenant_id
     async with db.acquire() as conn:
+        # Filter by tenant_id when column exists for multi-tenant isolation
         counts = await conn.fetchrow(
             """SELECT
                 COUNT(*) FILTER (WHERE status IN ('QUEUED','PROCESSING'))::int AS active_count,
@@ -1030,16 +1034,19 @@ async def user_dashboard(
                 COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
                                  AND updated_at >= date_trunc('week', now()))::int AS completed_week,
                 COUNT(*)::int AS total_all_time
-               FROM public.applications WHERE user_id = $1""",
+               FROM public.applications
+               WHERE user_id = $1 AND (tenant_id IS NULL OR tenant_id = $2)""",
             user_id,
+            tenant_id,
         )
         recent = await conn.fetch(
             """SELECT a.id, j.title AS job_title, a.status::text, a.updated_at
                FROM public.applications a
                LEFT JOIN public.jobs j ON j.id = a.job_id
-               WHERE a.user_id = $1
+               WHERE a.user_id = $1 AND (a.tenant_id IS NULL OR a.tenant_id = $2)
                ORDER BY a.updated_at DESC LIMIT 10""",
             user_id,
+            tenant_id,
         )
 
     return {
@@ -1313,7 +1320,7 @@ async def serve_storage_file(
     bucket: str,
     path: str,
     user_id: str = Depends(get_current_user_id),
-    tenant_ctx: dict = Depends(get_tenant_context),
+    tenant_ctx: TenantContext = Depends(get_tenant_context),
 ):
     """Serve files from storage (e.g., resumes, avatars)."""
     # SECURITY: Prevent path traversal with canonicalization
@@ -1326,7 +1333,7 @@ async def serve_storage_file(
 
     # SECURITY: Ensure user can only access their own tenant's files
     # Add tenant_id prefix to prevent cross-tenant access
-    tenant_id = tenant_ctx.get("tenant_id", "")
+    tenant_id = tenant_ctx.tenant_id or ""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Authentication required")
 
