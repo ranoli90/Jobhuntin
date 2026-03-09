@@ -769,6 +769,7 @@ async def list_jobs(
     is_remote: bool | None = None,
     job_type: str | None = None,
     sort_by: str = "date_posted",
+    min_match_score: int | None = None,
     limit: int = 25,
     offset: int = 0,
     ctx: TenantContext = Depends(_get_tenant_ctx),
@@ -777,6 +778,7 @@ async def list_jobs(
     """List jobs from DB with optional filters. Returns { jobs: [...], next_offset } for web.
 
     sort_by: match_score | recently_matched | salary | date_posted
+    min_match_score: When scoring, filter jobs below this score (0-100).
     When authenticated, match_score/recently_matched use profile-based scoring.
     """
     from backend.domain.job_search import search_and_list_jobs
@@ -794,6 +796,7 @@ async def list_jobs(
         job_type=job_type,
         user_id=str(ctx.user_id),
         sort_by=sort_by,
+        min_match_score=min_match_score,
         limit=limit,
         offset=offset,
     )

@@ -169,6 +169,18 @@ def get_skill_confidence_summary(profile: DeepProfile) -> dict[str, int]:
     }
 
 
+def deep_profile_to_llm_dict(profile: DeepProfile) -> dict[str, Any]:
+    """Convert DeepProfile to dict suitable for LLM prompts (job match, etc.)."""
+    skills = [s.skill for s in profile.competency_graph]
+    return {
+        "skills": skills,
+        "preferences": profile.preferences,
+        "work_style": profile.work_style.model_dump() if profile.work_style else None,
+        "trajectory": profile.trajectory.value,
+        "dealbreakers": profile.dealbreakers.model_dump(),
+    }
+
+
 def profile_to_dict(profile: DeepProfile) -> dict[str, Any]:
     """Convert DeepProfile to dictionary for storage/caching."""
     return {

@@ -32,6 +32,7 @@ async def search_and_list_jobs(
     *,
     user_id: str | None = None,
     sort_by: str = "date_posted",
+    min_match_score: int | None = None,
     limit: int = 25,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
@@ -129,6 +130,9 @@ async def search_and_list_jobs(
                 # Ensure job has keys expected by score_job_match
                 job.setdefault("requirements", job.get("skills") or [])
                 score_job_match(job, profile)
+            # Filter by min_match_score if requested
+            if min_match_score is not None:
+                result = [j for j in result if (j.get("match_score") or 0) >= min_match_score]
             # Sort by match_score when requested
             if sort_by in ("match_score", "recently_matched"):
                 result.sort(

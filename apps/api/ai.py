@@ -203,14 +203,14 @@ class LocationSuggestionRequest(BaseModel):
 class JobMatchRequest(BaseModel):
     """Request body for job match scoring."""
 
-    profile: dict = Field(..., description="Parsed resume profile data")
+    profile: dict | None = Field(default=None, description="Profile from client; if empty, loaded server-side")
     job: dict = Field(..., description="Job posting data")
 
 
 class BatchJobMatchRequest(BaseModel):
     """Request body for batch job match scoring."""
 
-    profile: dict = Field(..., description="Parsed resume profile data")
+    profile: dict | None = Field(default=None, description="Profile from client; if empty, loaded server-side")
     jobs: list[dict] = Field(..., description="List of job postings to score")
 
 
@@ -471,13 +471,24 @@ async def match_job(
 
     Returns a 0-100 score with detailed breakdowns for skill match,
     experience match, location compatibility, and any red flags.
+    Profile can be omitted; server loads from DB when empty.
     """
     if not _check_user_rate_limit(user_id, "match_job", 20):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     # Sanitize inputs and strip PII before sending to external LLM
+    from backend.domain.deep_profile import deep_profile_to_llm_dict
     from backend.domain.masking import strip_pii_for_llm
+    from backend.domain.profile_assembly import assemble_profile
 
-    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
+    profile_dict = request.profile
+    if not profile_dict or not isinstance(profile_dict, dict):
+        async with db.acquire() as conn:
+            deep_profile = await assemble_profile(conn, user_id)
+        if deep_profile:
+            profile_dict = deep_profile_to_llm_dict(deep_profile)
+        else:
+            profile_dict = {}
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(profile_dict))
     sanitized_job = sanitize_dict_input(request.job)
 
     # Check cache
@@ -533,6 +544,7 @@ async def match_jobs_batch(
     This is more efficient than calling match-job repeatedly.
     Jobs are processed sequentially to avoid rate limits.
     Maximum 20 jobs per batch.
+    Profile can be omitted; server loads from DB when empty.
     """
     if len(request.jobs) > 20:
         raise HTTPException(
@@ -542,9 +554,19 @@ async def match_jobs_batch(
     client = _get_llm_client()
 
     # Sanitize inputs and strip PII before sending to external LLM
+    from backend.domain.deep_profile import deep_profile_to_llm_dict
     from backend.domain.masking import strip_pii_for_llm
+    from backend.domain.profile_assembly import assemble_profile
 
-    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
+    profile_dict = request.profile
+    if not profile_dict or not isinstance(profile_dict, dict):
+        async with db.acquire() as conn:
+            deep_profile = await assemble_profile(conn, user_id)
+        if deep_profile:
+            profile_dict = deep_profile_to_llm_dict(deep_profile)
+        else:
+            profile_dict = {}
+    sanitized_profile = strip_pii_for_llm(sanitize_dict_input(profile_dict))
     sanitized_jobs = [sanitize_dict_input(job) for job in request.jobs]
     profile_hash = hashlib.sha256(
         json.dumps(sanitized_profile, sort_keys=True).encode()

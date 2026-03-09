@@ -13,6 +13,12 @@
 - **user.py**: `GET /me/jobs` now accepts `sort_by` and passes `user_id` for profile-based scoring.
 - **cold_start.py**: Removed `j.status = 'ACTIVE'`; fixed `j.required_skills` → `j.skills`, `j.industry` → `j.company_industry`; simplified similar_users.
 
+## Sprint 2 Implementation (March 2026)
+
+- **ai.py**: `match-job` and `match-jobs-batch` now load profile server-side when client omits it; `profile` is optional.
+- **deep_profile.py**: Added `deep_profile_to_llm_dict()` for LLM prompt conversion.
+- **job_search.py**, **user.py**, **useJobs.ts**: Added `min_match_score` filter (0-100).
+
 ---
 
 ## Executive Summary
@@ -118,10 +124,10 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 
 ### Sprint 2: Profile & Matching (Quality) — 1 week
 
-| Task | Effort | Priority |
-|------|--------|----------|
-| Server-side profile loading for AI match — don't rely on client | 3h | P0 |
-| Add optional `min_match_score` filter to jobs API | 1h | P1 |
+| Task | Effort | Priority | Status |
+|------|--------|----------|--------|
+| Server-side profile loading for AI match — don't rely on client | 3h | P0 | ✅ Done |
+| Add optional `min_match_score` filter to jobs API | 1h | P1 | ✅ Done |
 | Add callback likelihood factor (optional — needs historical data or LLM) | 8h | P2 |
 | Tenant-specific job sync queries (use preferences from onboarding) | 4h | P1 |
 | Add `pg_notify('job_queue')` on application create | 1h | P2 |
