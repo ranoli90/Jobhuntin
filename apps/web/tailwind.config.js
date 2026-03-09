@@ -56,13 +56,19 @@ export default {
           foreground: "rgb(var(--card-foreground))",
         },
         // Notion-esque minimal palette + legacy brand colors for Login/marketing
+        // Matches Homepage design tokens for UI continuity
         brand: {
           black: "#000000",
           ink: "#121212", // Very dark gray for slightly softer text than pure black
+          text: "#2D2A26", // Homepage primary text
+          muted: "#787774", // Homepage muted text
+          border: "#E3E2E0", // Homepage borders
           white: "#FFFFFF",
           gray: "#F6F5F4", // The "Notion Gray" for secondary backgrounds
           grayDark: "#EAEAEA", // For 1px borders
-          accent: "#2563EB", // A standard professional blue for primary buttons/links
+          primary: "#455DD3", // Homepage primary blue — use for buttons, nav active, accents
+          primaryHover: "#3A4FB8",
+          accent: "#2563EB", // Fallback blue
           sunrise: "#FF9C6B",
           lagoon: "#17BEBB",
           plum: "#6A4C93",

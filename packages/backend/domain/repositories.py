@@ -856,6 +856,25 @@ class CoverLetterRepo:
         )
         return dict(row) if row else None
 
+    @staticmethod
+    async def get_by_job_user(
+        conn: asyncpg.Connection,
+        user_id: str,
+        job_id: str,
+    ) -> dict | None:
+        """Get most recent cover letter for user+job."""
+        row = await conn.fetchrow(
+            """
+            SELECT * FROM public.cover_letters
+            WHERE user_id = $1 AND job_id = $2
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            user_id,
+            job_id,
+        )
+        return dict(row) if row else None
+
 
 # ---------------------------------------------------------------------------
 # JobMatchCacheRepo

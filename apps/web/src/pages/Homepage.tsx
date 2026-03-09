@@ -75,7 +75,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
           onChange={e => { setEmail(e.target.value.trimStart()); if (emailError) setEmailError(""); }}
           onPaste={e => {
             const pasted = (e.clipboardData?.getData('text') || '').trim();
-            if (pasted && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pasted)) {
+            if (pasted && ValidationUtils.validate.email(pasted).isValid) {
               e.preventDefault();
               setEmail(pasted.toLowerCase());
               if (emailError) setEmailError("");

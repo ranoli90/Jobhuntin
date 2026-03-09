@@ -87,8 +87,6 @@ const JobsViewWrapper = React.lazy(() => import("./pages/dashboard/JobsView"));
 const ApplicationsViewWrapper = React.lazy(() => import("./pages/dashboard/ApplicationsView"));
 const HoldsViewWrapper = React.lazy(() => import("./pages/dashboard/HoldsView"));
 const TeamViewWrapper = React.lazy(() => import("./pages/dashboard/TeamView"));
-const BillingViewWrapper = React.lazy(() => import("./pages/dashboard/BillingView"));
-
 // Dashboard sub-components are exported from Dashboard.tsx and will be loaded when Dashboard chunk loads
 
 /**

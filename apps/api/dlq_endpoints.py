@@ -122,10 +122,13 @@ class ConcurrentUsageResponse(BaseModel):
 
 
 # Dependency to get DLQ manager
-async def get_dlq_manager_dep():
-    """Get DLQ manager instance. Returns stub when real implementation unavailable."""
-    # TODO: Wire up real DLQ manager with pool from dependency injection
-    return _StubDLQManager()
+async def get_dlq_manager_dep(pool=Depends(_get_pool)):
+    """Get DLQ manager instance. Uses real implementation when available."""
+    try:
+        from apps.worker.dlq_manager import DLQManager
+        return DLQManager(pool)
+    except ImportError:
+        return _StubDLQManager()
 
 
 @router.get("/items", response_model=List[DLQItemResponse])

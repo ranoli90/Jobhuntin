@@ -72,7 +72,7 @@ export function LanguageSelector({ className }: { className?: string }) {
           "flex items-center gap-2 px-3 py-2 rounded-lg",
           "text-sm font-medium text-slate-600 dark:text-slate-300",
           "hover:bg-slate-100 dark:hover:bg-slate-800",
-          "focus:outline-none focus:ring-2 focus:ring-primary-500/30",
+          "focus:outline-none focus:ring-2 focus:ring-brand-primary/30",
           "transition-colors"
         )}
         aria-label={`Current language: ${currentLang.name}. Click to change language.`}
@@ -114,7 +114,7 @@ export function LanguageSelector({ className }: { className?: string }) {
                 "focus:outline-none focus:bg-slate-100 dark:focus:bg-slate-800",
                 "transition-colors",
                 lang.code === currentLang.code 
-                  ? "bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300" 
+                  ? "bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-brand-primary" 
                   : "text-slate-700 dark:text-slate-300"
               )}
               role="option"
@@ -126,7 +126,7 @@ export function LanguageSelector({ className }: { className?: string }) {
                 <div className="text-xs text-slate-500 dark:text-slate-400">{lang.name}</div>
               </div>
               {lang.code === currentLang.code && (
-                <svg className="w-4 h-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               )}

@@ -19,25 +19,25 @@ export default function HoldsView() {
     return (
       <div className="max-w-4xl mx-auto space-y-6 pb-6 px-4 lg:px-0" aria-busy="true" aria-label="Loading items needing your input">
         <div className="space-y-2">
-          <div className="h-8 w-56 bg-slate-200 rounded animate-pulse" />
-          <div className="h-4 w-72 bg-slate-100 rounded animate-pulse" />
+          <div className="h-8 w-56 bg-brand-border rounded animate-pulse" />
+          <div className="h-4 w-72 bg-brand-gray rounded animate-pulse" />
         </div>
         <div className="space-y-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-0 overflow-hidden border border-slate-200 rounded-2xl animate-pulse">
-              <div className="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
+            <div key={i} className="p-0 overflow-hidden border border-brand-border rounded-2xl animate-pulse">
+              <div className="bg-brand-gray border-b border-brand-border p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-slate-200" />
+                  <div className="h-8 w-8 rounded-lg bg-brand-border" />
                   <div className="space-y-2">
-                    <div className="h-4 w-24 bg-slate-200 rounded" />
-                    <div className="h-3 w-32 bg-slate-100 rounded" />
+                    <div className="h-4 w-24 bg-brand-border rounded" />
+                    <div className="h-3 w-32 bg-brand-gray rounded" />
                   </div>
                 </div>
                 <div className="h-6 w-24 bg-amber-100 rounded" />
               </div>
               <div className="p-6 space-y-4">
                 <div className="h-16 bg-amber-50 rounded-2xl" />
-                <div className="h-24 bg-slate-100 rounded-xl" />
+                <div className="h-24 bg-brand-gray rounded-xl" />
               </div>
             </div>
           ))}
@@ -49,16 +49,16 @@ export default function HoldsView() {
   if (holdApplications.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 px-6">
-        <div className="w-12 h-12 rounded-full border-2 border-slate-200 flex items-center justify-center mb-6">
-          <CheckCircle className="w-5 h-5 text-slate-400" />
+        <div className="w-12 h-12 rounded-full border-2 border-brand-border flex items-center justify-center mb-6">
+          <CheckCircle className="w-5 h-5 text-brand-muted" />
         </div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-1">Nothing needs your attention</h2>
-        <p className="text-sm text-slate-500 max-w-xs mx-auto text-center mb-4">
+        <h2 className="text-lg font-semibold text-brand-text mb-1">Nothing needs your attention</h2>
+        <p className="text-sm text-brand-muted max-w-xs mx-auto text-center mb-4">
           All your applications are progressing. When the agent needs input from you, it will appear here.
         </p>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-gray border border-brand-border">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs text-slate-500">Agent active</span>
+          <span className="text-xs text-brand-muted">Agent active</span>
         </div>
       </div>
     );
@@ -67,8 +67,8 @@ export default function HoldsView() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-6 px-4 lg:px-0">
       <div>
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Items Needing Your Input</h2>
-        <p className="text-slate-500 font-medium">Your AI agent needs clarification on these {holdApplications.length} threads.</p>
+        <h2 className="text-2xl font-black text-brand-text tracking-tight">Items Needing Your Input</h2>
+        <p className="text-brand-muted font-medium">Your AI agent needs clarification on these {holdApplications.length} threads.</p>
       </div>
 
       <div className="space-y-6">
@@ -79,15 +79,15 @@ export default function HoldsView() {
             animate={{ opacity: 1, y: 0 }}
             transition={shouldReduceMotion ? undefined : { delay: idx * 0.05, duration: 0.25 }}
           >
-            <Card className="p-0 overflow-hidden border-slate-200" shadow="lift">
-              <div className="bg-slate-50 border-b border-slate-200 p-3 sm:p-4 flex items-center justify-between">
+            <Card className="p-0 overflow-hidden border-brand-border rounded-xl" shadow="lift">
+              <div className="bg-brand-gray border-b border-brand-border p-3 sm:p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-xs">
                     {app.company.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-sm">{app.company}</h3>
-                    <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{app.job_title}</p>
+                    <h3 className="font-bold text-brand-text text-sm">{app.company}</h3>
+                    <p className="text-[10px] text-brand-muted font-medium uppercase tracking-wider">{app.job_title}</p>
                   </div>
                 </div>
                 <Badge variant="warning" className="rounded-md font-bold text-[10px]">RESPONSE REQUIRED</Badge>
@@ -107,7 +107,7 @@ export default function HoldsView() {
                   </label>
                   <textarea
                     id={`hold-answer-${app.id}`}
-                    className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium min-h-[100px]"
+                    className="w-full p-4 rounded-xl border border-brand-border text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium min-h-[100px]"
                     maxLength={5000}
                     placeholder="Type your response here... (e.g. Yes, I have 5 years experience with Kubernetes)"
                     value={answers[app.id] || ""}
@@ -115,7 +115,7 @@ export default function HoldsView() {
                     aria-describedby={`hold-question-${app.id}`}
                   />
                   <div className="flex items-center justify-between">
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-[10px] text-brand-muted">
                       {(answers[app.id] || '').length}/5000 characters
                     </p>
                     {(answers[app.id] || '').length > 4500 && (
@@ -124,11 +124,11 @@ export default function HoldsView() {
                       </p>
                     )}
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 sticky bottom-0 bg-white/90 backdrop-blur p-2 rounded-xl border border-slate-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 sticky bottom-0 bg-white/90 backdrop-blur p-2 rounded-xl border border-brand-border/50">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-slate-500 hover:text-slate-600 font-bold text-xs uppercase"
+                      className="text-brand-muted hover:text-brand-text font-bold text-xs uppercase"
                       disabled={isSubmitting(app.id)}
                       onClick={() => snoozeApplication(app.id)}
                     >
@@ -137,7 +137,7 @@ export default function HoldsView() {
                     <Button
                       disabled={!answers[app.id] || isSubmitting(app.id)}
                       onClick={() => answerHold(app.id, answers[app.id])}
-                      className="bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl px-6 sm:px-8 shadow-lg shadow-primary-500/20"
+                      className="bg-brand-primary hover:bg-brand-primaryHover text-white font-bold rounded-xl px-6 sm:px-8 shadow-lg shadow-brand-primary/20"
                     >
                       {isSubmitting(app.id)
                         ? <><LoadingSpinner className="mr-2 w-4 h-4" />Sending...</>

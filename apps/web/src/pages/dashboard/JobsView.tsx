@@ -103,18 +103,18 @@ export default function JobsView() {
     if (visibleJobs.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-24 px-6">
-                <div className="w-12 h-12 rounded-full border-2 border-slate-200 flex items-center justify-center mb-6">
-                    <Check className="w-5 h-5 text-slate-400" />
+                <div className="w-12 h-12 rounded-full border-2 border-brand-border flex items-center justify-center mb-6">
+                    <Check className="w-5 h-5 text-brand-muted" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">
+                <h3 className="text-lg font-semibold text-brand-text mb-1">
                     You're all caught up
                 </h3>
-                <p className="text-sm text-slate-500 text-center max-w-xs mb-6">
+                <p className="text-sm text-brand-muted text-center max-w-xs mb-6">
                     No new jobs matching your profile right now. We're continuously scanning and will notify you when we find something.
                 </p>
                 <Button
                     variant="outline"
-                    className="text-sm font-medium rounded-lg px-5 py-2.5 border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="text-sm font-medium rounded-xl px-5 py-2.5 border-brand-border text-brand-text hover:bg-brand-gray transition-colors"
                     onClick={() => refetch()}
                     aria-label="Refresh job listings"
                 >
@@ -122,7 +122,7 @@ export default function JobsView() {
                 </Button>
                 <Link
                     to="/app/settings"
-                    className="text-sm font-medium text-primary-600 hover:text-primary-700 mt-3"
+                    className="text-sm font-medium text-brand-primary hover:text-brand-primaryHover mt-3"
                 >
                     Set up job alerts →
                 </Link>
@@ -137,20 +137,20 @@ export default function JobsView() {
             <section aria-labelledby="stats-heading">
                 <h2 id="stats-heading" className="sr-only">Application Statistics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="p-4 flex flex-col items-center justify-center">
-                    <p className="text-sm font-medium text-gray-500">Applied</p>
+                <Card className="p-4 flex flex-col items-center justify-center rounded-xl border-brand-border">
+                    <p className="text-sm font-medium text-brand-muted">Applied</p>
                     <p className="text-3xl font-bold text-green-600" aria-label={`Applied to ${appliedCount} jobs`}>
                         <AnimatedNumber value={appliedCount} />
                     </p>
                 </Card>
-                <Card className="p-4 flex flex-col items-center justify-center">
-                    <p className="text-sm font-medium text-gray-500">Skipped</p>
+                <Card className="p-4 flex flex-col items-center justify-center rounded-xl border-brand-border">
+                    <p className="text-sm font-medium text-brand-muted">Skipped</p>
                     <p className="text-3xl font-bold text-red-600" aria-label={`Skipped ${rejectedCount} jobs`}>
                         <AnimatedNumber value={rejectedCount} />
                     </p>
                 </Card>
-                <Card className="p-4 flex flex-col items-center justify-center">
-                    <p className="text-sm font-medium text-gray-500">Remaining</p>
+                <Card className="p-4 flex flex-col items-center justify-center rounded-xl border-brand-border">
+                    <p className="text-sm font-medium text-brand-muted">Remaining</p>
                     <p className="text-3xl font-bold" aria-label={`${visibleJobs.length} jobs remaining`}>
                         <AnimatedNumber value={visibleJobs.length} />
                     </p>
@@ -182,13 +182,13 @@ export default function JobsView() {
                         }}
                         transition={{ duration: shouldReduceMotion ? 0.1 : 0.3 }}
                     >
-                        <Card className="w-full h-full p-6 flex flex-col justify-between bg-white shadow-lg rounded-xl" role="article" aria-labelledby={`job-${job.id}-title`}>
+                        <Card className="w-full h-full p-6 flex flex-col justify-between bg-white border border-brand-border shadow-lg rounded-xl" role="article" aria-labelledby={`job-${job.id}-title`}>
                             <div>
-                                <h3 id={`job-${job.id}-title`} className="text-xl font-bold">{job.title}</h3>
-                                <p className="text-gray-600">{job.company}</p>
-                                <p className="text-sm text-gray-500 mt-1">{job.location}</p>
+                                <h3 id={`job-${job.id}-title`} className="text-xl font-bold text-brand-text">{job.title}</h3>
+                                <p className="text-brand-text/80">{job.company}</p>
+                                <p className="text-sm text-brand-muted mt-1">{job.location}</p>
                                 {job.match_score != null && (
-                                    <p className="text-xs font-medium text-primary-600 mt-1">
+                                    <p className="text-xs font-medium text-brand-primary mt-1">
                                         {Math.round(
                                             Number(job.match_score) <= 1
                                                 ? Number(job.match_score) * 100
@@ -197,10 +197,10 @@ export default function JobsView() {
                                     </p>
                                 )}
                             </div>
-                            <p className="text-gray-700 text-sm line-clamp-4 my-3">
+                            <p className="text-brand-text/90 text-sm line-clamp-4 my-3">
                                 {job.description}
                             </p>
-                            <div className="flex justify-between items-center text-xs text-gray-500">
+                            <div className="flex justify-between items-center text-xs text-brand-muted">
                                 <span>
                                     {job.salary_min && job.salary_max
                                         ? `$${(job.salary_min / 1000).toFixed(0)}k – $${(job.salary_max / 1000).toFixed(0)}k`
@@ -233,7 +233,7 @@ export default function JobsView() {
                     <Button
                         variant="outline"
                         size="icon"
-                        className="w-12 h-12 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        className="w-12 h-12 rounded-full bg-brand-gray text-brand-text hover:bg-brand-border/50"
                         onClick={() => {
                             const lastRejected = undoStack[undoStack.length - 1];
                             setUndoStack(prev => prev.slice(0, -1));

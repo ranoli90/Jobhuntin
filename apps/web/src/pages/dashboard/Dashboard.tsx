@@ -83,10 +83,10 @@ export default function Dashboard() {
       label: "Total Applications",
       value: applications.length,
       icon: Zap,
-      color: 'from-primary-500 to-primary-600',
-      bg: 'bg-primary-50',
-      text: 'text-primary-600',
-      iconColor: 'text-primary-500',
+      color: 'from-brand-primary to-brand-primaryHover',
+      bg: 'bg-brand-primary/10',
+      text: 'text-brand-primary',
+      iconColor: 'text-brand-primary',
       progress: totalProgress,
     },
   ];
@@ -121,9 +121,9 @@ export default function Dashboard() {
         >
           <div className="flex items-center gap-2 mb-0.5">
             <greeting.Icon className="h-4 w-4 text-amber-400" aria-hidden />
-            <p className="text-sm font-semibold text-slate-500">{greeting.text}</p>
+            <p className="text-sm font-semibold text-brand-muted">{greeting.text}</p>
           </div>
-          <h1 className="font-display text-xl md:text-2xl font-bold text-slate-900">
+          <h1 className="font-display text-xl md:text-2xl font-bold text-brand-text">
             Your Dashboard
           </h1>
         </motion.div>
@@ -132,7 +132,7 @@ export default function Dashboard() {
           whileTap={{ scale: 0.98 }}
         >
           <Button
-            className="group relative overflow-hidden gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white shadow-lg shadow-primary-500/20 transition-all duration-300"
+            className="group relative overflow-hidden gap-2 px-6 py-3 rounded-xl bg-brand-primary hover:bg-brand-primaryHover text-white shadow-lg shadow-brand-primary/20 transition-all duration-300"
             onClick={() => navigate("/app/jobs")}
           >
             <span className="relative z-10 flex items-center gap-2">
@@ -144,11 +144,11 @@ export default function Dashboard() {
       </div>
 
       {applications.length === 0 && !isLoading ? (
-        <Card className="p-8 text-center border-primary-100 bg-primary-50/30">
-          <Rocket className="h-12 w-12 text-primary-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Welcome to your dashboard!</h2>
-          <p className="text-slate-600 mb-6 max-w-md mx-auto">Start by reviewing jobs matched to your profile. Our AI agent will handle the rest.</p>
-          <Button onClick={() => navigate("/app/jobs")} className="bg-primary-600 hover:bg-primary-700 text-white">
+        <Card className="p-8 text-center border-brand-primary/20 bg-brand-primary/5 rounded-xl">
+          <Rocket className="h-12 w-12 text-brand-primary mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-brand-text mb-2">Welcome to your dashboard!</h2>
+          <p className="text-brand-muted mb-6 max-w-md mx-auto">Start by reviewing jobs matched to your profile. Our AI agent will handle the rest.</p>
+          <Button onClick={() => navigate("/app/jobs")} className="bg-brand-primary hover:bg-brand-primaryHover text-white">
             <Rocket className="mr-2 h-4 w-4" /> Browse Jobs
           </Button>
         </Card>
@@ -164,14 +164,14 @@ export default function Dashboard() {
               className="h-full min-w-[240px] md:min-w-0"
             >
               <Card
-                className="h-full border-slate-200 bg-white hover:border-slate-300 transition-colors duration-200 group"
+                className="h-full border-brand-border bg-white hover:border-brand-primary/30 transition-colors duration-200 group rounded-xl"
                 shadow="sm"
                 tone="glass"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
-                    <p className="text-sm text-slate-500">{metric.label}</p>
-                    <p className="text-2xl font-semibold text-slate-900 tabular-nums">
+                    <p className="text-sm text-brand-muted">{metric.label}</p>
+                    <p className="text-2xl font-semibold text-brand-text tabular-nums">
                       {isLoading ? (
                         <span className="inline-block h-7 w-14 bg-slate-100 rounded animate-pulse"></span>
                       ) : typeof metric.value === 'string' ? (
@@ -182,7 +182,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="mt-4 h-1.5 w-full bg-brand-gray rounded-full overflow-hidden">
                   <motion.div
                     className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
                     initial={shouldReduceMotion ? { width: `${metric.progress}%` } : { width: 0 }}
@@ -349,36 +349,36 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="relative overflow-hidden border-primary-200/50 bg-gradient-to-br from-primary-50/50 to-white" tone="glass">
+            <Card className="relative overflow-hidden border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 to-white" tone="glass">
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
-                <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
+                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-primary/5 blur-3xl"></div>
+                <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-brand-primary/5 blur-3xl"></div>
               </div>
 
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-primary-900/60">Your plan</p>
-                    <p className="text-2xl font-bold text-slate-900">{status?.plan ?? "FREE"}</p>
+                    <p className="text-sm font-medium text-brand-muted">Your plan</p>
+                    <p className="text-2xl font-bold text-brand-text">{status?.plan ?? "FREE"}</p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-primary/10 text-brand-primary">
                     <Zap className="h-5 w-5" />
                   </div>
                 </div>
 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Status</span>
+                    <span className="text-brand-muted">Status</span>
                     <span className="font-medium text-emerald-600 capitalize">{status?.subscription_status ?? "active"}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Applied Rate</span>
+                    <span className="text-brand-muted">Applied Rate</span>
                     <span className="font-medium text-emerald-600">{appliedRate}%</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Next Billing</span>
-                    <div className="flex items-center text-slate-900">
-                      <Clock className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                    <span className="text-brand-muted">Next Billing</span>
+                    <div className="flex items-center text-brand-text">
+                      <Clock className="h-3.5 w-3.5 mr-1 text-brand-muted" />
                       <span>{status?.current_period_end ? formatDate(status.current_period_end, locale) : "No upcoming bill"}</span>
                     </div>
                   </div>

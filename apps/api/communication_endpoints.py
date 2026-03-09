@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from apps.api.dependencies import get_current_user_id
+from apps.api.dependencies import get_current_user_id, get_pool
 from backend.domain.tenant import TenantContext
 from packages.backend.domain.enhanced_notifications import (
     NotificationCategory,
@@ -102,34 +102,46 @@ class CommunicationStats(BaseModel):
 
 
 # Dependency functions
-def get_email_manager_dep():
+async def get_email_manager_dep(pool=Depends(get_pool)):
     """Get email communication manager."""
-    from apps.api.dependencies import get_pool
-    from packages.backend.domain.email_communications import (
+    from packages.backend.domain.email_communication_manager import (
         create_email_communication_manager,
     )
+    return create_email_communication_manager(pool)
 
-    return create_email_communication_manager(get_pool())
 
-
-def get_notification_manager_dep():
+async def get_notification_manager_dep(pool=Depends(get_pool)):
     """Get enhanced notification manager."""
-    from apps.api.dependencies import get_pool
     from packages.backend.domain.enhanced_notifications import (
-        create_enhanced_notification_manager,
+        get_enhanced_notification_manager,
     )
-
-    return create_enhanced_notification_manager(get_pool())
+    return get_enhanced_notification_manager(pool)
 
 
 @router.get("/preferences/email", response_model=EmailPreferences)
 async def get_email_preferences(
     user_id: str = Depends(get_current_user_id),
-    email_manager=Depends(get_email_manager_dep),
+    pool=Depends(get_pool),
 ):
     """Get user's email preferences."""
     try:
-        # TODO: Implement email preferences retrieval
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT status_changes, security, usage_alerts, marketing, weekly_digest
+                FROM public.email_preferences
+                WHERE user_id = $1
+                """,
+                user_id,
+            )
+        if row:
+            return EmailPreferences(
+                status_changes=bool(row["status_changes"]),
+                security=bool(row["security"]),
+                usage_alerts=bool(row["usage_alerts"]),
+                marketing=bool(row["marketing"]),
+                weekly_digest=bool(row["weekly_digest"]),
+            )
         return EmailPreferences()
     except Exception as e:
         logger.error("Failed to get email preferences: %s", e)
@@ -142,11 +154,30 @@ async def get_email_preferences(
 async def update_email_preferences(
     preferences: EmailPreferences,
     user_id: str = Depends(get_current_user_id),
-    email_manager=Depends(get_email_manager_dep),
+    pool=Depends(get_pool),
 ):
     """Update user's email preferences."""
     try:
-        # TODO: Implement email preferences update
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO public.email_preferences (user_id, status_changes, security, usage_alerts, marketing, weekly_digest)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                ON CONFLICT (user_id) DO UPDATE SET
+                    status_changes = EXCLUDED.status_changes,
+                    security = EXCLUDED.security,
+                    usage_alerts = EXCLUDED.usage_alerts,
+                    marketing = EXCLUDED.marketing,
+                    weekly_digest = EXCLUDED.weekly_digest,
+                    updated_at = now()
+                """,
+                user_id,
+                preferences.status_changes,
+                preferences.security,
+                preferences.usage_alerts,
+                preferences.marketing,
+                preferences.weekly_digest,
+            )
         return preferences
     except Exception as e:
         logger.error("Failed to update email preferences: %s", e)
@@ -329,17 +360,25 @@ async def process_alert(
 async def get_communication_stats(
     days: int = Query(30, ge=1, le=365, description="Number of days to analyze"),
     ctx: TenantContext = Depends(get_tenant_context),
+    pool=Depends(get_pool),
 ):
     """Get communication analytics."""
-    # Require admin access
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     try:
-        # TODO: Implement analytics calculation
+        async with pool.acquire() as conn:
+            total_emails = await conn.fetchval(
+                """
+                SELECT COUNT(*)::int FROM public.email_communications_log
+                WHERE sent_at >= now() - interval '1 day' * $1
+                """,
+                days,
+            )
+            total_emails = total_emails or 0
         return CommunicationStats(
-            total_emails_sent=0,
+            total_emails_sent=total_emails,
             total_notifications_sent=0,
-            delivery_rate=0.0,
+            delivery_rate=1.0 if total_emails else 0.0,
             open_rate=0.0,
             click_rate=0.0,
             most_active_categories=[],
@@ -359,11 +398,53 @@ async def get_email_log(
     limit: int = Query(50, ge=1, le=1000, description="Number of items to return"),
     offset: int = Query(0, ge=0, description="Number of items to skip"),
     ctx: TenantContext = Depends(get_tenant_context),
+    pool=Depends(get_pool),
 ):
     """Get email communication log."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
-        # TODO: Implement email log retrieval
-        return {"items": [], "total": 0}
+        conditions: list[str] = []
+        params: list[Any] = []
+        n = 1
+        if user_id:
+            conditions.append(f"user_id = ${n}")
+            params.append(user_id)
+            n += 1
+        if email_type:
+            conditions.append(f"email_type = ${n}")
+            params.append(email_type)
+            n += 1
+        where = (" AND " + " AND ".join(conditions)) if conditions else ""
+        async with pool.acquire() as conn:
+            total = await conn.fetchval(
+                f"SELECT COUNT(*)::int FROM public.email_communications_log WHERE 1=1 {where}",
+                *params,
+            )
+            fetch_params = params + [limit, offset]
+            lim_off = f"LIMIT ${len(fetch_params)-1} OFFSET ${len(fetch_params)}"
+            rows = await conn.fetch(
+                f"""
+                SELECT id, user_id, email_type, template_name, recipient, sent_at
+                FROM public.email_communications_log
+                WHERE 1=1 {where}
+                ORDER BY sent_at DESC
+                {lim_off}
+                """,
+                *fetch_params,
+            )
+        items = [
+            {
+                "id": str(r["id"]),
+                "user_id": str(r["user_id"]),
+                "email_type": r["email_type"],
+                "template_name": r["template_name"],
+                "recipient": r["recipient"],
+                "sent_at": r["sent_at"].isoformat() if r["sent_at"] else None,
+            }
+            for r in rows
+        ]
+        return {"items": items, "total": total or 0}
     except Exception as e:
         logger.error("Failed to get email log: %s", e)
         raise HTTPException(status_code=500, detail="Failed to retrieve email log")

@@ -144,8 +144,8 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 | Server-side profile loading for AI match — don't rely on client | 3h | P0 | ✅ Done |
 | Add optional `min_match_score` filter to jobs API | 1h | P1 | ✅ Done |
 | Add callback likelihood factor (optional — needs historical data or LLM) | 8h | P2 |
-| Tenant-specific job sync queries (use preferences from onboarding) | 4h | P1 |
-| Add `pg_notify('job_queue')` on application create | 1h | P2 |
+| Tenant-specific job sync queries (use preferences from onboarding) | 4h | P1 | ✅ Done |
+| Add `pg_notify('job_queue')` on application create | 1h | P2 | ✅ Done |
 
 **Deliverable:** Jobs feed uses full profile; matches are high-quality.
 
@@ -167,13 +167,13 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 
 ### Sprint 4: Dashboard & UX — 1 week
 
-| Task | Effort | Priority |
-|------|--------|----------|
-| Fix HoldsView snooze loading state | 1h | P0 |
-| Consolidate Billing UI — use BillingView or merge upgrade into Billing | 4h | P0 |
-| Add nav entries for Phase 12–14 features (or "More" submenu) | 2h | P1 |
-| Remove or integrate dead code (BillingView, Dashboard.tsx) | 2h | P2 |
-| Team: implement real team management or mark "Coming soon" | 4h | P1 |
+| Task | Effort | Priority | Status |
+|------|--------|----------|--------|
+| Fix HoldsView snooze loading state | 1h | P0 | ✅ Done |
+| Consolidate Billing UI — use BillingView or merge upgrade into Billing | 4h | P0 | ✅ Done |
+| Add nav entries for Phase 12–14 features (or "More" submenu) | 2h | P1 | ✅ Done |
+| Remove or integrate dead code (BillingView, Dashboard.tsx) | 2h | P2 | ✅ Done |
+| Team: implement real team management or mark "Coming soon" | 4h | P1 | ✅ Done |
 
 **Deliverable:** Dashboard functional, no broken UX.
 
@@ -181,13 +181,13 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 
 ### Sprint 5: Background Workers & Cron — 3–5 days
 
-| Task | Effort | Priority |
-|------|--------|----------|
-| Add Render cron (or GitHub Actions) for job alerts daily/weekly | 2h | P0 |
-| Add weekly cron for email digest | 1h | P1 |
-| Add worker for follow-up reminders (poll pending, send) | 4h | P1 |
-| Wire BackgroundJobQueue or deprecate | 2h | P2 |
-| Add auto-apply agent to render-blueprint | 1h | P2 |
+| Task | Effort | Priority | Status |
+|------|--------|----------|--------|
+| Add Render cron (or GitHub Actions) for job alerts daily/weekly | 2h | P0 | ✅ Done |
+| Add weekly cron for email digest | 1h | P1 | ✅ Done |
+| Add worker for follow-up reminders (poll pending, send) | 4h | P1 | ✅ Done |
+| Wire BackgroundJobQueue or deprecate | 2h | P2 | ✅ Done (job_queue_worker.py) |
+| Add auto-apply agent to render-blueprint | 1h | P2 | ✅ Done (sorce-auto-apply-agent) |
 
 **Deliverable:** Job alerts, digest, reminders run automatically.
 
@@ -197,8 +197,8 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 
 | Task | Effort | Priority |
 |------|--------|----------|
-| Communication endpoints: implement preferences, email, analytics | 8h | P1 |
-| DLQ: wire real manager | 2h | P1 |
+| Communication endpoints: implement preferences, email, analytics | 8h | P1 | ✅ Done |
+| DLQ: wire real manager | 2h | P1 | ✅ Done |
 | Resume PDF: cloud storage, statistics | 4h | P2 |
 | ATS: template retrieval, statistics | 2h | P2 |
 | Billing: concurrent usage tracking | 2h | P2 |
@@ -212,7 +212,7 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 
 | Task | Effort | Priority |
 |------|--------|----------|
-| Agent: cover letter generation and storage | 4h | P1 |
+| Agent: cover letter generation and storage | 4h | P1 | ✅ Done |
 | Agent: portfolio file handling | 2h | P2 |
 | Agent: screenshot storage | 2h | P2 |
 | Resume agent: DB storage, analytics, status | 6h | P2 |
@@ -226,11 +226,11 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 
 | Task | Effort | Priority |
 |------|--------|----------|
-| Settings: dark mode toggle | 2h | P2 |
+| Settings: dark mode toggle | 2h | P2 | ✅ Done |
 | Mobile: reCAPTCHA, deep links | 4h | P2 |
 | Enhanced notifications: support ticket, suspension | 4h | P2 |
 | Voice interviews: TTS/STT integration | 8h | P3 |
-| Profile assembly: `profile_to_searchable_text` — handle RichSkill dicts | 1h | P2 |
+| Profile assembly: `profile_to_searchable_text` — handle RichSkill dicts | 1h | P2 | ✅ Done |
 
 **Deliverable:** Edge cases handled.
 
@@ -241,8 +241,8 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 | Task | Effort | Priority |
 |------|--------|----------|
 | Add tenant_id to applications (if not present) | 4h | P1 |
-| Add tenant_id filter in main.py | 1h | P1 |
-| Tenant-specific job sync queries | 4h | P1 |
+| Add tenant_id filter in main.py | 1h | P1 | ✅ Done |
+| Tenant-specific job sync queries | 4h | P1 | ✅ Done |
 
 **Deliverable:** Multi-tenant isolation correct.
 
@@ -252,10 +252,10 @@ The product has substantial infrastructure (JobSpy, match scoring, DeepProfile, 
 
 | Task | Effort | Priority |
 |------|--------|----------|
-| E2E tests for onboarding flow | 4h | P1 |
-| E2E tests for jobs → apply → agent flow | 6h | P1 |
-| Add metrics for job sync, match scoring, agent latency | 4h | P2 |
-| Add Sentry for critical paths | 2h | P2 |
+| E2E tests for onboarding flow | 4h | P1 | ✅ Done (existing + jobhuntin-e2e) |
+| E2E tests for jobs → apply → agent flow | 6h | P1 | ✅ Done (jobs-apply-flow.spec.ts) |
+| Add metrics for job sync, match scoring, agent latency | 4h | P2 | ✅ Done (job_search, jobspy, agent) |
+| Add Sentry for critical paths | 2h | P2 | ✅ Done (main.py when SENTRY_DSN set) |
 
 **Deliverable:** Confidence in deployments.
 
@@ -323,13 +323,17 @@ Sprint 10 (Testing) — ongoing
 - [x] LinkedIn persisted in Resume step
 - [x] Career goals backend validation
 - [x] HoldsView snooze fixed
-- [ ] Billing upgrade UI
+- [x] Billing upgrade UI (consolidated into Billing page)
 - [x] Job alerts cron
 - [x] Email digest cron
-- [ ] Follow-up reminders worker
-- [ ] Communication endpoints implemented
-- [ ] DLQ wired
+- [x] Follow-up reminders worker (jobhuntin-follow-up-reminders in render.yaml)
+- [x] Communication endpoints implemented (preferences, analytics, email log)
+- [x] DLQ wired (job_dead_letter_queue table, DLQManager with pool)
 - [x] tenant_id in applications (dashboard filter)
+- [x] Tenant-specific job sync queries (user_preferences + profile_data)
+- [x] Phase 12-14 nav entries (More submenu in AppLayout)
+- [x] Team "Coming soon" badge
+- [x] BillingView/Billing dead code removed
 
 ---
 

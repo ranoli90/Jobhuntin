@@ -15,6 +15,7 @@ import { LanguageSelector } from '../components/LanguageSelector';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { magicLinkService } from '../services/magicLinkService';
+import { ValidationUtils } from '../lib/validation';
 import { telemetry } from '../lib/telemetry';
 import { t, formatT, getLocale } from '../lib/i18n';
 import { SocialLoginGroup, SocialLoginDivider } from '../components/auth/SocialLogin';
@@ -87,7 +88,7 @@ export default function Login() {
   }, [searchParams]);
 
   const emailIsValid = useMemo(() => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    return ValidationUtils.validate.email(email.trim()).isValid;
   }, [email]);
 
   useEffect(() => {
@@ -415,7 +416,7 @@ export default function Login() {
                       }}
                       onPaste={(e) => {
                         const pasted = (e.clipboardData?.getData('text') || '').trim();
-                        if (pasted && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pasted)) {
+                        if (pasted && ValidationUtils.validate.email(pasted).isValid) {
                           e.preventDefault();
                           setEmail(pasted.toLowerCase());
                           setShowSuggestions(false);

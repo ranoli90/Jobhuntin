@@ -426,21 +426,83 @@ class JobSyncService:
         return True
 
     async def _get_search_queries(self) -> list[tuple[str, str]]:
-        """Get search queries from popular searches or defaults."""
+        """Get search queries from popular searches, tenant preferences, or defaults."""
+        seen: set[tuple[str, str]] = set()
+        queries: list[tuple[str, str]] = []
+
         try:
             async with self.db_pool.acquire() as conn:
-                rows = await conn.fetch(
-                    """
-                    SELECT search_term, location FROM public.popular_searches
-                    ORDER BY search_count DESC, last_searched_at DESC
-                    LIMIT 15
-                    """
-                )
+                # 1. Popular searches (platform-wide)
+                try:
+                    rows = await conn.fetch(
+                        """
+                        SELECT search_term, location FROM public.popular_searches
+                        ORDER BY search_count DESC, last_searched_at DESC
+                        LIMIT 10
+                        """
+                    )
+                    for r in rows:
+                        term = (r["search_term"] or "").strip()
+                        loc = (r["location"] or "Remote").strip() or "Remote"
+                        if term and (term, loc) not in seen:
+                            seen.add((term, loc))
+                            queries.append((term, loc))
+                except Exception as e:
+                    logger.warning("Failed to get popular searches: %s", e)
 
-            if rows:
-                return [(r["search_term"], r["location"]) for r in rows]
+                # 2. Tenant-specific: user_preferences (role_type, location from onboarding)
+                try:
+                    pref_rows = await conn.fetch(
+                        """
+                        SELECT DISTINCT role_type, location
+                        FROM public.user_preferences
+                        WHERE role_type IS NOT NULL AND role_type != ''
+                        LIMIT 15
+                        """
+                    )
+                    for r in pref_rows:
+                        term = (r["role_type"] or "").strip()
+                        loc = (r["location"] or "Remote").strip() or "Remote"
+                        if term and (term, loc) not in seen:
+                            seen.add((term, loc))
+                            queries.append((term, loc))
+                except Exception as e:
+                    logger.warning("Failed to get user_preferences queries: %s", e)
+
+                # 3. Tenant-specific: profile_data preferences (from onboarding)
+                try:
+                    profile_rows = await conn.fetch(
+                        """
+                        SELECT DISTINCT
+                            COALESCE(
+                                profile_data->'preferences'->>'role_type',
+                                profile_data->'career_goals'->'target_roles'->>0
+                            ) AS role_type,
+                            COALESCE(profile_data->'preferences'->>'location', 'Remote') AS location
+                        FROM public.profiles
+                        WHERE profile_data IS NOT NULL
+                          AND (
+                            profile_data->'preferences'->>'role_type' IS NOT NULL
+                            OR profile_data->'career_goals'->'target_roles'->>0 IS NOT NULL
+                          )
+                        LIMIT 15
+                        """
+                    )
+                    for r in profile_rows:
+                        term = (r["role_type"] or "").strip()
+                        loc = (r["location"] or "Remote").strip() or "Remote"
+                        if term and (term, loc) not in seen:
+                            seen.add((term, loc))
+                            queries.append((term, loc))
+                except Exception as e:
+                    logger.warning("Failed to get profile_data queries: %s", e)
+
         except Exception as e:
-            logger.warning(f"Failed to get popular searches: {e}")
+            logger.warning("Failed to get search queries: %s", e)
+
+        if queries:
+            logger.info("Using %d tenant-aware search queries", len(queries))
+            return queries
 
         return DEFAULT_SEARCH_QUERIES
 

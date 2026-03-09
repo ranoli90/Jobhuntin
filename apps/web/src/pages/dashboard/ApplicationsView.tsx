@@ -225,7 +225,7 @@ export default function ApplicationsView() {
             placeholder="Search company or title..."
             aria-label="Search applications by company or title"
             aria-describedby="applications-search-hint"
-            className="w-full px-10 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium shadow-sm pr-8"
+            className="w-full px-10 py-3 rounded-2xl border border-brand-border text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium shadow-sm pr-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -366,7 +366,7 @@ export default function ApplicationsView() {
                           {app.company.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 group-hover:text-primary-600 transition-colors">{app.company}</p>
+                          <p className="font-bold text-brand-text group-hover:text-brand-primary transition-colors">{app.company}</p>
                           <p className="text-xs text-slate-500 font-medium">{app.job_title}</p>
                         </div>
                       </div>
@@ -415,8 +415,8 @@ export default function ApplicationsView() {
         </div>
       )}
 
-      <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 flex items-center gap-4">
-        <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-primary-500 shadow-sm flex-shrink-0">
+      <div className="p-4 bg-brand-primary/10 rounded-2xl border border-brand-primary/20 flex items-center gap-4">
+        <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-brand-primary shadow-sm flex-shrink-0">
           <Zap className="h-5 w-5" />
         </div>
         <p className="text-sm text-primary-900 font-medium font-display leading-tight">

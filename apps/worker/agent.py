@@ -34,6 +34,7 @@ from packages.backend.domain.notifications import (
 )
 from packages.backend.domain.repositories import (
     ApplicationRepo,
+    CoverLetterRepo,
     EventRepo,
     InputRepo,
     JobRepo,
@@ -43,7 +44,9 @@ from packages.backend.domain.repositories import (
 from packages.backend.domain.resume import download_from_supabase_storage
 from packages.backend.llm.client import LLMClient
 from packages.backend.llm.contracts import (
+    CoverLetterResponse_V1,
     DomMappingResponse_V1,
+    build_cover_letter_prompt,
     build_dom_mapping_prompt,
 )
 from packages.backend.llm.prompt_registry import get_prompt
@@ -1059,10 +1062,60 @@ class FormAgent:
         return "resume"
 
     async def _get_cover_letter_path(self, ctx: dict) -> Optional[str]:
-        """Get cover letter file path from context or generate one."""
-        # TODO: Implement cover letter generation and storage
-        # For now, return None
-        return None
+        """Get cover letter file path from context or generate one.
+        Checks DB for existing cover letter; if none, generates via LLM, saves to DB, writes to temp file.
+        """
+        import tempfile
+        from backend.domain.masking import strip_pii_for_llm
+
+        user_id = ctx.get("user_id")
+        job_id = ctx.get("job_id")
+        job = ctx.get("job", {})
+        profile = ctx.get("profile", {})
+        if not user_id or not job_id:
+            return None
+
+        content: Optional[str] = None
+        async with self.pool.acquire() as conn:
+            existing = await CoverLetterRepo.get_by_job_user(conn, user_id, job_id)
+            if existing:
+                content = existing.get("content")
+
+        if not content:
+            try:
+                sanitized_profile = strip_pii_for_llm(profile) if profile else {}
+                job_for_prompt = {
+                    "title": job.get("title", ""),
+                    "company": job.get("company") or job.get("company_name", ""),
+                    "description": job.get("description", ""),
+                }
+                prompt = build_cover_letter_prompt(
+                    sanitized_profile, job_for_prompt, tone="professional"
+                )
+                result = await _llm_client.call(
+                    prompt=prompt,
+                    response_format=CoverLetterResponse_V1,
+                )
+                content = result.content if hasattr(result, "content") else str(result)
+                async with self.pool.acquire() as conn:
+                    await CoverLetterRepo.create(
+                        conn, user_id, job_id, content, tone="professional"
+                    )
+            except Exception as e:
+                logger.warning("Cover letter generation failed for job %s: %s", job_id, e)
+                return None
+
+        if not content:
+            return None
+
+        try:
+            fd, path = tempfile.mkstemp(suffix=".txt", prefix="cover_letter_")
+            with open(fd, "w", encoding="utf-8") as f:
+                f.write(content)
+            return path
+        except OSError as e:
+            logger.warning("Failed to write cover letter temp file: %s", e)
+            return None
 
     async def _get_portfolio_path(self, ctx: dict) -> Optional[str]:
         """Get portfolio file path from context."""

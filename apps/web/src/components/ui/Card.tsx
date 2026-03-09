@@ -7,9 +7,9 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-white border-slate-200",
-        primary: "bg-primary-50 border-primary-200",
-        secondary: "bg-slate-50 border-slate-200",
+        default: "bg-white border-brand-border",
+        primary: "bg-brand-primary/10 border-brand-primary/20",
+        secondary: "bg-brand-gray border-brand-border",
         ghost: "bg-transparent border-transparent",
       },
       shadow: {

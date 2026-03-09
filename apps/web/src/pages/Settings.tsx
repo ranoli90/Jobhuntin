@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download, Trash2, AlertTriangle, Ban, Tag } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download, Trash2, AlertTriangle, Ban, Tag, Moon, Sun } from "lucide-react";
 import { useProfile } from "../hooks/useProfile";
 import { t, getLocale } from "../lib/i18n";
 import { Button } from "../components/ui/Button";
@@ -9,6 +9,7 @@ import { ConfirmModal } from "../components/ui/ConfirmModal";
 import { pushToast } from "../lib/toast";
 import { getApiBase, getAuthHeaders } from "../lib/api";
 import { telemetry } from "../lib/telemetry";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 export default function Settings() {
   const { profile, loading, updateProfile, uploadResume, uploadAvatar } = useProfile();
@@ -481,7 +482,7 @@ export default function Settings() {
                     aria-label={`${t(labelKey, locale)}: ${t(descKey, locale)}. ${preferences[key] ? "On" : "Off"}`}
                     onClick={() => setPreferences((p) => ({ ...p, [key]: !p[key] }))}
                     className={`flex items-center justify-between w-full rounded-2xl border px-4 py-3 transition-all ${preferences[key]
-                      ? "bg-primary-50 border-primary-200 text-primary-700"
+                      ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
                       : "bg-white border-brand-ink/10 text-brand-ink"
                       }`}
                   >
@@ -491,7 +492,7 @@ export default function Settings() {
                       <span className="text-xs text-brand-ink/60">{t(descKey, locale)}</span>
                     </div>
                     <span
-                      className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-all ${preferences[key] ? "bg-primary-500" : "bg-slate-200"
+                      className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-all ${preferences[key] ? "bg-brand-primary" : "bg-brand-border"
                         }`}
                     >
                       <span
@@ -547,7 +548,21 @@ export default function Settings() {
           </form>
         </Card>
 
-        {/* TODO: Dark mode / theme toggle - hidden behind feature flag for now (magic-link users may not need it) */}
+        <Card tone="shell" shadow="lift" className="p-6">
+          <h2 className="font-display text-xl mb-2 flex items-center gap-2">
+            <Moon className="h-5 w-5" aria-hidden />
+            {t("settings.appearance", locale) || "Appearance"}
+          </h2>
+          <p className="text-sm text-brand-ink/60 mb-4">
+            {t("settings.themeDescription", locale) || "Choose light, dark, or system theme."}
+          </p>
+          <div className="flex items-center gap-3">
+            <ThemeToggle className="text-brand-ink" />
+            <span className="text-sm text-brand-ink/70">
+              {t("settings.themeToggle", locale) || "Click to cycle: light → dark → system"}
+            </span>
+          </div>
+        </Card>
 
         <Card tone="shell" shadow="lift" className="p-6">
           <h2 className="font-display text-xl mb-2">{t("settings.dataPrivacy", locale)}</h2>

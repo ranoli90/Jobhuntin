@@ -9,11 +9,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-black text-white hover:bg-gray-800 focus-visible:ring-black shadow-sm active:scale-[0.98]",
+          "bg-brand-primary text-white hover:bg-brand-primaryHover focus-visible:ring-brand-primary shadow-sm active:scale-[0.98]",
         secondary:
-          "bg-gray-100 text-black hover:bg-gray-200 focus-visible:ring-gray-300 active:scale-[0.98]",
+          "bg-brand-gray text-brand-text hover:bg-brand-border/50 focus-visible:ring-brand-primary active:scale-[0.98]",
         default:
-          "bg-black text-white hover:bg-gray-800 focus-visible:ring-black shadow-sm active:scale-[0.98]",
+          "bg-brand-primary text-white hover:bg-brand-primaryHover focus-visible:ring-brand-primary shadow-sm active:scale-[0.98]",
         ghost: "bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-300 active:scale-[0.98]",
         outline: "bg-transparent border border-gray-200 text-black hover:bg-gray-50 focus-visible:ring-gray-300 active:scale-[0.98]",
         danger: "bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400 shadow-sm active:scale-[0.98]",

@@ -138,6 +138,36 @@ services:
         value: apps:packages:.
     autoDeploy: true
 
+  # Background Worker (Job Queue — background_jobs table)
+  - type: worker
+    name: jobhuntin-job-queue
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. python apps/worker/job_queue_worker.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: env
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+    autoDeploy: true
+
+  # Background Worker (Follow-up Reminders)
+  - type: worker
+    name: jobhuntin-follow-up-reminders
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. python apps/worker/follow_up_reminders_worker.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: env
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+    autoDeploy: true
+
   # Background Worker (Auto-Apply Agent)
   - type: worker
     name: sorce-auto-apply-agent

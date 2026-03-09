@@ -5,6 +5,7 @@ When user_id is provided, loads profile and scores jobs by match.
 """
 
 import json
+import time
 from typing import Any
 
 import asyncpg
@@ -14,6 +15,7 @@ from backend.domain.job_scoring import apply_dealbreaker_filters, score_job_matc
 from backend.domain.profile_assembly import assemble_profile
 from shared.config import get_settings
 from shared.logging_config import get_logger
+from shared.metrics import incr, observe
 
 logger = get_logger("sorce.job_search")
 
@@ -122,6 +124,7 @@ async def search_and_list_jobs(
 
     # Profile-based scoring when user_id provided
     if user_id and result:
+        t0 = time.monotonic()
         async with db_pool.acquire() as conn:
             profile = await assemble_profile(conn, user_id)
         if profile:
@@ -130,6 +133,9 @@ async def search_and_list_jobs(
                 # Ensure job has keys expected by score_job_match
                 job.setdefault("requirements", job.get("skills") or [])
                 score_job_match(job, profile)
+            duration = time.monotonic() - t0
+            observe("job_search.match_scoring_latency_seconds", duration)
+            incr("job_search.jobs_scored", {"user_id": user_id}, value=len(result))
             # Filter by min_match_score if requested
             if min_match_score is not None:
                 result = [j for j in result if (j.get("match_score") or 0) >= min_match_score]

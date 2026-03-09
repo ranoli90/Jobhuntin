@@ -205,12 +205,26 @@ def profile_to_searchable_text(profile: dict[str, Any]) -> str:
     if profile.get("summary"):
         parts.append(profile["summary"])
 
-    # Skills
+    # Skills — handle both dict (technical/soft) and list of RichSkill dicts
     skills = profile.get("skills", {})
-    if skills.get("technical"):
-        parts.append(f"Technical skills: {', '.join(skills['technical'][:20])}")
-    if skills.get("soft"):
-        parts.append(f"Soft skills: {', '.join(skills['soft'][:10])}")
+    if isinstance(skills, dict):
+        if skills.get("technical"):
+            tech = skills["technical"]
+            names = [s if isinstance(s, str) else (s.get("skill") or s.get("name") or "") for s in tech[:20]]
+            parts.append(f"Technical skills: {', '.join(n for n in names if n)}")
+        if skills.get("soft"):
+            soft = skills["soft"]
+            names = [s if isinstance(s, str) else (s.get("skill") or s.get("name") or "") for s in soft[:10]]
+            parts.append(f"Soft skills: {', '.join(n for n in names if n)}")
+    elif isinstance(skills, list):
+        names = []
+        for s in skills[:30]:
+            if isinstance(s, str):
+                names.append(s)
+            elif isinstance(s, dict):
+                names.append(s.get("skill") or s.get("name") or "")
+        if names:
+            parts.append(f"Skills: {', '.join(n for n in names if n)}")
 
     # Experience highlights
     for exp in profile.get("experience", [])[:5]:
