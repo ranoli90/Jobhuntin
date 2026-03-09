@@ -223,19 +223,20 @@ function UserJourneySection() {
                 <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 text-center">{s.title}</h3>
                 <p className="text-white/80 text-center font-medium">{s.sub}</p>
 
-                {/* Step rail - winding path feel */}
-                <div className="flex gap-3 mt-8">
+                {/* Step rail — stable dots, no ring glitches */}
+                <div className="flex items-center justify-center gap-2 mt-8">
                   {JOURNEY_STEPS.map((_, i) => (
                     <div
                       key={i}
                       className={cn(
-                        "w-3 h-3 rounded-full transition-all duration-300",
-                        i === step ? "scale-125 ring-2 ring-offset-2 ring-offset-[#2D2A26]" : "opacity-40"
+                        "rounded-full transition-all duration-500 ease-out",
+                        i === step ? "w-8 h-3" : "w-3 h-3"
                       )}
                       style={{
-                        background: i === step ? s.color : 'white',
-                        boxShadow: i === step ? `0 0 12px ${s.color}` : 'none',
+                        background: i === step ? s.color : 'rgba(255,255,255,0.35)',
+                        boxShadow: i === step ? `0 0 16px ${s.color}40` : 'none',
                       }}
+                      aria-hidden
                     />
                   ))}
                 </div>
@@ -433,7 +434,7 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════
           AS SEEN IN — trust bar
           ═══════════════════════════════════════════ */}
-      <section className="py-8 border-y border-[#E9E9E7]" aria-label="Trusted by job seekers worldwide">
+      <section className="py-8 border-y border-[#E9E9E7] bg-[#F7F6F3]" aria-label="Trusted by job seekers worldwide">
         <div className="max-w-5xl mx-auto px-6">
           <p className="text-center text-sm font-medium text-[#787774] mb-4">Trusted by 10,000+ job seekers from companies like</p>
           <div className="flex flex-wrap items-center justify-center gap-8 opacity-60">
@@ -676,7 +677,7 @@ export default function Homepage() {
       {/* ═══════════════════════════════════════════
           EXPLORE MORE — internal links
           ═══════════════════════════════════════════ */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-[#F7F6F3]">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-2xl font-bold text-[#2D2A26] text-center mb-8">Explore More</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -702,14 +703,15 @@ export default function Homepage() {
       </section>
 
       {/* ═══════════════════════════════════════════
-          FINAL CTA — with illustration
+          FINAL CTA — blends from cream above into warm dark
           ═══════════════════════════════════════════ */}
-      <section className="bg-[#2D2A26] py-[80px] sm:py-[120px] relative overflow-hidden">
+      <section className="py-[80px] sm:py-[120px] relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #F7F6F3 0%, #E8E7E4 15%, #4A4744 40%, #2D2A26 100%)' }}>
         <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 600">
-          <path d="M-80 350 C300 250, 600 450, 900 300 S1200 180, 1520 280" stroke="white" strokeOpacity="0.03" strokeWidth="1.5" fill="none" />
-          <path d="M-80 200 C300 300, 600 150, 900 250 S1200 350, 1520 230" stroke="white" strokeOpacity="0.02" strokeWidth="1" fill="none" />
+          <path d="M-80 350 C300 250, 600 450, 900 300 S1200 180, 1520 280" stroke="white" strokeOpacity="0.04" strokeWidth="1.5" fill="none" />
+          <path d="M-80 200 C300 300, 600 150, 900 250 S1200 350, 1520 230" stroke="white" strokeOpacity="0.03" strokeWidth="1" fill="none" />
         </svg>
-        <img src="/illustrations/beach-day.svg" alt="" aria-hidden loading="lazy" className="absolute right-[-2%] bottom-[5%] w-[200px] opacity-[0.06] pointer-events-none hidden lg:block" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 80%, rgba(23,190,187,0.08) 0%, transparent 60%)' }} />
+        <img src="/illustrations/beach-day.svg" alt="" aria-hidden loading="lazy" className="absolute right-[-2%] bottom-[5%] w-[200px] opacity-[0.08] pointer-events-none hidden lg:block" />
 
         <div className="relative max-w-[1080px] mx-auto px-6 z-10">
           <Reveal>
