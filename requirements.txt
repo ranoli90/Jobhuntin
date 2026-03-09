@@ -1,8 +1,6 @@
 # =================================================================
 # Production Dependencies — pinned with compatible version ranges
 # =================================================================
-# For fresh installs, use: pip install -r requirements.txt -c constraints.txt
-# to ensure markdownify>=0.14.1 (CVE-2025-46656) overrides python-jobspy.
 
 # ── Web Framework ────────────────────────────────────────────────
 fastapi>=0.110,<1
@@ -62,6 +60,5 @@ sentry-sdk[fastapi]>=2.0.0
 # ── Job Aggregation ──────────────────────────────────────────────
 python-jobspy>=1.1.82
 pandas>=2.3.0
-# markdownify is a transitive dependency from python-jobspy
-# >=0.14.1 fixes CVE-2025-46656
-markdownify>=0.14.1
+# Note: python-jobspy pins markdownify<0.14.0. CVE-2025-46656 (LOW, memory DoS)
+# is fixed in markdownify>=0.14.1. Track: https://github.com/speedyapply/JobSpy/issues
