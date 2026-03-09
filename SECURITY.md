@@ -73,7 +73,7 @@ python -m safety check
 
 ### Security Scanning in CI/CD
 
-The [`code_review.py`](code_review.py) script includes security scanning via pip-audit. These tools may report findings in large dependency trees, which is expected behavior. The script has been configured to:
+The [`scripts/code_review.py`](scripts/code_review.py) script includes security scanning via pip-audit. These tools may report findings in large dependency trees, which is expected behavior. The script has been configured to:
 
 1. Run pip-audit as an informational check
 2. Continue execution even if vulnerabilities are found (since external dependencies may always have some issues)

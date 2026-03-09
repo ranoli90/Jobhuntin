@@ -1,7 +1,0 @@
-{
-  "timestamp": "2026-03-06T03:31:11.157Z",
-  "testType": "production-readiness-validation",
-  "baseUrl": "https://jobhuntin.com",
-  "environment": "production",
-  "ciMode": false
-}

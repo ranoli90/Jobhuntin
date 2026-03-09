@@ -1,106 +1,70 @@
-# JobHuntin Monorepo
+# JobHuntin
 
-**Outcomes first:** This codebase runs the JobHuntin consumer surfaces, the FastAPI control plane, the Playwright worker fleet that completes "zero-scroll" job applications, and the AI-powered SEO engine that keeps the top of funnel fed. Render PostgreSQL hosts the primary database, Render runs the long-lived services, and shared Python packages keep every surface typed, observable, and rate-limited.
+AI-powered job application automation. Upload your resume once — JobHuntin matches, tailors, and auto-applies to hundreds of jobs daily.
 
-## Architecture at a Glance
+## For Developers
 
-- **User & Admin Surfaces** – `apps/web` (Vite/React) and `apps/web-admin` push the "No-Scroll UI" ethos: every CTA lands above the fold and is backed by SSR-friendly SEO copy generated from AI prompts.
-- **APIs** – `apps/api` (FastAPI) and `apps/api_v2` expose tenant, application, and blueprint orchestration endpoints. They lean on `packages/backend` for domain models, storage helpers, and LLM prompt coordination.
-- **Automation Workers** – `apps/worker` runs FormAgent + ScalingManager. Each worker polls PostgreSQL queues via `backend.domain.repositories`, drives Playwright through multi-step forms, and emits metrics/telemetry via `packages/shared`.
-- **SEO Engine** – `apps/web/scripts/seo/*.ts` orchestrate the AI ranking engine. They hit `backend.llm` through OpenRouter with `google/gemini-2.0-flash` as the primary model for optimal cost/performance balance.
-- **Shared Libraries** – `packages/shared` (config, logging, redis, telemetry) and `packages/backend` (domain, LLM, blueprint registry) are consumed by every Python runtime to guarantee consistent guardrails.
-- **Infrastructure** – `infra/` tracks database schema, migrations, and Render service manifests.
+- **[Development Guide](docs/DEVELOPMENT.md)** — Local setup, environment, running services
+- **[Architecture](docs/ARCHITECTURE.md)** — System design, components, data flow
+- **[Documentation Index](docs/INDEX.md)** — Full doc map
 
-## Quick Start (10-Min Path to Value)
+### Quick Start
 
-> Copy `.env.example` to `.env` and configure your database connection before running anything.
-
-1. **Clone + bootstrap tooling**
-   ```bash
-   git clone <repo-url>
-   cd jobhuntin
-   python -m venv .venv && .venv/Scripts/activate  # `source .venv/bin/activate` on macOS/Linux
-   pip install -r requirements.txt
-   npm install --prefix apps/web
-   npm install --prefix apps/web-admin
-   npm install --prefix apps/extension
-   npm install --prefix mobile
-   ```
-2. **Run FastAPI + worker loop**
-   ```bash
-   export PYTHONPATH="apps;packages"  # Windows: set PYTHONPATH=apps;packages
-   uvicorn api.main:app --reload
-   python -m apps.worker.agent  # single FormAgent
-   # or for horizontal tests
-   python -m apps.worker.scaling --instances 4
-   ```
-3. **Run the consumer web app**
-   ```bash
-   cd apps/web
-   npm run dev
-   ```
-4. **Kick the SEO engine**
-   ```bash
-   cd apps/web
-   npm run seo:engine        # automated-ranking-engine.ts (AI-powered content generation)
-   npm run seo:monitor       # dashboard + verification via Google APIs
-   ```
-5. **Mobile sanity check**
-   ```bash
-   cd mobile
-   npm run start
-   ```
-
-## Project Map
-
-```
-.
-├─ apps/
-│  ├─ api/            FastAPI v1 surface (tenants, applications, webhook ingestion).
-│  ├─ api_v2/         Experimental routes + OpenAPI for new auth/magic-link flows.
-│  ├─ web/            Vite/React JobHuntin UI + AI-powered SEO scripts.
-│  ├─ web-admin/      Operator dashboard powering staffing agencies + experiments.
-│  ├─ extension/      Chromium extension that piggybacks on API contracts.
-│  └─ worker/         Playwright FormAgent + scaling harness (asyncpg + PostgreSQL SSL).
-├─ packages/
-│  ├─ backend/        Domain models, repositories, LLM orchestration, blueprint registry.
-│  ├─ blueprints/     Community + staffing-agency blueprints auto-loaded by the worker.
-│  ├─ partners/       University + enterprise adapters that override defaults per tenant.
-│  └─ shared/         Config, logging, metrics, redis, telemetry, middleware.
-├─ scripts/           Render maintenance, load tests, remediation utilities.
-├─ infra/             Render infrastructure as code and database migrations.
-├─ docs/, plans/      Launch playbooks, audits, and investor-ready reports.
-├─ mobile/            Expo/React Native client.
-├─ tests/             Pytest suite (agent integration, domain invariants, failure drills).
-└─ templates/, templates/emails, etc. for quick blueprint scaffolding.
+```bash
+git clone <repo-url> && cd jobhuntin
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt && npm install
+cp .env.example .env   # Configure DATABASE_URL, JWT_SECRET, etc.
+docker compose up db -d
+PYTHONPATH=apps:packages:. uvicorn api.main:app --reload --port 8000
+cd apps/web && npx vite --port 5173
 ```
 
-## Script & Tooling Inventory
+### Key Commands
 
-- `apps/web/package.json` scripts prefixed with `seo:*` run the AI-powered SEO batch (generation, submission, monitoring, backend handoffs).
-- `scripts/` contains Python utilities for Render maintenance, database schema checks, and load tests (Artillery in `scripts/load-test`).
-- `deploy-to-render.sh` + `.github/workflows/deploy-render-seo.yml` wire CI/CD.
-- `setup-render-env.sh` and `scripts/setup/` scaffolding (ignored via `.gitignore`) keep secrets out of Git.
+| Command | Purpose |
+|---------|---------|
+| `make dev-api` | Run FastAPI backend |
+| `make dev-web` | Run web app |
+| `pytest tests/` | Run Python tests |
+| `cd apps/web && npm run build` | Build web app |
 
-## Testing & Quality Gates
+## For Investors
 
-- **Python** – `pytest` (entire repo) with contracts covering FormAgent, blueprint orchestration, and failure drills.
-- **JavaScript** – `apps/web` uses Vitest/Jest-style `npm test`; `mobile` leverages Expo’s Jest preset.
-- **Zero-Defect expectation** – see `CONTRIBUTING.md` for review/observability requirements and "No-Scroll UI" checks.
+- **[Investor Overview](docs/INVESTORS.md)** — Metrics API, data room endpoints
+- **[investor-metrics/](investor-metrics/README.md)** — Core metrics export
+- **[investor-data-room/](investor-data-room/README.md)** — Full diligence package
 
-## Deployment & Operations
+## Project Structure
 
-- **Render** – `render.yaml` + `render_full.json` describe production services (API, worker, SEO engine) plus environment variables.
-- **Database** – Render PostgreSQL with migrations managed via `alembic/` and `infra/` schema files; Playwright workers and APIs connect with SSL + connection pooling (`shared.config`).
-- **SEO Ops** – AI-powered SEO engine ships via Render + Google Indexing APIs.
+```
+├── apps/
+│   ├── api/          FastAPI backend
+│   ├── web/          Vite/React consumer app
+│   ├── web-admin/    Operator dashboard
+│   ├── extension/    Chrome extension
+│   └── worker/       Playwright automation (FormAgent)
+├── packages/
+│   ├── backend/      Domain, repositories, LLM
+│   ├── shared/       Config, logging, telemetry
+│   └── blueprints/   Job board adapters
+├── infra/            Database schema, migrations
+├── docs/             Documentation
+└── scripts/          Maintenance, migrations, load tests
+```
 
-## Documentation Index
+## Deployment
 
-- `docs/INDEX.md` – entry point into strategy notes, playbooks, and audits.
-- `docs/reports/PRODUCTION_READINESS_AUDIT_2026-02-28.md` – canonical production readiness audit (312 findings).
-- `docs/reports/AUDIT_SPRINTS_SUMMARY.md` – audit fix implementation status.
-- `docs/reports/root-docs/` – anti-patterns, magic link, env setup.
-- `plans/` – architecture/system plans.
+- **Render** — Production (PostgreSQL, Redis, API, worker, web)
+- **Setup** — See [docs/RENDER_SETUP.md](docs/RENDER_SETUP.md)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow, quality gates, and standards.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for dependency advisories and remediation.
 
 ---
 

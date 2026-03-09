@@ -120,3 +120,10 @@ sonar-report.json
 # Generated analysis/audit outputs (regenerate as needed)
 analysis_output/
 render_audit_results.json
+
+# E2E test reports (Playwright)
+jobhuntin-e2e-tests/reports/
+
+# SEO script outputs
+apps/web/fast_index_output.txt
+apps/web/scripts/seo/.generation-tracking.json
