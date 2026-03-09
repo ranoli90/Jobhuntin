@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 import uuid
 from collections.abc import Callable
+from urllib.parse import urlparse
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -17,6 +18,11 @@ from starlette.responses import JSONResponse, Response
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
+
+try:
+    from starlette_csrf.middleware import CSRFMiddleware as StarletteCSRF
+except ImportError:
+    StarletteCSRF = None  # type: ignore[misc, assignment]
 
 logger = get_logger("sorce.middleware")
 
@@ -105,54 +111,51 @@ def setup_csrf_middleware(app, secret: str) -> None:
         )
         return
 
-    try:
-        from starlette_csrf.middleware import CSRFMiddleware as StarletteCSRF
-
-        exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
-        s = get_settings()
-        from urllib.parse import urlparse
-
-        api_host = urlparse(s.api_public_url).hostname if s.api_public_url else ""
-        app_host = urlparse(s.app_base_url).hostname if s.app_base_url else ""
-        is_cross_origin = api_host != app_host and api_host and app_host
-
-        class CSRFForCORSMiddleware(StarletteCSRF):
-            def _get_error_response(self, request: Request) -> Response:
-                response = JSONResponse(
-                    {
-                        "error": {
-                            "code": "CSRF_FAILED",
-                            "message": "CSRF validation failed",
-                        }
-                    },
-                    status_code=403,
-                )
-                origin = request.headers.get("origin", "")
-                cors_origins = getattr(app.state, "cors_origins", [])
-                if origin and (origin in cors_origins or not cors_origins):
-                    response.headers["Access-Control-Allow-Origin"] = origin
-                    response.headers["Access-Control-Allow-Credentials"] = "true"
-                return response
-
-        is_prod = s.env.value in ("prod", "staging")
-        # Secure=True is ONLY allowed over HTTPS. In local dev, it must be False.
-        cookie_secure = is_prod or (
-            s.app_base_url and s.app_base_url.startswith("https")
-        )
-
-        app.add_middleware(
-            CSRFForCORSMiddleware,
-            secret=secret,
-            cookie_name="csrftoken",
-            cookie_secure=cookie_secure,
-            cookie_samesite="none" if is_cross_origin else "lax",
-            exempt_urls=exempt_patterns,
-        )
-        logger.info(
-            f"CSRF protection enabled (SameSite={'none' if is_cross_origin else 'lax'})"
-        )
-    except ImportError:
+    if StarletteCSRF is None:
         logger.error("starlette-csrf not installed - CSRF protection disabled")
+        return
+
+    exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
+    s = get_settings()
+    api_host = urlparse(s.api_public_url).hostname if s.api_public_url else ""
+    app_host = urlparse(s.app_base_url).hostname if s.app_base_url else ""
+    is_cross_origin = api_host != app_host and api_host and app_host
+
+    class CSRFForCORSMiddleware(StarletteCSRF):
+        def _get_error_response(self, request: Request) -> Response:
+            response = JSONResponse(
+                {
+                    "error": {
+                        "code": "CSRF_FAILED",
+                        "message": "CSRF validation failed",
+                    }
+                },
+                status_code=403,
+            )
+            origin = request.headers.get("origin", "")
+            cors_origins = getattr(app.state, "cors_origins", [])
+            if origin and (origin in cors_origins or not cors_origins):
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+            return response
+
+    is_prod = s.env.value in ("prod", "staging")
+    # Secure=True is ONLY allowed over HTTPS. In local dev, it must be False.
+    cookie_secure = is_prod or (
+        s.app_base_url and s.app_base_url.startswith("https")
+    )
+
+    app.add_middleware(
+        CSRFForCORSMiddleware,
+        secret=secret,
+        cookie_name="csrftoken",
+        cookie_secure=cookie_secure,
+        cookie_samesite="none" if is_cross_origin else "lax",
+        exempt_urls=exempt_patterns,
+    )
+    logger.info(
+        f"CSRF protection enabled (SameSite={'none' if is_cross_origin else 'lax'})"
+    )
 
 
 def setup_request_id_middleware(app) -> None:

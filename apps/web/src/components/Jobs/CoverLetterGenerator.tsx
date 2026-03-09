@@ -65,6 +65,7 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
             />
 
             <FocusTrap
+                active={isOpen}
                 focusTrapOptions={{
                     initialFocus: () => cardRef.current?.querySelector<HTMLElement>('button, [href]') ?? false,
                     allowOutsideClick: true,
@@ -109,10 +110,12 @@ export function CoverLetterGenerator({ job, isOpen, onClose }: CoverLetterGenera
 
                             <div className="space-y-3">
                                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest block">Tone</label>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-3" role="radiogroup" aria-label="Tone">
                                     {["Professional", "Enthusiastic", "Confident"].map((t) => (
                                         <button
                                             key={t}
+                                            role="radio"
+                                            aria-checked={tone === t.toLowerCase()}
                                             onClick={() => setTone(t.toLowerCase())}
                                             className={`
                         py-3 px-4 rounded-xl text-sm font-bold transition-all border

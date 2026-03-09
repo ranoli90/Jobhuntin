@@ -207,7 +207,7 @@ export default function AppLayout() {
         </main>
 
         {/* Mobile bottom navigation: 4 main + More (opens full menu) */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 pb-safe-area shadow-[0_-8px_24px_rgba(15,23,42,0.06)]" aria-label="Main navigation">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 pb-safe-area shadow-[0_-8px_24px_rgba(15,23,42,0.06)]" aria-label="Mobile navigation">
           <div className="grid grid-cols-5 gap-1 pt-2 pb-5">
             {visibleNavItems.slice(0, 4).map((item) => {
               const Icon = item.icon;
@@ -241,6 +241,7 @@ export default function AppLayout() {
                   : "text-slate-500 hover:text-slate-900"
               )}
               aria-label="More menu"
+              aria-expanded={mobileMenuOpen}
             >
               <MoreHorizontal className="h-6 w-6 mb-1.5" aria-hidden />
               <span className="text-[11px] tracking-tight font-medium">More</span>

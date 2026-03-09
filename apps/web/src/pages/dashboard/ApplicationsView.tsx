@@ -313,6 +313,7 @@ export default function ApplicationsView() {
       <Card className="p-0 overflow-hidden border-slate-200 hidden md:block" shadow="sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
+            <caption className="sr-only">Your job applications</caption>
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Company & Role</th>

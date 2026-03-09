@@ -42,7 +42,7 @@ export function useBilling() {
   const query = useQuery({
     queryKey: ["billing"],
     queryFn: fetchBillingData,
-    staleTime: 30_000, // Consider data fresh for 30s
+    staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true, // Refetch when user returns to tab (e.g. from Stripe)
   });
 

@@ -89,12 +89,14 @@ export function CareerGoalsStep({
                         <Clock className="w-3 h-3" />
                         {t("onboarding.experienceLevel", locale) || "Experience Level"} <span className="text-red-400">*</span>
                     </label>
-                    <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                    <div className="grid grid-cols-3 md:grid-cols-5 gap-2" role="radiogroup" aria-label="Experience level">
                         {EXPERIENCE_LEVELS.map((level) => {
                             const isSelected = careerGoals.experience_level === level.value;
                             return (
                                 <button
                                     key={level.value}
+                                    role="radio"
+                                    aria-checked={isSelected}
                                     onClick={() => setCareerGoals(prev => ({ ...prev, experience_level: level.value }))}
                                     className={`relative p-3 rounded-xl text-center transition-all border-2 ${isSelected
                                         ? "border-primary-500 shadow-md scale-[1.02]"
@@ -118,13 +120,15 @@ export function CareerGoalsStep({
                         <Flame className="w-3 h-3" />
                         {t("onboarding.searchUrgency", locale) || "How urgently are you looking?"} <span className="text-red-400">*</span>
                     </label>
-                    <div className="grid gap-2">
+                    <div className="grid gap-2" role="radiogroup" aria-label="Job search urgency">
                         {URGENCY_OPTIONS.map((option) => {
                             const isSelected = careerGoals.urgency === option.value;
                             const UrgencyIcon = option.icon;
                             return (
                                 <button
                                     key={option.value}
+                                    role="radio"
+                                    aria-checked={isSelected}
                                     onClick={() => setCareerGoals(prev => ({ ...prev, urgency: option.value }))}
                                     className={`flex items-center gap-3 p-3 md:p-4 rounded-xl text-left transition-all border-2 ${isSelected
                                         ? "border-primary-500 bg-primary-50 shadow-md scale-[1.01]"
@@ -150,13 +154,15 @@ export function CareerGoalsStep({
                         <Target className="w-3 h-3" />
                         {t("onboarding.primaryGoal", locale) || "Primary career goal"}
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2" role="radiogroup" aria-label="Primary career goal">
                         {GOALS.map((goal) => {
                             const isSelected = careerGoals.primary_goal === goal.value;
                             const Icon = goal.icon;
                             return (
                                 <button
                                     key={goal.value}
+                                    role="radio"
+                                    aria-checked={isSelected}
                                     onClick={() => setCareerGoals(prev => ({
                                         ...prev,
                                         primary_goal: prev.primary_goal === goal.value ? "" : goal.value
@@ -180,12 +186,14 @@ export function CareerGoalsStep({
                         <Heart className="w-3 h-3" />
                         {t("onboarding.whyLeaving", locale) || "Why are you looking?"} <span className="text-slate-300 font-normal normal-case tracking-normal">(optional)</span>
                     </label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Why are you looking">
                         {REASONS.map((reason) => {
                             const isSelected = careerGoals.why_leaving === reason.value;
                             return (
                                 <button
                                     key={reason.value}
+                                    role="radio"
+                                    aria-checked={isSelected}
                                     onClick={() => setCareerGoals(prev => ({
                                         ...prev,
                                         why_leaving: prev.why_leaving === reason.value ? "" : reason.value

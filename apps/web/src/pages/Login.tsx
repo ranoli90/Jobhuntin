@@ -79,6 +79,13 @@ export default function Login() {
     }
   }, []);
 
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error === 'auth_failed') {
+      setFormError('Your magic link has expired or was already used. Please request a new one.');
+    }
+  }, [searchParams]);
+
   const emailIsValid = useMemo(() => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }, [email]);
@@ -166,7 +173,11 @@ export default function Login() {
 
   useEffect(() => {
     if (successState) {
-      triggerConfetti();
+      const hasLoggedInBefore = localStorage.getItem('jobhuntin_has_logged_in');
+      if (!hasLoggedInBefore) {
+        triggerConfetti();
+        localStorage.setItem('jobhuntin_has_logged_in', 'true');
+      }
     }
   }, [successState, triggerConfetti]);
 

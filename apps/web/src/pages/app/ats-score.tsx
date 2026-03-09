@@ -217,6 +217,7 @@ export default function ATSScorePage() {
               Your Resume
             </h3>
             <textarea
+              aria-label="Your resume text"
               placeholder="Paste your resume text here..."
               value={resumeText}
               onChange={(e) => setResumeText(e.target.value)}
@@ -231,6 +232,7 @@ export default function ATSScorePage() {
               Job Description
             </h3>
             <textarea
+              aria-label="Job description"
               placeholder="Paste the job description here..."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}

@@ -23,21 +23,25 @@ project_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(project_root))
 
 import json
+import mimetypes
+import os
+import re
 from typing import Any
 
 import asyncpg
+import jwt as pyjwt
 from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException
 from fastapi import Path as FastAPIPath
 from fastapi import Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
 from packages.backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
 )
-from packages.backend.domain.models import CanonicalProfile, ErrorDetail, ErrorResponse
+from packages.backend.domain.models import CanonicalProfile
 from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -49,6 +53,7 @@ from packages.backend.domain.agent_improvements import create_agent_improvements
 from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
 from shared.config import Environment, get_settings
+from shared.validators import validate_uuid
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import incr
 from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
@@ -184,21 +189,6 @@ CORS_ORIGINS = [
 
 app.state.cors_origins = CORS_ORIGINS
 
-
-@app.middleware("http")
-async def ensure_cors_on_all_responses(request: Request, call_next):
-    origin = request.headers.get("origin", "")
-    is_allowed_origin = origin in CORS_ORIGINS
-
-    response = await call_next(request)
-
-    if is_allowed_origin:
-        response.headers.setdefault("Access-Control-Allow-Origin", origin)
-        response.headers.setdefault("Access-Control-Allow-Credentials", "true")
-
-    return response
-
-
 # ---------------------------------------------------------------------------
 # IMPORTANT: Middleware executes in REVERSE order of registration.
 # CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
@@ -241,7 +231,6 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
 
     try:
         token = auth_header.replace("Bearer ", "")
-        import jwt as pyjwt
 
         if not _settings.jwt_secret:
             return None, TenantTier.FREE
@@ -668,19 +657,8 @@ def _mount_sub_routers() -> None:
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    """Return all HTTP errors in the standard ErrorResponse envelope."""
-    body = ErrorResponse(
-        error=ErrorDetail(
-            code=f"HTTP_{exc.status_code}",
-            message=str(exc.detail),
-        )
-    )
-    response = JSONResponse(status_code=exc.status_code, content=body.model_dump())
-    origin = request.headers.get("origin", "")
-    if origin in CORS_ORIGINS:
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-    return response
+    """Return all HTTP errors in FastAPI standard format."""
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
 @app.exception_handler(Exception)
@@ -693,18 +671,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     else:
         msg = "Internal Server Error"
 
-    body = ErrorResponse(
-        error=ErrorDetail(
-            code="INTERNAL_ERROR",
-            message=msg,
-        )
-    )
-    response = JSONResponse(status_code=500, content=body.model_dump())
-    origin = request.headers.get("origin", "")
-    if origin in CORS_ORIGINS:
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-    return response
+    return JSONResponse(status_code=500, content={"detail": msg})
 
 
 # ---------------------------------------------------------------------------
@@ -1007,14 +974,12 @@ async def save_work_style(
             user_id,
         )
         if existing:
-            import json as _json
-
             pd = existing["profile_data"]
-            profile_data = _json.loads(pd) if isinstance(pd, str) else (pd or {})
+            profile_data = json.loads(pd) if isinstance(pd, str) else (pd or {})
             profile_data["work_style"] = body.model_dump()
             await conn.execute(
                 "UPDATE public.profiles SET profile_data = $1 WHERE user_id = $2",
-                _json.dumps(profile_data),
+                json.dumps(profile_data),
                 user_id,
             )
 
@@ -1087,20 +1052,17 @@ async def resume_parse(
     if file.content_type not in ("application/pdf", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
-    from shared.config import get_settings as _get_settings
-
-    _s = _get_settings()
     # Pre-check Content-Length header to reject before reading body into memory
-    if file.size and file.size > _s.max_upload_size_bytes:
+    if file.size and file.size > _settings.max_upload_size_bytes:
         raise HTTPException(
             status_code=413,
-            detail=f"File too large. Maximum size is {_s.max_upload_size_bytes // 1_048_576} MB",
+            detail=f"File too large. Maximum size is {_settings.max_upload_size_bytes // 1_048_576} MB",
         )
     pdf_bytes = await file.read()
-    if len(pdf_bytes) > _s.max_upload_size_bytes:
+    if len(pdf_bytes) > _settings.max_upload_size_bytes:
         raise HTTPException(
             status_code=413,
-            detail=f"File too large. Maximum size is {_s.max_upload_size_bytes // 1_048_576} MB",
+            detail=f"File too large. Maximum size is {_settings.max_upload_size_bytes // 1_048_576} MB",
         )
 
     resume_url, canonical = await process_resume_upload(
@@ -1241,8 +1203,6 @@ async def get_application_detail(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> ApplicationDetailResponse:
     """Application detail endpoint scoped to the requesting user's tenant."""
-    from shared.validators import validate_uuid
-
     validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         detail = await ApplicationRepo.get_detail(
@@ -1327,8 +1287,6 @@ async def serve_storage_file(
 ):
     """Serve files from storage (e.g., resumes, avatars)."""
     # SECURITY: Prevent path traversal with canonicalization
-    import os
-    import re
 
     # Validate bucket name (alphanumeric, hyphens, underscores only)
     if not re.match(r"^[a-zA-Z0-9_-]+$", bucket):
@@ -1359,8 +1317,6 @@ async def serve_storage_file(
     # Only allow access to files within user's tenant directory
     storage_path = f"{tenant_id}/{bucket}/{normalized_path}"
 
-    from shared.storage import get_storage_service
-
     storage = get_storage_service()
 
     try:
@@ -1371,11 +1327,7 @@ async def serve_storage_file(
         raise HTTPException(status_code=500, detail=f"Error retrieving file: {str(e)}")
 
     # Determine content type based on file extension
-    import mimetypes
-
     content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
-
-    from fastapi.responses import Response
 
     return Response(content=data, media_type=content_type)
 

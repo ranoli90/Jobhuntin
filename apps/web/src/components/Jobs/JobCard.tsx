@@ -74,7 +74,7 @@ function SkillMatchTooltip({
   score: number;
 }) {
   return (
-    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pointer-events-none z-50">
       <div className="flex items-center gap-2 mb-2">
         <Sparkles className="w-4 h-4 text-primary-400" />
         <span className="font-semibold">Skill Match Analysis</span>
@@ -126,9 +126,12 @@ function SkillMatchTooltip({
   );
 }
 
-function MatchExplanationTooltip({ explanation }: { explanation: string }) {
+function MatchExplanationTooltip({ explanation, visible }: { explanation: string; visible?: boolean }) {
   return (
-    <div className="absolute bottom-full right-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover/explain:opacity-100 transition-opacity pointer-events-none z-50">
+    <div className={cn(
+      "absolute bottom-full right-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl transition-opacity pointer-events-none z-50",
+      visible ? "opacity-100" : "opacity-0 group-hover/explain:opacity-100 group-focus-within/explain:opacity-100"
+    )}>
       <p className="text-slate-300 leading-relaxed">{explanation}</p>
       <div className="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2 bg-slate-900" />
     </div>
@@ -151,7 +154,8 @@ export function JobCard({
 }: Omit<JobCardProps, 'isSaved' | 'onSave'>) {
   const { isJobSaved, saveJob, isSaving } = useSavedJobs();
   const isSaved = isJobSaved(job.id);
-  
+  const [showExplanation, setShowExplanation] = React.useState(false);
+
   const hasDealbreakers =
     dealbreakers?.salaryMismatch ||
     dealbreakers?.locationMismatch ||
@@ -176,7 +180,7 @@ export function JobCard({
               Headline
             </p>
             {matchScore !== undefined || matchScoreLoading ? (
-              <div className="group relative">
+              <div className="group relative" tabIndex={0}>
                 <AIMatchBadge
                   score={matchScore}
                   loading={matchScoreLoading}
@@ -306,11 +310,16 @@ export function JobCard({
 
         {matchExplanation && (
           <div className="group/explain relative ml-auto">
-            <button className="text-xs text-slate-500 hover:text-slate-600 flex items-center gap-1 transition-colors">
+            <button
+              type="button"
+              className="text-xs text-slate-500 hover:text-slate-600 flex items-center gap-1 transition-colors"
+              onClick={() => setShowExplanation((s) => !s)}
+              aria-expanded={showExplanation}
+            >
               <Sparkles className="w-3 h-3" />
               Why this match?
             </button>
-            <MatchExplanationTooltip explanation={matchExplanation} />
+            <MatchExplanationTooltip explanation={matchExplanation} visible={showExplanation} />
           </div>
         )}
 
