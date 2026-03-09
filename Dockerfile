@@ -13,7 +13,8 @@
 FROM python:3.12-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/apps:/app:/app/packages
 
 RUN groupadd -r sorce && useradd -r -g sorce -m sorce
 
@@ -33,16 +34,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY pyproject.toml render.yaml ./
 
 # Copy application code in dependency order
-# Shared packages first (most stable)
+# Shared packages first (most stable). Use packages/ to preserve packages.backend import path.
 COPY shared/ ./shared/
-COPY packages/backend/ ./backend/
-COPY packages/blueprints/ ./blueprints/
-COPY packages/partners/ ./partners/
+COPY packages/ ./packages/
 
-# Applications
-COPY apps/api/ ./api/
-COPY apps/api_v2/ ./api_v2/
-COPY apps/worker/ ./worker/
+# Applications. Use apps/ to preserve apps.api, apps.worker import paths.
+COPY apps/ ./apps/
 
 # Templates and config
 COPY templates/ ./templates/
