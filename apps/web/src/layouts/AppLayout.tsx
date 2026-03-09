@@ -31,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
   { label: "Jobs", to: "/app/jobs", icon: Briefcase },
   { label: "Applications", to: "/app/applications", icon: FileText },
-  { label: "HOLDs", to: "/app/holds", icon: HelpCircle },
+  { label: "Holds", to: "/app/holds", icon: HelpCircle },
   { label: "Team", to: "/app/team", icon: Users },
   { label: "Billing", to: "/app/billing", icon: CreditCard },
   { label: "Settings", to: "/app/settings", icon: Settings },

@@ -89,7 +89,7 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
               ? "bg-white text-[#2D2A26] hover:bg-white/90"
               : "bg-[#455DD3] text-white hover:bg-[#3A4FB8]"
           )}
-        >{isSubmitting ? "Sending…" : "Get started free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}</button>
+        >{isSubmitting ? "Sending…" : "Start free"} {!isSubmitting && <ArrowRight className="w-4 h-4" />}</button>
       </form>
       {emailError && <p className="mt-2 text-sm text-red-500 pl-1">{emailError}</p>}
     </div>

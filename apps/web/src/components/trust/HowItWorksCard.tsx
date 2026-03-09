@@ -20,7 +20,7 @@ const STEPS = [
   },
   {
     icon: MessageCircle,
-    title: "We handle HOLDs",
+    title: "We handle Holds",
     description: "When employers ask questions, we draft responses for you to approve and send.",
   },
 ];

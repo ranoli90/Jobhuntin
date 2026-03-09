@@ -123,7 +123,7 @@ export default function ApplicationDetailPage() {
               className="mt-3"
               onClick={() => navigate("/app/holds")}
             >
-              Answer in HOLDs
+              Answer in Holds
             </Button>
           </div>
         )}

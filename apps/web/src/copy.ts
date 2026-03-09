@@ -139,7 +139,7 @@ export const COPY = {
     dashboard: "Dashboard",
     jobs: "Jobs",
     applications: "Applications",
-    holds: "HOLDs",
+    holds: "Holds",
     team: "Team",
     billing: "Billing",
     logout: "Log out",

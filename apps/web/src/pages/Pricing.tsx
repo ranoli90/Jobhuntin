@@ -217,9 +217,9 @@ export default function Pricing() {
     <div className="min-h-screen bg-[#F7F6F3] text-[#2D2A26] pb-20">
       <ExitIntentPopup isOpen={showExitIntent} onClose={() => setShowExitIntent(false)} />
       <SEO
-        title="Pricing | JobHuntin: Start Free, Upgrade to Unlimited"
+        title="Pricing | JobHuntin: Start free, Upgrade to Unlimited"
         description="JobHuntin pricing: Start with 20 free applications per week. Upgrade to unlimited for $10 first month, then $29/month. Get hired faster with AI automation."
-        ogTitle="JobHuntin Pricing: Start Free"
+        ogTitle="JobHuntin Pricing: Start free"
         ogImage="https://jobhuntin.com/og-image.png"
         canonicalUrl="https://jobhuntin.com/pricing"
         includeDate={true}
@@ -272,7 +272,7 @@ export default function Pricing() {
 
       {/* Main pricing — editorial layout, not cards */}
       <main className="max-w-[900px] mx-auto px-6 -mt-12 relative z-10">
-        {/* Start Free — primary offer */}
+        {/* Start free — primary offer */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
