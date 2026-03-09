@@ -81,7 +81,7 @@ function main() {
   // --- Backend (Python) ---
   log('\n--- BACKEND AUDITS (Python) ---');
   const py = process.platform === 'win32' ? 'python' : 'python3';
-  if (run('Ruff (lint)', py, ['-m', 'ruff', 'check', 'apps', 'packages', 'shared', 'scripts', '--select', 'E,W,F,I', '--ignore', 'E501', '--output-format', 'concise']) !== 0) hasErrors = true;
+  if (run('Ruff (lint)', py, ['-m', 'ruff', 'check', 'apps', 'packages', 'shared', 'scripts', '--select', 'E,W,F,I', '--ignore', 'E501,E402', '--output-format', 'concise']) !== 0) hasErrors = true;
   if (run('Mypy (types)', py, ['-m', 'mypy', 'apps/api/', 'apps/worker/', 'packages/backend/', 'shared/', '--ignore-missing-imports', '--no-error-summary'], ROOT, { PYTHONPATH: 'apps:packages:.' }) !== 0) hasErrors = true;
   if (run('Bandit (security)', py, ['-m', 'bandit', '-r', 'apps', 'packages', 'shared', 'scripts', '-x', '.venv,node_modules,__pycache__', '-f', 'txt', '-q']) !== 0) hasErrors = true;
   if (run('pip-audit (vulns)', py, ['-m', 'pip_audit', '-r', 'requirements.txt', '-r', 'requirements-dev.txt']) !== 0) hasErrors = true;

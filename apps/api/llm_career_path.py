@@ -18,6 +18,7 @@ Key endpoints:
 - GET /llm-career-path/emerging-skills - Get emerging skills
 """
 
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException

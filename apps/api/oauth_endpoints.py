@@ -16,6 +16,11 @@ from packages.backend.domain.tenant import TenantContext
 router = APIRouter(prefix="/oauth", tags=["oauth"])
 
 
+async def get_tenant_context() -> TenantContext:
+    """Stub; inject tenant context via Depends in main app."""
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
 # Pydantic models
 class OAuthInitiateRequest(BaseModel):
     """OAuth initiate request."""

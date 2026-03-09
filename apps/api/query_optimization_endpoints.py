@@ -556,7 +556,7 @@ async def export_optimization_data(
             )
         elif format == "csv":
             # Convert to CSV format
-            csv_data = self._convert_optimization_to_csv(report)
+            csv_data = _convert_optimization_to_csv(report)
 
             from fastapi.responses import Response
 

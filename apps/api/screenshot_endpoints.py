@@ -19,6 +19,11 @@ from packages.backend.domain.tenant import TenantContext
 router = APIRouter(prefix="/screenshots", tags=["screenshots"])
 
 
+async def get_tenant_context() -> TenantContext:
+    """Stub; inject tenant context via Depends in main app."""
+    raise NotImplementedError("Tenant context dependency not injected")
+
+
 # Pydantic models
 class ScreenshotCaptureRequest(BaseModel):
     """Screenshot capture request."""

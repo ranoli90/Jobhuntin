@@ -1,7 +1,8 @@
 import io
+from typing import Any
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from PIL import Image, ImageDraw, ImageFont
 
 from shared.logging_config import get_logger
@@ -11,6 +12,11 @@ from shared.middleware import get_client_ip
 logger = get_logger("sorce.api.og")
 
 router = APIRouter()
+
+
+def _get_tenant_ctx():
+    """Stub; inject tenant context via Depends in main app."""
+    raise NotImplementedError("Tenant context dependency not injected")
 
 # --- CONFIG ---
 WIDTH, HEIGHT = 1200, 630
@@ -27,8 +33,6 @@ FONT_URL_BOLD = (
 FONT_URL_REGULAR = (
     "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter-Regular.ttf"
 )
-
-from typing import Any
 
 # In-memory cache for fonts
 _font_cache: dict[str, Any] = {}
@@ -93,6 +97,7 @@ async def generate_og_image(
     company: str = Query("Top Company", description="Company Name", max_length=50),
     score: int = Query(90, description="Match Score (0-100)"),
     location: str = Query("Denver, CO", description="Job Location", max_length=50),
+    ctx: Any = Depends(_get_tenant_ctx),
 ):
     """Generate a dynamic Open Graph image for a job posting."""
     # Require authentication - only authenticated users can generate OG images

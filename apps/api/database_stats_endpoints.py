@@ -9,10 +9,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 
 from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
+from packages.backend.domain.cache_manager import CacheManager
+from packages.backend.domain.connection_pool_manager import ConnectionPoolManager
 from packages.backend.domain.database_performance_manager import (
     create_database_performance_manager,
 )
+from packages.backend.domain.index_analyzer import create_index_analyzer
+from packages.backend.domain.performance_monitor import create_performance_monitor
+from shared.logging_config import get_logger
 
+logger = get_logger("sorce.database_stats_endpoints")
 router = APIRouter(prefix="/database-stats", tags=["database-stats"])
 
 
@@ -361,7 +367,7 @@ async def get_database_size(
             }
 
     except Exception as e:
-        raise HTTP_error(
+        raise HTTPException(
             status_code=500, detail=f"Failed to get database size: {str(e)}"
         )
 
@@ -396,7 +402,7 @@ async def get_table_size(
             }
 
     except Exception as e:
-        raise HTTP_error(status_code=500, detail=f"Failed to get table size: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get table size: {str(e)}")
 
 
 @router.get("/performance-report")
@@ -572,17 +578,17 @@ async def analyze_vacuum_requirements(
     table_name: Optional[str] = None,
     analyze_all: bool = False,
     dry_run: bool = True,
-    db_pool=dpends(get_db_pool),
+    db_pool=Depends(get_db_pool),
     current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Analyze VACUUM requirements and generate recommendations."""
     try:
         # Get VACUUM statistics
-        vacuum_stats = await self._get_vacuum_statistics(table_name, analyze_all)
+        vacuum_stats = await _get_vacuum_statistics(db_pool, table_name, analyze_all)
 
         # Generate recommendations
-        recommendations = await self._generate_vacuum_recommendations(vacuum_stats)
+        recommendations = _generate_vacuum_recommendations(vacuum_stats)
 
         return {
             "table_name": table_name,
@@ -760,7 +766,7 @@ async def get_cache_hit_rates(
     """Get cache hit rates."""
     try:
         # Get cache statistics
-        cache_stats = await self._get_cache_hit_rates(time_period_hours)
+        cache_stats = _get_cache_hit_rates(time_period_hours)
 
         return cache_stats
 
@@ -773,14 +779,14 @@ async def get_cache_hit_rates(
 @router.get("/query-plan/{query_hash}")
 async def get_query_plan(
     query_hash: str,
-    db_pool=deps(get_db_pool),
-    current_user=deps(get_current_user),
+    db_pool=Depends(get_db_pool),
+    current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
     """Get query execution plan by hash."""
     try:
         # Get query plan by hash
-        query_plan = await self._get_query_plan_by_hash(query_hash)
+        query_plan = await _get_query_plan_by_hash(db_pool, query_hash)
 
         return query_plan
 
@@ -794,7 +800,7 @@ async def get_query_plan(
 async def get_table_indexes(
     table_name: str,
     include_usage_stats: bool = True,
-    db_pool=deps(get_db_pool),
+    db_pool=Depends(get_db_pool),
     current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
 ) -> Dict[str, Any]:
@@ -891,7 +897,7 @@ async def export_performance_data(
             )
         elif format == "csv":
             # Convert to CSV format
-            csv_data = self._convert_performance_to_csv(dashboard)
+            csv_data = _convert_performance_to_csv(dashboard)
 
             from fastapi.responses import Response
 
@@ -1018,7 +1024,7 @@ def _convert_performance_to_csv(data: Dict[str, Any]) -> str:
         return f"Error converting to CSV: {str(e)}"
 
 
-def _get_cache_hit_rates(self, time_period_hours: int) -> Dict[str, Any]:
+def _get_cache_hit_rates(time_period_hours: int) -> Dict[str, Any]:
     """Get cache hit rates."""
     try:
         # This would get actual cache hit rates from cache manager
@@ -1034,7 +1040,18 @@ def _get_cache_hit_rates(self, time_period_hours: int) -> Dict[str, Any]:
         return {}
 
 
-def _get_vacuum_statistics(
+async def _get_query_plan_by_hash(db_pool, query_hash: str) -> Dict[str, Any]:
+    """Get query execution plan by hash."""
+    try:
+        # Placeholder - would query pg_stat_statements or similar
+        return {"query_hash": query_hash, "plan": {}, "executions": 0}
+    except Exception as e:
+        logger.error(f"Failed to get query plan for {query_hash}: {e}")
+        return {}
+
+
+async def _get_vacuum_statistics(
+    db_pool,
     table_name: Optional[str] = None,
     analyze_all: bool = False,
 ) -> Dict[str, Any]:
@@ -1372,12 +1389,7 @@ async def _get_table_vacuum_timestamp(db_pool, table_name: str) -> Optional[date
         return None
 
 
-# Factory functions (create_database_performance_manager imported from database_performance_manager)
-def create_query_optimizer(db_pool) -> QueryOptimizer:
-    """Create query optimizer instance."""
-    return QueryOptimizer(db_pool)
-
-
+# Factory functions (create_database_performance_manager, create_query_optimizer, create_performance_monitor imported)
 def create_cache_manager(redis_url: Optional[str] = None) -> CacheManager:
     """Create cache manager instance."""
     return CacheManager(redis_url)
@@ -1388,11 +1400,3 @@ def create_connection_pool_manager() -> ConnectionPoolManager:
     return ConnectionPoolManager()
 
 
-def create_index_analyzer(db_pool) -> IndexAnalyzer:
-    """Create index analyzer instance."""
-    return IndexAnalyzer(db_pool)
-
-
-def create_performance_monitor(db_pool) -> PerformanceMonitor:
-    """Create performance monitor instance."""
-    return PerformanceMonitor(db_pool)

@@ -19,6 +19,7 @@ Key endpoints:
 - GET /voice-interviews/voice-settings - Get available voice settings
 """
 
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -321,7 +322,7 @@ async def start_voice_question(
         }
 
         # Create voice simulator instance
-        voice_simulator = get_voice_simulator()
+        voice_simulator = get_voice_interview_simulator()
 
         # Create temporary session object
         class TempSession:
@@ -341,7 +342,7 @@ async def start_voice_question(
             question_index=request.question_index,
         )
 
-        return StartVoiceResponse(**result)
+        return StartVoiceQuestionResponse(**result)
 
     except Exception as e:
         logger.error(f"Failed to start voice question: {e}")
@@ -381,7 +382,7 @@ async def transcribe_voice_response(
         temp_session = TempSession(request.session_id)
 
         # Create voice simulator instance
-        voice_simulator = get_voice_simulator()
+        voice_simulator = get_voice_interview_simulator()
 
         # Transcribe voice response
         result = await voice_simulator.transcribe_voice_response(
@@ -417,7 +418,7 @@ async def get_voice_session(
         # TODO: Implement session retrieval from database
         # For now, return placeholder data
 
-        return VoiceSession(
+        return VoiceSessionResponse(
             session_id=session_id,
             user_id="demo_user",
             job_id="demo_job",
@@ -815,7 +816,7 @@ async def generate_voice_question(
         temp_session = TempSession(session_id)
 
         # Create voice simulator instance
-        voice_simulator = get_voice_simulator()
+        voice_simulator = get_voice_interview_simulator()
 
         # Generate contextual voice question
         result = await voice_simulator.generate_voice_question(
