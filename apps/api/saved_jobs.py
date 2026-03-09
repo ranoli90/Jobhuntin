@@ -133,7 +133,7 @@ async def list_saved_jobs(
     async with db.acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT 
+            SELECT
                 sj.id, sj.user_id, sj.job_id, sj.tenant_id, sj.created_at, sj.updated_at,
                 j.title, j.company, j.location, j.salary_min, j.salary_max, j.description
             FROM public.saved_jobs sj
@@ -218,7 +218,7 @@ async def get_saved_job(
     async with db.acquire() as conn:
         row = await conn.fetchrow(
             """
-            SELECT 
+            SELECT
                 sj.id, sj.user_id, sj.job_id, sj.tenant_id, sj.created_at, sj.updated_at,
                 j.title, j.company, j.location, j.salary_min, j.salary_max, j.description
             FROM public.saved_jobs sj

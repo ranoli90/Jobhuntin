@@ -386,12 +386,12 @@ class PerformanceConfig:
             # Check system resources
             cpu_cores = system_resources.get("cpu_cores", 4)
             memory_gb = system_resources.get("memory_gb", 8)
-            disk_gb = system_resources.get("disk_gb", 100)
+            _disk_gb = system_resources.get("disk_gb", 100)
 
             # Check workload characteristics
             request_rate = workload_characteristics.get("request_rate", 100)
             criticality = workload_characteristics.get("criticality", "medium")
-            user_count = workload_characteristics.get("user_count", 100)
+            _user_count = workload_characteristics.get("user_count", 100)
 
             # Determine level based on resources and workload
             if (

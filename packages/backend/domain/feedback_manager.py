@@ -326,7 +326,7 @@ class FeedbackManager:
         """Get feedback categories."""
         try:
             query = """
-                SELECT * FROM feedback_categories 
+                SELECT * FROM feedback_categories
                 WHERE tenant_id = $1
             """
             params = [tenant_id]
@@ -394,7 +394,7 @@ class FeedbackManager:
         """Update feedback status."""
         try:
             query = """
-                UPDATE feedback_responses 
+                UPDATE feedback_responses
                 SET status = $1, admin_notes = $2, updated_at = NOW()
                 WHERE id = $3
             """
@@ -414,7 +414,7 @@ class FeedbackManager:
         """Get feedback by ID."""
         try:
             query = """
-                SELECT * FROM feedback_responses 
+                SELECT * FROM feedback_responses
                 WHERE id = $1 AND tenant_id = $2
             """
 
@@ -662,13 +662,13 @@ class FeedbackManager:
         """Get feedback statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_responses,
                     AVG(rating) as average_rating,
                     COUNT(CASE WHEN rating >= 4 THEN 1 END) as positive_ratings,
                     COUNT(CASE WHEN rating <= 2 THEN 1 END) as negative_ratings,
                     COUNT(CASE WHEN rating = 3 THEN 1 END) as neutral_ratings
-                FROM feedback_responses 
+                FROM feedback_responses
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -725,13 +725,13 @@ class FeedbackManager:
         """Get sentiment statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_responses,
                     AVG(sentiment_score) as avg_sentiment,
                     COUNT(CASE WHEN sentiment_score > 0.3 THEN 1 END) as positive_sentiments,
                     COUNT(CASE WHEN sentiment_score < -0.3 THEN 1 END) as negative_sentiments,
                     COUNT(CASE WHEN sentiment_score >= -0.3 AND sentiment_score <= 0.3 THEN 1 END) as neutral_sentiments
-                FROM feedback_responses 
+                FROM feedback_responses
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -782,13 +782,13 @@ class FeedbackManager:
         """Get NPS statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_responses,
                     AVG(score) as avg_score,
                     COUNT(CASE WHEN promoter_type = 'promoter' THEN 1 END) as promoters,
                     COUNT(CASE WHEN promoter_type = 'passive' THEN 1 END) as passives,
                     COUNT(CASE WHEN promoter_type = 'detractor' THEN 1 END) as detractors
-                FROM nps_responses 
+                FROM nps_responses
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -844,7 +844,7 @@ class FeedbackManager:
         try:
             query = """
                 SELECT category, COUNT(*) as count
-                FROM feedback_responses 
+                FROM feedback_responses
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -883,7 +883,7 @@ class FeedbackManager:
         """Get recent feedback responses."""
         try:
             query = """
-                SELECT * FROM feedback_responses 
+                SELECT * FROM feedback_responses
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, datetime.now(timezone.utc) - timedelta(days=7)]
@@ -943,7 +943,7 @@ class FeedbackManager:
         """Get feedback data for analysis."""
         try:
             query = """
-                SELECT * FROM feedback_responses 
+                SELECT * FROM feedback_responses
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -994,7 +994,7 @@ class FeedbackManager:
         """Get NPS data for analysis."""
         try:
             query = """
-                SELECT * FROM nps_responses 
+                SELECT * FROM nps_responses
                 WHERE tenant_id = $1 AND created_at > $2
                 ORDER BY created_at ASC
             """
@@ -1171,8 +1171,8 @@ class FeedbackManager:
         try:
             query = """
                 INSERT INTO feedback_responses (
-                    id, user_id, tenant_id, feedback_type, rating, sentiment_score, 
-                    category, title, message, metadata, page_url, session_id, 
+                    id, user_id, tenant_id, feedback_type, rating, sentiment_score,
+                    category, title, message, metadata, page_url, session_id,
                     is_public, status, admin_notes, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             """
@@ -1208,7 +1208,7 @@ class FeedbackManager:
         try:
             query = """
                 INSERT INTO nps_responses (
-                    id, user_id, tenant_id, score, promoter_type, reason, 
+                    id, user_id, tenant_id, score, promoter_type, reason,
                     metadata, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7)
             """
@@ -1235,8 +1235,8 @@ class FeedbackManager:
         try:
             query = """
                 INSERT INTO feedback_analyses (
-                    id, tenant_id, analysis_type, period_days, total_responses, 
-                    average_rating, sentiment_distribution, category_distribution, 
+                    id, tenant_id, analysis_type, period_days, total_responses,
+                    average_rating, sentiment_distribution, category_distribution,
                     nps_score, nps_distribution, key_themes, recommendations, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             """

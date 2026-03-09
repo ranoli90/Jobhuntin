@@ -1737,7 +1737,7 @@ class UserBehaviorAnalyzer:
         try:
             query = """
                 INSERT INTO behavior_events (
-                    id, user_id, tenant_id, session_id, event_type, event_name, 
+                    id, user_id, tenant_id, session_id, event_type, event_name,
                     page_url, timestamp, duration_ms, properties, context, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             """
@@ -1768,8 +1768,8 @@ class UserBehaviorAnalyzer:
         try:
             query = """
                 INSERT INTO behavior_profiles (
-                    id, user_id, tenant_id, behavior_type, behavior_pattern, 
-                    confidence_score, characteristics, metrics, session_count, 
+                    id, user_id, tenant_id, behavior_type, behavior_pattern,
+                    confidence_score, characteristics, metrics, session_count,
                     total_time_spent, last_updated, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
                 ON CONFLICT (user_id, tenant_id) DO UPDATE SET
@@ -1809,7 +1809,7 @@ class UserBehaviorAnalyzer:
         try:
             query = """
                 INSERT INTO behavior_analyses (
-                    id, tenant_id, analysis_type, period_days, total_users, 
+                    id, tenant_id, analysis_type, period_days, total_users,
                     behavior_patterns, behavior_metrics, insights, recommendations, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             """

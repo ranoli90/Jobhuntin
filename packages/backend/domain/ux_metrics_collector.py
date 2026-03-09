@@ -731,7 +731,7 @@ class UXMetricsCollector:
         try:
             query = """
                 INSERT INTO ux_metrics (
-                    id, user_id, tenant_id, session_id, metric_type, metric_category, 
+                    id, user_id, tenant_id, session_id, metric_type, metric_category,
                     metric_name, value, unit, context, metadata, timestamp, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             """
@@ -763,7 +763,7 @@ class UXMetricsCollector:
         try:
             query = """
                 INSERT INTO ux_metric_definitions (
-                    id, name, description, metric_type, metric_category, unit, 
+                    id, name, description, metric_type, metric_category, unit,
                     calculation_method, thresholds, is_active, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 ON CONFLICT (name) DO UPDATE SET
@@ -802,8 +802,8 @@ class UXMetricsCollector:
         try:
             query = """
                 INSERT INTO ux_metric_alerts (
-                    id, tenant_id, metric_name, alert_type, severity, message, 
-                    current_value, threshold_value, trend_data, is_resolved, 
+                    id, tenant_id, metric_name, alert_type, severity, message,
+                    current_value, threshold_value, trend_data, is_resolved,
                     created_at, resolved_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             """
@@ -840,7 +840,7 @@ class UXMetricsCollector:
         """Get metric statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_metrics,
                     COUNT(DISTINCT metric_name) as unique_metrics,
                     COUNT(DISTINCT user_id) as unique_users,
@@ -849,7 +849,7 @@ class UXMetricsCollector:
                     MIN(value) as min_value,
                     MAX(value) as max_value,
                     STDDEV(value) as std_value
-                FROM ux_metrics 
+                FROM ux_metrics
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -897,7 +897,7 @@ class UXMetricsCollector:
         """Get metric aggregations."""
         try:
             query = """
-                SELECT * FROM ux_metric_aggregations 
+                SELECT * FROM ux_metric_aggregations
                 WHERE tenant_id = $1 AND period_hours = $2
             """
             params = [tenant_id, time_period_hours]
@@ -947,7 +947,7 @@ class UXMetricsCollector:
         """Get active alerts."""
         try:
             query = """
-                SELECT * FROM ux_metric_alerts 
+                SELECT * FROM ux_metric_alerts
                 WHERE tenant_id = $1 AND is_resolved = false
             """
             params = [tenant_id]
@@ -1083,7 +1083,7 @@ class UXMetricsCollector:
         """Get raw metrics for analysis."""
         try:
             query = """
-                SELECT * FROM ux_metrics 
+                SELECT * FROM ux_metrics
                 WHERE tenant_id = $1 AND metric_name = $2 AND timestamp > $3
                 ORDER BY timestamp ASC
             """
@@ -1297,7 +1297,7 @@ class UXMetricsCollector:
         """Get list of active tenants."""
         try:
             query = """
-                SELECT DISTINCT tenant_id FROM ux_metrics 
+                SELECT DISTINCT tenant_id FROM ux_metrics
                 WHERE timestamp > NOW() - INTERVAL '7 days'
             """
 
@@ -1365,11 +1365,11 @@ class UXMetricsCollector:
         try:
             query = """
                 INSERT INTO ux_metric_aggregations (
-                    id, tenant_id, metric_type, metric_category, metric_name, 
-                    aggregation_type, period_hours, value, sample_size, 
+                    id, tenant_id, metric_type, metric_category, metric_name,
+                    aggregation_type, period_hours, value, sample_size,
                     threshold_compliance, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-                ON CONFLICT (tenant_id, metric_name, period_hours, aggregation_type) 
+                ON CONFLICT (tenant_id, metric_name, period_hours, aggregation_type)
                 DO UPDATE SET
                     value = EXCLUDED.value,
                     sample_size = EXCLUDED.sample_size,

@@ -240,9 +240,9 @@ class MatchWeightsManager:
                 row = await conn.fetchrow(
                     """
                     SELECT config_data, version, created_at, updated_at, created_by, updated_by
-                    FROM tenant_match_configs 
+                    FROM tenant_match_configs
                     WHERE tenant_id = $1
-                    ORDER BY version DESC 
+                    ORDER BY version DESC
                     LIMIT 1
                 """,
                     tenant_id,

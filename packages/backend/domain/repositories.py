@@ -378,7 +378,7 @@ class JobRepo:
         """Get comprehensive job details by ID."""
         row = await conn.fetchrow(
             """
-            SELECT 
+            SELECT
                 j.*,
                 c.name as company_name,
                 c.description as company_description,
@@ -468,7 +468,7 @@ class JobRepo:
     ) -> List[dict]:
         """List jobs with comprehensive details."""
         query = """
-            SELECT 
+            SELECT
                 j.*,
                 c.name as company_name,
                 c.description as company_description,

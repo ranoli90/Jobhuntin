@@ -235,7 +235,7 @@ class NotificationBatchProcessor:
         """Get batch processing history."""
         try:
             query = """
-                SELECT * FROM notification_batches 
+                SELECT * FROM notification_batches
                 WHERE tenant_id = $1
                 ORDER BY created_at DESC
                 LIMIT $2 OFFSET $3
@@ -332,7 +332,7 @@ class NotificationBatchProcessor:
 
             # Mark all pending user batches as skipped
             query = """
-                UPDATE user_notification_batches 
+                UPDATE user_notification_batches
                 SET status = 'skipped', updated_at = NOW()
                 WHERE batch_id = $1 AND status = 'pending'
             """
@@ -360,12 +360,12 @@ class NotificationBatchProcessor:
             if tenant_id:
                 # Get tenant-specific stats
                 query = """
-                    SELECT 
+                    SELECT
                         COUNT(*) as total_batches,
                         COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
                         SUM(user_count) as total_notifications,
                         AVG(processing_time_seconds) as avg_processing_time
-                    FROM notification_batches 
+                    FROM notification_batches
                     WHERE tenant_id = $1
                 """
 
@@ -478,7 +478,7 @@ class NotificationBatchProcessor:
         """Get batch by ID."""
         try:
             query = """
-                SELECT * FROM notification_batches 
+                SELECT * FROM notification_batches
                 WHERE id = $1
             """
 
@@ -511,7 +511,7 @@ class NotificationBatchProcessor:
         """Get user notification batches."""
         try:
             query = """
-                SELECT * FROM user_notification_batches 
+                SELECT * FROM user_notification_batches
                 WHERE batch_id = $1
                 ORDER BY created_at
             """
@@ -548,7 +548,7 @@ class NotificationBatchProcessor:
         """Get failed user notification batches."""
         try:
             query = """
-                SELECT * FROM user_notification_batches 
+                SELECT * FROM user_notification_batches
                 WHERE batch_id = $1 AND status = 'failed'
                 ORDER BY created_at
             """
@@ -585,7 +585,7 @@ class NotificationBatchProcessor:
         """Get latest processing result for batch."""
         try:
             query = """
-                SELECT * FROM batch_processing_results 
+                SELECT * FROM batch_processing_results
                 WHERE batch_id = $1
                 ORDER BY created_at DESC
                 LIMIT 1
@@ -617,7 +617,7 @@ class NotificationBatchProcessor:
         try:
             query = """
                 INSERT INTO notification_batches (
-                    id, name, tenant_id, user_ids, notification_template, 
+                    id, name, tenant_id, user_ids, notification_template,
                     batch_size, priority, schedule_time, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (id) DO UPDATE SET
@@ -670,8 +670,8 @@ class NotificationBatchProcessor:
         try:
             query = """
                 INSERT INTO user_notification_batches (
-                    id, batch_id, user_id, tenant_id, notification_data, 
-                    status, error_message, processing_attempts, sent_at, 
+                    id, batch_id, user_id, tenant_id, notification_data,
+                    status, error_message, processing_attempts, sent_at,
                     created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 ON CONFLICT (id) DO UPDATE SET
@@ -706,8 +706,8 @@ class NotificationBatchProcessor:
         """Update user batch in database."""
         try:
             query = """
-                UPDATE user_notification_batches 
-                SET status = $1, error_message = $2, processing_attempts = $3, 
+                UPDATE user_notification_batches
+                SET status = $1, error_message = $2, processing_attempts = $3,
                     sent_at = $4, updated_at = NOW()
                 WHERE id = $5
             """
@@ -731,7 +731,7 @@ class NotificationBatchProcessor:
         try:
             query = """
                 INSERT INTO batch_processing_results (
-                    batch_id, total_users, successful, failed, skipped, 
+                    batch_id, total_users, successful, failed, skipped,
                     processing_time_seconds, error_details, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             """

@@ -136,7 +136,7 @@ class ApplicationExportManager:
         async with self.db_pool.acquire() as conn:
             # Build query
             query = """
-            SELECT 
+            SELECT
                 a.id,
                 a.company,
                 a.job_title,

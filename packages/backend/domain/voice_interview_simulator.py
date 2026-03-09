@@ -557,22 +557,22 @@ class VoiceInterviewSimulator:
             if context and "voice_context" in context:
                 prompt = f"""
                 Generate a natural, conversational interview question based on the context:
-                
+
                 Current Question: {current_question.question}
                 Interview Type: {current_question.question_type.value}
                 Difficulty: {current_question.difficulty.value}
                 Phase: {current_question.phase.value}
-                
+
                 Voice Context: {context.get("voice_context", "")}
                 Previous Responses: {[r.get("transcribed_text", "") for r in session.voice_responses[-2:]]}
-                
+
                 Generate a follow-up question that:
                 1. Is natural and conversational
                 2. Builds on the previous response
                 3. Maintains the interview flow
                 4. Is appropriate for the interview type
                 5. Is suitable for voice interaction
-                
+
                 Return only the question text, no additional formatting.
                 """
 

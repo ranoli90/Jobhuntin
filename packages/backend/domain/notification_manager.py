@@ -185,7 +185,7 @@ class NotificationManager:
         """Get user notification preferences."""
         try:
             query = """
-                SELECT * FROM user_preferences 
+                SELECT * FROM user_preferences
                 WHERE user_id = $1 AND tenant_id = $2
             """
 
@@ -324,7 +324,7 @@ class NotificationManager:
         """Get user notifications."""
         try:
             query = """
-                SELECT * FROM notifications 
+                SELECT * FROM notifications
                 WHERE user_id = $1 AND tenant_id = $2
             """
             params = [user_id, tenant_id]
@@ -382,8 +382,8 @@ class NotificationManager:
         """Mark notification as read."""
         try:
             query = """
-                UPDATE notifications 
-                SET is_read = true, updated_at = NOW() 
+                UPDATE notifications
+                SET is_read = true, updated_at = NOW()
                 WHERE id = $1 AND user_id = $2 AND tenant_id = $3
             """
 
@@ -405,8 +405,8 @@ class NotificationManager:
         """Mark all notifications as read."""
         try:
             query = """
-                UPDATE notifications 
-                SET is_read = true, updated_at = NOW() 
+                UPDATE notifications
+                SET is_read = true, updated_at = NOW()
                 WHERE user_id = $1 AND tenant_id = $2 AND is_read = false
             """
             params = [user_id, tenant_id]
@@ -434,7 +434,7 @@ class NotificationManager:
         """Delete a notification."""
         try:
             query = """
-                DELETE FROM notifications 
+                DELETE FROM notifications
                 WHERE id = $1 AND user_id = $2 AND tenant_id = $3
             """
 
@@ -453,7 +453,7 @@ class NotificationManager:
         """Get notification statistics for a user."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total,
                     COUNT(CASE WHEN is_read = false THEN 1 END) as unread,
                     COUNT(CASE WHEN priority = 'critical' THEN 1 END) as critical,
@@ -462,7 +462,7 @@ class NotificationManager:
                     COUNT(CASE WHEN priority = 'low' THEN 1 END) as low,
                     COUNT(CASE WHEN created_at > NOW() - INTERVAL '24 hours' THEN 1 END) as last_24h,
                     COUNT(CASE WHEN created_at > NOW() - INTERVAL '7 days' THEN 1 END) as last_7d
-                FROM notifications 
+                FROM notifications
                 WHERE user_id = $1 AND tenant_id = $2
             """
 
@@ -651,8 +651,8 @@ class NotificationManager:
         try:
             query = """
                 INSERT INTO notifications (
-                    id, user_id, tenant_id, title, message, category, 
-                    priority, channels, data, expires_at, is_read, 
+                    id, user_id, tenant_id, title, message, category,
+                    priority, channels, data, expires_at, is_read,
                     created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
                 ON CONFLICT (id) DO UPDATE SET
@@ -687,8 +687,8 @@ class NotificationManager:
         try:
             query = """
                 INSERT INTO notification_delivery_tracking (
-                    id, notification_id, user_id, tenant_id, channel, 
-                    status, sent_at, delivered_at, read_at, error_message, 
+                    id, notification_id, user_id, tenant_id, channel,
+                    status, sent_at, delivered_at, read_at, error_message,
                     external_id, metadata, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
                 ON CONFLICT (id) DO UPDATE SET
@@ -728,8 +728,8 @@ class NotificationManager:
         """Update delivery tracking."""
         try:
             query = """
-                UPDATE notification_delivery_tracking 
-                SET status = $1, sent_at = $2, delivered_at = $3, 
+                UPDATE notification_delivery_tracking
+                SET status = $1, sent_at = $2, delivered_at = $3,
                     read_at = $4, error_message = $5, external_id = $6, updated_at = NOW()
                 WHERE id = $7
             """
@@ -754,7 +754,7 @@ class NotificationManager:
         """Update delivery status for all channels."""
         try:
             query = """
-                UPDATE notification_delivery_tracking 
+                UPDATE notification_delivery_tracking
                 SET status = $1, updated_at = NOW()
                 WHERE notification_id = $2
             """
@@ -772,8 +772,8 @@ class NotificationManager:
         try:
             query = """
                 INSERT INTO user_preferences (
-                    user_id, tenant_id, in_app_enabled, email_enabled, 
-                    push_enabled, sms_enabled, categories, do_not_disturb_enabled, 
+                    user_id, tenant_id, in_app_enabled, email_enabled,
+                    push_enabled, sms_enabled, categories, do_not_disturb_enabled,
                     do_not_disturb_start, do_not_disturb_end, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
                 ON CONFLICT (user_id, tenant_id) DO UPDATE SET
@@ -820,7 +820,7 @@ class NotificationManager:
         try:
             query = """
                 INSERT INTO notification_batches (
-                    id, total_notifications, successful, failed, 
+                    id, total_notifications, successful, failed,
                     processed_at, created_at
                 ) VALUES ($1, $2, $3, $4, NOW(), NOW())
             """

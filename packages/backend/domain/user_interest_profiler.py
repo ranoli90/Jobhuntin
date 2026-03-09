@@ -349,7 +349,7 @@ class UserInterestProfiler:
         """Get user profile from database."""
         try:
             query = """
-                SELECT * FROM user_interest_profiles 
+                SELECT * FROM user_interest_profiles
                 WHERE user_id = $1 AND tenant_id = $2
             """
 
@@ -897,7 +897,7 @@ class UserInterestProfiler:
         try:
             query = """
                 INSERT INTO user_interest_profiles (
-                    id, user_id, tenant_id, interests, keywords, 
+                    id, user_id, tenant_id, interests, keywords,
                     interaction_history, last_updated, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (user_id, tenant_id) DO UPDATE SET
@@ -931,7 +931,7 @@ class UserInterestProfiler:
         try:
             query = """
                 INSERT INTO user_interactions (
-                    id, user_id, tenant_id, interaction_type, content, 
+                    id, user_id, tenant_id, interaction_type, content,
                     category, timestamp, metadata
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             """

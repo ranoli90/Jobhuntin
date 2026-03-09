@@ -1350,7 +1350,7 @@ class QueryOptimizer:
         """Get user tables for analysis."""
         try:
             query = """
-                SELECT tablename FROM pg_tables 
+                SELECT tablename FROM pg_tables
                 WHERE schemaname NOT IN ('information_schema', 'pg_catalog')
                 ORDER BY tablename
             """
@@ -1374,7 +1374,7 @@ class QueryOptimizer:
 
             # Get table statistics
             stats_query = """
-                SELECT 
+                SELECT
                     pg_size_pretty(pg_total_relation_size($1)) as size,
                     pg_total_relation_size($1) as size_bytes,
                     (SELECT count(*) FROM $1) as row_count
@@ -1390,12 +1390,12 @@ class QueryOptimizer:
 
                 # Get column statistics
                 columns_query = """
-                    SELECT 
+                    SELECT
                         column_name,
                         data_type,
                         n_distinct,
                         null_frac
-                    FROM pg_stats 
+                    FROM pg_stats
                     WHERE tablename = $1
                     ORDER BY column_name
                 """
@@ -1500,12 +1500,12 @@ class QueryOptimizer:
         try:
             # Get slow queries from pg_stat_statements
             slow_queries_query = """
-                SELECT 
+                SELECT
                     query,
                     mean_exec_time,
                     calls,
                     total_exec_time
-                FROM pg_stat_statements 
+                FROM pg_stat_statements
                 WHERE mean_exec_time > $1
                 ORDER BY mean_exec_time DESC
                 LIMIT 10
@@ -1552,14 +1552,14 @@ class QueryOptimizer:
         try:
             # Get unused indexes
             unused_indexes_query = """
-                SELECT 
+                SELECT
                     schemaname,
                     tablename,
                     indexname,
                     idx_scan,
                     idx_tup_read,
                     idx_tup_fetch
-                FROM pg_stat_user_indexes 
+                FROM pg_stat_user_indexes
                 WHERE idx_scan = 0
                 ORDER BY schemaname, tablename, indexname
             """
@@ -1584,7 +1584,7 @@ class QueryOptimizer:
         """Get query analyses for report."""
         try:
             query = """
-                SELECT * FROM query_analyses 
+                SELECT * FROM query_analyses
                 WHERE tenant_id = $1 AND created_at > $2
                 ORDER BY created_at DESC
             """
@@ -1623,7 +1623,7 @@ class QueryOptimizer:
         """Get query optimizations for report."""
         try:
             query = """
-                SELECT * FROM query_optimizations 
+                SELECT * FROM query_optimizations
                 WHERE tenant_id = $1 AND created_at > $2
                 ORDER BY created_at DESC
             """
@@ -1663,7 +1663,7 @@ class QueryOptimizer:
         """Get index recommendations for report."""
         try:
             query = """
-                SELECT * FROM index_recommendations 
+                SELECT * FROM index_recommendations
                 WHERE tenant_id = $1 AND created_at > $2
                 ORDER BY created_at DESC
             """
@@ -1759,12 +1759,12 @@ class QueryOptimizer:
         """Get slow queries for report."""
         try:
             query = """
-                SELECT 
+                SELECT
                     query,
                     mean_exec_time,
                     calls,
                     total_exec_time
-                FROM pg_stat_statements 
+                FROM pg_stat_statements
                 WHERE mean_exec_time > $1
                 ORDER BY mean_exec_time DESC
                 LIMIT 10

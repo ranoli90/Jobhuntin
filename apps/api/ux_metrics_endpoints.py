@@ -290,7 +290,7 @@ async def get_metric_definitions(
     try:
         # Build query
         query = """
-            SELECT * FROM ux_metric_definitions 
+            SELECT * FROM ux_metric_definitions
             WHERE tenant_id = $1
         """
         params = [tenant_id]
@@ -411,7 +411,7 @@ async def get_metrics(
 
         # Build query
         query = """
-            SELECT * FROM ux_metrics 
+            SELECT * FROM ux_metrics
             WHERE tenant_id = $1 AND timestamp > $2
         """
         params = [tenant_id, cutoff_time]
@@ -488,7 +488,7 @@ async def get_metric_aggregations(
     try:
         # Build query
         query = """
-            SELECT * FROM ux_metric_aggregations 
+            SELECT * FROM ux_metric_aggregations
             WHERE tenant_id = $1 AND period_hours = $2
         """
         params = [tenant_id, time_period_hours]
@@ -553,7 +553,7 @@ async def get_metric_alerts(
     try:
         # Build query
         query = """
-            SELECT * FROM ux_metric_alerts 
+            SELECT * FROM ux_metric_alerts
             WHERE tenant_id = $1
         """
         params = [tenant_id]
@@ -672,7 +672,7 @@ async def get_ux_metrics_dashboard(
 
         # Get active alerts
         alerts_query = """
-            SELECT * FROM ux_metric_alerts 
+            SELECT * FROM ux_metric_alerts
             WHERE tenant_id = $1 AND is_resolved = false
             ORDER BY created_at DESC
             LIMIT 10

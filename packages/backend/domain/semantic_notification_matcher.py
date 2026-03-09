@@ -302,7 +302,7 @@ class SemanticNotificationMatcher:
 
                     # Update database
                     query = """
-                        UPDATE user_interests 
+                        UPDATE user_interests
                         SET interest_score = $1, updated_at = NOW()
                         WHERE user_id = $2 AND tenant_id = $3 AND interest_category = $4
                     """
@@ -344,7 +344,7 @@ class SemanticNotificationMatcher:
         """Get user interests from database."""
         try:
             query = """
-                SELECT * FROM user_interests 
+                SELECT * FROM user_interests
                 WHERE user_id = $1 AND tenant_id = $2 AND is_active = true
                 ORDER BY interest_score DESC
             """
@@ -380,7 +380,7 @@ class SemanticNotificationMatcher:
         """Get semantic tags for notification."""
         try:
             query = """
-                SELECT * FROM notification_semantic_tags 
+                SELECT * FROM notification_semantic_tags
                 WHERE notification_id = $1 AND tenant_id = $2
                 ORDER BY confidence_score DESC
             """
@@ -680,7 +680,7 @@ class SemanticNotificationMatcher:
                     combined_keywords = list(set(interest.interest_keywords + keywords))
 
                     query = """
-                        UPDATE user_interests 
+                        UPDATE user_interests
                         SET interest_keywords = $1, updated_at = NOW()
                         WHERE user_id = $2 AND tenant_id = $3 AND interest_category = $4
                     """
@@ -749,7 +749,7 @@ class SemanticNotificationMatcher:
         try:
             query = """
                 INSERT INTO notification_semantic_tags (
-                    id, notification_id, tag, category, confidence_score, 
+                    id, notification_id, tag, category, confidence_score,
                     context, tenant_id, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 ON CONFLICT (id) DO UPDATE SET
@@ -779,7 +779,7 @@ class SemanticNotificationMatcher:
         try:
             query = """
                 INSERT INTO user_interests (
-                    id, user_id, tenant_id, interest_category, interest_keywords, 
+                    id, user_id, tenant_id, interest_category, interest_keywords,
                     interest_score, is_active, last_updated, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (user_id, tenant_id, interest_category) DO UPDATE SET
@@ -814,7 +814,7 @@ class SemanticNotificationMatcher:
         try:
             query = """
                 INSERT INTO notification_relevance_scores (
-                    notification_id, user_id, relevance_score, category_scores, 
+                    notification_id, user_id, relevance_score, category_scores,
                     keyword_matches, semantic_factors, calculated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (notification_id, user_id) DO UPDATE SET

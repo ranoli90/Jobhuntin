@@ -685,7 +685,7 @@ class MemoryCache:
     ) -> bool:
         """Set value in cache."""
         try:
-            start_time = time.time()
+            _start_time = time.time()
 
             async with self._lock:
                 # Calculate size

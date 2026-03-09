@@ -304,9 +304,9 @@ async def search_jobs(
 
             # Get total count for search results
             count_query = """
-                SELECT COUNT(*) as total 
-                FROM public.jobs 
-                WHERE is_active = true 
+                SELECT COUNT(*) as total
+                FROM public.jobs
+                WHERE is_active = true
                     AND (title ILIKE $1 OR description ILIKE $1 OR company ILIKE $1)
             """
             total_result = await conn.fetchrow(count_query, f"%{q}%")
@@ -365,8 +365,8 @@ async def get_company_jobs(
 
             # Get total count for company jobs
             count_query = """
-                SELECT COUNT(*) as total 
-                FROM public.jobs 
+                SELECT COUNT(*) as total
+                FROM public.jobs
                 WHERE is_active = true AND company ILIKE $1
             """
             total_result = await conn.fetchrow(count_query, f"%{company_name}%")
@@ -406,37 +406,37 @@ async def get_filter_options(
         async with get_pool().acquire() as conn:
             # Get unique values for filters
             locations = await conn.fetch("""
-                SELECT DISTINCT location, COUNT(*) as count 
-                FROM public.jobs 
+                SELECT DISTINCT location, COUNT(*) as count
+                FROM public.jobs
                 WHERE is_active = true AND location IS NOT NULL
-                GROUP BY location 
-                ORDER BY count DESC 
+                GROUP BY location
+                ORDER BY count DESC
                 LIMIT 20
             """)
 
             job_types = await conn.fetch("""
-                SELECT DISTINCT job_type, COUNT(*) as count 
-                FROM public.jobs 
+                SELECT DISTINCT job_type, COUNT(*) as count
+                FROM public.jobs
                 WHERE is_active = true AND job_type IS NOT NULL
-                GROUP BY job_type 
+                GROUP BY job_type
                 ORDER BY count DESC
             """)
 
             company_sizes = await conn.fetch("""
-                SELECT DISTINCT c.size, COUNT(*) as count 
-                FROM public.jobs j 
+                SELECT DISTINCT c.size, COUNT(*) as count
+                FROM public.jobs j
                 LEFT JOIN public.companies c ON j.company_id = c.id
                 WHERE j.is_active = true AND c.size IS NOT NULL
-                GROUP BY c.size 
+                GROUP BY c.size
                 ORDER BY count DESC
             """)
 
             industries = await conn.fetch("""
-                SELECT DISTINCT c.industry, COUNT(*) as count 
-                FROM public.jobs j 
+                SELECT DISTINCT c.industry, COUNT(*) as count
+                FROM public.jobs j
                 LEFT JOIN public.companies c ON j.company_id = c.id
                 WHERE j.is_active = true AND c.industry IS NOT NULL
-                GROUP BY c.industry 
+                GROUP BY c.industry
                 ORDER BY count DESC
             """)
 

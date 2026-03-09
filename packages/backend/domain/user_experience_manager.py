@@ -265,8 +265,8 @@ class UserExperienceManager:
             )
 
             query = """
-                SELECT * FROM user_sessions 
-                WHERE user_id = $1 AND tenant_id = $2 
+                SELECT * FROM user_sessions
+                WHERE user_id = $1 AND tenant_id = $2
                 AND created_at > $3
                 ORDER BY created_at DESC
             """
@@ -302,7 +302,7 @@ class UserExperienceManager:
         """Get user journey data."""
         try:
             query = """
-                SELECT * FROM user_journeys 
+                SELECT * FROM user_journeys
                 WHERE user_id = $1 AND tenant_id = $2
             """
             params = [user_id, tenant_id]
@@ -656,7 +656,7 @@ class UserExperienceManager:
 
             # Check database
             query = """
-                SELECT * FROM user_sessions 
+                SELECT * FROM user_sessions
                 WHERE session_id = $1 AND tenant_id = $2 AND is_active = true
             """
 
@@ -679,7 +679,7 @@ class UserExperienceManager:
         try:
             # Get active sessions for user
             query = """
-                SELECT * FROM user_sessions 
+                SELECT * FROM user_sessions
                 WHERE user_id = $1 AND tenant_id = $2 AND is_active = true
             """
 
@@ -697,8 +697,8 @@ class UserExperienceManager:
         """Get all actions for a session."""
         try:
             query = """
-                SELECT * FROM user_actions 
-                WHERE session_id = $1 
+                SELECT * FROM user_actions
+                WHERE session_id = $1
                 ORDER BY timestamp ASC
             """
 
@@ -737,14 +737,14 @@ class UserExperienceManager:
         """Get session statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_sessions,
                     COUNT(CASE WHEN duration_seconds IS NOT NULL THEN 1 END) as completed_sessions,
                     AVG(duration_seconds) as avg_duration,
                     AVG(actions_performed) as avg_actions,
                     COUNT(CASE WHEN device_type = 'mobile' THEN 1 END) as mobile_sessions,
                     COUNT(CASE WHEN device_type = 'desktop' THEN 1 END) as desktop_sessions
-                FROM user_sessions 
+                FROM user_sessions
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -778,12 +778,12 @@ class UserExperienceManager:
         """Get action statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_actions,
                     COUNT(CASE WHEN success = true THEN 1 END) as successful_actions,
                     AVG(duration_seconds) as avg_duration,
                     COUNT(DISTINCT action_type) as unique_action_types
-                FROM user_actions 
+                FROM user_actions
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -815,12 +815,12 @@ class UserExperienceManager:
         """Get journey statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_journeys,
                     COUNT(CASE WHEN completion_rate > 0.8 THEN 1 END) as successful_journeys,
                     AVG(completion_rate) as avg_completion_rate,
                     AVG(duration_seconds) as avg_duration
-                FROM user_journeys 
+                FROM user_journeys
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -852,7 +852,7 @@ class UserExperienceManager:
         """Get UX score statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_scores,
                     AVG(overall_score) as avg_overall_score,
                     AVG(usability_score) as avg_usability_score,
@@ -860,7 +860,7 @@ class UserExperienceManager:
                     AVG(accessibility_score) as avg_accessibility_score,
                     AVG(engagement_score) as avg_engagement_score,
                     AVG(satisfaction_score) as avg_satisfaction_score
-                FROM ux_scores 
+                FROM ux_scores
                 WHERE tenant_id = $1 AND calculated_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -936,9 +936,9 @@ class UserExperienceManager:
         try:
             query = """
                 INSERT INTO user_sessions (
-                    id, user_id, tenant_id, session_id, start_time, end_time, 
-                    duration_seconds, device_type, browser, ip_address, user_agent, 
-                    referrer, landing_page, exit_page, pages_visited, 
+                    id, user_id, tenant_id, session_id, start_time, end_time,
+                    duration_seconds, device_type, browser, ip_address, user_agent,
+                    referrer, landing_page, exit_page, pages_visited,
                     actions_performed, is_active, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
                 ON CONFLICT (id) DO UPDATE SET
@@ -984,8 +984,8 @@ class UserExperienceManager:
         try:
             query = """
                 INSERT INTO user_actions (
-                    id, user_id, tenant_id, session_id, action_type, action_name, 
-                    page_url, element_selector, metadata, timestamp, duration_seconds, 
+                    id, user_id, tenant_id, session_id, action_type, action_name,
+                    page_url, element_selector, metadata, timestamp, duration_seconds,
                     success, error_message, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             """
@@ -1018,8 +1018,8 @@ class UserExperienceManager:
         try:
             query = """
                 INSERT INTO ux_scores (
-                    id, user_id, tenant_id, session_id, overall_score, usability_score, 
-                    performance_score, accessibility_score, engagement_score, 
+                    id, user_id, tenant_id, session_id, overall_score, usability_score,
+                    performance_score, accessibility_score, engagement_score,
                     satisfaction_score, factors, calculated_at, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             """

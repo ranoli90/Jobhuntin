@@ -235,7 +235,7 @@ class PerformanceMonitor:
 
             # Build query
             query = """
-                SELECT * FROM performance_metrics 
+                SELECT * FROM performance_metrics
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -292,7 +292,7 @@ class PerformanceMonitor:
 
             # Build query
             query = """
-                SELECT * FROM performance_alerts 
+                SELECT * FROM performance_alerts
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -1032,13 +1032,13 @@ class PerformanceMonitor:
 
             # Get metrics for category
             query = """
-                SELECT 
+                SELECT
                     name, AVG(value) as avg_value,
                     MIN(value) as min_value,
                     MAX(value) as max_value,
                     COUNT(*) as count,
                     unit
-                FROM performance_metrics 
+                FROM performance_metrics
                 WHERE tenant_id = $1 AND metric_category = $2 AND timestamp > $3
                 GROUP BY name, unit
                 ORDER BY avg_value DESC

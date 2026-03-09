@@ -281,8 +281,8 @@ async def create_application(
             # Check for existing application first
             existing_app = await conn.fetchrow(
                 """
-                SELECT id, status, created_at, updated_at 
-                FROM public.applications 
+                SELECT id, status, created_at, updated_at
+                FROM public.applications
                 WHERE user_id = $1 AND job_id = $2 AND tenant_id = $3
                 """,
                 ctx.user_id,
@@ -338,8 +338,8 @@ async def create_application(
         # Check for existing application first
         existing_app = await conn.fetchrow(
             """
-            SELECT id, status, created_at, updated_at 
-            FROM public.applications 
+            SELECT id, status, created_at, updated_at
+            FROM public.applications
             WHERE user_id = $1 AND job_id = $2 AND tenant_id = $3
             """,
             ctx.user_id,
@@ -736,7 +736,7 @@ async def update_application_status(
         # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query
         await conn.execute(
             f"""
-            UPDATE public.applications 
+            UPDATE public.applications
             SET {", ".join(update_fields)}
             WHERE id = ${len(params)} AND user_id = ${len(params) + 1}
             """,

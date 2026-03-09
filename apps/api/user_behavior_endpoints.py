@@ -238,7 +238,7 @@ async def get_behavior_events(
 
         # Build query
         query = """
-            SELECT * FROM behavior_events 
+            SELECT * FROM behavior_events
             WHERE tenant_id = $1 AND timestamp > $2
         """
         params = [tenant_id, cutoff_time]
@@ -313,7 +313,7 @@ async def get_behavior_profiles(
     try:
         # Build query
         query = """
-            SELECT * FROM behavior_profiles 
+            SELECT * FROM behavior_profiles
             WHERE tenant_id = $1 AND last_updated > $2
         """
         cutoff_time = datetime.now(timezone.utc) - timedelta(days=time_period_days)
@@ -380,7 +380,7 @@ async def get_user_profile(
     try:
         # Get profile
         query = """
-            SELECT * FROM behavior_profiles 
+            SELECT * FROM behavior_profiles
             WHERE user_id = $1 AND tenant_id = $2
             ORDER BY last_updated DESC
             LIMIT 1
@@ -482,7 +482,7 @@ async def get_behavior_dashboard(
         # Get current user's profile
         try:
             profile_query = """
-                SELECT * FROM behavior_profiles 
+                SELECT * FROM behavior_profiles
                 WHERE user_id = $1 AND tenant_id = $2
                 ORDER BY last_updated DESC
                 LIMIT 1

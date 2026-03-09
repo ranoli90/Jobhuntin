@@ -73,13 +73,13 @@ async def get_worker_metrics(db: asyncpg.Pool) -> dict[str, Any]:
         # Get recent job processing metrics
         recent_jobs = await conn.fetch(
             """
-            SELECT 
+            SELECT
                 COUNT(*) as total_jobs,
                 COUNT(*) FILTER (WHERE status = 'COMPLETED') as completed_jobs,
                 COUNT(*) FILTER (WHERE status = 'FAILED') as failed_jobs,
                 AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) as avg_processing_time,
                 MAX(created_at) as last_job_time
-            FROM public.applications 
+            FROM public.applications
             WHERE created_at > NOW() - INTERVAL '1 hour'
             """
         )
@@ -121,13 +121,13 @@ async def get_job_sync_metrics(db: asyncpg.Pool) -> dict[str, Any]:
         try:
             sync_data = await conn.fetchrow(
                 """
-                SELECT 
+                SELECT
                     MAX(last_sync_at) as last_sync,
                     COUNT(*) FILTER (WHERE sync_status = 'success') as successful_syncs,
                     COUNT(*) FILTER (WHERE sync_status = 'failed') as failed_syncs,
                     COUNT(*) FILTER (WHERE sync_status = 'pending') as pending_syncs,
                     AVG(EXTRACT(EPOCH FROM (sync_completed_at - sync_started_at))) as avg_sync_time
-                FROM public.job_sources 
+                FROM public.job_sources
                 WHERE last_sync_at > NOW() - INTERVAL '24 hours'
                 """
             )

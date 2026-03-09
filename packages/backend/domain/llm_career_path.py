@@ -422,19 +422,19 @@ class LLMCareerPathAnalyzer:
 
         prompt = f"""
         Generate 5-7 realistic and modern career roles for the {industry} industry at {experience_level} level.
-        
+
         User Context:
         - Industry: {industry}
         - Experience Level: {experience_level}
         - Current Skills: {", ".join(skills[:10])}
         - Preferences: {preferences or "None specified"}
-        
+
         Market Trends:
         {trends_info}
-        
+
         Emerging Skills in Industry:
         {emerging_info}
-        
+
         For each role, provide:
         1. Role title (modern and realistic)
         2. Career level (entry, junior, mid, senior, management, staff, principal, director, vp, c_level)
@@ -448,7 +448,7 @@ class LLMCareerPathAnalyzer:
         10. Emerging skills (3-5 future-facing skills)
         11. Industry focus areas (2-3 specific areas)
         12. Remote work potential (low, medium, high)
-        
+
         Format as JSON array with objects containing all fields.
         Focus on roles that are in high demand and align with market trends.
         Ensure roles are realistic and reflect current job market conditions.
@@ -485,16 +485,16 @@ class LLMCareerPathAnalyzer:
 
         prompt = f"""
         Create a personalized career path from {current_role} to {target_role}.
-        
+
         User Profile:
         {user_info}
-        
+
         Preferences:
         {preferences or "None specified"}
-        
+
         Market Trends Impact:
         {trends_info}
-        
+
         Provide a detailed career path analysis including:
         1. Path type (promotion, transition, pivot, hybrid)
         2. Step-by-step progression plan (4-6 concrete steps)
@@ -505,7 +505,7 @@ class LLMCareerPathAnalyzer:
         7. Potential salary increase percentage
         8. Market alignment score (0.0-1.0)
         9. Skills match score (0.0-1.0)
-        
+
         Format as JSON object with all fields.
         Focus on practical, actionable steps that consider the user's background and current market conditions.
         """
@@ -524,11 +524,11 @@ class LLMCareerPathAnalyzer:
 
         prompt = f"""
         Analyze skill gaps between {current_role} and {target_role} roles.
-        
+
         Current Skills: {", ".join(current_skills[:15])}
         Industry: {industry or "Technology"}
         Emerging Skills: {", ".join(emerging_skills[:10])}
-        
+
         Identify 5-8 critical skill gaps and for each provide:
         1. Skill name
         2. Importance level (critical, important, nice_to_have)
@@ -536,7 +536,7 @@ class LLMCareerPathAnalyzer:
         4. Estimated time to acquire (weeks)
         5. Recommended resources (2-3 specific resources)
         6. Priority level (high, medium, low)
-        
+
         Format as JSON array of objects.
         Focus on skills that will make the transition successful and market-relevant.
         """
@@ -563,16 +563,16 @@ class LLMCareerPathAnalyzer:
 
         prompt = f"""
         Generate 3-5 personalized career recommendations based on user profile and goals.
-        
+
         User Profile:
         {user_info}
-        
+
         Career Goals:
         {goals_info}
-        
+
         Constraints:
         {constraints or "None specified"}
-        
+
         For each recommendation provide:
         1. Role/Path title
         2. Description of the opportunity
@@ -582,7 +582,7 @@ class LLMCareerPathAnalyzer:
         6. Timeline to achieve
         7. Potential outcomes
         8. Risk level (low, medium, high)
-        
+
         Format as JSON array of objects.
         Focus on actionable recommendations that align with market trends and user goals.
         """
@@ -607,15 +607,15 @@ class LLMCareerPathAnalyzer:
 
         prompt = f"""
         Create a personalized learning path to address skill gaps.
-        
+
         Skill Gaps:
         {gaps_info}
-        
+
         Learning Preferences:
         - Style: {learning_style or "Not specified"}
         - Time Commitment: {time_commitment or "Not specified"}
         - Budget: ${budget or "Not specified"}
-        
+
         Provide a comprehensive learning plan including:
         1. Total timeline in weeks
         2. Learning phases (3-4 phases)
@@ -624,7 +624,7 @@ class LLMCareerPathAnalyzer:
         5. Assessment methods
         6. Success metrics
         7. Contingency plans
-        
+
         Format as JSON object with all fields.
         Focus on practical, achievable learning that fits the user's preferences and constraints.
         """

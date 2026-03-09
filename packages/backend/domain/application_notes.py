@@ -309,7 +309,7 @@ class ApplicationNotesManager:
 
         async with self.db_pool.acquire() as conn:
             query = """
-            SELECT *, 
+            SELECT *,
                    ts_rank_cd(to_tsvector('english', title || ' ' || content), plainto_tsquery($1)) as relevance
             FROM application_notes
             WHERE tenant_id = $2 AND user_id = $3
@@ -551,14 +551,14 @@ Interview Details:
 - Interviewer(s): {interviewers}
 
 Research Points:
-- Company values: 
+- Company values:
 - Recent news:
 - Key products/services:
 
 Questions to Ask:
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 Key Points to Emphasize:
 - {key_point_1}

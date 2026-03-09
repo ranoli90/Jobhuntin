@@ -341,7 +341,7 @@ async def get_experiments(
     try:
         # Build query
         query = """
-            SELECT * FROM experiments 
+            SELECT * FROM experiments
             WHERE tenant_id = $1
         """
         params = [tenant_id]
@@ -377,7 +377,7 @@ async def get_experiments(
         # Get variants for each experiment
         for experiment in experiments:
             variants_query = """
-                SELECT * FROM experiment_variants 
+                SELECT * FROM experiment_variants
                 WHERE experiment_id = $1 AND is_active = true
                 ORDER BY created_at ASC
             """
@@ -432,7 +432,7 @@ async def get_experiment_by_id(
     try:
         # Get experiment
         query = """
-            SELECT * FROM experiments 
+            SELECT * FROM experiments
             WHERE id = $1 AND tenant_id = $2
         """
 
@@ -459,7 +459,7 @@ async def get_experiment_by_id(
 
         # Get variants
         variants_query = """
-            SELECT * FROM experiment_variants 
+            SELECT * FROM experiment_variants
             WHERE experiment_id = $1
             ORDER BY created_at ASC
         """
@@ -489,7 +489,7 @@ async def get_experiment_by_id(
 
         # Get statistical analyses
         analyses_query = """
-            SELECT * FROM statistical_analyses 
+            SELECT * FROM statistical_analyses
             WHERE experiment_id = $1
             ORDER BY created_at DESC
         """
@@ -579,7 +579,7 @@ async def get_ab_testing_dashboard(
         # Get recent experiments
         recent_experiments_query = """
             SELECT id, name, status, created_at, updated_at
-            FROM experiments 
+            FROM experiments
             WHERE tenant_id = $1
             ORDER BY updated_at DESC
             LIMIT 10

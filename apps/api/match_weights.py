@@ -457,13 +457,13 @@ async def get_match_analytics(
             # Get recent match history
             history_rows = await conn.fetch(
                 """
-                SELECT 
+                SELECT
                     match_score,
                     user_action,
                     outcome,
                     applied_at
                 FROM match_score_history
-                WHERE tenant_id = $1 
+                WHERE tenant_id = $1
                     AND applied_at >= NOW() - INTERVAL '%s days'
                 ORDER BY applied_at DESC
             """,

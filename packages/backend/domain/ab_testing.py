@@ -888,26 +888,26 @@ class ABTestingManager:
 
         prompt = f"""
         Generate an optimized variant for A/B testing AI content.
-        
+
         Base Prompt: {base_prompt}
         Variant Type: {variant_type}
         Optimization Goal: {optimization_goal}
-        
+
         {context_info}
-        
+
         Generate a variant that:
         1. Is optimized for {optimization_goal}
         2. Maintains the core functionality of the base prompt
         3. Uses different wording, structure, or approach
         4. Is likely to improve the target metric
         5. Is appropriate for the target audience
-        
+
         Provide the response as JSON with:
         - prompt: The optimized prompt
         - parameters: Key parameters changed
         - expected_improvement: Expected improvement percentage (0.0-1.0)
         - rationale: Explanation of changes
-        
+
         Focus on measurable improvements while maintaining content quality.
         """
 

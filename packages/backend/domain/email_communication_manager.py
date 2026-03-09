@@ -218,7 +218,7 @@ class EmailCommunicationManager:
         """Get user email preferences."""
         try:
             query = """
-                SELECT * FROM email_preferences 
+                SELECT * FROM email_preferences
                 WHERE user_id = $1 AND tenant_id = $2
             """
 
@@ -320,7 +320,7 @@ class EmailCommunicationManager:
         """Get email template by ID."""
         try:
             query = """
-                SELECT * FROM email_templates 
+                SELECT * FROM email_templates
                 WHERE id = $1 AND is_active = true
             """
 
@@ -387,7 +387,7 @@ class EmailCommunicationManager:
         """Get email communication history."""
         try:
             query = """
-                SELECT * FROM email_communications_log 
+                SELECT * FROM email_communications_log
                 WHERE user_id = $1 AND tenant_id = $2
             """
             params = [user_id, tenant_id]
@@ -476,9 +476,9 @@ class EmailCommunicationManager:
 
             # Count emails in last 24 hours
             query = """
-                SELECT COUNT(*) FROM email_communications_log 
-                WHERE user_id = $1 AND tenant_id = $2 
-                AND category = $3 
+                SELECT COUNT(*) FROM email_communications_log
+                WHERE user_id = $1 AND tenant_id = $2
+                AND category = $3
                 AND created_at > NOW() - INTERVAL '24 hours'
                 AND status = 'sent'
             """
@@ -522,9 +522,9 @@ class EmailCommunicationManager:
         try:
             query = """
                 INSERT INTO email_communications_log (
-                    id, user_id, tenant_id, template_id, subject, body, 
-                    to_email, from_email, reply_to, category, status, 
-                    sent_at, error_message, delivery_provider, external_id, 
+                    id, user_id, tenant_id, template_id, subject, body,
+                    to_email, from_email, reply_to, category, status,
+                    sent_at, error_message, delivery_provider, external_id,
                     variables, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
                 ON CONFLICT (id) DO UPDATE SET
@@ -567,8 +567,8 @@ class EmailCommunicationManager:
         try:
             query = """
                 INSERT INTO email_preferences (
-                    user_id, tenant_id, email_enabled, categories, 
-                    frequency_limits, quiet_hours_enabled, quiet_hours_start, 
+                    user_id, tenant_id, email_enabled, categories,
+                    frequency_limits, quiet_hours_enabled, quiet_hours_start,
                     quiet_hours_end, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (user_id, tenant_id) DO UPDATE SET
@@ -605,7 +605,7 @@ class EmailCommunicationManager:
         try:
             query = """
                 INSERT INTO email_templates (
-                    id, name, subject_template, body_template, variables, 
+                    id, name, subject_template, body_template, variables,
                     category, is_active, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (id) DO UPDATE SET

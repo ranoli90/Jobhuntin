@@ -367,13 +367,13 @@ class DatabasePerformanceManager:
         try:
             # Get slow queries
             slow_queries_query = """
-                SELECT 
+                SELECT
                     query,
                     mean_exec_time,
                     calls,
                     total_exec_time,
                     stddev_exec_time
-                FROM pg_stat_statements 
+                FROM pg_stat_statements
                 WHERE mean_exec_time > $1
                 ORDER BY mean_exec_time DESC
                 LIMIT 10
@@ -409,12 +409,12 @@ class DatabasePerformanceManager:
         try:
             # Get connection statistics
             connection_query = """
-                SELECT 
+                SELECT
                     count(*) as total_connections,
                     count(*) FILTER (WHERE state = 'active') as active_connections,
                     count(*) FILTER (WHERE state = 'idle') as idle_connections,
                     avg(EXTRACT(EPOCH FROM (now() - query_start))) as avg_query_time
-                FROM pg_stat_activity 
+                FROM pg_stat_activity
                 WHERE datname = current_database()
             """
 
@@ -446,11 +446,11 @@ class DatabasePerformanceManager:
         try:
             # Get cache hit ratio
             cache_query = """
-                SELECT 
+                SELECT
                     sum(heap_blks_hit) / nullif(sum(heap_blks_hit + heap_blks_read), 0) as cache_hit_ratio,
                     sum(heap_blks_read) as blocks_read,
                     sum(heap_blks_hit) as blocks_hit
-                FROM pg_stat_database 
+                FROM pg_stat_database
                 WHERE datname = current_database()
             """
 
@@ -551,7 +551,7 @@ class DatabasePerformanceManager:
         try:
             query = """
                 INSERT INTO performance_metrics (
-                    id, tenant_id, metric_type, metric_name, value, unit, 
+                    id, tenant_id, metric_type, metric_name, value, unit,
                     context, threshold, is_critical, timestamp, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             """
@@ -617,7 +617,7 @@ class DatabasePerformanceManager:
         """Get performance metrics for analysis."""
         try:
             query = """
-                SELECT * FROM performance_metrics 
+                SELECT * FROM performance_metrics
                 WHERE tenant_id = $1 AND timestamp > $2
                 ORDER BY timestamp ASC
             """
@@ -845,7 +845,7 @@ class DatabasePerformanceManager:
         """Get database statistics."""
         try:
             stats_query = """
-                SELECT 
+                SELECT
                     pg_size_pretty(pg_database_size(current_database())) as database_size,
                     pg_size_pretty(pg_total_relation_size('pg_stat_statements')) as stats_size,
                     (SELECT count(*) FROM pg_stat_activity WHERE state = 'active') as active_connections,
@@ -877,13 +877,13 @@ class DatabasePerformanceManager:
         """Get slow queries from pg_stat_statements."""
         try:
             query = """
-                SELECT 
+                SELECT
                     query,
                     mean_exec_time,
                     calls,
                     total_exec_time,
                     stddev_exec_time
-                FROM pg_stat_statements 
+                FROM pg_stat_statements
                 WHERE mean_exec_time > 1000
                 ORDER BY mean_exec_time DESC
                 LIMIT 10
@@ -914,12 +914,12 @@ class DatabasePerformanceManager:
         """Get large tables."""
         try:
             query = """
-                SELECT 
+                SELECT
                     schemaname,
                     tablename,
                     pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
                     pg_total_relation_size(schemaname||'.'||tablename) as size_bytes
-                FROM pg_tables 
+                FROM pg_tables
                 WHERE schemaname NOT IN ('information_schema', 'pg_catalog')
                 ORDER BY size_bytes DESC
                 LIMIT 20
@@ -949,7 +949,7 @@ class DatabasePerformanceManager:
         """Get list of active tenants."""
         try:
             query = """
-                SELECT DISTINCT tenant_id FROM performance_metrics 
+                SELECT DISTINCT tenant_id FROM performance_metrics
                 WHERE timestamp > NOW() - INTERVAL '1 hour'
             """
 
@@ -969,7 +969,7 @@ class DatabasePerformanceManager:
         """Get optimization by ID."""
         try:
             query = """
-                SELECT * FROM database_optimizations 
+                SELECT * FROM database_optimizations
                 WHERE id = $1 AND tenant_id = $2
             """
 
@@ -1007,7 +1007,7 @@ class DatabasePerformanceManager:
         """Update optimization status."""
         try:
             query = """
-                UPDATE database_optimizations 
+                UPDATE database_optimizations
                 SET status = $1, updated_at = $2
                 WHERE id = $3
             """
@@ -1133,7 +1133,7 @@ class DatabasePerformanceManager:
         """Get active performance alerts."""
         try:
             query = """
-                SELECT * FROM performance_alerts 
+                SELECT * FROM performance_alerts
                 WHERE tenant_id = $1 AND is_resolved = false
                 ORDER BY created_at DESC
                 LIMIT 10
@@ -1173,7 +1173,7 @@ class DatabasePerformanceManager:
         """Get recent optimizations."""
         try:
             query = """
-                SELECT * FROM database_optimizations 
+                SELECT * FROM database_optimizations
                 WHERE tenant_id = $1
                 ORDER BY created_at DESC
                 LIMIT 10
@@ -1414,7 +1414,7 @@ class DatabasePerformanceManager:
         """Get existing alert."""
         try:
             query = """
-                SELECT * FROM performance_alerts 
+                SELECT * FROM performance_alerts
                 WHERE tenant_id = $1 AND metric_name = $2 AND severity = $3 AND is_resolved = false
                 ORDER BY created_at DESC
                 LIMIT 1
@@ -1488,7 +1488,7 @@ class DatabasePerformanceManager:
                     description, impact_score, implementation_effort, estimated_improvement,
                     priority, status, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-                ON CONFLICT (tenant_id, optimization_type, target_table, target_query) 
+                ON CONFLICT (tenant_id, optimization_type, target_table, target_query)
                 DO UPDATE SET
                     description = EXCLUDED.description,
                     impact_score = EXCLUDED.impact_score,

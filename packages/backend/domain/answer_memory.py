@@ -120,7 +120,7 @@ class AnswerMemoryManager:
             profile_data = await conn.fetchrow(
                 """
                 SELECT experience_years, skills, industry, job_level
-                FROM user_profiles 
+                FROM user_profiles
                 WHERE user_id = $1 AND tenant_id = $2
                 """,
                 user_id,
@@ -226,8 +226,8 @@ class AnswerMemoryManager:
             # Update question usage count
             await conn.execute(
                 """
-                UPDATE interview_questions 
-                SET usage_count = usage_count + 1 
+                UPDATE interview_questions
+                SET usage_count = usage_count + 1
                 WHERE id = $1
                 """,
                 question_id,

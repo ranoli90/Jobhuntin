@@ -158,7 +158,7 @@ class ApplicationPipelineManager:
         async with self.db_pool.acquire() as conn:
             # Get applications with pipeline data
             query = """
-            SELECT 
+            SELECT
                 a.id,
                 a.company,
                 a.job_title,
@@ -300,7 +300,7 @@ class ApplicationPipelineManager:
         async with self.db_pool.acquire() as conn:
             await conn.execute(
                 """
-                UPDATE applications 
+                UPDATE applications
                 SET status = $1, updated_at = NOW()
                 WHERE id = $2 AND tenant_id = $3 AND user_id = $4
                 """,

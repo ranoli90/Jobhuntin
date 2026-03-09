@@ -230,7 +230,7 @@ class FailoverManager:
             async with self.primary_pool.acquire() as conn:
                 # Get replica lag information
                 replica_info = await conn.fetch("""
-                    SELECT 
+                    SELECT
                         application_name,
                         client_addr,
                         state,
@@ -316,7 +316,7 @@ class FailoverManager:
             async with self.primary_pool.acquire() as conn:
                 # Check database resource usage
                 resource_info = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         (SELECT COUNT(*) FROM pg_stat_activity WHERE state = 'active') as active_connections,
                         pg_size_pretty(pg_database_size(current_database())) as db_size,
                         (SELECT EXTRACT(EPOCH FROM (NOW() - max(backend_start))) FROM pg_stat_activity) as max_connection_age
@@ -460,7 +460,7 @@ class FailoverManager:
 
                 # Check replication lag
                 lag_info = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         pg_last_wal_receive_lsn() as receive_lsn,
                         pg_last_wal_replay_lsn() as replay_lsn,
                         EXTRACT(EPOCH FROM (NOW() - pg_last_xact_replay_timestamp())) as lag_seconds

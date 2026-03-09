@@ -100,7 +100,7 @@ async def update_application_status(
         # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query
         await conn.execute(
             f"""
-            UPDATE public.applications 
+            UPDATE public.applications
             SET {", ".join(update_fields)}
             WHERE id = ${len(params)} AND user_id = ${len(params) + 1}
             """,

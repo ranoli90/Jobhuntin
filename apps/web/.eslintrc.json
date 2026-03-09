@@ -11,9 +11,9 @@
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jsx-a11y/recommended",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "plugin:import/typescript",
+    "plugin:import-x/errors",
+    "plugin:import-x/warnings",
+    "plugin:import-x/typescript",
     "plugin:prettier/recommended",
     "plugin:sonarjs/recommended",
     "plugin:unicorn/recommended",
@@ -34,7 +34,7 @@
     "@typescript-eslint",
     "react-hooks",
     "jsx-a11y",
-    "import",
+    "import-x",
     "prettier",
     "sonarjs",
     "security",
@@ -75,11 +75,11 @@
     "unicorn/prefer-module": "error",
     "unicorn/no-new-buffer": "error",
 
-    // Import rules
-    "import/no-unresolved": "error",
-    "import/named": "error",
-    "import/default": "error",
-    "import/namespace": "error",
+    // Import rules (import-x - compatible with TypeScript resolver)
+    "import-x/no-unresolved": "error",
+    "import-x/named": "error",
+    "import-x/default": "error",
+    "import-x/namespace": "error",
 
     // General rules
     "no-console": "warn",
@@ -105,8 +105,9 @@
     "react": {
       "version": "detect"
     },
-    "import/resolver": {
-      "typescript": {}
+    "import-x/resolver": {
+      "typescript": true,
+      "node": true
     },
     "polyfills": [
       "Promise",

@@ -505,7 +505,7 @@ class IndexAnalyzer:
         try:
             # Get index information from PostgreSQL
             query = """
-                SELECT 
+                SELECT
                     i.schemaname,
                     i.tablename,
                     i.indexname,
@@ -629,7 +629,7 @@ class IndexAnalyzer:
         """Get index usage statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     indexrelname,
                     idx_scan,
                     idx_tup_read,
@@ -913,7 +913,7 @@ class IndexAnalyzer:
         try:
             # Get table and index statistics
             query = """
-                SELECT 
+                SELECT
                     pg_size_pretty(pg_total_relation_size($1)) as table_size,
                     pg_size_pretty(pg_indexes_size($1)) as indexes_size,
                     (SELECT COUNT(*) FROM pg_stat_user_indexes WHERE schemaname = 'public' AND indexrelid IN (
@@ -1121,7 +1121,7 @@ class IndexAnalyzer:
         """Get user tables for analysis."""
         try:
             query = """
-                SELECT tablename FROM pg_tables 
+                SELECT tablename FROM pg_tables
                 WHERE schemaname NOT IN ('information_schema', 'pg_catalog')
                 ORDER BY tablename
             """
@@ -1138,13 +1138,13 @@ class IndexAnalyzer:
         """Get table statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     n_tup_ins,
                     n_tup_upd,
                     n_tup_del,
                     n_live_tup,
                     n_dead_tup
-                FROM pg_stat_user_tables 
+                FROM pg_stat_user_tables
                 WHERE schemaname = 'public' AND relname = $1
             """
 
@@ -1172,11 +1172,11 @@ class IndexAnalyzer:
         """Get query patterns for a table from pg_stat_statements."""
         try:
             query = """
-                SELECT 
+                SELECT
                     query,
                     calls,
                     mean_exec_time
-                FROM pg_stat_statements 
+                FROM pg_stat_statements
                 WHERE query LIKE $1 || '%'
                 ORDER BY calls DESC
                 LIMIT 20
@@ -1310,7 +1310,7 @@ class IndexAnalyzer:
         """Get recommendation by ID."""
         try:
             query = """
-                SELECT * FROM index_recommendations 
+                SELECT * FROM index_recommendations
                 WHERE id = $1 AND tenant_id = $2
             """
 
@@ -1462,7 +1462,7 @@ class IndexAnalyzer:
         """Get index analyses for report."""
         try:
             query = """
-                SELECT * FROM index_analyses 
+                SELECT * FROM index_analyses
                 WHERE tenant_id = $1 AND created_at > $2
                 ORDER BY created_at DESC
             """

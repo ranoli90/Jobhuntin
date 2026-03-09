@@ -394,8 +394,8 @@ class AlertProcessor:
                 recent_count = await conn.fetchval(
                     """
                     SELECT COUNT(*) FROM public.alert_processing_log
-                    WHERE user_id = $1 
-                    AND alert_type = $2 
+                    WHERE user_id = $1
+                    AND alert_type = $2
                     AND processed_at >= now() - make_interval(secs => $3)
                     """,
                     user_id,

@@ -364,7 +364,7 @@ class BackupManager:
                     async with self.db_pool.acquire() as conn:
                         # Count tables
                         tables_count = await conn.fetchval("""
-                            SELECT COUNT(*) FROM information_schema.tables 
+                            SELECT COUNT(*) FROM information_schema.tables
                             WHERE table_schema NOT IN ('information_schema', 'pg_catalog')
                         """)
 

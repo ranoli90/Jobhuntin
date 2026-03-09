@@ -348,7 +348,7 @@ async def get_page_views(
 
         # Build query
         query = """
-            SELECT * FROM page_views 
+            SELECT * FROM page_views
             WHERE tenant_id = $1 AND timestamp > $2
         """
         params = [tenant_id, cutoff_time]
@@ -425,7 +425,7 @@ async def get_user_actions(
 
         # Build query
         query = """
-            SELECT * FROM user_actions 
+            SELECT * FROM user_actions
             WHERE tenant_id = $1 AND timestamp > $2
         """
         params = [tenant_id, cutoff_time]
@@ -508,7 +508,7 @@ async def get_conversion_events(
 
         # Build query
         query = """
-            SELECT * FROM conversion_events 
+            SELECT * FROM conversion_events
             WHERE tenant_id = $1 AND timestamp > $2
         """
         params = [tenant_id, cutoff_time]
@@ -615,16 +615,16 @@ async def get_top_pages(
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=time_period_hours)
 
         query = """
-            SELECT 
+            SELECT
                 page_url,
                 COUNT(*) as views,
                 COUNT(DISTINCT user_id) as unique_users,
                 AVG(time_on_page) as avg_time_on_page,
                 AVG(scroll_depth) as avg_scroll_depth
-            FROM page_views 
+            FROM page_views
             WHERE tenant_id = $1 AND timestamp > $2
-            GROUP BY page_url 
-            ORDER BY views DESC 
+            GROUP BY page_url
+            ORDER BY views DESC
             LIMIT $3
         """
 
@@ -666,16 +666,16 @@ async def get_top_actions(
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=time_period_hours)
 
         query = """
-            SELECT 
+            SELECT
                 action_name,
                 COUNT(*) as actions,
                 COUNT(DISTINCT user_id) as unique_users,
                 AVG(duration_ms) as avg_duration,
                 COUNT(CASE WHEN success = true THEN 1 END) as successful_actions
-            FROM user_actions 
+            FROM user_actions
             WHERE tenant_id = $1 AND timestamp > $2
-            GROUP BY action_name 
-            ORDER BY actions DESC 
+            GROUP BY action_name
+            ORDER BY actions DESC
             LIMIT $3
         """
 
@@ -719,21 +719,21 @@ async def get_real_time_stats(
         # Page views in last hour
         page_views_query = """
             SELECT COUNT(*) as views, COUNT(DISTINCT user_id) as unique_users
-            FROM page_views 
+            FROM page_views
             WHERE tenant_id = $1 AND timestamp > $2
         """
 
         # User actions in last hour
         actions_query = """
             SELECT COUNT(*) as actions, COUNT(CASE WHEN success = true THEN 1 END) as successful
-            FROM user_actions 
+            FROM user_actions
             WHERE tenant_id = $1 AND timestamp > $2
         """
 
         # Conversions in last hour
         conversions_query = """
             SELECT COUNT(*) as conversions, SUM(conversion_value) as total_value
-            FROM conversion_events 
+            FROM conversion_events
             WHERE tenant_id = $1 AND timestamp > $2
         """
 

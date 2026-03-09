@@ -471,7 +471,7 @@ class ReplicaRouter:
         """Get replication lag information."""
         try:
             lag_info = await conn.fetchrow("""
-                SELECT 
+                SELECT
                     pg_last_wal_receive_lsn() as receive_lsn,
                     pg_last_wal_replay_lsn() as replay_lsn,
                     pg_last_xact_replay_timestamp() as replay_timestamp,

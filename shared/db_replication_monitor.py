@@ -297,7 +297,7 @@ class ReplicationMonitor:
         try:
             # Get current WAL position
             wal_info = await conn.fetchrow("""
-                SELECT 
+                SELECT
                     pg_current_wal_lsn() as current_lsn,
                     pg_walfile_name(pg_current_wal_lsn()) as wal_file,
                     pg_size_pretty(pg_walfile_size(pg_walfile_name(pg_current_wal_lsn()))) as wal_size_pretty,
@@ -321,7 +321,7 @@ class ReplicationMonitor:
         """Get replication slot information."""
         try:
             slots_data = await conn.fetch("""
-                SELECT 
+                SELECT
                     slot_name,
                     plugin,
                     database,
@@ -356,7 +356,7 @@ class ReplicationMonitor:
         """Get replication lag information."""
         try:
             lag_info = await conn.fetchrow("""
-                SELECT 
+                SELECT
                     pg_last_wal_receive_lsn() as receive_lsn,
                     pg_last_wal_replay_lsn() as replay_lsn,
                     pg_last_xact_replay_timestamp() as replay_timestamp,
@@ -383,7 +383,7 @@ class ReplicationMonitor:
         """Check replica connection status."""
         try:
             connections = await conn.fetch("""
-                SELECT 
+                SELECT
                     application_name,
                     client_addr,
                     state,
@@ -423,7 +423,7 @@ class ReplicationMonitor:
         try:
             # Get connection info from replica perspective
             conn_info = await conn.fetchrow("""
-                SELECT 
+                SELECT
                     pg_is_in_recovery() as in_recovery,
                     pg_last_wal_receive_lsn() as receive_lsn,
                     pg_last_wal_replay_lsn() as replay_lsn,

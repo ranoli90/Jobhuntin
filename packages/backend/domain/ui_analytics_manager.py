@@ -377,7 +377,7 @@ class UIAnalyticsManager:
         """Update page view with time on page and scroll depth."""
         try:
             query = """
-                UPDATE page_views 
+                UPDATE page_views
                 SET time_on_page = $1, scroll_depth = $2, updated_at = NOW()
                 WHERE id = $3
             """
@@ -516,14 +516,14 @@ class UIAnalyticsManager:
         """Get page view statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_views,
                     COUNT(DISTINCT user_id) as unique_users,
                     COUNT(DISTINCT page_url) as unique_pages,
                     AVG(load_time) as avg_load_time,
                     AVG(time_on_page) as avg_time_on_page,
                     AVG(scroll_depth) as avg_scroll_depth
-                FROM page_views 
+                FROM page_views
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -557,14 +557,14 @@ class UIAnalyticsManager:
         """Get action statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_actions,
                     COUNT(DISTINCT user_id) as unique_users,
                     COUNT(DISTINCT action_type) as unique_action_types,
                     COUNT(DISTINCT action_name) as unique_actions,
                     AVG(duration_ms) as avg_duration,
                     COUNT(CASE WHEN success = true THEN 1 END) as successful_actions
-                FROM user_actions 
+                FROM user_actions
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -604,13 +604,13 @@ class UIAnalyticsManager:
         """Get conversion statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_conversions,
                     COUNT(DISTINCT user_id) as converting_users,
                     SUM(conversion_value) as total_value,
                     AVG(conversion_value) as avg_value,
                     COUNT(DISTINCT funnel_name) as unique_funnels
-                FROM conversion_events 
+                FROM conversion_events
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -643,11 +643,11 @@ class UIAnalyticsManager:
         """Get funnel statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_funnels,
                     AVG(conversion_rate) as avg_conversion_rate,
                     AVG(abandonment_rate) as avg_abandonment_rate
-                FROM funnel_analyses 
+                FROM funnel_analyses
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -678,13 +678,13 @@ class UIAnalyticsManager:
         """Get performance metrics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     AVG(load_time) as avg_load_time,
                     AVG(time_on_page) as avg_time_on_page,
                     AVG(scroll_depth) as avg_scroll_depth,
                     COUNT(CASE WHEN load_time > 3 THEN 1 END) as slow_pages,
                     COUNT(CASE WHEN time_on_page < 5 THEN 1 END) as bounce_pages
-                FROM page_views 
+                FROM page_views
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -737,7 +737,7 @@ class UIAnalyticsManager:
                 SELECT COUNT(DISTINCT user_id) as total_users
                 FROM conversion_events ce
                 JOIN user_actions ua ON ce.session_id = ua.session_id
-                WHERE ce.tenant_id = $1 AND ce.funnel_name = $2 
+                WHERE ce.tenant_id = $1 AND ce.funnel_name = $2
                 AND ce.timestamp > $3 AND ce.event_name = $4
             """
 
@@ -756,7 +756,7 @@ class UIAnalyticsManager:
                 step_query = """
                     SELECT COUNT(DISTINCT user_id) as users
                     FROM conversion_events ce
-                    WHERE ce.tenant_id = $1 AND ce.funnel_name = $2 
+                    WHERE ce.tenant_id = $1 AND ce.funnel_name = $2
                     AND ce.timestamp > $3 AND ce.event_name = $4
                 """
 
@@ -795,7 +795,7 @@ class UIAnalyticsManager:
                 conversion_query = """
                     SELECT COUNT(DISTINCT user_id) as conversions
                     FROM conversion_events
-                    WHERE tenant_id = $1 AND funnel_name = $2 
+                    WHERE tenant_id = $1 AND funnel_name = $2
                     AND timestamp > $3 AND event_name = ANY($4)
                 """
 
@@ -817,11 +817,11 @@ class UIAnalyticsManager:
             # Calculate average time to convert
             time_query = """
                 SELECT AVG(EXTRACT(EPOCH FROM (ce.timestamp - (
-                    SELECT MIN(timestamp) FROM conversion_events ce2 
+                    SELECT MIN(timestamp) FROM conversion_events ce2
                     WHERE ce2.user_id = ce.user_id AND ce2.funnel_name = ce.funnel_name
                 ))) / 60) as avg_minutes
                 FROM conversion_events ce
-                WHERE ce.tenant_id = $1 AND ce.funnel_name = $2 
+                WHERE ce.tenant_id = $1 AND ce.funnel_name = $2
                 AND ce.timestamp > $3 AND event_name = ANY($4)
             """
 
@@ -881,7 +881,7 @@ class UIAnalyticsManager:
             query = """
                 SELECT page_url, COUNT(*) as views, COUNT(DISTINCT user_id) as unique_users,
                        AVG(time_on_page) as avg_time_on_page, AVG(scroll_depth) as avg_scroll_depth
-                FROM page_views 
+                FROM page_views
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -921,7 +921,7 @@ class UIAnalyticsManager:
             query = """
                 SELECT action_name, COUNT(*) as actions, COUNT(DISTINCT user_id) as unique_users,
                        AVG(duration_ms) as avg_duration
-                FROM user_actions 
+                FROM user_actions
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -960,7 +960,7 @@ class UIAnalyticsManager:
             # Get hourly patterns
             hourly_query = """
                 SELECT EXTRACT(HOUR FROM timestamp) as hour, COUNT(*) as views
-                FROM page_views 
+                FROM page_views
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -986,7 +986,7 @@ class UIAnalyticsManager:
                 # Get daily patterns
                 daily_query = """
                     SELECT EXTRACT(DAY FROM timestamp) as day, COUNT(*) as views
-                    FROM page_views 
+                    FROM page_views
                     WHERE tenant_id = $1 AND timestamp > $2
                 """
                 params = [tenant_id, cutoff_time]
@@ -1023,13 +1023,13 @@ class UIAnalyticsManager:
         """Get page performance metrics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     AVG(load_time) as avg_load_time,
                     AVG(time_on_page) as avg_time_on_page,
                     AVG(scroll_depth) as avg_scroll_depth,
                     COUNT(*) as total_views,
                     COUNT(CASE WHEN load_time > 3 THEN 1 END) as slow_pages
-                FROM page_views 
+                FROM page_views
                 WHERE tenant_id = $1 AND timestamp > $2
             """
             params = [tenant_id, cutoff_time]
@@ -1067,8 +1067,8 @@ class UIAnalyticsManager:
         try:
             query = """
                 INSERT INTO page_views (
-                    id, user_id, tenant_id, session_id, page_url, page_title, 
-                    referrer, user_agent, ip_address, device_type, browser, 
+                    id, user_id, tenant_id, session_id, page_url, page_title,
+                    referrer, user_agent, ip_address, device_type, browser,
                     screen_resolution, load_time, timestamp, clicks, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
             """
@@ -1104,8 +1104,8 @@ class UIAnalyticsManager:
         try:
             query = """
                 INSERT INTO user_actions (
-                    id, user_id, tenant_id, session_id, page_url, action_type, action_name, 
-                    element_selector, element_text, element_attributes, coordinates, 
+                    id, user_id, tenant_id, session_id, page_url, action_type, action_name,
+                    element_selector, element_text, element_attributes, coordinates,
                     timestamp, duration_ms, success, error_message, metadata, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             """
@@ -1141,8 +1141,8 @@ class UIAnalyticsManager:
         try:
             query = """
                 INSERT INTO conversion_events (
-                    id, user_id, tenant_id, session_id, event_type, event_name, 
-                    page_url, conversion_value, conversion_currency, funnel_step, 
+                    id, user_id, tenant_id, session_id, event_type, event_name,
+                    page_url, conversion_value, conversion_currency, funnel_step,
                     funnel_name, properties, timestamp, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             """
@@ -1175,7 +1175,7 @@ class UIAnalyticsManager:
         try:
             query = """
                 INSERT INTO funnel_analyses (
-                    id, tenant_id, funnel_name, total_users, step_analytics, 
+                    id, tenant_id, funnel_name, total_users, step_analytics,
                     conversion_rate, abandonment_rate, avg_time_to_convert, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             """

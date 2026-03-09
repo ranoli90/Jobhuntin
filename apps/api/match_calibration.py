@@ -403,7 +403,7 @@ async def get_calibration_history(
             # Get calibration history from analytics table
             rows = await conn.fetch(
                 """
-                SELECT 
+                SELECT
                     tenant_id,
                     category,
                     weight_value,
@@ -413,7 +413,7 @@ async def get_calibration_history(
                     period_start,
                     period_end
                 FROM match_weight_analytics
-                WHERE tenant_id = $1 
+                WHERE tenant_id = $1
                     AND created_at >= NOW() - INTERVAL '%s days'
                 ORDER BY created_at DESC
                 LIMIT $2

@@ -328,7 +328,7 @@ class ABTestingManager:
         """Get experiment results."""
         try:
             query = """
-                SELECT * FROM experiment_results 
+                SELECT * FROM experiment_results
                 WHERE experiment_id = $1
             """
             params = [experiment_id]
@@ -882,7 +882,7 @@ class ABTestingManager:
         """Get results for a specific variant."""
         try:
             query = """
-                SELECT * FROM experiment_results 
+                SELECT * FROM experiment_results
                 WHERE experiment_id = $1 AND variant_id = $2
                 ORDER BY created_at ASC
             """
@@ -917,13 +917,13 @@ class ABTestingManager:
         """Get experiment statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_experiments,
                     COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_experiments,
                     COUNT(CASE WHEN status = 'running' THEN 1 END) as running_experiments,
                     AVG(sample_size) as avg_sample_size,
                     AVG(duration_days) as avg_duration
-                FROM experiments 
+                FROM experiments
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -959,12 +959,12 @@ class ABTestingManager:
         """Get variant statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_variants,
                     COUNT(CASE WHEN is_active THEN 1 END) as active_variants,
                     AVG(traffic_weight) as avg_traffic_weight,
                     AVG(traffic_allocation) as avg_traffic_allocation
-                FROM experiment_variants 
+                FROM experiment_variants
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -999,11 +999,11 @@ class ABTestingManager:
         """Get user assignment statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_assignments,
                     COUNT(DISTINCT user_id) as unique_users,
                     COUNT(DISTINCT experiment_id) as experiments_participated
-                FROM user_assignments 
+                FROM user_assignments
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -1037,11 +1037,11 @@ class ABTestingManager:
         """Get performance metrics for experiments."""
         try:
             query = """
-                SELECT 
+                SELECT
                     AVG(processing_time_ms) as avg_processing_time,
                     AVG(success_rate) as avg_success_rate,
                     COUNT(CASE WHEN error_message IS NOT NULL THEN 1 END) as errors
-                FROM experiment_results 
+                FROM experiment_results
                 WHERE tenant_id = $1 AND created_at > $2
             """
             params = [tenant_id, cutoff_time]
@@ -1071,8 +1071,8 @@ class ABTestingManager:
         try:
             query = """
                 INSERT INTO experiments (
-                    id, name, description, status, traffic_allocation, sample_size, 
-                    duration_days, target_metrics, target_audience, 
+                    id, name, description, status, traffic_allocation, sample_size,
+                    duration_days, target_metrics, target_audience,
                     ai_model_config, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 ON CONFLICT (id) DO UPDATE SET
@@ -1114,7 +1114,7 @@ class ABTestingManager:
         try:
             query = """
                 INSERT INTO experiment_variants (
-                    id, experiment_id, name, description, variant_type, 
+                    id, experiment_id, name, description, variant_type,
                     configuration, traffic_weight, is_active, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 ON CONFLICT (id) DO UPDATE SET
@@ -1176,10 +1176,10 @@ class ABTestingManager:
         try:
             query = """
                 INSERT INTO statistical_analyses (
-                    id, experiment_id, variant_a_id, variant_b_id, metric, 
+                    id, experiment_id, variant_a_id, variant_b_id, metric,
                     variant_a_mean, variant_b_mean, variant_a_std, variant_b_std,
-                    variant_a_count, variant_b_count, n_a, n_b, p_value, 
-                    confidence_level, confidence_interval, is_significant, 
+                    variant_a_count, variant_b_count, n_a, n_b, p_value,
+                    confidence_level, confidence_interval, is_significant,
                     effect_size, winner, recommended_action, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             """
@@ -1219,8 +1219,8 @@ class ABTestingManager:
         try:
             query = """
                 INSERT INTO ux_scores (
-                    id, user_id, tenant_id, session_id, overall_score, usability_score, 
-                    performance_score, accessibility_score, engagement_score, 
+                    id, user_id, tenant_id, session_id, overall_score, usability_score,
+                    performance_score, accessibility_score, engagement_score,
                     satisfaction_score, factors, calculated_at, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             """
@@ -1252,7 +1252,7 @@ class ABTestingManager:
         try:
             query = """
                 INSERT INTO nps_responses (
-                    id, user_id, tenant_id, score, promoter_type, reason, 
+                    id, user_id, tenant_id, score, promoter_type, reason,
                     metadata, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7)
             """

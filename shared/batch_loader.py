@@ -33,10 +33,10 @@ class BatchLoader:
 
         unique_ids = list(set(user_ids))
         query = """
-            SELECT id, email, full_name, headline, bio, resume_url, 
+            SELECT id, email, full_name, headline, bio, resume_url,
                    has_completed_onboarding, created_at, updated_at,
                    preferences, contact, role
-            FROM users 
+            FROM users
             WHERE id = ANY($1)
         """
 
@@ -55,7 +55,7 @@ class BatchLoader:
         query = """
             SELECT user_id, profile_data, resume_url, preferences,
                    created_at, updated_at
-            FROM profiles 
+            FROM profiles
             WHERE user_id = ANY($1)
         """
 
@@ -74,7 +74,7 @@ class BatchLoader:
 
         if include_job_details:
             query = """
-                SELECT 
+                SELECT
                     a.id, a.user_id, a.job_id, a.status, a.created_at, a.updated_at,
                     a.application_url, a.submitted_at,
                     j.title as job_title, j.company as job_company, j.location as job_location,
@@ -89,7 +89,7 @@ class BatchLoader:
             query = """
                 SELECT id, user_id, job_id, status, created_at, updated_at,
                        application_url, submitted_at
-                FROM applications 
+                FROM applications
                 WHERE user_id = ANY($1)
                 ORDER BY created_at DESC
                 LIMIT $2
@@ -115,7 +115,7 @@ class BatchLoader:
 
         unique_ids = list(set(job_ids))
         query = """
-            SELECT 
+            SELECT
                 id, title, company, location, remote, salary_min, salary_max,
                 job_type, description, requirements, responsibilities,
                 qualifications, benefits, status, created_at, updated_at,
@@ -123,7 +123,7 @@ class BatchLoader:
                 education_required, skills_required, industry_focus,
                 remote_option, visa_sponsorship, deadline, team_size,
                 team_structure, reporting_to, tags
-            FROM jobs 
+            FROM jobs
             WHERE id = ANY($1)
         """
 
@@ -141,7 +141,7 @@ class BatchLoader:
         unique_ids = list(set(user_ids))
         query = """
             SELECT id, user_id, job_id, saved_at
-            FROM saved_jobs 
+            FROM saved_jobs
             WHERE user_id = ANY($1)
             ORDER BY saved_at DESC
         """
@@ -169,7 +169,7 @@ class BatchLoader:
         unique_ids = list(set(user_ids))
         query = """
             SELECT id, user_id, job_id, content, created_at, updated_at
-            FROM cover_letters 
+            FROM cover_letters
             WHERE user_id = ANY($1)
             ORDER BY created_at DESC
         """
@@ -202,7 +202,7 @@ class BatchLoader:
         if event_types:
             query = """
                 SELECT id, user_id, event_type, properties, created_at
-                FROM analytics_events 
+                FROM analytics_events
                 WHERE user_id = ANY($1) AND event_type = ANY($2)
                 ORDER BY created_at DESC
                 LIMIT $3
@@ -211,7 +211,7 @@ class BatchLoader:
         else:
             query = """
                 SELECT id, user_id, event_type, properties, created_at
-                FROM analytics_events 
+                FROM analytics_events
                 WHERE user_id = ANY($1)
                 ORDER BY created_at DESC
                 LIMIT $2
@@ -242,7 +242,7 @@ class BatchLoader:
         query = """
             SELECT user_id, min_salary, max_salary, preferred_locations,
                    remote_only, job_types, industries, created_at, updated_at
-            FROM user_preferences 
+            FROM user_preferences
             WHERE user_id = ANY($1)
         """
 
@@ -260,7 +260,7 @@ class BatchLoader:
         unique_ids = list(set(user_ids))
         query = """
             SELECT user_id, embedding, text_hash, created_at
-            FROM profile_embeddings 
+            FROM profile_embeddings
             WHERE user_id = ANY($1)
         """
 

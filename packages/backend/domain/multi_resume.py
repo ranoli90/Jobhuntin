@@ -111,7 +111,7 @@ class MultiResumeManager:
             if is_primary:
                 await conn.execute(
                     """
-                    UPDATE resume_versions 
+                    UPDATE resume_versions
                     SET is_primary = false, updated_at = NOW()
                     WHERE user_id = $1 AND tenant_id = $2
                     """,
@@ -348,7 +348,7 @@ class MultiResumeManager:
             # Get application data for this resume
             app_data = await conn.fetch(
                 """
-                SELECT 
+                SELECT
                     a.status,
                     a.created_at,
                     a.last_activity,

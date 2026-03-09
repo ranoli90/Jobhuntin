@@ -651,14 +651,14 @@ class AIOboardingManager:
 
         prompt = f"""
         Generate {question_count} personalized onboarding questions for {flow_config.target_audience}.
-        
+
         Flow Configuration:
         - Target Audience: {flow_config.target_audience}
         - Question Categories: {", ".join(flow_config.question_categories)}
         - Complexity Progression: {", ".join(flow_config.complexity_progression)}
-        
+
         {context_info}
-        
+
         For each question, provide:
         1. Question text (clear and engaging)
         2. Question type (multiple_choice, text_input, textarea, select, checkboxes, radio, rating, boolean)
@@ -669,7 +669,7 @@ class AIOboardingManager:
         7. Validation rules (if any)
         8. Estimated time to answer (seconds)
         9. Help text (if needed)
-        
+
         Format as JSON array with objects containing all fields.
         Focus on questions that will help build a comprehensive user profile for job matching and career guidance.
         Make questions engaging and user-friendly.
@@ -687,17 +687,17 @@ class AIOboardingManager:
 
         prompt = f"""
         Generate 1-3 follow-up questions based on the user's response.
-        
+
         Original Question: {original_question.question_text}
         User Response: {response}
         User Context: {user_context}
-        
+
         Generate follow-up questions that:
         1. Are directly relevant to the user's response
         2. Help gather more specific information
         3. Are not repetitive
         4. Maintain a conversational tone
-        
+
         For each follow-up question, provide:
         1. Question text
         2. Question type
@@ -706,7 +706,7 @@ class AIOboardingManager:
         5. Required status
         6. Options (if applicable)
         7. Estimated time to answer
-        
+
         Format as JSON array of objects.
         """
 
@@ -722,17 +722,17 @@ class AIOboardingManager:
 
         prompt = f"""
         Generate 3-5 personalized next step suggestions based on user's onboarding progress.
-        
+
         User Profile: {user_profile}
         Responses: {responses}
         Completion Percentage: {completion_percentage}%
-        
+
         Generate suggestions that:
         1. Are relevant to the user's profile and goals
         2. Help them get the most value from the platform
         3. Are actionable and specific
         4. Consider their current completion status
-        
+
         Format as JSON array of suggestion strings.
         """
 
@@ -1132,17 +1132,17 @@ class AIOboardingManager:
             # Build LLM prompt for recommendations
             prompt = f"""
             Generate personalized recommendations based on completed onboarding.
-            
+
             User Profile: {session.user_profile}
             Responses: {session.responses}
             AI Insights: {session.ai_confidence} confidence
-            
+
             Generate 3-5 recommendations that:
             1. Are specific and actionable
             2. Help user achieve their career goals
             3. Leverage platform features
             4. Are personalized to their profile
-            
+
             Format as JSON array of objects with:
             - title: Recommendation title
             - description: Detailed description

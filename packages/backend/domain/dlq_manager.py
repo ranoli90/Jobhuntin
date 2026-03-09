@@ -324,7 +324,7 @@ class DLQManager:
         """Get DLQ statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_items,
                     COUNT(CASE WHEN status = 'pending') as pending_count,
                     COUNT(CASE WHEN status = 'retrying' as retrying_count,
@@ -372,7 +372,7 @@ class DLQManager:
         """Get DLQ summary for a specific tenant."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_items,
                     COUNT(CASE WHEN status = 'pending') as pending_count,
                     COUNT(CASE WHEN status = 'retrying' as retrying_count,
@@ -405,7 +405,7 @@ class DLQManager:
         try:
             query = """
                 INSERT INTO dead_letter_queue (
-                    id, application_id, tenant_id, failure_reason, error_details, 
+                    id, application_id, tenant_id, failure_reason, error_details,
                     attempt_count, max_retries, next_retry_at, payload, status, priority, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             """
@@ -452,7 +452,7 @@ class DLQManager:
         """Update DLQ item retry information."""
         try:
             query = """
-                UPDATE dead_letter_queue 
+                UPDATE dead_letter_queue
                 SET attempt_count = $1, next_retry_at = $2
                 WHERE id = $3
             """

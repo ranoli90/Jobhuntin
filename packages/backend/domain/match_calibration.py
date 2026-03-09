@@ -116,7 +116,7 @@ class MatchScoreCalibrator:
             async with db_pool.acquire() as conn:
                 rows = await conn.fetch(
                     """
-                    SELECT 
+                    SELECT
                         tenant_id,
                         user_id,
                         job_id,
@@ -132,7 +132,7 @@ class MatchScoreCalibrator:
                         salary_min,
                         salary_max
                     FROM match_score_history
-                    WHERE tenant_id = $1 
+                    WHERE tenant_id = $1
                         AND applied_at >= NOW() - INTERVAL '%s days'
                     ORDER BY applied_at DESC
                 """,

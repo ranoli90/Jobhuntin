@@ -230,7 +230,7 @@ class CapacityPlanner:
 
                 # Table-specific storage
                 table_sizes = await conn.fetch("""
-                    SELECT 
+                    SELECT
                         schemaname || '.' || tablename as table_name,
                         pg_total_relation_size(schemaname||'.'||tablename) / 1024 / 1024 as size_mb
                     FROM pg_tables
@@ -251,7 +251,7 @@ class CapacityPlanner:
 
                 # Connection metrics
                 conn_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         count(*) as total_connections,
                         count(*) FILTER (WHERE state = 'active') as active_connections,
                         (SELECT setting::int FROM pg_settings WHERE name = 'max_connections') as max_connections
@@ -294,7 +294,7 @@ class CapacityPlanner:
 
                 # Transaction volume (proxy for CPU/IOPS)
                 tx_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         xact_commit + xact_rollback as total_transactions,
                         tup_inserted + tup_updated + tup_deleted as total_changes
                     FROM pg_stat_database

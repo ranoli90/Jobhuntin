@@ -181,7 +181,7 @@ class PerformanceTuner:
 
                 # Connection statistics
                 conn_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         count(*) as total_connections,
                         count(*) FILTER (WHERE state = 'active') as active_connections,
                         count(*) FILTER (WHERE state = 'idle') as idle_connections,
@@ -197,7 +197,7 @@ class PerformanceTuner:
 
                 # Cache hit ratios
                 cache_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         sum(heap_blks_hit) / nullif(sum(heap_blks_hit) + sum(heap_blks_read), 0) * 100 as heap_cache_hit_ratio,
                         sum(idx_blks_hit) / nullif(sum(idx_blks_hit) + sum(idx_blks_read), 0) * 100 as index_cache_hit_ratio
                     FROM pg_stat_database
@@ -218,7 +218,7 @@ class PerformanceTuner:
 
                 # Transaction statistics
                 tx_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         xact_commit + xact_rollback as total_transactions,
                         xact_commit as commits,
                         xact_rollback as rollbacks,
@@ -238,7 +238,7 @@ class PerformanceTuner:
 
                 # Lock statistics
                 lock_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         count(*) as total_locks,
                         count(*) FILTER (WHERE wait_start IS NOT NULL) as waiting_locks,
                         count(*) FILTER (WHERE mode LIKE '%exclusive%') as exclusive_locks
@@ -262,7 +262,7 @@ class PerformanceTuner:
 
                 # WAL statistics
                 wal_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         pg_size_pretty(pg_walfile_size(pg_walfile_name(pg_current_wal_lsn()))) as current_wal_size,
                         pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), pg_last_wal_replay_lsn())) as wal_lag
                 """)
@@ -293,7 +293,7 @@ class PerformanceTuner:
                 # Get slow queries from pg_stat_statements
                 slow_queries = await conn.fetch(
                     """
-                    SELECT 
+                    SELECT
                         query,
                         calls,
                         total_exec_time,
@@ -477,7 +477,7 @@ class PerformanceTuner:
             async with self.db_pool.acquire() as conn:
                 # Get all indexes
                 indexes = await conn.fetch("""
-                    SELECT 
+                    SELECT
                         schemaname,
                         tablename,
                         indexname,
@@ -671,7 +671,7 @@ class PerformanceTuner:
             async with self.db_pool.acquire() as conn:
                 # Get table statistics
                 table_stats = await conn.fetch("""
-                    SELECT 
+                    SELECT
                         schemaname,
                         tablename,
                         n_tup_ins,

@@ -341,7 +341,7 @@ class AlertProcessor:
         """Get alert processing statistics."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_alerts,
                     COUNT(CASE WHEN status = 'processed' THEN 1 END) as processed,
                     COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed,
@@ -676,8 +676,8 @@ class AlertProcessor:
         try:
             query = """
                 INSERT INTO alert_processing_log (
-                    id, alert_type, priority, user_id, tenant_id, title, 
-                    message, data, context, status, processed_at, resolved_at, 
+                    id, alert_type, priority, user_id, tenant_id, title,
+                    message, data, context, status, processed_at, resolved_at,
                     created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
                 ON CONFLICT (id) DO UPDATE SET
@@ -714,7 +714,7 @@ class AlertProcessor:
         """Update alert in database."""
         try:
             query = """
-                UPDATE alert_processing_log 
+                UPDATE alert_processing_log
                 SET status = $1, processed_at = $2, resolved_at = $3, updated_at = NOW()
                 WHERE id = $4
             """
@@ -732,7 +732,7 @@ class AlertProcessor:
         try:
             query = """
                 INSERT INTO alert_rules (
-                    id, name, alert_type, conditions, actions, priority, 
+                    id, name, alert_type, conditions, actions, priority,
                     enabled, throttle_minutes, created_at, updated_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (id) DO UPDATE SET
@@ -778,7 +778,7 @@ class AlertProcessor:
         try:
             query = """
                 INSERT INTO alert_processing_actions (
-                    alert_id, rule_id, action, status, result, error_message, 
+                    alert_id, rule_id, action, status, result, error_message,
                     processing_time_ms, created_at
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
             """

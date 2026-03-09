@@ -258,7 +258,7 @@ class DatabaseMetricsCollector(MetricsCollector):
 
                 # Basic statistics
                 stats_query = f"""
-                SELECT 
+                SELECT
                     COUNT(*) as total_requests,
                     COUNT(*) FILTER (WHERE status_code < 400) as successful_requests,
                     COUNT(*) FILTER (WHERE status_code >= 400) as failed_requests,
@@ -356,7 +356,7 @@ class DatabaseMetricsCollector(MetricsCollector):
                 where_clause = " AND ".join(where_clauses)
 
                 query = f"""
-                SELECT 
+                SELECT
                     event_id, request_id, event_type, severity, description,
                     ip_address, user_agent, user_id, details, timestamp,
                     resolved, resolved_by, resolved_at
@@ -406,7 +406,7 @@ class DatabaseMetricsCollector(MetricsCollector):
             async with self.db_pool.acquire() as conn:
                 query = (
                     """
-                SELECT 
+                SELECT
                     date, total_requests, successful_requests, failed_requests,
                     avg_response_time_ms, min_response_time_ms, max_response_time_ms,
                     unique_users, unique_ips, top_endpoints, error_distribution,
@@ -674,7 +674,7 @@ class MonitoringService:
             async with self.db_pool.acquire() as conn:
                 query = (
                     """
-                SELECT 
+                SELECT
                     timestamp, cpu_usage_percent, memory_usage_percent,
                     disk_usage_percent, active_connections, database_connections,
                     cache_hit_rate, error_rate, health_score, alerts

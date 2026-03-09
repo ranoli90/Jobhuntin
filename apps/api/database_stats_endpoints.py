@@ -32,14 +32,14 @@ async def get_database_tables(
 
         # Get table list
         query = """
-            SELECT 
+            SELECT
                 schemaname,
                 tablename,
                 table_type,
                 pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
                 pg_total_relation_size(schemaname||'.'||tablename) as size_bytes,
                 (SELECT COUNT(*) FROM " || schemaname || '.' || tablename || " WHERE 1=1) as row_count
-            FROM pg_tables 
+            FROM pg_tables
             WHERE schemaname NOT IN ('information_schema', 'pg_catalog')
             ORDER BY schemaname, tablename
         """
@@ -91,7 +91,7 @@ async def get_table_details(
 
         # Get column information
         columns_query = """
-            SELECT 
+            SELECT
                 column_name,
                 data_type,
                 is_nullable,
@@ -99,7 +99,7 @@ async def get_table_details(
                 character_maximum_length,
                 numeric_precision,
                 ordinal_position
-            FROM information_schema.columns 
+            FROM information_schema.columns
                 WHERE table_schema = 'public' AND table_name = $1
             ORDER BY ordinal_position
         """
@@ -123,7 +123,7 @@ async def get_table_details(
 
         # Get index information
         indexes_query = """
-            SELECT 
+            SELECT
                 indexname,
                 indexdef,
                 idx_scan,
@@ -131,7 +131,7 @@ async def get_table_details(
                 idx_tup_fetch,
                 pg_size_pretty(pg_relation_size(indexrelid::regclass)) as size,
                 pg_relation_size(indexrelid::regclass) as size_bytes
-            FROM pg_indexes 
+            FROM pg_indexes
                 WHERE schemaname = 'public' AND tablename = $1
             ORDER BY indexname
         """
@@ -155,11 +155,11 @@ async def get_table_details(
 
         # Get constraints
         constraints_query = """
-            SELECT 
+            SELECT
                 constraint_name,
                 constraint_type,
                 check_clause
-            FROM information_schema.table_constraints 
+            FROM information_schema.table_constraints
             WHERE table_schema = 'public' AND table_name = $1
             ORDER BY constraint_name
         """
@@ -206,7 +206,7 @@ async def get_query_statistics(
     try:
         # Get query statistics from pg_stat_statements
         query = """
-            SELECT 
+            SELECT
                 query,
                 calls,
                 total_exec_time,
@@ -220,7 +220,7 @@ async def get_query_statistics(
                 local_blks_read,
                 temp_blks_read,
                 temp_blks_written
-            FROM pg_stat_statements 
+            FROM pg_stat_statements
             ORDER BY total_exec_time DESC
             LIMIT $1
         """
@@ -280,7 +280,7 @@ async def get_index_statistics(
     try:
         # Get index statistics from pg_stat_user_indexes
         query = """
-            SELECT 
+            SELECT
                 schemaname,
                 tablename,
                 indexname,
@@ -289,7 +289,7 @@ async def get_index_statistics(
                     idx_tup_fetch,
                     pg_size_pretty(pg_relation_size(indexrelid::regclass)) as size,
                     pg_relation_size(indexrelid::regclass) as size_bytes
-            FROM pg_stat_user_indexes 
+            FROM pg_stat_user_indexes
             WHERE schemaname = 'public'
             ORDER BY idx_scan DESC
             LIMIT $1
@@ -340,7 +340,7 @@ async def get_database_size(
     try:
         # Get database size
         size_query = """
-            SELECT 
+            SELECT
                 pg_size_pretty(pg_database_size()) as database_size,
                 pg_database_size() as database_size_bytes,
                 pg_size_pretty(pg_total_relation_size()) as total_relation_size,
@@ -377,7 +377,7 @@ async def get_table_size(
     try:
         # Get table size
         size_query = """
-            SELECT 
+            SELECT
                 pg_size_pretty(pg_total_relation_size($1)) as size,
                 pg_total_relation_size($1) as size_bytes,
                 (SELECT COUNT(*) FROM $1 WHERE 1=1) as row_count
@@ -437,7 +437,7 @@ async def get_activity_log(
     try:
         # Get recent activity from pg_stat_activity
         query = """
-            SELECT 
+            SELECT
                 pid,
                 state,
                 query_start,
@@ -454,7 +454,7 @@ async def get_activity_log(
                 query_hash,
                 query_plan,
                 state_change
-            FROM pg_stat_activity 
+            FROM pg_stat_activity
             WHERE state_change > NOW() - INTERVAL '$1 hour'
             ORDER BY timestamp DESC
             LIMIT $1
@@ -509,7 +509,7 @@ async def get_lock_status(
     try:
         # Get lock information
         query = """
-            SELECT 
+            SELECT
                 locktype,
                 mode,
                 relation,
@@ -632,7 +632,7 @@ async def get_resource_usage(
     try:
         # Get resource usage from pg_stat_database
         query = """
-            SELECT 
+            SELECT
                 xact_commit,
                 xact_rollback,
                 blks_read,
@@ -692,7 +692,7 @@ async def get_slow_queries(
     try:
         # Get slow queries from pg_stat_statements
         query = """
-            SELECT 
+            SELECT
                 query,
                 calls,
                 mean_exec_time,
@@ -705,7 +705,7 @@ async def get_slow_queries(
                 local_blks_read,
                 temp_blks_read,
                 temp_blks_written
-            FROM pg_stat_statements 
+            FROM pg_stat_statements
             WHERE mean_exec_time > $1
             ORDER BY mean_exec_time DESC
             LIMIT $1

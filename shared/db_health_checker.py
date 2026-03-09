@@ -365,7 +365,7 @@ class DatabaseHealthChecker:
             async with self.db_pool.acquire() as conn:
                 # Check if replication is configured
                 replication_info = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         pg_is_in_recovery() as in_recovery,
                         pg_last_wal_receive_lsn() as last_receive_lsn,
                         pg_last_wal_replay_lsn() as last_replay_lsn,
@@ -430,7 +430,7 @@ class DatabaseHealthChecker:
 
                 # Get table sizes (top 10 largest)
                 large_tables = await conn.fetch("""
-                    SELECT 
+                    SELECT
                         schemaname || '.' || tablename as table_name,
                         pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
                         pg_total_relation_size(schemaname||'.'||tablename) / 1024 / 1024 as size_mb
@@ -466,7 +466,7 @@ class DatabaseHealthChecker:
             async with self.db_pool.acquire() as conn:
                 # Check for long-running locks
                 long_locks = await conn.fetch("""
-                    SELECT 
+                    SELECT
                         pid,
                         age(clock_timestamp(), xact_start) as age,
                         query,
@@ -511,7 +511,7 @@ class DatabaseHealthChecker:
             async with self.db_pool.acquire() as conn:
                 # Check for long-running transactions
                 long_transactions = await conn.fetch("""
-                    SELECT 
+                    SELECT
                         pid,
                         age(clock_timestamp(), xact_start) as age,
                         query
@@ -580,7 +580,7 @@ class DatabaseHealthChecker:
             async with self.db_pool.acquire() as conn:
                 # Get basic database metrics
                 metrics = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         count(*) as total_connections,
                         count(*) FILTER (WHERE state = 'active') as active_connections,
                         count(*) FILTER (WHERE state = 'idle') as idle_connections

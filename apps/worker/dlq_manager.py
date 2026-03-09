@@ -143,7 +143,7 @@ class DLQManager:
         """Get statistics about the dead letter queue."""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_items,
                     COUNT(DISTINCT tenant_id) as unique_tenants,
                     COUNT(DISTINCT failure_reason) as unique_failure_reasons,
@@ -235,7 +235,7 @@ class DLQManager:
                     await conn.execute(
                         """
                         UPDATE public.applications
-                        SET 
+                        SET
                             status = 'QUEUED',
                             last_error = NULL,
                             available_at = now(),
