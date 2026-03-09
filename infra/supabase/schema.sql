@@ -337,6 +337,32 @@ CREATE INDEX IF NOT EXISTS idx_saved_jobs_user ON saved_jobs(user_id);
 CREATE INDEX IF NOT EXISTS idx_cover_letters_user ON cover_letters(user_id);
 
 -- ============================================================
+-- Performance Indexes (C6: Database Indexes - Audit Fix)
+-- ============================================================
+
+-- Critical: Composite index for worker claim query (claim_next_prioritized function)
+-- This index optimizes the query: WHERE status = 'QUEUED' ORDER BY priority_score DESC, created_at ASC
+CREATE INDEX IF NOT EXISTS idx_applications_claim 
+    ON applications(status, priority_score DESC, created_at ASC) 
+    WHERE status = 'QUEUED';
+
+-- Index for resumable applications (REQUIRES_INPUT status)
+CREATE INDEX IF NOT EXISTS idx_applications_resumable 
+    ON applications(status, updated_at ASC) 
+    WHERE status = 'REQUIRES_INPUT';
+
+-- Foreign key indexes for commonly queried relationships
+CREATE INDEX IF NOT EXISTS idx_applications_job_id ON applications(job_id) WHERE job_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_application_events_application_id ON application_events(application_id);
+CREATE INDEX IF NOT EXISTS idx_application_events_tenant_id ON application_events(tenant_id) WHERE tenant_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_application_events_created_at ON application_events(created_at);
+
+-- Index for processing stale locked applications
+CREATE INDEX IF NOT EXISTS idx_applications_locked_at 
+    ON applications(status, locked_at) 
+    WHERE status = 'PROCESSING' AND locked_at IS NOT NULL;
+
+-- ============================================================
 -- Seed: Default job sync sources
 -- ============================================================
 
