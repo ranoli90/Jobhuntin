@@ -120,6 +120,7 @@ sonar-report.json
 # Generated analysis/audit outputs (regenerate as needed)
 analysis_output/
 render_audit_results.json
+audit-report-*.txt
 
 # E2E test reports (Playwright)
 jobhuntin-e2e-tests/reports/
