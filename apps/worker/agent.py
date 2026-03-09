@@ -1066,6 +1066,7 @@ class FormAgent:
         Checks DB for existing cover letter; if none, generates via LLM, saves to DB, writes to temp file.
         """
         import tempfile
+
         from backend.domain.masking import strip_pii_for_llm
 
         user_id = ctx.get("user_id")
