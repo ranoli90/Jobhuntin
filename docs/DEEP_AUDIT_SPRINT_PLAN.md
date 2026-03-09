@@ -18,6 +18,12 @@
 - **ai.py**: `match-job` and `match-jobs-batch` now load profile server-side when client omits it; `profile` is optional.
 - **deep_profile.py**: Added `deep_profile_to_llm_dict()` for LLM prompt conversion.
 - **job_search.py**, **user.py**, **useJobs.ts**: Added `min_match_score` filter (0-100).
+- **user.py**: `NOTIFY job_queue` on application create (ACCEPT) to wake auto-apply agent.
+
+## Sprint 3 Implementation (March 2026)
+
+- **useProfile.ts**, **Settings.tsx**: Accept DOCX/DOC in addition to PDF for resume upload.
+- **Onboarding.tsx**: Persist LinkedIn URL when leaving Resume step (handleResumeNext); no longer lost if user skips to later steps.
 
 ---
 

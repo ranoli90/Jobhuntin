@@ -143,7 +143,14 @@ export function useProfile() {
     }
 
     const maxBytes = 15_728_640; // 15 MB to match backend
-    const isPdf = (file.type || "").toLowerCase() === "application/pdf";
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+    ];
+    const isAllowed =
+      allowedTypes.includes((file.type || "").toLowerCase()) ||
+      /\.(pdf|docx|doc)$/i.test(file.name || "");
 
     if (file.size === 0) {
       throw new Error("File appears empty or corrupted.");
@@ -151,8 +158,8 @@ export function useProfile() {
     if (file.size > maxBytes) {
       throw new Error("File too large. Maximum size is 15 MB.");
     }
-    if (!isPdf) {
-      throw new Error("Only PDF files are accepted.");
+    if (!isAllowed) {
+      throw new Error("Only PDF and Word (DOCX/DOC) files are accepted.");
     }
 
     const controller = new AbortController();

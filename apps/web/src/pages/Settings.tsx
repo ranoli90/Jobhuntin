@@ -136,8 +136,11 @@ export default function Settings() {
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.type !== "application/pdf" && !file.name.match(/\.pdf$/i)) {
-      pushToast({ title: "Please upload a PDF document", tone: "error" });
+    const allowed =
+      /\.(pdf|docx|doc)$/i.test(file.name || "") ||
+      ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/msword"].includes(file.type || "");
+    if (!allowed) {
+      pushToast({ title: "Please upload a PDF or Word (DOCX/DOC) document", tone: "error" });
       return;
     }
     setIsUploading(true);
@@ -386,7 +389,7 @@ export default function Settings() {
                 {isUploading ? t("settings.uploading", locale) : t("settings.uploadNewResume", locale)}
                 <input
                   type="file"
-                  accept=".pdf"
+                  accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
                   className="hidden"
                   onChange={handleResumeUpload}
                   disabled={isUploading}

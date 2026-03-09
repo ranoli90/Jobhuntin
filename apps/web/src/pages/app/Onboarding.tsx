@@ -481,6 +481,19 @@ export default function Onboarding() {
     }
   }, []);
 
+  const handleResumeNext = async () => {
+    // Persist LinkedIn URL when leaving Resume step (not only at Preferences)
+    const trimmed = linkedinUrl?.trim();
+    if (trimmed && /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/i.test(trimmed)) {
+      try {
+        await updateProfile({ contact: { linkedin_url: trimmed } });
+      } catch (e) {
+        if (import.meta.env.DEV) console.warn("[Onboarding] Failed to persist LinkedIn:", e);
+      }
+    }
+    nextStep();
+  };
+
   const handleResumeUpload = async (file?: File) => {
     const uploadFile = file || resumeFile;
     if (!uploadFile) return;
@@ -650,9 +663,9 @@ export default function Onboarding() {
     setResumeError(null);
   };
 
-  const handleConfirmParsing = () => {
+  const handleConfirmParsing = async () => {
     setShowParsingPreview(false);
-    nextStep();
+    await handleResumeNext();
   };
 
   // Using withRetry from api.ts for consistent retry logic with network error handling
@@ -1096,7 +1109,7 @@ export default function Onboarding() {
                         {currentStepData.id === "resume" && (
                           <>
                             <ResumeStep
-                              onNext={nextStep}
+                              onNext={handleResumeNext}
                               onPrev={prevStep}
                               onUpload={handleResumeUpload}
                               resumeFile={resumeFile}

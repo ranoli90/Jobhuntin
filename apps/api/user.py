@@ -398,6 +398,9 @@ async def create_application(
             priority,
         )
 
+        # Wake auto-apply agent immediately (it listens for job_queue)
+        await conn.execute("NOTIFY job_queue")
+
     return {
         "id": str(app_id),
         "job_id": body.job_id,
