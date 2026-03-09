@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiGet, apiFetch, handleApiError } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -97,14 +98,7 @@ const ApplicationExportPage: React.FC = () => {
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch('/api/applications', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch applications');
-      const data = await response.json();
+      const data = await apiGet<{ applications?: Application[] }>('me/applications');
       setApplications(data.applications || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch applications');
@@ -113,15 +107,11 @@ const ApplicationExportPage: React.FC = () => {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/ux/export/templates', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch templates');
-      const data = await response.json();
-      setTemplates(data.templates || []);
+      const data = await apiGet<{ templates?: ExportTemplate[] } | ExportTemplate[]>(
+        'ux/export/templates'
+      );
+      const templates = Array.isArray(data) ? data : (data as { templates?: ExportTemplate[] }).templates || [];
+      setTemplates(templates);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch templates');
     }
@@ -134,22 +124,24 @@ const ApplicationExportPage: React.FC = () => {
       setSuccess(null);
       setExportProgress(0);
 
-      const response = await fetch('/api/ux/export/applications', {
+      const response = await apiFetch('ux/export/applications', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(exportConfig),
+        body: JSON.stringify({
+          format: exportConfig.format,
+          fields: exportConfig.fields,
+          filters: exportConfig.filters,
+          include_headers: true,
+          filename_prefix: 'applications',
+        }),
       });
 
-      if (!response.ok) throw new Error('Export failed');
+      if (!response.ok) {
+        const text = await response.text();
+        handleApiError(response, text);
+      }
 
-      // Get the blob for download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      
-      // Create download link
       const a = document.createElement('a');
       a.href = url;
       a.download = `applications-export-${new Date().toISOString().split('T')[0]}.${exportConfig.format}`;
@@ -515,13 +507,13 @@ const ApplicationExportPage: React.FC = () => {
                       <tr key={app.id}>
                         {exportConfig.fields.map((field) => (
                           <td key={field} className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                            {field === 'salary_min' && app.salary_min 
+                            {field === 'salary_min' && app.salary_min
                               ? `$${app.salary_min.toLocaleString()}`
                               : field === 'salary_max' && app.salary_max
                               ? `$${app.salary_max.toLocaleString()}`
                               : field === 'created_at' || field === 'last_activity'
-                              ? new Date(app[field as keyof Application]).toLocaleDateString()
-                              : app[field as keyof Application] || '-'
+                              ? new Date((app[field as keyof Application] as string) || '').toLocaleDateString()
+                              : String((app as Record<string, unknown>)[field] ?? '-')
                             }
                           </td>
                         ))}

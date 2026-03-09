@@ -97,19 +97,9 @@ export function getApiBase(): string {
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
 
-  // First try to get token from httpOnly cookie (via server-side set cookie)
-  // Note: We can't access httpOnly cookies directly from JavaScript, but we can check
-  // if we have a session by making a test request or checking for a session indicator
-
-  // For now, check if we have a session indicator cookie that tells us server has auth
-  const hasSession = document.cookie.split(';').some(cookie =>
-    cookie.trim().startsWith('jobhuntin_auth=')
-  );
-
-  if (hasSession) {
-    // Server will handle authentication via httpOnly cookie
-    return null; // Let server handle auth via cookie
-  }
+  // Note: httpOnly cookies (jobhuntin_auth) cannot be read from document.cookie.
+  // Session check is done by /me/profile in AuthContext; server validates on each request.
+  // We always send credentials: "include" so httpOnly cookies are sent automatically.
 
   // SECURITY: No localStorage fallback for production - only use httpOnly cookies
   // This prevents XSS attacks from stealing auth tokens
@@ -257,7 +247,9 @@ function retryDelay(attempt: number, resp?: Response): number {
 }
 
 let _redirecting = false;
-function handleApiError(resp: Response, body: string): never {
+
+/** Handle API error (401 redirect, throw with message). Exported for custom fetch flows (e.g. blob download). */
+export function handleApiError(resp: Response, body: string): never {
   if (resp.status === 401 && !_redirecting) {
     // Skip redirect logic entirely if already on the login page — prevents infinite loop
     const isLoginPage = typeof window !== "undefined" && window.location.pathname === "/login";
@@ -431,6 +423,18 @@ export async function apiPatch<T = unknown>(path: string, body: unknown): Promis
   const resp = await apiFetch(path, {
     method: "PATCH",
     body: JSON.stringify(body),
+  });
+  const text = await resp.text();
+  if (!resp.ok) handleApiError(resp, text);
+  if (!text) return {} as T;
+  return JSON.parse(text) as T;
+}
+
+/** PUT JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login. */
+export async function apiPut<T = unknown>(path: string, body?: unknown): Promise<T> {
+  const resp = await apiFetch(path, {
+    method: "PUT",
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);

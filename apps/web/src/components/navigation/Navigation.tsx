@@ -118,7 +118,7 @@ const Navigation: React.FC<NavigationProps> = ({
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-1">
               <NavItem
-                href="/dashboard"
+                href="/app/dashboard"
                 onClick={() => handleItemClick('dashboard')}
                 isActive={activeItem === 'dashboard'}
                 icon={
@@ -131,7 +131,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/jobs"
+                href="/app/jobs"
                 onClick={() => handleItemClick('jobs')}
                 isActive={activeItem === 'jobs'}
                 badge="New"
@@ -145,7 +145,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/applications"
+                href="/app/applications"
                 onClick={() => handleItemClick('applications')}
                 isActive={activeItem === 'applications'}
                 badge="3"
@@ -159,7 +159,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/resume"
+                href="/app/settings"
                 onClick={() => handleItemClick('resume')}
                 isActive={activeItem === 'resume'}
                 icon={
@@ -172,7 +172,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/interviews"
+                href="/app/dashboard"
                 onClick={() => handleItemClick('interviews')}
                 isActive={activeItem === 'interviews'}
                 icon={
@@ -230,7 +230,7 @@ const Navigation: React.FC<NavigationProps> = ({
           <div className="space-y-6">
             <NavSection>
               <NavItem
-                href="/dashboard"
+                href="/app/dashboard"
                 onClick={() => handleItemClick('dashboard')}
                 isActive={activeItem === 'dashboard'}
                 icon={
@@ -243,7 +243,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/jobs"
+                href="/app/jobs"
                 onClick={() => handleItemClick('jobs')}
                 isActive={activeItem === 'jobs'}
                 badge="New"
@@ -257,7 +257,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/applications"
+                href="/app/applications"
                 onClick={() => handleItemClick('applications')}
                 isActive={activeItem === 'applications'}
                 badge="3"
@@ -271,7 +271,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/resume"
+                href="/app/settings"
                 onClick={() => handleItemClick('resume')}
                 isActive={activeItem === 'resume'}
                 icon={
@@ -284,7 +284,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/interviews"
+                href="/app/dashboard"
                 onClick={() => handleItemClick('interviews')}
                 isActive={activeItem === 'interviews'}
                 icon={
@@ -299,7 +299,7 @@ const Navigation: React.FC<NavigationProps> = ({
 
             <NavSection title="Tools">
               <NavItem
-                href="/ai-coach"
+                href="/app/tailor"
                 onClick={() => handleItemClick('ai-coach')}
                 isActive={activeItem === 'ai-coach'}
                 badge="Pro"
@@ -313,7 +313,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/analytics"
+                href="/app/dashboard"
                 onClick={() => handleItemClick('analytics')}
                 isActive={activeItem === 'analytics'}
                 icon={
@@ -328,7 +328,7 @@ const Navigation: React.FC<NavigationProps> = ({
 
             <NavSection title="Settings">
               <NavItem
-                href="/settings"
+                href="/app/settings"
                 onClick={() => handleItemClick('settings')}
                 isActive={activeItem === 'settings'}
                 icon={
@@ -342,7 +342,7 @@ const Navigation: React.FC<NavigationProps> = ({
               </NavItem>
 
               <NavItem
-                href="/help"
+                href="/app/settings"
                 onClick={() => handleItemClick('help')}
                 isActive={activeItem === 'help'}
                 icon={

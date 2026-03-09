@@ -21,11 +21,13 @@ from pydantic import BaseModel, Field
 from backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
 from backend.llm import LLMClient
 from backend.llm.contracts import (
+    CoverLetterResponse_V1,
     JobMatchScore_V1,
     LocationSuggestionResponse_V1,
     OnboardingQuestionsResponse_V1,
     RoleSuggestionResponse_V1,
     SalarySuggestionResponse_V1,
+    build_cover_letter_prompt,
     build_job_match_prompt,
     build_location_suggestion_prompt,
     build_onboarding_questions_prompt,
@@ -1318,9 +1320,6 @@ class CoverLetterRequest(BaseModel):
     tone: str = Field(
         default="professional", description="Tone: professional, enthusiastic, creative"
     )
-
-
-from backend.llm.contracts import CoverLetterResponse_V1, build_cover_letter_prompt
 
 
 @router.post("/generate-cover-letter", response_model=CoverLetterResponse_V1)

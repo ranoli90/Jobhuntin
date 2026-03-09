@@ -139,6 +139,10 @@ CREATE TABLE IF NOT EXISTS applications (
     blueprint_key VARCHAR(50) DEFAULT 'job-app',
     status VARCHAR(50) DEFAULT 'QUEUED',
     priority_score INTEGER DEFAULT 0,
+    stage VARCHAR(50) DEFAULT 'new',
+    priority INTEGER DEFAULT 0,
+    notes_count INTEGER DEFAULT 0,
+    reminders_count INTEGER DEFAULT 0,
     notes TEXT,
     applied_date DATE,
     snoozed_until TIMESTAMPTZ,
@@ -167,6 +171,29 @@ CREATE TABLE IF NOT EXISTS events (
     data JSONB,
     tenant_id UUID,
     created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS application_notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
+    tenant_id UUID,
+    content TEXT NOT NULL,
+    note_type VARCHAR(50) DEFAULT 'general',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS follow_up_reminders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
+    tenant_id UUID,
+    remind_at TIMESTAMPTZ NOT NULL,
+    message TEXT,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
 );
 
 -- ============================================================
@@ -271,6 +298,12 @@ CREATE INDEX IF NOT EXISTS idx_jobs_last_synced ON jobs(last_synced_at);
 CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_tenant ON applications(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_applications_tenant_id ON applications(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_applications_user_id_status ON applications(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_applications_tenant_user ON applications(tenant_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_application_notes_app_id ON application_notes(application_id);
+CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_user ON follow_up_reminders(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_remind_at ON follow_up_reminders(remind_at) WHERE status = 'pending';
 CREATE INDEX IF NOT EXISTS idx_application_inputs_app ON application_inputs(application_id);
 CREATE INDEX IF NOT EXISTS idx_events_application ON events(application_id);
 CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at);

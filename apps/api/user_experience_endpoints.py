@@ -8,8 +8,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from packages.backend.domain.application_pipeline import (
     ApplicationPipelineManager,
@@ -115,6 +117,16 @@ class PipelineViewRequest(BaseModel):
     filters: Optional[Dict[str, Any]] = {}
     sort_by: str = "last_activity"
     sort_order: str = "desc"
+
+    @field_validator("filters", mode="before")
+    @classmethod
+    def parse_filters(cls, v: object) -> Dict[str, Any]:
+        if isinstance(v, str):
+            try:
+                return json.loads(v) or {}
+            except json.JSONDecodeError:
+                return {}
+        return v if isinstance(v, dict) else {}
 
 
 class ExportRequest(BaseModel):

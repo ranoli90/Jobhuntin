@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiGet, apiPut } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,28 +74,32 @@ const PipelineViewPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/ux/pipeline', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filters: {
-            search: searchTerm,
-            status: selectedStatus !== 'all' ? selectedStatus : undefined,
-            priority: selectedPriority !== 'all' ? selectedPriority : undefined,
-          },
-          sort_by: sortBy,
-          sort_order: sortOrder,
-        }),
-      });
+      const filters: Record<string, string> = {};
+      if (searchTerm) filters.search = searchTerm;
+      if (selectedStatus !== 'all') filters.status = selectedStatus;
+      if (selectedPriority !== 'all') filters.priority = selectedPriority;
 
-      if (!response.ok) throw new Error('Failed to fetch pipeline data');
-      const pipelineData = await response.json();
+      const params = new URLSearchParams({ sort_by: sortBy, sort_order: sortOrder });
+      if (Object.keys(filters).length > 0) {
+        params.set('filters', JSON.stringify(filters));
+      }
+      const pipelineData = await apiGet<{
+        applications?: Array<Omit<Application, 'stage'> & { current_stage?: string }>;
+        stages?: PipelineStage[];
+      }>(`ux/pipeline?${params}`);
 
-      setApplications(pipelineData.applications || []);
-      setStages(pipelineData.stages || []);
+      const apps = (pipelineData.applications || []).map((a) => ({
+        ...a,
+        stage: (a as { current_stage?: string }).current_stage ?? (a as { status?: string }).status ?? 'submitted',
+      })) as Application[];
+      setApplications(apps);
+      setStages(
+        (pipelineData.stages || []).map((s) => ({
+          ...s,
+          conversion_rate: s.conversion_rate ?? 0,
+          avg_time_in_stage: s.avg_time_in_stage ?? 0,
+        }))
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -102,21 +107,19 @@ const PipelineViewPage: React.FC = () => {
     }
   };
 
-  const handleStageChange = async (applicationId: string, newStage: string) => {
-    try {
-      const response = await fetch('/api/ux/pipeline/stage', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          application_id: applicationId,
-          new_stage: newStage,
-        }),
-      });
+  const getNextStageId = (currentStageId: string): string | null => {
+    const idx = stages.findIndex((s) => s.id === currentStageId);
+    if (idx < 0 || idx >= stages.length - 1) return null;
+    return stages[idx + 1].id;
+  };
 
-      if (!response.ok) throw new Error('Failed to update stage');
+  const handleStageChange = async (application: Application) => {
+    const nextStageId = getNextStageId(application.stage);
+    if (!nextStageId) return;
+    try {
+      await apiPut(
+        `ux/pipeline/stage?application_id=${encodeURIComponent(application.id)}&new_stage=${encodeURIComponent(nextStageId)}`
+      );
       await fetchPipelineData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update stage');
@@ -375,7 +378,7 @@ const PipelineViewPage: React.FC = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleStageChange(application.id, 'next')}
+                              onClick={() => handleStageChange(application)}
                             >
                               <ArrowRight className="h-3 w-3" />
                             </Button>

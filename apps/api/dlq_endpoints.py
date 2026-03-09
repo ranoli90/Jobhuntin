@@ -13,9 +13,19 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from backend.domain.tenant import TenantContext
+
+# Stub DLQ manager returned when real implementation is not available.
+# Methods raise NotImplementedError so endpoints can catch and return 501.
+class _StubDLQManager:
+    def __getattr__(self, name: str):
+        async def _raise(*args: Any, **kwargs: Any) -> None:
+            raise NotImplementedError("DLQ management not implemented")
+
+        return _raise
 
 
 async def get_tenant_context() -> TenantContext:
@@ -111,12 +121,10 @@ class ConcurrentUsageResponse(BaseModel):
 
 
 # Dependency to get DLQ manager
-async def get_dlq_manager_dep() -> get_dlq_manager:
-    """Get DLQ manager instance."""
-    settings = get_settings()
-    # TODO: Get database pool from settings
-    # For now, return a placeholder
-    raise NotImplementedError("Database pool dependency needed")
+async def get_dlq_manager_dep():
+    """Get DLQ manager instance. Returns stub when real implementation unavailable."""
+    # TODO: Wire up real DLQ manager with pool from dependency injection
+    return _StubDLQManager()
 
 
 @router.get("/items", response_model=List[DLQItemResponse])
@@ -146,6 +154,11 @@ async def get_dlq_items(
             date_to=date_to,
         )
         return [DLQItemResponse.from_dlq_item(item) for item in items]
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to get DLQ items: %s", e)
         raise HTTPException(status_code=500, detail="Failed to retrieve DLQ items")
@@ -163,6 +176,11 @@ async def get_dlq_item(
         if not item:
             raise HTTPException(status_code=404, detail="DLQ item not found")
         return DLQItemResponse.from_dlq_item(item)
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -183,6 +201,11 @@ async def get_dlq_stats(
     try:
         stats = await dlq_manager.get_dlq_stats(tenant_id)
         return stats
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to get DLQ stats: %s", e)
         raise HTTPException(status_code=500, detail="Failed to retrieve DLQ statistics")
@@ -209,6 +232,11 @@ async def retry_applications(
         return RetryResponse(
             results=results, success_count=success_count, failure_count=failure_count
         )
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to retry applications: %s", e)
         raise HTTPException(status_code=500, detail="Failed to retry applications")
@@ -227,6 +255,11 @@ async def retry_single_application(
     try:
         result = await dlq_manager.retry_application(item_id, force=force)
         return result
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to retry application %s: %s", item_id, e)
         raise HTTPException(status_code=500, detail="Failed to retry application")
@@ -244,6 +277,11 @@ async def delete_dlq_item(
         if not success:
             raise HTTPException(status_code=404, detail="DLQ item not found")
         return {"message": "DLQ item deleted successfully"}
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -265,6 +303,11 @@ async def bulk_delete_dlq_items(
             older_than_days=request.older_than_days,
         )
         return {"deleted_count": deleted_count}
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to bulk delete DLQ items: %s", e)
         raise HTTPException(status_code=500, detail="Failed to bulk delete DLQ items")
@@ -279,6 +322,11 @@ async def get_failure_reasons(
     try:
         reasons = await dlq_manager.get_failure_reasons()
         return {"failure_reasons": reasons}
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to get failure reasons: %s", e)
         raise HTTPException(
@@ -296,6 +344,11 @@ async def get_tenant_dlq_summary(
     try:
         summary = await dlq_manager.get_tenant_dlq_summary(tenant_id)
         return summary
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to get tenant DLQ summary for %s: %s", tenant_id, e)
         raise HTTPException(
@@ -311,6 +364,11 @@ async def get_concurrent_usage(
     """Get current concurrent usage statistics."""
     try:
         tracker = get_concurrent_tracker()
+        if tracker is None:
+            return JSONResponse(
+                status_code=501,
+                content={"detail": "Concurrent usage tracking not implemented"},
+            )
         stats = await tracker.get_stats()
 
         settings = get_settings()
@@ -324,6 +382,11 @@ async def get_concurrent_usage(
             ),
             max_concurrent=getattr(settings, "max_concurrent_applications", 10),
             max_per_tenant=getattr(settings, "max_concurrent_per_tenant", 3),
+        )
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "Concurrent usage tracking not implemented"},
         )
     except Exception as e:
         logger.error("Failed to get concurrent usage stats: %s", e)
@@ -339,8 +402,18 @@ async def reset_concurrent_usage_stats(
     """Reset peak concurrent usage statistics."""
     try:
         tracker = get_concurrent_tracker()
+        if tracker is None:
+            return JSONResponse(
+                status_code=501,
+                content={"detail": "Concurrent usage tracking not implemented"},
+            )
         await tracker.reset_stats()
         return {"message": "Concurrent usage statistics reset successfully"}
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "Concurrent usage tracking not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to reset concurrent usage stats: %s", e)
         raise HTTPException(
@@ -355,8 +428,18 @@ async def get_active_tasks(
     """Get list of currently active task IDs."""
     try:
         tracker = get_concurrent_tracker()
+        if tracker is None:
+            return JSONResponse(
+                status_code=501,
+                content={"detail": "Concurrent usage tracking not implemented"},
+            )
         active_tasks = await tracker.get_active_tasks()
         return {"active_tasks": list(active_tasks)}
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "Concurrent usage tracking not implemented"},
+        )
     except Exception as e:
         logger.error("Failed to get active tasks: %s", e)
         raise HTTPException(status_code=500, detail="Failed to retrieve active tasks")
@@ -374,6 +457,11 @@ async def dlq_health_check(
 
         # Check concurrent usage
         tracker = get_concurrent_tracker()
+        if tracker is None:
+            return JSONResponse(
+                status_code=501,
+                content={"detail": "DLQ and concurrent usage tracking not implemented"},
+            )
         concurrent_stats = await tracker.get_stats()
 
         return {
@@ -389,6 +477,11 @@ async def dlq_health_check(
             },
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+    except NotImplementedError:
+        return JSONResponse(
+            status_code=501,
+            content={"detail": "DLQ management not implemented"},
+        )
     except Exception as e:
         logger.error("DLQ health check failed: %s", e)
         return {

@@ -72,7 +72,9 @@ class CSRFMiddleware:
         "/health",
         "/healthz",
         "/auth/magic-link",
-        "/auth/",
+        "/auth/verify-magic",
+        "/auth/logout",
+        "/auth/webhooks/resend",
         "/api/v2/webhook",
         "/billing/webhook",
         "/sso/saml/acs",
@@ -205,8 +207,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if hasattr(request.state, "csp_nonce"):
             csp_script_src += f" 'nonce-{request.state.csp_nonce}'"
         else:
-            # Fallback to 'unsafe-eval' only when nonce not available (rare)
-            csp_script_src += " 'unsafe-eval'"
+            # Fallback to 'unsafe-inline' only when nonce not available (rare)
+            csp_script_src += " 'unsafe-inline'"
 
         # CSP connect-src: must include API URL if it's cross-origin, and analytics
         connect_src = "'self' https://www.google-analytics.com https://www.googletagmanager.com https://api.resend.com"

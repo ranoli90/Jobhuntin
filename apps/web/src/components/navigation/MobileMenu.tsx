@@ -5,6 +5,9 @@ interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  userName?: string;
+  userEmail?: string;
+  onSignOut?: () => void;
 }
 
 interface MobileMenuItemProps {
@@ -41,7 +44,7 @@ const MobileMenuItem: React.FC<MobileMenuItemProps> = ({
   );
 };
 
-const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) => {
+const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children, userName, userEmail, onSignOut }) => {
   const [activeSection, setActiveSection] = useState<string>('main');
 
   const handleSectionChange = (section: string) => {
@@ -97,8 +100,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
                 </svg>
               </div>
               <div className="flex-1">
-                <div className="font-medium text-gray-900">John Doe</div>
-                <div className="text-sm text-gray-600">john.doe@example.com</div>
+                <div className="font-medium text-gray-900">{userName ?? "User"}</div>
+                <div className="text-sm text-gray-600">{userEmail ?? ""}</div>
               </div>
               <button
                 onClick={() => handleSectionChange('profile')}
@@ -116,7 +119,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
           <div className="flex-1 overflow-y-auto">
             <nav className="p-4 space-y-1">
               <MobileMenuItem
-                href="/dashboard"
+                href="/app/dashboard"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +131,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
               </MobileMenuItem>
 
               <MobileMenuItem
-                href="/jobs"
+                href="/app/jobs"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +144,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
               </MobileMenuItem>
 
               <MobileMenuItem
-                href="/applications"
+                href="/app/applications"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +157,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
               </MobileMenuItem>
 
               <MobileMenuItem
-                href="/resume"
+                href="/app/settings"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +169,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
               </MobileMenuItem>
 
               <MobileMenuItem
-                href="/interviews"
+                href="/app/dashboard"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +187,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
               </div>
 
               <MobileMenuItem
-                href="/ai-coach"
+                href="/app/tailor"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,7 +200,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
               </MobileMenuItem>
 
               <MobileMenuItem
-                href="/analytics"
+                href="/app/dashboard"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,7 +218,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
               </div>
 
               <MobileMenuItem
-                href="/settings"
+                href="/app/settings"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,7 +231,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
               </MobileMenuItem>
 
               <MobileMenuItem
-                href="/help"
+                href="/app/settings"
                 onClick={handleItemClick}
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -241,7 +244,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, children }) =>
 
               <MobileMenuItem
                 onClick={() => {
-                  // Handle logout
+                  onSignOut?.();
                   handleItemClick();
                 }}
                 icon={

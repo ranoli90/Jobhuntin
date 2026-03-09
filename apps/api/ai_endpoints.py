@@ -30,7 +30,9 @@ from backend.llm.contracts import (
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
 )
+from api.dependencies import get_current_user_id
 from shared.ai_validation import validate_and_sanitize_ai_input
+from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.ai")
@@ -45,7 +47,7 @@ def _get_llm_client() -> LLMClient:
     """Get or create the singleton LLM client."""
     global _llm_client
     if _llm_client is None:
-        _llm_client = LLMClient()
+        _llm_client = LLMClient(get_settings())
     return _llm_client
 
 
@@ -125,6 +127,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 )
 async def suggest_roles(
     request: RoleSuggestionRequest,
+    user_id: str = Depends(get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> RoleSuggestionResponse_V1:
     """Get AI-powered role suggestions based on resume analysis."""
@@ -175,6 +178,7 @@ async def suggest_roles(
 )
 async def suggest_salary(
     request: SalarySuggestionRequest,
+    user_id: str = Depends(get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> SalarySuggestionResponse_V1:
     """Get AI-powered salary suggestions."""
@@ -227,6 +231,7 @@ async def suggest_salary(
 )
 async def suggest_locations(
     request: LocationSuggestionRequest,
+    user_id: str = Depends(get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> LocationSuggestionResponse_V1:
     """Get AI-powered location suggestions."""
@@ -283,6 +288,7 @@ async def suggest_locations(
 )
 async def match_jobs(
     request: JobMatchRequest,
+    user_id: str = Depends(get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> JobMatchScore_V1:
     """Get AI-powered job matching scores."""
@@ -356,6 +362,7 @@ async def match_jobs(
 )
 async def generate_onboarding_questions(
     request: OnboardingQuestionsRequest,
+    user_id: str = Depends(get_current_user_id),
     db: asyncpg.Connection = Depends(get_db_connection),
 ) -> OnboardingQuestionsResponse_V1:
     """Get AI-powered onboarding questions."""

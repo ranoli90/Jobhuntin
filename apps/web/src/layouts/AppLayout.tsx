@@ -25,20 +25,18 @@ import {
 import { ThemeToggle } from "../components/ThemeToggle";
 import { LanguageSelector } from "../components/LanguageSelector";
 
-const NAV_ITEMS = [
+type NavItem = { label: string; to: string; icon: typeof LayoutDashboard; adminOnly?: boolean };
+
+const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
   { label: "Jobs", to: "/app/jobs", icon: Briefcase },
   { label: "Applications", to: "/app/applications", icon: FileText },
-  { label: "Pipeline View", to: "/app/pipeline-view", icon: FileText },
-  { label: "Export Data", to: "/app/application-export", icon: FileText },
   { label: "HOLDs", to: "/app/holds", icon: HelpCircle },
   { label: "Team", to: "/app/team", icon: Users },
-  { label: "Agent Improvements", to: "/app/agent-improvements", icon: Settings },
-  { label: "DLQ Dashboard", to: "/app/dlq-dashboard", icon: HelpCircle },
-  { label: "Communication", to: "/app/communication-preferences", icon: Globe },
   { label: "Billing", to: "/app/billing", icon: CreditCard },
-  { label: "Sources", to: "/app/admin/sources", icon: Globe },
   { label: "Settings", to: "/app/settings", icon: Settings },
+  // Admin only
+  { label: "Sources", to: "/app/admin/sources", icon: Globe, adminOnly: true },
 ];
 
 export default function AppLayout() {
@@ -59,7 +57,7 @@ export default function AppLayout() {
     );
 
   const visibleNavItems = NAV_ITEMS.filter(item => {
-    if (item.to === '/app/admin/sources') return isAdmin;
+    if (item.adminOnly) return isAdmin;
     return true;
   });
 
@@ -238,7 +236,7 @@ export default function AppLayout() {
               onClick={() => setMobileMenuOpen(true)}
               className={cn(
                 "relative flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95",
-                NAV_ITEMS.slice(4).some((i) => location.pathname.startsWith(i.to))
+                visibleNavItems.slice(4).some((i) => location.pathname.startsWith(i.to))
                   ? "text-primary-700 font-bold"
                   : "text-slate-500 hover:text-slate-900"
               )}
