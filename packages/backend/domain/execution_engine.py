@@ -420,7 +420,7 @@ class AntiDetection:
         context: BrowserContext,
         user_agent: str | None = None,
         viewport: dict[str, int] | None = None,
-        locale: str = "en-US",
+        _locale: str = "en-US",
         timezone: str = "America/New_York",
     ) -> None:
         try:

@@ -450,7 +450,7 @@ class FailoverManager:
         return best_replica if best_score > 0.5 else None
 
     async def _evaluate_replica_suitability(
-        self, pool: asyncpg.Pool, replica_index: int
+        self, pool: asyncpg.Pool, _replica_index: int
     ) -> float:
         """Evaluate replica suitability for failover."""
         try:

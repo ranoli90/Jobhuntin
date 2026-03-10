@@ -335,7 +335,7 @@ class PasswordValidator:
     async def check_password_breach(
         self,
         password: str,
-        http_client: Any = None,
+        _http_client: Any = None,
     ) -> tuple[bool, int]:
         sha1_hash = (
             hashlib.sha1(password.encode(), usedforsecurity=False).hexdigest().upper()

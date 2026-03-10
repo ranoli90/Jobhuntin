@@ -218,7 +218,7 @@ async def send_webhook(
             url="https://example.com/webhooks",
             event_type="job.matched",
             data={"job_id": "123", "score": 95},
-            secret="whsec_xxx",
+            secret="whsec_xxx",  # pragma: allowlist secret
         )
     """
     import uuid

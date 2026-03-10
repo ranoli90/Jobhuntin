@@ -399,7 +399,7 @@ class ATS23Scorer:
             suggestions=suggestions,
         )
 
-    async def _score_experience_alignment(self, resume: str, sections: dict) -> None:
+    async def _score_experience_alignment(self, resume: str, _sections: dict) -> None:
         details: list[str] = []
 
         experience_indicators = [
@@ -503,7 +503,7 @@ class ATS23Scorer:
             details=details if details else ["Format appears ATS-compatible"],
         )
 
-    async def _score_section_order(self, resume: str, sections: dict) -> None:
+    async def _score_section_order(self, resume: str, _sections: dict) -> None:
         details: list[str] = []
 
         found_sections = []
@@ -572,7 +572,7 @@ class ATS23Scorer:
             suggestions=suggestions,
         )
 
-    async def _score_summary_quality(self, resume: str, sections: dict) -> None:
+    async def _score_summary_quality(self, resume: str, _sections: dict) -> None:
         details: list[str] = []
         suggestions: list[str] = []
 
@@ -700,7 +700,7 @@ class ATS23Scorer:
             details=["Standard margins assumed"],
         )
 
-    async def _score_header_structure(self, resume: str, sections: dict) -> None:
+    async def _score_header_structure(self, resume: str, _sections: dict) -> None:
         details: list[str] = []
 
         headers = re.findall(r"^[A-Z][A-Z\s]{2,}$", resume, re.MULTILINE)

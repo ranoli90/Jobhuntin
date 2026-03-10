@@ -8,11 +8,12 @@ Tests the complete magic link authentication flow:
 - Rate limiting
 """
 
+import time
+from unittest.mock import AsyncMock, patch
+
+import jwt
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock
-import jwt
-import time
 
 from apps.api.main import app
 from shared.config import get_settings
@@ -113,8 +114,7 @@ class TestMagicLinkRequest:
         email = "ratelimit@example.com"
 
         # Make requests up to the limit
-        settings = get_settings()
-        max_requests = settings.magic_link_requests_per_hour
+        get_settings()
 
         # First request should succeed
         response = client.post(
@@ -268,7 +268,7 @@ class TestMagicLinkVerification:
         mock_redis.set = AsyncMock(return_value=True)  # First call succeeds
         mock_redis.exists = AsyncMock(return_value=False)
 
-        response1 = client.get(
+        client.get(
             f"/auth/verify-magic?token={token}",
             follow_redirects=False,
         )

@@ -32,8 +32,9 @@ sys.path.insert(0, repo_root)
 sys.path.insert(0, os.path.join(repo_root, "apps"))
 sys.path.insert(0, os.path.join(repo_root, "packages"))
 
-from backend.domain.repositories import record_event
 from worker.agent import ApplicationAgent
+
+from backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Fake application HTML – two-step form
@@ -380,9 +381,7 @@ def patch_map_fields():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(
-    reason="Requires registered blueprints - skip until agent is fully implemented"
-)
+@pytest.mark.skip(reason="Requires full schema + registered blueprints")
 @pytest.mark.asyncio
 async def test_full_application_lifecycle(db_pool, browser, clean_db):
     """End-to-end test:
@@ -514,9 +513,7 @@ async def test_full_application_lifecycle(db_pool, browser, clean_db):
     assert not worked, "No more tasks should be available"
 
 
-@pytest.mark.skip(
-    reason="Requires registered blueprints - skip until agent is fully implemented"
-)
+@pytest.mark.skip(reason="Requires full schema + registered blueprints")
 @pytest.mark.asyncio
 async def test_agent_failure_on_no_form_fields(db_pool, browser, clean_db):
     """When the page has no form fields, the agent should mark FAILED."""

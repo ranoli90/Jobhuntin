@@ -1014,7 +1014,7 @@ async def init_auth_middleware(
 # FastAPI dependency for JWT authentication
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    auth_middleware: AuthMiddleware = Depends(get_auth_middleware),
+    _auth_middleware: AuthMiddleware = Depends(get_auth_middleware),
 ) -> Optional[Dict[str, Any]]:
     """FastAPI dependency to get current authenticated user."""
     try:
@@ -1031,7 +1031,7 @@ async def get_current_user(
 
 # FastAPI dependency for optional authentication
 async def get_current_user_optional(
-    auth_middleware: AuthMiddleware = Depends(get_auth_middleware),
+    _auth_middleware: AuthMiddleware = Depends(get_auth_middleware),
 ) -> Optional[Dict[str, Any]]:
     """FastAPI dependency to get current user (optional)."""
     return None

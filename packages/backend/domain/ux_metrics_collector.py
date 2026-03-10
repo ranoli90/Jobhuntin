@@ -1268,7 +1268,7 @@ class UXMetricsCollector:
         self,
         tenant_id: str,
         period_hours: int,
-        aggregation_name: str,
+        _aggregation_name: str,
     ) -> None:
         """Aggregate metrics for a specific period."""
         try:

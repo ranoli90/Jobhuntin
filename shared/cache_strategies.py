@@ -409,7 +409,7 @@ class CacheStrategyManager:
         self,
         cache_size: int,
         access_pattern: str = "mixed",
-        performance_requirements: Optional[Dict[str, Any]] = None,
+        _performance_requirements: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Get strategy recommendation based on cache characteristics."""
         try:

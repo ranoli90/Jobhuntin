@@ -7,9 +7,10 @@ Tests critical endpoints that must work for production:
 - Health checks
 """
 
+import uuid
+
 import pytest
 from fastapi.testclient import TestClient
-import uuid
 
 from apps.api.main import app
 from shared.config import get_settings
@@ -24,21 +25,24 @@ def client():
 @pytest.fixture
 def auth_token():
     """Generate a valid JWT token for testing."""
+    import time
+
     import jwt
 
     settings = get_settings()
     if not settings.jwt_secret:
         pytest.skip("JWT_SECRET not configured")
 
+    now = int(time.time())
     user_id = str(uuid.uuid4())
     payload = {
         "sub": user_id,
         "email": "test@example.com",
         "aud": "authenticated",
         "jti": str(uuid.uuid4()),
-        "iat": 1000000000,
-        "nbf": 1000000000,
-        "exp": 1000000000 + 7 * 24 * 3600,
+        "iat": now,
+        "nbf": now,
+        "exp": now + 7 * 24 * 3600,
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm="HS256"), user_id
 

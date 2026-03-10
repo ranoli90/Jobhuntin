@@ -1061,3 +1061,74 @@ class JobMatchCacheRepo:
             profile_hash,
             json.dumps(score_data),
         )
+
+
+# ---------------------------------------------------------------------------
+# SubscriptionRepo (stub for billing tests; full impl when billing schema exists)
+# ---------------------------------------------------------------------------
+
+
+class SubscriptionRepo:
+    """Stub for subscription queries. Extend when billing tables exist."""
+
+    @staticmethod
+    async def get_by_user_id(conn: asyncpg.Connection, user_id: str) -> dict | None:
+        row = await conn.fetchrow(
+            "SELECT id, user_id, stripe_subscription_id, tier, status "
+            "FROM public.billing_subscriptions WHERE user_id = $1 LIMIT 1",
+            user_id,
+        )
+        return dict(row) if row else None
+
+    @staticmethod
+    async def update_tier(
+        conn: asyncpg.Connection, user_id: str, tier: str
+    ) -> None:
+        await conn.execute(
+            "UPDATE public.billing_subscriptions SET tier = $1 WHERE user_id = $2",
+            tier,
+            user_id,
+        )
+
+
+# ---------------------------------------------------------------------------
+# UsageRepo (stub for billing tests; full impl when usage tables exist)
+# ---------------------------------------------------------------------------
+
+
+class UsageRepo:
+    """Stub for usage tracking. Extend when usage tables exist."""
+
+    @staticmethod
+    async def track_usage(
+        conn: asyncpg.Connection,
+        *,
+        tenant_id: str,
+        endpoint: str,
+        tokens_used: int,
+    ) -> None:
+        await conn.execute(
+            """
+            INSERT INTO public.billing_usage (tenant_id, endpoint, tokens_used)
+            VALUES ($1, $2, $3)
+            """,
+            tenant_id,
+            endpoint,
+            tokens_used,
+        )
+
+    @staticmethod
+    async def get_monthly_usage(
+        conn: asyncpg.Connection, tenant_id: str
+    ) -> dict[str, Any]:
+        row = await conn.fetchrow(
+            """
+            SELECT COALESCE(SUM(tokens_used), 0) AS total_tokens,
+                   COUNT(*) AS api_calls,
+                   0 AS jobs_matched
+            FROM public.billing_usage
+            WHERE tenant_id = $1 AND created_at >= date_trunc('month', now())
+            """,
+            tenant_id,
+        )
+        return dict(row) if row else {"total_tokens": 0, "api_calls": 0, "jobs_matched": 0}

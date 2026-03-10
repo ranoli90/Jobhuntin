@@ -8,10 +8,11 @@ Tests the onboarding flow endpoints:
 - Onboarding completion
 """
 
+import uuid
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch
-import uuid
 
 from apps.api.main import app
 from shared.config import get_settings
@@ -32,20 +33,23 @@ def test_user_id():
 @pytest.fixture
 def auth_token(test_user_id):
     """Generate a valid JWT token for testing."""
+    import time
+
     import jwt
 
     settings = get_settings()
     if not settings.jwt_secret:
         pytest.skip("JWT_SECRET not configured")
 
+    now = int(time.time())
     payload = {
         "sub": test_user_id,
         "email": "test@example.com",
         "aud": "authenticated",
         "jti": str(uuid.uuid4()),
-        "iat": 1000000000,
-        "nbf": 1000000000,
-        "exp": 1000000000 + 7 * 24 * 3600,
+        "iat": now,
+        "nbf": now,
+        "exp": now + 7 * 24 * 3600,
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
 
@@ -337,7 +341,7 @@ class TestWorkStyleAPI:
                 "test@example.com",
             )
             await conn.execute(
-                """INSERT INTO public.work_style_profiles 
+                """INSERT INTO public.work_style_profiles
                    (user_id, autonomy_preference, learning_style)
                    VALUES ($1, 'high', 'building')""",
                 user_id,

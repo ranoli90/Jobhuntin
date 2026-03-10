@@ -331,7 +331,7 @@ async def create_webhook(
     """Register a new webhook endpoint."""
     import secrets
 
-    secret = "whsec_" + secrets.token_hex(24)
+    secret = "whsec_" + secrets.token_hex(24)  # pragma: allowlist secret
 
     async with db.acquire() as conn:
         count = await conn.fetchval(

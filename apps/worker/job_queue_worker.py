@@ -29,7 +29,7 @@ _shutdown = False
 POLL_INTERVAL_SEC = 5
 
 
-def handle_shutdown(signum, frame):  # noqa: ARG001
+def handle_shutdown(signum, _frame):
     global _shutdown
     logger.info("Received signal %s, shutting down...", signum)
     _shutdown = True

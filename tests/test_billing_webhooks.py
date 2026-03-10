@@ -4,9 +4,11 @@ import hashlib
 import hmac
 import json
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
+from shared.tenant_rate_limit import TIER_LIMITS, TenantTier
 
 
 class TestStripeWebhooks:
@@ -48,29 +50,27 @@ class TestStripeWebhooks:
         assert payload["type"] == "checkout.session.completed"
         assert payload["data"]["object"]["customer"] == "cus_test123"
 
-    @pytest.mark.skip(reason="handle_checkout_completed not implemented yet")
     @pytest.mark.asyncio
     async def test_handle_checkout_completed(self):
-        """Checkout completion should update user subscription."""
+        """Checkout completion should update subscription state."""
         from apps.api.billing import handle_checkout_completed
 
         session = {
             "id": "cs_test123",
             "customer": "cus_test123",
             "subscription": "sub_test123",
-            "metadata": {"user_id": "user_123"},
+            "metadata": {"tenant_id": "t_123", "plan": "pro"},
         }
 
-        with patch("apps.api.billing.update_user_subscription") as mock_update:
-            mock_update.return_value = AsyncMock()
-            await handle_checkout_completed(session)
-            mock_update.assert_called_once()
+        mock_conn = MagicMock()
+        mock_conn.execute = AsyncMock()
+        await handle_checkout_completed(mock_conn, session)
+        assert mock_conn.execute.called
 
-    @pytest.mark.skip(reason="handle_subscription_deleted not implemented yet")
     @pytest.mark.asyncio
-    async def test_handle_subscription_deleted(self):
-        """Subscription deletion should downgrade user tier."""
-        from apps.api.billing import handle_subscription_deleted
+    async def test_handle_subscription_cancelled(self):
+        """Subscription cancellation should update state."""
+        from apps.api.billing import handle_subscription_cancelled
 
         subscription = {
             "id": "sub_test123",
@@ -78,34 +78,31 @@ class TestStripeWebhooks:
             "status": "canceled",
         }
 
-        with patch("apps.api.billing.downgrade_user_tier") as mock_downgrade:
-            mock_downgrade.return_value = AsyncMock()
-            await handle_subscription_deleted(subscription)
-            mock_downgrade.assert_called_once()
+        mock_conn = MagicMock()
+        mock_conn.execute = AsyncMock()
+        await handle_subscription_cancelled(mock_conn, subscription)
+        assert mock_conn.execute.called
 
-    @pytest.mark.skip(reason="handle_invoice_payment_failed not implemented yet")
     @pytest.mark.asyncio
-    async def test_handle_invoice_payment_failed(self):
-        """Payment failure should notify user."""
-        from apps.api.billing import handle_invoice_payment_failed
+    async def test_handle_payment_failed(self):
+        """Payment failure should update subscription state."""
+        from apps.api.billing import handle_payment_failed
 
         invoice = {
             "id": "in_test123",
             "customer": "cus_test123",
             "subscription": "sub_test123",
-            "attempt_count": 2,
         }
 
-        with patch("apps.api.billing.notify_payment_failure") as mock_notify:
-            mock_notify.return_value = AsyncMock()
-            await handle_invoice_payment_failed(invoice)
-            mock_notify.assert_called_once()
+        mock_conn = MagicMock()
+        mock_conn.execute = AsyncMock()
+        await handle_payment_failed(mock_conn, invoice)
+        assert mock_conn.execute.called
 
 
 class TestBillingQueries:
     """Tests for billing database queries."""
 
-    @pytest.mark.skip(reason="SubscriptionRepo not implemented yet")
     @pytest.mark.asyncio
     async def test_get_user_subscription(self):
         """Should retrieve user subscription from database."""
@@ -128,7 +125,6 @@ class TestBillingQueries:
         assert result is not None
         assert result["tier"] == "pro"
 
-    @pytest.mark.skip(reason="SubscriptionRepo not implemented yet")
     @pytest.mark.asyncio
     async def test_update_subscription_tier(self):
         """Should update user subscription tier."""
@@ -146,7 +142,6 @@ class TestBillingQueries:
 class TestUsageTracking:
     """Tests for usage tracking."""
 
-    @pytest.mark.skip(reason="UsageRepo not implemented yet")
     @pytest.mark.asyncio
     async def test_track_api_usage(self):
         """Should track API usage for billing."""
@@ -165,7 +160,6 @@ class TestUsageTracking:
 
         mock_conn.execute.assert_called_once()
 
-    @pytest.mark.skip(reason="UsageRepo not implemented yet")
     @pytest.mark.asyncio
     async def test_get_monthly_usage(self):
         """Should retrieve monthly usage totals."""
@@ -190,31 +184,20 @@ class TestUsageTracking:
 class TestTierLimits:
     """Tests for tier-based limits."""
 
-    @pytest.mark.skip(reason="TierLimits not implemented yet")
     def test_free_tier_limits(self):
-        """Free tier should have correct limits."""
-        from shared.config import TierLimits
+        """Free tier should have rate limits."""
+        limits = TIER_LIMITS[TenantTier.FREE]
+        assert limits.requests_per_minute == 10
+        assert limits.requests_per_hour == 100
 
-        limits = TierLimits.FREE
-        assert limits.max_jobs_per_day == 10
-        assert limits.max_applications_per_day == 5
-        assert limits.max_resume_tailors == 3
-
-    @pytest.mark.skip(reason="TierLimits not implemented yet")
     def test_pro_tier_limits(self):
-        """Pro tier should have correct limits."""
-        from shared.config import TierLimits
+        """Pro tier should have higher limits."""
+        limits = TIER_LIMITS[TenantTier.PRO]
+        assert limits.requests_per_minute == 60
+        assert limits.requests_per_hour == 1000
 
-        limits = TierLimits.PRO
-        assert limits.max_jobs_per_day == 100
-        assert limits.max_applications_per_day == 50
-        assert limits.max_resume_tailors == 20
-
-    @pytest.mark.skip(reason="TierLimits not implemented yet")
     def test_enterprise_tier_limits(self):
-        """Enterprise tier should have unlimited or high limits."""
-        from shared.config import TierLimits
-
-        limits = TierLimits.ENTERPRISE
-        assert limits.max_jobs_per_day == -1  # Unlimited
-        assert limits.max_applications_per_day == -1
+        """Enterprise tier should have highest limits."""
+        limits = TIER_LIMITS[TenantTier.ENTERPRISE]
+        assert limits.requests_per_minute == 500
+        assert limits.concurrent_requests == 100

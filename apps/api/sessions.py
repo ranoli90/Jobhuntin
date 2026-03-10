@@ -187,8 +187,8 @@ async def revoke_all_other_sessions(
                 audience="authenticated",
             )
             current_session_id = payload.get("session_id")
-        except Exception:
-            pass  # Ignore errors, session_id is optional
+        except Exception as e:
+            logger.debug("Could not extract session_id from JWT cookie: %s", e)
 
     count = await manager.revoke_all_user_sessions(
         ctx.user_id,

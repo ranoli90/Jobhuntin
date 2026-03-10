@@ -2077,7 +2077,7 @@ async def worker_loop() -> None:
             except Exception as e:
                 logger.warning("Error stopping Playwright: %s", e)
 
-    def signal_handler(signum, frame):
+    def signal_handler(signum, _frame):
         """Handle shutdown signals."""
         logger.info("Received signal %d, initiating graceful shutdown...", signum)
         asyncio.create_task(cleanup_browser())

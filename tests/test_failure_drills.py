@@ -27,8 +27,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "packages"))
 
-from backend.domain.repositories import record_event
 from worker.agent import ApplicationAgent
+
+from backend.domain.repositories import record_event
 
 # ---------------------------------------------------------------------------
 # Shared test fixtures (reuse from test_integration.py)
@@ -180,9 +181,7 @@ SUCCESS_HTML = "<!DOCTYPE html><html><body><h1>Done</h1></body></html>"
 # ===================================================================
 
 
-@pytest.mark.skip(
-    reason="Requires registered blueprints - skip until agent is fully implemented"
-)
+@pytest.mark.skip(reason="Requires full schema + registered blueprints")
 @pytest.mark.asyncio
 async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
     """When map_fields_via_llm raises consistently, the agent should:
@@ -245,9 +244,7 @@ async def test_llm_outage_marks_failed(db_pool, browser, clean_db):
         agent_module.map_fields_via_llm = original_map
 
 
-@pytest.mark.skip(
-    reason="Requires registered blueprints - skip until agent is fully implemented"
-)
+@pytest.mark.skip(reason="Requires full schema + registered blueprints")
 @pytest.mark.asyncio
 async def test_llm_outage_preserves_events(db_pool, browser, clean_db):
     """Even on LLM failure, CLAIMED and STARTED_PROCESSING events should exist."""
@@ -293,9 +290,7 @@ async def test_llm_outage_preserves_events(db_pool, browser, clean_db):
 # ===================================================================
 
 
-@pytest.mark.skip(
-    reason="Requires registered blueprints - skip until agent is fully implemented"
-)
+@pytest.mark.skip(reason="Requires full schema + registered blueprints")
 @pytest.mark.asyncio
 async def test_dom_no_form_fields(db_pool, browser, clean_db):
     """Page has no form fields (e.g., redesigned page).
@@ -333,9 +328,7 @@ async def test_dom_no_form_fields(db_pool, browser, clean_db):
         assert "No form fields" in payload.get("error_message", "")
 
 
-@pytest.mark.skip(
-    reason="Requires registered blueprints - skip until agent is fully implemented"
-)
+@pytest.mark.skip(reason="Requires full schema + registered blueprints")
 @pytest.mark.asyncio
 async def test_dom_missing_submit_button(db_pool, browser, clean_db):
     """Page has form fields but no submit button.
@@ -398,9 +391,7 @@ async def test_dom_missing_submit_button(db_pool, browser, clean_db):
 # ===================================================================
 
 
-@pytest.mark.skip(
-    reason="Requires registered blueprints - skip until agent is fully implemented"
-)
+@pytest.mark.skip(reason="Requires full schema + registered blueprints")
 @pytest.mark.asyncio
 async def test_db_transient_failure_during_event_write(db_pool, browser, clean_db):
     """Simulate a transient DB failure during record_event.

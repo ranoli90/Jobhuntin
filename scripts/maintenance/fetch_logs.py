@@ -15,7 +15,7 @@ if not RENDER_API_KEY:
 headers = {"Authorization": f"Bearer {RENDER_API_KEY}", "Accept": "application/json"}
 
 
-def get_latest_deploy_logs(service_id, deploy_id):
+def get_latest_deploy_logs(service_id, _deploy_id):
     # Note: Render API doesn't have a direct "get logs for deploy X" endpoint that returns a string easily
     # It usually requires a websocket or a streaming endpoint.
     # However, we can try to fetch the service events which often contain the failure reason.
