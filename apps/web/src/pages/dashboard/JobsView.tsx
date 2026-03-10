@@ -77,11 +77,12 @@ export default function JobsView() {
                     decision: action.toUpperCase(), // ACCEPT or REJECT
                 });
 
+                const job = jobs.find((j) => j.id === jobId);
                 if (action === "accept") {
                     pushToast({ title: "Applied!", tone: "success" });
-                    setSwipeAnnouncement(`Applied to ${topJob?.title || "job"} at ${topJob?.company || "company"}`);
+                    setSwipeAnnouncement(`Applied to ${job?.title || "job"} at ${job?.company || "company"}`);
                 } else {
-                    setSwipeAnnouncement(`Skipped ${topJob?.title || "job"} at ${topJob?.company || "company"}`);
+                    setSwipeAnnouncement(`Skipped ${job?.title || "job"} at ${job?.company || "company"}`);
                 }
                 
                 // MEDIUM: Focus management after swipe - focus next card (with cleanup)
@@ -137,7 +138,7 @@ export default function JobsView() {
                 });
             }
         },
-        [swipedJobs, submittingSet]
+        [swipedJobs, submittingSet, jobs]
     );
 
     if (isLoading) {
