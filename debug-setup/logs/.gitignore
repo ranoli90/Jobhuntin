@@ -1,0 +1,4 @@
+# Ignore generated scan logs (keep directory)
+*.txt
+*.json
+!.gitkeep
