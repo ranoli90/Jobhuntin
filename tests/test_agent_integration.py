@@ -223,16 +223,14 @@ async def _insert_test_job(conn, tenant_id: str) -> str:
     job_id = str(uuid.uuid4())
     await conn.execute(
         """
-        INSERT INTO public.jobs (id, external_id, title, company, application_url, source)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        ON CONFLICT DO NOTHING
+        INSERT INTO public.jobs (id, external_id, title, company, application_url)
+        VALUES ($1, $2, $3, $4, $5)
         """,
         job_id,
         f"test-{job_id[:8]}",
         "Test Engineer",
         "TestCorp",
         "http://127.0.0.1:9999/apply",
-        "test",
     )
     return job_id
 
@@ -248,14 +246,12 @@ async def _insert_test_application(
     app_id = str(uuid.uuid4())
     await conn.execute(
         """
-        INSERT INTO public.applications (id, user_id, job_id, tenant_id, status, attempt_count)
-        VALUES ($1, $2, $3, $4, 'QUEUED', 0)
-        ON CONFLICT DO NOTHING
+        INSERT INTO public.applications (id, user_id, job_id, status, attempt_count)
+        VALUES ($1, $2, $3, 'QUEUED', 0)
         """,
         app_id,
         user_id,
         job_id,
-        tenant_id,
     )
     # Update the job's application_url to point to our test server
     await conn.execute(
@@ -286,12 +282,12 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
     test_tenant_id = str(uuid.uuid4())
 
     async with db_pool.acquire() as conn:
-        # Ensure user and tenant exist
+        # Ensure user and tenant exist (use unique email to avoid ON CONFLICT skipping)
         await conn.execute(
-            "INSERT INTO public.users (id, full_name, email) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+            "INSERT INTO public.users (id, full_name, email) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET full_name = $2, email = $3",
             test_user_id,
             "Test User",
-            "test@example.com",
+            f"test-{test_user_id}@example.com",
         )
         await conn.execute(
             "INSERT INTO public.tenants (id, name, slug, plan) VALUES ($1, $2, $3, 'FREE') ON CONFLICT DO NOTHING",

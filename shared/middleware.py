@@ -85,6 +85,7 @@ class CSRFMiddleware:
         "/billing/webhook",
         "/sso/saml/acs",
         "/og/",
+        "/webhook/resume_parse",  # Resume parse webhook (user-initiated but from same origin)
     ]
 
     @classmethod
