@@ -580,75 +580,77 @@ class JobRepo:
             WHERE j.is_active = true
         """
         
-        # Build parameter array for filters
+        # Build parameter array and conditions (CRITICAL: asyncpg uses $1, $2, etc. as literal strings)
         params: list[Any] = []
-        param_index = 1
+        conditions: list[str] = []
 
-        # Apply filters if provided (using proper parameterized queries)
+        # Apply filters if provided (build conditions with proper $N placeholders)
         if filters:
             if "location" in filters:
                 location_value = filters["location"]
                 if location_value:
-                    query += f" AND j.location ILIKE ${param_index}"
                     params.append(f"%{location_value}%")
-                    param_index += 1
+                    conditions.append("j.location ILIKE ${" + str(len(params)) + "}")
                     
             if "remote" in filters:
                 remote_value = filters["remote"]
                 if remote_value is not None:
-                    query += f" AND j.remote = ${param_index}"
                     params.append(remote_value)
-                    param_index += 1
+                    conditions.append("j.remote = ${" + str(len(params)) + "}")
                     
             if "job_type" in filters:
                 job_type_value = filters["job_type"]
                 if job_type_value:
-                    query += f" AND j.job_type = ${param_index}"
                     params.append(job_type_value)
-                    param_index += 1
+                    conditions.append("j.job_type = ${" + str(len(params)) + "}")
                     
             if "company_size" in filters:
                 company_size_value = filters["company_size"]
                 if company_size_value:
-                    query += f" AND c.size = ${param_index}"
                     params.append(company_size_value)
-                    param_index += 1
+                    conditions.append("c.size = ${" + str(len(params)) + "}")
                     
             if "industry" in filters:
                 industry_value = filters["industry"]
                 if industry_value:
-                    query += f" AND c.industry = ${param_index}"
                     params.append(industry_value)
-                    param_index += 1
+                    conditions.append("c.industry = ${" + str(len(params)) + "}")
                     
             if "salary_min" in filters:
                 salary_min_value = filters["salary_min"]
                 if salary_min_value is not None:
-                    query += f" AND j.salary_min >= ${param_index}"
                     params.append(salary_min_value)
-                    param_index += 1
+                    conditions.append("j.salary_min >= ${" + str(len(params)) + "}")
                     
             if "salary_max" in filters:
                 salary_max_value = filters["salary_max"]
                 if salary_max_value is not None:
-                    query += f" AND j.salary_max <= ${param_index}"
                     params.append(salary_max_value)
-                    param_index += 1
+                    conditions.append("j.salary_max <= ${" + str(len(params)) + "}")
+
+        # Add WHERE conditions if any
+        if conditions:
+            query += " AND " + " AND ".join(conditions)
 
         query += " ORDER BY j.created_at DESC"
         
         # Add pagination with proper parameter binding
         if offset > 0:
-            query += f" OFFSET ${param_index}"
             params.append(offset)
-            param_index += 1
+            query += " OFFSET ${" + str(len(params)) + "}"
 
         if limit > 0:
-            query += f" LIMIT ${param_index}"
             params.append(limit)
+            query += " LIMIT ${" + str(len(params)) + "}"
 
+        # CRITICAL: Replace ${N} patterns with actual $N for asyncpg
+        # asyncpg requires literal $1, $2, etc. in the query string
+        # Use regex to replace ${N} with $N
+        import re
+        final_query = re.sub(r'\$\{(\d+)\}', lambda m: '$' + m.group(1), query)
+        
         # Execute query with parameters
-        rows = await conn.fetch(query, *params)
+        rows = await conn.fetch(final_query, *params)
 
         # Format with comprehensive job details
         jobs = []

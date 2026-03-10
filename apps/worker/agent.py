@@ -605,6 +605,7 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
     
     max_retries = 2
     base_delay = 1.0
+    last_error = None
     
     for attempt in range(max_retries):
         for sel in submit_selectors:
@@ -615,15 +616,48 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
                         wait_until="networkidle", timeout=30_000
                     ):
                         await btn.click()
-            except Exception as e:
-                # Some forms don't navigate; accept the click as success
-                logger.warning(
-                    "Form submission didn't trigger navigation, falling back to click: %s",
-                    e,
-                )
-                await btn.click()
-                await page.wait_for_timeout(3000)
-            return True
+                    # Success - form submitted
+                    return True
+                except Exception as e:
+                    last_error = e
+                    # Check if error is retryable
+                    is_retryable = (
+                        isinstance(e, (TimeoutError, ConnectionError)) or
+                        "timeout" in str(e).lower() or
+                        "network" in str(e).lower()
+                    )
+                    
+                    if is_retryable and attempt < max_retries - 1:
+                        # HIGH: Exponential backoff for retryable errors
+                        delay = base_delay * (2 ** attempt) + (random.random() * 0.3)
+                        logger.warning(
+                            "Form submission failed (attempt %d/%d), retrying in %.2fs: %s",
+                            attempt + 1,
+                            max_retries,
+                            delay,
+                            e,
+                        )
+                        await asyncio.sleep(delay)
+                        break  # Retry with same selector
+                    else:
+                        # Some forms don't navigate; accept the click as success (non-retryable)
+                        logger.debug(
+                            "Form submission didn't trigger navigation, falling back to click: %s",
+                            e,
+                        )
+                        try:
+                            await btn.click()
+                            await page.wait_for_timeout(3000)
+                            return True
+                        except Exception as fallback_error:
+                            logger.debug("Fallback click also failed: %s", fallback_error)
+                            continue  # Try next selector
+        # If all selectors failed and we have retries left, wait and retry
+        if attempt < max_retries - 1 and last_error:
+            delay = base_delay * (2 ** attempt)
+            logger.warning("All submit selectors failed, retrying in %.2fs", delay)
+            await asyncio.sleep(delay)
+    
     return False
 
 
