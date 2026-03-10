@@ -164,6 +164,7 @@ class CircuitBreakerOpenError(Exception):
 _openrouter_breaker: CircuitBreaker | None = None
 _email_breaker: CircuitBreaker | None = None
 _storage_breaker: CircuitBreaker | None = None
+_breakers: dict[str, CircuitBreaker] = {}
 
 
 def get_openrouter_breaker() -> CircuitBreaker:
@@ -206,3 +207,71 @@ def get_storage_breaker() -> CircuitBreaker:
             expected_exception=(Exception,),
         )
     return _storage_breaker
+
+
+def get_circuit_breaker(name: str) -> CircuitBreaker:
+    """Get or create a circuit breaker by name.
+    
+    Args:
+        name: Circuit breaker name (e.g., "resend", "stripe", "embeddings")
+        
+    Returns:
+        CircuitBreaker instance for the given name
+    """
+    global _breakers
+    if name not in _breakers:
+        _breakers[name] = CircuitBreaker(
+            name=name,
+            failure_threshold=5,
+            success_threshold=2,
+            timeout_seconds=60.0,
+            expected_exception=(Exception,),
+        )
+    return _breakers[name]
+
+
+def get_all_circuit_breaker_statuses() -> dict[str, dict[str, Any]]:
+    """Get status of all circuit breakers.
+    
+    Returns:
+        Dictionary mapping circuit breaker names to their status
+    """
+    global _breakers, _openrouter_breaker, _email_breaker, _storage_breaker
+    
+    statuses: dict[str, dict[str, Any]] = {}
+    
+    # Add named breakers
+    for name, breaker in _breakers.items():
+        statuses[name] = {
+            "state": breaker.state.value,
+            "failure_count": breaker.failure_count,
+            "success_count": breaker.success_count,
+            "last_failure_time": breaker.last_failure_time,
+        }
+    
+    # Add specific breakers if they exist
+    if _openrouter_breaker:
+        statuses["openrouter"] = {
+            "state": _openrouter_breaker.state.value,
+            "failure_count": _openrouter_breaker.failure_count,
+            "success_count": _openrouter_breaker.success_count,
+            "last_failure_time": _openrouter_breaker.last_failure_time,
+        }
+    
+    if _email_breaker:
+        statuses["email_service"] = {
+            "state": _email_breaker.state.value,
+            "failure_count": _email_breaker.failure_count,
+            "success_count": _email_breaker.success_count,
+            "last_failure_time": _email_breaker.last_failure_time,
+        }
+    
+    if _storage_breaker:
+        statuses["storage_service"] = {
+            "state": _storage_breaker.state.value,
+            "failure_count": _storage_breaker.failure_count,
+            "success_count": _storage_breaker.success_count,
+            "last_failure_time": _storage_breaker.last_failure_time,
+        }
+    
+    return statuses

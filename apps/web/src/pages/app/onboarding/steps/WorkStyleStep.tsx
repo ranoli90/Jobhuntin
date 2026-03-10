@@ -15,7 +15,7 @@ const getBehavioralQuestions = (locale: string): Array<{ id: string; question: s
             { value: "high", label: t("onboarding.workStyleQ1Option1", locale) },
             { value: "medium", label: t("onboarding.workStyleQ1Option2", locale) },
             { value: "low", label: t("onboarding.workStyleQ1Option3", locale) },
-            { value: "medium", label: t("onboarding.workStyleQ1Option4", locale) }
+            { value: "flexible", label: t("onboarding.workStyleQ1Option4", locale) }
         ],
         maps_to: "autonomy_preference"
     },
@@ -195,7 +195,7 @@ export function WorkStyleStep({
                 <div className="flex gap-1.5 mb-4 md:mb-6 justify-center">
                     {allQuestions.map((q, idx) => (
                         <button
-                            key={q.id}
+                            key={`${q.id}-${idx}`}
                             onClick={() => setCurrentQuestion(idx)}
                             className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all ${answers[q.maps_to]
                                 ? "bg-emerald-500"

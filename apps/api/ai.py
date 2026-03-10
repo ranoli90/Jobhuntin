@@ -821,29 +821,29 @@ async def semantic_match_batch(
                     dealbreakers=dealbreakers,
                     db_conn=conn,
                 )
-            results.append(
-                BatchSemanticMatchResult(
-                    job_id=result.job_id,
-                    score=result.score,
-                    explanation={
-                        "score": result.explanation.score,
-                        "semantic_similarity": result.explanation.semantic_similarity,
-                        "skill_match_ratio": result.explanation.skill_match_ratio,
-                        "experience_alignment": result.explanation.experience_alignment,
-                        "location_compatible": result.explanation.location_compatible,
-                        "salary_in_range": result.explanation.salary_in_range,
-                        "matched_skills": result.explanation.matched_skills,
-                        "missing_skills": result.explanation.missing_skills,
-                        "reasoning": result.explanation.reasoning,
-                        "confidence": result.explanation.confidence,
-                    },
-                    passed_dealbreakers=result.passed_dealbreakers,
-                    dealbreaker_reasons=result.dealbreaker_reasons,
+                results.append(
+                    BatchSemanticMatchResult(
+                        job_id=result.job_id,
+                        score=result.score,
+                        explanation={
+                            "score": result.explanation.score,
+                            "semantic_similarity": result.explanation.semantic_similarity,
+                            "skill_match_ratio": result.explanation.skill_match_ratio,
+                            "experience_alignment": result.explanation.experience_alignment,
+                            "location_compatible": result.explanation.location_compatible,
+                            "salary_in_range": result.explanation.salary_in_range,
+                            "matched_skills": result.explanation.matched_skills,
+                            "missing_skills": result.explanation.missing_skills,
+                            "reasoning": result.explanation.reasoning,
+                            "confidence": result.explanation.confidence,
+                        },
+                        passed_dealbreakers=result.passed_dealbreakers,
+                        dealbreaker_reasons=result.dealbreaker_reasons,
+                    )
                 )
-            )
-        except Exception as exc:
-            logger.warning("Failed to match job %s: %s", job_id, exc)
-            failed_items.append({"job_id": job_id, "error": str(exc)})
+            except Exception as exc:
+                logger.warning("Failed to match job %s: %s", job_id, exc)
+                failed_items.append({"job_id": job_id, "error": str(exc)})
 
     logger.info(
         "Batch semantic match completed",

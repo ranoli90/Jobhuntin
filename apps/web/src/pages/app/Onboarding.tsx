@@ -399,18 +399,52 @@ export default function Onboarding() {
 
   // Persist internal states to useOnboarding's formData for refresh persistence
   // Separate from restore effect to avoid dependency loop (formData not in deps)
+  // FIXED: Use debouncing and ref to prevent infinite loop
+  const prevValuesRef = React.useRef<string>('');
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  
   React.useEffect(() => {
-    updateFormData({
-      contactInfo,
-      preferences,
-      linkedinUrl,
-      workStyleAnswers,
-      parsedResume,
-      parsedProfile,
-      richSkills,
-      showParsingPreview,
-    });
-  }, [contactInfo, preferences, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview, updateFormData]);
+    // Clear any pending update
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    // Debounce the update to prevent rapid re-renders
+    updateTimeoutRef.current = setTimeout(() => {
+      const currentValues = JSON.stringify({
+        contactInfo,
+        preferences,
+        linkedinUrl,
+        workStyleAnswers,
+        parsedResume,
+        parsedProfile,
+        richSkills,
+        showParsingPreview,
+      });
+      
+      // Only update if values actually changed
+      if (currentValues !== prevValuesRef.current) {
+        updateFormData({
+          contactInfo,
+          preferences,
+          linkedinUrl,
+          workStyleAnswers,
+          parsedResume,
+          parsedProfile,
+          richSkills,
+          showParsingPreview,
+        });
+        prevValuesRef.current = currentValues;
+      }
+    }, 100); // 100ms debounce
+    
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contactInfo, preferences, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview]);
 
   // OB4: Resume Where You Left Off - Show banner for returning users
   React.useEffect(() => {

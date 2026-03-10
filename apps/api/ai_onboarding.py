@@ -21,6 +21,7 @@ Key endpoints:
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
+import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 

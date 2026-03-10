@@ -49,7 +49,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Helper to fetch user profile
     const fetchUser = useCallback(async (isInitialLoad = false) => {
-        if (import.meta.env.DEV) console.log('[AUTH] Fetching user profile...');
         try {
             let profile: User;
 
@@ -59,23 +58,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 // causing an unwanted redirect + "session expired" toast on first visit.
                 try {
                     const base = getApiBase();
-                    console.log('[AUTH] Fetching profile from:', base);
                     const resp = await fetch(`${base.replace(/\/$/, "")}/me/profile`, {
                         method: "GET",
                         credentials: "include",
                         headers: { "Content-Type": "application/json" },
                     });
-                    console.log('[AUTH] Profile response status:', resp.status);
                     if (!resp.ok) {
                         // Silently handle 401 on initial load — user simply isn't logged in yet
-                        console.log('[AUTH] Profile check returned', resp.status);
+                        // 401 is expected for unauthenticated users, not an error condition
+                        // Note: Browser will still log 401 as network error, but we handle it gracefully
+                        if (resp.status === 401) {
+                            setUser(null);
+                            sessionExpiryRef.current = null;
+                            return;
+                        }
+                        // For other errors, log but don't throw
+                        if (import.meta.env.DEV) {
+                            console.log('[AUTH] Profile check returned', resp.status);
+                        }
                         setUser(null);
                         sessionExpiryRef.current = null;
                         return;
                     }
                     profile = await resp.json();
                 } catch (err) {
-                    console.error('[AUTH] Profile fetch failed:', err);
+                    // Network errors (including 401) are expected for unauthenticated users
+                    // Only log unexpected errors
+                    if (import.meta.env.DEV && err instanceof Error && !err.message.includes('401') && !err.message.includes('Failed to fetch')) {
+                        console.error('[AUTH] Profile fetch failed:', err);
+                    }
                     setUser(null);
                     return;
                 }
@@ -199,6 +210,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 }
 
                 // 2. Check for existing session via httpOnly cookie
+                // Note: httpOnly cookies aren't accessible via JavaScript, so we need to make the request
+                // The 401 response is expected for unauthenticated users and is handled gracefully
                 if (import.meta.env.DEV) console.log('[AUTH] Checking for existing session...');
                 await ensureCsrfCookie();
                 await fetchUser(true);

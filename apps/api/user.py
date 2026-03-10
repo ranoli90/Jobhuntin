@@ -885,16 +885,20 @@ async def get_profile(
     """Current user profile for web: id, email, has_completed_onboarding, resume_url, preferences."""
     logger.info("[PROFILE] Fetching profile", extra={"user_id": str(ctx.user_id)})
 
-    async with db.acquire() as conn:
-        # Fetch user profile from public.users
-        user_row = await conn.fetchrow(
-            "SELECT id, email, full_name FROM public.users WHERE id = $1",
-            ctx.user_id,
-        )
-        profile_row = await conn.fetchrow(
-            "SELECT profile_data, resume_url FROM public.profiles WHERE user_id = $1",
-            ctx.user_id,
-        )
+    try:
+        async with db.acquire() as conn:
+            # Fetch user profile from public.users
+            user_row = await conn.fetchrow(
+                "SELECT id, email, full_name FROM public.users WHERE id = $1",
+                ctx.user_id,
+            )
+            profile_row = await conn.fetchrow(
+                "SELECT profile_data, resume_url FROM public.profiles WHERE user_id = $1",
+                ctx.user_id,
+            )
+    except Exception as exc:
+        logger.error("[PROFILE] Database error fetching profile: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch profile")
 
     if not user_row:
         logger.warning("[PROFILE] User not found", extra={"user_id": str(ctx.user_id)})

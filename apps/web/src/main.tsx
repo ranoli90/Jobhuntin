@@ -56,9 +56,8 @@ if (sentryDsn) {
   } catch (error) {
     console.error("[Sentry] Failed to initialize:", error);
   }
-} else if (import.meta.env.DEV) {
-  console.log("[Sentry] Not initialized (DSN not set in VITE_SENTRY_DSN)");
 }
+// Don't log Sentry warning in dev mode - it's expected when DSN is not set
 
 // Service Worker Registration
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -101,7 +100,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <HelmetProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
+          <BrowserRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
             <AppProvider>
               <AuthProvider>
                 <App />

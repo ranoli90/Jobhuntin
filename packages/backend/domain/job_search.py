@@ -180,9 +180,9 @@ def _build_job_search_query(
 ) -> tuple[str, list[Any]]:
     query = """
         SELECT id, title, company, description, location,
-               salary_min, salary_max, application_url, source,
-               is_remote, job_type, date_posted, job_level,
-               company_industry, company_logo_url, raw_data, skills
+               salary_min, salary_max, url as application_url, '' as source,
+               remote_policy, '' as job_type, posted_date as date_posted, experience_level as job_level,
+               '' as company_industry, '' as company_logo_url, '{}'::jsonb as raw_data, ARRAY[]::text[] as skills
         FROM   public.jobs
         WHERE  1=1
     """
@@ -213,8 +213,11 @@ def _build_job_search_query(
 
     if is_remote is not None:
         n += 1
-        query += f" AND is_remote = ${n}"
-        params.append(is_remote)
+        # Map is_remote boolean to remote_policy values
+        if is_remote:
+            query += f" AND (remote_policy = 'remote' OR remote_policy = 'hybrid')"
+        else:
+            query += f" AND remote_policy = 'onsite'"
 
     if job_type:
         n += 1
@@ -273,9 +276,9 @@ def _map_job_row(r: Any) -> dict[str, Any]:
         "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
         "url": r["application_url"],
         "source": r.get("source"),
-        "is_remote": r.get("is_remote"),
+        "is_remote": r.get("remote_policy") in ("remote", "hybrid") if r.get("remote_policy") else None,
         "job_type": r.get("job_type"),
-        "date_posted": r["date_posted"].isoformat() if r.get("date_posted") else None,
+        "date_posted": r.get("posted_date").isoformat() if r.get("posted_date") else (r.get("date_posted").isoformat() if r.get("date_posted") else None),
         "job_level": r.get("job_level"),
         "company_industry": r.get("company_industry"),
         "logo_url": logo_url,

@@ -102,16 +102,32 @@ async def resolve_tenant_context(
     tenant_id = str(uuid.uuid4())
     slug = f"user-{user_id[:8]}-{uuid.uuid4().hex[:6]}"
 
-    # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1..$3
-    await conn.execute(
-        """
-        INSERT INTO public.tenants (id, name, slug, plan)
-        VALUES ($1, $2, $3, 'FREE')
-        """,
-        tenant_id,
-        "Personal",
-        slug,
-    )
+    # Check if slug column exists, if not, don't include it in INSERT
+    try:
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1..$3
+        await conn.execute(
+            """
+            INSERT INTO public.tenants (id, name, slug, plan)
+            VALUES ($1, $2, $3, 'FREE')
+            """,
+            tenant_id,
+            "Personal",
+            slug,
+        )
+    except Exception as exc:
+        # If slug column doesn't exist, try without it
+        if "slug" in str(exc).lower() or "column" in str(exc).lower():
+            logger.warning("Tenants table doesn't have slug column, inserting without it: %s", exc)
+            await conn.execute(
+                """
+                INSERT INTO public.tenants (id, name, plan)
+                VALUES ($1, $2, 'FREE')
+                """,
+                tenant_id,
+                "Personal",
+            )
+        else:
+            raise
     await conn.execute(
         """
         INSERT INTO public.tenant_members (tenant_id, user_id, role)

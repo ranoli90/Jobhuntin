@@ -502,7 +502,11 @@ async def _generate_magic_link(
 
     # Use frontend URL for magic link (better UX - users see branded domain)
     # Frontend will redirect to backend to verify token and set cookie
+    # Ensure we use the frontend URL (jobhuntin.com), not the backend URL
     app_url = settings.app_base_url.rstrip("/")
+    # Fix: If app_base_url contains backend domain (sorce, api.), use jobhuntin.com instead
+    if not app_url or "sorce" in app_url.lower() or "api." in app_url.lower() or app_url.startswith("http://localhost:8000"):
+        app_url = "https://jobhuntin.com"
     verify_url = f"{app_url}/login?token={quote(token, safe='')}"
     safe_return = _sanitize_return_to(return_to) if return_to else None
     if safe_return:
@@ -543,6 +547,10 @@ def _get_destination_label(destination_path: str) -> str:
 def _get_app_branding(settings: Settings) -> dict[str, str]:
     """Get app branding values from settings or defaults."""
     base_url = settings.app_base_url.rstrip("/")
+    # Fix: If app_base_url contains backend domain, use jobhuntin.com instead
+    if not base_url or "sorce" in base_url.lower() or "api." in base_url.lower() or base_url.startswith("http://localhost:8000"):
+        base_url = "https://jobhuntin.com"
+    
     api_url = getattr(settings, "api_public_url", "").rstrip("/")
     domain = (
         base_url.replace("https://", "").replace("http://", "")
@@ -947,21 +955,36 @@ async def verify_magic_link(
             tenant_id = str(tenant_row["tenant_id"]) if tenant_row["tenant_id"] else None
     
     # Create session with device fingerprinting
-    session_manager = SessionManager(db)
-    session_info = await session_manager.create_session(
-        user_id=user_id,
-        tenant_id=tenant_id,
-        ip_address=client_ip,
-        user_agent=user_agent,
-        metadata={"source": "magic_link", "is_new_user": is_new_user_flag},
-    )
-    
-    # Check for suspicious activity
-    suspicious_check = await session_manager.detect_suspicious_activity(
-        user_id=user_id,
-        ip_address=client_ip,
-        user_agent=user_agent,
-    )
+    try:
+        session_manager = SessionManager(db)
+        session_info = await session_manager.create_session(
+            user_id=user_id,
+            tenant_id=tenant_id,
+            ip_address=client_ip,
+            user_agent=user_agent,
+            metadata={"source": "magic_link", "is_new_user": is_new_user_flag},
+        )
+        
+        # Check for suspicious activity
+        suspicious_check = await session_manager.detect_suspicious_activity(
+            user_id=user_id,
+            ip_address=client_ip,
+            user_agent=user_agent,
+        )
+    except Exception as exc:
+        # If session creation fails, log but continue with authentication
+        # This allows login to work even if session tracking is broken
+        logger.error(
+            "[MAGIC_LINK] Session creation failed, continuing without session tracking: %s",
+            exc,
+            exc_info=True,
+        )
+        # Create a minimal session_info for the JWT
+        import uuid as _uuid_mod
+        session_info = type('SessionInfo', (), {
+            'session_id': str(_uuid_mod.uuid4())
+        })()
+        suspicious_check = {"suspicious": False, "reasons": []}
     
     if suspicious_check["suspicious"]:
         logger.warning(

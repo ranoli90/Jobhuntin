@@ -213,26 +213,26 @@ app.state.cors_origins = CORS_ORIGINS
 
 # ---------------------------------------------------------------------------
 # IMPORTANT: Middleware executes in REVERSE order of registration.
-    # CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
-    # ---------------------------------------------------------------------------
+# CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
+# ---------------------------------------------------------------------------
 
-    # CRITICAL: Add response compression middleware (early in stack to compress all responses)
-    from shared.api_compression import CompressionMiddleware, create_compression_config
-    
-    compression_config = create_compression_config(
-        min_size=512,  # Compress responses > 512 bytes
-        enable_gzip=True,
-        enable_brotli=True,
-        enable_deflate=True,
-    )
-    app.add_middleware(CompressionMiddleware, config=compression_config)
-    
-    # Add Request ID middleware for distributed tracing
-    setup_request_id_middleware(app)
-    
-    # M3: API Versioning - Register versioned routers
-    # Note: api_v2 router is already registered below with prefix /api/v2
-    # For v1, we use the default routes (no prefix)
+# CRITICAL: Add response compression middleware (early in stack to compress all responses)
+from shared.api_compression import CompressionMiddleware, create_compression_config
+
+compression_config = create_compression_config(
+    min_size=512,  # Compress responses > 512 bytes
+    enable_gzip=True,
+    enable_brotli=True,
+    enable_deflate=True,
+)
+app.add_middleware(CompressionMiddleware, config=compression_config)
+
+# Add Request ID middleware for distributed tracing
+setup_request_id_middleware(app)
+
+# M3: API Versioning - Register versioned routers
+# Note: api_v2 router is already registered below with prefix /api/v2
+# For v1, we use the default routes (no prefix)
 
 # M3: API Versioning Middleware - Add version headers and handle version negotiation
 @app.middleware("http")
@@ -421,6 +421,7 @@ async def idempotency_middleware(request: Request, call_next):
                         return await call_next(request)
                 # No cache yet, release lock and proceed (shouldn't happen but handle gracefully)
                 await r.delete(lock_key)
+                # Continue to process request normally - fall through to line 425
             
             # Check for existing cached response (double-check after acquiring lock)
             cached = await r.get(cache_key)
@@ -440,7 +441,8 @@ async def idempotency_middleware(request: Request, call_next):
                     )
                 except json.JSONDecodeError:
                     logger.warning("Failed to parse cached idempotency response")
-                    # Fall through to process request
+                    # Fall through to process request - continue to line 445
+                    pass
             
             # Process request (we hold the lock)
             try:
@@ -1150,10 +1152,19 @@ async def get_tenant_context(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> TenantContext:
     """Resolve TenantContext from JWT user_id. Auto-provisions FREE tenant if needed."""
-    async with db.acquire() as conn:
-        ctx = await resolve_tenant_context(conn, user_id)
-    LogContext.set(tenant_id=ctx.tenant_id, user_id=ctx.user_id)
-    return ctx
+    try:
+        async with db.acquire() as conn:
+            ctx = await resolve_tenant_context(conn, user_id)
+        if ctx is None:
+            logger.error("[TENANT] resolve_tenant_context returned None for user_id: %s", user_id)
+            raise HTTPException(status_code=500, detail="Failed to resolve tenant context")
+        LogContext.set(tenant_id=ctx.tenant_id, user_id=ctx.user_id)
+        return ctx
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("[TENANT] Error resolving tenant context: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to resolve tenant context")
 
 
 # ---------------------------------------------------------------------------

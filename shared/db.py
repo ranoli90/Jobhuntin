@@ -32,9 +32,14 @@ def resolve_dsn_ipv4(dsn: str) -> str:
 
         # Build query params with sslmode=require as default for production safety.
         # Respect explicit user overrides (e.g. sslmode=disable for local dev).
+        # Skip SSL for localhost connections (local development)
         query_params = dict(parse_qsl(parsed.query))
         if "sslmode" not in query_params:
-            query_params["sslmode"] = "require"
+            # Don't require SSL for localhost (local development)
+            if parsed.hostname in ("localhost", "127.0.0.1", "::1") or parsed.hostname.startswith("127."):
+                query_params["sslmode"] = "disable"
+            else:
+                query_params["sslmode"] = "require"
 
         # Skip DNS resolution if already an IPv4 literal
         if parsed.hostname.replace(".", "").isdigit():

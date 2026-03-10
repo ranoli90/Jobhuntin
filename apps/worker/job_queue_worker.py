@@ -47,6 +47,13 @@ async def create_db_pool() -> asyncpg.Pool:
 async def run_queue_loop() -> None:
     db_pool = await create_db_pool()
     queue = BackgroundJobQueue(db_pool)
+    
+    # LOW: Register match score pre-computation job handler
+    try:
+        from packages.backend.domain.match_score_precompute import register_match_score_job_handler
+        register_match_score_job_handler(queue)
+    except Exception as e:
+        logger.warning("Failed to register match score pre-computation handler: %s", e)
 
     # Register placeholder handlers — extend as job types are added
     async def noop_handler(payload: dict) -> JobResult:

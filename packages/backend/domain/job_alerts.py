@@ -18,7 +18,7 @@ from typing import Any
 import asyncpg
 from pydantic import BaseModel, Field
 
-from shared.circuit_breaker import CircuitBreakerOpen, get_circuit_breaker
+from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr
@@ -410,7 +410,7 @@ class JobAlertService:
                         },
                     )
                     return resp.status_code in (200, 201)
-        except CircuitBreakerOpen:
+        except CircuitBreakerOpenError:
             logger.warning("Resend circuit breaker open")
             return False
         except Exception as e:
