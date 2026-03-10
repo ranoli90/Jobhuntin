@@ -338,7 +338,7 @@ export default function Dashboard() {
   ];
 
   // H8: Empty States - Show comprehensive empty state for new users
-  const isNewUser = !isLoading && applications.length === 0 && stats.total_all_time === 0 && !error;
+  const isNewUser = !isLoading && applications.length === 0 && (stats?.monthlyApps ?? 0) === 0 && !error;
   
   if (isNewUser) {
     return (

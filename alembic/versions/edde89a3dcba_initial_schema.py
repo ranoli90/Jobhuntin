@@ -262,10 +262,12 @@ def upgrade() -> None:
         "CREATE INDEX IF NOT EXISTS idx_applications_job_id ON applications(job_id)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_applications_tenant_id ON applications(tenant_id)"
+        "CREATE INDEX IF NOT EXISTS idx_applications_tenant_id "
+        "ON applications(tenant_id)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_application_inputs_application_id ON application_inputs(application_id)"
+        "CREATE INDEX IF NOT EXISTS idx_application_inputs_application_id "
+        "ON application_inputs(application_id)"
     )
     op.execute(
         "CREATE INDEX IF NOT EXISTS idx_events_application_id ON events(application_id)"
@@ -275,7 +277,8 @@ def upgrade() -> None:
         "CREATE INDEX IF NOT EXISTS idx_profiles_tenant_id ON profiles(tenant_id)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_billing_customers_tenant_id ON billing_customers(tenant_id)"
+        "CREATE INDEX IF NOT EXISTS idx_billing_customers_tenant_id "
+        "ON billing_customers(tenant_id)"
     )
     op.execute("CREATE INDEX IF NOT EXISTS idx_jobs_external_id ON jobs(external_id)")
 
@@ -284,13 +287,16 @@ def upgrade() -> None:
         "CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_applications_priority_score ON applications(priority_score)"
+        "CREATE INDEX IF NOT EXISTS idx_applications_priority_score "
+        "ON applications(priority_score)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_applications_available_at ON applications(available_at)"
+        "CREATE INDEX IF NOT EXISTS idx_applications_available_at "
+        "ON applications(available_at)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_applications_snoozed_until ON applications(snoozed_until)"
+        "CREATE INDEX IF NOT EXISTS idx_applications_snoozed_until "
+        "ON applications(snoozed_until)"
     )
 
     # Text search indexes
@@ -308,18 +314,21 @@ def upgrade() -> None:
         "CREATE INDEX IF NOT EXISTS idx_answer_memory_user_id ON answer_memory(user_id)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_answer_memory_last_used_at ON answer_memory(last_used_at)"
+        "CREATE INDEX IF NOT EXISTS idx_answer_memory_last_used_at "
+        "ON answer_memory(last_used_at)"
     )
 
     # JSONB GIN indexes for efficient JSON queries
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_application_inputs_meta_gin ON application_inputs USING GIN (meta)"
+        "CREATE INDEX IF NOT EXISTS idx_application_inputs_meta_gin "
+        "ON application_inputs USING GIN (meta)"
     )
     op.execute(
         "CREATE INDEX IF NOT EXISTS idx_events_data_gin ON events USING GIN (data)"
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_profiles_data_gin ON profiles USING GIN (profile_data)"
+        "CREATE INDEX IF NOT EXISTS idx_profiles_data_gin "
+        "ON profiles USING GIN (profile_data)"
     )
 
     # Row Level Security (RLS) policies
@@ -335,7 +344,9 @@ def upgrade() -> None:
 
     op.execute(
         """
-        CREATE OR REPLACE FUNCTION public.claim_next_prioritized(p_max_attempts int DEFAULT 3)
+        CREATE OR REPLACE FUNCTION public.claim_next_prioritized(
+            p_max_attempts int DEFAULT 3
+        )
         RETURNS SETOF public.applications AS $$
         BEGIN
             RETURN QUERY
@@ -343,7 +354,12 @@ def upgrade() -> None:
             SET status = 'PROCESSING', locked_at = now(), updated_at = now()
             WHERE id = (
                 SELECT id FROM public.applications
-                WHERE (status = 'QUEUED' OR (status = 'PROCESSING' AND locked_at < now() - interval '10 minutes'))
+                WHERE (
+                    status = 'QUEUED' OR (
+                        status = 'PROCESSING' AND
+                        locked_at < now() - interval '10 minutes'
+                    )
+                )
                   AND (snoozed_until IS NULL OR snoozed_until < now())
                   AND attempt_count < p_max_attempts
                 ORDER BY priority_score DESC, created_at ASC

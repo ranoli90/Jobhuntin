@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useBilling } from "../hooks/useBilling";
 import { Button } from "../components/ui/Button";
@@ -69,6 +69,7 @@ export default function AppLayout() {
   const location = useLocation();
   
   // M8: Keyboard Navigation - Global keyboard shortcuts
+  const navigate = useNavigate();
   useKeyboardShortcuts(
     [
       {

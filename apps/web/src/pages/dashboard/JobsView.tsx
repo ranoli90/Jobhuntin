@@ -106,7 +106,6 @@ export default function JobsView() {
                         title: "Application limit reached",
                         description: "You've reached your plan's application limit. Upgrade to continue applying.",
                         tone: "error",
-                        duration: 8000,
                     });
                     // Navigate to billing page after a delay (with cleanup)
                     if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);

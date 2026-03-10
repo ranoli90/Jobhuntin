@@ -70,7 +70,7 @@ export default function Sessions() {
       setLoading(true);
       const response = await fetch(`${getApiBase()}/sessions`, {
         method: "GET",
-        headers: getAuthHeaders(),
+        headers: await getAuthHeaders(),
         credentials: "include",
       });
 
@@ -101,7 +101,7 @@ export default function Sessions() {
       setRevokingSessionId(sessionId);
       const response = await fetch(`${getApiBase()}/sessions/${sessionId}`, {
         method: "DELETE",
-        headers: getAuthHeaders(),
+        headers: await getAuthHeaders(),
         credentials: "include",
       });
 
@@ -135,7 +135,7 @@ export default function Sessions() {
       setRevokingAll(true);
       const response = await fetch(`${getApiBase()}/sessions/all`, {
         method: "DELETE",
-        headers: getAuthHeaders(),
+        headers: await getAuthHeaders(),
         credentials: "include",
       });
 
@@ -338,7 +338,7 @@ export default function Sessions() {
         title="Sign out all other devices?"
         description={`This will sign you out from ${otherSessions.length} other device${otherSessions.length !== 1 ? "s" : ""}. Your current session will remain active.`}
         confirmText={revokingAll ? "Signing out..." : "Sign out all"}
-        confirmVariant="danger"
+        variant="danger"
         isLoading={revokingAll}
       />
     </main>
