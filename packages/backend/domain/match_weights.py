@@ -453,7 +453,7 @@ class MatchWeightsManager:
         total_enabled_weight = sum(
             wc.weight for wc in config.weights.values() if wc.enabled
         )
-        
+
         # Calculate scores for each enabled category
         for category, weight_config in config.weights.items():
             if not weight_config.enabled:
@@ -529,7 +529,7 @@ class MatchWeightsManager:
         self, match_data: Dict[str, Any], weight_config: WeightConfig
     ) -> float:
         """Calculate skills matching score.
-        
+
         HIGH: Enhanced to use rich skills metadata (confidence, years) for better matching.
         """
         user_skills = match_data.get("user_skills", [])
@@ -542,15 +542,24 @@ class MatchWeightsManager:
         # Build skill map with confidence scores
         user_skill_map: dict[str, float] = {}  # skill_name -> confidence
         user_skill_years: dict[str, float] = {}  # skill_name -> years
-        
+
         for skill in user_skills:
             if isinstance(skill, dict):
-                skill_name = (skill.get("skill") or skill.get("name") or "").lower().strip()
+                skill_name = (
+                    (skill.get("skill") or skill.get("name") or "").lower().strip()
+                )
                 confidence = float(skill.get("confidence", 0.5))
-                years = float(skill.get("years_actual", 0)) if skill.get("years_actual") else 0.0
+                years = (
+                    float(skill.get("years_actual", 0))
+                    if skill.get("years_actual")
+                    else 0.0
+                )
                 if skill_name:
                     # Use highest confidence if skill appears multiple times
-                    if skill_name not in user_skill_map or confidence > user_skill_map[skill_name]:
+                    if (
+                        skill_name not in user_skill_map
+                        or confidence > user_skill_map[skill_name]
+                    ):
                         user_skill_map[skill_name] = confidence
                         user_skill_years[skill_name] = years
             elif isinstance(skill, str):
@@ -561,19 +570,21 @@ class MatchWeightsManager:
 
         # Calculate skill overlap with confidence weighting
         job_skill_set = {s.lower().strip() for s in job_skills if s}
-        matched_skills = set(user_skill_map.keys()).intersection(job_skill_set)
-        
+        user_skill_set = set(user_skill_map.keys())
+        matched_skills = user_skill_set.intersection(job_skill_set)
+        exact_matches = len(matched_skills)
+
         total_job_skills = len(job_skill_set)
         if total_job_skills == 0:
             return 0.0
 
         # HIGH: Weight matches by confidence
-        weighted_matches = sum(
-            user_skill_map[skill] for skill in matched_skills
-        )
+        weighted_matches = sum(user_skill_map[skill] for skill in matched_skills)
         # Normalize by total possible confidence (if all skills matched with confidence 1.0)
-        base_score = weighted_matches / total_job_skills if total_job_skills > 0 else 0.0
-        
+        base_score = (
+            weighted_matches / total_job_skills if total_job_skills > 0 else 0.0
+        )
+
         # HIGH: Bonus for skills with years of experience
         years_bonus = sum(
             min(user_skill_years.get(skill, 0) / 10.0, 0.2)  # Max 0.2 bonus per skill

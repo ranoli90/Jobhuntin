@@ -62,7 +62,8 @@ class TestHealthChecks:
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
 
-    def test_healthz_endpoint(self, client, db_pool):
+    @pytest.mark.asyncio
+    async def test_healthz_endpoint(self, client, db_pool):
         """Test deep health check endpoint."""
         response = client.get("/healthz")
         
@@ -77,10 +78,11 @@ class TestHealthChecks:
 class TestDashboardAPI:
     """Tests for dashboard API endpoint."""
 
-    def test_dashboard_data(self, authenticated_client, clean_db, db_pool, auth_token):
+    @pytest.mark.asyncio
+    async def test_dashboard_data(self, authenticated_client, clean_db, db_pool, auth_token):
         """Test dashboard data retrieval."""
         _, user_id = auth_token
-        
+
         # Setup user with some data
         async with db_pool.acquire() as conn:
             await conn.execute(
@@ -120,10 +122,11 @@ class TestDashboardAPI:
 class TestApplicationsAPI:
     """Tests for applications API endpoints."""
 
-    def test_create_application(self, authenticated_client, clean_db, db_pool, auth_token):
+    @pytest.mark.asyncio
+    async def test_create_application(self, authenticated_client, clean_db, db_pool, auth_token):
         """Test creating a new application."""
         _, user_id = auth_token
-        
+
         # Setup user and job
         async with db_pool.acquire() as conn:
             await conn.execute(
@@ -147,10 +150,11 @@ class TestApplicationsAPI:
         # Should succeed
         assert response.status_code in [200, 201]
 
-    def test_list_applications(self, authenticated_client, clean_db, db_pool, auth_token):
+    @pytest.mark.asyncio
+    async def test_list_applications(self, authenticated_client, clean_db, db_pool, auth_token):
         """Test listing user applications."""
         _, user_id = auth_token
-        
+
         # Setup user with applications
         async with db_pool.acquire() as conn:
             await conn.execute(

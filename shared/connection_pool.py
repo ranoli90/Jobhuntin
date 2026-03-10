@@ -302,7 +302,9 @@ class ConnectionPool:
             raise
 
     @asynccontextmanager
-    async def acquire(self, timeout: Optional[float] = None) -> AsyncIterator[PooledConnection]:
+    async def acquire(
+        self, timeout: Optional[float] = None
+    ) -> AsyncIterator[PooledConnection]:
         """Acquire a connection from the pool."""
         if self._status == PoolStatus.FAILED:
             raise RuntimeError(f"Pool {self.config.pool_name} has failed")

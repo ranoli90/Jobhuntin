@@ -127,7 +127,10 @@ class Metric:
                     values = [
                         v
                         for v in values
-                        if all(v.labels.get(k) == label_val for k, label_val in labels.items())
+                        if all(
+                            v.labels.get(k) == label_val
+                            for k, label_val in labels.items()
+                        )
                     ]
 
                 # Limit results
@@ -361,7 +364,9 @@ class MetricsCollector:
     """Advanced metrics collection system."""
 
     def __init__(self):
-        self._metrics: Dict[str, Any] = {}  # Can contain Counter, Gauge, Histogram, Timer, or Metric
+        self._metrics: Dict[
+            str, Any
+        ] = {}  # Can contain Counter, Gauge, Histogram, Timer, or Metric
         self._definitions: Dict[str, MetricDefinition] = {}
         self._snapshots: deque = deque(maxlen=100)  # Keep last 100 snapshots
         self._lock = asyncio.Lock()
@@ -592,7 +597,9 @@ class MetricsCollector:
                             "avg": str(statistics.mean(numeric_values)),
                             "min": str(min(numeric_values)),
                             "max": str(max(numeric_values)),
-                            "latest": str(numeric_values[-1]) if numeric_values else "None",
+                            "latest": str(numeric_values[-1])
+                            if numeric_values
+                            else "None",
                         }
                     )
 

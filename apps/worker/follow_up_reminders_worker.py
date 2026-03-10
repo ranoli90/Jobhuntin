@@ -47,7 +47,10 @@ async def run_reminders_loop() -> None:
     db_pool = await create_db_pool()
     manager = create_follow_up_manager(db_pool)
 
-    logger.info("Follow-up reminders worker started (poll every %d min)", POLL_INTERVAL_SEC // 60)
+    logger.info(
+        "Follow-up reminders worker started (poll every %d min)",
+        POLL_INTERVAL_SEC // 60,
+    )
 
     while not _shutdown:
         try:

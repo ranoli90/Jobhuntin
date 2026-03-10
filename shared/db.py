@@ -36,7 +36,11 @@ def resolve_dsn_ipv4(dsn: str) -> str:
         query_params = dict(parse_qsl(parsed.query))
         if "sslmode" not in query_params:
             # Don't require SSL for localhost (local development)
-            if parsed.hostname in ("localhost", "127.0.0.1", "::1") or parsed.hostname.startswith("127."):
+            if parsed.hostname in (
+                "localhost",
+                "127.0.0.1",
+                "::1",
+            ) or parsed.hostname.startswith("127."):
                 query_params["sslmode"] = "disable"
             else:
                 query_params["sslmode"] = "require"

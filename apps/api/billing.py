@@ -21,9 +21,27 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 
 # #24: Canonical billing tiers - single source of truth for API and frontend
 BILLING_TIERS = [
-    {"name": "FREE", "price": "$0", "features": ["10 applications", "Basic tailoring", "Standard support"], "actionKey": None, "recommended": False},
-    {"name": "PRO", "price": "$19", "features": ["Unlimited apps", "Priority queue", "Interview coach"], "recommended": True, "actionKey": "upgrade"},
-    {"name": "TEAM", "price": "$49", "features": ["10 team seats", "API access", "White-label reports"], "actionKey": "addSeats", "recommended": False},
+    {
+        "name": "FREE",
+        "price": "$0",
+        "features": ["10 applications", "Basic tailoring", "Standard support"],
+        "actionKey": None,
+        "recommended": False,
+    },
+    {
+        "name": "PRO",
+        "price": "$19",
+        "features": ["Unlimited apps", "Priority queue", "Interview coach"],
+        "recommended": True,
+        "actionKey": "upgrade",
+    },
+    {
+        "name": "TEAM",
+        "price": "$49",
+        "features": ["10 team seats", "API access", "White-label reports"],
+        "actionKey": "addSeats",
+        "recommended": False,
+    },
 ]
 
 

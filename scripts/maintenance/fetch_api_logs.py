@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv(ROOT / ".env")
 except ImportError:
     pass
@@ -32,9 +33,11 @@ BASE = "https://api.render.com/v1"
 
 def get(path: str) -> dict | list:
     import urllib.request
+
     req = urllib.request.Request(f"{BASE}{path}", headers=HEADERS)
     with urllib.request.urlopen(req, timeout=30) as r:
         import json
+
         return json.loads(r.read().decode())
 
 
@@ -54,11 +57,24 @@ def main():
             svc_list.append(s)
 
     api_svc = next(
-        (s for s in svc_list if "api" in s.get("name", "").lower() and s.get("type") in ("web_service", "worker")),
+        (
+            s
+            for s in svc_list
+            if "api" in s.get("name", "").lower()
+            and s.get("type") in ("web_service", "worker")
+        ),
         None,
     )
     if not api_svc:
-        api_svc = next((s for s in svc_list if "jobhuntin-api" in s.get("name", "") or "sorce-api" in s.get("name", "")), None)
+        api_svc = next(
+            (
+                s
+                for s in svc_list
+                if "jobhuntin-api" in s.get("name", "")
+                or "sorce-api" in s.get("name", "")
+            ),
+            None,
+        )
     if not api_svc:
         print("Services found:", [s.get("name") for s in svc_list])
         print("Could not find API service. Specify service ID manually.")
@@ -104,13 +120,20 @@ def main():
     print("\n--- Logs (last 50) ---")
     try:
         import time
+
         end_ms = int(time.time() * 1000)
         start_ms = end_ms - (3600 * 1000)  # last hour
-        logs = get(f"/logs?resourceIds={sid}&startTime={start_ms}&endTime={end_ms}&limit=50")
+        logs = get(
+            f"/logs?resourceIds={sid}&startTime={start_ms}&endTime={end_ms}&limit=50"
+        )
         entries = logs.get("logs", []) if isinstance(logs, dict) else (logs or [])
         for entry in entries[:50]:
             msg = entry.get("message", entry) if isinstance(entry, dict) else str(entry)
-            ts = entry.get("timestamp", "")[:19] if isinstance(entry, dict) and entry.get("timestamp") else ""
+            ts = (
+                entry.get("timestamp", "")[:19]
+                if isinstance(entry, dict) and entry.get("timestamp")
+                else ""
+            )
             print(f"  [{ts}] {msg}")
         if not entries:
             print("  (No log entries returned - try Render Dashboard for full logs)")

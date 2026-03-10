@@ -59,9 +59,7 @@ async def analyze_query(
             from packages.backend.domain.query_optimizer import QueryOptimizationType
 
             try:
-                [
-                    QueryOptimizationType(opt) for opt in request.optimization_types
-                ]
+                [QueryOptimizationType(opt) for opt in request.optimization_types]
             except ValueError as e:
                 raise HTTPException(
                     status_code=400, detail=f"Invalid optimization type: {str(e)}"

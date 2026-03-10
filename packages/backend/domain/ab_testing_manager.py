@@ -442,7 +442,9 @@ class ABTestingManager:
                             "experiment_status": experiment.status.value,
                             "variant_id": variant.id if variant else None,
                             "variant_name": variant.name if variant else None,
-                            "assigned_at": assignment.assigned_at.isoformat() if assignment else None,
+                            "assigned_at": assignment.assigned_at.isoformat()
+                            if assignment
+                            else None,
                         }
                     )
 

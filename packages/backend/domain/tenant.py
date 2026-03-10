@@ -117,7 +117,9 @@ async def resolve_tenant_context(
     except Exception as exc:
         # If slug column doesn't exist, try without it
         if "slug" in str(exc).lower() or "column" in str(exc).lower():
-            logger.warning("Tenants table doesn't have slug column, inserting without it: %s", exc)
+            logger.warning(
+                "Tenants table doesn't have slug column, inserting without it: %s", exc
+            )
             await conn.execute(
                 """
                 INSERT INTO public.tenants (id, name, plan)

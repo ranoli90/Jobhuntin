@@ -1,6 +1,7 @@
 # =================================================================
 # Development/Testing Dependencies
-# Install: pip install -r requirements-dev.txt
+# Install: pip install -r requirements.txt -r requirements-dev.txt
+# (Test collection imports apps.api.main -> document_processor needs docx, pytesseract)
 # =================================================================
 
 # ── Testing ──────────────────────────────────────────────────────
@@ -8,6 +9,8 @@ pytest>=8.0
 pytest-asyncio>=0.23
 pytest-cov>=5.0
 psycopg2-binary>=2.9
+python-docx>=0.8.11,<1
+pytesseract>=0.3.10,<1
 
 # ── Linting ──────────────────────────────────────────────────────
 ruff>=0.5.0

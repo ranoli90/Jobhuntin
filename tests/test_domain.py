@@ -260,12 +260,17 @@ class TestLLMClient:
         )
         client = LLMClient(settings)
 
+        # Mock _request to return OpenAI-style response (client extracts content from choices)
         mock_response = {
-            "field_values": {"#name": "Alice"},
-            "unresolved_required_fields": [],
+            "choices": [
+                {
+                    "message": {
+                        "content": '{"field_values": {"#name": "Alice"}, "unresolved_required_fields": []}'
+                    }
+                }
+            ]
         }
 
-        # Mock the _request method
         client._request = AsyncMock(return_value=mock_response)
 
         result = await client.call(
@@ -287,7 +292,12 @@ class TestLLMClient:
             llm_retry_count=0,
         )
         client = LLMClient(settings)
-        client._request = AsyncMock(return_value={"foo": "bar"})
+        # Mock _request to return OpenAI-style response
+        client._request = AsyncMock(
+            return_value={
+                "choices": [{"message": {"content": '{"foo": "bar"}'}}]
+            }
+        )
 
         result = await client.call(prompt="test")
         assert result == {"foo": "bar"}

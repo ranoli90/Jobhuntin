@@ -210,11 +210,17 @@ def profile_to_searchable_text(profile: dict[str, Any]) -> str:
     if isinstance(skills, dict):
         if skills.get("technical"):
             tech = skills["technical"]
-            names = [s if isinstance(s, str) else (s.get("skill") or s.get("name") or "") for s in tech[:20]]
+            names = [
+                s if isinstance(s, str) else (s.get("skill") or s.get("name") or "")
+                for s in tech[:20]
+            ]
             parts.append(f"Technical skills: {', '.join(n for n in names if n)}")
         if skills.get("soft"):
             soft = skills["soft"]
-            names = [s if isinstance(s, str) else (s.get("skill") or s.get("name") or "") for s in soft[:10]]
+            names = [
+                s if isinstance(s, str) else (s.get("skill") or s.get("name") or "")
+                for s in soft[:10]
+            ]
             parts.append(f"Soft skills: {', '.join(n for n in names if n)}")
     elif isinstance(skills, list):
         names = []

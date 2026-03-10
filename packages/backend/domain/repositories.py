@@ -275,17 +275,17 @@ class ApplicationRepo:
         tenant_id: str | None = None,
     ) -> ApplicationDetail | None:
         """Fetch application + inputs + last 10 events.
-        
+
         H5: N+1 Query Fix - Uses single query with JOINs instead of 3 separate queries.
         This reduces database round-trips from 3 to 1, improving performance.
         """
         import json
-        
+
         # Single query with LEFT JOINs and array aggregation
         if tenant_id:
             row = await conn.fetchrow(
                 """
-                SELECT 
+                SELECT
                     a.*,
                     COALESCE(
                         json_agg(
@@ -334,7 +334,7 @@ class ApplicationRepo:
         else:
             row = await conn.fetchrow(
                 """
-                SELECT 
+                SELECT
                     a.*,
                     COALESCE(
                         json_agg(
@@ -379,25 +379,29 @@ class ApplicationRepo:
                 """,
                 application_id,
             )
-        
+
         if row is None:
             return None
-        
+
         # Extract application data (all columns except the aggregated arrays)
-        app_dict = {k: v for k, v in dict(row).items() if k not in ("inputs_array", "events_array")}
+        app_dict = {
+            k: v
+            for k, v in dict(row).items()
+            if k not in ("inputs_array", "events_array")
+        }
         application = Application.model_validate(app_dict)
-        
+
         # Parse aggregated JSON arrays
         inputs_data = row.get("inputs_array") or []
         if isinstance(inputs_data, str):
             inputs_data = json.loads(inputs_data)
         inputs = [ApplicationInput.model_validate(dict(inp)) for inp in inputs_data]
-        
+
         events_data = row.get("events_array") or []
         if isinstance(events_data, str):
             events_data = json.loads(events_data)
         events = [ApplicationEvent.model_validate(dict(evt)) for evt in events_data]
-        
+
         return ApplicationDetail(application=application, inputs=inputs, events=events)
 
 
@@ -551,7 +555,7 @@ class JobRepo:
         user_id: str | None = None,
     ) -> List[dict]:
         """List jobs with comprehensive details.
-        
+
         SECURITY: Uses parameterized queries to prevent SQL injection.
         All filters and pagination parameters are properly bound.
         """
@@ -579,7 +583,7 @@ class JobRepo:
             LEFT JOIN public.companies c ON j.company_id = c.id
             WHERE j.is_active = true
         """
-        
+
         # Build parameter array and conditions (CRITICAL: asyncpg uses $1, $2, etc. as literal strings)
         params: list[Any] = []
         conditions: list[str] = []
@@ -591,37 +595,37 @@ class JobRepo:
                 if location_value:
                     params.append(f"%{location_value}%")
                     conditions.append("j.location ILIKE ${" + str(len(params)) + "}")
-                    
+
             if "remote" in filters:
                 remote_value = filters["remote"]
                 if remote_value is not None:
                     params.append(remote_value)
                     conditions.append("j.remote = ${" + str(len(params)) + "}")
-                    
+
             if "job_type" in filters:
                 job_type_value = filters["job_type"]
                 if job_type_value:
                     params.append(job_type_value)
                     conditions.append("j.job_type = ${" + str(len(params)) + "}")
-                    
+
             if "company_size" in filters:
                 company_size_value = filters["company_size"]
                 if company_size_value:
                     params.append(company_size_value)
                     conditions.append("c.size = ${" + str(len(params)) + "}")
-                    
+
             if "industry" in filters:
                 industry_value = filters["industry"]
                 if industry_value:
                     params.append(industry_value)
                     conditions.append("c.industry = ${" + str(len(params)) + "}")
-                    
+
             if "salary_min" in filters:
                 salary_min_value = filters["salary_min"]
                 if salary_min_value is not None:
                     params.append(salary_min_value)
                     conditions.append("j.salary_min >= ${" + str(len(params)) + "}")
-                    
+
             if "salary_max" in filters:
                 salary_max_value = filters["salary_max"]
                 if salary_max_value is not None:
@@ -633,7 +637,7 @@ class JobRepo:
             query += " AND " + " AND ".join(conditions)
 
         query += " ORDER BY j.created_at DESC"
-        
+
         # Add pagination with proper parameter binding
         if offset > 0:
             params.append(offset)
@@ -647,8 +651,9 @@ class JobRepo:
         # asyncpg requires literal $1, $2, etc. in the query string
         # Use regex to replace ${N} with $N
         import re
-        final_query = re.sub(r'\$\{(\d+)\}', lambda m: '$' + m.group(1), query)
-        
+
+        final_query = re.sub(r"\$\{(\d+)\}", lambda m: "$" + m.group(1), query)
+
         # Execute query with parameters
         rows = await conn.fetch(final_query, *params)
 

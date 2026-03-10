@@ -756,7 +756,9 @@ class SkillsTaxonomy:
             if skill_info:
                 category = skill_info.category
                 demand_score = skill_info.demand_score
-                category_key = category.value if hasattr(category, 'value') else str(category)
+                category_key = (
+                    category.value if hasattr(category, "value") else str(category)
+                )
 
                 if category_key not in category_scores:
                     category_scores[category_key] = []
@@ -764,7 +766,7 @@ class SkillsTaxonomy:
 
         # Convert category_weights to string keys for lookup
         category_weights_str: Dict[str, float] = {
-            (k.value if hasattr(k, 'value') else str(k)): v
+            (k.value if hasattr(k, "value") else str(k)): v
             for k, v in category_weights.items()
         }
 
@@ -950,6 +952,7 @@ def validate_user_skills(skills: List[str]) -> Tuple[List[str], List[str], Dict]
     def get_demand_score(skill_name: str) -> float:
         skill_info = taxonomy.get_skill_info(skill_name)
         return skill_info.demand_score if skill_info else 0.0
+
     valid_skills.sort(key=get_demand_score, reverse=True)
     analysis["top_skills"] = valid_skills[:5]
 

@@ -79,14 +79,19 @@ async def list_sessions(
     if jobhuntin_auth:
         try:
             import jwt as pyjwt
+
             from shared.config import get_settings
+
             settings = get_settings()
             payload = pyjwt.decode(
-                jobhuntin_auth, settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+                jobhuntin_auth,
+                settings.jwt_secret,
+                algorithms=["HS256"],
+                audience="authenticated",
             )
             current_session_id = payload.get("session_id")
-        except Exception:
-            pass  # Ignore errors, session_id is optional
+        except Exception as e:
+            logger.debug("Could not extract session_id from JWT cookie: %s", e)
 
     session_responses = []
     for s in sessions:
@@ -122,14 +127,19 @@ async def revoke_session(
     if jobhuntin_auth:
         try:
             import jwt as pyjwt
+
             from shared.config import get_settings
+
             settings = get_settings()
             payload = pyjwt.decode(
-                jobhuntin_auth, settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+                jobhuntin_auth,
+                settings.jwt_secret,
+                algorithms=["HS256"],
+                audience="authenticated",
             )
             current_session_id = payload.get("session_id")
-        except Exception:
-            pass  # Ignore errors, session_id is optional
+        except Exception as e:
+            logger.debug("Could not extract session_id from JWT cookie: %s", e)
     if session_id == current_session_id:
         raise HTTPException(
             status_code=400,
@@ -166,10 +176,15 @@ async def revoke_all_other_sessions(
     if jobhuntin_auth:
         try:
             import jwt as pyjwt
+
             from shared.config import get_settings
+
             settings = get_settings()
             payload = pyjwt.decode(
-                jobhuntin_auth, settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+                jobhuntin_auth,
+                settings.jwt_secret,
+                algorithms=["HS256"],
+                audience="authenticated",
             )
             current_session_id = payload.get("session_id")
         except Exception:

@@ -94,7 +94,7 @@ class JSONFormatter(logging.Formatter):
     Automatically sanitizes PII from the ``extra`` dict attached to log records
     so that callers don't need to remember to call ``sanitize_for_log()``
     manually.
-    
+
     M4: Enhanced with OpenTelemetry trace context for distributed tracing.
     """
 
@@ -103,7 +103,7 @@ class JSONFormatter(logging.Formatter):
         trace_context = {}
         try:
             from opentelemetry import trace
-            
+
             span = trace.get_current_span()
             if span and span.get_span_context().is_valid:
                 span_ctx = span.get_span_context()
@@ -113,7 +113,7 @@ class JSONFormatter(logging.Formatter):
                 }
         except Exception:
             pass  # OpenTelemetry not available or not initialized
-        
+
         log_entry: dict[str, Any] = {
             **trace_context,  # M4: Include trace context in logs
             "ts": datetime.now(timezone.utc).isoformat(),

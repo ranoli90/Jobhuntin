@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
 from backend.domain.analytics_events import ALL_EVENT_TYPES
+from backend.domain.business_metrics import get_business_metrics_dashboard
 from backend.domain.eval_queries import get_agent_performance_summary
 from backend.domain.evaluations import record_user_feedback
 from backend.domain.experiment_readout import get_experiment_results
@@ -22,7 +23,7 @@ from backend.domain.m1_metrics import get_m1_dashboard, refresh_dashboard_views
 from backend.domain.m2_metrics import get_m2_dashboard, refresh_m2_views
 from backend.domain.m3_metrics import get_m3_dashboard, refresh_m3_views
 from backend.domain.m4_metrics import get_m4_dashboard, refresh_m4_views
-from backend.domain.business_metrics import get_business_metrics_dashboard
+from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
@@ -99,7 +100,7 @@ async def ingest_events(
             if evt.event_type not in ALL_EVENT_TYPES:
                 rejected += 1
                 continue
-            
+
             # SECURITY: Override tenant_id and user_id from authenticated context
             # to prevent users from injecting events for other users/tenants
             await conn.execute(
@@ -109,7 +110,7 @@ async def ingest_events(
                 VALUES ($1, $2, $3, $4, $5::jsonb, COALESCE($6::timestamptz, now()))
                 """,
                 ctx.tenant_id,  # Use authenticated tenant_id
-                ctx.user_id,    # Use authenticated user_id
+                ctx.user_id,  # Use authenticated user_id
                 evt.session_id,
                 evt.event_type,
                 json.dumps(evt.properties),
@@ -419,14 +420,14 @@ async def business_metrics_dashboard(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """M5: Return real-time business metrics dashboard.
-    
+
     Provides:
     - Real-time DAU/WAU/MAU
     - Daily active users trend (30 days)
     - User retention by cohort
     - Conversion funnel (signup → onboarding → application → paid)
     - Revenue metrics (MRR, ARR, growth rate)
-    
+
     All metrics are calculated in real-time from the database.
     """
     async with db.acquire() as conn:

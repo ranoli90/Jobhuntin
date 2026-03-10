@@ -18,7 +18,7 @@ logger = get_logger("sorce.circuit_breaker")
 
 class CircuitState(Enum):
     """Circuit breaker states."""
-    
+
     CLOSED = "closed"  # Normal operation
     OPEN = "open"  # Failing, reject requests
     HALF_OPEN = "half_open"  # Testing if service recovered
@@ -26,14 +26,14 @@ class CircuitState(Enum):
 
 class CircuitBreaker:
     """Circuit breaker for external service calls.
-    
+
     Prevents cascading failures by:
     - Opening circuit after failure threshold
     - Rejecting requests when open
     - Testing recovery in half-open state
     - Closing circuit when service recovers
     """
-    
+
     def __init__(
         self,
         name: str,
@@ -43,7 +43,7 @@ class CircuitBreaker:
         expected_exception: type[Exception] | tuple[type[Exception], ...] = Exception,
     ):
         """Initialize circuit breaker.
-        
+
         Args:
             name: Circuit breaker name (for logging/metrics)
             failure_threshold: Number of failures before opening
@@ -56,13 +56,13 @@ class CircuitBreaker:
         self.success_threshold = success_threshold
         self.timeout_seconds = timeout_seconds
         self.expected_exception = expected_exception
-        
+
         self.state = CircuitState.CLOSED
         self.failure_count = 0
         self.success_count = 0
         self.last_failure_time: float | None = None
         self._lock = asyncio.Lock()
-    
+
     async def call(
         self,
         func: Callable[..., Any],
@@ -70,15 +70,15 @@ class CircuitBreaker:
         **kwargs: Any,
     ) -> Any:
         """Execute function with circuit breaker protection.
-        
+
         Args:
             func: Async function to call
             *args: Function arguments
             **kwargs: Function keyword arguments
-            
+
         Returns:
             Function result
-            
+
         Raises:
             CircuitBreakerOpenError: If circuit is open
             Original exception: If function call fails
@@ -94,7 +94,9 @@ class CircuitBreaker:
                     # Transition to half-open
                     self.state = CircuitState.HALF_OPEN
                     self.success_count = 0
-                    logger.info(f"Circuit breaker {self.name} transitioning to HALF_OPEN")
+                    logger.info(
+                        f"Circuit breaker {self.name} transitioning to HALF_OPEN"
+                    )
                 else:
                     # Still open, reject request
                     incr("circuit_breaker.rejected", {"name": self.name})
@@ -102,13 +104,13 @@ class CircuitBreaker:
                         f"Circuit breaker {self.name} is OPEN. "
                         f"Service unavailable. Retry after timeout."
                     )
-        
+
         # Attempt call
         try:
             start_time = time.time()
             result = await func(*args, **kwargs)
             elapsed = time.time() - start_time
-            
+
             # Success
             async with self._lock:
                 if self.state == CircuitState.HALF_OPEN:
@@ -122,22 +124,28 @@ class CircuitBreaker:
                 elif self.state == CircuitState.CLOSED:
                     # Reset failure count on success
                     self.failure_count = 0
-            
-            observe(f"circuit_breaker.call.duration", elapsed, {"name": self.name, "success": "true"})
+
+            observe(
+                "circuit_breaker.call.duration",
+                elapsed,
+                {"name": self.name, "success": "true"},
+            )
             incr("circuit_breaker.call.success", {"name": self.name})
             return result
-            
-        except self.expected_exception as e:
+
+        except self.expected_exception:
             # Failure
             async with self._lock:
                 self.failure_count += 1
                 self.last_failure_time = time.time()
-                
+
                 if self.state == CircuitState.HALF_OPEN:
                     # Failed in half-open - open circuit again
                     self.state = CircuitState.OPEN
                     self.success_count = 0
-                    logger.warning(f"Circuit breaker {self.name} OPEN (failed in half-open)")
+                    logger.warning(
+                        f"Circuit breaker {self.name} OPEN (failed in half-open)"
+                    )
                 elif (
                     self.state == CircuitState.CLOSED
                     and self.failure_count >= self.failure_threshold
@@ -149,14 +157,19 @@ class CircuitBreaker:
                         f"(failure_count={self.failure_count})"
                     )
                     incr("circuit_breaker.opened", {"name": self.name})
-            
-            observe(f"circuit_breaker.call.duration", 0, {"name": self.name, "success": "false"})
+
+            observe(
+                "circuit_breaker.call.duration",
+                0,
+                {"name": self.name, "success": "false"},
+            )
             incr("circuit_breaker.call.failure", {"name": self.name})
             raise
 
 
 class CircuitBreakerOpenError(Exception):
     """Raised when circuit breaker is open and request is rejected."""
+
     pass
 
 
@@ -211,10 +224,10 @@ def get_storage_breaker() -> CircuitBreaker:
 
 def get_circuit_breaker(name: str) -> CircuitBreaker:
     """Get or create a circuit breaker by name.
-    
+
     Args:
         name: Circuit breaker name (e.g., "resend", "stripe", "embeddings")
-        
+
     Returns:
         CircuitBreaker instance for the given name
     """
@@ -232,14 +245,14 @@ def get_circuit_breaker(name: str) -> CircuitBreaker:
 
 def get_all_circuit_breaker_statuses() -> dict[str, dict[str, Any]]:
     """Get status of all circuit breakers.
-    
+
     Returns:
         Dictionary mapping circuit breaker names to their status
     """
     global _breakers, _openrouter_breaker, _email_breaker, _storage_breaker
-    
+
     statuses: dict[str, dict[str, Any]] = {}
-    
+
     # Add named breakers
     for name, breaker in _breakers.items():
         statuses[name] = {
@@ -248,7 +261,7 @@ def get_all_circuit_breaker_statuses() -> dict[str, dict[str, Any]]:
             "success_count": breaker.success_count,
             "last_failure_time": breaker.last_failure_time,
         }
-    
+
     # Add specific breakers if they exist
     if _openrouter_breaker:
         statuses["openrouter"] = {
@@ -257,7 +270,7 @@ def get_all_circuit_breaker_statuses() -> dict[str, dict[str, Any]]:
             "success_count": _openrouter_breaker.success_count,
             "last_failure_time": _openrouter_breaker.last_failure_time,
         }
-    
+
     if _email_breaker:
         statuses["email_service"] = {
             "state": _email_breaker.state.value,
@@ -265,7 +278,7 @@ def get_all_circuit_breaker_statuses() -> dict[str, dict[str, Any]]:
             "success_count": _email_breaker.success_count,
             "last_failure_time": _email_breaker.last_failure_time,
         }
-    
+
     if _storage_breaker:
         statuses["storage_service"] = {
             "state": _storage_breaker.state.value,
@@ -273,5 +286,5 @@ def get_all_circuit_breaker_statuses() -> dict[str, dict[str, Any]]:
             "success_count": _storage_breaker.success_count,
             "last_failure_time": _storage_breaker.last_failure_time,
         }
-    
+
     return statuses

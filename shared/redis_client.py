@@ -11,7 +11,7 @@ class RedisManager:
 
     async def get_client(self) -> redis.Redis:
         """Get or create the Redis client.
-        
+
         P0-2: In production, REDIS_URL is required. No fallback to localhost.
         """
         if self._client is None:

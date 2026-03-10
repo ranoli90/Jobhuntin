@@ -72,7 +72,9 @@ class ValidationResult:
 
     is_valid: bool
     errors: List[str]
-    sanitized_data: Dict[str, Any] | Any  # Can be dict for full validation or single value for field validation
+    sanitized_data: (
+        Dict[str, Any] | Any
+    )  # Can be dict for full validation or single value for field validation
     warnings: List[str]
 
 

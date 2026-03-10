@@ -778,10 +778,14 @@ class UserBehaviorAnalyzer:
 
             # Pattern consistency confidence (use existing method)
             daily_metrics_stub: List[Dict[str, Any]] = [{"event_count": len(events)}]
-            pattern_confidence = self._calculate_behavior_consistency(daily_metrics_stub)  # type: ignore[assignment]
+            pattern_confidence = self._calculate_behavior_consistency(
+                daily_metrics_stub
+            )  # type: ignore[assignment]
 
             # Time period confidence (stub - calculate based on event count)
-            time_confidence = min(1.0, len(events) / 100.0)  # More events = higher confidence
+            time_confidence = min(
+                1.0, len(events) / 100.0
+            )  # More events = higher confidence
 
             # Overall confidence
             overall_confidence = (
@@ -1634,7 +1638,9 @@ class UserBehaviorAnalyzer:
             if len(daily_metrics) < 2:
                 return 0.0
 
-            event_counts: List[int] = [int(m.get("event_count", 0)) for m in daily_metrics]  # type: ignore[assignment]
+            event_counts: List[int] = [
+                int(m.get("event_count", 0)) for m in daily_metrics
+            ]  # type: ignore[assignment]
 
             # Calculate coefficient of variation
             mean = sum(event_counts) / len(event_counts)

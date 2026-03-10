@@ -121,7 +121,7 @@ async def lifespan(app: FastAPI):
             "Consider enabling IP binding by setting "
             "MAGIC_LINK_BIND_TO_IP=true for enhanced security."
         )
-    
+
     # Initialize Redis (optional, but good to fail fast if config is bad)
     if _settings.redis_url:
         try:
@@ -234,15 +234,16 @@ setup_request_id_middleware(app)
 # Note: api_v2 router is already registered below with prefix /api/v2
 # For v1, we use the default routes (no prefix)
 
+
 # M3: API Versioning Middleware - Add version headers and handle version negotiation
 @app.middleware("http")
 async def api_versioning_middleware(request: Request, call_next):
     """Add API version headers and handle version negotiation.
-    
+
     Headers added:
     - X-API-Version: Current API version (v1)
     - X-Supported-Versions: Comma-separated list of supported versions
-    
+
     Version negotiation:
     - Accept-Version header can specify desired version (e.g., "v2")
     - If version not supported, returns 400 with supported versions
@@ -273,19 +274,21 @@ async def api_versioning_middleware(request: Request, call_next):
     else:
         # Default to current version
         request.state.api_version = API_VERSION
-    
+
     # Process request
     response = await call_next(request)
-    
+
     # Add API version headers to response
     response.headers["X-API-Version"] = API_VERSION
     response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
-    
+
     return response
 
-from shared.metrics import get_rate_limiter, observe, incr
-from shared.middleware import get_client_ip, setup_security_headers
+
 import time
+
+from shared.metrics import get_rate_limiter
+from shared.middleware import get_client_ip, setup_security_headers
 
 # ---------------------------------------------------------------------------
 # CSRF Protection Middleware
@@ -360,52 +363,60 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
 @app.middleware("http")
 async def idempotency_middleware(request: Request, call_next):
     """C2: Idempotency Keys - Prevent duplicate writes on retries.
-    
+
     Checks for Idempotency-Key header on POST/PUT/PATCH requests.
     If present, caches the response in Redis and returns cached response
     for duplicate requests within the TTL window.
     """
     import json
-    
+
     # Only apply to write operations
     if request.method not in ["POST", "PUT", "PATCH"]:
         return await call_next(request)
-    
+
     idempotency_key = request.headers.get("Idempotency-Key")
     if not idempotency_key:
         # No idempotency key provided - proceed normally
         # (Optional: could require it for certain endpoints)
         return await call_next(request)
-    
+
     # Validate key format (UUID or alphanumeric, max 128 chars)
-    if not idempotency_key or len(idempotency_key) > 128 or not idempotency_key.replace("-", "").replace("_", "").isalnum():
+    if (
+        not idempotency_key
+        or len(idempotency_key) > 128
+        or not idempotency_key.replace("-", "").replace("_", "").isalnum()
+    ):
         raise HTTPException(
             status_code=400,
             detail="Invalid Idempotency-Key format. Must be alphanumeric, max 128 characters.",
         )
-    
+
     # Check Redis for cached response
     if _settings.redis_url:
         try:
             from shared.redis_client import get_redis
-            
+
             r = await get_redis()
             cache_key = f"idempotency:{idempotency_key}"
-            
+
             # CRITICAL: Use atomic SET NX to prevent race condition
             # Two requests with same key will both check, but only one can set the lock
             lock_key = f"{cache_key}:lock"
             lock_acquired = await r.set(lock_key, "1", nx=True, ex=30)  # 30 second lock
-            
+
             if not lock_acquired:
                 # Another request is processing with this key, wait and check cache
                 import asyncio
+
                 await asyncio.sleep(0.1)  # Brief wait
                 cached = await r.get(cache_key)
                 if cached:
                     logger.info(
                         "Idempotent request detected (race condition avoided) - returning cached response",
-                        extra={"idempotency_key": idempotency_key[:16] + "...", "path": request.url.path},
+                        extra={
+                            "idempotency_key": idempotency_key[:16] + "...",
+                            "path": request.url.path,
+                        },
                     )
                     try:
                         cached_data = json.loads(cached)
@@ -422,7 +433,7 @@ async def idempotency_middleware(request: Request, call_next):
                 # No cache yet, release lock and proceed (shouldn't happen but handle gracefully)
                 await r.delete(lock_key)
                 # Continue to process request normally - fall through to line 425
-            
+
             # Check for existing cached response (double-check after acquiring lock)
             cached = await r.get(cache_key)
             if cached:
@@ -430,7 +441,10 @@ async def idempotency_middleware(request: Request, call_next):
                 await r.delete(lock_key)
                 logger.info(
                     "Idempotent request detected - returning cached response",
-                    extra={"idempotency_key": idempotency_key[:16] + "...", "path": request.url.path},
+                    extra={
+                        "idempotency_key": idempotency_key[:16] + "...",
+                        "path": request.url.path,
+                    },
                 )
                 try:
                     cached_data = json.loads(cached)
@@ -443,14 +457,14 @@ async def idempotency_middleware(request: Request, call_next):
                     logger.warning("Failed to parse cached idempotency response")
                     # Fall through to process request - continue to line 445
                     pass
-            
+
             # Process request (we hold the lock)
             try:
                 response = await call_next(request)
             finally:
                 # Always release lock
                 await r.delete(lock_key)
-            
+
             # Cache successful responses (2xx status codes)
             if 200 <= response.status_code < 300:
                 try:
@@ -458,13 +472,13 @@ async def idempotency_middleware(request: Request, call_next):
                     response_body = b""
                     async for chunk in response.body_iterator:
                         response_body += chunk
-                    
+
                     # Parse JSON if possible
                     try:
                         body_json = json.loads(response_body.decode())
                     except (json.JSONDecodeError, UnicodeDecodeError):
                         body_json = {"raw": response_body.decode(errors="ignore")[:100]}
-                    
+
                     # Cache response for 1 hour
                     cache_data = {
                         "body": body_json,
@@ -472,7 +486,7 @@ async def idempotency_middleware(request: Request, call_next):
                         "headers": dict(response.headers),
                     }
                     await r.setex(cache_key, 3600, json.dumps(cache_data))
-                    
+
                     # Return new response with body
                     return JSONResponse(
                         content=body_json,
@@ -486,7 +500,7 @@ async def idempotency_middleware(request: Request, call_next):
             else:
                 # Don't cache error responses
                 return response
-                
+
         except Exception as e:
             logger.warning("Idempotency check failed (Redis unavailable): %s", e)
             # Fail open - process request normally if Redis is down
@@ -503,12 +517,12 @@ async def idempotency_middleware(request: Request, call_next):
 @app.middleware("http")
 async def latency_middleware(request: Request, call_next):
     """Track API latency and performance metrics (H3: API Performance Monitoring).
-    
+
     M4: Enhanced with OpenTelemetry span attributes for distributed tracing.
     """
     # M4: Get current span (created by FastAPI instrumentation) and add attributes
     from opentelemetry import trace
-    
+
     span = trace.get_current_span()
     if span and span.get_span_context().is_valid:
         # Add request attributes to existing span
@@ -517,20 +531,22 @@ async def latency_middleware(request: Request, call_next):
         span.set_attribute("http.route", request.url.path)
         if request.client:
             span.set_attribute("http.client_ip", request.client.host)
-    
+
     start_time = time.time()
     path = request.url.path
     method = request.method
-    
+
     try:
         response = await call_next(request)
         duration = time.time() - start_time
-        
+
         # M4: Add response attributes to span
         if span and span.get_span_context().is_valid:
             span.set_attribute("http.status_code", response.status_code)
-            span.set_attribute("http.response_size", response.headers.get("content-length", "0"))
-        
+            span.set_attribute(
+                "http.response_size", response.headers.get("content-length", "0")
+            )
+
         # Record latency metric
         observe(
             "api.latency",
@@ -541,7 +557,7 @@ async def latency_middleware(request: Request, call_next):
                 "status_code": str(response.status_code),
             },
         )
-        
+
         # Track slow requests (>1 second)
         if duration > 1.0:
             logger.warning(
@@ -561,7 +577,7 @@ async def latency_middleware(request: Request, call_next):
                     "status_code": str(response.status_code),
                 },
             )
-        
+
         # Track request count
         incr(
             "api.requests",
@@ -571,17 +587,17 @@ async def latency_middleware(request: Request, call_next):
                 "status_code": str(response.status_code),
             },
         )
-        
+
         return response
     except Exception as exc:
         duration = time.time() - start_time
-        
+
         # M4: Record exception in span
         if span and span.get_span_context().is_valid:
             span.record_exception(exc)
             span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc)))
             span.set_attribute("http.status_code", 500)
-            
+
             # Record error latency
             observe(
                 "api.latency",
@@ -631,7 +647,9 @@ async def rate_limiting_middleware(request: Request, call_next):
                 detail=f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. Try again in {metadata.get('reset_in', 60)} seconds.",
             )
     else:
-        ip_limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)
+        ip_limiter = get_rate_limiter(
+            f"api:{client_ip}", max_calls=100, window_seconds=60
+        )
         if not await ip_limiter.acquire():
             incr("api.rate_limit_exceeded", tags={"client_ip": client_ip})
             raise HTTPException(
@@ -1001,7 +1019,7 @@ def _mount_sub_routers() -> None:
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """C7: Error Handling - Standardize error responses.
-    
+
     Returns consistent error format:
     {
         "error": {
@@ -1013,7 +1031,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     }
     """
     request_id = request.headers.get("X-Request-ID", "unknown")
-    
+
     # MEDIUM: Extract error code from status code or detail message
     error_codes = {
         400: "BAD_REQUEST",
@@ -1029,11 +1047,11 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
         503: "SERVICE_UNAVAILABLE",
         504: "GATEWAY_TIMEOUT",
     }
-    
+
     # Try to extract specific error code from detail message
     error_code = error_codes.get(exc.status_code, "HTTP_ERROR")
     detail_lower = (exc.detail or "").lower()
-    
+
     # Map common error messages to specific error codes
     if "invalid job id" in detail_lower:
         error_code = "INVALID_JOB_ID_FORMAT"
@@ -1081,11 +1099,13 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
             error_code = "EMAIL_SERVICE_TIMEOUT"
         else:
             error_code = "EMAIL_SERVICE_ERROR"
-    elif "database.*unavailable" in detail_lower or "pool.*not available" in detail_lower:
+    elif (
+        "database.*unavailable" in detail_lower or "pool.*not available" in detail_lower
+    ):
         error_code = "DATABASE_UNAVAILABLE"
     elif "rating" in detail_lower and ("1" in detail_lower or "5" in detail_lower):
         error_code = "INVALID_RATING"
-    
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -1101,7 +1121,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """C7: Error Handling - Catch-all for unhandled exceptions.
-    
+
     Prevents stack trace leaks in production while providing useful
     error information in development.
     """
@@ -1156,8 +1176,12 @@ async def get_tenant_context(
         async with db.acquire() as conn:
             ctx = await resolve_tenant_context(conn, user_id)
         if ctx is None:
-            logger.error("[TENANT] resolve_tenant_context returned None for user_id: %s", user_id)
-            raise HTTPException(status_code=500, detail="Failed to resolve tenant context")
+            logger.error(
+                "[TENANT] resolve_tenant_context returned None for user_id: %s", user_id
+            )
+            raise HTTPException(
+                status_code=500, detail="Failed to resolve tenant context"
+            )
         LogContext.set(tenant_id=ctx.tenant_id, user_id=ctx.user_id)
         return ctx
     except HTTPException:
@@ -1179,23 +1203,28 @@ class ResumeParseResponse(BaseModel):
 
 
 class AnswerItem(BaseModel):
-    input_id: str = Field(..., min_length=1, max_length=100, description="Input identifier")
-    answer: str = Field(..., max_length=5000, description="Answer text (max 5000 characters)")
-    
-    @field_validator('answer')
+    input_id: str = Field(
+        ..., min_length=1, max_length=100, description="Input identifier"
+    )
+    answer: str = Field(
+        ..., max_length=5000, description="Answer text (max 5000 characters)"
+    )
+
+    @field_validator("answer")
     @classmethod
     def sanitize_answer(cls, v: str) -> str:
         """MEDIUM: Sanitize HTML in user input to prevent XSS."""
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=5000)
 
 
 class ResumeTaskRequest(BaseModel):
     application_id: str = Field(..., description="Application identifier")
     answers: list[AnswerItem] = Field(
-        ..., 
+        ...,
         max_length=100,  # HIGH: Limit to prevent DoS
-        description="List of answers (max 100)"
+        description="List of answers (max 100)",
     )
 
 
@@ -1228,15 +1257,20 @@ class ApplicationDetailResponse(BaseModel):
 
 
 class SaveAnswerRequest(BaseModel):
-    field_label: str = Field(..., min_length=1, max_length=200, description="Field label")
+    field_label: str = Field(
+        ..., min_length=1, max_length=200, description="Field label"
+    )
     field_type: str = Field(default="text", max_length=50, description="Field type")
-    answer_value: str = Field(..., max_length=5000, description="Answer value (max 5000 characters)")
-    
-    @field_validator('answer_value')
+    answer_value: str = Field(
+        ..., max_length=5000, description="Answer value (max 5000 characters)"
+    )
+
+    @field_validator("answer_value")
     @classmethod
     def sanitize_answer(cls, v: str) -> str:
         """MEDIUM: Sanitize HTML in user input to prevent XSS."""
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=5000)
 
 
@@ -1280,21 +1314,31 @@ async def save_answer_memory(
 
 class RichSkillRequest(BaseModel):
     skill: str = Field(..., min_length=1, max_length=100, description="Skill name")
-    confidence: float = Field(default=0.5, ge=0.0, le=1.0, description="Confidence level (0.0-1.0)")
-    years_actual: float | None = Field(default=None, ge=0.0, le=50.0, description="Years of experience")
+    confidence: float = Field(
+        default=0.5, ge=0.0, le=1.0, description="Confidence level (0.0-1.0)"
+    )
+    years_actual: float | None = Field(
+        default=None, ge=0.0, le=50.0, description="Years of experience"
+    )
     context: str = Field(default="", max_length=500, description="Context description")
-    last_used: str | None = Field(default=None, max_length=50, description="Last used date")
+    last_used: str | None = Field(
+        default=None, max_length=50, description="Last used date"
+    )
     verified: bool = Field(default=False, description="Whether skill is verified")
-    related_to: list[str] = Field(default_factory=list, max_length=20, description="Related skills (max 20)")
+    related_to: list[str] = Field(
+        default_factory=list, max_length=20, description="Related skills (max 20)"
+    )
     source: str = Field(default="manual", max_length=50, description="Skill source")
-    project_count: int = Field(default=0, ge=0, le=1000, description="Number of projects using this skill")
+    project_count: int = Field(
+        default=0, ge=0, le=1000, description="Number of projects using this skill"
+    )
 
 
 class SaveSkillsRequest(BaseModel):
     skills: list[RichSkillRequest] = Field(
-        ..., 
+        ...,
         max_length=500,  # HIGH: Limit to prevent DoS with large skill lists
-        description="List of skills (max 500)"
+        description="List of skills (max 500)",
     )
 
 
@@ -1374,10 +1418,10 @@ async def save_user_skills(
             if not user_id:
                 logger.warning("Cannot update completeness: user_id is None")
                 return
-            
-            from packages.backend.domain.profile_assembly import assemble_profile
+
             from packages.backend.domain.deep_profile import calculate_completeness
-            
+            from packages.backend.domain.profile_assembly import assemble_profile
+
             deep_profile = await assemble_profile(conn, user_id)
             if deep_profile:
                 completeness_score = calculate_completeness(deep_profile)
@@ -1404,37 +1448,37 @@ class WorkStyleRequest(BaseModel):
     autonomy_preference: str = Field(
         default="medium",
         pattern="^(low|medium|high)$",  # HIGH: Validate enum values
-        description="Autonomy preference"
+        description="Autonomy preference",
     )
     learning_style: str = Field(
         default="building",
         pattern="^(building|studying|mixed)$",
-        description="Learning style"
+        description="Learning style",
     )
     company_stage_preference: str = Field(
         default="flexible",
         pattern="^(startup|growth|enterprise|flexible)$",
-        description="Company stage preference"
+        description="Company stage preference",
     )
     communication_style: str = Field(
         default="mixed",
         pattern="^(async|sync|mixed)$",
-        description="Communication style"
+        description="Communication style",
     )
     pace_preference: str = Field(
         default="steady",
         pattern="^(fast|steady|relaxed)$",
-        description="Pace preference"
+        description="Pace preference",
     )
     ownership_preference: str = Field(
         default="team",
         pattern="^(individual|team|mixed)$",
-        description="Ownership preference"
+        description="Ownership preference",
     )
     career_trajectory: str = Field(
         default="open",
         pattern="^(open|focused|exploring)$",
-        description="Career trajectory"
+        description="Career trajectory",
     )
 
     class Config:
@@ -1472,10 +1516,10 @@ async def save_work_style(
 
     # HIGH: Wrap multi-table updates in transaction to ensure atomicity
     from packages.backend.domain.repositories import db_transaction
-    
+
     async with db_transaction(db) as conn:
         # Check if user has already saved work style (only add completeness on first save)
-        had_work_style = await conn.fetchval(
+        await conn.fetchval(
             "SELECT 1 FROM public.work_style_profiles WHERE user_id = $1 LIMIT 1",
             user_id,
         )
@@ -1510,10 +1554,10 @@ async def save_work_style(
         if not user_id:
             logger.warning("Cannot update completeness: user_id is None")
             return
-        
-        from packages.backend.domain.profile_assembly import assemble_profile
+
         from packages.backend.domain.deep_profile import calculate_completeness
-        
+        from packages.backend.domain.profile_assembly import assemble_profile
+
         deep_profile = await assemble_profile(conn, user_id)
         if deep_profile:
             completeness_score = calculate_completeness(deep_profile)
@@ -1830,7 +1874,7 @@ async def healthz(
     s = get_settings()
     db_ok = False
     pool_stats = {}
-    
+
     try:
         async with db.acquire() as conn:
             await conn.fetchval("SELECT 1")
@@ -1847,7 +1891,7 @@ async def healthz(
         max_size = pool.get_max_size()
         active_size = pool_size - idle_size
         utilization_pct = (active_size / max_size * 100) if max_size > 0 else 0
-        
+
         pool_stats = {
             "size": pool_size,
             "idle": idle_size,
@@ -1856,13 +1900,13 @@ async def healthz(
             "max": max_size,
             "utilization_pct": round(utilization_pct, 2),
         }
-        
+
         # Track pool metrics for alerting
         observe("db.pool.size", pool_size, tags={"type": "total"})
         observe("db.pool.active", active_size, tags={"type": "active"})
         observe("db.pool.idle", idle_size, tags={"type": "idle"})
         observe("db.pool.utilization", utilization_pct, tags={"type": "percentage"})
-        
+
         # Alert if pool is near capacity (H6: Connection Pool Monitoring)
         if utilization_pct > 80:
             logger.warning(
@@ -1880,7 +1924,7 @@ async def healthz(
                 max_size,
             )
             incr("db.pool.critical_utilization", tags={"threshold": "90"})
-            
+
     except Exception as e:
         logger.debug(f"Failed to collect pool stats: {e}")
         pool_stats = {"error": "unavailable"}
@@ -1891,11 +1935,11 @@ async def healthz(
         "env": s.env.value,
         "db": "ok" if db_ok else "unreachable",
     }
-    
+
     # H6: Include pool stats in health check response
     if pool_stats:
         response["pool"] = pool_stats
-    
+
     return response
 
 

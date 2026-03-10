@@ -25,12 +25,13 @@ class FeedbackRequest(BaseModel):
     message: str
     page_url: Optional[str] = None
     is_public: bool = False
-    
-    @field_validator('title', 'message')
+
+    @field_validator("title", "message")
     @classmethod
     def sanitize_text(cls, v: str) -> str:
         """MEDIUM: Sanitize HTML in user input to prevent XSS."""
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v)
 
 

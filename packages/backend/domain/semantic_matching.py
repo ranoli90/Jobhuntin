@@ -187,30 +187,35 @@ class SemanticMatchingService:
 
         # HIGH: Integrate embedding cache to avoid regenerating embeddings
         import hashlib
+
         profile_text_hash = hashlib.sha256(profile_text.encode()).hexdigest()
         job_text_hash = hashlib.sha256(job_text.encode()).hexdigest()
-        
+
         # Try to get cached embeddings if db connection is available
         profile_embedding = None
         job_embedding = None
         user_id = profile.get("user_id") or profile.get("id")
         job_id = job.get("id") or job.get("job_id")
-        
+
         if db_conn:
             # Try to get cached job embedding
             if job_id:
-                cached_job_embedding = await EmbeddingCacheRepo.get_job_embedding(db_conn, job_id)
+                cached_job_embedding = await EmbeddingCacheRepo.get_job_embedding(
+                    db_conn, job_id
+                )
                 if cached_job_embedding:
                     job_embedding = cached_job_embedding
                     logger.debug(f"Using cached job embedding for job {job_id}")
-            
+
             # Try to get cached profile embedding
             if user_id and not profile_embedding:
-                cached_profile_embedding = await EmbeddingCacheRepo.get_profile_embedding(db_conn, user_id)
+                cached_profile_embedding = (
+                    await EmbeddingCacheRepo.get_profile_embedding(db_conn, user_id)
+                )
                 if cached_profile_embedding:
                     profile_embedding = cached_profile_embedding
                     logger.debug(f"Using cached profile embedding for user {user_id}")
-        
+
         # Generate embeddings if not cached
         if not profile_embedding:
             profile_embedding = await self.embeddings.embed_text(profile_text)
@@ -222,7 +227,7 @@ class SemanticMatchingService:
                     )
                 except Exception as cache_error:
                     logger.warning(f"Failed to cache profile embedding: {cache_error}")
-        
+
         if not job_embedding:
             job_embedding = await self.embeddings.embed_text(job_text)
             # Cache job embedding if db connection available

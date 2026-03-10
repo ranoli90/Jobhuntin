@@ -60,11 +60,10 @@ def authenticated_client(client, auth_token):
 class TestResumeUpload:
     """Tests for resume upload endpoint."""
 
-    def test_resume_upload_success(self, authenticated_client, clean_db, db_pool):
+    @pytest.mark.asyncio
+    async def test_resume_upload_success(self, authenticated_client, clean_db, db_pool):
         """Test successful resume upload."""
         # Create test user first
-        user_id = authenticated_client.headers["Authorization"].split()[-1]
-        # Decode to get user_id from token
         import jwt
         settings = get_settings()
         payload = jwt.decode(
@@ -74,7 +73,7 @@ class TestResumeUpload:
             audience="authenticated",
         )
         user_id = payload["sub"]
-        
+
         async with db_pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -135,7 +134,8 @@ class TestResumeUpload:
 class TestSkillsAPI:
     """Tests for skills API endpoints."""
 
-    def test_save_skills_success(self, authenticated_client, clean_db, db_pool):
+    @pytest.mark.asyncio
+    async def test_save_skills_success(self, authenticated_client, clean_db, db_pool):
         """Test successful skills save."""
         # Setup user
         import jwt
@@ -147,7 +147,7 @@ class TestSkillsAPI:
             audience="authenticated",
         )
         user_id = payload["sub"]
-        
+
         async with db_pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -180,7 +180,8 @@ class TestSkillsAPI:
         assert response.json()["status"] == "saved"
         assert response.json()["count"] == 2
 
-    def test_get_skills(self, authenticated_client, clean_db, db_pool):
+    @pytest.mark.asyncio
+    async def test_get_skills(self, authenticated_client, clean_db, db_pool):
         """Test retrieving user skills."""
         # Setup user with skills
         import jwt
@@ -192,7 +193,7 @@ class TestSkillsAPI:
             audience="authenticated",
         )
         user_id = payload["sub"]
-        
+
         async with db_pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -216,7 +217,8 @@ class TestSkillsAPI:
 class TestPreferencesAPI:
     """Tests for preferences API endpoints."""
 
-    def test_save_preferences_success(self, authenticated_client, clean_db, db_pool):
+    @pytest.mark.asyncio
+    async def test_save_preferences_success(self, authenticated_client, clean_db, db_pool):
         """Test successful preferences save."""
         # Setup user
         import jwt
@@ -228,7 +230,7 @@ class TestPreferencesAPI:
             audience="authenticated",
         )
         user_id = payload["sub"]
-        
+
         async with db_pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -256,7 +258,8 @@ class TestPreferencesAPI:
 class TestWorkStyleAPI:
     """Tests for work style API endpoints."""
 
-    def test_save_work_style_success(self, authenticated_client, clean_db, db_pool):
+    @pytest.mark.asyncio
+    async def test_save_work_style_success(self, authenticated_client, clean_db, db_pool):
         """Test successful work style save."""
         # Setup user
         import jwt
@@ -268,7 +271,7 @@ class TestWorkStyleAPI:
             audience="authenticated",
         )
         user_id = payload["sub"]
-        
+
         async with db_pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -291,7 +294,8 @@ class TestWorkStyleAPI:
         assert response.status_code == 200
         assert response.json()["status"] == "saved"
 
-    def test_get_work_style(self, authenticated_client, clean_db, db_pool):
+    @pytest.mark.asyncio
+    async def test_get_work_style(self, authenticated_client, clean_db, db_pool):
         """Test retrieving work style."""
         # Setup user with work style
         import jwt
@@ -303,7 +307,7 @@ class TestWorkStyleAPI:
             audience="authenticated",
         )
         user_id = payload["sub"]
-        
+
         async with db_pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -327,7 +331,8 @@ class TestWorkStyleAPI:
 class TestOnboardingCompletion:
     """Tests for onboarding completion."""
 
-    def test_complete_onboarding(self, authenticated_client, clean_db, db_pool):
+    @pytest.mark.asyncio
+    async def test_complete_onboarding(self, authenticated_client, clean_db, db_pool):
         """Test onboarding completion endpoint."""
         # Setup user
         import jwt
@@ -339,7 +344,7 @@ class TestOnboardingCompletion:
             audience="authenticated",
         )
         user_id = payload["sub"]
-        
+
         async with db_pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO public.users (id, email, profile_completeness) VALUES ($1, $2, 80) ON CONFLICT DO NOTHING",

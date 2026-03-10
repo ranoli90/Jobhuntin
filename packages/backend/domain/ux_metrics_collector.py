@@ -672,7 +672,9 @@ class UXMetricsCollector:
         """Create threshold breach alert."""
         try:
             # Check if alert already exists and is unresolved (stub - implement as needed)
-            existing_alert = None  # await self._get_existing_alert(...)  # type: ignore[assignment]
+            existing_alert = (
+                None  # await self._get_existing_alert(...)  # type: ignore[assignment]
+            )
             if existing_alert and not existing_alert.is_resolved:  # type: ignore[union-attr]
                 return  # Alert already exists
 
@@ -1220,7 +1222,9 @@ class UXMetricsCollector:
                 return {}
 
             # Aggregate context data
-            context_aggregates: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))  # type: ignore[assignment]
+            context_aggregates: Dict[str, Dict[str, int]] = defaultdict(
+                lambda: defaultdict(int)
+            )  # type: ignore[assignment]
             for metric in metrics:
                 for key, value in metric.context.items():
                     if isinstance(value, str):

@@ -17,7 +17,6 @@ from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
-from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 from opentelemetry.sdk.resources import (
     DEPLOYMENT_ENVIRONMENT,
     SERVICE_NAME,
@@ -27,6 +26,7 @@ from opentelemetry.sdk.resources import (
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.trace import Status, StatusCode
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -120,7 +120,9 @@ def setup_telemetry(service_name: str, app=None) -> None:
             logger.debug("Redis instrumentation not available (optional)")
 
         _tracer_initialized = True
-        logger.info(f"OpenTelemetry initialized for {service_name} (distributed tracing + metrics)")
+        logger.info(
+            f"OpenTelemetry initialized for {service_name} (distributed tracing + metrics)"
+        )
 
     except Exception as e:
         logger.error(f"Failed to initialize OpenTelemetry: {e}")

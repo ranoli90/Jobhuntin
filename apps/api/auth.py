@@ -16,12 +16,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr
 
+from backend.domain.session_manager import SessionManager
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
 from shared.metrics import RateLimiter, get_rate_limiter, incr
 from shared.middleware import get_client_ip
 from shared.repo_root import find_repo_root
-from backend.domain.session_manager import SessionManager
 
 logger = get_logger("sorce.api.auth")
 
@@ -142,10 +142,10 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
 
 async def _revoke_session_token(jti: str, settings: Settings) -> None:
     """Revoke a session token by adding jti to Redis blacklist.
-    
+
     This prevents session token replay attacks. Once revoked, the token
     cannot be used for authentication even if it hasn't expired.
-    
+
     Args:
         jti: JWT ID claim from the session token
         settings: Application settings
@@ -186,11 +186,11 @@ async def _revoke_session_token(jti: str, settings: Settings) -> None:
 
 async def _is_session_token_revoked(jti: str, settings: Settings) -> bool:
     """Check if a session token has been revoked.
-    
+
     Args:
         jti: JWT ID claim from the session token
         settings: Application settings
-        
+
     Returns:
         True if token is revoked, False otherwise
     """
@@ -533,7 +533,12 @@ async def _generate_magic_link(
     # Ensure we use the frontend URL (jobhuntin.com), not the backend URL
     app_url = settings.app_base_url.rstrip("/")
     # Fix: If app_base_url contains backend domain (sorce, api.), use jobhuntin.com instead
-    if not app_url or "sorce" in app_url.lower() or "api." in app_url.lower() or app_url.startswith("http://localhost:8000"):
+    if (
+        not app_url
+        or "sorce" in app_url.lower()
+        or "api." in app_url.lower()
+        or app_url.startswith("http://localhost:8000")
+    ):
         app_url = "https://jobhuntin.com"
     verify_url = f"{app_url}/login?token={quote(token, safe='')}"
     safe_return = _sanitize_return_to(return_to) if return_to else None
@@ -576,9 +581,14 @@ def _get_app_branding(settings: Settings) -> dict[str, str]:
     """Get app branding values from settings or defaults."""
     base_url = settings.app_base_url.rstrip("/")
     # Fix: If app_base_url contains backend domain, use jobhuntin.com instead
-    if not base_url or "sorce" in base_url.lower() or "api." in base_url.lower() or base_url.startswith("http://localhost:8000"):
+    if (
+        not base_url
+        or "sorce" in base_url.lower()
+        or "api." in base_url.lower()
+        or base_url.startswith("http://localhost:8000")
+    ):
         base_url = "https://jobhuntin.com"
-    
+
     api_url = getattr(settings, "api_public_url", "").rstrip("/")
     domain = (
         base_url.replace("https://", "").replace("http://", "")
@@ -752,16 +762,16 @@ async def _send_magic_link_email(
         try:
             # MEDIUM: Use circuit breaker for email service calls
             from shared.circuit_breaker import get_email_breaker
-            
+
             email_breaker = get_email_breaker()
-            
+
             async def _send_email():
                 async with httpx.AsyncClient(timeout=10) as client:
                     resp = await client.post(
                         "https://api.resend.com/emails", headers=headers, json=payload
                     )
                     return resp
-            
+
             resp = await email_breaker.call(_send_email)
 
             if resp.status_code in (200, 201):
@@ -851,7 +861,9 @@ async def verify_magic_link(
     User clicks link in email -> hits this endpoint -> [create user if new] -> set cookie -> redirect.
     """
     if not token or not settings.jwt_secret:
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=invalid"
+        redirect_url = (
+            f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=invalid"
+        )
         if return_to:
             redirect_url += f"&returnTo={quote(return_to, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
@@ -871,7 +883,9 @@ async def verify_magic_link(
     except pyjwt.PyJWTError as exc:
         logger.warning("Verify-magic JWT invalid: %s", exc)
         hint = "expired" if "expired" in str(exc).lower() else "invalid"
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint={hint}"
+        redirect_url = (
+            f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint={hint}"
+        )
         if return_to:
             redirect_url += f"&returnTo={quote(return_to, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
@@ -895,7 +909,9 @@ async def verify_magic_link(
 
     if not await _mark_token_consumed(jti, settings):
         logger.warning("Verify-magic replay attempt for jti: %s", jti)
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=used"
+        redirect_url = (
+            f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=used"
+        )
         if return_to:
             redirect_url += f"&returnTo={quote(return_to, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
@@ -973,7 +989,7 @@ async def verify_magic_link(
     # ----------------------------------------------------------------
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent")
-    
+
     # Get tenant_id if available
     tenant_id = None
     async with db.acquire() as conn:
@@ -982,8 +998,10 @@ async def verify_magic_link(
             user_id,
         )
         if tenant_row and tenant_row.get("tenant_id"):
-            tenant_id = str(tenant_row["tenant_id"]) if tenant_row["tenant_id"] else None
-    
+            tenant_id = (
+                str(tenant_row["tenant_id"]) if tenant_row["tenant_id"] else None
+            )
+
     # Create session with device fingerprinting
     try:
         session_manager = SessionManager(db)
@@ -994,7 +1012,7 @@ async def verify_magic_link(
             user_agent=user_agent,
             metadata={"source": "magic_link", "is_new_user": is_new_user_flag},
         )
-        
+
         # Check for suspicious activity
         suspicious_check = await session_manager.detect_suspicious_activity(
             user_id=user_id,
@@ -1011,11 +1029,10 @@ async def verify_magic_link(
         )
         # Create a minimal session_info for the JWT
         import uuid as _uuid_mod
-        session_info = type('SessionInfo', (), {
-            'session_id': str(_uuid_mod.uuid4())
-        })()
+
+        session_info = type("SessionInfo", (), {"session_id": str(_uuid_mod.uuid4())})()
         suspicious_check = {"suspicious": False, "reasons": []}
-    
+
     if suspicious_check["suspicious"]:
         logger.warning(
             "[M2] Suspicious login detected for user=%s",
@@ -1038,7 +1055,7 @@ async def verify_magic_link(
         )
         # Log security event but don't block login (user may be legitimate)
         # In production, consider sending alert to security team
-    
+
     # ----------------------------------------------------------------
     # CRITICAL FIX: Issue a fresh SESSION JWT with sub=user_id (UUID).
     # The original magic-link JWT may have sub=email for new users.
@@ -1098,7 +1115,7 @@ async def logout(
 ) -> RedirectResponse:
     """Clear auth cookie, revoke session token, and redirect to login.
     Supports GET for redirect-based logout.
-    
+
     SECURITY: Revokes the session token to prevent replay attacks.
     """
     # Extract and revoke the session token before clearing the cookie
@@ -1106,6 +1123,7 @@ async def logout(
     if jobhuntin_auth:
         try:
             import jwt as pyjwt
+
             payload = pyjwt.decode(
                 jobhuntin_auth,
                 settings.jwt_secret,
@@ -1120,7 +1138,7 @@ async def logout(
         except Exception as e:
             # Log but don't fail logout if revocation fails
             logger.warning("Failed to revoke session token on logout: %s", e)
-    
+
     is_prod = settings.env.value in ("prod", "staging")
     redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
     response = RedirectResponse(url=redirect_url, status_code=302)
@@ -1216,24 +1234,31 @@ async def request_magic_link(
         window_seconds=3600,
     )
     ip_request_count = ip_limiter.current_count()
-    requires_captcha = ip_request_count >= 3  # Require CAPTCHA after 3 requests from same IP
+    requires_captcha = (
+        ip_request_count >= 3
+    )  # Require CAPTCHA after 3 requests from same IP
 
     # Also require CAPTCHA if email has hit 40% of its limit (earlier than 50%)
     email_limiter = _get_rate_limiter(settings, body.email)
     email_request_count = email_limiter.current_count()
     if email_request_count >= settings.magic_link_requests_per_hour * 0.4:
         requires_captcha = True
-    
+
     if requires_captcha and not body.captcha_token:
         logger.warning(
             "CAPTCHA required but not provided",
-            extra={"email": _mask_email(body.email), "ip": client_ip, "ip_count": ip_request_count, "email_count": email_request_count},
+            extra={
+                "email": _mask_email(body.email),
+                "ip": client_ip,
+                "ip_count": ip_request_count,
+                "email_count": email_request_count,
+            },
         )
         raise HTTPException(
             status_code=400,
             detail="CAPTCHA verification required. Please complete the CAPTCHA and try again.",
         )
-    
+
     if body.captcha_token:
         if not await _verify_captcha(settings, body.captcha_token, client_ip):
             raise HTTPException(status_code=400, detail="Invalid CAPTCHA token")
@@ -1277,7 +1302,10 @@ async def request_magic_link(
     try:
         await _send_magic_link_email(settings, body.email, action_link, body.return_to)
     except HTTPException:
-        incr("auth.magic_link.failed", tags={"reason": "email_send", "email_domain": body.email.split("@")[-1]})
+        incr(
+            "auth.magic_link.failed",
+            tags={"reason": "email_send", "email_domain": body.email.split("@")[-1]},
+        )
         raise
     # C4: Analytics Tracking - Track magic link sent (backend metric)
     incr("auth.magic_link.sent", tags={"email_domain": body.email.split("@")[-1]})
@@ -1364,37 +1392,68 @@ async def resend_webhook(
     if event_type == "email.delivered":
         incr("email.delivered", tags={"provider": "resend", "email_type": "magic_link"})
         # Track delivery rate for magic links specifically
-        if "magic" in str(data.get("subject", "")).lower() or "sign in" in str(data.get("subject", "")).lower():
-            incr("auth.magic_link.delivered", tags={"email_domain": email_to.split("@")[-1] if "@" in email_to else "unknown"})
+        if (
+            "magic" in str(data.get("subject", "")).lower()
+            or "sign in" in str(data.get("subject", "")).lower()
+        ):
+            incr(
+                "auth.magic_link.delivered",
+                tags={
+                    "email_domain": email_to.split("@")[-1]
+                    if "@" in email_to
+                    else "unknown"
+                },
+            )
         logger.info(
             f"Email delivered: {_mask_email(email_to)}",
             extra={"email_id": email_id, "email_type": "magic_link"},
         )
     elif event_type == "email.bounced":
         incr("email.bounced", tags={"provider": "resend", "email_type": "magic_link"})
-        if "magic" in str(data.get("subject", "")).lower() or "sign in" in str(data.get("subject", "")).lower():
-            incr("auth.magic_link.bounced", tags={"email_domain": email_to.split("@")[-1] if "@" in email_to else "unknown"})
+        if (
+            "magic" in str(data.get("subject", "")).lower()
+            or "sign in" in str(data.get("subject", "")).lower()
+        ):
+            incr(
+                "auth.magic_link.bounced",
+                tags={
+                    "email_domain": email_to.split("@")[-1]
+                    if "@" in email_to
+                    else "unknown"
+                },
+            )
         logger.warning(
             f"Email bounced: {_mask_email(email_to)}",
             extra={"bounce_reason": data.get("bounce_type"), "email_id": email_id},
         )
     elif event_type == "email.complained":
-        incr("email.complained", tags={"provider": "resend", "email_type": "magic_link"})
+        incr(
+            "email.complained", tags={"provider": "resend", "email_type": "magic_link"}
+        )
         logger.warning(
             f"Email complaint: {_mask_email(email_to)}", extra={"email_id": email_id}
         )
     elif event_type == "email.opened":
         incr("email.opened", tags={"provider": "resend", "email_type": "magic_link"})
-        if "magic" in str(data.get("subject", "")).lower() or "sign in" in str(data.get("subject", "")).lower():
+        if (
+            "magic" in str(data.get("subject", "")).lower()
+            or "sign in" in str(data.get("subject", "")).lower()
+        ):
             incr("auth.magic_link.opened", tags={})
     elif event_type == "email.clicked":
         incr("email.clicked", tags={"provider": "resend", "email_type": "magic_link"})
-        if "magic" in str(data.get("subject", "")).lower() or "sign in" in str(data.get("subject", "")).lower():
+        if (
+            "magic" in str(data.get("subject", "")).lower()
+            or "sign in" in str(data.get("subject", "")).lower()
+        ):
             incr("auth.magic_link.clicked", tags={})
     elif event_type == "email.sent":
         incr("email.sent", tags={"provider": "resend", "email_type": "magic_link"})
     elif event_type == "email.delivery_delayed":
-        incr("email.delivery_delayed", tags={"provider": "resend", "email_type": "magic_link"})
+        incr(
+            "email.delivery_delayed",
+            tags={"provider": "resend", "email_type": "magic_link"},
+        )
         logger.warning(
             f"Email delivery delayed: {_mask_email(email_to)}",
             extra={"email_id": email_id, "delay_reason": data.get("reason")},

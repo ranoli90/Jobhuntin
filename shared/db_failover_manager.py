@@ -479,9 +479,7 @@ class FailoverManager:
                     lag_score = 0.1
 
                 # Check replica size (should be similar to primary)
-                await conn.fetchval(
-                    "SELECT pg_database_size(current_database())"
-                )
+                await conn.fetchval("SELECT pg_database_size(current_database())")
 
                 # Simple scoring - could be enhanced with more factors
                 return lag_score

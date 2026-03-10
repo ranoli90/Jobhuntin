@@ -344,9 +344,7 @@ class PerformanceMonitor:
     ) -> PerformanceDashboard:
         """Get comprehensive performance dashboard."""
         try:
-            datetime.now(timezone.utc) - timedelta(
-                hours=time_period_hours
-            )
+            datetime.now(timezone.utc) - timedelta(hours=time_period_hours)
 
             # Get metrics for different categories
             system_metrics = await self._get_category_metrics(

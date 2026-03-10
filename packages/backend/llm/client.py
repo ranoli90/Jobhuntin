@@ -181,18 +181,32 @@ class LLMClient:
                     # Fallback to estimate only if usage not available (shouldn't happen)
                     logger.warning(
                         "LLM response missing usage field, using token estimates",
-                        extra={"model": model, "response_keys": list(raw_response.keys()) if isinstance(raw_response, dict) else []}
+                        extra={
+                            "model": model,
+                            "response_keys": list(raw_response.keys())
+                            if isinstance(raw_response, dict)
+                            else [],
+                        },
                     )
                     prompt_tokens = len(str(messages)) // 4  # Rough estimate fallback
-                    completion_tokens = len(str(raw_response.get("choices", [{}])[0].get("message", {}).get("content", ""))) // 4
-                
+                    completion_tokens = (
+                        len(
+                            str(
+                                raw_response.get("choices", [{}])[0]
+                                .get("message", {})
+                                .get("content", "")
+                            )
+                        )
+                        // 4
+                    )
+
                 get_llm_monitor().record_success(
                     model=model,
                     latency_seconds=duration,
                     prompt_tokens=prompt_tokens,
                     completion_tokens=completion_tokens,
                 )
-                
+
                 # Extract content for validation/return
                 raw_json = raw_response
 
@@ -260,21 +274,18 @@ class LLMClient:
 
     async def _request(self, payload: dict) -> dict:
         """Make the HTTP request with circuit breaker protection.
-        
+
         Returns the full API response dict (including usage field for token counts).
         """
         # MEDIUM: Use circuit breaker to protect against cascading failures
         try:
-            data = await self._circuit_breaker.call(
-                self._make_http_request,
-                payload
-            )
+            data = await self._circuit_breaker.call(self._make_http_request, payload)
             # Return full response to preserve usage field for token tracking
             return data
         except CircuitBreakerOpenError as exc:
             incr("llm.circuit_breaker.open", {})
             raise LLMError(
-                f"LLM service unavailable (circuit breaker open). Service is failing."
+                "LLM service unavailable (circuit breaker open). Service is failing."
             ) from exc
 
     async def _make_http_request(self, payload: dict) -> dict:

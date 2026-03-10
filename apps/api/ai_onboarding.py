@@ -18,14 +18,14 @@ Key endpoints:
 - GET /ai-onboarding/health - Health check for AI onboarding
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
-from backend.domain.ai_onboarding import OnboardingSession, get_ai_onboarding_manager
+from backend.domain.ai_onboarding import get_ai_onboarding_manager
 from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
@@ -40,12 +40,12 @@ class CreateSessionRequest(BaseModel):
     flow_type: str = Field(
         default="professional",
         pattern="^(professional|student|career_change|advanced)$",  # HIGH: Validate enum values
-        description="Onboarding flow type"
+        description="Onboarding flow type",
     )
     initial_context: Optional[Dict[str, Any]] = Field(
         default=None,
         max_length=100,  # HIGH: Limit dict size to prevent DoS
-        description="Initial user context (max 100 keys)"
+        description="Initial user context (max 100 keys)",
     )
 
 
@@ -101,21 +101,16 @@ class SubmitResponseRequest(BaseModel):
     """Request for submitting response."""
 
     question_id: str = Field(
-        ..., 
-        min_length=1, 
-        max_length=100, 
-        description="Question identifier"
+        ..., min_length=1, max_length=100, description="Question identifier"
     )
-    response: str = Field(
-        ..., 
-        description="User response"
-    )
-    
-    @field_validator('response')
+    response: str = Field(..., description="User response")
+
+    @field_validator("response")
     @classmethod
     def validate_response(cls, v):
         """HIGH: Validate response size and sanitize HTML to prevent DoS and XSS."""
         from packages.backend.domain.sanitization import sanitize_text_input
+
         # Convert to string if needed
         if not isinstance(v, str):
             v = str(v)
@@ -185,50 +180,52 @@ async def _verify_session_ownership(
     db: asyncpg.Pool,
 ) -> None:
     """CRITICAL: Verify that session belongs to the authenticated user.
-    
+
     This prevents unauthorized access to other users' onboarding sessions.
-    
+
     Args:
         session_id: Session identifier to verify
         ctx: Authenticated tenant context
         db: Database pool
-        
+
     Raises:
         HTTPException: If session doesn't exist or doesn't belong to user
     """
     # Validate session_id format
     if not session_id or len(session_id) < 10:
         raise HTTPException(status_code=400, detail="Invalid session ID")
-    
+
     # HIGH: Verify session ownership from database
     async with db.acquire() as conn:
         session_row = await conn.fetchrow(
             """
             SELECT user_id, tenant_id, expires_at
-            FROM public.onboarding_sessions 
+            FROM public.onboarding_sessions
             WHERE session_id = $1
             """,
-            session_id
+            session_id,
         )
         if not session_row:
             raise HTTPException(status_code=404, detail="Session not found")
-        
+
         # Check expiration
-        if session_row.get('expires_at') and session_row['expires_at'] < datetime.now(timezone.utc):
+        if session_row.get("expires_at") and session_row["expires_at"] < datetime.now(
+            timezone.utc
+        ):
             raise HTTPException(status_code=410, detail="Session has expired")
-        
+
         # Verify ownership
-        if str(session_row['user_id']) != ctx.user_id:
-            raise HTTPException(
-                status_code=403, 
-                detail="Access denied: Session does not belong to current user"
-            )
-        if str(session_row['tenant_id']) != ctx.tenant_id:
+        if str(session_row["user_id"]) != ctx.user_id:
             raise HTTPException(
                 status_code=403,
-                detail="Access denied: Session does not belong to current tenant"
+                detail="Access denied: Session does not belong to current user",
             )
-    
+        if str(session_row["tenant_id"]) != ctx.tenant_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Access denied: Session does not belong to current tenant",
+            )
+
     # HIGH: Verification now uses database - no warning needed
     # (verification logic is above)
 
@@ -261,12 +258,15 @@ async def create_onboarding_session(
 
         # HIGH: Persist session to database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             await OnboardingSessionRepo.save_session(conn, session)
-        
+
         # Get first question
         first_question = await ai_onboarding.get_next_question(session)
-        
+
         # Update session after getting first question
         async with db.acquire() as conn:
             await OnboardingSessionRepo.save_session(conn, session)
@@ -298,7 +298,7 @@ async def get_session_details(
     """Get onboarding session details.
 
     CRITICAL: Verifies session ownership to prevent unauthorized access.
-    
+
     Args:
         session_id: Session identifier
         ctx: Tenant context for identification
@@ -310,12 +310,15 @@ async def get_session_details(
     try:
         # CRITICAL: Verify session ownership
         await _verify_session_ownership(session_id, ctx, db)
-        
+
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             session = await OnboardingSessionRepo.load_session(conn, session_id)
-        
+
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
 
@@ -363,26 +366,29 @@ async def get_next_question(
     try:
         # CRITICAL: Verify session ownership
         await _verify_session_ownership(session_id, ctx, db)
-        
+
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             session = await OnboardingSessionRepo.load_session(conn, session_id)
-        
+
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
-        
+
         # Update responses if provided
         if current_responses:
             session.responses.update(current_responses)
-        
+
         ai_onboarding = get_ai_onboarding_manager()
 
         # Get next question
         next_question = await ai_onboarding.get_next_question(
             session, current_responses
         )
-        
+
         # HIGH: Save updated session
         async with db.acquire() as conn:
             await OnboardingSessionRepo.save_session(conn, session)
@@ -422,31 +428,37 @@ async def submit_response(
     try:
         # CRITICAL: Verify session ownership
         await _verify_session_ownership(session_id, ctx, db)
-        
+
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             session = await OnboardingSessionRepo.load_session(conn, session_id)
-        
+
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
-        
+
         ai_onboarding = get_ai_onboarding_manager()
 
         # Process response
         result = await ai_onboarding.process_response(
             session, request.question_id, request.response
         )
-        
+
         # HIGH: Save updated session after processing
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             await OnboardingSessionRepo.save_session(conn, session)
 
         if result["success"]:
             # Get next question
             next_question = await ai_onboarding.get_next_question(session)
-            
+
             # Save again after getting next question
             async with db.acquire() as conn:
                 await OnboardingSessionRepo.save_session(conn, session)
@@ -493,23 +505,29 @@ async def complete_onboarding(
     try:
         # CRITICAL: Verify session ownership
         await _verify_session_ownership(session_id, ctx, db)
-        
+
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             session = await OnboardingSessionRepo.load_session(conn, session_id)
-        
+
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
-        
+
         ai_onboarding = get_ai_onboarding_manager()
 
         # Complete onboarding
         result = await ai_onboarding.complete_onboarding(session)
-        
+
         # HIGH: Mark session as completed and save
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             await OnboardingSessionRepo.mark_completed(conn, session_id)
             await OnboardingSessionRepo.save_session(conn, session)
 
@@ -604,25 +622,30 @@ async def save_session_progress(
     try:
         # CRITICAL: Verify session ownership
         await _verify_session_ownership(session_id, ctx, db)
-        
+
         # HIGH: Load and update session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             session = await OnboardingSessionRepo.load_session(conn, session_id)
-            
+
             if not session:
                 raise HTTPException(status_code=404, detail="Session not found")
-            
+
             # Update session with progress data
             if "current_step" in progress_data:
                 session.current_step = int(progress_data["current_step"])
             if "completion_percentage" in progress_data:
-                session.completion_percentage = float(progress_data["completion_percentage"])
+                session.completion_percentage = float(
+                    progress_data["completion_percentage"]
+                )
             if "responses" in progress_data:
                 session.responses.update(progress_data["responses"])
             if "user_profile" in progress_data:
                 session.user_profile.update(progress_data["user_profile"])
-            
+
             # Save updated session
             await OnboardingSessionRepo.save_session(conn, session)
 
@@ -658,12 +681,15 @@ async def get_session_progress(
     try:
         # CRITICAL: Verify session ownership
         await _verify_session_ownership(session_id, ctx, db)
-        
+
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             session = await OnboardingSessionRepo.load_session(conn, session_id)
-        
+
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
 
@@ -674,8 +700,12 @@ async def get_session_progress(
             "questions_answered": len(session.responses),
             "total_questions": session.total_steps,
             "current_step": session.current_step,
-            "last_activity": session.last_activity.isoformat() if session.last_activity else datetime.now(timezone.utc).isoformat(),
-            "estimated_remaining_minutes": max(0, int((1.0 - session.completion_percentage / 100) * 15)),
+            "last_activity": session.last_activity.isoformat()
+            if session.last_activity
+            else datetime.now(timezone.utc).isoformat(),
+            "estimated_remaining_minutes": max(
+                0, int((1.0 - session.completion_percentage / 100) * 15)
+            ),
         }
 
     except Exception as e:
@@ -708,7 +738,10 @@ async def delete_session(
         await _verify_session_ownership(session_id, ctx, db)
         # HIGH: Delete session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
+
             await OnboardingSessionRepo.delete_session(conn, session_id)
 
         return {

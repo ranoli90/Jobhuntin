@@ -46,11 +46,11 @@ class ConcurrentUsageTracker:
         self, task_id: Optional[str] = None, tenant_id: Optional[str] = None
     ) -> bool:
         """Check if a task can start based on concurrent usage limits.
-        
+
         Args:
             task_id: Optional task ID (for logging)
             tenant_id: Tenant ID to check limits for
-            
+
         Returns:
             True if task can start, False if limits reached
         """

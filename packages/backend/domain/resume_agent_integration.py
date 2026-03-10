@@ -379,7 +379,11 @@ class ResumeAgentIntegration:
                 continue
 
             # Type check: ensure user_id, job_id, and application_id are strings
-            if not isinstance(user_id, str) or not isinstance(job_id, str) or not isinstance(application_id, str):
+            if (
+                not isinstance(user_id, str)
+                or not isinstance(job_id, str)
+                or not isinstance(application_id, str)
+            ):
                 results.append(
                     {
                         "application_id": application_id,

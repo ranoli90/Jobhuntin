@@ -402,7 +402,9 @@ async def get_table_size(
             }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get table size: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get table size: {str(e)}"
+        )
 
 
 @router.get("/performance-report")
@@ -1398,5 +1400,3 @@ def create_cache_manager(redis_url: Optional[str] = None) -> CacheManager:
 def create_connection_pool_manager() -> ConnectionPoolManager:
     """Create connection pool manager instance."""
     return ConnectionPoolManager()
-
-

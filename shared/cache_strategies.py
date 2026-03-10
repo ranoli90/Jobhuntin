@@ -523,6 +523,7 @@ class AdaptiveStrategy(CacheStrategy):
                 )
                 # Create strategy instance from factory
                 from shared.cache_strategies import CacheStrategyFactory
+
                 new_strategy = CacheStrategyFactory.create_strategy(best_strategy)
                 if new_strategy:
                     self._current_strategy = new_strategy

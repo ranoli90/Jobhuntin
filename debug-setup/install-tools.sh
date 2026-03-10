@@ -18,8 +18,8 @@ echo "--- Installing Python tools ---"
 if [ -d ".venv" ]; then
   source .venv/bin/activate
 fi
-pip install -r requirements-dev.txt -q
-pip install ipdb python-docx -q  # Runtime debugger + missing test dep
+pip install -r requirements.txt -r requirements-dev.txt -q
+pip install ipdb -q  # Runtime debugger
 echo "Python: ruff, mypy, bandit, semgrep, vulture, radon, deptry, detect-secrets, pip-audit, pytest-cov installed"
 
 # --- Node/Web tools ---

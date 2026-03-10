@@ -107,6 +107,7 @@ async def get_email_manager_dep(pool=Depends(get_pool)):
     from packages.backend.domain.email_communication_manager import (
         create_email_communication_manager,
     )
+
     return create_email_communication_manager(pool)
 
 
@@ -115,6 +116,7 @@ async def get_notification_manager_dep(pool=Depends(get_pool)):
     from packages.backend.domain.enhanced_notifications import (
         get_enhanced_notification_manager,
     )
+
     return get_enhanced_notification_manager(pool)
 
 
@@ -422,7 +424,7 @@ async def get_email_log(
                 *params,
             )
             fetch_params = params + [limit, offset]
-            lim_off = f"LIMIT ${len(fetch_params)-1} OFFSET ${len(fetch_params)}"
+            lim_off = f"LIMIT ${len(fetch_params) - 1} OFFSET ${len(fetch_params)}"
             rows = await conn.fetch(
                 f"""
                 SELECT id, user_id, email_type, template_name, recipient, sent_at

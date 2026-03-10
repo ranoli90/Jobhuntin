@@ -180,9 +180,7 @@ class ConcurrentTracker:
 
     async def cleanup_old_sessions(self, max_age_hours: int = 24) -> int:
         """Clean up old session data."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(
-            hours=max_age_hours
-        )
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
         old_sessions = [
             session_id
             for session_id, session in self._sessions.items()

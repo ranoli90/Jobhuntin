@@ -126,6 +126,7 @@ async def get_dlq_manager_dep(pool=Depends(_get_pool)):
     """Get DLQ manager instance. Uses real implementation when available."""
     try:
         from apps.worker.dlq_manager import DLQManager
+
         return DLQManager(pool)
     except ImportError:
         return _StubDLQManager()

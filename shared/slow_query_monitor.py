@@ -21,7 +21,7 @@ SLOW_QUERY_THRESHOLD_SECONDS = 1.0
 @asynccontextmanager
 async def monitor_query(query: str, threshold: float = SLOW_QUERY_THRESHOLD_SECONDS):
     """Context manager to monitor query execution time.
-    
+
     Usage:
         async with monitor_query("SELECT * FROM users WHERE id = $1") as query_info:
             result = await conn.fetch(query, user_id)
@@ -32,16 +32,16 @@ async def monitor_query(query: str, threshold: float = SLOW_QUERY_THRESHOLD_SECO
         "query": query[:200],  # Truncate long queries
         "params": None,
     }
-    
+
     try:
         yield query_info
     finally:
         elapsed = time.time() - start_time
         query_info["duration"] = elapsed
-        
+
         # Record metric
         observe("db.query.duration", elapsed)
-        
+
         # Log slow queries
         if elapsed > threshold:
             logger.warning(
@@ -51,10 +51,10 @@ async def monitor_query(query: str, threshold: float = SLOW_QUERY_THRESHOLD_SECO
                     "duration": elapsed,
                     "threshold": threshold,
                     "params": query_info.get("params"),
-                }
+                },
             )
             incr("db.query.slow", {"threshold": str(threshold)})
-        
+
         # Record query count
         incr("db.query.count")
 

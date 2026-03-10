@@ -18,6 +18,7 @@ def _get_tenant_ctx():
     """Stub; inject tenant context via Depends in main app."""
     raise NotImplementedError("Tenant context dependency not injected")
 
+
 # --- CONFIG ---
 WIDTH, HEIGHT = 1200, 630
 BG_COLOR = "#FAF9F6"  # Warm off-white

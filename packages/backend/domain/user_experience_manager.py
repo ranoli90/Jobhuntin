@@ -580,9 +580,7 @@ class UserExperienceManager:
         """Calculate satisfaction score."""
         try:
             # Check for satisfaction-related actions
-            [
-                a for a in actions if "satisfaction" in a.action_name.lower()
-            ]
+            [a for a in actions if "satisfaction" in a.action_name.lower()]
 
             # Base score
             base_score = 0.8  # Default score

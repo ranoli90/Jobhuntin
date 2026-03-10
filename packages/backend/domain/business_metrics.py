@@ -5,13 +5,15 @@ Provides comprehensive business metrics for monitoring product health and growth
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 import asyncpg
 
 
-async def get_daily_active_users(conn: asyncpg.Connection, days: int = 30) -> list[dict[str, Any]]:
+async def get_daily_active_users(
+    conn: asyncpg.Connection, days: int = 30
+) -> list[dict[str, Any]]:
     """Get daily active users for the last N days."""
     rows = await conn.fetch(
         """
@@ -25,7 +27,10 @@ async def get_daily_active_users(conn: asyncpg.Connection, days: int = 30) -> li
         """,
         days,
     )
-    return [{"date": r["date"].isoformat() if r["date"] else None, "dau": r["dau"]} for r in rows]
+    return [
+        {"date": r["date"].isoformat() if r["date"] else None, "dau": r["dau"]}
+        for r in rows
+    ]
 
 
 async def get_retention_cohorts(conn: asyncpg.Connection) -> list[dict[str, Any]]:
@@ -110,7 +115,7 @@ async def get_conversion_funnel(conn: asyncpg.Connection) -> dict[str, Any]:
             (SELECT count FROM paid_users) AS paid_users
         """
     )
-    
+
     if not rows:
         return {
             "signups": 0,
@@ -121,20 +126,26 @@ async def get_conversion_funnel(conn: asyncpg.Connection) -> dict[str, Any]:
             "onboarded_to_application_pct": 0.0,
             "application_to_paid_pct": 0.0,
         }
-    
+
     signups = rows["signups"] or 0
     onboarded = rows["onboarded"] or 0
     first_app = rows["first_application"] or 0
     paid = rows["paid_users"] or 0
-    
+
     return {
         "signups": signups,
         "onboarded": onboarded,
         "first_application": first_app,
         "paid_users": paid,
-        "signup_to_onboarded_pct": round((onboarded / signups * 100) if signups > 0 else 0, 2),
-        "onboarded_to_application_pct": round((first_app / onboarded * 100) if onboarded > 0 else 0, 2),
-        "application_to_paid_pct": round((paid / first_app * 100) if first_app > 0 else 0, 2),
+        "signup_to_onboarded_pct": round(
+            (onboarded / signups * 100) if signups > 0 else 0, 2
+        ),
+        "onboarded_to_application_pct": round(
+            (first_app / onboarded * 100) if onboarded > 0 else 0, 2
+        ),
+        "application_to_paid_pct": round(
+            (paid / first_app * 100) if first_app > 0 else 0, 2
+        ),
     }
 
 
@@ -175,22 +186,22 @@ async def get_revenue_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
             (SELECT mrr FROM previous_mrr) AS previous_mrr
         """
     )
-    
+
     if not rows:
         return {
             "mrr": 0,
             "arr": 0,
             "mrr_growth_pct": 0.0,
         }
-    
+
     current_mrr = rows["current_mrr"] or 0
     previous_mrr = rows["previous_mrr"] or 0
-    
+
     growth_pct = round(
         ((current_mrr - previous_mrr) / previous_mrr * 100) if previous_mrr > 0 else 0,
         2,
     )
-    
+
     return {
         "mrr": current_mrr,
         "arr": current_mrr * 12,
@@ -215,10 +226,10 @@ async def get_active_user_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
         FROM public.analytics_events
         """
     )
-    
+
     if not row:
         return {"dau": 0, "wau": 0, "mau": 0}
-    
+
     return {
         "dau": row["dau"] or 0,
         "wau": row["wau"] or 0,
@@ -228,7 +239,7 @@ async def get_active_user_metrics(conn: asyncpg.Connection) -> dict[str, Any]:
 
 async def get_business_metrics_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     """M5: Return comprehensive business metrics dashboard.
-    
+
     Includes:
     - Real-time DAU/WAU/MAU
     - Daily active users trend (30 days)
@@ -241,7 +252,7 @@ async def get_business_metrics_dashboard(conn: asyncpg.Connection) -> dict[str, 
     conversion = await get_conversion_funnel(conn)
     revenue = await get_revenue_metrics(conn)
     active_users = await get_active_user_metrics(conn)
-    
+
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "active_users": active_users,

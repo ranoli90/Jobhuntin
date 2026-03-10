@@ -101,7 +101,7 @@ async def process_in_chunks(
                 failed.append((chunk[0], result))
                 if cfg.fail_fast:
                     break
-            else:
+            elif isinstance(result, tuple):
                 item, output, error = result
                 if error:
                     failed.append((item, error))

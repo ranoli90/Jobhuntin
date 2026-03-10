@@ -251,7 +251,7 @@ async def list_jobs(
             count_query = "SELECT COUNT(*) as total FROM public.jobs j LEFT JOIN public.companies c ON j.company_id = c.id WHERE j.is_active = true"
             count_params: list[Any] = []
             count_param_index = 1
-            
+
             # Apply same filters to count query
             if filters:
                 if "location" in filters and filters.get("location"):
@@ -282,7 +282,7 @@ async def list_jobs(
                     count_query += f" AND j.salary_max <= ${count_param_index}"
                     count_params.append(filters["salary_max"])
                     count_param_index += 1
-            
+
             total_result = await conn.fetchrow(count_query, *count_params)
             total_count = total_result["total"] if total_result else 0
 

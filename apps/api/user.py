@@ -255,14 +255,17 @@ async def list_applications(
 
     # Calculate pagination metadata
     has_more = offset + limit < total_count
-    next_offset = offset + limit if has_more else None
-    prev_offset = max(0, offset - limit) if offset > 0 else None
+    offset + limit if has_more else None
+    max(0, offset - limit) if offset > 0 else None
 
     # MEDIUM: Use standardized pagination format
-    from packages.backend.domain.pagination import create_pagination_meta, PaginatedResponse
-    
+    from packages.backend.domain.pagination import (
+        PaginatedResponse,
+        create_pagination_meta,
+    )
+
     pagination_meta = create_pagination_meta(total_count, limit, offset)
-    
+
     return PaginatedResponse(
         items=out,
         pagination=pagination_meta,
@@ -347,11 +350,16 @@ async def create_application(
     DB-level dedup when Redis unavailable.
     """
     idempotency_key = request.headers.get("Idempotency-Key")
-    _idem_cache_key = f"idem:apply:{ctx.user_id}:{idempotency_key}" if idempotency_key and len(idempotency_key) <= 128 else None
+    _idem_cache_key = (
+        f"idem:apply:{ctx.user_id}:{idempotency_key}"
+        if idempotency_key and len(idempotency_key) <= 128
+        else None
+    )
 
     if _idem_cache_key and get_settings().redis_url:
         try:
             from shared.redis_client import get_redis
+
             r = await get_redis()
             cached = await r.get(_idem_cache_key)
             if cached:
@@ -364,6 +372,7 @@ async def create_application(
             return
         try:
             from shared.redis_client import get_redis
+
             r = await get_redis()
             await r.setex(_idem_cache_key, 86400, json.dumps(result))  # 24h TTL
         except Exception as e:
@@ -489,7 +498,7 @@ async def create_application(
         # MEDIUM: Add null check for user-provided job_id
         if not body.job_id:
             raise HTTPException(status_code=400, detail="Job ID is required")
-        
+
         job = await JobRepo.get_by_id(conn, body.job_id)
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
@@ -1021,7 +1030,9 @@ async def get_profile(
                 ctx.user_id,
             )
     except Exception as exc:
-        logger.error("[PROFILE] Database error fetching profile: %s", exc, exc_info=True)
+        logger.error(
+            "[PROFILE] Database error fetching profile: %s", exc, exc_info=True
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch profile")
 
     if not user_row:
@@ -1066,7 +1077,8 @@ async def get_profile(
         "career_goals": profile_data.get("career_goals", {}),
         "work_style": profile_data.get("work_style", {}),
         "onboarding_step": profile_data.get("onboarding_step"),
-        "onboarding_completed_steps": profile_data.get("onboarding_completed_steps") or [],
+        "onboarding_completed_steps": profile_data.get("onboarding_completed_steps")
+        or [],
     }
 
 
@@ -1113,14 +1125,10 @@ class ProfileUpdate(BaseModel):
         allowed_urgency = {"passive", "casual", "active", "urgent"}
         exp = value.get("experience_level")
         if exp is not None and str(exp).lower() not in allowed_exp:
-            raise ValueError(
-                f"experience_level must be one of {sorted(allowed_exp)}"
-            )
+            raise ValueError(f"experience_level must be one of {sorted(allowed_exp)}")
         urgency = value.get("urgency")
         if urgency is not None and str(urgency).lower() not in allowed_urgency:
-            raise ValueError(
-                f"urgency must be one of {sorted(allowed_urgency)}"
-            )
+            raise ValueError(f"urgency must be one of {sorted(allowed_urgency)}")
         return value
 
     @field_validator("avatar_url")

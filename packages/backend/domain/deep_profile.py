@@ -130,7 +130,8 @@ def calculate_completeness(profile: DeepProfile) -> float:
         # 2. They come from manual/user input (source="manual" or "user_skills")
         # 3. They come from profile data (source="profile") - user has seen them
         reviewed_skills = [
-            s for s in profile.competency_graph 
+            s
+            for s in profile.competency_graph
             if s.verified or s.source in ["manual", "user_skills", "profile"]
         ]
         if len(reviewed_skills) >= 1:

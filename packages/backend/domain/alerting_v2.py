@@ -83,7 +83,7 @@ async def send_opsgenie_alert(
     details: dict[str, Any] | None = None,
 ) -> str | None:
     """M10: Send an alert to Opsgenie.
-    
+
     Args:
         message: Alert message/title
         alias: Unique identifier for deduplication
@@ -91,12 +91,12 @@ async def send_opsgenie_alert(
         priority: P1 (Critical), P2 (High), P3 (Moderate), P4 (Low), P5 (Info)
         tags: List of tags for filtering
         details: Additional custom details
-        
+
     Returns:
         Alert ID if successful, None otherwise
     """
     from shared.config import get_settings
-    
+
     s = get_settings()
     if not s.opsgenie_api_key:
         logger.debug("Opsgenie not configured — skipping alert")
@@ -109,7 +109,7 @@ async def send_opsgenie_alert(
             "message": message,
             "priority": priority,
         }
-        
+
         if alias:
             payload["alias"] = alias
         if description:
@@ -360,7 +360,7 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
                 severity="critical",
                 details=alert,
             )
-            
+
             # M10: Send to Opsgenie as well
             opsgenie_id = await send_opsgenie_alert(
                 message=alert.get("message", "Sorce critical alert"),
@@ -373,12 +373,12 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
                     "pagerduty_dedup": pagerduty_dedup,
                 },
             )
-            
+
             await send_slack_message(
                 text=f"🚨 *CRITICAL*: {alert.get('message')}",
                 channel=get_settings().slack_ops_channel,
             )
-            
+
             logger.info(
                 "Critical alert dispatched: PagerDuty=%s, Opsgenie=%s",
                 pagerduty_dedup,
@@ -394,7 +394,7 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
                 tags=["warning", alert.get("code", "unknown")],
                 details=alert,
             )
-            
+
             await send_slack_message(
                 text=f"⚠️ *WARNING*: {alert.get('message')}",
                 channel=get_settings().slack_ops_channel,
@@ -407,7 +407,7 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
             severity="critical",
             details=rollback,
         )
-        
+
         opsgenie_id = await send_opsgenie_alert(
             message=f"AUTO-ROLLBACK: {rollback.get('reason')}",
             alias="auto-rollback",
@@ -419,12 +419,12 @@ async def run_alerting_cycle(conn: asyncpg.Connection) -> dict[str, Any]:
                 "pagerduty_dedup": pagerduty_dedup,
             },
         )
-        
+
         await send_slack_message(
             text=f"🔄 *AUTO-ROLLBACK*: {rollback.get('reason')}",
             channel=get_settings().slack_ops_channel,
         )
-        
+
         logger.info(
             "Auto-rollback alert dispatched: PagerDuty=%s, Opsgenie=%s",
             pagerduty_dedup,

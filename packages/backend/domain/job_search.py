@@ -138,7 +138,9 @@ async def search_and_list_jobs(
             incr("job_search.jobs_scored", {"user_id": user_id}, value=len(result))
             # Filter by min_match_score if requested
             if min_match_score is not None:
-                result = [j for j in result if (j.get("match_score") or 0) >= min_match_score]
+                result = [
+                    j for j in result if (j.get("match_score") or 0) >= min_match_score
+                ]
             # MEDIUM: Optimize match score sorting for large datasets
             # Note: For very large result sets, consider pre-computing and storing match scores
             # in the database and using SQL ORDER BY instead of in-memory sorting
@@ -215,9 +217,9 @@ def _build_job_search_query(
         n += 1
         # Map is_remote boolean to remote_policy values
         if is_remote:
-            query += f" AND (remote_policy = 'remote' OR remote_policy = 'hybrid')"
+            query += " AND (remote_policy = 'remote' OR remote_policy = 'hybrid')"
         else:
-            query += f" AND remote_policy = 'onsite'"
+            query += " AND remote_policy = 'onsite'"
 
     if job_type:
         n += 1
@@ -237,7 +239,9 @@ def _build_job_search_query(
 
     # ORDER BY
     if sort_by == "salary":
-        order_clause = "salary_max DESC NULLS LAST, salary_min DESC NULLS LAST, created_at DESC"
+        order_clause = (
+            "salary_max DESC NULLS LAST, salary_min DESC NULLS LAST, created_at DESC"
+        )
     else:
         order_clause = "date_posted DESC NULLS LAST, created_at DESC"
 
@@ -276,9 +280,13 @@ def _map_job_row(r: Any) -> dict[str, Any]:
         "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
         "url": r["application_url"],
         "source": r.get("source"),
-        "is_remote": r.get("remote_policy") in ("remote", "hybrid") if r.get("remote_policy") else None,
+        "is_remote": r.get("remote_policy") in ("remote", "hybrid")
+        if r.get("remote_policy")
+        else None,
         "job_type": r.get("job_type"),
-        "date_posted": r.get("posted_date").isoformat() if r.get("posted_date") else (r.get("date_posted").isoformat() if r.get("date_posted") else None),
+        "date_posted": r.get("posted_date").isoformat()
+        if r.get("posted_date")
+        else (r.get("date_posted").isoformat() if r.get("date_posted") else None),
         "job_level": r.get("job_level"),
         "company_industry": r.get("company_industry"),
         "logo_url": logo_url,

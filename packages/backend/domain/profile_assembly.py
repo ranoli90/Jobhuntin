@@ -70,7 +70,9 @@ async def assemble_profile(
             RichSkill(
                 skill=skill_name,
                 confidence=float(row["confidence"] or 0.5),
-                years_actual=float(row["years_actual"]) if row["years_actual"] else None,
+                years_actual=float(row["years_actual"])
+                if row["years_actual"]
+                else None,
                 context=row["context"] or "",
                 last_used=row["last_used"],
                 verified=bool(row["verified"]),

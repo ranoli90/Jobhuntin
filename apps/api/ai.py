@@ -48,7 +48,9 @@ logger = get_logger("sorce.api.ai")
 _user_rate_limits: dict[str, list[float]] = defaultdict(list)
 
 
-async def _check_user_rate_limit(user_id: str, action: str, max_per_hour: int = 20) -> bool:
+async def _check_user_rate_limit(
+    user_id: str, action: str, max_per_hour: int = 20
+) -> bool:
     """Check rate limit. Uses Redis when available for multi-instance support."""
     key = f"ai_rate:{user_id}:{action}"
     now = time.time()
@@ -57,6 +59,7 @@ async def _check_user_rate_limit(user_id: str, action: str, max_per_hour: int = 
     if s.redis_url:
         try:
             from shared.redis_client import get_redis
+
             r = await get_redis()
             pipe = r.pipeline()
             pipe.incr(key)
@@ -70,7 +73,9 @@ async def _check_user_rate_limit(user_id: str, action: str, max_per_hour: int = 
                 return False
             return True
         except Exception as e:
-            logger.warning("AI rate limit Redis check failed, falling back to in-memory: %s", e)
+            logger.warning(
+                "AI rate limit Redis check failed, falling back to in-memory: %s", e
+            )
     # Fallback: in-memory (single-instance only)
     _user_rate_limits[key] = [t for t in _user_rate_limits[key] if now - t < window]
     if len(_user_rate_limits[key]) >= max_per_hour:
@@ -223,14 +228,18 @@ class LocationSuggestionRequest(BaseModel):
 class JobMatchRequest(BaseModel):
     """Request body for job match scoring."""
 
-    profile: dict | None = Field(default=None, description="Profile from client; if empty, loaded server-side")
+    profile: dict | None = Field(
+        default=None, description="Profile from client; if empty, loaded server-side"
+    )
     job: dict = Field(..., description="Job posting data")
 
 
 class BatchJobMatchRequest(BaseModel):
     """Request body for batch job match scoring."""
 
-    profile: dict | None = Field(default=None, description="Profile from client; if empty, loaded server-side")
+    profile: dict | None = Field(
+        default=None, description="Profile from client; if empty, loaded server-side"
+    )
     jobs: list[dict] = Field(..., description="List of job postings to score")
 
 
@@ -668,6 +677,7 @@ class SemanticMatchResponse(BaseModel):
 async def semantic_match_job(
     request: SemanticMatchRequest,
     user_id: str = Depends(_get_user_id),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> SemanticMatchResponse:
     """Compute semantic match score using vector embeddings.
 
@@ -778,6 +788,7 @@ class BatchSemanticMatchResponse(BaseModel):
 async def semantic_match_batch(
     request: BatchSemanticMatchRequest,
     user_id: str = Depends(_get_user_id),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> BatchSemanticMatchResponse:
     """Batch semantic matching for multiple jobs.
 

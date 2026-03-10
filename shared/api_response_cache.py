@@ -1004,12 +1004,12 @@ class ResponseCache:
                 for level, m in self.metrics.items()
             },
             "summary": {
-                    "total_entries": stats["total_entries"],
-                    "total_size_mb": stats["total_size_mb"],
-                    "hit_rate_pct": stats["hit_rate_pct"],
-                    "avg_response_time_ms": stats["avg_response_time_ms"],
-                    "error_rate_pct": stats["error_rate_pct"],
-                    "global_hit_rate_pct": stats["global_hit_rate_pct"],
+                "total_entries": stats["total_entries"],
+                "total_size_mb": stats["total_size_mb"],
+                "hit_rate_pct": stats["hit_rate_pct"],
+                "avg_response_time_ms": stats["avg_response_time_ms"],
+                "error_rate_pct": stats["error_rate_pct"],
+                "global_hit_rate_pct": stats["global_hit_rate_pct"],
                 "cache_levels": {
                     level.value: {
                         "total_entries": m.total_entries,
