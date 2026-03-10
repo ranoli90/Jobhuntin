@@ -1876,7 +1876,7 @@ export function ApplicationsView() {
           {t("dashboard.aiAgentMonitoring", locale)} <span className="font-black">{t("dashboard.aiAgentMonitoringNewListings", locale)}</span> {t("dashboard.aiAgentMonitoringSource", locale)}
         </p>
       </div>
-        </motion.div>
+      </motion.div>
       </main>
     </ErrorBoundary>
   );
