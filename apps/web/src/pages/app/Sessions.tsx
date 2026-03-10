@@ -341,6 +341,6 @@ export default function Sessions() {
         confirmVariant="danger"
         isLoading={revokingAll}
       />
-    </div>
+    </main>
   );
 }
