@@ -465,6 +465,24 @@ def build_mapping_prompt(
     return build_dom_mapping_prompt(profile_dict, form_fields, answered_inputs)
 
 
+async def _llm_call_with_retry(call_fn, max_retries: int = 3):
+    """Retry LLM call with exponential backoff for transient failures."""
+    last_exc = None
+    for attempt in range(max_retries):
+        try:
+            return await call_fn()
+        except Exception as e:
+            last_exc = e
+            if attempt < max_retries - 1:
+                delay = 2**attempt + random.uniform(0, 1)
+                logger.warning(
+                    "LLM call failed (attempt %d/%d), retrying in %.1fs: %s",
+                    attempt + 1, max_retries, delay, e,
+                )
+                await asyncio.sleep(delay)
+    raise last_exc
+
+
 async def map_fields_via_llm(
     profile: CanonicalProfile,
     form_fields: list[FormField],
@@ -473,10 +491,14 @@ async def map_fields_via_llm(
 ) -> dict:
     """Use the LLM client with the versioned DOM mapping contract."""
     prompt = build_mapping_prompt(profile, form_fields, answered_inputs, prompt_version)
-    result = await _llm_client.call(
-        prompt=prompt,
-        response_format=DomMappingResponse_V1,
-    )
+
+    async def _call():
+        return await _llm_client.call(
+            prompt=prompt,
+            response_format=DomMappingResponse_V1,
+        )
+
+    result = await _llm_call_with_retry(_call)
     return {
         "field_values": result.field_values,
         "unresolved_required_fields": [
@@ -1278,10 +1300,14 @@ class FormAgent:
                 prompt = build_cover_letter_prompt(
                     sanitized_profile, job_for_prompt, tone="professional"
                 )
-                result = await _llm_client.call(
-                    prompt=prompt,
-                    response_format=CoverLetterResponse_V1,
-                )
+
+                async def _cover_letter_call():
+                    return await _llm_client.call(
+                        prompt=prompt,
+                        response_format=CoverLetterResponse_V1,
+                    )
+
+                result = await _llm_call_with_retry(_cover_letter_call)
                 content = result.content if hasattr(result, "content") else str(result)
                 async with self.pool.acquire() as conn:
                     await CoverLetterRepo.create(

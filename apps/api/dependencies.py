@@ -14,6 +14,8 @@ logger = get_logger("sorce.api.dependencies")
 async def _check_session_revocation(jti: str, settings: Any) -> bool:
     """Check if a session token has been revoked.
     
+    P0-2: In production, fail closed - reject request if Redis unavailable.
+    
     Args:
         jti: JWT ID claim from the session token
         settings: Application settings
@@ -22,11 +24,14 @@ async def _check_session_revocation(jti: str, settings: Any) -> bool:
         True if token is revoked, False otherwise
     """
     if not settings.redis_url:
-        # In production, require Redis for revocation checks
         if settings.env.value == "prod":
-            logger.warning(
-                "Redis not available - cannot check session token revocation. "
-                "Assuming token is valid (security risk)."
+            logger.critical(
+                "Redis not available in production - cannot check session revocation. "
+                "Rejecting request (fail closed). Set REDIS_URL."
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="Authentication service temporarily unavailable. Please try again.",
             )
         return False
 
@@ -37,10 +42,15 @@ async def _check_session_revocation(jti: str, settings: Any) -> bool:
         key = f"auth:revoked_jti:{jti}"
         exists = await r.exists(key)
         return bool(exists)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.warning("Failed to check session token revocation: %s", e)
-        # Fail open in case of Redis errors (don't block legitimate users)
-        # But log the error for monitoring
+        if settings.env.value == "prod":
+            raise HTTPException(
+                status_code=503,
+                detail="Authentication service temporarily unavailable. Please try again.",
+            )
         return False
 
 

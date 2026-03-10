@@ -188,6 +188,7 @@ export default function Onboarding() {
   });
 
   const [formErrors, setFormErrors] = React.useState<Record<string, string>>({});
+  const [saveError, setSaveError] = React.useState<string | null>(null);
 
   const [contactInfo, setContactInfo] = React.useState({
     first_name: "",
@@ -332,6 +333,11 @@ export default function Onboarding() {
     }
   }, [currentStep, formData, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview]);
 
+  // Clear save error when changing steps (e.g. prev/next) so it doesn't persist across steps
+  React.useEffect(() => {
+    setSaveError(null);
+  }, [currentStep]);
+
   const triggerHaptic = (type: 'success' | 'warning' | 'light' = 'light') => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       if (type === 'success') navigator.vibrate([10, 30, 10]);
@@ -342,6 +348,7 @@ export default function Onboarding() {
 
   const handleSaveWorkStyle = async () => {
     triggerHaptic('light');
+    setSaveError(null);
     setIsSavingWorkStyle(true);
     try {
       const hasAnswers = Object.keys(workStyleAnswers).some((k) => workStyleAnswers[k]);
@@ -368,6 +375,7 @@ export default function Onboarding() {
       if (typeof (err as Error).message === 'string' && !err.message.includes('[object')) {
         message = err.message;
       }
+      setSaveError(message);
       pushToast({ title: "Failed to save work style", description: message, tone: "error" });
     } finally {
       setIsSavingWorkStyle(false);
@@ -779,6 +787,7 @@ export default function Onboarding() {
 
   const handleSaveSkills = async () => {
     triggerHaptic('light');
+    setSaveError(null);
     setIsSavingSkills(true);
     try {
       // Cache skills data
@@ -802,6 +811,7 @@ export default function Onboarding() {
       } else if (typeof (err as Error).message === 'string' && !err.message.includes('[object')) {
         message = err.message;
       }
+      setSaveError(message);
       pushToast({
         title: "Failed to save skills",
         description: message,
@@ -830,8 +840,8 @@ export default function Onboarding() {
       return;
     }
 
-    // Clear any previous errors and set loading
     setFormErrors({});
+    setSaveError(null);
     setIsSavingContact(true);
 
     try {
@@ -869,6 +879,7 @@ export default function Onboarding() {
       } else if (typeof (err as Error).message === 'string' && !err.message.includes('[object')) {
         message = err.message;
       }
+      setSaveError(message);
       pushToast({
         title: "Failed to save contact info",
         description: message,
@@ -929,8 +940,8 @@ export default function Onboarding() {
       return;
     }
 
-    // Clear any previous errors and set loading
     setFormErrors({});
+    setSaveError(null);
     setIsSavingPreferences(true);
 
     try {
@@ -987,18 +998,17 @@ export default function Onboarding() {
       nextStep();
     } catch (error) {
       const err = error as Error & { status?: number };
+      const msg = (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again";
       if (import.meta.env.DEV) console.error("[Onboarding] Failed to save preferences:", err);
-      pushToast({
-        title: "Failed to save preferences",
-        description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
-        tone: "error"
-      });
+      setSaveError(msg);
+      pushToast({ title: "Failed to save preferences", description: msg, tone: "error" });
     } finally {
       setIsSavingPreferences(false);
     }
   };
 
   const handleSaveCareerGoals = async () => {
+    setSaveError(null);
     try {
       setIsSavingCareerGoals(true);
       // Save career goals to profile
@@ -1015,18 +1025,17 @@ export default function Onboarding() {
       nextStep();
     } catch (error) {
       const err = error as Error & { status?: number };
+      const msg = (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again";
       if (import.meta.env.DEV) console.error('[Onboarding] Failed to save career goals:', err);
-      pushToast({
-        title: "Failed to save career goals",
-        description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : "Please try again",
-        tone: "error"
-      });
+      setSaveError(msg);
+      pushToast({ title: "Failed to save career goals", description: msg, tone: "error" });
     } finally {
       setIsSavingCareerGoals(false);
     }
   };
 
   const handleComplete = async () => {
+    setSaveError(null);
     try {
       setIsCompleting(true);
       // O20: Validation before completion (names, email) handled by useProfile hook
@@ -1056,12 +1065,10 @@ export default function Onboarding() {
       navigate("/app/dashboard");
     } catch (error) {
       const err = error as Error & { status?: number };
+      const msg = (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : (t("onboarding.somethingWrong", locale) || "Something went wrong. Please try again.");
       if (import.meta.env.DEV) console.error('[Onboarding] Failed to complete:', err);
-      pushToast({
-        title: t("onboarding.almostThere", locale) || "Almost there!",
-        description: (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : (t("onboarding.somethingWrong", locale) || "Something went wrong. Please try again."),
-        tone: "error"
-      });
+      setSaveError(msg);
+      pushToast({ title: t("onboarding.almostThere", locale) || "Almost there!", description: msg, tone: "error" });
     } finally {
       setIsCompleting(false);
     }
@@ -1211,6 +1218,23 @@ export default function Onboarding() {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
+                        {saveError && ["skill-review", "confirm-contact", "preferences", "work-style", "career-goals", "ready"].includes(currentStepData?.id || "") && (
+                          <div
+                            className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-start gap-2"
+                            role="alert"
+                          >
+                            <span className="shrink-0">⚠</span>
+                            <span className="flex-1">{saveError}</span>
+                            <button
+                              type="button"
+                              onClick={() => setSaveError(null)}
+                              className="shrink-0 text-red-600 hover:underline text-xs font-medium"
+                              aria-label="Dismiss"
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                        )}
                         {currentStepData.id === "welcome" && (
                           <WelcomeStep
                             onNext={nextStep}
@@ -1314,6 +1338,12 @@ export default function Onboarding() {
                               roles: aiSuggestions.roles.data,
                               salary: aiSuggestions.salary.data,
                               locations: aiSuggestions.locations.data,
+                              rolesLoading: aiSuggestions.roles.loading,
+                              salaryLoading: aiSuggestions.salary.loading,
+                              locationsLoading: aiSuggestions.locations.loading,
+                              rolesError: aiSuggestions.roles.error,
+                              salaryError: aiSuggestions.salary.error,
+                              locationsError: aiSuggestions.locations.error,
                             }}
                             formErrors={formErrors}
                             hasParsedProfile={!!parsedProfile}

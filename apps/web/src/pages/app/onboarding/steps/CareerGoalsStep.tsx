@@ -98,7 +98,7 @@ export function CareerGoalsStep({
                                     role="radio"
                                     aria-checked={isSelected}
                                     onClick={() => setCareerGoals(prev => ({ ...prev, experience_level: level.value }))}
-                                    className={`relative p-3 rounded-xl text-center transition-all border-2 ${isSelected
+                                    className={`relative min-h-[44px] p-3 rounded-xl text-center transition-all border-2 ${isSelected
                                         ? "border-primary-500 shadow-md scale-[1.02]"
                                         : "border-slate-100 hover:border-slate-200 active:scale-[0.98]"
                                         }`}
@@ -130,7 +130,7 @@ export function CareerGoalsStep({
                                     role="radio"
                                     aria-checked={isSelected}
                                     onClick={() => setCareerGoals(prev => ({ ...prev, urgency: option.value }))}
-                                    className={`flex items-center gap-3 p-3 md:p-4 rounded-xl text-left transition-all border-2 ${isSelected
+                                    className={`flex items-center gap-3 min-h-[44px] p-3 md:p-4 rounded-xl text-left transition-all border-2 ${isSelected
                                         ? "border-primary-500 bg-primary-50 shadow-md scale-[1.01]"
                                         : `${option.color} active:scale-[0.99]`
                                         }`}
@@ -167,7 +167,7 @@ export function CareerGoalsStep({
                                         ...prev,
                                         primary_goal: prev.primary_goal === goal.value ? "" : goal.value
                                     }))}
-                                    className={`flex items-center gap-2 p-3 rounded-xl text-left transition-all border-2 ${isSelected
+                                    className={`flex items-center gap-2 min-h-[44px] p-3 rounded-xl text-left transition-all border-2 ${isSelected
                                         ? "border-primary-500 bg-primary-50 shadow-sm"
                                         : "border-slate-100 hover:border-slate-200 active:scale-[0.98]"
                                         }`}
@@ -198,7 +198,7 @@ export function CareerGoalsStep({
                                         ...prev,
                                         why_leaving: prev.why_leaving === reason.value ? "" : reason.value
                                     }))}
-                                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${isSelected
+                                    className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-bold transition-all border flex items-center ${isSelected
                                         ? "border-primary-500 bg-primary-50 text-primary-700"
                                         : "border-slate-200 text-slate-600 hover:border-slate-300 active:scale-[0.97]"
                                         }`}

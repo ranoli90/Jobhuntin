@@ -80,6 +80,6 @@ db-reset:
 	psql $(DATABASE_URL) -c "CREATE SCHEMA IF NOT EXISTS auth; CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY);"
 	psql $(DATABASE_URL) -c "CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS \$$\$$ SELECT '00000000-0000-0000-0000-000000000000'::uuid; \$$\$$ LANGUAGE sql;"
 	psql $(DATABASE_URL) -c "CREATE PUBLICATION IF NOT EXISTS supabase_realtime;"
-	psql $(DATABASE_URL) -f infra/supabase/schema.sql
-	for f in infra/supabase/migrations/0*.sql; do psql $(DATABASE_URL) -f "$$f"; done
+	psql $(DATABASE_URL) -f infra/postgres/schema.sql
+	psql $(DATABASE_URL) -f infra/postgres/migrations.sql 2>/dev/null || true
 	@echo "Done."

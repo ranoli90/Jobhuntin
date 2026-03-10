@@ -71,14 +71,14 @@ function SkillRow({ skill, onEdit, onDelete, locale }: SkillRowProps) {
             <div className="flex gap-0.5 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 md:group-focus-within:opacity-100 transition-opacity shrink-0">
                 <button
                     onClick={onEdit}
-                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="min-h-[44px] min-w-[44px] p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center"
                     aria-label={t("onboarding.editSkill", locale) || "Edit skill"}
                 >
                     <Edit2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
                 <button
                     onClick={onDelete}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                    className="min-h-[44px] min-w-[44px] p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors flex items-center justify-center"
                     aria-label={t("onboarding.deleteSkill", locale) || "Delete skill"}
                 >
                     <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />

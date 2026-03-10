@@ -1,9 +1,9 @@
 /**
  * Authentication utilities for the mobile app using the Render API backend.
- * 
- * This replaces Supabase Auth with direct API calls to the Render backend.
+ *
+ * Uses direct API calls to the Render backend (no Supabase).
  * All auth tokens are stored securely using expo-secure-store.
- * 
+ *
  * NOTE: reCAPTCHA Enterprise Mobile SDK integration required for production.
  * See: https://cloud.google.com/recaptcha-enterprise/docs/instrument-mobile-apps
  */
@@ -278,10 +278,38 @@ export function handleMagicLinkDeepLink(url: string): { token: string | null; re
   }
 }
 
-// Mock supabase object for compatibility with existing code
+/**
+ * Get current user from session (for compatibility with code expecting supabase.auth.getUser).
+ */
+export async function getUser(): Promise<{ data: { user: { id: string; email: string } | null }; error: null }> {
+  const result = await getSession();
+  const session = result.session;
+  if (!session) {
+    return { data: { user: null }, error: null };
+  }
+  return {
+    data: {
+      user: {
+        id: session.user.id,
+        email: session.user.email,
+      },
+    },
+    error: null,
+  };
+}
+
+/** No-op channel for compatibility - Render backend has no realtime; use refreshApplication/polling. */
+function noopChannel() {
+  return {
+    on: () => ({ subscribe: () => ({}) }),
+  };
+}
+
+/** Auth + compatibility shims. Render backend (no Supabase). Kept as 'supabase' for minimal import changes. */
 export const supabase = {
   auth: {
     getSession,
+    getUser,
     signInWithMagicLink,
     signInWithMagicLinkAndCaptcha,
     signInWithPassword,
@@ -289,6 +317,8 @@ export const supabase = {
     refreshSession,
     handleMagicLinkDeepLink,
   },
+  channel: noopChannel,
+  removeChannel: () => {},
 };
 
 export default supabase;

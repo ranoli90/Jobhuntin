@@ -254,17 +254,16 @@ curl https://api.jobhuntin.com/health
 
 ```bash
 # Local development
-psql $DATABASE_URL -f infra/supabase/schema.sql
-for f in infra/supabase/migrations/*.sql; do 
-  psql $DATABASE_URL -f "$f"
-done
+psql $DATABASE_URL -f infra/postgres/schema.sql
+psql $DATABASE_URL -f infra/postgres/migrations.sql
 
-# Production (via Render or manual)
+# Production (Render PostgreSQL)
 # 1. Backup database first
 pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
 
 # 2. Run migrations
-psql $DATABASE_URL -f infra/supabase/schema.sql
+psql $DATABASE_URL -f infra/postgres/schema.sql
+psql $DATABASE_URL -f infra/postgres/migrations.sql
 # (Run migration files in order)
 ```
 

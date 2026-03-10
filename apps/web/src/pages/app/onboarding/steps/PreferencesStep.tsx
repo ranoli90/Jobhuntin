@@ -81,6 +81,12 @@ interface PreferencesStepProps {
         roles: RoleSuggestion | null;
         salary: SalarySuggestion | null;
         locations: LocationSuggestion | null;
+        rolesLoading?: boolean;
+        salaryLoading?: boolean;
+        locationsLoading?: boolean;
+        rolesError?: string | null;
+        salaryError?: string | null;
+        locationsError?: string | null;
     };
     formErrors: Record<string, string>;
     hasParsedProfile?: boolean;
@@ -372,25 +378,65 @@ export function PreferencesStep({
                             </p>
                         </div>
 
-                        {aiSuggestions.locations && aiSuggestions.locations.suggested_locations?.length > 0 && (
+                        {aiSuggestions.locationsLoading ? (
+                            <AISuggestionCard
+                                title={t("onboarding.suggestedLocation", locale) || "Suggested Location"}
+                                suggestions={[]}
+                                loading
+                            />
+                        ) : aiSuggestions.locationsError && !aiSuggestions.locations ? (
+                            <AISuggestionCard
+                                title={t("onboarding.suggestedLocation", locale) || "Suggested Location"}
+                                suggestions={[]}
+                                error={aiSuggestions.locationsError}
+                            />
+                        ) : aiSuggestions.locations && aiSuggestions.locations.suggested_locations?.length > 0 ? (
                             <AISuggestionCard
                                 title={t("onboarding.suggestedLocation", locale) || "Suggested Location"}
                                 suggestions={[aiSuggestions.locations.suggested_locations[0]]}
                                 confidence={aiSuggestions.locations.remote_friendly_score ?? 0.5}
                                 onAccept={(val) => handleLocationChange(val)}
                             />
-                        )}
+                        ) : null}
 
-                        {aiSuggestions.roles && (
+                        {aiSuggestions.rolesLoading ? (
+                            <AISuggestionCard
+                                title={t("onboarding.suggestedRole", locale) || "Suggested Role"}
+                                suggestions={[]}
+                                loading
+                            />
+                        ) : aiSuggestions.rolesError && !aiSuggestions.roles ? (
+                            <AISuggestionCard
+                                title={t("onboarding.suggestedRole", locale) || "Suggested Role"}
+                                suggestions={[]}
+                                error={aiSuggestions.rolesError}
+                            />
+                        ) : aiSuggestions.roles ? (
                             <AISuggestionCard
                                 title={t("onboarding.suggestedRole", locale) || "Suggested Role"}
                                 suggestions={[aiSuggestions.roles.primary_role]}
                                 confidence={aiSuggestions.roles.confidence}
                                 onAccept={(val) => handleRoleTypeChange(val)}
                             />
-                        )}
+                        ) : null}
 
-                        {aiSuggestions.salary && (
+                        {aiSuggestions.salaryLoading ? (
+                            <SalarySuggestionCard
+                                minSalary={0}
+                                maxSalary={0}
+                                marketMedian={0}
+                                confidence={0}
+                                loading
+                            />
+                        ) : aiSuggestions.salaryError && !aiSuggestions.salary ? (
+                            <SalarySuggestionCard
+                                minSalary={0}
+                                maxSalary={0}
+                                marketMedian={0}
+                                confidence={0}
+                                error={aiSuggestions.salaryError}
+                            />
+                        ) : aiSuggestions.salary ? (
                             <SalarySuggestionCard
                                 minSalary={Number(aiSuggestions.salary.min_salary)}
                                 maxSalary={Number(aiSuggestions.salary.max_salary)}
@@ -401,7 +447,7 @@ export function PreferencesStep({
                                     handleSalaryChange('salary_max', max.toString());
                                 }}
                             />
-                        )}
+                        ) : null}
                     </div>
                 )}
             </div>

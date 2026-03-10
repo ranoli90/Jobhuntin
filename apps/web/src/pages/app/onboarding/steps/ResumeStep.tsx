@@ -41,7 +41,7 @@ function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () =
                         onClick={onStay}
                         aria-label={t("onboarding.cancel", locale)}
                         className={cn(
-                            "absolute top-4 right-4 p-1 rounded-lg",
+                            "absolute top-4 right-4 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg",
                             "text-slate-400 hover:text-slate-600 hover:bg-slate-100",
                             "dark:hover:bg-slate-800 transition-colors"
                         )}
@@ -289,7 +289,7 @@ export function ResumeStep({
                     <button
                         onClick={handleRemoveFile}
                         className={cn(
-                            "absolute top-3 right-3 w-8 h-8 rounded-full",
+                            "absolute top-3 right-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full",
                             "bg-white border border-slate-200",
                             "hover:border-red-200 hover:bg-red-50",
                             "flex items-center justify-center transition-colors z-20 shadow-sm"
@@ -353,11 +353,21 @@ export function ResumeStep({
                     animate={{ opacity: 1, y: 0 }}
                     className={cn(
                         "mb-4 rounded-xl border border-red-200 bg-red-50 p-4",
-                        "text-sm text-red-600 font-bold flex items-center gap-2"
+                        "text-sm text-red-600"
                     )}
+                    role="alert"
                 >
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-                    <span className="flex-1 min-w-0">{resumeError}</span>
+                    <div className="flex items-start gap-2">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0 mt-1.5" />
+                        <div className="flex-1 min-w-0">
+                            <p className="font-bold">{resumeError}</p>
+                            {(resumeError.toLowerCase().includes("parse") || resumeError.toLowerCase().includes("extract") || resumeError.toLowerCase().includes("read")) && (
+                                <p className="text-xs text-red-600/90 mt-1 font-normal">
+                                    You can try a different file, or skip and add your details manually in the next steps.
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 </motion.div>
             )}
 

@@ -8,6 +8,7 @@ import { useApplications, type ApplicationRecord } from "../hooks/useApplication
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiPost, apiGet, getApiBase, getAuthHeaders } from "../lib/api";
 import { pushToast } from "../lib/toast";
 import { fireSuccessConfetti } from "../lib/confetti";
@@ -729,6 +730,7 @@ export default function Dashboard() {
 
 export function JobsView() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   // Load user preferences from onboarding to pre-populate filters
   const { profile } = useProfile();
   const userPrefs = profile?.preferences;
@@ -909,10 +911,11 @@ export function JobsView() {
 
     try {
       // Record swipe decision with API
-      await apiPost("me/applications", { job_id: swipedJob.id, decision: direction });
+      await apiPost("me/applications", { job_id: swipedJob.id, decision: direction }, { headers: { "Idempotency-Key": crypto.randomUUID() } });
 
-      // C4: Analytics Tracking - Track application started when user accepts
       if (direction === "ACCEPT") {
+        queryClient.invalidateQueries({ queryKey: ["applications"] });
+        queryClient.invalidateQueries({ queryKey: ["jobs"] });
         telemetry.track("application_started", {
           job_id: swipedJob.id,
           company: swipedJob.company,

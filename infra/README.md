@@ -2,4 +2,4 @@
 
 Infrastructure and deployment-related assets.
 
-- `supabase/` - schema + migrations used for local dev and deployments
+- `postgres/` - PostgreSQL schema + migrations for Render DB and local dev

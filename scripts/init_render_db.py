@@ -16,16 +16,17 @@ async def init_schema(conn):
     """Initialize database schema."""
     # Get schema from file
     schema_file = (
-        Path(__file__).parent.parent.parent / "infra" / "supabase" / "schema.sql"
+        Path(__file__).parent.parent.parent / "infra" / "postgres" / "schema.sql"
     )
     if not schema_file.exists():
         raise FileNotFoundError(f"Schema file not found: {schema_file}")
 
     schema_sql = schema_file.read_text()
 
-    # Remove Supabase-specific elements
+    # Remove any legacy auth.users references (Render PostgreSQL, no Supabase)
     schema_sql = schema_sql.replace("REFERENCES auth.users (id)", "")
-    schema_sql = schema_sql.split("-- Row-Level Security")[0]
+    if "-- Row-Level Security" in schema_sql:
+        schema_sql = schema_sql.split("-- Row-Level Security")[0]
 
     # Execute schema
     await conn.execute(schema_sql)

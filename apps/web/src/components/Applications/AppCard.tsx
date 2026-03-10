@@ -39,7 +39,8 @@ export function AppCard({ application, onAnswerHold, className }: AppCardProps) 
       {application.summary ? <p className="mt-2 text-sm text-brand-ink/70">{application.summary}</p> : null}
       {application.status === "HOLD" && application.hold_question ? (
         <div className="mt-4 rounded-2xl border border-dashed border-brand-ink/20 bg-brand-shell/60 px-4 py-3 text-sm text-brand-ink">
-          <p className="font-semibold">HOLD question</p>
+          <p className="font-semibold">Needs your input</p>
+          <p className="text-brand-ink/80 text-xs mb-1">The application form asked a question we need you to answer:</p>
           <p>{application.hold_question}</p>
           {onAnswerHold ? (
             <Button size="sm" variant="lagoon" className="mt-3" onClick={() => onAnswerHold(application.id)}>

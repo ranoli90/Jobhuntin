@@ -1,9 +1,9 @@
 /**
- * Typed API client for the Sorce backend.
+ * Typed API client for the Sorce backend (Render).
  *
  * Centralizes all HTTP calls with:
  *   - Environment-aware base URL (from config.ts)
- *   - Auth token injection via Supabase session
+ *   - Auth token injection via session
  *   - Standard error handling (ErrorResponse envelope)
  *   - Typed request/response wrappers
  */
@@ -12,7 +12,7 @@ import { supabase } from "../lib/supabase";
 import { API_BASE_URL } from "../lib/config";
 import { track } from "../lib/analytics";
 import { getUsage } from "./billing";
-import type { Application, AnswerItem } from "../types";
+import type { Application, AnswerItem, Job } from "../types";
 import type {
   ResumeParseResponse,
   ResumeTaskResponse,
@@ -126,32 +126,42 @@ export class QuotaExceededError extends Error {
 
 /**
  * Create a new application for a job (swipe right).
- * Checks quota before inserting. Throws QuotaExceededError if limit hit.
+ * Uses REST API (POST /me/applications) - same as web. Throws QuotaExceededError if limit hit.
  */
 export async function createApplication(jobId: string): Promise<Application> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new ApiError(401, "UNAUTHENTICATED", "Not authenticated");
+  const token = await getAuthToken();
+  if (!token) throw new ApiError(401, "UNAUTHENTICATED", "Not authenticated");
 
-  // Pre-flight quota check
-  try {
-    const usage = await getUsage();
-    if (usage.monthly_remaining <= 0) {
+  const resp = await fetch(`${API_BASE_URL}/me/applications`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ job_id: jobId, decision: "ACCEPT" }),
+  });
+
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({})) as { detail?: string | { message?: string } };
+    const detail = typeof body.detail === "string" ? body.detail : body.detail?.message;
+    if (resp.status === 402 && detail?.toLowerCase().includes("quota")) {
+      const usage = await getUsage();
       throw new QuotaExceededError(usage.plan, usage.monthly_used, usage.monthly_limit);
     }
-  } catch (err) {
-    if (err instanceof QuotaExceededError) throw err;
-    // If usage endpoint fails, allow the insert (server-side RLS/triggers will catch)
-    console.warn("Quota pre-check failed, proceeding:", err);
+    throw new ApiError(resp.status, "CREATE_APPLICATION_FAILED", detail || "Failed to create application");
   }
 
-  const { data, error } = await supabase
-    .from("applications")
-    .insert({ user_id: user.id, job_id: jobId, status: "QUEUED" })
-    .select()
-    .single();
-
-  if (error) throw new ApiError(500, "CREATE_APPLICATION_FAILED", error.message);
-  return data as Application;
+  const data = await handleResponse<{ id: string; job_id: string; status: string }>(resp);
+  return {
+    id: data.id,
+    user_id: "",
+    job_id: data.job_id,
+    tenant_id: null,
+    blueprint_key: "job-app",
+    status: data.status as Application["status"],
+    error_message: null,
+    locked_at: null,
+    submitted_at: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  } as Application;
 }
 
 /**
@@ -187,6 +197,25 @@ export async function submitApplicationInputs(
   });
 
   return handleResponse<ResumeTaskResponse>(resp);
+}
+
+/**
+ * Fetch job listings (for job feed / swipe). Uses REST API GET /me/jobs.
+ */
+export async function getJobs(params?: { limit?: number; offset?: number }): Promise<{ jobs: Job[] }> {
+  const token = await getAuthToken();
+  if (!token) throw new ApiError(401, "UNAUTHENTICATED", "Not authenticated");
+
+  const searchParams = new URLSearchParams();
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.offset) searchParams.set("offset", String(params.offset));
+  const query = searchParams.toString();
+  const url = `${API_BASE_URL}/me/jobs${query ? `?${query}` : ""}`;
+
+  const resp = await fetch(url, { headers: authHeaders(token) });
+  const data = await handleResponse<{ jobs?: Job[] } | Job[]>(resp);
+  const jobs = Array.isArray(data) ? data : (data.jobs ?? []);
+  return { jobs };
 }
 
 /**

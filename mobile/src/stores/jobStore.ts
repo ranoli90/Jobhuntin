@@ -1,11 +1,16 @@
 /**
  * Part 4: Frontend State Management – Job Feed & Swipe Store (Zustand)
+ *
+ * Uses REST API (GET /me/jobs, POST /me/applications) - Render backend, no Supabase.
  */
 
 import { create } from "zustand";
-import { supabase } from "../lib/supabase";
-import type { Job, Application, ApplicationStatus } from "../types";
-import { createApplication as apiCreateApplication, QuotaExceededError } from "../api/client";
+import type { Job, Application } from "../types";
+import {
+  createApplication as apiCreateApplication,
+  getJobs,
+  QuotaExceededError,
+} from "../api/client";
 import { track } from "../lib/analytics";
 
 // ---------------------------------------------------------------------------
@@ -33,15 +38,8 @@ interface JobStoreState {
 // ---------------------------------------------------------------------------
 
 async function fetchJobsFromBackend(): Promise<Job[]> {
-  // Mock Adzuna integration – fetches cached jobs from Supabase
-  const { data, error } = await supabase
-    .from("jobs")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  if (error) throw error;
-  return (data ?? []) as Job[];
+  const { jobs } = await getJobs({ limit: 50, offset: 0 });
+  return jobs;
 }
 
 // ---------------------------------------------------------------------------

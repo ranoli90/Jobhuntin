@@ -73,6 +73,8 @@ services:
         value: JobHuntin <noreply@jobhuntin.com>
       - key: API_PUBLIC_URL
         value: https://sorce-api.onrender.com
+      - key: MAGIC_LINK_BIND_TO_IP
+        value: "true"  # P1: Security - bind magic links to requesting IP
     healthCheckPath: /health
     autoDeploy: true
     

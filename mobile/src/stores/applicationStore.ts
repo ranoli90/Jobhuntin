@@ -1,5 +1,7 @@
 /**
- * Part 4: Frontend State Management – Application Status, Real-time & Hold Logic (Zustand)
+ * Part 4: Frontend State Management – Application Status & Hold Logic (Zustand)
+ *
+ * Uses Render REST API. Realtime subscriptions are no-op (use refreshApplication for updates).
  */
 
 import { create } from "zustand";

@@ -4,7 +4,7 @@
 #   docker compose up --build
 #
 # Components:
-#   db      – Postgres 16 (local stand-in for Supabase)
+#   db      – Postgres 16 (Render PostgreSQL, local dev)
 #   api     – FastAPI on port 8000
 #   worker  – Playwright agent polling the DB
 #
@@ -30,8 +30,8 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./infra/supabase/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
-      - ./infra/supabase/migrations.sql:/docker-entrypoint-initdb.d/02_migrations.sql:ro
+      - ./infra/postgres/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./infra/postgres/migrations.sql:/docker-entrypoint-initdb.d/02_migrations.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

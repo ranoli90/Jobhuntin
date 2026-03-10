@@ -1,6 +1,6 @@
 import redis.asyncio as redis
 
-from shared.config import get_settings
+from shared.config import Environment, get_settings
 
 
 class RedisManager:
@@ -10,11 +10,20 @@ class RedisManager:
         self._client: redis.Redis | None = None
 
     async def get_client(self) -> redis.Redis:
-        """Get or create the Redis client."""
+        """Get or create the Redis client.
+        
+        P0-2: In production, REDIS_URL is required. No fallback to localhost.
+        """
         if self._client is None:
             s = get_settings()
-            # redis-py handles connection pooling automatically
-            redis_url = s.redis_url or "redis://localhost:6379"
+            redis_url = s.redis_url
+            if not redis_url:
+                if s.env in (Environment.PROD, Environment.STAGING):
+                    raise RuntimeError(
+                        "REDIS_URL is required in production and staging. "
+                        "Set REDIS_URL for token replay protection and session revocation."
+                    )
+                redis_url = "redis://localhost:6379"
             self._client = redis.from_url(
                 redis_url,
                 encoding="utf-8",

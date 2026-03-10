@@ -88,8 +88,8 @@
 | 14 | High | No onboarding funnel tracking (`onboarding_step_viewed`, `onboarding_step_completed`) | `Onboarding.tsx`, telemetry |
 | 15 | ~~High~~ Fixed | Resume error messages improved (extract, parse, network) | `Onboarding.tsx` |
 | 16 | ~~Medium~~ Fixed | Progress saved indicator present | `Onboarding.tsx` |
-| 17 | Medium | Inconsistent error handling (toasts vs inline) across steps | Step components |
-| 18 | Medium | Touch targets < 44px on some buttons | Step components |
+| 17 | ~~Medium~~ Fixed | Error handling: inline save-error banner + toast for API failures | `Onboarding.tsx`, step components |
+| 18 | ~~Medium~~ Fixed | Touch targets ≥ 44px (buttons, chips, icon buttons) | Step components |
 | 19 | Low | No keyboard shortcuts (e.g. Ctrl+Enter to continue) | Step components |
 | 20 | Low | Missing accessibility labels in some steps | Step components |
 
@@ -135,9 +135,9 @@
 |---|----------|-------|----------|
 | 25 | ~~High~~ Fixed | AI endpoints surface 503 instead of fallbacks | `ai.py` |
 | 26 | ~~High~~ Fixed | AI rate limits use Redis when available | `ai.py` |
-| 27 | Medium | Resume parse failure recovery unclear to user | `ResumeStep`, `resume_parse` |
-| 28 | Medium | No retry/backoff for transient LLM failures in worker | `agent.py` |
-| 29 | Low | AI suggestion loading states could be clearer | `useAISuggestions`, step components |
+| 27 | ~~Medium~~ Fixed | Resume parse failure recovery: actionable message + skip hint | `ResumeStep` |
+| 28 | ~~Medium~~ Fixed | Retry/backoff for transient LLM failures in worker | `agent.py` |
+| 29 | ~~Low~~ Fixed | AI suggestion loading states (skeleton, error UI) | `PreferencesStep`, `AISuggestionCard` |
 
 ---
 
