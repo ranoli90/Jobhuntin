@@ -139,12 +139,15 @@ async def search_and_list_jobs(
             # Filter by min_match_score if requested
             if min_match_score is not None:
                 result = [j for j in result if (j.get("match_score") or 0) >= min_match_score]
-            # Sort by match_score when requested
+            # MEDIUM: Optimize match score sorting for large datasets
+            # Note: For very large result sets, consider pre-computing and storing match scores
+            # in the database and using SQL ORDER BY instead of in-memory sorting
             if sort_by in ("match_score", "recently_matched"):
+                # Use stable sort with proper type handling
                 result.sort(
                     key=lambda j: (
-                        j.get("match_score") or 0,
-                        j.get("date_posted") or "",
+                        float(j.get("match_score") or 0),  # Ensure numeric comparison
+                        j.get("date_posted") or "",  # String comparison for dates
                     ),
                     reverse=True,
                 )

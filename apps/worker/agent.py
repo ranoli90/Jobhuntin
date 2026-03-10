@@ -206,8 +206,21 @@ EXTRACT_FORM_FIELDS_JS = """
     }
 
     function selectorFor(el) {
+        // MEDIUM: Prefer stable selectors (id, name) over nth-of-type
         if (el.id) return '#' + el.id;
         if (el.name) return el.tagName.toLowerCase() + '[name="' + el.name + '"]';
+        // Try data attributes as fallback
+        if (el.getAttribute('data-field-id')) return el.tagName.toLowerCase() + '[data-field-id="' + el.getAttribute('data-field-id') + '"]';
+        if (el.getAttribute('data-testid')) return el.tagName.toLowerCase() + '[data-testid="' + el.getAttribute('data-testid') + '"]';
+        // Try label association
+        if (el.id && document.querySelector('label[for="' + el.id + '"]')) {
+            const label = document.querySelector('label[for="' + el.id + '"]');
+            if (label && label.textContent) {
+                // Use label text as additional context (not in selector but useful for matching)
+            }
+        }
+        // Last resort: nth-of-type (fragile, may break with DOM changes)
+        // WARNING: This selector is fragile and may break if form structure changes
         const siblings = Array.from(form.querySelectorAll(el.tagName.toLowerCase()));
         const idx = siblings.indexOf(el);
         return el.tagName.toLowerCase() + ':nth-of-type(' + (idx + 1) + ')';
@@ -492,7 +505,24 @@ async def fill_form_from_mapping(
         field_type = ff["type"] if ff else "text"
 
         try:
-            el = page.locator(selector).first
+            # MEDIUM: Wait for field availability and check visibility
+            try:
+                # Wait for selector to be available
+                await page.wait_for_selector(selector, state="attached", timeout=10000)
+                el = page.locator(selector).first
+                # Wait for field to be visible
+                await el.wait_for(state="visible", timeout=5000)
+                
+                # Check if field is enabled
+                if not await el.is_enabled():
+                    logger.warning("Field %s is disabled, skipping", selector)
+                    incr("agent.field_visibility.disabled", tags={"selector": selector[:50]})
+                    continue
+            except Exception as wait_error:
+                logger.warning("Field %s not found or not visible, skipping: %s", selector, wait_error)
+                incr("agent.field_visibility.timeout", tags={"selector": selector[:50]})
+                continue
+            
             step_idx = ff["step_index"] if ff else "?"
 
             if field_type == "select":
@@ -1287,8 +1317,27 @@ class FormAgent:
                 full_page=True, type="png", animations="disabled"
             )
 
-            # Store screenshot (TODO: implement actual storage)
-            screenshot_url = f"/screenshots/{filename}"
+            # MEDIUM: Implement screenshot storage using Supabase storage
+            screenshot_url = f"/screenshots/{filename}"  # Fallback
+            try:
+                from packages.backend.domain.resume import upload_to_supabase_storage
+                
+                storage_path = f"{app_id}/{filename}"
+                uploaded_path = await upload_to_supabase_storage(
+                    bucket="screenshots",
+                    path=storage_path,
+                    data=screenshot_bytes,
+                    content_type="image/png"
+                )
+                # Generate signed URL for access (if function exists)
+                # For now, use the storage path
+                screenshot_url = f"/storage/{uploaded_path}"
+                logger.info("Screenshot stored successfully: %s", uploaded_path)
+            except ImportError:
+                logger.warning("Screenshot storage not available (resume module not found)")
+            except Exception as storage_error:
+                logger.error("Failed to store screenshot: %s", storage_error)
+                # Continue with fallback URL
 
             # Record screenshot metadata
             await self._record_screenshot_metadata(

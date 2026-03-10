@@ -122,10 +122,16 @@ def calculate_completeness(profile: DeepProfile) -> float:
             score += 5
 
     # Skills reviewed (20%)
+    # HIGH: Fix skills source detection - check verified=True or source in ["manual", "user_skills", "profile"]
     if len(profile.competency_graph) >= 3:
         # Check if skills have been reviewed (not just extracted)
+        # Skills are considered reviewed if:
+        # 1. They have verified=True flag
+        # 2. They come from manual/user input (source="manual" or "user_skills")
+        # 3. They come from profile data (source="profile") - user has seen them
         reviewed_skills = [
-            s for s in profile.competency_graph if s.source == "manual" or s.verified
+            s for s in profile.competency_graph 
+            if s.verified or s.source in ["manual", "user_skills", "profile"]
         ]
         if len(reviewed_skills) >= 1:
             score += 20

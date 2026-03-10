@@ -67,7 +67,8 @@ export default function JobsView() {
                 return next;
             });
             if (action === "reject") {
-                setUndoStack((prev) => [...prev.slice(-4), jobId].slice(-5));
+                // MEDIUM: Limit undoStack size more aggressively to prevent memory growth
+                setUndoStack((prev) => [...prev.slice(-2), jobId].slice(-3));
             }
 
             try {
@@ -78,7 +79,18 @@ export default function JobsView() {
 
                 if (action === "accept") {
                     pushToast({ title: "Applied!", tone: "success" });
+                    setSwipeAnnouncement(`Applied to ${topJob?.title || "job"} at ${topJob?.company || "company"}`);
+                } else {
+                    setSwipeAnnouncement(`Skipped ${topJob?.title || "job"} at ${topJob?.company || "company"}`);
                 }
+                
+                // MEDIUM: Focus management after swipe - focus next card
+                setTimeout(() => {
+                    const nextCard = document.querySelector('[role="article"][tabindex="0"]') as HTMLElement;
+                    if (nextCard) {
+                        nextCard.focus();
+                    }
+                }, 100);
             } catch (error) {
                 const err = error as Error & { status?: number; response?: { status?: number } };
                 const statusCode = err.status || err.response?.status;
@@ -94,6 +106,8 @@ export default function JobsView() {
                         duration: 8000,
                     });
                     // Navigate to billing page after a delay
+                    // Note: Using setTimeout is acceptable here as navigation will occur regardless
+                    // The timeout is short (2s) and component unmount won't prevent navigation
                     setTimeout(() => {
                         window.location.href = "/app/billing";
                     }, 2000);
@@ -188,11 +202,34 @@ export default function JobsView() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [topJob, handleSwipe, submittingSet]);
 
+    // MEDIUM: Add live region for screen reader announcements
+    const [swipeAnnouncement, setSwipeAnnouncement] = React.useState<string>("");
+    
+    // MEDIUM: Cleanup state on unmount to prevent memory leaks
+    React.useEffect(() => {
+        return () => {
+            setSwipedJobs(new Map());
+            setSubmittingSet(new Set());
+            setUndoStack([]);
+        };
+    }, []);
+
     return (
         <main className="space-y-6" aria-label="Job applications">
+            {/* MEDIUM: Live region for screen reader announcements */}
+            <div aria-live="polite" aria-atomic="true" className="sr-only">
+                {swipeAnnouncement}
+            </div>
             {/* HIGH: Keyboard shortcuts hint */}
             <div className="text-xs text-slate-500 dark:text-slate-400 text-center mb-2">
                 <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">←</kbd> or <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">A</kbd> to skip • <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">→</kbd> or <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">D</kbd> to apply
+            </div>
+            {/* MEDIUM: Skip link for accessibility */}
+            <a href="#job-actions" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded">
+                Skip to job actions
+            </a>
+            <div id="job-card-description" className="sr-only">
+                Swipe left to skip, right to apply. Use arrow keys or A/D keys for keyboard navigation.
             </div>
             <section aria-labelledby="stats-heading">
                 <h2 id="stats-heading" className="sr-only">Application Statistics</h2>
@@ -248,6 +285,7 @@ export default function JobsView() {
                             aria-labelledby={`job-${job.id}-title`}
                             tabIndex={index === 0 ? 0 : -1}  // HIGH: Make top card keyboard focusable
                             aria-label={`${job.title || 'Job'} at ${job.company || 'Company'}. Press Arrow Right or D to apply, Arrow Left or A to skip.`}
+                            aria-describedby={index === 0 ? "job-card-description" : undefined}
                         >
                             <div>
                                 <h3 id={`job-${job.id}-title`} className="text-xl font-bold text-brand-text">{job.title}</h3>
@@ -283,13 +321,13 @@ export default function JobsView() {
             </div>
             </section>
 
-            <div className="flex justify-center gap-4 mt-4" role="group" aria-label="Job actions">
+            <div id="job-actions" className="flex justify-center gap-4 mt-4" role="group" aria-label="Job actions">
                 <Button
                     variant="outline"
                     size="icon"
                     className="w-16 h-16 rounded-full bg-red-100 text-red-600 hover:bg-red-200"
                     onClick={() => handleSwipe(topJob.id, "reject")}
-                    disabled={!topJob || !!submitting}
+                    disabled={!topJob || submittingSet.has(topJob.id)}
                     aria-label="Skip this job"
                     aria-describedby={`job-${topJob?.id}-title`}
                 >
@@ -315,7 +353,7 @@ export default function JobsView() {
                     size="icon"
                     className="w-16 h-16 rounded-full bg-green-100 text-green-600 hover:bg-green-200"
                     onClick={() => handleSwipe(topJob.id, "accept")}
-                    disabled={!topJob || !!submitting}
+                    disabled={!topJob || submittingSet.has(topJob.id)}
                     aria-label="Apply to this job"
                     aria-describedby={`job-${topJob?.id}-title`}
                 >

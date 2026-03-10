@@ -105,7 +105,7 @@ class SubmitResponseRequest(BaseModel):
         max_length=100, 
         description="Question identifier"
     )
-    response: Any = Field(
+    response: str = Field(
         ..., 
         description="User response"
     )
@@ -113,8 +113,15 @@ class SubmitResponseRequest(BaseModel):
     @field_validator('response')
     @classmethod
     def validate_response(cls, v):
-        """HIGH: Validate response size to prevent DoS."""
-        if isinstance(v, str) and len(v) > 10000:
+        """HIGH: Validate response size and sanitize HTML to prevent DoS and XSS."""
+        from packages.backend.domain.sanitization import sanitize_text_input
+        # Convert to string if needed
+        if not isinstance(v, str):
+            v = str(v)
+        # Sanitize HTML
+        v = sanitize_text_input(v, max_length=10000)
+        # Validate size
+        if len(v) > 10000:
             raise ValueError("Response too long (max 10000 characters)")
         if isinstance(v, (list, dict)) and len(str(v)) > 10000:
             raise ValueError("Response too large (max 10000 characters)")

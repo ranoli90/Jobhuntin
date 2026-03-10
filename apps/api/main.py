@@ -42,7 +42,7 @@ from fastapi import (
 from fastapi import Path as FastAPIPath
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from packages.backend.domain.agent_improvements import create_agent_improvements_manager
 from packages.backend.domain.analytics_events import (
@@ -1010,20 +1010,77 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     """
     request_id = request.headers.get("X-Request-ID", "unknown")
     
-    # Extract error code from status code
+    # MEDIUM: Extract error code from status code or detail message
     error_codes = {
         400: "BAD_REQUEST",
         401: "UNAUTHORIZED",
         403: "FORBIDDEN",
         404: "NOT_FOUND",
         409: "CONFLICT",
+        402: "PAYMENT_REQUIRED",
+        413: "PAYLOAD_TOO_LARGE",
         429: "RATE_LIMIT_EXCEEDED",
         500: "INTERNAL_SERVER_ERROR",
         502: "BAD_GATEWAY",
         503: "SERVICE_UNAVAILABLE",
         504: "GATEWAY_TIMEOUT",
     }
+    
+    # Try to extract specific error code from detail message
     error_code = error_codes.get(exc.status_code, "HTTP_ERROR")
+    detail_lower = (exc.detail or "").lower()
+    
+    # Map common error messages to specific error codes
+    if "invalid job id" in detail_lower:
+        error_code = "INVALID_JOB_ID_FORMAT"
+    elif "invalid application id" in detail_lower:
+        error_code = "INVALID_APPLICATION_ID_FORMAT"
+    elif "undo window" in detail_lower or "expired" in detail_lower:
+        error_code = "UNDO_WINDOW_EXPIRED"
+    elif "invalid captcha" in detail_lower:
+        error_code = "INVALID_CAPTCHA"
+    elif "file is empty" in detail_lower or "corrupted" in detail_lower:
+        error_code = "FILE_CORRUPTED"
+    elif "invalid file type" in detail_lower or "not allowed" in detail_lower:
+        error_code = "INVALID_FILE_TYPE"
+    elif "missing signature" in detail_lower:
+        error_code = "MISSING_SIGNATURE"
+    elif "invalid signature" in detail_lower:
+        error_code = "INVALID_SIGNATURE"
+    elif "missing authentication" in detail_lower:
+        error_code = "MISSING_AUTHENTICATION"
+    elif "invalid.*token" in detail_lower or "expired.*token" in detail_lower:
+        error_code = "INVALID_TOKEN"
+    elif "admin access required" in detail_lower or "admin.*required" in detail_lower:
+        error_code = "ADMIN_ACCESS_REQUIRED"
+    elif "plan.*upgrade" in detail_lower or "enterprise plan" in detail_lower:
+        error_code = "PLAN_UPGRADE_REQUIRED"
+    elif "access denied" in detail_lower:
+        error_code = "ACCESS_DENIED"
+    elif "not found" in detail_lower:
+        if "job" in detail_lower:
+            error_code = "JOB_NOT_FOUND"
+        elif "application" in detail_lower:
+            error_code = "APPLICATION_NOT_FOUND"
+        elif "user" in detail_lower:
+            error_code = "USER_NOT_FOUND"
+        elif "session" in detail_lower:
+            error_code = "SESSION_NOT_FOUND"
+    elif "already exists" in detail_lower or "duplicate" in detail_lower:
+        error_code = "RESOURCE_ALREADY_EXISTS"
+    elif "status conflict" in detail_lower or "status.*conflict" in detail_lower:
+        error_code = "APPLICATION_STATUS_CONFLICT"
+    elif "no pending questions" in detail_lower:
+        error_code = "NO_PENDING_QUESTIONS"
+    elif "email service" in detail_lower:
+        if "timeout" in detail_lower:
+            error_code = "EMAIL_SERVICE_TIMEOUT"
+        else:
+            error_code = "EMAIL_SERVICE_ERROR"
+    elif "database.*unavailable" in detail_lower or "pool.*not available" in detail_lower:
+        error_code = "DATABASE_UNAVAILABLE"
+    elif "rating" in detail_lower and ("1" in detail_lower or "5" in detail_lower):
+        error_code = "INVALID_RATING"
     
     return JSONResponse(
         status_code=exc.status_code,
@@ -1111,6 +1168,13 @@ class ResumeParseResponse(BaseModel):
 class AnswerItem(BaseModel):
     input_id: str = Field(..., min_length=1, max_length=100, description="Input identifier")
     answer: str = Field(..., max_length=5000, description="Answer text (max 5000 characters)")
+    
+    @field_validator('answer')
+    @classmethod
+    def sanitize_answer(cls, v: str) -> str:
+        """MEDIUM: Sanitize HTML in user input to prevent XSS."""
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=5000)
 
 
 class ResumeTaskRequest(BaseModel):
@@ -1154,6 +1218,13 @@ class SaveAnswerRequest(BaseModel):
     field_label: str = Field(..., min_length=1, max_length=200, description="Field label")
     field_type: str = Field(default="text", max_length=50, description="Field type")
     answer_value: str = Field(..., max_length=5000, description="Answer value (max 5000 characters)")
+    
+    @field_validator('answer_value')
+    @classmethod
+    def sanitize_answer(cls, v: str) -> str:
+        """MEDIUM: Sanitize HTML in user input to prevent XSS."""
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=5000)
 
 
 @app.get("/me/answer-memory")

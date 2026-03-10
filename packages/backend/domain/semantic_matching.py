@@ -154,6 +154,7 @@ class SemanticMatchingService:
         dealbreakers: Dealbreakers | None = None,
         weights: MatchWeights | None = None,
         job_signals: dict[str, Any] | None = None,
+        db_conn: asyncpg.Connection | None = None,
     ) -> SemanticMatchResult:
         """Compute semantic match score between profile and job.
 
@@ -180,12 +181,58 @@ class SemanticMatchingService:
         dealbreakers = dealbreakers or Dealbreakers()
         effective_weights = (weights or self._weights).normalize()
 
-        # Generate embeddings
+        # Generate embeddings with cache integration
         profile_text = profile_to_searchable_text(profile)
         job_text = job_to_searchable_text(job)
 
-        profile_embedding = await self.embeddings.embed_text(profile_text)
-        job_embedding = await self.embeddings.embed_text(job_text)
+        # HIGH: Integrate embedding cache to avoid regenerating embeddings
+        import hashlib
+        profile_text_hash = hashlib.sha256(profile_text.encode()).hexdigest()
+        job_text_hash = hashlib.sha256(job_text.encode()).hexdigest()
+        
+        # Try to get cached embeddings if db connection is available
+        profile_embedding = None
+        job_embedding = None
+        user_id = profile.get("user_id") or profile.get("id")
+        job_id = job.get("id") or job.get("job_id")
+        
+        if db_conn:
+            # Try to get cached job embedding
+            if job_id:
+                cached_job_embedding = await EmbeddingCacheRepo.get_job_embedding(db_conn, job_id)
+                if cached_job_embedding:
+                    job_embedding = cached_job_embedding
+                    logger.debug(f"Using cached job embedding for job {job_id}")
+            
+            # Try to get cached profile embedding
+            if user_id and not profile_embedding:
+                cached_profile_embedding = await EmbeddingCacheRepo.get_profile_embedding(db_conn, user_id)
+                if cached_profile_embedding:
+                    profile_embedding = cached_profile_embedding
+                    logger.debug(f"Using cached profile embedding for user {user_id}")
+        
+        # Generate embeddings if not cached
+        if not profile_embedding:
+            profile_embedding = await self.embeddings.embed_text(profile_text)
+            # Cache profile embedding if db connection available
+            if db_conn and user_id:
+                try:
+                    await EmbeddingCacheRepo.save_profile_embedding(
+                        db_conn, user_id, profile_embedding, profile_text_hash
+                    )
+                except Exception as cache_error:
+                    logger.warning(f"Failed to cache profile embedding: {cache_error}")
+        
+        if not job_embedding:
+            job_embedding = await self.embeddings.embed_text(job_text)
+            # Cache job embedding if db connection available
+            if db_conn and job_id:
+                try:
+                    await EmbeddingCacheRepo.save_job_embedding(
+                        db_conn, job_id, job_embedding, job_text_hash
+                    )
+                except Exception as cache_error:
+                    logger.warning(f"Failed to cache job embedding: {cache_error}")
 
         # Compute semantic similarity
         semantic_sim = cosine_similarity(profile_embedding, job_embedding)

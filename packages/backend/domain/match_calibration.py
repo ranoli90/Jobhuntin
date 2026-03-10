@@ -114,6 +114,8 @@ class MatchScoreCalibrator:
         """
         try:
             async with db_pool.acquire() as conn:
+                # CRITICAL: Use parameterized query to prevent SQL injection
+                # Use PostgreSQL interval with parameter binding
                 rows = await conn.fetch(
                     """
                     SELECT
@@ -133,11 +135,11 @@ class MatchScoreCalibrator:
                         salary_max
                     FROM match_score_history
                     WHERE tenant_id = $1
-                        AND applied_at >= NOW() - INTERVAL '%s days'
+                        AND applied_at >= NOW() - ($2 || ' days')::INTERVAL
                     ORDER BY applied_at DESC
                 """,
                     tenant_id,
-                    days_back,
+                    str(days_back),
                 )
 
                 data_points = []
@@ -149,10 +151,19 @@ class MatchScoreCalibrator:
                             row["outcome_timestamp"] - row["applied_at"]
                         ).days
 
-                    # Parse category scores
+                    # Parse category scores with error handling
                     category_scores = {}
                     if row["category_scores"]:
-                        category_scores = json.loads(row["category_scores"])
+                        try:
+                            if isinstance(row["category_scores"], str):
+                                category_scores = json.loads(row["category_scores"])
+                            elif isinstance(row["category_scores"], dict):
+                                category_scores = row["category_scores"]
+                        except (json.JSONDecodeError, TypeError) as parse_error:
+                            logger.warning(
+                                f"Failed to parse category_scores for job {row['job_id']}: {parse_error}"
+                            )
+                            category_scores = {}
 
                     # Parse outcome
                     try:
@@ -189,10 +200,21 @@ class MatchScoreCalibrator:
                 )
                 return data_points
 
-        except Exception as e:
+        except asyncpg.PostgresError as db_error:
+            # Database errors should be logged and re-raised for monitoring
             logger.error(
-                f"Failed to collect calibration data for tenant {tenant_id}: {e}"
+                f"Database error collecting calibration data for tenant {tenant_id}: {db_error}",
+                exc_info=True,
             )
+            # Return empty list but log the error for monitoring
+            return []
+        except Exception as e:
+            # Other errors (validation, parsing) should be logged with context
+            logger.error(
+                f"Failed to collect calibration data for tenant {tenant_id}: {e}",
+                exc_info=True,
+            )
+            # Return empty list but ensure error is tracked
             return []
 
     def calculate_metrics(

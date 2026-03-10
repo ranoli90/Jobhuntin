@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.feedback_manager import create_feedback_manager
@@ -25,6 +25,13 @@ class FeedbackRequest(BaseModel):
     message: str
     page_url: Optional[str] = None
     is_public: bool = False
+    
+    @field_validator('title', 'message')
+    @classmethod
+    def sanitize_text(cls, v: str) -> str:
+        """MEDIUM: Sanitize HTML in user input to prevent XSS."""
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v)
 
 
 class NPSRequest(BaseModel):
