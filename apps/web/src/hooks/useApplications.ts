@@ -16,8 +16,19 @@ export interface ApplicationRecord {
 }
 
 async function fetchApplications(): Promise<ApplicationRecord[]> {
-  const json = await apiGet<{ applications?: ApplicationRecord[] } | ApplicationRecord[]>("me/applications");
-  return Array.isArray(json) ? json : json.applications ?? [];
+  const json = await apiGet<{ items?: ApplicationRecord[]; applications?: ApplicationRecord[] } | ApplicationRecord[]>("me/applications");
+  if (Array.isArray(json)) return json;
+  return json.items ?? json.applications ?? [];
+}
+
+export interface QueueStats {
+  applications: { id: string; priority_score: number }[];
+  queue_ahead: number;
+  eta_minutes: number;
+}
+
+async function fetchQueueStats(): Promise<QueueStats> {
+  return apiGet<QueueStats>("me/applications/queue-stats");
 }
 
 export function useApplications() {
@@ -29,8 +40,8 @@ export function useApplications() {
     queryKey: ["applications"],
     queryFn: fetchApplications,
     // #23: Dynamic polling - 10s when APPLYING, 30s otherwise; don't poll when tab hidden
-    refetchInterval: (query) => {
-      const data = query.state.data as ApplicationRecord[] | undefined;
+    refetchInterval: (q) => {
+      const data = q.state.data as ApplicationRecord[] | undefined;
       const hasApplying = data?.some((a) => a.status === "APPLYING") ?? false;
       return hasApplying ? 10_000 : 30_000;
     },
@@ -38,6 +49,15 @@ export function useApplications() {
   });
 
   const applications = query.data ?? [];
+  const hasApplying = applications.some((a) => a.status === "APPLYING");
+
+  const queueStatsQuery = useQuery({
+    queryKey: ["applications", "queue-stats"],
+    queryFn: fetchQueueStats,
+    enabled: hasApplying,
+    refetchInterval: hasApplying ? 15_000 : false,
+  });
+  const queueStats = queueStatsQuery.data;
   const holdApplications = applications.filter((app) => app.status === "HOLD");
   const successCount = applications.filter((app) => app.status === "APPLIED").length;
   const successRate = applications.length ? Math.round((successCount / applications.length) * 100) : 0;
@@ -95,8 +115,8 @@ export function useApplications() {
       successRate,
       monthlyApps: applications.length,
     },
+    queueStats: queueStats ?? null,
     isLoading: query.isLoading,
-    // M-5: Expose error state so Dashboard can show an error banner
     error: query.error ? (query.error as Error).message : null,
     isSubmitting: (id: string) => submittingIds.has(id),
     refetch: query.refetch,

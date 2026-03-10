@@ -225,7 +225,7 @@ const AnimatedNumber = ({ value, duration = 1000, shouldReduceMotion = false }: 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { status } = useBilling();
-  const { applications, holdApplications, byStatus, stats, isLoading, error, refetch } = useApplications();
+  const { applications, holdApplications, byStatus, stats, queueStats, isLoading, error, refetch } = useApplications();
   const { profile, refreshProfile } = useProfile();
 
   const shouldReduceMotion = useReducedMotion();
@@ -458,6 +458,17 @@ export default function Dashboard() {
             <Button variant="ghost" size="sm" className="text-red-600 font-bold text-xs" onClick={() => refetch()} aria-label="Retry loading dashboard">
               Try again
             </Button>
+          </div>
+        )}
+        {/* #36: Queue position/ETA when applications are being processed */}
+        {queueStats && (queueStats.queue_ahead > 0 || queueStats.eta_minutes > 0) && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-sm" role="status">
+            <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" aria-hidden />
+            <span>
+              {queueStats.queue_ahead > 0 && <>{queueStats.queue_ahead} ahead in queue</>}
+              {queueStats.queue_ahead > 0 && queueStats.eta_minutes > 0 && " • "}
+              {queueStats.eta_minutes > 0 && <>~{queueStats.eta_minutes} min estimated</>}
+            </span>
           </div>
         )}
       <div className="flex flex-wrap items-center justify-between gap-4">

@@ -270,6 +270,60 @@ async def list_applications(
 
 
 # ---------------------------------------------------------------------------
+# GET /me/applications/queue-stats — queue position and ETA for APPLYING apps
+# ---------------------------------------------------------------------------
+
+
+@router.get("/me/applications/queue-stats")
+async def get_queue_stats(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Return queue position and estimated wait for user's APPLYING applications.
+    #36: Queue position/ETA for users.
+    """
+    async with db.acquire() as conn:
+        # Count QUEUED applications ahead of user's (by priority_score DESC, created_at ASC)
+        user_applying = await conn.fetch(
+            """
+            SELECT id, priority_score, created_at
+            FROM public.applications
+            WHERE user_id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
+              AND status = 'QUEUED'
+            ORDER BY priority_score DESC, created_at ASC
+            """,
+            ctx.user_id,
+            ctx.tenant_id,
+        )
+        if not user_applying:
+            return {"applications": [], "queue_ahead": 0, "eta_minutes": 0}
+
+        # For each user app, count how many QUEUED apps are ahead (higher priority or same+earlier)
+        first = user_applying[0]
+        ahead = await conn.fetchval(
+            """
+            SELECT COUNT(*) FROM public.applications
+            WHERE status = 'QUEUED'
+              AND (priority_score > $1 OR (priority_score = $1 AND created_at < $2))
+            """,
+            first["priority_score"],
+            first["created_at"],
+        )
+        # Avg ~2 min per application (worker + LLM)
+        avg_min_per_app = 2
+        eta_minutes = max(0, int(ahead or 0) * avg_min_per_app)
+
+        return {
+            "applications": [
+                {"id": str(r["id"]), "priority_score": r["priority_score"]}
+                for r in user_applying
+            ],
+            "queue_ahead": ahead or 0,
+            "eta_minutes": eta_minutes,
+        }
+
+
+# ---------------------------------------------------------------------------
 # POST /applications (swipe: create application)
 # ---------------------------------------------------------------------------
 
@@ -475,6 +529,8 @@ async def create_application(
         "job_id": body.job_id,
         "status": "QUEUED",
         "decision": "ACCEPT",
+        "tenant_id": ctx.tenant_id,
+        "priority_score": priority,
     }
     await _idem_set(result)
     return result

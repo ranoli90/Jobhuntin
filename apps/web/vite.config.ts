@@ -12,6 +12,22 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      workbox: {
+        // #48: Offline support - cache static assets, network-first for API
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https?:\/\/.*\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
       manifest: {
         name: 'JobHuntin',
         short_name: 'JobHuntin',

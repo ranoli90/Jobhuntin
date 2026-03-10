@@ -273,6 +273,22 @@ _DISPOSABLE_EMAIL_DOMAINS: set[str] = {
     "minutemail.com",
     "instantemail.com",
     "quickmail.com",
+    # Additional disposable providers (2025)
+    "tempail.com",
+    "guerrillamail.info",
+    "guerrillamail.biz",
+    "guerrillamail.de",
+    "spam4.me",
+    "mail.tm",
+    "dispostable.com",
+    "mailinator2.com",
+    "grr.la",
+    "guerrillamail.org",
+    "fakeinbox.info",
+    "tempmailo.com",
+    "dropmail.me",
+    "emailfake.com",
+    "minuteinbox.com",
 }
 
 

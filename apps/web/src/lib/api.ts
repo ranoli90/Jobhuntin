@@ -14,10 +14,13 @@
 // All requests include credentials so httpOnly cookies are sent automatically.
 const AUTH_TOKEN_KEY = "auth_token";
 
-// Prefer explicit API base; fall back to same-origin /api to avoid empty base
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ||
-  (typeof window !== "undefined" ? `${window.location.origin}/api` : "");
+// #58: Prefer explicit API base; fall back to same-origin /api; never use empty string
+const API_BASE = (() => {
+  const env = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  if (env) return env;
+  if (typeof window !== "undefined") return `${window.location.origin}/api`;
+  return "/api"; // SSR fallback
+})();
 
 /** Maximum number of automatic retries for retryable errors. */
 const MAX_RETRIES = 2;

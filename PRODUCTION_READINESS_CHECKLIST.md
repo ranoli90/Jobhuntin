@@ -188,8 +188,8 @@
 | 32 | ~~Critical~~ Fixed | Mobile now uses REST API; NOTIFY trigger added for any direct inserts | `mobile/src/api/client.ts`, `jobStore.ts` |
 | 33 | ~~Critical~~ Fixed | Idempotency-Key header supported; Redis cache + ON CONFLICT | `user.py` |
 | 34 | ~~High~~ Fixed | Per-user rate limit (60/min) | `user.py` |
-| 35 | High | Mobile applications lack `tenant_id`, `priority_score`; may not be processed correctly | Mobile client, worker |
-| 36 | Medium | No queue position/ETA for users | Frontend |
+| 35 | ~~High~~ Fixed | API returns tenant_id, priority_score; mobile consumes them | `user.py`, `mobile/client.ts` |
+| 36 | ~~Medium~~ Fixed | Queue position/ETA via GET /me/applications/queue-stats | API, Dashboard, useApplications |
 | 37 | ~~Medium~~ Fixed | ACCEPT undo exposed in JobsView (10s window) | `JobsView.tsx` |
 | 38 | Low | ~~JobsView announcement used wrong job (topJob vs applied job)~~ **FIXED** | `JobsView.tsx` |
 
@@ -207,10 +207,10 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 39 | High | Single-worker design; no horizontal scaling story | `agent.py`, `job_queue_worker.py` |
-| 40 | High | DB connection pool may saturate under 4000 concurrent requests | `main.py`, pool config |
-| 41 | Medium | No per-user apply rate limit; one user could spam 1000 applies | `user.py` |
-| 42 | Medium | Worker `max_applications_per_minute` is global; no per-tenant fairness | `agent.py` |
+| 39 | ~~High~~ Fixed | Worker scaling documented; SKIP LOCKED supports N workers | `OPERATIONAL_RUNBOOKS.md` |
+| 40 | ~~High~~ Fixed | DB pool config documented; DB_POOL_MIN/MAX env vars | `config.py`, runbooks |
+| 41 | ~~Medium~~ Fixed | Per-user apply rate limit 60/min | `user.py` |
+| 42 | ~~Medium~~ Fixed | claim_next_prioritized gives per-tenant fairness | `agent.py`, runbooks |
 | 43 | Low | Composite index for `claim_next_prioritized` exists (`idx_applications_claim`) | `schema.sql` ✅ |
 
 ---
@@ -229,8 +229,8 @@
 | 44 | ~~High~~ Fixed | Mobile now uses REST API; paths aligned | `mobile/`, `apps/web/` |
 | 45 | Medium | JobsView `handleSwipe` had wrong job in screen reader announcement — **FIXED** | `JobsView.tsx` |
 | 46 | ~~Medium~~ Fixed | `useJobs` invalidates applications + jobs on apply | `JobsView.tsx`, `Dashboard.tsx` |
-| 47 | Medium | Error handling inconsistent across API calls | `lib/api.ts`, various hooks |
-| 48 | Medium | No offline support (service worker) | - |
+| 47 | Medium | Error handling: api.ts has friendlyMessage; hooks use consistently | `lib/api.ts` |
+| 48 | ~~Medium~~ Fixed | PWA workbox: NetworkFirst for API, cache static assets | `vite.config.ts` |
 | 49 | Low | Some buttons < 44px touch target | Various components |
 | 50 | Low | Keyboard shortcuts limited | `useKeyboardShortcuts` |
 | 51 | Low | Pre-existing lint/type errors (~838 ruff, ~351 mypy per AGENTS.md) | Codebase |
@@ -242,10 +242,10 @@
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
 | 52 | Critical | Session token replay; no revocation | `auth.py` |
-| 53 | High | Disposable email list may need updates | `auth.py` |
+| 53 | ~~High~~ Fixed | Disposable email list expanded (tempail, mail.tm, etc.) | `auth.py` |
 | 54 | ~~High~~ Fixed | return_to whitelist synced backend + frontend | `auth.py`, `magicLinkService.ts` |
 | 55 | Medium | CSRF implemented; magic-link and webhooks exempt | `middleware.py` |
-| 56 | Medium | No operational runbooks | - |
+| 56 | ~~Medium~~ Fixed | Operational runbooks: scaling, DB pool, worker | `OPERATIONAL_RUNBOOKS.md` |
 | 57 | Low | Missing analytics for funnel and events | Telemetry |
 
 ---
@@ -285,10 +285,10 @@
 
 | # | Severity | Issue |
 |---|----------|-------|
-| 58 | Low | Login: If `getApiBase()` empty, token-in-URL redirect to verify-magic may not happen |
-| 59 | Low | Worker LISTEN uses pool connection; 60s keep-alive sleep may affect connection lifecycle |
-| 60 | Low | `applications` table: mobile insert omits `tenant_id`; worker may need default tenant resolution |
-| 61 | Low | JobsView undo only for REJECT; ACCEPT undo endpoint exists but not wired in UI |
+| 58 | ~~Low~~ Fixed | getApiBase never returns empty; fallback to /api | `lib/api.ts` |
+| 59 | Low | Worker LISTEN uses pool connection; 60s keep-alive sleep | `agent.py` |
+| 60 | ~~Low~~ Fixed | API sets tenant_id; mobile receives it in response | `user.py`, mobile |
+| 61 | ~~Low~~ Fixed | ACCEPT undo wired in JobsView (10s window) | `JobsView.tsx` |
 | 62 | Low | Dashboard.tsx and ApplicationsView both implement review/withdraw; consider shared hook |
 | 63 | Low | `useJobs` staleTime 5min; swiped jobs still in list until refetch |
 | 64 | Low | Social login (Google, LinkedIn) shows "Coming soon"; buttons disabled |

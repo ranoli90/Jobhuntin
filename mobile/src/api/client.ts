@@ -148,12 +148,12 @@ export async function createApplication(jobId: string): Promise<Application> {
     throw new ApiError(resp.status, "CREATE_APPLICATION_FAILED", detail || "Failed to create application");
   }
 
-  const data = await handleResponse<{ id: string; job_id: string; status: string }>(resp);
+  const data = await handleResponse<{ id: string; job_id: string; status: string; tenant_id?: string | null; priority_score?: number }>(resp);
   return {
     id: data.id,
     user_id: "",
     job_id: data.job_id,
-    tenant_id: null,
+    tenant_id: data.tenant_id ?? null,
     blueprint_key: "job-app",
     status: data.status as Application["status"],
     error_message: null,

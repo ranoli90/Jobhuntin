@@ -94,6 +94,7 @@ redis-cli -u $REDIS_URL ping
 - Check worker process status
 - Verify Playwright/browser availability
 - Check job queue depth
+- See [Worker Horizontal Scaling](#worker-horizontal-scaling) for multi-instance setup
 
 #### 4. Resolution
 
@@ -310,6 +311,33 @@ ANALYZE jobs;
 -- Vacuum analyze (non-blocking)
 VACUUM ANALYZE applications;
 ```
+
+### DB Pool Config for High Concurrency (#40)
+
+**Environment Variables:**
+- `DB_POOL_MIN` (default: 10) — Minimum connections per API instance
+- `DB_POOL_MAX` (default: 100) — Maximum connections per API instance
+
+**For 4000+ concurrent users:**
+- API: Set `DB_POOL_MAX=100` per instance; scale API horizontally
+- Worker: Uses separate pool (`db_pool_min`, `db_pool_max` from config)
+- PostgreSQL `max_connections` must exceed sum of all pools (e.g. 3 API × 100 + 2 Worker × 20 = 340; set `max_connections` ≥ 500)
+
+**Render PostgreSQL:** Default max_connections is 97; upgrade plan if needed.
+
+---
+
+## Worker Horizontal Scaling (#39)
+
+**Current Design:** Single worker polls `applications` with `status = 'QUEUED'`, claims via `SELECT FOR UPDATE SKIP LOCKED` (safe for concurrent workers).
+
+**Scaling Steps:**
+1. **Deploy multiple worker instances** on Render (same image, same env)
+2. Each worker polls independently; `SKIP LOCKED` ensures no duplicate claims
+3. **Worker rate limits** are per-process (`max_applications_per_minute`, `llm_rate_limit_per_minute`); total throughput = N × limit
+4. **Per-tenant fairness (#42):** Worker uses `claim_next_prioritized` (priority_score DESC); enterprise/team plans get higher priority. For stricter fairness, add per-tenant rate limiting in worker.
+
+**Recommended:** 2–3 workers for production; 1 for staging.
 
 ---
 
