@@ -294,9 +294,7 @@ class TestLLMClient:
         client = LLMClient(settings)
         # Mock _request to return OpenAI-style response
         client._request = AsyncMock(
-            return_value={
-                "choices": [{"message": {"content": '{"foo": "bar"}'}}]
-            }
+            return_value={"choices": [{"message": {"content": '{"foo": "bar"}'}}]}
         )
 
         result = await client.call(prompt="test")

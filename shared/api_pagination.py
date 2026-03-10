@@ -15,7 +15,7 @@ from enum import Enum
 from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
 from fastapi import HTTPException, Query, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from shared.logging_config import get_logger
 
@@ -109,8 +109,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     success: bool = True
     message: Optional[str] = None
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class CursorManager:

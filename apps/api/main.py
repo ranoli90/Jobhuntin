@@ -42,7 +42,7 @@ from fastapi import (
 from fastapi import Path as FastAPIPath
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from packages.backend.domain.agent_improvements import create_agent_improvements_manager
 from packages.backend.domain.analytics_events import (
@@ -1481,8 +1481,7 @@ class WorkStyleRequest(BaseModel):
         description="Career trajectory",
     )
 
-    class Config:
-        extra = "ignore"  # Ignore extra fields
+    model_config = ConfigDict(extra="ignore")
 
 
 @app.get("/me/work-style")

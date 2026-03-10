@@ -8,9 +8,7 @@ Tests critical endpoints that must work for production:
 """
 
 import pytest
-import pytest_asyncio
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock
 import uuid
 
 from apps.api.main import app
@@ -27,10 +25,11 @@ def client():
 def auth_token():
     """Generate a valid JWT token for testing."""
     import jwt
+
     settings = get_settings()
     if not settings.jwt_secret:
         pytest.skip("JWT_SECRET not configured")
-    
+
     user_id = str(uuid.uuid4())
     payload = {
         "sub": user_id,
@@ -58,7 +57,7 @@ class TestHealthChecks:
     def test_health_endpoint(self, client):
         """Test basic health endpoint."""
         response = client.get("/health")
-        
+
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
 
@@ -66,7 +65,7 @@ class TestHealthChecks:
     async def test_healthz_endpoint(self, client, db_pool):
         """Test deep health check endpoint."""
         response = client.get("/healthz")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "status" in data
@@ -79,7 +78,9 @@ class TestDashboardAPI:
     """Tests for dashboard API endpoint."""
 
     @pytest.mark.asyncio
-    async def test_dashboard_data(self, authenticated_client, clean_db, db_pool, auth_token):
+    async def test_dashboard_data(
+        self, authenticated_client, clean_db, db_pool, auth_token
+    ):
         """Test dashboard data retrieval."""
         _, user_id = auth_token
 
@@ -106,9 +107,9 @@ class TestDashboardAPI:
                 tenant_id,
                 user_id,
             )
-        
+
         response = authenticated_client.get("/me/dashboard")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "active_count" in data
@@ -123,7 +124,9 @@ class TestApplicationsAPI:
     """Tests for applications API endpoints."""
 
     @pytest.mark.asyncio
-    async def test_create_application(self, authenticated_client, clean_db, db_pool, auth_token):
+    async def test_create_application(
+        self, authenticated_client, clean_db, db_pool, auth_token
+    ):
         """Test creating a new application."""
         _, user_id = auth_token
 
@@ -139,19 +142,21 @@ class TestApplicationsAPI:
                    VALUES (gen_random_uuid(), 'Software Engineer', 'Test Co', 'https://example.com/apply')
                    RETURNING id"""
             )
-        
+
         application_data = {
             "job_id": str(job_id),
             "decision": "ACCEPT",
         }
-        
+
         response = authenticated_client.post("/me/applications", json=application_data)
-        
+
         # Should succeed
         assert response.status_code in [200, 201]
 
     @pytest.mark.asyncio
-    async def test_list_applications(self, authenticated_client, clean_db, db_pool, auth_token):
+    async def test_list_applications(
+        self, authenticated_client, clean_db, db_pool, auth_token
+    ):
         """Test listing user applications."""
         _, user_id = auth_token
 
@@ -173,9 +178,9 @@ class TestApplicationsAPI:
                 user_id,
                 job_id,
             )
-        
+
         response = authenticated_client.get("/me/applications")
-        
+
         # Should succeed (adjust endpoint if different)
         assert response.status_code in [200, 404]  # 404 if endpoint doesn't exist
 
@@ -195,7 +200,7 @@ class TestErrorHandling:
     def test_401_error_format(self, client):
         """Test that 401 errors use standardized format."""
         response = client.get("/me/profile")  # Requires auth
-        
+
         assert response.status_code == 401
         data = response.json()
         # Should have error code and message (C7 fix)

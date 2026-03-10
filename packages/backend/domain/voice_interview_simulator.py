@@ -22,7 +22,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from backend.domain.interview_simulator import (
     InterviewPhase,
@@ -80,8 +80,7 @@ class VoiceInterviewSession(BaseModel):
     completed_at: Optional[datetime] = None
     status: str = "in_progress"
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class VoiceInterviewSimulator:

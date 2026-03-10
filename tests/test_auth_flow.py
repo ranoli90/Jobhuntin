@@ -9,7 +9,6 @@ Tests the complete magic link authentication flow:
 """
 
 import pytest
-import pytest_asyncio
 from fastapi.testclient import TestClient
 from unittest.mock import patch, AsyncMock
 import jwt
@@ -48,6 +47,7 @@ def mock_resend():
 @pytest.fixture
 def mock_generate_magic_link():
     """Mock magic link generation to avoid DB dependency."""
+
     async def _fake_generate(*args, **kwargs):
         return "https://example.com/auth/verify?token=fake-token", "test@example.com"
 
@@ -101,7 +101,7 @@ class TestMagicLinkRequest:
             "/auth/magic-link",
             json={"email": "test@example.com", "return_to": "/app/dashboard"},
         )
-        
+
         assert response.status_code == 200
         assert response.json() == {"status": "sent"}
         mock_resend.assert_called_once()
@@ -111,18 +111,21 @@ class TestMagicLinkRequest:
     ):
         """Test rate limiting on magic link requests."""
         email = "ratelimit@example.com"
-        
+
         # Make requests up to the limit
         settings = get_settings()
         max_requests = settings.magic_link_requests_per_hour
-        
+
         # First request should succeed
         response = client.post(
             "/auth/magic-link",
             json={"email": email},
         )
-        assert response.status_code in [200, 429]  # May hit limit depending on test state
-        
+        assert response.status_code in [
+            200,
+            429,
+        ]  # May hit limit depending on test state
+
         # Multiple rapid requests should hit rate limit
         responses = []
         for _ in range(5):
@@ -131,7 +134,7 @@ class TestMagicLinkRequest:
                 json={"email": email},
             )
             responses.append(resp.status_code)
-        
+
         # At least one should be rate limited
         assert 429 in responses or all(r == 200 for r in responses)
 
@@ -143,7 +146,7 @@ class TestMagicLinkRequest:
             "/auth/magic-link",
             json={"email": "test@mailinator.com"},
         )
-        
+
         # Should return 429 (generic error to avoid revealing detection)
         assert response.status_code == 429
 
@@ -153,7 +156,7 @@ class TestMagicLinkRequest:
             "/auth/magic-link",
             json={"email": "not-an-email"},
         )
-        
+
         assert response.status_code == 422  # Validation error
 
     def test_magic_link_captcha_required(self, client, mock_redis):
@@ -171,12 +174,12 @@ class TestMagicLinkVerification:
         settings = get_settings()
         if not settings.jwt_secret:
             pytest.skip("JWT_SECRET not configured")
-        
+
         # Generate a valid magic link token
         email = "verify@example.com"
         token_id = "test-jti-123"
         now = time.time()
-        
+
         payload = {
             "sub": email,
             "email": email,
@@ -187,19 +190,19 @@ class TestMagicLinkVerification:
             "exp": now + 3600,
             "new_user": True,
         }
-        
+
         token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
-        
+
         # Mock Redis to allow token consumption
         mock_redis.set = AsyncMock(return_value=True)  # Token not yet consumed
         mock_redis.exists = AsyncMock(return_value=False)  # Not revoked
-        
+
         # Verify the token
         response = client.get(
             f"/auth/verify-magic?token={token}&returnTo=/app/dashboard",
             follow_redirects=False,
         )
-        
+
         # Should redirect to dashboard
         assert response.status_code == 302
         assert "/app/dashboard" in response.headers.get("Location", "")
@@ -209,12 +212,12 @@ class TestMagicLinkVerification:
         settings = get_settings()
         if not settings.jwt_secret:
             pytest.skip("JWT_SECRET not configured")
-        
+
         # Generate expired token
         email = "expired@example.com"
         token_id = "expired-jti"
         now = time.time() - 7200  # 2 hours ago
-        
+
         payload = {
             "sub": email,
             "email": email,
@@ -225,14 +228,14 @@ class TestMagicLinkVerification:
             "exp": now + 3600,  # Expired 1 hour ago
             "new_user": True,
         }
-        
+
         token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
-        
+
         response = client.get(
             f"/auth/verify-magic?token={token}",
             follow_redirects=False,
         )
-        
+
         # Should redirect to login with error
         assert response.status_code == 302
         assert "/login" in response.headers.get("Location", "")
@@ -243,11 +246,11 @@ class TestMagicLinkVerification:
         settings = get_settings()
         if not settings.jwt_secret:
             pytest.skip("JWT_SECRET not configured")
-        
+
         email = "replay@example.com"
         token_id = "replay-jti"
         now = time.time()
-        
+
         payload = {
             "sub": email,
             "email": email,
@@ -258,27 +261,27 @@ class TestMagicLinkVerification:
             "exp": now + 3600,
             "new_user": True,
         }
-        
+
         token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
-        
+
         # First verification - mark token as consumed
         mock_redis.set = AsyncMock(return_value=True)  # First call succeeds
         mock_redis.exists = AsyncMock(return_value=False)
-        
+
         response1 = client.get(
             f"/auth/verify-magic?token={token}",
             follow_redirects=False,
         )
-        
+
         # Second verification - token already consumed
         mock_redis.set = AsyncMock(return_value=False)  # Token already exists
         mock_redis.exists = AsyncMock(return_value=False)
-        
+
         response2 = client.get(
             f"/auth/verify-magic?token={token}",
             follow_redirects=False,
         )
-        
+
         # Second attempt should fail
         assert response2.status_code == 302
         assert "error=auth_failed" in response2.headers.get("Location", "")
@@ -292,12 +295,12 @@ class TestSessionTokenRevocation:
         settings = get_settings()
         if not settings.jwt_secret:
             pytest.skip("JWT_SECRET not configured")
-        
+
         # Create a session token
         user_id = "test-user-123"
         jti = "session-jti-123"
         now = time.time()
-        
+
         session_payload = {
             "sub": user_id,
             "email": "user@example.com",
@@ -307,19 +310,21 @@ class TestSessionTokenRevocation:
             "nbf": now,
             "exp": now + 7 * 24 * 3600,  # 7 days
         }
-        
-        session_token = jwt.encode(session_payload, settings.jwt_secret, algorithm="HS256")
-        
+
+        session_token = jwt.encode(
+            session_payload, settings.jwt_secret, algorithm="HS256"
+        )
+
         # Mock Redis for revocation
         mock_redis.set = AsyncMock(return_value=True)
-        
+
         # Logout should revoke the token
         response = client.post(
             "/auth/logout",
             cookies={"jobhuntin_auth": session_token},
             follow_redirects=False,
         )
-        
+
         assert response.status_code == 302
         # Verify revocation was called (token stored in Redis)
         # Note: Actual revocation happens in the logout handler
@@ -330,11 +335,11 @@ class TestSessionTokenRevocation:
         settings = get_settings()
         if not settings.jwt_secret:
             pytest.skip("JWT_SECRET not configured")
-        
+
         user_id = "test-user-123"
         jti = "revoked-jti-123"
         now = time.time()
-        
+
         session_payload = {
             "sub": user_id,
             "email": "user@example.com",
@@ -344,18 +349,20 @@ class TestSessionTokenRevocation:
             "nbf": now,
             "exp": now + 7 * 24 * 3600,
         }
-        
-        session_token = jwt.encode(session_payload, settings.jwt_secret, algorithm="HS256")
-        
+
+        session_token = jwt.encode(
+            session_payload, settings.jwt_secret, algorithm="HS256"
+        )
+
         # Mock Redis to indicate token is revoked
         mock_redis.exists = AsyncMock(return_value=True)  # Token is revoked
-        
+
         # Attempt to use revoked token
         response = client.get(
             "/me/profile",
             headers={"Authorization": f"Bearer {session_token}"},
         )
-        
+
         # Should be rejected
         assert response.status_code == 401
         assert "revoked" in response.json().get("error", {}).get("message", "").lower()
@@ -367,17 +374,18 @@ class TestIdempotency:
     def test_idempotent_request_returns_cached_response(self, client, mock_redis):
         """Test that duplicate requests with same idempotency key return cached response."""
         idempotency_key = "test-idempotency-key-123"
-        
+
         # Mock Redis to return cached response
         cached_response = {
             "body": {"status": "created", "id": "123"},
             "status_code": 201,
             "headers": {},
         }
-        
+
         import json
+
         mock_redis.get = AsyncMock(return_value=json.dumps(cached_response))
-        
+
         # First request (would normally create resource)
         # Second request with same key should return cached
         response = client.post(
@@ -385,7 +393,7 @@ class TestIdempotency:
             json={"skills": []},
             headers={"Idempotency-Key": idempotency_key},
         )
-        
+
         # Should return cached response if middleware is working
         # Note: This test may need adjustment based on actual endpoint behavior
         assert response.status_code in [200, 201, 400]  # Depends on endpoint
