@@ -105,28 +105,34 @@
   - Added `db_conn` parameter to `compute_match_score()`
   - But all callers need to be updated to pass database connection
   - Cache won't work until callers are updated
+- **Found Callers:**
+  - `apps/api/ai.py:704` - `compute_match_score()` call
+  - `apps/api/ai.py:813` - `compute_match_score()` call
+  - Need to check for other callers
 - **Fix Required:**
-  - Find all callers of `compute_match_score()`
-  - Update to pass `db_conn` parameter
+  - Update all callers to pass `db_conn` parameter
   - Ensure database connection is available in calling context
+  - Test cache hit/miss behavior
 - **Files:** 
   - `packages/backend/domain/semantic_matching.py`
-  - All files calling `compute_match_score()`
+  - `apps/api/ai.py` (lines 704, 813)
+  - Search for other callers
 - **Estimated Time:** 2-3 hours
 
 #### 3. setTimeout Cleanup Issue in JobsView
 - **Priority:** Medium
 - **Status:** Partially Fixed
 - **Issue:** setTimeout in error handler can't be cleaned up properly
-- **Location:** `apps/web/src/pages/dashboard/JobsView.tsx:97`
+- **Location:** `apps/web/src/pages/dashboard/JobsView.tsx:88, 107`
 - **Details:**
+  - Two setTimeout calls: one for focus management (line 88), one for navigation (line 107)
   - setTimeout is inside `handleSwipe` callback (not useEffect)
   - Can't use useEffect cleanup pattern
   - Navigation will occur even if component unmounts
 - **Fix Required:**
-  - Use `useRef` to store timeout ID
-  - Clear timeout in component cleanup
-  - Or use `useEffect` with dependency on error state
+  - Use `useRef` to store timeout IDs
+  - Clear timeouts in component cleanup useEffect
+  - Check if component is still mounted before navigation
 - **Files:** `apps/web/src/pages/dashboard/JobsView.tsx`
 - **Estimated Time:** 30 minutes
 
@@ -147,11 +153,15 @@
   - Blank line contains whitespace (line 114)
   - Line too long (line 119, 106 > 88 chars)
 - **Location:** `apps/api/main.py`
+- **Additional Issues:**
+  - May have more linting issues across codebase
+  - Should run full `ruff check` after fixes
 - **Fix Required:**
   - Remove whitespace from blank lines
   - Break long lines
-- **Files:** `apps/api/main.py`
-- **Estimated Time:** 10 minutes
+  - Run `ruff check . --select E,W,F,I` and fix all issues
+- **Files:** `apps/api/main.py` (and potentially others)
+- **Estimated Time:** 30 minutes - 1 hour
 
 #### 6. Screenshot Storage Import Error Handling
 - **Priority:** Medium
@@ -171,15 +181,16 @@
 #### 7. Profile Completeness: SQL Updates Still Exist
 - **Priority:** Medium
 - **Status:** Partially Fixed
-- **Issue:** Fixed calculation logic but SQL-based increments might still exist
-- **Location:** `apps/api/main.py` (lines 1290, 1412 mentioned in audit)
+- **Issue:** Fixed calculation logic but SQL-based increments still exist
+- **Location:** `apps/api/main.py` (lines 1361, 1483)
 - **Details:**
-  - Audit mentioned SQL updates that add fixed increments
-  - Need to verify these are removed or use centralized calculation
+  - Lines 1361 and 1483 have SQL UPDATE statements that modify `profile_completeness`
+  - These bypass the centralized `calculate_completeness()` function
+  - Risk of inconsistency and scores > 100%
 - **Fix Required:**
-  - Search for SQL UPDATE statements that modify completeness
-  - Replace with calls to `calculate_completeness()`
-- **Files:** `apps/api/main.py`
+  - Replace SQL UPDATE with calls to `calculate_completeness()`
+  - Use the function result to update the database
+- **Files:** `apps/api/main.py` (lines 1361, 1483)
 - **Estimated Time:** 1-2 hours
 
 #### 8. Match Score Pre-computation Not Implemented
@@ -247,21 +258,53 @@
 - **Priority:** High (Security)
 - **Status:** Pending
 - **Issue:** Sessions are in-memory, authorization checks are placeholders
-- **Location:** `apps/api/ai_onboarding.py:195`
+- **Location:** `apps/api/ai_onboarding.py:202`
 - **Details:**
-  - `_verify_session_ownership` has TODO comment
+  - `_verify_session_ownership` has TODO comment (line 202)
   - Sessions not persisted to database
   - Authorization checks are basic validation only
+  - Security risk: users could potentially access other users' sessions
 - **Fix Required:**
-  - Create `onboarding_sessions` table
-  - Persist sessions to database
-  - Implement proper ownership verification
-  - Update all session endpoints
+  - Create `onboarding_sessions` table migration
+  - Persist sessions to database (session_id, user_id, tenant_id, state, created_at, updated_at)
+  - Implement proper ownership verification in `_verify_session_ownership`
+  - Update all session endpoints to use database
+  - Add session expiration/cleanup
 - **Files:** 
-  - Database migration needed
+  - New migration: `migrations/017_onboarding_sessions.sql`
   - `apps/api/ai_onboarding.py`
   - `packages/backend/domain/ai_onboarding.py`
 - **Estimated Time:** 4-6 hours
+
+#### 13. Portfolio File Handling TODO
+- **Priority:** Low
+- **Status:** Pending
+- **Issue:** Portfolio file handling not implemented
+- **Location:** `apps/worker/agent.py:1296`
+- **Details:**
+  - `_get_portfolio_path()` returns None
+  - Portfolio files mentioned in form fields but not handled
+- **Fix Required:**
+  - Implement portfolio file retrieval from user profile/storage
+  - Add portfolio file upload support
+  - Integrate with form filling
+- **Files:** `apps/worker/agent.py`
+- **Estimated Time:** 2-3 hours
+
+#### 14. Other Document Type Handling TODO
+- **Priority:** Low
+- **Status:** Pending
+- **Issue:** Other document types not handled
+- **Location:** `apps/worker/agent.py:1302`
+- **Details:**
+  - `_get_document_path()` returns None
+  - Documents like cover letters, certificates, etc. not handled
+- **Fix Required:**
+  - Implement document type detection
+  - Add document retrieval from storage
+  - Integrate with form filling
+- **Files:** `apps/worker/agent.py`
+- **Estimated Time:** 2-3 hours
 
 ---
 
@@ -279,9 +322,11 @@
 ### Estimated Total Time: 40-55 hours
 
 ### Immediate Action Items (Blocking/High Priority):
-1. ✅ Fix TypeScript error in Dashboard.tsx (blocks build)
-2. ✅ Complete embedding cache integration (pass db_conn)
-3. ✅ Implement onboarding session persistence (security)
+1. 🔴 **Fix TypeScript error in Dashboard.tsx** (blocks build) - 30 min - 1 hour
+2. 🔴 **Complete embedding cache integration** (pass db_conn) - 2-3 hours
+3. 🔴 **Implement onboarding session persistence** (security) - 4-6 hours
+4. 🟡 **Fix SQL-based completeness updates** (data consistency) - 1-2 hours
+5. 🟡 **Fix setTimeout cleanup** (memory leak) - 30 minutes
 
 ### Next Phase (Medium Priority):
 4. Add virtualization for job lists
