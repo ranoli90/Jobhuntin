@@ -43,15 +43,35 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.api.ai")
 
 # ---------------------------------------------------------------------------
-# Per-user rate limiting for expensive AI endpoints
+# Per-user rate limiting for expensive AI endpoints (Redis when available)
 # ---------------------------------------------------------------------------
 _user_rate_limits: dict[str, list[float]] = defaultdict(list)
 
 
-def _check_user_rate_limit(user_id: str, action: str, max_per_hour: int = 20) -> bool:
-    key = f"{user_id}:{action}"
+async def _check_user_rate_limit(user_id: str, action: str, max_per_hour: int = 20) -> bool:
+    """Check rate limit. Uses Redis when available for multi-instance support."""
+    key = f"ai_rate:{user_id}:{action}"
     now = time.time()
     window = 3600  # 1 hour
+    s = get_settings()
+    if s.redis_url:
+        try:
+            from shared.redis_client import get_redis
+            r = await get_redis()
+            pipe = r.pipeline()
+            pipe.incr(key)
+            pipe.ttl(key)
+            results = await pipe.execute()
+            count = results[0]
+            ttl = results[1]
+            if ttl == -1:
+                await r.expire(key, window)
+            if count > max_per_hour:
+                return False
+            return True
+        except Exception as e:
+            logger.warning("AI rate limit Redis check failed, falling back to in-memory: %s", e)
+    # Fallback: in-memory (single-instance only)
     _user_rate_limits[key] = [t for t in _user_rate_limits[key] if now - t < window]
     if len(_user_rate_limits[key]) >= max_per_hour:
         return False
@@ -315,7 +335,7 @@ async def suggest_roles(
     This analyzes the candidate's experience, skills, and career progression
     to suggest the most suitable job titles and experience level.
     """
-    if not _check_user_rate_limit(user_id, "suggest_roles", 20):
+    if not await _check_user_rate_limit(user_id, "suggest_roles", 20):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     validation_result = validate_and_sanitize_ai_input(
         profile=request.profile,
@@ -345,19 +365,9 @@ async def suggest_roles(
         return result
     except Exception as exc:
         logger.error("Role suggestion failed: %s", exc)
-        return RoleSuggestionResponse_V1(
-            suggested_roles=[
-                "Software Engineer",
-                "Full Stack Developer",
-                "Backend Engineer",
-            ],
-            primary_role="Software Engineer",
-            experience_level="mid",
-            confidence=0.5,
-            reasoning=(
-                "AI suggestions temporarily unavailable. "
-                "Default roles provided based on common tech profiles."
-            ),
+        raise HTTPException(
+            status_code=503,
+            detail="AI suggestions temporarily unavailable. Please try again.",
         )
 
 
@@ -370,6 +380,8 @@ async def suggest_salary(
     This estimates a competitive salary range by analyzing the candidate's
     experience, skill rarity, and location market rates.
     """
+    if not await _check_user_rate_limit(user_id, "suggest_salary", 20):
+        raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     client = _get_llm_client()
 
     # Sanitize inputs and strip PII before sending to external LLM
@@ -400,17 +412,9 @@ async def suggest_salary(
         return result
     except Exception as exc:
         logger.error("Salary suggestion failed: %s", exc)
-        return SalarySuggestionResponse_V1(
-            min_salary=80000,
-            max_salary=150000,
-            market_median=115000,
-            currency="USD",
-            confidence=0.5,
-            factors=["Experience level", "Location market rates", "Skill demand"],
-            reasoning=(
-                "AI suggestions temporarily unavailable. "
-                "Default salary range provided based on industry averages."
-            ),
+        raise HTTPException(
+            status_code=503,
+            detail="AI suggestions temporarily unavailable. Please try again.",
         )
 
 
@@ -423,6 +427,8 @@ async def suggest_locations(
     This analyzes where the candidate's skills are most in-demand and
     evaluates remote work viability for their role type.
     """
+    if not await _check_user_rate_limit(user_id, "suggest_locations", 20):
+        raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     location = (request.current_location or "").strip()[:200]
     client = _get_llm_client()
 
@@ -447,17 +453,9 @@ async def suggest_locations(
         return result
     except Exception as exc:
         logger.error("Location suggestion failed: %s", exc)
-        return LocationSuggestionResponse_V1(
-            suggested_locations=[
-                "Remote",
-                "San Francisco, CA",
-                "New York, NY",
-                "Austin, TX",
-                "Seattle, WA",
-            ],
-            remote_friendly_score=0.8,
-            top_markets=["San Francisco", "New York", "Seattle"],
-            reasoning="AI suggestions temporarily unavailable. Default tech hubs provided.",
+        raise HTTPException(
+            status_code=503,
+            detail="AI suggestions temporarily unavailable. Please try again.",
         )
 
 
@@ -473,7 +471,7 @@ async def match_job(
     experience match, location compatibility, and any red flags.
     Profile can be omitted; server loads from DB when empty.
     """
-    if not _check_user_rate_limit(user_id, "match_job", 20):
+    if not await _check_user_rate_limit(user_id, "match_job", 20):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     # Sanitize inputs and strip PII before sending to external LLM
     from backend.domain.deep_profile import deep_profile_to_llm_dict
@@ -1203,7 +1201,7 @@ async def generate_cover_letter_enhanced(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> GeneratedCoverLetter:
     """Generate a personalized cover letter (enhanced endpoint)."""
-    if not _check_user_rate_limit(user_id, "generate_cover_letter", 10):
+    if not await _check_user_rate_limit(user_id, "generate_cover_letter", 10):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     client = _get_llm_client()
 
@@ -1387,7 +1385,7 @@ async def generate_cover_letter(
     request: CoverLetterRequest, user_id: str = Depends(_get_user_id)
 ) -> CoverLetterResponse_V1:
     """Generate a personalized cover letter for a specific job."""
-    if not _check_user_rate_limit(user_id, "generate_cover_letter", 10):
+    if not await _check_user_rate_limit(user_id, "generate_cover_letter", 10):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     client = _get_llm_client()
 
@@ -1449,7 +1447,7 @@ async def tailor_resume(
     3. Generates a tailored summary
     4. Computes ATS optimization score
     """
-    if not _check_user_rate_limit(user_id, "tailor_resume", 10):
+    if not await _check_user_rate_limit(user_id, "tailor_resume", 10):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     from backend.domain.masking import strip_pii_for_llm
     from backend.domain.resume_tailoring import get_tailoring_service
@@ -1505,7 +1503,7 @@ async def compute_ats_score(
 
     Implements 23 scoring metrics for ATS optimization analysis.
     """
-    if not _check_user_rate_limit(user_id, "ats_score", 20):
+    if not await _check_user_rate_limit(user_id, "ats_score", 20):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
     from backend.domain.resume_tailoring import ATSScorer
 

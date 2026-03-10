@@ -322,7 +322,7 @@ export default function JobsView() {
                                 <p className="text-brand-text/80">{job.company}</p>
                                 <p className="text-sm text-brand-muted mt-1">{job.location}</p>
                                 {job.match_score != null && (
-                                    <p className="text-xs font-medium text-brand-primary mt-1">
+                                    <p className="text-xs font-medium text-brand-primary mt-1" title="Match score based on your profile (skills, location, salary fit)">
                                         {Math.round(
                                             Number(job.match_score) <= 1
                                                 ? Number(job.match_score) * 100

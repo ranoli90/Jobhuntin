@@ -62,7 +62,7 @@
 | 8 | Critical | Redis required for replay protection; in-memory fallback unsafe for multi-instance | `auth.py`, `redis_client.py` |
 | 9 | High | IP binding off by default (`MAGIC_LINK_BIND_TO_IP=false`) | Config, `auth.py` |
 | 10 | ~~High~~ Fixed | auth_failed hint param (expired, used, invalid, ip_mismatch) | `auth.py`, `Login.tsx` |
-| 11 | Medium | Loading state during verification exists but could be clearer | `Login.tsx` (isVerifying) |
+| 11 | ~~Medium~~ Fixed | Clearer verification loading (progress bar, aria) | `Login.tsx` |
 | 12 | Medium | No `magic_link_verified` analytics | Backend, frontend |
 
 ---
@@ -133,8 +133,8 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 25 | High | AI endpoints return fallback values instead of surfacing errors | `ai.py`, `batch_llm.py` |
-| 26 | High | AI rate limits use in-memory `_user_rate_limits`; not distributed | `ai.py` |
+| 25 | ~~High~~ Fixed | AI endpoints surface 503 instead of fallbacks | `ai.py` |
+| 26 | ~~High~~ Fixed | AI rate limits use Redis when available | `ai.py` |
 | 27 | Medium | Resume parse failure recovery unclear to user | `ResumeStep`, `resume_parse` |
 | 28 | Medium | No retry/backoff for transient LLM failures in worker | `agent.py` |
 | 29 | Low | AI suggestion loading states could be clearer | `useAISuggestions`, step components |
@@ -159,7 +159,7 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 30 | Low | Match score display: `<=1` vs `>1` logic may confuse (percent vs raw) | `JobsView.tsx` |
+| 30 | ~~Low~~ Fixed | Match score tooltip added | `JobsView.tsx` |
 | 31 | Low | No user feedback loop to improve matching | - |
 
 ---
@@ -243,7 +243,7 @@
 |---|----------|-------|----------|
 | 52 | Critical | Session token replay; no revocation | `auth.py` |
 | 53 | High | Disposable email list may need updates | `auth.py` |
-| 54 | High | `return_to` sanitization; keep whitelist in sync with frontend | `auth.py`, `magicLinkService.ts` |
+| 54 | ~~High~~ Fixed | return_to whitelist synced backend + frontend | `auth.py`, `magicLinkService.ts` |
 | 55 | Medium | CSRF implemented; magic-link and webhooks exempt | `middleware.py` |
 | 56 | Medium | No operational runbooks | - |
 | 57 | Low | Missing analytics for funnel and events | Telemetry |

@@ -363,6 +363,7 @@ class MagicLinkService {
       '/app/matches',
       '/app/tailor',
       '/app/ats-score',
+      '/app/job-alerts',
       '/app/pipeline-view',
       '/app/application-export',
       '/app/follow-up-reminders',

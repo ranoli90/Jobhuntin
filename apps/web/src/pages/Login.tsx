@@ -320,11 +320,14 @@ export default function Login() {
   // H9: Loading States - Show loading overlay during token verification
   if (isVerifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 text-[#7DD3CF] animate-spin mx-auto" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }} role="status" aria-live="polite" aria-label="Verifying your sign-in link">
+        <div className="text-center space-y-4 max-w-sm px-6">
+          <Loader2 className="w-14 h-14 text-[#7DD3CF] animate-spin mx-auto" aria-hidden />
           <h2 className="text-xl font-bold text-white">Verifying your magic link...</h2>
-          <p className="text-white/70">Please wait while we sign you in.</p>
+          <p className="text-white/70">Please wait while we sign you in. This usually takes a few seconds.</p>
+          <div className="h-1 w-32 mx-auto rounded-full bg-white/20 overflow-hidden">
+            <div className="h-full w-1/3 bg-[#7DD3CF] rounded-full animate-pulse" />
+          </div>
         </div>
       </div>
     );
