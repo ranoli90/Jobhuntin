@@ -480,6 +480,11 @@ curl -f https://api.jobhuntin.com/worker/health || echo "Worker unhealthy"
 - Users not receiving emails
 - Low delivery rate metrics
 
+**#1 Email Delivery Confirmation:** Configure Resend webhook in Resend dashboard:
+- URL: `https://api.jobhuntin.com/auth/webhooks/resend` (or your API base + `/auth/webhooks/resend`)
+- Events: email.sent, email.delivered, email.bounced, email.complained, email.opened, email.clicked
+- Set RESEND_WEBHOOK_SECRET in Render env (from Resend webhook signing secret)
+
 **Diagnosis:**
 1. Check Resend webhook events
 2. Verify RESEND_API_KEY is set

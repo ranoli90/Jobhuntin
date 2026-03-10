@@ -1314,9 +1314,9 @@ async def resend_webhook(
     Tracks: delivered, bounced, complained, opened, clicked
     Resend docs: https://resend.com/docs/dashboard/webhooks
     """
-    # Verify webhook signature if configured
-    # Resend signs webhooks with a secret when configured
-    webhook_secret = getattr(settings, "resend_webhook_secret", None)
+    # Verify webhook signature if configured (#1: Email delivery confirmation)
+    # Resend signs webhooks with RESEND_WEBHOOK_SECRET when configured in dashboard
+    webhook_secret = settings.resend_webhook_secret
     if webhook_secret:
         signature = request.headers.get("resend-signature")
         if not signature:

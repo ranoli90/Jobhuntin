@@ -10,7 +10,7 @@
 
 | Area | Status | Critical Issues |
 |------|--------|-----------------|
-| Registration / Magic Link | ⚠️ Partial | Session replay, Redis required, IP binding off |
+| Registration / Magic Link | ✅ OK | Session revocation, Redis required in prod, IP binding default |
 | Email Link Flow | ✅ OK | Replay protection; loading state exists |
 | Onboarding | ⚠️ Partial | Progress in localStorage, no funnel tracking |
 | Dashboard | ✅ OK | Metrics, jobs, applications, holds |
@@ -35,7 +35,7 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 1 | Critical | No email delivery confirmation tracking | `auth.py`, Resend webhook |
+| 1 | ~~Critical~~ Fixed | Email delivery: Resend webhook + RESEND_WEBHOOK_SECRET; runbook docs | `auth.py`, `config.py`, `OPERATIONAL_RUNBOOKS.md` |
 | 2 | ~~High~~ Fixed | Tighter limits: 20/hr IP, CAPTCHA after 3 | `auth.py` |
 | 3 | ~~High~~ Fixed | CAPTCHA after 3 IP or 40% email limit | `auth.py` |
 | 4 | ~~Medium~~ Fixed | Specific error messages by status/type | `Login.tsx`, `magicLinkService.ts` |
@@ -58,9 +58,9 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 7 | Critical | Session token replay: no revocation; JWTs reusable until expiry | `auth.py`, session management |
-| 8 | Critical | Redis required for replay protection; in-memory fallback unsafe for multi-instance | `auth.py`, `redis_client.py` |
-| 9 | High | IP binding off by default (`MAGIC_LINK_BIND_TO_IP=false`) | Config, `auth.py` |
+| 7 | ~~Critical~~ Fixed | Session revocation on logout; Redis blacklist; fail closed in prod | `auth.py`, `dependencies.py`, `sessions.py` |
+| 8 | ~~Critical~~ Fixed | REDIS_URL required in prod (validate_critical); redis_client fails prod without Redis | `config.py`, `redis_client.py`, `dependencies.py` |
+| 9 | ~~High~~ Fixed | IP binding defaults True in prod (apply_env_defaults); render.yaml has MAGIC_LINK_BIND_TO_IP | `config.py`, `auth.py`, `render.yaml` |
 | 10 | ~~High~~ Fixed | auth_failed hint param (expired, used, invalid, ip_mismatch) | `auth.py`, `Login.tsx` |
 | 11 | ~~Medium~~ Fixed | Clearer verification loading (progress bar, aria) | `Login.tsx` |
 | 12 | ~~Medium~~ Fixed | magic_link_verified tracked in AuthGuard on magic_verified=1 | `AuthGuard.tsx`, `auth.py` |

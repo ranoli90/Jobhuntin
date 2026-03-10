@@ -103,8 +103,7 @@ class Settings(BaseSettings):
     magic_link_token_ttl_seconds: int = 3600
     # H2: IP Binding - Bind magic link tokens to requesting IP (security feature)
     # When enabled, magic links can only be used from the IP that requested them
-    # This prevents token theft attacks. RECOMMENDED: Enable in production.
-    # Set MAGIC_LINK_BIND_TO_IP=true in production environment
+    # This prevents token theft attacks. #9: Default True in prod (override with MAGIC_LINK_BIND_TO_IP=false to disable).
     magic_link_bind_to_ip: bool = False
 
     # ── Blueprints ────────────────────────────────────────────────
@@ -245,6 +244,7 @@ class Settings(BaseSettings):
 
     # ── Email (Resend) ────────────────────────────────────────────
     resend_api_key: str = ""
+    resend_webhook_secret: str = ""  # #1: For Resend webhook signature verification
     email_from: str = "JobHuntin <noreply@jobhuntin.com>"
 
     # ── CAPTCHA (Bot Protection) ───────────────────────────────────
@@ -363,6 +363,9 @@ class Settings(BaseSettings):
                 missing.append("CSRF_SECRET")
             if not self.jwt_secret:
                 missing.append("JWT_SECRET (required for JWT token signing/validation)")
+            # #8: Redis required for token replay protection and session revocation
+            if not self.redis_url:
+                missing.append("REDIS_URL (required for token replay protection and session revocation)")
             # SSO_SESSION_SECRET is optional - only required for ENTERPRISE plans with SSO enabled
             # if not self.sso_session_secret:
             #     missing.append("SSO_SESSION_SECRET")
@@ -430,6 +433,9 @@ class Settings(BaseSettings):
                 object.__setattr__(self, "log_level", "INFO")
             if os.environ.get("LLM_RATE_LIMIT_PER_MINUTE") is None:
                 object.__setattr__(self, "llm_rate_limit_per_minute", 40)
+            # #9: IP binding for magic links - default True in prod (security)
+            if os.environ.get("MAGIC_LINK_BIND_TO_IP") is None:
+                object.__setattr__(self, "magic_link_bind_to_ip", True)
         elif self.env == Environment.STAGING:
             if os.environ.get("LOG_JSON") is None:
                 object.__setattr__(self, "log_json", True)
