@@ -73,7 +73,7 @@ export function ConfirmContactStep({
     };
 
     return (
-        <div>
+        <div role="region" aria-labelledby="confirm-contact-step-title">
             {/* Screen reader error announcement */}
             {Object.keys(formErrors).length > 0 && (
                 <div role="alert" aria-live="polite" className="sr-only">
@@ -87,7 +87,7 @@ export function ConfirmContactStep({
                     <User className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div className="min-w-0">
-                    <h2 className="font-display text-lg md:text-2xl font-bold text-[#2D2A26] tracking-tight">
+                    <h2 id="confirm-contact-step-title" className="font-display text-lg md:text-2xl font-bold text-[#2D2A26] tracking-tight">
                         {t("onboarding.contactTitle", locale)}
                     </h2>
                     <p className="text-xs md:text-sm text-[#787774] font-medium">

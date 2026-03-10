@@ -157,13 +157,13 @@ export function PreferencesStep({
     };
 
     return (
-        <div>
+        <div role="region" aria-labelledby="preferences-step-title">
             <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
                 <div className="flex h-10 w-12 md:h-12 md:w-14 shrink-0 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
                     <MapPin className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div className="min-w-0">
-                    <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">
+                    <h2 id="preferences-step-title" className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">
                         {t("onboarding.preferencesTitle", locale)}
                     </h2>
                     <p className="text-xs md:text-sm text-slate-500 font-medium">

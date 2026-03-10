@@ -90,8 +90,8 @@
 | 16 | ~~Medium~~ Fixed | Progress saved indicator present | `Onboarding.tsx` |
 | 17 | ~~Medium~~ Fixed | Error handling: inline save-error banner + toast for API failures | `Onboarding.tsx`, step components |
 | 18 | ~~Medium~~ Fixed | Touch targets ≥ 44px (buttons, chips, icon buttons) | Step components |
-| 19 | Low | No keyboard shortcuts (e.g. Ctrl+Enter to continue) | Step components |
-| 20 | Low | Missing accessibility labels in some steps | Step components |
+| 19 | ~~Low~~ Fixed | Ctrl+Enter / Cmd+Enter to continue | `Onboarding.tsx` |
+| 20 | ~~Low~~ Fixed | Step regions + aria-labelledby for screen readers | All step components |
 
 ---
 
@@ -111,7 +111,7 @@
 |---|----------|-------|----------|
 | 21 | ~~Medium~~ Fixed | Empty dashboard guidance improved | `Dashboard.tsx` |
 | 22 | ~~Medium~~ Fixed | HOLD tooltip + AppCard explanation | `Dashboard.tsx`, `AppCard.tsx` |
-| 23 | Low | Applications polling every 15s; could use WebSocket or longer interval | `useApplications` |
+| 23 | ~~Low~~ Fixed | Dynamic polling: 10s when APPLYING, 30s otherwise | `useApplications` |
 | 24 | Low | Billing tiers hardcoded; consider `/billing/tiers` API | `Dashboard.tsx`, `BILLING_TIERS` |
 
 ---

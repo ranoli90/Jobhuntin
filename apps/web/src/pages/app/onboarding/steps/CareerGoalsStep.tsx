@@ -66,7 +66,7 @@ export function CareerGoalsStep({
     const locale = getLocale();
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full" role="region" aria-labelledby="career-goals-step-title">
             <div className="flex-1">
                 {/* Header */}
                 <div className="mb-4 md:mb-6 flex items-center gap-3 md:gap-4 border-b border-slate-100 pb-4 md:pb-6">
@@ -74,7 +74,7 @@ export function CareerGoalsStep({
                         <Target className="h-5 w-5 md:h-6 md:w-6" />
                     </div>
                     <div className="min-w-0">
-                        <h2 className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">
+                        <h2 id="career-goals-step-title" className="font-display text-lg md:text-2xl font-bold text-slate-900 tracking-tight">
                             {t("onboarding.careerGoalsTitle", locale) || "Career Goals"}
                         </h2>
                         <p className="text-xs md:text-sm text-slate-500 font-medium">

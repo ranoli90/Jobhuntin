@@ -134,7 +134,7 @@ export function ReadyStep({
     ].filter(Boolean).length;
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full" role="region" aria-labelledby="ready-step-title">
             <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
 
             {/* Countdown overlay */}
@@ -194,7 +194,7 @@ export function ReadyStep({
                         </span>
                     </motion.div>
 
-                    <h1 className="mb-1 md:mb-4 font-display text-2xl md:text-5xl font-black text-slate-900 tracking-tight">
+                    <h1 id="ready-step-title" className="mb-1 md:mb-4 font-display text-2xl md:text-5xl font-black text-slate-900 tracking-tight">
                         {t("onboarding.launchTitle", locale) || "Launch"} <span className="text-primary-600 italic">{t("onboarding.launchReady", locale) || "Ready."}</span>
                     </h1>
                     <p className="mb-4 md:mb-12 text-slate-500 font-bold max-w-sm mx-auto text-sm md:text-lg leading-relaxed">

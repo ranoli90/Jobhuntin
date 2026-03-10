@@ -1074,6 +1074,48 @@ export default function Onboarding() {
     }
   };
 
+  // #19: Ctrl+Enter / Cmd+Enter to continue to next step
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        if (document.activeElement?.closest('[role="dialog"]')) return;
+        const stepId = currentStepData?.id;
+        if (!stepId) return;
+        if (isSavingPreferences || isSavingContact || isSavingSkills || isSavingWorkStyle || isSavingCareerGoals || isCompleting) return;
+        e.preventDefault();
+        if (stepId === "welcome") nextStep();
+        else if (stepId === "resume") (showParsingPreview && parsedResume ? handleConfirmParsing : handleResumeNext)();
+        else if (stepId === "skill-review") handleSaveSkills();
+        else if (stepId === "confirm-contact") handleSaveContact();
+        else if (stepId === "preferences") handleSavePreferences();
+        else if (stepId === "work-style") handleSaveWorkStyle();
+        else if (stepId === "career-goals") handleSaveCareerGoals();
+        else if (stepId === "ready") handleComplete();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    currentStepData?.id,
+    nextStep,
+    handleResumeNext,
+    handleConfirmParsing,
+    handleSaveSkills,
+    handleSaveContact,
+    handleSavePreferences,
+    handleSaveWorkStyle,
+    handleSaveCareerGoals,
+    handleComplete,
+    showParsingPreview,
+    parsedResume,
+    isSavingPreferences,
+    isSavingContact,
+    isSavingSkills,
+    isSavingWorkStyle,
+    isSavingCareerGoals,
+    isCompleting,
+  ]);
+
   if (loading) {
     return (
       <div className="h-[100dvh] w-full bg-[#F7F6F3] flex flex-col relative overflow-hidden">
@@ -1145,6 +1187,9 @@ export default function Onboarding() {
                   transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
                 />
               </div>
+              <p className="mt-1 text-[9px] text-[#9B9A97] hidden sm:block" aria-hidden>
+                {t("onboarding.keyboardHint", locale) || "Ctrl+Enter to continue"}
+              </p>
             </div>
 
             <AnimatePresence mode="wait">

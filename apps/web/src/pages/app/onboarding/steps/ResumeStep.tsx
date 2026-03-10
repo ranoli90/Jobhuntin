@@ -177,6 +177,8 @@ export function ResumeStep({
 
     return (
         <div
+            role="region"
+            aria-labelledby="resume-step-title"
             className="relative"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -225,7 +227,7 @@ export function ResumeStep({
                     <Upload className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                    <h2 className="font-display text-2xl font-bold text-slate-900 tracking-tight">
+                    <h2 id="resume-step-title" className="font-display text-2xl font-bold text-slate-900 tracking-tight">
                         {t("onboarding.resumeTitle", locale)}
                     </h2>
                     <p className="text-sm text-slate-500 font-medium">

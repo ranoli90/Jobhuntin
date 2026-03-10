@@ -39,7 +39,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
     }, [shouldReduceMotion]);
 
     return (
-        <div>
+        <div role="region" aria-labelledby="welcome-step-title">
             <div className="text-center py-4">
                 {/* Animated Icon with sparkle background */}
                 <div className="mx-auto mb-6 relative font-display">
@@ -113,7 +113,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                 )}
 
                 {/* Title with typewriter effect */}
-                <h1 className="mb-3 font-display text-4xl md:text-5xl font-black text-[#2D2A26] tracking-tight leading-tight">
+                <h1 id="welcome-step-title" className="mb-3 font-display text-4xl md:text-5xl font-black text-[#2D2A26] tracking-tight leading-tight">
                     <motion.span
                         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
                         animate={{ opacity: titleRevealed ? 1 : 0 }}

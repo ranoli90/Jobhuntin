@@ -28,8 +28,12 @@ export function useApplications() {
   const query = useQuery({
     queryKey: ["applications"],
     queryFn: fetchApplications,
-    // M-2: Reduced from 5s to 15s to lower server load; don't poll when tab is hidden
-    refetchInterval: 15_000,
+    // #23: Dynamic polling - 10s when APPLYING, 30s otherwise; don't poll when tab hidden
+    refetchInterval: (query) => {
+      const data = query.state.data as ApplicationRecord[] | undefined;
+      const hasApplying = data?.some((a) => a.status === "APPLYING") ?? false;
+      return hasApplying ? 10_000 : 30_000;
+    },
     refetchIntervalInBackground: false,
   });
 

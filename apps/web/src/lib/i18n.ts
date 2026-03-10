@@ -310,6 +310,7 @@ const dictionaries: Dict = {
     "onboarding.step": "Step",
     "onboarding.of": "of",
     "onboarding.restart": "Restart",
+    "onboarding.keyboardHint": "Ctrl+Enter to continue",
     "onboarding.pickingUp": "Picking up at",
 
     "holds.responseRequired": "RESPONSE REQUIRED",

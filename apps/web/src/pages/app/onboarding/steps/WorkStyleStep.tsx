@@ -175,14 +175,14 @@ export function WorkStyleStep({
     const question = allQuestions[currentQuestion];
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full" role="region" aria-labelledby="work-style-step-title">
             <div className="flex-1">
                 <div className="mb-3 md:mb-6 flex items-center gap-2.5 md:gap-5 border-b border-slate-100 pb-2.5 md:pb-6">
                     <div className="flex h-8 w-10 md:h-12 md:w-16 shrink-0 items-center justify-center rounded-[0.75rem] md:rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-inner">
                         <Brain className="h-4 w-4 md:h-8 md:w-8" />
                     </div>
                     <div className="min-w-0">
-                        <h2 className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">
+                        <h2 id="work-style-step-title" className="font-display text-lg md:text-3xl font-black text-slate-900 tracking-tight truncate">
                             {t("onboarding.workStyleTitle", locale)}
                         </h2>
                         <p className="text-[10px] md:text-sm text-slate-500 font-medium italic truncate">
