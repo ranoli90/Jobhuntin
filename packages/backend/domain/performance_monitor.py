@@ -11,7 +11,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
 
 import psutil
@@ -67,6 +67,7 @@ class PerformanceMetric:
     timestamp: datetime
     metadata: Dict[str, Any] = field(default_factory=dict)
     tags: List[str] = field(default_factory=list)
+    created_at: Optional[datetime] = None
 
 
 @dataclass
@@ -86,6 +87,7 @@ class PerformanceAlert:
     resolved: bool = False
     resolved_at: Optional[datetime] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: Optional[datetime] = None
 
 
 @dataclass
@@ -127,7 +129,7 @@ class PerformanceMonitor:
         self._metrics_buffer: List[PerformanceMetric] = []
         self._alerts_buffer: List[PerformanceAlert] = []
         self._thresholds: Dict[str, PerformanceThreshold] = {}
-        self._alert_handlers: Dict[str, callable] = []
+        self._alert_handlers: Dict[str, Callable[..., Any]] = {}
 
         # Initialize default thresholds
         self._initialize_default_thresholds()
@@ -389,7 +391,7 @@ class PerformanceMonitor:
     async def register_alert_handler(
         self,
         alert_type: str,
-        handler: callable,
+        handler: Callable[..., Any],
     ) -> None:
         """Register an alert handler."""
         try:
@@ -829,7 +831,8 @@ class PerformanceMonitor:
             for alert_type, handler in self._alert_handlers.items():
                 if alert_type in alert.alert_type or alert_type == "all":
                     try:
-                        await handler(alert)
+                        if callable(handler):
+                            await handler(alert)
                     except Exception as e:
                         logger.error(f"Alert handler failed for {alert_type}: {e}")
 
@@ -846,6 +849,7 @@ class PerformanceMonitor:
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             """
 
+            created_at = metric.created_at or metric.timestamp
             params = [
                 metric.id,
                 metric.tenant_id,
@@ -857,7 +861,7 @@ class PerformanceMonitor:
                 metric.timestamp,
                 json.dumps(metric.metadata),
                 json.dumps(metric.tags),
-                metric.created_at,
+                created_at,
             ]
 
             async with self.db_pool.acquire() as conn:
@@ -881,6 +885,7 @@ class PerformanceMonitor:
 
             params_list = []
             for metric in metrics:
+                created_at = metric.created_at or metric.timestamp
                 params_list.append(
                     (
                         metric.id,
@@ -893,7 +898,7 @@ class PerformanceMonitor:
                         metric.timestamp,
                         json.dumps(metric.metadata),
                         json.dumps(metric.tags),
-                        metric.created_at,
+                        created_at,
                     )
                 )
 
@@ -914,6 +919,7 @@ class PerformanceMonitor:
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             """
 
+            created_at = alert.created_at or alert.timestamp
             params = [
                 alert.id,
                 alert.tenant_id,
@@ -928,7 +934,7 @@ class PerformanceMonitor:
                 alert.resolved,
                 alert.resolved_at,
                 json.dumps(alert.metadata),
-                alert.created_at,
+                created_at,
             ]
 
             async with self.db_pool.acquire() as conn:
@@ -953,6 +959,7 @@ class PerformanceMonitor:
 
             params_list = []
             for alert in alerts:
+                created_at = alert.created_at or alert.timestamp
                 params_list.append(
                     (
                         alert.id,
@@ -968,7 +975,7 @@ class PerformanceMonitor:
                         alert.resolved,
                         alert.resolved_at,
                         json.dumps(alert.metadata),
-                        alert.created_at,
+                        created_at,
                     )
                 )
 
@@ -1095,7 +1102,7 @@ class PerformanceMonitor:
 
                     if second_avg > first_avg * 1.1:
                         trend_direction = "increasing"
-                    elif second_avg < first_half * 0.9:
+                    elif second_avg < first_avg * 0.9:
                         trend_direction = "decreasing"
                     else:
                         trend_direction = "stable"

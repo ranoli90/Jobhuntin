@@ -19,6 +19,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN groupadd -r sorce && useradd -r -g sorce -m sorce
 
 # Install system dependencies for Pillow/OGP (fonts, etc) and Tesseract for OCR
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     fontconfig \
     fonts-dejavu-core \
@@ -47,19 +48,17 @@ COPY apps/ ./apps/
 COPY templates/ ./templates/
 COPY infra/ ./infra/
 
-# Remove any .env file that might have been copied
-RUN rm -f .env
-
-RUN chown -R sorce:sorce /app
+# Remove any .env file that might have been copied and fix ownership (DL3059)
+RUN rm -f .env && chown -R sorce:sorce /app
 
 # ============================================================
 # Stage: worker – Agent with Playwright + Chromium
 # ============================================================
 FROM base AS worker
 
-# Install Playwright system deps + browser
+# Install Playwright system deps + browser (DL3013: pin version)
 USER root
-RUN pip install --no-cache-dir playwright \
+RUN pip install --no-cache-dir "playwright>=1.43,<2" \
     && python -m playwright install --with-deps chromium
 
 USER sorce
@@ -80,7 +79,8 @@ ENV PORT=8000
 
 # Render handles health checks externally via http request to /health
 # We remove the internal Docker HEALTHCHECK to avoid port mismatches
-CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
+# DL3025: Use exec form; shell needed for $PORT expansion
+CMD ["sh", "-c", "uvicorn api.main:app --host 0.0.0.0 --port ${PORT} --workers 2 --log-level info"]
 
 # HEALTHCHECK for local Docker usage (Render uses external health checks)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

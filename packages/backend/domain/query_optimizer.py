@@ -1363,6 +1363,22 @@ class QueryOptimizer:
             logger.error(f"Failed to get user tables: {e}")
             return []
 
+    async def _analyze_query_pattern_for_indexes(
+        self,
+        tenant_id: str,
+        query_pattern: str,
+    ) -> List[IndexRecommendation]:
+        """Analyze a query pattern for index recommendations.
+
+        Extracts table references from the pattern and delegates to table analysis.
+        """
+        # Extract table name from pattern (e.g. "SELECT * FROM users" -> users)
+        match = re.search(r"\bFROM\s+[\"']?(\w+)[\"']?", query_pattern, re.I)
+        if match:
+            table_name = match.group(1)
+            return await self._analyze_table_for_indexes(tenant_id, table_name)
+        return []
+
     async def _analyze_table_for_indexes(
         self,
         tenant_id: str,
