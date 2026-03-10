@@ -7,6 +7,7 @@
 import { config } from '../config';
 import { ValidationUtils } from '../lib/validation';
 import { botProtection } from '../lib/botProtection';
+import { telemetry } from '../lib/telemetry';
 
 export interface MagicLinkResponse {
   status: string;
@@ -41,13 +42,14 @@ class MagicLinkService {
     email: string,
     returnTo: string = '/app/onboarding',
     captchaToken?: string
-  ): Promise<{ success: boolean; email: string; error?: string; retryAfter?: number; captchaRequired?: boolean }> {
+  ): Promise<{ success: boolean; email: string; error?: string; retryAfter?: number; captchaRequired?: boolean; status?: number }> {
     // RFC max email length is 320 chars (254 + local part variations). Allow full range.
     const normalizedEmail = ValidationUtils.sanitizeInput(email.trim().toLowerCase(), 320);
 
     // Enhanced email validation
     const emailValidation = ValidationUtils.validate.email(normalizedEmail);
     if (!emailValidation.isValid) {
+      telemetry.track('magic_link_failed', { reason: 'validation', error: emailValidation.errors.join(', ') });
       return {
         success: false,
         email: normalizedEmail,
@@ -81,6 +83,7 @@ class MagicLinkService {
     if (!rateLimitCheck.allowed) {
       const retryAfter = rateLimitCheck.resetIn || 300;
       this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
+      telemetry.track('magic_link_failed', { reason: 'rate_limit', retryAfter });
       return {
         success: false,
         email: normalizedEmail,
@@ -92,6 +95,7 @@ class MagicLinkService {
     // Check if captcha is required
     const shouldRequireCaptcha = botProtection.shouldRequireCaptcha(normalizedEmail);
     if (shouldRequireCaptcha && !captchaToken) {
+      telemetry.track('magic_link_failed', { reason: 'captcha_required' });
       return {
         success: false,
         email: normalizedEmail,
@@ -209,6 +213,7 @@ class MagicLinkService {
         testRequests: 0
       });
 
+      telemetry.track('magic_link_sent', { email_domain: normalizedEmail.split('@')[1] || 'unknown' });
       if (import.meta.env.DEV) {
         console.log('[MagicLink] API request successful');
       }
@@ -259,6 +264,7 @@ class MagicLinkService {
       if (error?.status === 429 || error?.message?.includes('Too many requests')) {
         const retryAfter = error.retryAfter || 60;
         this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
+        telemetry.track('magic_link_failed', { reason: 'rate_limit', retryAfter });
         return {
           success: false,
           email: normalizedEmail,
@@ -274,11 +280,19 @@ class MagicLinkService {
       } else if (typeof error === 'string') {
         message = error;
       }
+      const status = error?.status;
 
+      telemetry.track('magic_link_failed', {
+        reason: 'api_error',
+        error: message?.slice(0, 100),
+        status,
+        email_domain: normalizedEmail.split('@')[1] || 'unknown',
+      });
       return {
         success: false,
         email: normalizedEmail,
         error: message,
+        status: typeof status === 'number' ? status : undefined,
       };
     }
   }

@@ -52,8 +52,19 @@ interface PreferencesState {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding, formData, updateFormData } = useOnboarding();
   const { profile, loading, uploadResume, savePreferences, completeOnboarding, updateProfile } = useProfile();
+  const syncProgressToServer = React.useCallback(
+    async (step: number, completed: string[]) => {
+      await api.patch("me/profile", { onboarding_step: step, onboarding_completed_steps: completed });
+    },
+    []
+  );
+  const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding, formData, updateFormData } = useOnboarding({
+    serverProgress: profile && !profile.has_completed_onboarding && profile.onboarding_step != null
+      ? { step: profile.onboarding_step, completed: profile.onboarding_completed_steps || [] }
+      : null,
+    syncToServer: profile ? syncProgressToServer : undefined,
+  });
   const aiSuggestions = useAISuggestions();
   const locale = getLocale();
   const [isLowPowerMode, setIsLowPowerMode] = React.useState(false);
@@ -708,6 +719,10 @@ export default function Onboarding() {
         userFriendlyMessage = "Network error. Your file was saved and will retry when connection is restored.";
       } else if (!message || message === "Upload failed") {
         userFriendlyMessage = "Upload failed. Your file was saved and will retry automatically. You can also try again manually.";
+      } else if (message.toLowerCase().includes("extract") || message.toLowerCase().includes("readable text")) {
+        userFriendlyMessage = "We couldn't read text from your resume. Try a different PDF or ensure it's not image-only (scanned documents may need OCR).";
+      } else if (message.toLowerCase().includes("parse") || message.toLowerCase().includes("parsing")) {
+        userFriendlyMessage = "Resume parsing failed. Your file was saved — you can skip and add details manually, or try a different resume.";
       }
       
       setResumeError(userFriendlyMessage);

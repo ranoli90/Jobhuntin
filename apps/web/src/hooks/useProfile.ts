@@ -36,6 +36,9 @@ export interface UserProfile {
   contact?: ContactInfo;
   headline?: string;
   bio?: string;
+  /** P1: Server-side onboarding progress for cross-device resume */
+  onboarding_step?: number;
+  onboarding_completed_steps?: string[];
 }
 
 export interface ProfileUpdatePayload {

@@ -78,6 +78,7 @@ export default function Dashboard() {
       text: 'text-amber-600',
       iconColor: 'text-amber-500',
       progress: holdProgress,
+      title: "Applications where the form asked a question we need you to answer",
     },
     {
       label: "Total Applications",
@@ -147,7 +148,8 @@ export default function Dashboard() {
         <Card className="p-8 text-center border-brand-primary/20 bg-brand-primary/5 rounded-xl">
           <Rocket className="h-12 w-12 text-brand-primary mx-auto mb-4" />
           <h2 className="text-xl font-bold text-brand-text mb-2">Welcome to your dashboard!</h2>
-          <p className="text-brand-muted mb-6 max-w-md mx-auto">Start by reviewing jobs matched to your profile. Our AI agent will handle the rest.</p>
+          <p className="text-brand-muted mb-2 max-w-md mx-auto">You haven&apos;t applied to any jobs yet. Swipe right on jobs you like and our AI will apply for you automatically.</p>
+          <p className="text-brand-muted/80 text-sm mb-6 max-w-md mx-auto">Start by browsing jobs matched to your profile — it only takes a few swipes.</p>
           <Button onClick={() => navigate("/app/jobs")} className="bg-brand-primary hover:bg-brand-primaryHover text-white">
             <Rocket className="mr-2 h-4 w-4" /> Browse Jobs
           </Button>
@@ -162,6 +164,7 @@ export default function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={shouldReduceMotion ? undefined : { delay: 0.05 * index, duration: 0.4 }}
               className="h-full min-w-[240px] md:min-w-0"
+              title={("title" in metric && metric.title) ? metric.title : undefined}
             >
               <Card
                 className="h-full border-brand-border bg-white hover:border-brand-primary/30 transition-colors duration-200 group rounded-xl"

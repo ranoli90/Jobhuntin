@@ -25,6 +25,7 @@ from fastapi import (
     Depends,
     File,
     HTTPException,
+    Request,
     UploadFile,
 )
 from fastapi import Path as FastAPIPath
@@ -57,7 +58,9 @@ router = APIRouter(tags=["user"])
 # Per-user rate limiters to prevent abuse on profile writes/uploads
 _profile_limiters: dict[str, tuple[RateLimiter, float]] = {}
 _upload_limiters: dict[str, tuple[RateLimiter, float]] = {}
+_apply_limiters: dict[str, tuple[RateLimiter, float]] = {}
 _LIMITER_TTL = 3600  # 1 hour
+_APPLY_LIMIT_PER_MINUTE = 60  # P1: Rate limit applies (prevents spam)
 
 
 def _get_profile_limiter(user_id: str) -> RateLimiter:
@@ -74,6 +77,26 @@ def _get_profile_limiter(user_id: str) -> RateLimiter:
         _profile_limiters.pop(k, None)
     limiter = RateLimiter(max_calls=30, window_seconds=300.0, name=f"profile:{user_id}")
     _profile_limiters[user_id] = (limiter, now)
+    return limiter
+
+
+def _get_apply_limiter(user_id: str) -> RateLimiter:
+    import time as _time
+
+    now = _time.monotonic()
+    entry = _apply_limiters.get(user_id)
+    if entry and now - entry[1] < _LIMITER_TTL:
+        _apply_limiters[user_id] = (entry[0], now)
+        return entry[0]
+    expired = [k for k, (_, ts) in _apply_limiters.items() if now - ts > _LIMITER_TTL]
+    for k in expired:
+        _apply_limiters.pop(k, None)
+    limiter = RateLimiter(
+        max_calls=_APPLY_LIMIT_PER_MINUTE,
+        window_seconds=60.0,
+        name=f"apply:{user_id}",
+    )
+    _apply_limiters[user_id] = (limiter, now)
     return limiter
 
 
@@ -258,12 +281,49 @@ class CreateApplicationBody(BaseModel):
 
 @router.post("/me/applications")
 async def create_application(
+    request: Request,
     body: CreateApplicationBody,
     ctx: TenantContext = Depends(_get_tenant_ctx),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """Create an application when user swipes ACCEPT; record REJECTED for REJECT."""
+    """Create an application when user swipes ACCEPT; record REJECTED for REJECT.
+
+    P0: Idempotency - Optional Idempotency-Key header. When provided with Redis,
+    returns cached response for duplicate requests within 24h. ON CONFLICT handles
+    DB-level dedup when Redis unavailable.
+    """
+    idempotency_key = request.headers.get("Idempotency-Key")
+    _idem_cache_key = f"idem:apply:{ctx.user_id}:{idempotency_key}" if idempotency_key and len(idempotency_key) <= 128 else None
+
+    if _idem_cache_key and get_settings().redis_url:
+        try:
+            from shared.redis_client import get_redis
+            r = await get_redis()
+            cached = await r.get(_idem_cache_key)
+            if cached:
+                return json.loads(cached)
+        except Exception as e:
+            logger.debug("Idempotency cache read failed: %s", e)
+
+    async def _idem_set(result: dict[str, Any]) -> None:
+        if not _idem_cache_key or not get_settings().redis_url:
+            return
+        try:
+            from shared.redis_client import get_redis
+            r = await get_redis()
+            await r.setex(_idem_cache_key, 86400, json.dumps(result))  # 24h TTL
+        except Exception as e:
+            logger.debug("Idempotency cache write failed: %s", e)
+
     from shared.validators import validate_uuid
+
+    # P1: Rate limit applies per user (60/min)
+    apply_limiter = _get_apply_limiter(str(ctx.user_id))
+    if not await apply_limiter.acquire():
+        raise HTTPException(
+            status_code=429,
+            detail="Too many applications. Please wait a moment before applying to more jobs.",
+        )
 
     validate_uuid(body.job_id, "job_id")
 
@@ -291,7 +351,7 @@ async def create_application(
                 logger.info(
                     f"[APPLICATION] Duplicate application prevented: user={ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
                 )
-                return {
+                result = {
                     "status": "duplicate",
                     "message": "You have already applied to this job",
                     "existing_application": {
@@ -305,6 +365,8 @@ async def create_application(
                         else None,
                     },
                 }
+                await _idem_set(result)
+                return result
 
             job = await JobRepo.get_by_id(conn, body.job_id)
             if not job:
@@ -328,7 +390,9 @@ async def create_application(
                 blueprint_key,
             )
 
-        return {"status": "recorded", "decision": body.decision}
+        result = {"status": "recorded", "decision": body.decision}
+        await _idem_set(result)
+        return result
 
     # CRITICAL: Use transaction to prevent race conditions in concurrent swipes
     async with db_transaction(db) as conn:
@@ -351,7 +415,7 @@ async def create_application(
             logger.info(
                 f"[APPLICATION] Duplicate application prevented: user={ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
             )
-            return {
+            result = {
                 "status": "duplicate",
                 "message": "You have already applied to this job",
                 "existing_application": {
@@ -365,6 +429,8 @@ async def create_application(
                     else None,
                 },
             }
+            await _idem_set(result)
+            return result
 
         # MEDIUM: Add null check for user-provided job_id
         if not body.job_id:
@@ -404,12 +470,14 @@ async def create_application(
         # Wake auto-apply agent immediately (it listens for job_queue)
         await conn.execute("NOTIFY job_queue")
 
-    return {
+    result = {
         "id": str(app_id),
         "job_id": body.job_id,
         "status": "QUEUED",
         "decision": "ACCEPT",
     }
+    await _idem_set(result)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -941,6 +1009,8 @@ async def get_profile(
         "bio": profile_data.get("summary", ""),
         "career_goals": profile_data.get("career_goals", {}),
         "work_style": profile_data.get("work_style", {}),
+        "onboarding_step": profile_data.get("onboarding_step"),
+        "onboarding_completed_steps": profile_data.get("onboarding_completed_steps") or [],
     }
 
 
@@ -973,6 +1043,9 @@ class ProfileUpdate(BaseModel):
     contact: dict | None = None
     career_goals: dict | None = None
     work_style: dict | None = None
+    # P1: Server-side onboarding progress for cross-device resume
+    onboarding_step: int | None = None
+    onboarding_completed_steps: list[str] | None = None
 
     @field_validator("career_goals")
     @classmethod
@@ -1177,6 +1250,10 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
         profile_data["career_goals"] = body.career_goals
     if body.work_style is not None:
         profile_data["work_style"] = body.work_style
+    if body.onboarding_step is not None:
+        profile_data["onboarding_step"] = body.onboarding_step
+    if body.onboarding_completed_steps is not None:
+        profile_data["onboarding_completed_steps"] = body.onboarding_completed_steps
 
     avatar_url = (
         body.avatar_url if body.avatar_url is not None else contact.get("avatar_url")

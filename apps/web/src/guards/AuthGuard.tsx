@@ -1,10 +1,25 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { telemetry } from "../lib/telemetry";
 
 export default function AuthGuard() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(location.search);
+    if (params.get("magic_verified") === "1") {
+      telemetry.track("magic_link_verified", { destination: location.pathname });
+      const nextParams = new URLSearchParams(params);
+      nextParams.delete("magic_verified");
+      const nextSearch = nextParams.toString();
+      navigate({ pathname: location.pathname, search: nextSearch ? `?${nextSearch}` : "" }, { replace: true });
+    }
+  }, [user, location.search, location.pathname, navigate]);
 
   if (loading) {
     return (

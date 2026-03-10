@@ -36,10 +36,10 @@
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
 | 1 | Critical | No email delivery confirmation tracking | `auth.py`, Resend webhook |
-| 2 | High | Magic link rate limits may be too permissive (enumeration risk) | `auth.py` |
-| 3 | High | CAPTCHA only required after 5 IP requests or 50% of email limit | `auth.py` |
-| 4 | Medium | Generic error messages ("Something went wrong") | `Login.tsx`, `magicLinkService.ts` |
-| 5 | Medium | No `magic_link_sent` / `magic_link_failed` analytics | Frontend, backend |
+| 2 | ~~High~~ Fixed | Tighter limits: 20/hr IP, CAPTCHA after 3 | `auth.py` |
+| 3 | ~~High~~ Fixed | CAPTCHA after 3 IP or 40% email limit | `auth.py` |
+| 4 | ~~Medium~~ Fixed | Specific error messages by status/type | `Login.tsx`, `magicLinkService.ts` |
+| 5 | ~~Medium~~ Fixed | magic_link_sent, magic_link_failed, magic_link_verified analytics | Frontend, backend |
 | 6 | Low | Email typo detection exists (`checkEmailTypo`) but not consistently used | `emailUtils.ts` |
 
 ---
@@ -61,7 +61,7 @@
 | 7 | Critical | Session token replay: no revocation; JWTs reusable until expiry | `auth.py`, session management |
 | 8 | Critical | Redis required for replay protection; in-memory fallback unsafe for multi-instance | `auth.py`, `redis_client.py` |
 | 9 | High | IP binding off by default (`MAGIC_LINK_BIND_TO_IP=false`) | Config, `auth.py` |
-| 10 | High | Generic `auth_failed` redirect with little user guidance | `auth.py`, `Login.tsx` |
+| 10 | ~~High~~ Fixed | auth_failed hint param (expired, used, invalid, ip_mismatch) | `auth.py`, `Login.tsx` |
 | 11 | Medium | Loading state during verification exists but could be clearer | `Login.tsx` (isVerifying) |
 | 12 | Medium | No `magic_link_verified` analytics | Backend, frontend |
 
@@ -84,10 +84,10 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 13 | High | Progress in localStorage; no server-side resume from step | `Onboarding.tsx`, `useOnboarding` |
+| 13 | ~~High~~ Fixed | Server-side onboarding_step + sync | `user.py`, `useOnboarding`, `Onboarding.tsx` |
 | 14 | High | No onboarding funnel tracking (`onboarding_step_viewed`, `onboarding_step_completed`) | `Onboarding.tsx`, telemetry |
-| 15 | High | Resume upload retry exists but error messages unclear | `ResumeStep`, `resumeUploadRetry` |
-| 16 | Medium | No "Your progress is saved automatically" indicator | `Onboarding.tsx` |
+| 15 | ~~High~~ Fixed | Resume error messages improved (extract, parse, network) | `Onboarding.tsx` |
+| 16 | ~~Medium~~ Fixed | Progress saved indicator present | `Onboarding.tsx` |
 | 17 | Medium | Inconsistent error handling (toasts vs inline) across steps | Step components |
 | 18 | Medium | Touch targets < 44px on some buttons | Step components |
 | 19 | Low | No keyboard shortcuts (e.g. Ctrl+Enter to continue) | Step components |
@@ -109,8 +109,8 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 21 | Medium | Empty dashboard: no clear guidance for new users | `Dashboard.tsx` |
-| 22 | Medium | HOLD / REQUIRES_INPUT status not clearly explained | `ApplicationsView`, `HoldsView` |
+| 21 | ~~Medium~~ Fixed | Empty dashboard guidance improved | `Dashboard.tsx` |
+| 22 | ~~Medium~~ Fixed | HOLD tooltip + AppCard explanation | `Dashboard.tsx`, `AppCard.tsx` |
 | 23 | Low | Applications polling every 15s; could use WebSocket or longer interval | `useApplications` |
 | 24 | Low | Billing tiers hardcoded; consider `/billing/tiers` API | `Dashboard.tsx`, `BILLING_TIERS` |
 
@@ -176,7 +176,7 @@
 7. Worker: DOM mapping, form fill, submit
 
 ### Mobile Flow
-- **Bypasses REST API**: `supabase.from("applications").insert({ user_id, job_id, status: "QUEUED" })`
+- ~~**Bypasses REST API**: Mobile used Supabase directly~~ **FIXED**: Mobile now uses REST API POST /me/applications
 - No `NOTIFY job_queue` (worker picks up on next poll only)
 - No `tenant_id`, `blueprint_key`, `priority_score` from API
 - Pre-flight quota check via `getUsage()` only
@@ -185,12 +185,12 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 32 | Critical | Mobile inserts directly into Supabase; bypasses API validation, quota, NOTIFY | `mobile/src/api/client.ts`, `jobStore.ts` |
-| 33 | Critical | No idempotency keys on `POST /me/applications`; retries can create duplicates (mitigated by ON CONFLICT) | `user.py` |
-| 34 | High | No rate limit on `POST /me/applications` per user | `user.py`, middleware |
+| 32 | ~~Critical~~ Fixed | Mobile now uses REST API; NOTIFY trigger added for any direct inserts | `mobile/src/api/client.ts`, `jobStore.ts` |
+| 33 | ~~Critical~~ Fixed | Idempotency-Key header supported; Redis cache + ON CONFLICT | `user.py` |
+| 34 | ~~High~~ Fixed | Per-user rate limit (60/min) | `user.py` |
 | 35 | High | Mobile applications lack `tenant_id`, `priority_score`; may not be processed correctly | Mobile client, worker |
 | 36 | Medium | No queue position/ETA for users | Frontend |
-| 37 | Medium | Undo only works for REJECT within 10s; ACCEPT undo exists but not exposed in JobsView | `user.py`, `JobsView.tsx` |
+| 37 | ~~Medium~~ Fixed | ACCEPT undo exposed in JobsView (10s window) | `JobsView.tsx` |
 | 38 | Low | ~~JobsView announcement used wrong job (topJob vs applied job)~~ **FIXED** | `JobsView.tsx` |
 
 ---
@@ -226,9 +226,9 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 44 | High | Mobile uses Supabase directly; web uses REST API — divergent paths | `mobile/`, `apps/web/` |
+| 44 | ~~High~~ Fixed | Mobile now uses REST API; paths aligned | `mobile/`, `apps/web/` |
 | 45 | Medium | JobsView `handleSwipe` had wrong job in screen reader announcement — **FIXED** | `JobsView.tsx` |
-| 46 | Medium | `useJobs` doesn't invalidate on apply; applications count may be stale | `useJobs`, `useApplications` |
+| 46 | ~~Medium~~ Fixed | `useJobs` invalidates applications + jobs on apply | `JobsView.tsx`, `Dashboard.tsx` |
 | 47 | Medium | Error handling inconsistent across API calls | `lib/api.ts`, various hooks |
 | 48 | Medium | No offline support (service worker) | - |
 | 49 | Low | Some buttons < 44px touch target | Various components |

@@ -823,8 +823,7 @@ async def verify_magic_link(
     User clicks link in email -> hits this endpoint -> [create user if new] -> set cookie -> redirect.
     """
     if not token or not settings.jwt_secret:
-        # SECURITY: Use generic error to prevent configuration enumeration
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=invalid"
         if return_to:
             redirect_url += f"&returnTo={quote(return_to, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
@@ -843,8 +842,10 @@ async def verify_magic_link(
             raise ValueError("Missing sub, email, or jti")
     except pyjwt.PyJWTError as exc:
         logger.warning("Verify-magic JWT invalid: %s", exc)
-        # SECURITY: Use generic error to prevent token enumeration attacks
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
+        hint = "expired" if "expired" in str(exc).lower() else "invalid"
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint={hint}"
+        if return_to:
+            redirect_url += f"&returnTo={quote(return_to, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     # Verify IP binding if present
@@ -859,16 +860,16 @@ async def verify_magic_link(
                 jti,
                 extra={"expected_ip_hash": ip_hash, "actual_ip_hash": current_ip_hash},
             )
-            # SECURITY: Use generic error to prevent IP binding enumeration
-            redirect_url = (
-                f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
-            )
+            redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=ip_mismatch"
+            if return_to:
+                redirect_url += f"&returnTo={quote(return_to, safe='')}"
             return RedirectResponse(url=redirect_url, status_code=302)
 
     if not await _mark_token_consumed(jti, settings):
         logger.warning("Verify-magic replay attempt for jti: %s", jti)
-        # SECURITY: Use generic error to prevent replay enumeration
-        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
+        redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=used"
+        if return_to:
+            redirect_url += f"&returnTo={quote(return_to, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     # Handle user creation for new users (user_identifier is email for new users)
@@ -901,10 +902,9 @@ async def verify_magic_link(
                     "[MAGIC_LINK] User from token no longer exists: %s",
                     user_identifier,
                 )
-                # SECURITY: Use generic error to prevent user existence enumeration
-                redirect_url = (
-                    f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed"
-                )
+                redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=invalid"
+                if return_to:
+                    redirect_url += f"&returnTo={quote(return_to, safe='')}"
                 return RedirectResponse(url=redirect_url, status_code=302)
             user_id = user_identifier
 
@@ -935,7 +935,9 @@ async def verify_magic_link(
             "email_domain": email.split("@")[-1] if "@" in email else "unknown",
         },
     )
-    redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}"
+    # Add magic_verified hint for frontend analytics (magic_link_verified event)
+    sep = "&" if "?" in dest else "?"
+    redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}{sep}magic_verified=1"
 
     # ----------------------------------------------------------------
     # M2: Device Fingerprinting - Detect suspicious logins
@@ -1179,19 +1181,19 @@ async def request_magic_link(
         )
 
     # H1: Rate Limiting Hardening - Enforce CAPTCHA for high-risk scenarios
-    # Check IP-based rate limit first (stricter for new IPs)
+    # P1: Tighter limits to reduce enumeration risk (20/hr per IP, CAPTCHA after 3)
     ip_limiter = get_rate_limiter(
         f"magic_link_ip:{client_ip}",
-        max_calls=30,  # Reduced from 60 to 30 per hour
+        max_calls=20,  # 20 per hour per IP (enumeration protection)
         window_seconds=3600,
     )
     ip_request_count = ip_limiter.current_count()
-    requires_captcha = ip_request_count >= 5  # Require CAPTCHA after 5 requests from same IP
-    
-    # Also require CAPTCHA if email has hit rate limit recently
+    requires_captcha = ip_request_count >= 3  # Require CAPTCHA after 3 requests from same IP
+
+    # Also require CAPTCHA if email has hit 40% of its limit (earlier than 50%)
     email_limiter = _get_rate_limiter(settings, body.email)
     email_request_count = email_limiter.current_count()
-    if email_request_count >= settings.magic_link_requests_per_hour * 0.5:  # 50% of limit
+    if email_request_count >= settings.magic_link_requests_per_hour * 0.4:
         requires_captcha = True
     
     if requires_captcha and not body.captcha_token:
@@ -1244,7 +1246,11 @@ async def request_magic_link(
     action_link, _ = await _generate_magic_link(
         settings, body.email, redirect, db, body.return_to, client_ip
     )
-    await _send_magic_link_email(settings, body.email, action_link, body.return_to)
+    try:
+        await _send_magic_link_email(settings, body.email, action_link, body.return_to)
+    except HTTPException:
+        incr("auth.magic_link.failed", tags={"reason": "email_send", "email_domain": body.email.split("@")[-1]})
+        raise
     # C4: Analytics Tracking - Track magic link sent (backend metric)
     incr("auth.magic_link.sent", tags={"email_domain": body.email.split("@")[-1]})
     logger.info(

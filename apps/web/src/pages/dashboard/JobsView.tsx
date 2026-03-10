@@ -9,6 +9,7 @@ import { AnimatedNumber } from "./shared";
 import { Check, X, Undo2, Radar } from "lucide-react";
 import React, { useState, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "../../lib/api";
 import { pushToast } from "../../lib/toast";
 
@@ -18,6 +19,7 @@ interface SwipeRecord {
 }
 
 export default function JobsView() {
+    const queryClient = useQueryClient();
     const { profile } = useProfile();
     const filters: JobFilters = useMemo(() => ({
         location: profile?.preferences?.location,
@@ -32,6 +34,7 @@ export default function JobsView() {
     // CRITICAL: Use Set instead of single string to prevent race conditions in concurrent swipes
     const [submittingSet, setSubmittingSet] = useState<Set<string>>(new Set());
     const [undoStack, setUndoStack] = useState<string[]>([]);
+    const [lastAppliedForUndo, setLastAppliedForUndo] = useState<{ jobId: string; until: number } | null>(null);
 
     const appliedCount = useMemo(
         () => [...swipedJobs.values()].filter((r) => r.direction === "accept").length,
@@ -72,19 +75,26 @@ export default function JobsView() {
             }
 
             try {
-                await apiPost("/me/applications", {
-                    job_id: jobId,
-                    decision: action.toUpperCase(), // ACCEPT or REJECT
-                });
+                await apiPost(
+                    "/me/applications",
+                    {
+                        job_id: jobId,
+                        decision: action.toUpperCase(), // ACCEPT or REJECT
+                    },
+                    { headers: { "Idempotency-Key": crypto.randomUUID() } }
+                );
 
                 const job = jobs.find((j) => j.id === jobId);
                 if (action === "accept") {
                     pushToast({ title: "Applied!", tone: "success" });
                     setSwipeAnnouncement(`Applied to ${job?.title || "job"} at ${job?.company || "company"}`);
+                    queryClient.invalidateQueries({ queryKey: ["applications"] });
+                    queryClient.invalidateQueries({ queryKey: ["jobs"] });
+                    setLastAppliedForUndo({ jobId, until: Date.now() + 10_000 });
                 } else {
                     setSwipeAnnouncement(`Skipped ${job?.title || "job"} at ${job?.company || "company"}`);
                 }
-                
+
                 // MEDIUM: Focus management after swipe - focus next card (with cleanup)
                 const focusTimeoutId = setTimeout(() => {
                     const nextCard = document.querySelector('[role="article"][tabindex="0"]') as HTMLElement;
@@ -216,10 +226,17 @@ export default function JobsView() {
     
     // MEDIUM: Cleanup state and timeouts on unmount to prevent memory leaks
     React.useEffect(() => {
+        if (!lastAppliedForUndo || lastAppliedForUndo.until <= Date.now()) return;
+        const t = setTimeout(() => setLastAppliedForUndo(null), lastAppliedForUndo.until - Date.now());
+        return () => clearTimeout(t);
+    }, [lastAppliedForUndo]);
+
+    React.useEffect(() => {
         return () => {
             setSwipedJobs(new Map());
             setSubmittingSet(new Set());
             setUndoStack([]);
+            setLastAppliedForUndo(null);
             if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
             if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
         };
@@ -346,17 +363,30 @@ export default function JobsView() {
                 >
                     <X className="w-8 h-8" aria-hidden="true" />
                 </Button>
-                {undoStack.length > 0 && (
+                {(undoStack.length > 0 || (lastAppliedForUndo && lastAppliedForUndo.until > Date.now())) && (
                     <Button
                         variant="outline"
                         size="icon"
                         className="w-12 h-12 rounded-full bg-brand-gray text-brand-text hover:bg-brand-border/50"
-                        onClick={() => {
-                            const lastRejected = undoStack[undoStack.length - 1];
-                            setUndoStack(prev => prev.slice(0, -1));
-                            setSwipedJobs(prev => { const next = new Map(prev); next.delete(lastRejected); return next; });
+                        onClick={async () => {
+                            if (lastAppliedForUndo && lastAppliedForUndo.until > Date.now()) {
+                                try {
+                                    await apiPost(`/me/applications/${lastAppliedForUndo.jobId}/undo`, {});
+                                    setSwipedJobs(prev => { const next = new Map(prev); next.delete(lastAppliedForUndo.jobId); return next; });
+                                    setLastAppliedForUndo(null);
+                                    queryClient.invalidateQueries({ queryKey: ["applications"] });
+                                    queryClient.invalidateQueries({ queryKey: ["jobs"] });
+                                    pushToast({ title: "Application undone", tone: "success" });
+                                } catch {
+                                    pushToast({ title: "Undo failed", tone: "error" });
+                                }
+                            } else if (undoStack.length > 0) {
+                                const lastRejected = undoStack[undoStack.length - 1];
+                                setUndoStack(prev => prev.slice(0, -1));
+                                setSwipedJobs(prev => { const next = new Map(prev); next.delete(lastRejected); return next; });
+                            }
                         }}
-                        aria-label="Undo last skip"
+                        aria-label={lastAppliedForUndo && lastAppliedForUndo.until > Date.now() ? "Undo last apply" : "Undo last skip"}
                     >
                         <Undo2 className="w-5 h-5" />
                     </Button>

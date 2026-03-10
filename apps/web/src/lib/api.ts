@@ -407,10 +407,15 @@ export async function downloadFile(path: string, filename: string) {
 }
 
 /** POST JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login. */
-export async function apiPost<T = unknown>(path: string, body?: unknown): Promise<T> {
+export async function apiPost<T = unknown>(
+  path: string,
+  body?: unknown,
+  options?: Pick<ApiRequestOptions, "headers">
+): Promise<T> {
   const resp = await apiFetch(path, {
     method: "POST",
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    ...options,
   });
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);

@@ -94,14 +94,17 @@ export default function Login() {
 
   useEffect(() => {
     const error = searchParams.get('error');
+    const hint = searchParams.get('hint');
     if (error === 'auth_failed') {
-      setIsVerifying(false); // Stop loading on error
-      setFormError('Your magic link has expired or was already used. Please request a new one.');
-      // C4: Analytics Tracking - Track magic link verification failure
-      telemetry.track("magic_link_failed", { 
-        reason: "auth_failed",
-        error_type: error 
-      });
+      setIsVerifying(false);
+      const messages: Record<string, string> = {
+        expired: 'Your magic link has expired. Request a new one below.',
+        used: 'This link was already used. Request a new one below.',
+        invalid: 'This link is invalid or expired. Request a new one below.',
+        ip_mismatch: 'This link was opened from a different device or network. Request a new one from the same place you signed in.',
+      };
+      setFormError(messages[hint || ''] || 'Your magic link has expired or was already used. Please request a new one.');
+      telemetry.track("magic_link_failed", { reason: "auth_failed", hint: hint || "unknown" });
     }
   }, [searchParams]);
 
@@ -129,9 +132,13 @@ export default function Login() {
       if (result.retryAfter) setRateLimitCountdown(result.retryAfter);
       if (result.captchaRequired) {
         setShowCaptcha(true);
-        throw new Error(result.error || "Please complete the captcha verification");
+        const err = new Error(result.error || "Please complete the captcha verification") as Error & { status?: number };
+        err.status = result.status;
+        throw err;
       }
-      throw new Error(result.error || "Magic link failed");
+      const err = new Error(result.error || "Magic link failed") as Error & { status?: number };
+      err.status = result.status;
+      throw err;
     }
     return result.email;
   };
@@ -147,30 +154,28 @@ export default function Login() {
       const normalized = await requestMagicLink(email, safeReturnTo, captchaToken || undefined);
       setShowCaptcha(false);
       setCaptchaToken("");
-      // C4: Analytics Tracking - Track magic link events
-      telemetry.track("magic_link_sent", { 
-        email_domain: normalized?.split("@")[1] || email.split("@")[1],
-        usedCaptcha: !!captchaToken,
-        destination: safeReturnTo 
-      });
-      telemetry.track("login_magic_link_requested", { usedCaptcha: !!captchaToken });
+      telemetry.track("login_magic_link_requested", { usedCaptcha: !!captchaToken, destination: safeReturnTo });
       setSuccessState({ email: normalized || email.trim().toLowerCase() });
       pushToast({ title: "Check your inbox", tone: "success" });
     } catch (error) {
-      const err = error as Error;
-      let msg = "Something went wrong. Please try again.";
-      if (err.message) {
-        if (err.message.includes('rate limit') || err.message.includes('too many requests')) {
-          msg = "Too many requests. Please wait a few minutes before trying again.";
-        } else if (err.message.includes('captcha')) {
-          msg = "Please complete the captcha verification and try again.";
-        } else if (err.message.includes('invalid email')) {
-          msg = "Please enter a valid email address.";
-        } else if (err.message.includes('network') || err.message.includes('connection')) {
-          msg = "Network error. Please check your connection and try again.";
-        } else if (typeof err.message === 'string' && !err.message.includes('[object')) {
-          msg = err.message;
-        }
+      const err = error as Error & { status?: number };
+      let msg = "We couldn't send your magic link. Please check your email and try again.";
+      const m = err.message || "";
+      const status = err.status;
+      if (m.includes('rate limit') || m.includes('too many requests') || status === 429) {
+        msg = "Too many requests. Please wait a few minutes before trying again.";
+      } else if (m.includes('captcha') || m.includes('CAPTCHA')) {
+        msg = "Please complete the captcha verification and try again.";
+      } else if (m.includes('invalid email')) {
+        msg = "Please enter a valid email address.";
+      } else if (m.includes('network') || m.includes('connection') || m.includes('fetch')) {
+        msg = "Network error. Please check your connection and try again.";
+      } else if (status === 502 || status === 503 || m.includes('temporarily unavailable')) {
+        msg = "Email service temporarily unavailable. Please try again in a moment.";
+      } else if (status === 504 || m.includes('timeout')) {
+        msg = "Request timed out. Please try again.";
+      } else if (typeof m === 'string' && m.length > 0 && !m.includes('[object')) {
+        msg = m;
       }
       setFormError(msg);
     } finally {

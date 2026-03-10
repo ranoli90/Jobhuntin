@@ -42,7 +42,15 @@ const STEPS: OnboardingStep[] = [
   { id: "ready", title: "You're ready!", description: "Time to start job hunting" },
 ];
 
-export function useOnboarding() {
+export interface UseOnboardingOptions {
+  /** P1: Server-side progress for cross-device resume */
+  serverProgress?: { step: number; completed: string[] } | null;
+  /** Sync progress to server when step/completed changes */
+  syncToServer?: (step: number, completed: string[]) => void | Promise<void>;
+}
+
+export function useOnboarding(options: UseOnboardingOptions = {}) {
+  const { serverProgress, syncToServer } = options;
   const [isLoading, setIsLoading] = useState(true);
 
   // Parse localStorage and secure storage once on mount for all state initializers
@@ -81,17 +89,32 @@ export function useOnboarding() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [formData, setFormData] = useState<OnboardingFormData>({});
 
-  // Initialize async state loading
+  // Initialize async state loading; use server progress when no localStorage (cross-device)
   useEffect(() => {
+    let cancelled = false;
     loadInitialState().then(initialState => {
+      if (cancelled) return;
+      let step = 0;
+      let completed: string[] = [];
       if (initialState) {
-        setCurrentStep(initialState.currentStep);
-        setCompletedSteps(initialState.completedSteps);
-        setFormData(initialState.formData);
+        step = initialState.currentStep;
+        completed = initialState.completedSteps || [];
       }
+      // P1: Use server progress when no local state (e.g. new device) or server is ahead
+      if (serverProgress && serverProgress.step >= 0) {
+        if (!initialState || serverProgress.step > step) {
+          step = serverProgress.step;
+          completed = serverProgress.completed || [];
+          if (import.meta.env.DEV) console.log('[useOnboarding] Using server progress:', step, completed);
+        }
+      }
+      setCurrentStep(step);
+      setCompletedSteps(completed);
+      if (initialState) setFormData(initialState.formData);
       setIsLoading(false);
     });
-  }, [loadInitialState]);
+    return () => { cancelled = true; };
+  }, [loadInitialState, serverProgress?.step, serverProgress?.completed?.length]);
 
   const saveState = useCallback(async () => {
     try {
@@ -105,6 +128,15 @@ export function useOnboarding() {
       };
       if (import.meta.env.DEV) console.log('[useOnboarding] Saving non-PII state:', state);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+      // P1: Sync progress to server for cross-device resume
+      if (syncToServer) {
+        try {
+          await syncToServer(currentStep, completedSteps);
+        } catch (e) {
+          if (import.meta.env.DEV) console.warn('[useOnboarding] Server sync failed:', e);
+        }
+      }
 
       // Save PII data to secure storage
       if (Object.keys(pii).length > 0) {
@@ -124,7 +156,7 @@ export function useOnboarding() {
         if (import.meta.env.DEV) console.error('[useOnboarding] Failed to recover state:', recoveryError);
       }
     }
-  }, [currentStep, completedSteps, formData]);
+  }, [currentStep, completedSteps, formData, syncToServer]);
 
   const updateFormData = useCallback((updates: Partial<OnboardingState['formData']>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -181,9 +213,10 @@ export function useOnboarding() {
 
         const completedStepId = currentSteps[prev]?.id;
         if (completedStepId) {
-          telemetry.track("Onboarding Step Completed", {
-            step: completedStepId,
-            index: prev
+          telemetry.track("onboarding_step_completed", {
+            step_id: completedStepId,
+            step_number: prev + 1,
+            total_steps: totalSteps,
           });
           setCompletedSteps((prevCompleted) => {
             const newCompleted = new Set(prevCompleted);
@@ -214,7 +247,7 @@ export function useOnboarding() {
 
   useEffect(() => {
     saveState();
-  }, [currentStep, completedSteps, formData, saveState]);
+  }, [currentStep, completedSteps, formData, saveState, syncToServer]);
 
   const resetOnboarding = useCallback(async () => {
     setCurrentStep(0);
