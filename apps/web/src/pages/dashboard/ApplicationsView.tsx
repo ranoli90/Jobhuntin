@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getApiBase, getAuthHeaders } from "../../lib/api";
 import { pushToast } from "../../lib/toast";
 import { formatDate } from "../../lib/format";
 import { t, formatT, getLocale } from "../../lib/i18n";
@@ -101,7 +100,7 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
 export default function ApplicationsView() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { applications, isLoading, answerHold, snoozeApplication, isSubmitting } = useApplications();
+  const { applications, isLoading, answerHold, snoozeApplication, reviewApplication, withdrawApplication, isSubmitting } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const locale = getLocale();
@@ -139,23 +138,13 @@ export default function ApplicationsView() {
           navigate(`/app/applications/${appId}`);
           break;
         case 'reviewed':
-          await fetch(`${getApiBase()}/me/applications/${appId}/review`, {
-            method: 'POST',
-            headers: await getAuthHeaders(),
-          });
-          await queryClient.invalidateQueries({ queryKey: ["applications"] });
-          pushToast({ title: "Marked as reviewed", description: "Application has been marked as reviewed.", tone: "success" });
+          await reviewApplication(appId);
           break;
         case 'snooze':
           await snoozeApplication(appId, 24);
           break;
         case 'withdraw':
-          await fetch(`${getApiBase()}/me/applications/${appId}/withdraw`, {
-            method: 'POST',
-            headers: await getAuthHeaders(),
-          });
-          await queryClient.invalidateQueries({ queryKey: ["applications"] });
-          pushToast({ title: "Application withdrawn", description: "The application has been withdrawn.", tone: "info" });
+          await withdrawApplication(appId);
           break;
         default:
           if (import.meta.env.DEV) console.warn('Unknown action:', action);
@@ -163,7 +152,7 @@ export default function ApplicationsView() {
     } catch (error) {
       if (import.meta.env.DEV) console.error('Action failed:', error);
     }
-  }, [navigate, snoozeApplication, queryClient]);
+  }, [navigate, snoozeApplication, reviewApplication, withdrawApplication]);
 
   if (isLoading) {
     return (

@@ -63,7 +63,7 @@
 | 9 | High | IP binding off by default (`MAGIC_LINK_BIND_TO_IP=false`) | Config, `auth.py` |
 | 10 | ~~High~~ Fixed | auth_failed hint param (expired, used, invalid, ip_mismatch) | `auth.py`, `Login.tsx` |
 | 11 | ~~Medium~~ Fixed | Clearer verification loading (progress bar, aria) | `Login.tsx` |
-| 12 | Medium | No `magic_link_verified` analytics | Backend, frontend |
+| 12 | ~~Medium~~ Fixed | magic_link_verified tracked in AuthGuard on magic_verified=1 | `AuthGuard.tsx`, `auth.py` |
 
 ---
 
@@ -85,7 +85,7 @@
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
 | 13 | ~~High~~ Fixed | Server-side onboarding_step + sync | `user.py`, `useOnboarding`, `Onboarding.tsx` |
-| 14 | High | No onboarding funnel tracking (`onboarding_step_viewed`, `onboarding_step_completed`) | `Onboarding.tsx`, telemetry |
+| 14 | ~~High~~ Fixed | onboarding_step_viewed, onboarding_step_completed tracked | `Onboarding.tsx`, `useOnboarding.ts` |
 | 15 | ~~High~~ Fixed | Resume error messages improved (extract, parse, network) | `Onboarding.tsx` |
 | 16 | ~~Medium~~ Fixed | Progress saved indicator present | `Onboarding.tsx` |
 | 17 | ~~Medium~~ Fixed | Error handling: inline save-error banner + toast for API failures | `Onboarding.tsx`, step components |
@@ -289,8 +289,8 @@
 | 59 | Low | Worker LISTEN uses pool connection; 60s keep-alive sleep | `agent.py` |
 | 60 | ~~Low~~ Fixed | API sets tenant_id; mobile receives it in response | `user.py`, mobile |
 | 61 | ~~Low~~ Fixed | ACCEPT undo wired in JobsView (10s window) | `JobsView.tsx` |
-| 62 | Low | Dashboard.tsx and ApplicationsView both implement review/withdraw; consider shared hook |
-| 63 | Low | `useJobs` staleTime 5min; swiped jobs still in list until refetch |
+| 62 | ~~Low~~ Fixed | Shared reviewApplication, withdrawApplication in useApplications | `useApplications`, Dashboard, ApplicationsView |
+| 63 | ~~Low~~ Fixed | useJobs staleTime 2min; invalidate on swipe removes applied jobs | `useJobs`, `JobsView` |
 | 64 | Low | Social login (Google, LinkedIn) shows "Coming soon"; buttons disabled |
 
 ---

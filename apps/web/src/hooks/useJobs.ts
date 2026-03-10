@@ -89,7 +89,7 @@ export function useJobs(filters: JobFilters) {
     queryFn: ({ pageParam = 0 }) => fetchJobs(memoFilters, pageParam as number),
     getNextPageParam: (lastPage) => lastPage.next_offset ?? undefined,
     initialPageParam: 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // #63: 2 min - swiped jobs removed on invalidate; shorter stale for fresher feed
   });
 
   useEffect(() => {

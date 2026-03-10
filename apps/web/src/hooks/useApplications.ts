@@ -107,6 +107,43 @@ export function useApplications() {
     }
   }, [queryClient]);
 
+  // #62: Shared review/withdraw actions for Dashboard and ApplicationsView
+  const reviewApplication = useCallback(async (applicationId: string) => {
+    setSubmittingIds(prev => new Set(prev).add(applicationId));
+    try {
+      await apiPost(`me/applications/${applicationId}/review`, {});
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      pushToast({ title: "Marked as reviewed", description: "Application has been marked as reviewed.", tone: "success" });
+    } catch (err) {
+      pushToast({ title: "Failed to mark as reviewed", description: (err as Error).message, tone: "error" });
+      throw err;
+    } finally {
+      setSubmittingIds(prev => {
+        const next = new Set(prev);
+        next.delete(applicationId);
+        return next;
+      });
+    }
+  }, [queryClient]);
+
+  const withdrawApplication = useCallback(async (applicationId: string) => {
+    setSubmittingIds(prev => new Set(prev).add(applicationId));
+    try {
+      await apiPost(`me/applications/${applicationId}/withdraw`, {});
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      pushToast({ title: "Application withdrawn", description: "The application has been withdrawn.", tone: "info" });
+    } catch (err) {
+      pushToast({ title: "Withdraw failed", description: (err as Error).message, tone: "error" });
+      throw err;
+    } finally {
+      setSubmittingIds(prev => {
+        const next = new Set(prev);
+        next.delete(applicationId);
+        return next;
+      });
+    }
+  }, [queryClient]);
+
   return {
     applications,
     holdApplications,
@@ -122,5 +159,7 @@ export function useApplications() {
     refetch: query.refetch,
     answerHold,
     snoozeApplication,
+    reviewApplication,
+    withdrawApplication,
   } as const;
 }

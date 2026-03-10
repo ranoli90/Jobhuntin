@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiPost, apiGet, getApiBase, getAuthHeaders } from "../lib/api";
+import { apiPost, apiGet } from "../lib/api";
 import { pushToast } from "../lib/toast";
 import { fireSuccessConfetti } from "../lib/confetti";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
@@ -1607,7 +1607,7 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
 
 export function ApplicationsView() {
   const navigate = useNavigate();
-  const { applications, isLoading, answerHold, snoozeApplication, isSubmitting } = useApplications();
+  const { applications, isLoading, answerHold, snoozeApplication, reviewApplication, withdrawApplication, isSubmitting } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const locale = useMemo(() => getLocale(), []); // N-2: reactive locale
   // M-12: Client-side Load more (D16)
@@ -1628,7 +1628,7 @@ export function ApplicationsView() {
   // Reset when search changes
   useEffect(() => { setDisplayedCount(APPLICATIONS_PAGE_SIZE); }, [searchTerm]);
 
-  // Handle actions from the ActionsMenu
+  // Handle actions from the ActionsMenu (#62: shared hook)
   const handleApplicationAction = useCallback(async (action: string, appId: string) => {
     try {
       switch (action) {
@@ -1636,23 +1636,13 @@ export function ApplicationsView() {
           navigate(`/app/applications/${appId}`);
           break;
         case 'reviewed':
-          // Mark application as reviewed
-          await fetch(`${getApiBase()}/me/applications/${appId}/review`, {
-            method: 'POST',
-            headers: await getAuthHeaders(),
-          });
-          pushToast({ title: "Marked as reviewed", description: "Application has been marked as reviewed.", tone: "success" });
+          await reviewApplication(appId);
           break;
         case 'snooze':
           await snoozeApplication(appId, 24);
           break;
         case 'withdraw':
-          // Withdraw application
-          await fetch(`${getApiBase()}/me/applications/${appId}/withdraw`, {
-            method: 'POST',
-            headers: await getAuthHeaders(),
-          });
-          pushToast({ title: "Application withdrawn", description: "The application has been withdrawn.", tone: "info" });
+          await withdrawApplication(appId);
           break;
         default:
           if (import.meta.env.DEV) console.warn('Unknown action:', action);
@@ -1660,7 +1650,7 @@ export function ApplicationsView() {
     } catch (error) {
       if (import.meta.env.DEV) console.error('Action failed:', error);
     }
-  }, [navigate, snoozeApplication]);
+  }, [navigate, snoozeApplication, reviewApplication, withdrawApplication]);
 
   if (isLoading) {
     return (
