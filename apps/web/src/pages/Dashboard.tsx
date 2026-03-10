@@ -722,6 +722,7 @@ export default function Dashboard() {
         </div>
       </div>
       </motion.div>
+      </main>
     </ErrorBoundary>
   );
 }
@@ -1876,9 +1877,7 @@ export function ApplicationsView() {
           {t("dashboard.aiAgentMonitoring", locale)} <span className="font-black">{t("dashboard.aiAgentMonitoringNewListings", locale)}</span> {t("dashboard.aiAgentMonitoringSource", locale)}
         </p>
       </div>
-      </motion.div>
-      </main>
-    </ErrorBoundary>
+    </div>
   );
 }
 

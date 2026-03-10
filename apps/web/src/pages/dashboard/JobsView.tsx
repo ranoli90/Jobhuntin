@@ -84,13 +84,16 @@ export default function JobsView() {
                     setSwipeAnnouncement(`Skipped ${topJob?.title || "job"} at ${topJob?.company || "company"}`);
                 }
                 
-                // MEDIUM: Focus management after swipe - focus next card
-                setTimeout(() => {
+                // MEDIUM: Focus management after swipe - focus next card (with cleanup)
+                const focusTimeoutId = setTimeout(() => {
                     const nextCard = document.querySelector('[role="article"][tabindex="0"]') as HTMLElement;
                     if (nextCard) {
                         nextCard.focus();
                     }
                 }, 100);
+                // Store timeout ID for cleanup (handled by component cleanup)
+                if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+                focusTimeoutRef.current = focusTimeoutId;
             } catch (error) {
                 const err = error as Error & { status?: number; response?: { status?: number } };
                 const statusCode = err.status || err.response?.status;
@@ -105,11 +108,13 @@ export default function JobsView() {
                         tone: "error",
                         duration: 8000,
                     });
-                    // Navigate to billing page after a delay
-                    // Note: Using setTimeout is acceptable here as navigation will occur regardless
-                    // The timeout is short (2s) and component unmount won't prevent navigation
-                    setTimeout(() => {
-                        window.location.href = "/app/billing";
+                    // Navigate to billing page after a delay (with cleanup)
+                    if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
+                    navigationTimeoutRef.current = setTimeout(() => {
+                        // Check if component is still mounted before navigating
+                        if (navigationTimeoutRef.current) {
+                            window.location.href = "/app/billing";
+                        }
                     }, 2000);
                 } else {
                     // Rollback the optimistic update for other errors
@@ -205,12 +210,18 @@ export default function JobsView() {
     // MEDIUM: Add live region for screen reader announcements
     const [swipeAnnouncement, setSwipeAnnouncement] = React.useState<string>("");
     
-    // MEDIUM: Cleanup state on unmount to prevent memory leaks
+    // MEDIUM: Refs for timeout cleanup
+    const focusTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+    const navigationTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+    
+    // MEDIUM: Cleanup state and timeouts on unmount to prevent memory leaks
     React.useEffect(() => {
         return () => {
             setSwipedJobs(new Map());
             setSubmittingSet(new Set());
             setUndoStack([]);
+            if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+            if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
         };
     }, []);
 
@@ -258,7 +269,9 @@ export default function JobsView() {
             <section aria-labelledby="jobs-heading">
                 <h2 id="jobs-heading" className="sr-only">Job Cards</h2>
                 <div className="relative h-[450px] w-full max-w-md mx-auto" role="region" aria-label="Job card stack">
-                {visibleJobs.slice(0, 3).map((job, index) => (
+                {/* MEDIUM: Limit visible jobs to prevent memory issues with large lists */}
+                {/* Note: Only render top 3 for card stack UI, but limit underlying array */}
+                {visibleJobs.slice(0, Math.min(3, visibleJobs.length)).map((job, index) => (
                     <motion.div
                         key={job.id}
                         className="absolute w-full h-full"

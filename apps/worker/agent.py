@@ -534,10 +534,24 @@ async def fill_form_from_mapping(
             elif field_type == "textarea":
                 await el.fill(value)
             elif field_type == "file":
-                if resume_path and (value.lower().endswith(".pdf") or "resume" in (value or "").lower()):
-                    await el.set_input_files(resume_path)
+                # LOW: Handle different file types (resume, portfolio, documents)
+                file_path = None
+                value_lower = (value or "").lower()
+                
+                if "resume" in value_lower or value_lower.endswith(".pdf"):
+                    file_path = resume_path
+                elif "portfolio" in value_lower:
+                    file_path = await self._get_portfolio_path(ctx)
                 else:
-                    logger.warning("File upload skipped: no resume_path or unsupported type")
+                    # Try to get document by type hint from field label/name
+                    doc_type_hint = value_lower.split()[0] if value_lower else "document"
+                    file_path = await self._get_document_path(ctx, doc_type_hint)
+                
+                if file_path and os.path.exists(file_path):
+                    await el.set_input_files(file_path)
+                    logger.info("Uploaded file: %s for field %s", file_path, selector)
+                else:
+                    logger.warning("File upload skipped: no file path available for %s (value: %s)", selector, value)
             else:
                 await el.fill(value)
 
@@ -763,8 +777,8 @@ class FormAgent:
         while True:
             try:
                 # Use a dedicated connection for listening
-                conn = await asyncpg.connect(settings.database_url)
-                try:
+                # MEDIUM: Use connection from pool instead of direct connection to prevent leaks
+                async with self.pool.acquire() as conn:
                     await conn.add_listener(
                         "job_queue", lambda *args: self.wake_event.set()
                     )
@@ -772,14 +786,10 @@ class FormAgent:
                     # Reset retry count on successful connection
                     retry_count = 0
 
-                    # Keep connection open indefinitely
-                    while not conn.is_closed():
-                        await asyncio.sleep(60)  # Keep-alive check or just sleep
-                        # Optional: check connection health
-                        if conn.is_closed():
-                            break
-                finally:
-                    await conn.close()
+                    # Keep connection open indefinitely (connection is managed by pool)
+                    while True:
+                        await asyncio.sleep(60)  # Keep-alive check
+                        # Connection is automatically managed by pool context manager
             except Exception as e:
                 retry_count += 1
                 # Exponential backoff with jitter
@@ -927,10 +937,12 @@ class FormAgent:
             # Clean up downloaded resume temp file
             import os
 
+            # MEDIUM: Clean up temporary files to prevent resource leaks
             resume_path = ctx.get("resume_path")
             if resume_path and os.path.exists(resume_path):
                 try:
                     os.unlink(resume_path)
+                    logger.debug("Cleaned up resume temp file: %s", resume_path)
                 except OSError:
                     pass
 
@@ -1284,24 +1296,116 @@ class FormAgent:
 
         try:
             fd, path = tempfile.mkstemp(suffix=".txt", prefix="cover_letter_")
-            with open(fd, "w", encoding="utf-8") as f:
-                f.write(content)
-            return path
+            try:
+                with open(fd, "w", encoding="utf-8") as f:
+                    f.write(content)
+                return path
+            except Exception as e:
+                # MEDIUM: Clean up file handle on error
+                try:
+                    os.close(fd)
+                    if os.path.exists(path):
+                        os.unlink(path)
+                except:
+                    pass
+                raise
         except OSError as e:
             logger.warning("Failed to write cover letter temp file: %s", e)
             return None
 
     async def _get_portfolio_path(self, ctx: dict) -> Optional[str]:
-        """Get portfolio file path from context."""
-        # TODO: Implement portfolio file handling
-        # For now, return None
-        return None
+        """Get portfolio file path from context.
+        
+        LOW: Retrieves portfolio from user profile or storage.
+        """
+        try:
+            user_id = ctx.get("user_id")
+            if not user_id:
+                return None
+            
+            # Try to get portfolio from profile data
+            profile_data = ctx.get("profile_data", {})
+            portfolio_url = profile_data.get("portfolio_url") or profile_data.get("portfolio")
+            
+            if portfolio_url:
+                # Download portfolio file if it's a URL
+                if portfolio_url.startswith("http://") or portfolio_url.startswith("https://"):
+                    import tempfile
+                    import httpx
+                    
+                    async with httpx.AsyncClient() as client:
+                        resp = await client.get(portfolio_url, timeout=30.0)
+                        resp.raise_for_status()
+                        
+                        # Save to temp file
+                        fd, path = tempfile.mkstemp(suffix=".pdf", prefix="portfolio_")
+                        with open(fd, "wb") as f:
+                            f.write(resp.content)
+                        return path
+                elif os.path.exists(portfolio_url):
+                    return portfolio_url
+            
+            return None
+        except Exception as e:
+            logger.warning("Failed to get portfolio path: %s", e)
+            return None
 
     async def _get_document_path(self, ctx: dict, doc_type: str) -> Optional[str]:
-        """Get document file path for other document types."""
-        # TODO: Implement other document type handling
-        # For now, return None
-        return None
+        """Get document file path for other document types.
+        
+        LOW: Retrieves documents (cover letters, certificates, etc.) from user profile or storage.
+        
+        Args:
+            ctx: Application context
+            doc_type: Document type (cover_letter, certificate, transcript, etc.)
+        """
+        try:
+            user_id = ctx.get("user_id")
+            if not user_id:
+                return None
+            
+            # Try to get document from profile data or user documents
+            profile_data = ctx.get("profile_data", {})
+            documents = profile_data.get("documents", [])
+            
+            # Find document by type
+            for doc in documents:
+                if isinstance(doc, dict):
+                    doc_type_match = doc.get("type", "").lower()
+                    doc_url = doc.get("url") or doc.get("file_url")
+                    
+                    if doc_type_match == doc_type.lower() and doc_url:
+                        # Download document if it's a URL
+                        if doc_url.startswith("http://") or doc_url.startswith("https://"):
+                            import tempfile
+                            import httpx
+                            
+                            async with httpx.AsyncClient() as client:
+                                resp = await client.get(doc_url, timeout=30.0)
+                                resp.raise_for_status()
+                                
+                                # Determine file extension from content-type or URL
+                                ext = ".pdf"  # Default
+                                content_type = resp.headers.get("content-type", "")
+                                if "pdf" in content_type:
+                                    ext = ".pdf"
+                                elif "docx" in content_type or doc_url.endswith(".docx"):
+                                    ext = ".docx"
+                                elif "doc" in content_type or doc_url.endswith(".doc"):
+                                    ext = ".doc"
+                                
+                                # Save to temp file
+                                fd, path = tempfile.mkstemp(suffix=ext, prefix=f"{doc_type}_")
+                                with open(fd, "wb") as f:
+                                    f.write(resp.content)
+                                return path
+                        elif os.path.exists(doc_url):
+                            return doc_url
+            
+            return None
+        except Exception as e:
+            logger.warning("Failed to get document path for type %s: %s", doc_type, e)
+            return None
 
     async def capture_screenshot(
         self, page: Page, ctx: dict, stage: str = "unknown", success: bool = True
@@ -1321,23 +1425,39 @@ class FormAgent:
             screenshot_url = f"/screenshots/{filename}"  # Fallback
             try:
                 from packages.backend.domain.resume import upload_to_supabase_storage
+                from shared.storage import get_storage_service
                 
+                # Try Supabase storage first
                 storage_path = f"{app_id}/{filename}"
-                uploaded_path = await upload_to_supabase_storage(
-                    bucket="screenshots",
-                    path=storage_path,
-                    data=screenshot_bytes,
-                    content_type="image/png"
-                )
-                # Generate signed URL for access (if function exists)
-                # For now, use the storage path
-                screenshot_url = f"/storage/{uploaded_path}"
-                logger.info("Screenshot stored successfully: %s", uploaded_path)
-            except ImportError:
-                logger.warning("Screenshot storage not available (resume module not found)")
+                try:
+                    uploaded_path = await upload_to_supabase_storage(
+                        bucket="screenshots",
+                        path=storage_path,
+                        data=screenshot_bytes,
+                        content_type="image/png"
+                    )
+                    screenshot_url = f"/storage/{uploaded_path}"
+                    logger.info("Screenshot stored successfully: %s", uploaded_path)
+                except Exception as supabase_error:
+                    # Fallback to generic storage service
+                    logger.warning("Supabase storage failed, trying generic storage: %s", supabase_error)
+                    storage_service = get_storage_service()
+                    if storage_service:
+                        # Use storage service if available
+                        screenshot_url = await storage_service.upload(
+                            bucket="screenshots",
+                            path=storage_path,
+                            data=screenshot_bytes,
+                            content_type="image/png"
+                        )
+                        logger.info("Screenshot stored via storage service: %s", screenshot_url)
+                    else:
+                        raise Exception("No storage service available")
+            except ImportError as import_error:
+                logger.warning("Screenshot storage not available: %s", import_error)
             except Exception as storage_error:
                 logger.error("Failed to store screenshot: %s", storage_error)
-                # Continue with fallback URL
+                # Continue with fallback URL - screenshot metadata still recorded
 
             # Record screenshot metadata
             await self._record_screenshot_metadata(

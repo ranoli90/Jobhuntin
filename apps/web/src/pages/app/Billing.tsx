@@ -251,6 +251,38 @@ export default function Billing() {
           </div>
 
           <div className="space-y-6">
+            {/* LOW: Payment Methods Section */}
+            <Card className="p-6" shadow="sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Payment Methods</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    pushToast({ title: "Payment methods feature coming soon", tone: "info" });
+                  }}
+                >
+                  Add Payment Method
+                </Button>
+              </div>
+              <div className="text-center py-8 text-slate-500">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No payment methods on file. Add a payment method to enable automatic billing.</p>
+              </div>
+            </Card>
+
+            {/* LOW: Usage Charts Section */}
+            <Card className="p-6" shadow="sm">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Usage Over Time</h3>
+              <div className="h-48 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+                <div className="text-center text-slate-500">
+                  <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Usage charts coming soon</p>
+                  <p className="text-xs mt-1">Track your application usage trends over time</p>
+                </div>
+              </div>
+            </Card>
+
             <Card className="bg-slate-900 dark:bg-slate-950 text-white p-8 border-none overflow-hidden relative" shadow="lift">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary-500/20 rounded-full blur-3xl" />
               <h3 className="text-xl font-bold mb-4 relative z-10">Subscription</h3>

@@ -111,13 +111,15 @@ async def lifespan(app: FastAPI):
         logger.warning("JWT_SECRET not set. Authentication will fail.")
 
     await _pool_manager.initialize()
-    
+
     # H2: IP Binding - Warn if disabled in production (security recommendation)
     if _settings.env == Environment.PROD and not _settings.magic_link_bind_to_ip:
         logger.warning(
             "MAGIC_LINK_BIND_TO_IP is disabled in production. "
-            "This allows magic links to be used from any IP address, increasing the risk of token theft. "
-            "Consider enabling IP binding by setting MAGIC_LINK_BIND_TO_IP=true for enhanced security."
+            "This allows magic links to be used from any IP address, "
+            "increasing the risk of token theft. "
+            "Consider enabling IP binding by setting "
+            "MAGIC_LINK_BIND_TO_IP=true for enhanced security."
         )
     
     # Initialize Redis (optional, but good to fail fast if config is bad)
@@ -1356,15 +1358,29 @@ async def save_user_skills(
                     )
                     raise
 
-            # Update profile completeness with proper capping at 100%
-            await conn.execute(
-                """UPDATE public.users SET profile_completeness =
-                   LEAST(100, COALESCE(profile_completeness, 0) +
-                   CASE WHEN (SELECT COUNT(*) FROM public.user_skills WHERE user_id = $1) >= 3
-                        THEN 20 ELSE 10 END)
-                   WHERE id = $1""",
-                user_id,
-            )
+            # MEDIUM: Use centralized calculate_completeness() instead of SQL increments
+            # MEDIUM: Add null check for user_id
+            if not user_id:
+                logger.warning("Cannot update completeness: user_id is None")
+                return
+            
+            from packages.backend.domain.profile_assembly import assemble_profile
+            from packages.backend.domain.deep_profile import calculate_completeness
+            
+            deep_profile = await assemble_profile(conn, user_id)
+            if deep_profile:
+                completeness_score = calculate_completeness(deep_profile)
+                # Verify user exists before updating
+                user_exists = await conn.fetchval(
+                    "SELECT EXISTS(SELECT 1 FROM public.users WHERE id = $1)",
+                    user_id,
+                )
+                if user_exists:
+                    await conn.execute(
+                        "UPDATE public.users SET profile_completeness = $1 WHERE id = $2",
+                        completeness_score,
+                        user_id,
+                    )
 
     logger.info(
         "[SKILLS] Skills saved successfully",
@@ -1477,14 +1493,30 @@ async def save_work_style(
             body.career_trajectory,
         )
 
-        # Update profile completeness only on first work style save
-        if not had_work_style:
-            await conn.execute(
-                """UPDATE public.users SET profile_completeness =
-                   LEAST(100, COALESCE(profile_completeness, 0) + 20)
-                   WHERE id = $1""",
+        # MEDIUM: Use centralized calculate_completeness() instead of SQL increments
+        # Recalculate completeness after work style is saved
+        # MEDIUM: Add null check for user_id
+        if not user_id:
+            logger.warning("Cannot update completeness: user_id is None")
+            return
+        
+        from packages.backend.domain.profile_assembly import assemble_profile
+        from packages.backend.domain.deep_profile import calculate_completeness
+        
+        deep_profile = await assemble_profile(conn, user_id)
+        if deep_profile:
+            completeness_score = calculate_completeness(deep_profile)
+            # Verify user exists before updating
+            user_exists = await conn.fetchval(
+                "SELECT EXISTS(SELECT 1 FROM public.users WHERE id = $1)",
                 user_id,
             )
+            if user_exists:
+                await conn.execute(
+                    "UPDATE public.users SET profile_completeness = $1 WHERE id = $2",
+                    completeness_score,
+                    user_id,
+                )
 
         # Sync work_style to profile_data JSONB so the scoring engine can read it
         existing = await conn.fetchrow(

@@ -714,10 +714,19 @@ async def _send_magic_link_email(
 
     for attempt in range(max_retries):
         try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.post(
-                    "https://api.resend.com/emails", headers=headers, json=payload
-                )
+            # MEDIUM: Use circuit breaker for email service calls
+            from shared.circuit_breaker import get_email_breaker
+            
+            email_breaker = get_email_breaker()
+            
+            async def _send_email():
+                async with httpx.AsyncClient(timeout=10) as client:
+                    resp = await client.post(
+                        "https://api.resend.com/emails", headers=headers, json=payload
+                    )
+                    return resp
+            
+            resp = await email_breaker.call(_send_email)
 
             if resp.status_code in (200, 201):
                 # Success - log and return
@@ -934,7 +943,7 @@ async def verify_magic_link(
             "SELECT tenant_id FROM public.tenant_members WHERE user_id = $1 LIMIT 1",
             user_id,
         )
-        if tenant_row:
+        if tenant_row and tenant_row.get("tenant_id"):
             tenant_id = str(tenant_row["tenant_id"]) if tenant_row["tenant_id"] else None
     
     # Create session with device fingerprinting

@@ -1,12 +1,13 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { pushToast } from "../../lib/toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "../../lib/api";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
-import { ArrowLeft, Briefcase, Clock, CheckCircle, XCircle, AlertCircle, MessageSquare, FileText, History } from "lucide-react";
+import { ArrowLeft, Briefcase, Clock, CheckCircle, XCircle, AlertCircle, MessageSquare, FileText, History, Plus } from "lucide-react";
 import { formatDate } from "../../lib/format";
 import { getLocale } from "../../lib/i18n";
 import { telemetry } from "../../lib/telemetry";
@@ -202,7 +203,7 @@ export default function ApplicationDetailPage() {
         </Card>
       )}
 
-      {/* HIGH: Display Application Events Timeline */}
+      {/* LOW: Display Application Events Timeline with visual timeline */}
       {data.events && data.events.length > 0 && (
         <Card className="p-6" shadow="sm">
           <div className="flex items-center gap-2 mb-4">
@@ -212,7 +213,8 @@ export default function ApplicationDetailPage() {
               {data.events.length} {data.events.length === 1 ? 'event' : 'events'}
             </Badge>
           </div>
-          <div className="space-y-4">
+          {/* Timeline visualization */}
+          <div className="relative pl-8 border-l-2 border-slate-200 dark:border-slate-700">
             {data.events
               .sort((a, b) => {
                 const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -236,7 +238,9 @@ export default function ApplicationDetailPage() {
                 };
                 
                 return (
-                  <div key={event.id || idx} className="flex items-start gap-4 pb-4 border-b border-slate-200 dark:border-slate-700 last:border-0">
+                  <div key={event.id || idx} className="relative flex items-start gap-4 pb-6 last:pb-0">
+                    {/* Timeline dot */}
+                    <div className="absolute -left-[21px] w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-slate-400 dark:bg-slate-600 z-10" />
                     <div className="flex-shrink-0 mt-1">
                       {getEventIcon()}
                     </div>
@@ -263,6 +267,31 @@ export default function ApplicationDetailPage() {
           </div>
         </Card>
       )}
+
+      {/* LOW: Notes/Annotations Section */}
+      <Card className="p-6" shadow="sm">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-slate-600" />
+            <h2 className="text-lg font-bold text-slate-900">Notes</h2>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              // TODO: Implement notes creation
+              pushToast({ title: "Notes feature coming soon", tone: "info" });
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Note
+          </Button>
+        </div>
+        <div className="text-center py-8 text-slate-500">
+          <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+          <p>No notes yet. Add notes to track your thoughts about this application.</p>
+        </div>
+      </Card>
 
       {/* Empty states for missing data */}
       {(!data.inputs || data.inputs.length === 0) && (!data.events || data.events.length === 0) && (

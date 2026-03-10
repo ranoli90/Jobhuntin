@@ -25,7 +25,7 @@ import httpx
 from pydantic import BaseModel, ValidationError
 
 from backend.domain.llm_monitoring import get_llm_monitor
-from shared.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
+from shared.circuit_breaker import CircuitBreakerOpenError, get_openrouter_breaker
 from shared.config import Settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
@@ -63,7 +63,7 @@ class LLMClient:
         self.max_tokens = settings.llm_max_tokens
         self.retry_count = settings.llm_retry_count
         self.timeout = settings.llm_timeout_seconds
-        self._circuit_breaker = get_circuit_breaker("llm")
+        self._circuit_breaker = get_openrouter_breaker()
 
         # Parse fallback models from comma-separated string
         fallback_str = getattr(settings, "llm_fallback_models", "") or ""
@@ -263,15 +263,18 @@ class LLMClient:
         
         Returns the full API response dict (including usage field for token counts).
         """
+        # MEDIUM: Use circuit breaker to protect against cascading failures
         try:
-            async with self._circuit_breaker:
-                data = await self._make_http_request(payload)
-                # Return full response to preserve usage field for token tracking
-                return data
+            data = await self._circuit_breaker.call(
+                self._make_http_request,
+                payload
+            )
+            # Return full response to preserve usage field for token tracking
+            return data
         except CircuitBreakerOpenError as exc:
             incr("llm.circuit_breaker.open", {})
             raise LLMError(
-                f"LLM service unavailable (circuit breaker open). Retry in {exc.retry_after:.0f}s"
+                f"LLM service unavailable (circuit breaker open). Service is failing."
             ) from exc
 
     async def _make_http_request(self, payload: dict) -> dict:

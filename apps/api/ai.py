@@ -701,11 +701,14 @@ async def semantic_match_job(
     service = get_matching_service()
 
     try:
-        result = await service.compute_match_score(
-            profile=sanitized_profile,
-            job=sanitized_job,
-            dealbreakers=dealbreakers,
-        )
+        # HIGH: Pass db connection for embedding cache
+        async with db.acquire() as conn:
+            result = await service.compute_match_score(
+                profile=sanitized_profile,
+                job=sanitized_job,
+                dealbreakers=dealbreakers,
+                db_conn=conn,
+            )
 
         logger.info(
             "Semantic match computed",
@@ -806,15 +809,18 @@ async def semantic_match_batch(
     results: list[BatchSemanticMatchResult] = []
     failed_items: list[dict[str, str]] = []
 
-    for job in request.jobs[:20]:
-        sanitized_job = sanitize_dict_input(job)
-        job_id = str(job.get("id", ""))
-        try:
-            result = await service.compute_match_score(
-                profile=sanitized_profile,
-                job=sanitized_job,
-                dealbreakers=dealbreakers,
-            )
+    # HIGH: Acquire db connection once for embedding cache in batch processing
+    async with db.acquire() as conn:
+        for job in request.jobs[:20]:
+            sanitized_job = sanitize_dict_input(job)
+            job_id = str(job.get("id", ""))
+            try:
+                result = await service.compute_match_score(
+                    profile=sanitized_profile,
+                    job=sanitized_job,
+                    dealbreakers=dealbreakers,
+                    db_conn=conn,
+                )
             results.append(
                 BatchSemanticMatchResult(
                     job_id=result.job_id,

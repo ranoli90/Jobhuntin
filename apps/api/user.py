@@ -235,19 +235,15 @@ async def list_applications(
     next_offset = offset + limit if has_more else None
     prev_offset = max(0, offset - limit) if offset > 0 else None
 
-    return {
-        "applications": out,
-        "pagination": {
-            "total_count": total_count,
-            "limit": limit,
-            "offset": offset,
-            "has_more": has_more,
-            "next_offset": next_offset,
-            "prev_offset": prev_offset,
-            "total_pages": (total_count + limit - 1) // limit,
-            "current_page": (offset // limit) + 1,
-        },
-    }
+    # MEDIUM: Use standardized pagination format
+    from packages.backend.domain.pagination import create_pagination_meta, PaginatedResponse
+    
+    pagination_meta = create_pagination_meta(total_count, limit, offset)
+    
+    return PaginatedResponse(
+        items=out,
+        pagination=pagination_meta,
+    ).model_dump()
 
 
 # ---------------------------------------------------------------------------
@@ -370,6 +366,10 @@ async def create_application(
                 },
             }
 
+        # MEDIUM: Add null check for user-provided job_id
+        if not body.job_id:
+            raise HTTPException(status_code=400, detail="Job ID is required")
+        
         job = await JobRepo.get_by_id(conn, body.job_id)
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
